@@ -1,0 +1,52 @@
+[{
+id: 0,
+Keywords: [
+{ id : 0 , d : "keyword1", p : 0 }
+{ id : 1 , d : "keyword2", p : 0 }
+{ id : 2 , d : "keyword3", p : 0 }
+{ id : 3 , d : "keyword4", p : 1 }
+],
+GeographicalLocation :{
+type: "Country",
+name: "United States of America",
+AreaPolygon: [ 
+{ 1, 1 },
+{ 1, 2 }, 
+{ 2, 2 },
+{ 2, 1 },
+{ 1, 1 }]
+},
+Checksum: 123123123132123,
+thumbnailBlob: "########################",
+fileUrl: "http://aadyaverma.com/"
+},
+
+{
+id: 1,
+Keywords: [],
+GeographicalLocation :{
+type: "Country",
+name: "United States of America",
+AreaPolygon: []
+},
+Checksum: 123123123132123,
+thumbnailBlob: "########################",
+fileUrl: "http://aadyaverma.com/"
+},
+
+{
+id: 2,
+Keywords: null,
+GeographicalLocation : null,
+Checksum: 123123123132123,
+thumbnailBlob: "########################",
+fileUrl: "http://aadyaverma.com/"
+},
+
+{
+id: 3,
+Checksum: 123123123132123,
+thumbnailBlob: "########################",
+fileUrl: "http://aadyaverma.com/"
+}
+}

@@ -1,0 +1,157 @@
+
+default {
+    NativeHandlerData = 'nullptr'
+}
+
+i16 {
+    NativeType = 'short'
+}
+
+i32 {
+    NativeType = 'int'
+}
+
+i64 {
+    NativeType = 'int'
+}
+
+double {
+    NativeType = 'double'
+}
+
+bool {
+    NativeType = 'bool'
+}
+
+string {
+    NativeType = 'shared_string'
+}
+
+wstring {
+    NativeType = 'shared_wstring'
+}
+
+timestamp {
+    NativeType = 'timestamp'
+}
+pathinfile string {
+    NativeHandler = 'InputFileHandler'
+}
+
+pathoutfile string {
+    NativeHandler = 'OutputFileHandler'
+}
+
+pathindir string {
+    NativeHandler = 'InputDirectoryHandler'
+}
+
+pathoutdir string {
+    NativeHandler = 'OutputDirectoryHandler'
+}
+
+short i16 { }
+
+int i32 { }
+
+boolean bool { }
+
+default_struct {
+    NativeType = '%Struct:Name%::Data'
+}
+
+default_interface {
+    NativeType = 'long'
+}
+
+default_typedef {
+    NativeType = '%Name%'
+}
+
+list<type> {
+    NativeType = 'std::vector<%type:NativeType%>'
+}
+
+tree<type> list {
+    NativeType = 'tree<%type:NativeType%>'
+}
+
+uuidref<type> {
+    NativeType = '::UuidBasedId<%type:NativeType%>',
+    DefaultValue = '::UuidBasedId<%type:NativeType%>::Create()'
+}
+
+map<key,value> {
+    NativeType = 'std::map<%key:NativeType%, %value:NativeType%>'
+}
+
+default_union default_struct {
+    NativeType = '%Name%::Union'
+}
+
+default_functionargs default_struct {}
+
+databaseowner<owner, object> {
+    NativeType = '::Database2::OwnerT<%owner:NativeType%,%object:NativeType%>'
+}
+
+databaseobject<owner, object> {
+    NativeType = '::Database2::ObjectT<%owner:NativeType%,%object:NativeType%>'
+}
+
+databasetype<object> {
+    NativeType = '::Database2::DatabaseT<%object:NativeType%>'
+}
+
+databaseref<object> {
+    NativeType = '::Database2::ObjectRefT<%object:NativeType%>'
+}
+db_encrypted_unique_wstring {
+    NativeType = '::Database2::ChildRef<Database2::WideString>'
+}
+uuidbasedobject<object> {
+    NativeType = '::UuidObjectT<%object:NativeType%>'
+}
+
+encryptedobject<object> {
+    NativeType = '::Database2::EncryptedT<%object:NativeType%>'
+}
+
+timestamped<object> {
+    NativeType = '::TimestampedT<%object:NativeType%>'
+}
+
+relationship database { owner = databaseowner, object = databaseobject }
+
+/*
+default {
+    SqliteDataType = "",
+    SqliteTableName   = "",
+    SqliteTableCreate = "",
+    SqliteTableInsert = "",
+    SqliteTableQuery  = ""
+}
+i16 { SqliteDataType = 'INTEGER' }
+i32 { SqliteDataType = 'INTEGER' }
+i64 { SqliteDataType = 'INTEGER' }
+double { SqliteDataType = 'REAL' }
+bool { SqliteDataType = 'BOOLEAN' }
+string { SqliteDataType = 'TEXT' }
+struct {
+    SqliteDataType    = 'INTEGER',
+    SqliteTableName   = "%Name%",
+    SqliteTableCreate = 'CreateSql_%Name%',
+    SqliteTableInsert = 'InsertSql_%Name%',
+    SqliteTableQuery  = 'QuerySql_%Name%'
+}
+
+]]></Types>
+<Containers><![CDATA[
+list<type> {
+    SqliteDataType    = 'INTEGER',
+    SqliteTableName   = "list_%type:Name%",
+    SqliteTableCreate = "CREATE TABLE `list_%type:Name%` (`setId` INTEGER, `index` INTEGER, `data` %type:SqliteDataType%, `ID` INTEGER PRIMARY KEY);",
+    SqliteTableInsert = "INSERT INTO `list_%type:Name%` values ('%%setId%%', '%%index%%', '%%data%%', NULL )",
+    SqliteTableQuery  = "SELECT  FROM `list_%type:Name%` where ( setId='%%ID%%')"
+}
+*/
