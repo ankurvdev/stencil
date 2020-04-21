@@ -41,7 +41,7 @@ auto ParseArg(std::string_view arg)
 
     return std::make_tuple(std::move(resname), std::move(src), FilePathToSym(src));
 }
-int main(int argc, char** argv)
+int main(int argc, char** argv) try
 {
     if (argc < 3)
     {
@@ -123,4 +123,9 @@ int main(int argc, char** argv)
 
     ofs.close();
     return EXIT_SUCCESS;
+}
+catch (std::exception const& ex)
+{
+    std::cerr << ex.what() << std::endl;
+    return -1;
 }

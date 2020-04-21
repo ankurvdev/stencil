@@ -1,3 +1,10 @@
+if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/EmbedResourceConfig.cmake)
+    include(${CMAKE_CURRENT_LIST_DIR}/EmbedResourceConfig.cmake)
+endif()
+if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/LexYaccConfig.cmake)
+    include(${CMAKE_CURRENT_LIST_DIR}/LexYaccConfig.cmake)
+endif()
+
 function(build_stencil workdir)
     set(workdir ${CMAKE_CURRENT_BINARY_DIR}/buildtool_stencil)
     set(srcdir ${workdir}/stencil)

@@ -1,21 +1,3 @@
-# Lex and Yacc
-function(myexec workdir)
-    execute_process(
-        COMMAND ${ARGN}
-        WORKING_DIRECTORY ${workdir}
-        RESULT_VARIABLE result
-        ERROR_VARIABLE error
-        OUTPUT_VARIABLE output)
-    if(NOT result STREQUAL 0)
-        message(FATAL_ERROR
-        "Error Executing Command : ${ARGN}\n"
-        "WorkDir: ${workdir}\n"
-        "Result: ${result} \n"
-        "Error: ${error} \n"
-        "Output: ${output}")
-    endif()
-endfunction()
-
 function(download_winflexbison)
     set(WINFLEXBISON_URL  "https://github.com/lexxmark/winflexbison/releases/download/v2.5.22/win_flex_bison-2.5.22.zip")
     set(localdir ${CMAKE_CURRENT_BINARY_DIR}/winflexbison)
@@ -31,9 +13,9 @@ function(download_winflexbison)
     if (NOT EXISTS ${localdir}/win_bison.exe)
         message(FATAL_ERROR "Cannot find win flex bison in extracted zip")
     endif()
-    SET(FLEX_EXECUTABLE     ${localdir}/win_flex.exe CACHE PATH "Flex executable" FORCE)
-    SET(BISON_EXECUTABLE    ${localdir}/win_bison.exe CACHE PATH "Bison executable" FORCE)
-    SET(WINFLEXBISON_DIR    ${localdir} CACHE PATH "win flex bison" FORCE)
+    set(FLEX_EXECUTABLE     ${localdir}/win_flex.exe    CACHE PATH "Flex executable"    FORCE)
+    set(BISON_EXECUTABLE    ${localdir}/win_bison.exe   CACHE PATH "Bison executable"   FORCE)
+    set(WINFLEXBISON_DIR    ${localdir}                 CACHE PATH "win flex bison"     FORCE)
 endfunction()
 
 function(build_bison)
@@ -57,19 +39,32 @@ function(build_bison)
     find_program(BISON_EXECUTABLE bison HINTS ${builddir}/bin)
 endfunction()
 
-
 function(find_bison)
     if (EXISTS ${BISON_EXECUTABLE})
         return()
     endif()
-    if (WIN32 and EXISTS ${WINFLEXBISON_DIR} and EXISTS ${WINFLEXBISON_DIR}/win_bison.exe)
-        SET(BISON_EXECUTABLE  ${WINFLEXBISON_DIR}/win_bison.exe CACHE PATH  "Flex executable" FORCE)
-        return()
+      if (DEFINED WINFLEXBISON_DIR) 
+        if ((EXISTS ${WINFLEXBISON_DIR}) and (EXISTS ${WINFLEXBISON_DIR}/win_bison.exe))
+            set(BISON_EXECUTABLE ${WINFLEXBISON_DIR}/win_bison.exe CACHE PATH  "Bison executable" FORCE)
+            return()
+        endif()
     endif()
     find_package(Bison QUIET)
     if (EXISTS ${BISON_EXECUTABLE})
         return()
     endif()
+    if (WIN32)
+        find_program(BISON_EXECUTABLE win_bison)
+        if (EXISTS ${BISON_EXECUTABLE})
+            return()
+        endif()
+    else()
+        find_program(BISON_EXECUTABLE bison)
+        if (EXISTS ${BISON_EXECUTABLE})
+            return()
+        endif()
+    endif()
+    
     if (WIN32)
         download_winflexbison()
     else()
@@ -77,56 +72,74 @@ function(find_bison)
     endif()
 endfunction()
 
+
 function(find_flex)
-    if (EXISTS ${FLEX_EXECUTABLE})
+    if ((EXISTS ${FLEX_INCLUDE_DIR}) AND (EXISTS ${FLEX_EXECUTABLE}))
         return()
     endif()
 
-    if (EXISTS ${WINFLEXBISON_DIR}/win_flex.exe)
-        SET(FLEX_EXECUTABLE  ${WINFLEXBISON_DIR}/win_flex.exe CACHE PATH "Flex executable" FORCE)
-        return()
+    if (DEFINED WINFLEXBISON_DIR) 
+        if ((EXISTS ${WINFLEXBISON_DIR}) and (EXISTS ${WINFLEXBISON_DIR}/win_flex.exe))
+            set(FLEX_EXECUTABLE ${WINFLEXBISON_DIR}/win_flex.exe CACHE PATH  "Flex executable" FORCE)
+            return()
+        endif()
     endif()
 
     find_package(FLEX QUIET)
-    if (EXISTS ${FLEX_EXECUTABLE})
+    if ((EXISTS ${FLEX_INCLUDE_DIR}) AND (EXISTS ${FLEX_EXECUTABLE}))
         return()
     endif()
+
+    if (WIN32)
+        find_program(FLEX_EXECUTABLE win_flex)
+        if (EXISTS ${FLEX_EXECUTABLE})
+            return()
+        endif()
+    else()
+        message(FATAL_ERROR "cannot find flex ${FLEX_EXECUTABLE} ${FLEX_INCLUDE_DIR}")
+    endif()
+    
     if (WIN32)
         download_winflexbison()
     else()
-        message(FATAL_ERROR "Cannot Find Flex")
+        message(FATAL_ERROR "Cannot Find Bison")
     endif()
 endfunction()
 
-set(LEXYACC_CPP ${CMAKE_CURRENT_LIST_DIR}/LexYacc.cpp)
+set(LexYacc_DIR ${CMAKE_CURRENT_LIST_DIR} CACHE PATH "LexYacc Dir")
+if(NOT EXISTS ${LexYacc_DIR}/LexYacc.cpp)
+    message(FATAL_ERROR "Cannot find Lex Yacc Source code")
+endif()
 
 function(find_or_create_lexyacc)
     if (EXISTS ${LEXYACC_BINARY})
         return()
     endif()
-    set(outdir ${CMAKE_CURRENT_BINARY_DIR}/buildtool_lexyacc)
-    file(MAKE_DIRECTORY ${outdir})
-    file(WRITE ${outdir}/CMakeLists.txt "project(lexyacc)\nset(CMAKE_CXX_STANDARD 17)\nadd_executable(lexyacc ${LEXYACC_CPP})\ninstall(TARGETS lexyacc)")
-    set(CMD ${CMAKE_COMMAND})
-    list(APPEND CMD -DCMAKE_INSTALL_PREFIX=${outdir})
-    list(APPEND CMD ".")
-    myexec(${outdir} ${CMD})
-    myexec(${outdir} ${CMAKE_COMMAND} --build . -j --target install)
-    find_program(exe lexyacc HINTS ${outdir} ${outdir}/bin)
-    if (NOT EXISTS ${exe})
-        message(FATAL_ERROR "Cannot build lexyacc in ${outdir}")
+    find_program(binfile lexyacc)
+    if (EXISTS ${binfile})
+        set(LEXYACC_BINARY ${binfile} CACHE STRING "Lexyacc Binary" FORCE)
     endif()
-    set(LEXYACC_BINARY ${exe} CACHE PATH "Lex Yacc Exe" FORCE)
+    if (TARGET lexyacc)
+        return()
+    endif()
+    add_executable(lexyacc ${LexYacc_DIR}/LexYacc.cpp)
 endfunction()
 
 function(target_add_lexyacc target lyfile)
     find_flex()
     find_bison()
     find_or_create_lexyacc()
+    get_filename_component(lyfile ${lyfile} ABSOLUTE)
 
-    if (NOT DEFINED FLEX_INCLUDE)
-        get_filename_component(FLEX_INCLUDE ${FLEX_EXECUTABLE} DIRECTORY)
+    if (NOT EXISTS ${FLEX_INCLUDE_DIR})
+        get_filename_component(bindir ${FLEX_EXECUTABLE} DIRECTORY)
+        if (EXISTS ${bindir}/Flexer.h)
+            set(FLEX_INCLUDE_DIR ${bindir} CACHE PATH "Flex Include" FORCE)
+        else()
+            message(FATAL_ERROR "Dont know where to find Flex Includes")
+        endif()
     endif()
+    
     cmake_parse_arguments(lexyacc "" "NAME" "" ${ARGN})
 
     if (NOT lexyacc_NAME)
@@ -136,7 +149,8 @@ function(target_add_lexyacc target lyfile)
     get_filename_component(srcdir ${lyfile} DIRECTORY)
 
     set(lytgt ${target}_lexyacc_${lexyacc_NAME})
-    set(outdir ${PROJECT_BINARY_DIR}/${lytgt})
+    set(outdir ${CMAKE_CURRENT_BINARY_DIR}/${lytgt})
+    
     file(MAKE_DIRECTORY ${outdir})
     set(yh ${outdir}/${lexyacc_NAME}.yacc.h)
     set(yc ${outdir}/${lexyacc_NAME}.yacc.cpp)
@@ -146,25 +160,32 @@ function(target_add_lexyacc target lyfile)
     set(hh ${outdir}/${lexyacc_NAME}.ly.h)
 
     set(outputs ${yy} ${yh} ${yc} ${ll} ${lc} ${hh})
+    if (TARGET lexyacc)  
+        add_custom_command(
+            OUTPUT  ${yy} ${ll} 
+            COMMAND lexyacc ${lyfile} --outdir ${outdir} --prefix ${lexyacc_NAME}
+            DEPENDS lexyacc ${lyfile}
+        )
+    else()
+        add_custom_command(
+            OUTPUT  ${yy} ${ll} 
+            COMMAND ${LEXYACC_BINARY} ${lyfile} --outdir ${outdir} --prefix ${lexyacc_NAME}
+            DEPENDS ${LEXYACC_BINARY} ${lyfile}
+        )
+    endif()
 
     add_custom_command(
-        OUTPUT  ${yy} ${yh} ${yc} ${ll} ${lc} ${hh}
-        DEPENDS ${LEXYACC_BINARY} ${BISON_EXECUTABLE} ${FLEX_EXECUTABLE} ${lyfile}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-        COMMAND ${LEXYACC_BINARY} ${lyfile} --outdir ${outdir} --prefix ${lexyacc_NAME}
+        OUTPUT  ${yh} ${yc} ${lc} ${hh}
         COMMAND ${BISON_EXECUTABLE} -o ${yc} --name-prefix=${lexyacc_NAME} --language=c++ --defines=${yh} ${yy}
         COMMAND ${FLEX_EXECUTABLE} -o${lc} --c++ --prefix=${lexyacc_NAME} ${ll}
-        )
+        DEPENDS ${BISON_EXECUTABLE} ${FLEX_EXECUTABLE} ${ll} ${yy}
+    )
+
     target_sources(${target} PRIVATE ${lyfile} ${outputs})
-    target_include_directories(${target} PRIVATE ${FLEX_INCLUDE} ${outdir})
+    target_include_directories(${target} PRIVATE ${FLEX_INCLUDE_DIR} ${outdir})
 
     if (MSVC)
         set_source_files_properties(${lc} PROPERTIES COMPILE_FLAGS "-wd4005 -wd4065")
         set_source_files_properties(${yc} PROPERTIES COMPILE_FLAGS "-wd4065 -wd4127")
     endif()
-    # TODO
-    #add_library(${lytgt} ${outputs})
-    #target_include_directories(${lytgt} PRIVATE ${FLEX_INCLUDE} ${srcdir})
-    #target_include_directories(${lytgt} PUBLIC ${outdir})
-    #target_link_libraries(${target} PRIVATE ${lytgt})
 endfunction()
