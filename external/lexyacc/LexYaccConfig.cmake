@@ -107,17 +107,14 @@ function(find_flex)
 endfunction()
 
 set(LexYacc_DIR ${CMAKE_CURRENT_LIST_DIR} CACHE PATH "LexYacc Dir")
-if(NOT EXISTS ${LexYacc_DIR}/LexYacc.cpp)
-    message(FATAL_ERROR "Cannot find Lex Yacc Source code")
-endif()
 
 function(find_or_create_lexyacc)
-    if (EXISTS ${LEXYACC_BINARY})
+    if (EXISTS ${LEXYACC_EXECUTABLE})
         return()
     endif()
     find_program(binfile lexyacc)
     if (EXISTS ${binfile})
-        set(LEXYACC_BINARY ${binfile} CACHE STRING "Lexyacc Binary" FORCE)
+        set(LEXYACC_EXECUTABLE ${binfile} CACHE STRING "Lexyacc Binary" FORCE)
     endif()
     if (TARGET lexyacc)
         return()
@@ -169,8 +166,8 @@ function(target_add_lexyacc target lyfile)
     else()
         add_custom_command(
             OUTPUT  ${yy} ${ll} 
-            COMMAND ${LEXYACC_BINARY} ${lyfile} --outdir ${outdir} --prefix ${lexyacc_NAME}
-            DEPENDS ${LEXYACC_BINARY} ${lyfile}
+            COMMAND ${LEXYACC_EXECUTABLE} ${lyfile} --outdir ${outdir} --prefix ${lexyacc_NAME}
+            DEPENDS ${LEXYACC_EXECUTABLE} ${lyfile}
         )
     endif()
 
