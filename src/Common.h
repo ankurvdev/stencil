@@ -110,8 +110,8 @@ struct exclusive_lock
     ~exclusive_lock() { lockrelease(); }
 
     exclusive_lock(const exclusive_lock& lock) = delete;
-   // exclusive_lock(exclusive_lock&& lock)      = default;
-   // exclusive_lock& operator=(exclusive_lock&& lock) = default;
+    // exclusive_lock(exclusive_lock&& lock)      = default;
+    // exclusive_lock& operator=(exclusive_lock&& lock) = default;
     exclusive_lock& operator=(const exclusive_lock& lock) = delete;
 
     void lockacquire() { m_wlock = std::unique_lock<std::shared_mutex>(*m_mutex); }

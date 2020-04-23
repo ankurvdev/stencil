@@ -12,14 +12,14 @@
 #include <string>
 #include <type_traits>
 #include <vector>
-#define WIDENSTR(x)          WIDENSTR_(x)
-#define WIDENSTR_(x)         L ## x
+#define WIDENSTR(x) WIDENSTR_(x)
+#define WIDENSTR_(x) L##x
 
-#define OBJECTNAME(str)                                                                  \
-    static constexpr auto BindingKeyName() { return std::wstring_view(WIDENSTR(#str)); }          \
+#define OBJECTNAME(str)                                                                             \
+    static constexpr auto BindingKeyName() { return std::wstring_view(WIDENSTR(#str)); }            \
     Str::Type             ObjectTypeName() const override { return Str::Create(BindingKeyName()); } \
-    struct                                                                               \
-    {                                                                                    \
+    struct                                                                                          \
+    {                                                                                               \
     } dummy
 
 namespace IDLGenerics
@@ -166,7 +166,6 @@ struct IFieldType : public virtual Binding::BindableBase
     {
         return Str::ToLower(Str::Create(TFieldType::BindingKeyName()));
     }
-
     virtual void AddAttributes(std::shared_ptr<Binding::AttributeMap> map) = 0;
 
     private:
@@ -177,8 +176,7 @@ struct FieldTypeStore
 {
     std::shared_ptr<const IFieldType> GetFieldTypeName(Str::View const& name) const
     {
-        // auto context = IDLDebug::ThreadActionContext(L"LookupFieldType", [&]() { return name; });
-
+        auto context = IDLDebug::ThreadActionContext(L"LookupFieldType", [&]() { return name; });
         return _fieldTypeMap.at(Str::Type(name));
     }
     std::optional<std::shared_ptr</*const*/ IFieldType>> TryGetFieldTypeName(Str::View const& name) const

@@ -69,7 +69,7 @@ HEX_D           [a-fA-F0-9]
 {dubconstant}   { lval->emplace<double>(atof(yytext));                    return token::tok_dub_constant;}
 {identifier}    { lval->emplace<Id>(StrOps<Id>::Convert(yytext));              return token::tok_identifier; }
 
-{literal_begin} { sstr.str(""); BEGIN(STRING_BEGIN);} 
+{literal_begin} { sstr.str(""); BEGIN(STRING_BEGIN);}
 
 {doctext}   { }
 
@@ -145,7 +145,7 @@ Static
 %type<Extends>        Extends
 %type<Function>       Function
 %type<Field>          Field
-%type<FieldType>      FieldType FunctionType ContainerType
+%type<FieldType>      FieldType FunctionType ContainerType ArrayType
 %type<RelationshipComponent>           RelationshipComponent
 
 %type<TypeAttribute>  TypeAttribute
@@ -190,7 +190,7 @@ Definition:
 
       Typedef
     | Struct
-    | Relationship 
+    | Relationship
     | Union
     | Interface
     /*
@@ -295,8 +295,8 @@ FieldIdentifier: tok_int_constant ':'
     |                                    { $$ = -1; }
     ;
 
-FieldRequiredness: tok_required 
-    | tok_optional 
+FieldRequiredness: tok_required
+    | tok_optional
     | {}
     ;
 
@@ -310,6 +310,10 @@ FunctionType: FieldType             { $$ = $1; }
 
 FieldType: tok_identifier { $$ = FindFieldType(context, $1); }
     | ContainerType
+    | ArrayType
+    ;
+
+ArrayType: FieldType '[' tok_int_constant ']' TypeAttributes { $$ = CreateArrayType(context, $1, $3, $5); }
     ;
 
 ContainerType: tok_identifier '<' ContainerFieldList '>' TypeAttributes { $$ = CreateContainerType(context, $1, $3, $5); }

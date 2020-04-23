@@ -1,13 +1,17 @@
 #pragma once
-#if 0
+#include <Binding.h>
+
+#include <sstream>
+
 namespace IDLDebug
 {
+using Str = Binding::Str;
 
 struct ErrorAggregator
 {
-    void AddContextInfo(const char& what, Str::View const& str)
+    void AddContextInfo(Str::View const& what, Str::View const& str)
     {
-        std::stringstream stream;
+        std::wstringstream stream;
         stream << '[' << what << ']' << '\t' << str.data();
         _lines.push_back(stream.str());
     }
@@ -15,7 +19,7 @@ struct ErrorAggregator
 
     Str::Type GetErrors()
     {
-        std::stringstream str;
+        std::wstringstream str;
         for (auto& err : _lines)
         {
             str << err << std::endl;
@@ -26,7 +30,6 @@ struct ErrorAggregator
     static ErrorAggregator& Get()
     {
         static ErrorAggregator ptr;
-        ;
         return ptr;
     }
     std::vector<Str::Type> _lines;
@@ -34,7 +37,7 @@ struct ErrorAggregator
 
 template <typename TFunc> struct ThreadActionContextImpl
 {
-    ThreadActionContextImpl(const char& what, TFunc func) : _what(what), _func(func) {}
+    ThreadActionContextImpl(Str::View const& what, TFunc func) : _what(what), _func(func) {}
     ~ThreadActionContextImpl()
     {
         if (std::uncaught_exceptions() > 0)
@@ -43,11 +46,11 @@ template <typename TFunc> struct ThreadActionContextImpl
         }
     }
 
-    TFunc       _func;
-    const char& _what;
+    TFunc     _func;
+    Str::View _what;
 };
 
-template <typename TFunc> auto ThreadActionContext(const char& what, TFunc func)
+template <typename TFunc> auto ThreadActionContext(Str::View const& what, TFunc func)
 {
     return ThreadActionContextImpl<TFunc>(what, func);
 }
@@ -56,16 +59,16 @@ struct DebugContext
 {
     Str::Type context{};
     Str::Type filename{};
-    size_t      row{}, col{};
+    size_t    row{}, col{};
 
     Str::Type str() const
     {
-        char buffer[512];
-        snprintf(buffer, 512, "%s -- %s [%zu:%zu]", context.c_str(), filename.c_str(), row, col);
-        return Str::Type(buffer);
+        std::wstringstream strm;
+        strm << context.c_str() << L" -- " << filename.c_str() << L" [" << row << L":" << col << L"]";
+        return Str::Type(strm.str());
     }
 };
-
+#if 0
 struct ParserContext
 {
     typedef size_t (&RowGetter)(void* ptr);
@@ -124,3 +127,4 @@ struct Exception : public std::exception
 };
 }    // namespace IDLDebug
 #endif
+}    // namespace IDLDebug

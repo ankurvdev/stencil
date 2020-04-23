@@ -313,4 +313,3 @@ std::vector<std::filesystem::path> Generator::Generate(bool isDryRun, std::files
 
     return outfiles;
 }
-

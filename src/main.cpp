@@ -77,6 +77,6 @@ try
 catch (const std::exception& ex)
 {
     std::cerr << ex.what() << std::endl;
-    //std::cerr << IDLDebug::ErrorAggregator::Get().GetErrors() << std::endl;
+    // std::cerr << IDLDebug::ErrorAggregator::Get().GetErrors() << std::endl;
     return 1;
 }

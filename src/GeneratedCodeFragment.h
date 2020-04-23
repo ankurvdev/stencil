@@ -16,7 +16,7 @@ struct Content
 
 struct GeneratedCode
 {
-    tree<Binding::Str::Type>    content{};
-    std::wstring          datasource;
-    std::filesystem::path filename;
+    tree<Binding::Str::Type> content{};
+    std::wstring             datasource;
+    std::filesystem::path    filename;
 };

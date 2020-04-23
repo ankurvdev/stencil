@@ -491,6 +491,10 @@ struct BindingContext
         if (expr.binding.size() == 1)
         {
             auto val = _stack.back().get().TryLookupOrNull(*this, expr.binding.back());
+            if (val == nullptr)
+            {
+                return val;
+            }
             if (val->GetType() == Type::Object)
             {
                 throw std::logic_error("WTF");
