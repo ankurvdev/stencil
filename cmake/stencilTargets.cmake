@@ -48,15 +48,15 @@ endfunction()
 
 # IDL Compiler
 function(target_add_stencil target)
-    if (NOT EXISTS STENCIL_EXECUTABLE)
+    if (NOT EXISTS ${STENCIL_EXECUTABLE})
         find_program(STENCIL_EXECUTABLE stencil)
     endif()
 
-    if (NOT EXISTS STENCIL_EXECUTABLE)
+    if (NOT EXISTS ${STENCIL_EXECUTABLE})
         build_stencil()
     endif()
 
-    if (NOT EXISTS STENCIL_EXECUTABLE)
+    if (NOT EXISTS ${STENCIL_EXECUTABLE})
         message(FATAL_ERROR "Cannot find or build stencil")
     endif()
 
