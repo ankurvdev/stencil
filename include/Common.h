@@ -1,5 +1,6 @@
 #pragma once
-#include "Value.h"
+//#include "Value.h"
+#include <shared_string.h>
 
 #include <algorithm>
 #include <array>
@@ -20,6 +21,7 @@
 #include <thread>
 #include <tuple>
 #include <vector>
+#include <string>
 
 #ifdef min
 #undef min
@@ -1124,7 +1126,7 @@ struct time_point_str
 };
 }    // namespace TimeHelpers
 
-#if false 
+#if false
 defined WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <combaseapi.h>

@@ -143,20 +143,20 @@ struct Data :
 
      
     private:
-    int _httpsPort = 3443;
+    int32_t _httpsPort = 3443;
 
     public:
-    int&       httpsPort() { return _httpsPort; }
-    const int& httpsPort() const { return _httpsPort; }
-    //void                            httpsPort(const int& val) { _httpsPort = val; }
-    void                            httpsPort(int&& val) { _httpsPort = std::move(val); }
+    int32_t&       httpsPort() { return _httpsPort; }
+    const int32_t& httpsPort() const { return _httpsPort; }
+    //void                            httpsPort(const int32_t& val) { _httpsPort = val; }
+    void                            httpsPort(int32_t&& val) { _httpsPort = std::move(val); }
 
-    int& get_httpsPort()
+    int32_t& get_httpsPort()
     {
         return _httpsPort;
         ;
     }
-    void set_httpsPort(int&& val) { _httpsPort = std::move(val); }
+    void set_httpsPort(int32_t&& val) { _httpsPort = std::move(val); }
 
      
     private:

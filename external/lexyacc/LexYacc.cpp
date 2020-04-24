@@ -125,7 +125,7 @@ namespace zzNAMESPACEzz
     inline void LoadFile(Context& context, std::filesystem::path const& path)
     {
         std::ifstream file(path);
-        if (!file.is_open()) throw std::invalid_argument("Cannot open file");
+        if (!file.is_open()) throw std::invalid_argument("Cannot open file: " + path.string());
         return Load(context, file);
     }
 }

@@ -157,38 +157,38 @@ struct Data : public ReflectionBase::ObjMarker
        
 
     private:
-    int _field1;
+    int32_t _field1;
 
     public:
-    int&       field1() { return _field1; }
-    const int& field1() const { return _field1; }
-    void                            field1(const int& val) { _field1 = val; }
-    void                            field1(int&& val) { _field1 = std::move(val); }
+    int32_t&       field1() { return _field1; }
+    const int32_t& field1() const { return _field1; }
+    void                            field1(const int32_t& val) { _field1 = val; }
+    void                            field1(int32_t&& val) { _field1 = std::move(val); }
 
-    int& get_field1()
+    int32_t& get_field1()
     {
         return _field1;
         ;
     }
-    void set_field1(int&& val) { _field1 = std::move(val); }
+    void set_field1(int32_t&& val) { _field1 = std::move(val); }
 
      
 
     private:
-    int _field2;
+    int32_t _field2;
 
     public:
-    int&       field2() { return _field2; }
-    const int& field2() const { return _field2; }
-    void                            field2(const int& val) { _field2 = val; }
-    void                            field2(int&& val) { _field2 = std::move(val); }
+    int32_t&       field2() { return _field2; }
+    const int32_t& field2() const { return _field2; }
+    void                            field2(const int32_t& val) { _field2 = val; }
+    void                            field2(int32_t&& val) { _field2 = std::move(val); }
 
-    int& get_field2()
+    int32_t& get_field2()
     {
         return _field2;
         ;
     }
-    void set_field2(int&& val) { _field2 = std::move(val); }
+    void set_field2(int32_t&& val) { _field2 = std::move(val); }
 
     
 };
