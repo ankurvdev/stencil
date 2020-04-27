@@ -13,29 +13,29 @@ jobs:
   displayName: Build_Ubuntu
   pool:
     vmImage: 'ubuntu-latest'
-    steps:
-    - task: CMake@1
-      displayName: 'CMake Generate'
-      inputs:
-        workingDirectory: 'cmake-build'
-        cmakeArgs: $(Build.SourcesDirectory)
-    - task: CMake@1
-      displayName: 'CMake Build'
-      inputs:
-        workingDirectory: 'cmake-build'
-        cmakeArgs: '--build . -j --target package'
+  steps:
+  - task: CMake@1
+    displayName: 'CMake Generate'
+    inputs:
+      workingDirectory: 'cmake-build'
+      cmakeArgs: $(Build.SourcesDirectory)
+  - task: CMake@1
+    displayName: 'CMake Build'
+    inputs:
+      workingDirectory: 'cmake-build'
+      cmakeArgs: '--build . -j --target package'
 
 - job: Buld_VS2019
   pool:
     vmImage: 'windows-2019'
-    steps:
-    - task: CMake@1
-      displayName: 'CMake Generate'
-      inputs:
-        workingDirectory: 'cmake-build'
-        cmakeArgs: $(Build.SourcesDirectory)
-    - task: CMake@1
-      displayName: 'CMake Build'
-      inputs:
-        workingDirectory: 'cmake-build'
-        cmakeArgs: '--build . -j --target package'
+  steps:
+  - task: CMake@1
+    displayName: 'CMake Generate'
+    inputs:
+      workingDirectory: 'cmake-build'
+      cmakeArgs: $(Build.SourcesDirectory)
+  - task: CMake@1
+    displayName: 'CMake Build'
+    inputs:
+      workingDirectory: 'cmake-build'
+      cmakeArgs: '--build . -j --target package'
