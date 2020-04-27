@@ -1,0 +1,41 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+pr:
+- master
+
+jobs:
+- job: Build_Ubuntu
+  displayName: Build_Ubuntu
+  pool:
+    vmImage: 'ubuntu-latest'
+    steps:
+    - task: CMake@1
+      displayName: 'CMake Generate'
+      inputs:
+        workingDirectory: 'cmake-build'
+        cmakeArgs: $(Build.SourcesDirectory)
+    - task: CMake@1
+      displayName: 'CMake Build'
+      inputs:
+        workingDirectory: 'cmake-build'
+        cmakeArgs: '--build . -j --target package'
+
+- job: Buld_VS2019
+  pool:
+    vmImage: 'windows-2019'
+    steps:
+    - task: CMake@1
+      displayName: 'CMake Generate'
+      inputs:
+        workingDirectory: 'cmake-build'
+        cmakeArgs: $(Build.SourcesDirectory)
+    - task: CMake@1
+      displayName: 'CMake Build'
+      inputs:
+        workingDirectory: 'cmake-build'
+        cmakeArgs: '--build . -j --target package'
