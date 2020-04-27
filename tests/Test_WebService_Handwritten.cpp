@@ -203,7 +203,7 @@ std::unique_ptr<TestInterface> TestInterface::Create(uint64_t randomInteger, sha
 
 template <> struct WebServiceHandlerTraits<TestInterface>
 {
-    static constexpr const std::string_view Url() { return std::string_view("TestInterface", 13); }
+    static constexpr const std::string_view Url() { return std::string_view("TestInterface"); }
 };
 #pragma warning(push, 0)
 #include <httplib.h>
@@ -236,7 +236,7 @@ class CppHttpLib
     std::string _response;
 };
 
-TEST_CASE("CodeGen::WebService", "[WebService]")
+TEST_CASE("CodeGen::WebService::HandWritten", "[WebService]")
 {
     SECTION("Positive: SimpleCase")
     {

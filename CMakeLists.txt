@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 project(stencil VERSION 0.0.1)
 include(CMakePackageConfigHelpers)
-option(BUILD_TEST ON)
+option(BUILD_TEST "Build Test" ON)
 option(STENCIL_INSTALL_BUILDTOOLS ON)
 set(CMAKE_CXX_STANDARD 17)
 
@@ -12,6 +12,9 @@ set(EmbedResource_DIR    ${CMAKE_CURRENT_LIST_DIR}/external/embedresource)
 add_library(libstencil STATIC src/ModelGenerator.cpp src/Thrift.cpp)
 find_package(LexYacc)
 find_package(EmbedResource)
+
+build_lexyacc()
+build_embedresource()
 
 file(GLOB resfiles src/templates/*)
 target_add_resource(libstencil templates ${resfiles})
@@ -40,7 +43,8 @@ if (BUILD_TEST)
         tests/Test_Database.cpp
         tests/Test_DataHandlerJson.cpp
         tests/Test_ThriftGenerator.cpp
-        tests/Test_WebService.cpp
+        tests/Test_WebService_Handwritten.cpp
+        tests/Test_WebService_Autogen.cpp
     )
     file(GLOB resfiles tests/testdata/*)
     target_add_resource(tests testdata ${resfiles})
@@ -52,7 +56,9 @@ if (BUILD_TEST)
         CLOpts2.pidl
         UnionTest.pidl
         UserData.pidl
-        WebService.pidl)
+        SimpleWebService.pidl
+        ComplexWebService.pidl
+    )
 
     foreach(f ${pidlfiles})
         list(APPEND outputs ${CMAKE_CURRENT_BINARY_DIR}/${f}.h)

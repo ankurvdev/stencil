@@ -93,5 +93,5 @@ TEST_CASE("CodeGen::ThriftGenerator::UserData", "[ThriftGenerator]")
 
 TEST_CASE("CodeGen::ThriftGenerator::WebService", "[ThriftGenerator]")
 {
-    REQUIRE_NOTHROW(RunTest("WebService.pidl"));
+    REQUIRE_NOTHROW(RunTest("SimpleWebService.pidl"));
 }

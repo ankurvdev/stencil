@@ -7,7 +7,7 @@
 struct TemplateFragment
 {
     Binding::Str::Type                            name;
-    Binding::Expression                           body;
+    std::optional<Binding::Expression>            body;
     std::unordered_map<std::string, std::wstring> attributes;
 
     // Debug Info

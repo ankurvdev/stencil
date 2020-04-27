@@ -473,7 +473,8 @@ struct BindingContext
 
     bool _FindBindableByNameInContextStack(Str::View const& name, std::reference_wrapper<const IBindable>& ptr)
     {
-        for (auto it = _stack.begin(); it != _stack.end(); ++it)
+        // Start looking from the top of the stack to grab the most relevant item for that type
+        for (auto it = _stack.rbegin(); it != _stack.rend(); ++it)
         {
             auto bindableName = (*it).get().ObjectTypeName();
             if (Str::Equal(bindableName, name))
@@ -508,12 +509,17 @@ struct BindingContext
         auto bit = expr.binding.begin();
         if (_FindBindableByNameInContextStack(*bit, ptr)) ++bit;
 
-        std::shared_ptr<const IValue> val;
+        std::shared_ptr<const IValue>       val;
+        std::vector<std::unique_ptr<Scope>> scopes;
+
+        scopes.emplace_back(new Scope(*this, ptr.get()));
+
         for (; bit != expr.binding.end(); ++bit)
         {
             if (val != nullptr)
             {
                 ptr = val->GetBindable();
+                scopes.emplace_back(new Scope(*this, ptr.get()));
             }
             val = ptr.get().TryLookupOrNull(*this, *bit);
             if (val == nullptr)
@@ -561,6 +567,8 @@ struct BindingContext
         ~Scope() { _stack.pop_back(); }
         std::vector<std::reference_wrapper<const IBindable>>& _stack;
     };
+
+    auto ContextScope(IBindable const& ptr) { return Scope{*this, ptr}; }
 
     std::shared_ptr<const IValue> EvaluateArray(IBindable const& ptr, BindingExpr const& expr)
     {

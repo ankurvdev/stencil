@@ -44,10 +44,8 @@ void* GetExtensionData()
 }    // namespace zzProgram_Namezz
 
 //<Template file="zzFileNamezz.h">
-//<![CDATA[
 #pragma once
 #include <DataModel.h>
-//]]>
 namespace zzProgram_Namezz
 {
 //<Struct>
@@ -69,12 +67,10 @@ struct Data :
     //</RelationshipTag>
     public ReflectionBase::ObjMarker
 {
-    //<![CDATA[
     /*template <typename...TArgs> Data(TArgs&& ... args)
     {
         ReflectionBase::Construct<Data>(this, std::forward<TArgs>(args)...);
     }*/
-    //]]>
 
     enum class FieldIndex
     {
@@ -107,7 +103,6 @@ struct Data :
     public:
     zzFieldType_NativeTypezz&       zzNamezz() { return _zzNamezz; }
     const zzFieldType_NativeTypezz& zzNamezz() const { return _zzNamezz; }
-    //void                            zzNamezz(const zzFieldType_NativeTypezz& val) { _zzNamezz = val; }
     void                            zzNamezz(zzFieldType_NativeTypezz&& val) { _zzNamezz = std::move(val); }
 
     zzFieldType_NativeTypezz& get_zzNamezz()
@@ -183,9 +178,9 @@ struct Data : public ReflectionBase::ObjMarker
         return ::ReflectionServices::EmptyAttributeValue(key);
     }
 
-    //<FieldAttribute><![CDATA[
+    //<FieldAttribute>
     template <FieldIndex TFieldType> static constexpr std::string_view FieldAttributeValue_zzFieldAttribute_Namezz();
-    //]]></FieldAttribute>
+    //</FieldAttribute>
 
     //<Field>
 
@@ -211,65 +206,125 @@ struct Data : public ReflectionBase::ObjMarker
 //</Union>
 
 //<Interface>
-#if 0
-namespace zzInterface_Namezz
-{
-InterfaceDefinition * GetInterfaceDefinition();
 
-class Interface
+struct zzInterface_Namezz : public ReflectionBase::Interface<zzInterface_Namezz>
 {
-public:
+    public:
+    zzInterface_Namezz() : ReflectionBase::Interface<zzInterface_Namezz>(this) {}
     //<Function>
     virtual zzReturnType_NativeTypezz zzFunction_Namezz(
         //<Args_Field Join=','>
         zzFieldType_NativeTypezz zzNamezz
         //</Args_Field>
-    ) = 0;
+        )
+        = 0;
     //</Function>
+    // static std::unique_ptr<zzInterface_Namezz> Create();
 };
 
-namespace InterfaceBroker
+struct zzInterface_NamezzFactory : public ReflectionBase::InterfaceFactory<zzInterface_Namezz>
 {
+    public:
+    virtual std::unique_ptr<zzInterface_Namezz> Activate() = 0;
+};
+
 //<Function>
-namespace zzFunction_Namezz
+struct zzInterface_Namezz_zzFunction_Namezz_Args
 {
-struct Data {
-public:
-    static const ModelDefinition * GetModelDefinition();
-    //<Args_Field>
-    zzFieldType_NativeTypezz m_zzNamezz;
-    //</Args_Field>
-public:
-    //<Args_Field>
-    zzFieldType_NativeTypezz & get_zzNamezz() { return this->m_zzNamezz; }
-    void set_zzNamezz(zzFieldType_NativeTypezz &val) { this->m_zzNamezz = val; }
-    //</Args_Field>
+    zzInterface_Namezz* instance = nullptr;
 
-protected:
     //<Args_Field>
-    static Target s_get_target_zzNamezz(Target ptr) { return &(((Data*)ptr)->m_zzNamezz); }
+    zzFieldType_NativeTypezz  arg_zzNamezz{};
+    zzFieldType_NativeTypezz& get_arg_zzNamezz() { return arg_zzNamezz; }
+    void                      set_arg_zzNamezz(zzFieldType_NativeTypezz&& value) { arg_zzNamezz = std::move(value); }
     //</Args_Field>
-
 };
 
-const InterfaceApiDefinition GetInterfaceApiDefinition();
-}
 //</Function>
-};
 
-}
-#endif
 //</Interface>
 }    // namespace zzProgram_Namezz
 
+//<Interface>
+//<Function>
+template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzInterface_Namezz_zzFunction_Namezz_Args&>
+{
+    //<Args_Field>
+
+    struct Traits_arg_zzNamezz
+    {
+        using TOwner = zzProgram_Namezz::zzInterface_Namezz_zzFunction_Namezz_Args;
+        static constexpr std::string_view    Name() { return "zzNamezz"; }
+        static const ::ReflectionBase::Flags Flags() { return {}; }
+        static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
+        static constexpr auto TPropertyGetter() { return &TOwner::get_arg_zzNamezz; }
+        static constexpr auto TPropertySetter() { return &TOwner::set_arg_zzNamezz; }
+    };
+    //</Args_Field>
+
+    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr std::string_view           Name() { return "zzFunction_Namezz"; }
+    static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
+
+    using Handler = ::ReflectionServices::ReflectedStructHandler<zzProgram_Namezz::zzInterface_Namezz_zzFunction_Namezz_Args,
+                                                                 //<Args_Field Join=','>
+                                                                 Traits_arg_zzNamezz
+                                                                 //</Args_Field>
+                                                                 >;
+};
+//</Function>
+
+template <> struct ReflectionBase::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz>
+{
+    //<Function>
+    struct ApiTraits_zzNamezz
+    {
+        using TOwner = zzProgram_Namezz::zzInterface_Namezz;
+        static const ::ReflectionBase::Flags Flags() { return {}; }
+        static constexpr std::string_view    Name() { return "zzNamezz"; }
+        static constexpr bool                Static = false;
+    };
+    //</Function>
+
+    using Apis = ::ReflectionBase::InterfaceApiPack<
+        //<Function  Join=','>
+        ApiTraits_zzNamezz
+        //</Function>
+        >;
+};
+
+//<Function>
+
+template <>
+struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz>::ApiTraits_zzNamezz>
+{
+    using ArgsStruct = zzProgram_Namezz::zzInterface_Namezz_zzFunction_Namezz_Args;
+    static constexpr bool             IsStatic() { return false; }
+    static constexpr std::string_view Name() { return "zzNamezz"; }
+
+    static zzProgram_Namezz::zzReturnType_NativeTypezz Invoke(ArgsStruct& args)
+    {
+        return args.instance->zzNamezz(
+            //<Args_Field Join=','>
+            args.get_arg_zzNamezz()
+            //</Args_Field>
+        );
+    }
+};
+//</Function>
+
+template <> struct WebServiceHandlerTraits<zzProgram_Namezz::zzInterface_Namezz>
+{
+    static constexpr const std::string_view Url() { return std::string_view("zzInterface_Namezz"); }
+};
+
+//</Interface>
+
 //<Struct>
 
-//<![CDATA[
 template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzStruct_Namezz::Data&>
 {
-    //]]>
-
-    //<Field><![CDATA[
+    //<Field>
 
     struct Traits_zzNamezz
     {
@@ -286,7 +341,7 @@ template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzStruct_Namezz:
 
         static const ::ReflectionBase::Flags Flags()
         {
-            return ::ReflectionBase::Flags{//]]><If HasDefaultValue='true'>
+            return ::ReflectionBase::Flags{//<If HasDefaultValue='true'>
                                            ::ReflectionBase::Flag::HasDefaultValue,
                                            //</If>
                                            //<If IsOptional='true'>
@@ -307,29 +362,22 @@ template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzStruct_Namezz:
         return ::ReflectionServices::EmptyAttributeValue(key);
     }
 
-    //<![CDATA[
     using Handler = ::ReflectionServices::ReflectedStructHandler<zzProgram_Namezz::zzStruct_Namezz::Data,
-                                                                 //]]>
                                                                  //<Field Join=','>
                                                                  Traits_zzNamezz
-                                                                 //</Field><![CDATA[
+                                                                 //</Field>
                                                                  >;
-    //]]>
 };
 //</Struct>
 
 //<Union>
 
-//<![CDATA[
-
 template <> struct ReflectionServices::EnumTraits<zzUnion_Program_Namezz::zzUnion_Namezz::UnionType>
 {
     static constexpr const char* EnumStrings[] = {"Invalid",
-                                                  //]]>
                                                   //<Field>
                                                   "zzField_Namezz",
                                                   //</Field>
-                                                  //<![CDATA[
 
                                                   0};
 
@@ -354,8 +402,7 @@ template <> struct ReflectionBase::TypeTraits<zzUnion_Program_Namezz::zzUnion_Na
 
 template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzUnion_Namezz::Data&>
 {
-    //]]>
-    //<Field><![CDATA[
+    //<Field>
     struct Traits_zzNamezz
     {
         using TOwner = zzUnion_Program_Namezz::zzUnion_Namezz::Data;
@@ -371,7 +418,7 @@ template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzUnion_Namezz::
 
         static const ::ReflectionBase::Flags Flags()
         {
-            return ::ReflectionBase::Flags{//]]><If HasDefaultValue='true'>
+            return ::ReflectionBase::Flags{//<If HasDefaultValue='true'>
                                            ::ReflectionBase::Flag::HasDefaultValue,
                                            //</If>
                                            //<If IsOptional='true'>
@@ -380,7 +427,7 @@ template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzUnion_Namezz::
                                            ::ReflectionBase::Flag::Max};
         }
     };
-    //]]></Field>
+    //</Field>
 
     static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
     static constexpr std::string_view           Name() { return "zzUnion_Namezz"; }
@@ -393,15 +440,12 @@ template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzUnion_Namezz::
         return ::ReflectionServices::EmptyAttributeValue(key);
     }
 
-    //<![CDATA[
     using Handler = ::ReflectionServices::ReflectedUnionHandler<zzProgram_Namezz::zzUnion_Namezz::Data,
                                                                 zzUnion_Program_Namezz::zzUnion_Namezz::UnionType,
-                                                                //]]>
                                                                 //<Field Join=','>
                                                                 Traits_zzNamezz
-                                                                //</Field><![CDATA[
+                                                                //</Field>
                                                                 >;
-    //]]>
 };
 //</Union>
 //</Template>
