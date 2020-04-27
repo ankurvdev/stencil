@@ -1,6 +1,5 @@
 #pragma once
 #include "IDL3Generics.h"
-//#include "Utilities.h"
 
 #include <filesystem>
 #include <optional>
@@ -8,10 +7,6 @@
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
-//
-// struct Void
-//{
-//};
 
 namespace IDL
 {

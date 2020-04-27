@@ -151,58 +151,7 @@ struct WebServiceImpl
 
     private:
     virtual std::string ServiceRequest(httplib::Request const& request, const char* url) = 0;
-#if 0
-    bool FindDefinition(const shared_string &url, const InterfaceDefinition **pdef = nullptr, const InterfaceApiDefinition **papidef = nullptr) const
-    {
-        pdef && (*pdef = nullptr);
-        papidef && (*papidef = nullptr);
 
-        auto def = this->m_Root;
-        auto its = url.begin(1), ite = its;
-        // Look for the namespace
-        for (; !(ite = its.str().find('/')).empty(); its = ite + 1)
-        {
-            auto olddef = def;
-            for (auto it = def->ChildIteratorBegin(); it != def->ChildIteratorEnd(); ++it)
-            {
-                if ((*it)->get_Name() == its.str(ite))
-                {
-                    def = *it;
-                    break;
-                }
-            }
-            if (olddef == def) return false;
-        }
-
-        // Find api name;
-        const InterfaceApiDefinition *apidef = nullptr;
-        for (const auto &api : def->get_Apis())
-        {
-            if (api.get_Name() == its.str())
-            {
-                apidef = &api;
-                break;
-            }
-        }
-        if (apidef == nullptr) return false;
-
-        pdef && (*pdef = def);
-        papidef && (*papidef = apidef);
-        return true;
-    }
-
-    shared_string Eval(const shared_string &url, const UrlArgsHandler::UrlParams &urlParams) const
-    {
-        const InterfaceDefinition *def = nullptr;
-        const InterfaceApiDefinition *apidef = nullptr;
-        if (!FindDefinition(url, &def, &apidef)) throw HandlerNotFound();
-        UrlArgsHandler inputHandler;
-        JsonDataHandler outputHandler;
-        auto intrface = TInterfaceFactory::Activate(def);
-        return apidef->ActivateAndInvoke(intrface, outputHandler, inputHandler, urlParams);
-    }
-
-#endif
     int             _port;
     httplib::Server _server;
 };
