@@ -103,8 +103,6 @@ function(find_flex)
         if (EXISTS ${FLEX_EXECUTABLE})
             return()
         endif()
-    else()
-        message(FATAL_ERROR "cannot find flex ${FLEX_EXECUTABLE} ${FLEX_INCLUDE_DIR}")
     endif()
     
     if (WIN32)
