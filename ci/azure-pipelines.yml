@@ -18,10 +18,10 @@ jobs:
     displayName: 'Install Build Tools'
   - bash: $(Build.SourcesDirectory)/ci/build_linux.sh
     displayName: 'Install Build Tools'
-    workingFolder: 'cmake-build'
+    workingDirectory: 'cmake-build'
   - bash: $(Build.SourcesDirectory)/ci/build_with_vcpkg.sh
     displayName: 'Install Build Tools'
-    workingFolder: 'vcpkg-build'
+    workingDirectory: 'vcpkg-build'
 
 - job: Buld_VS2019
   displayName: Build VS2019
