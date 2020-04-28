@@ -137,12 +137,9 @@ function(target_add_lexyacc target lyfile)
 
     if (NOT EXISTS ${FLEX_INCLUDE_DIR})
         get_filename_component(bindir ${FLEX_EXECUTABLE} DIRECTORY)
-        #if (EXISTS ${bindir}/Flexer.h)
+        if (EXISTS ${bindir}/Flexer.h)
             set(FLEX_INCLUDE_DIR ${bindir} CACHE PATH "Flex Include" FORCE)
-        #else()
-
-            #message(FATAL_ERROR "Dont know where to find Flex Includes")
-        #endif
+        endif
     endif()
     
     cmake_parse_arguments(lexyacc "" "NAME" "" ${ARGN})
