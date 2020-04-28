@@ -38,7 +38,7 @@ function(build_flex)
     if (NOT EXISTS ${FLEX_EXECUTABLE})
         message(FATAL_ERROR "Cannot build flex in ${builddir}")
     endif()
-    set(FLEX_INCLUDE_DIR ${srcdir}/flex-cmake/src CACHE PATH "Flex Include Path" FORCE)
+    set(FLEX_INCLUDE_DIRS ${srcdir}/flex-cmake/src CACHE PATH "Flex Include Path" FORCE)
 endfunction()
 
 function(build_bison)
@@ -89,7 +89,7 @@ endfunction()
 
 
 function(find_flex)
-    if ((EXISTS ${FLEX_INCLUDE_DIR}) AND (EXISTS ${FLEX_EXECUTABLE}))
+    if ((EXISTS ${FLEX_INCLUDE_DIRS}) AND (EXISTS ${FLEX_EXECUTABLE}))
         return()
     endif()
 
@@ -101,7 +101,7 @@ function(find_flex)
     endif()
 
     find_package(FLEX QUIET)
-    if ((EXISTS ${FLEX_INCLUDE_DIR}) AND (EXISTS ${FLEX_EXECUTABLE}))
+    if ((EXISTS ${FLEX_INCLUDE_DIRS}) AND (EXISTS ${FLEX_EXECUTABLE}))
         return()
     endif()
 
@@ -141,10 +141,10 @@ function(target_add_lexyacc target lyfile)
     find_or_create_lexyacc()
     get_filename_component(lyfile ${lyfile} ABSOLUTE)
 
-    if (NOT EXISTS ${FLEX_INCLUDE_DIR})
+    if (NOT EXISTS ${FLEX_INCLUDE_DIRS})
         get_filename_component(bindir ${FLEX_EXECUTABLE} DIRECTORY)
         if (EXISTS ${bindir}/Flexer.h)
-            set(FLEX_INCLUDE_DIR ${bindir} CACHE PATH "Flex Include" FORCE)
+            set(FLEX_INCLUDE_DIRS ${bindir} CACHE PATH "Flex Include" FORCE)
         else()
             message(FATAL_ERROR "Dont know where to find Flex Includes")
         endif()
@@ -192,7 +192,7 @@ function(target_add_lexyacc target lyfile)
     )
 
     target_sources(${target} PRIVATE ${lyfile} ${outputs})
-    target_include_directories(${target} PRIVATE ${FLEX_INCLUDE_DIR} ${outdir})
+    target_include_directories(${target} PRIVATE ${FLEX_INCLUDE_DIRS} ${outdir})
 
     if (MSVC)
         set_source_files_properties(${lc} PROPERTIES COMPILE_FLAGS "-wd4005 -wd4065")
