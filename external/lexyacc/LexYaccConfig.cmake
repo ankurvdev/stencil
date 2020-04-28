@@ -139,6 +139,8 @@ function(target_add_lexyacc target lyfile)
         get_filename_component(bindir ${FLEX_EXECUTABLE} DIRECTORY)
         if (EXISTS ${bindir}/Flexer.h)
             set(FLEX_INCLUDE_DIR ${bindir} CACHE PATH "Flex Include" FORCE)
+        else()
+            set(FLEX_INCLUDE_DIR ${LexYacc_DIR} CACHE PATH "Flex Include" FORCE)
         endif()
     endif()
     
