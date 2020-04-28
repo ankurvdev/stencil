@@ -19,7 +19,6 @@ function(download_winflexbison)
 endfunction()
 
 function(build_flex)
-    find_bison()
     set(FLEXSRC https://github.com/westes/flex/archive/master.zip)
 
     set(builddir        ${PROJECT_BINARY_DIR}/tools/flex)
