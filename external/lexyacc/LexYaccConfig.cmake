@@ -30,9 +30,9 @@ function(build_flex)
 
     file(DOWNLOAD ${FLEXSRC} ${localzip})
     execute_process(COMMAND ${CMAKE_COMMAND} -E tar -xf ${localzip} WORKING_DIRECTORY ${srcdir})
-    execute_process(COMMAND ./autogen.sh WORKING_DIRECTORY ${builddir})
-    execute_process(COMMAND ./configure --prefix=${builddir} WORKING_DIRECTORY ${builddir})
-    execute_process(COMMAND make install WORKING_DIRECTORY ${builddir})
+    execute_process(COMMAND ./autogen.sh WORKING_DIRECTORY ${srcdir}/flex-master)
+    execute_process(COMMAND ./configure --prefix=${builddir} WORKING_DIRECTORY ${srcdir}/flex-master)
+    execute_process(COMMAND make install WORKING_DIRECTORY ${srcdir}/flex-master)
     
     find_program(FLEX_EXECUTABLE flex HINTS ${builddir})
     if (NOT EXISTS ${FLEX_EXECUTABLE})
