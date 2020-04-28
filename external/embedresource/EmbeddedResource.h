@@ -4,11 +4,29 @@
 #include <optional>
 #include <string_view>
 #include <type_traits>
-#include <span.h>
 #include <functional>
 #define COLLECTION_METHOD_PREFIX GetCollectionInfo
 #define STR(s) #s
 #define COLLECTION_FUNC(COLLECTION) GetCollectionInfo##COLLECTION
+
+namespace std
+{
+    template <typename T>
+    struct span
+    {
+        span(T* start, T* end) : _ptr(start), _size(end - start){}
+        span(span<T> const& obj) : _ptr(obj._ptr), _size(obj._size) {}
+
+        template<size_t N>
+        span(T (&obj)[N]): _ptr(obj), _size(N) {}
+
+        size_t size() const { return _size;}
+        T* data() const { return _ptr;}
+        T& operator[](size_t index) const { return *(_ptr + index);}
+        T* _ptr;
+        size_t _size;
+    };
+}
 
 namespace EmbeddedResource
 {
