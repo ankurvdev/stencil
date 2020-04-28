@@ -1,5 +1,5 @@
 #include "WebService.h"
-#include <SimpleWebservice.pidl.h>
+#include <SimpleWebService.pidl.h>
 
 #include <catch2/catch.hpp>
 #pragma warning(push, 0)
