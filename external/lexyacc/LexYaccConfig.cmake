@@ -187,7 +187,17 @@ function(target_add_lexyacc target lyfile)
     )
 
     target_sources(${target} PRIVATE ${lyfile} ${outputs})
-    target_include_directories(${target} PRIVATE ${FLEX_INCLUDE_DIR} ${outdir})
+    target_include_directories(${target} PRIVATE ${outdir})
+    if (DEFINED FLEX_INCLUDE_DIRS)
+        set(FLEX_INCLUDE_DIR ${FLEX_INCLUDE_DIRS} CACHE PATH "Flex Include dir" FORCE)
+    endif()
+
+    if (NOT DEFINED FLEX_INCLUDE_DIR)
+        message(WARNING "Flex include dir not available ${FLEX_INCLUDE_DIR} :: ${FLEX_INCLUDE_DIRS}")
+        target_include_directories(${target} PRIVATE ${LexYacc_DIR})
+    else()
+        target_include_directories(${target} PRIVATE ${FLEX_INCLUDE_DIR})
+    endif()
 
     if (MSVC)
         set_source_files_properties(${lc} PROPERTIES COMPILE_FLAGS "-wd4005 -wd4065")
