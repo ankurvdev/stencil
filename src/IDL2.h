@@ -1,17 +1,12 @@
 #pragma once
 #include "IDL3Generics.h"
-//#include "Utilities.h"
 
+#include <filesystem>
 #include <optional>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
-#include <filesystem>
-//
-// struct Void
-//{
-//};
 
 namespace IDL
 {
@@ -139,7 +134,7 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
                             public IDLGenerics::FieldTypeIndex<Program, ContainerFieldType>::FieldType
 {
     public:
-    typedef std::unordered_map<Str::Type, std::shared_ptr<const IDLGenerics::IFieldType>> ContainerFieldTypeMap;
+    typedef std::unordered_map<Str::Type, std::shared_ptr<const IValue>> ContainerFieldTypeMap;
 
     private:
     struct BindableComponent : public Binding::IBindableComponent, public std::enable_shared_from_this<BindableComponent>
@@ -206,7 +201,17 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
             expr = expr.Evaluate([&](const Binding::BindingExpr& expr) {
                 assert(expr.binding.size() == 1);
                 Binding::Expression rslt;
-                rslt.AddString(typemap.at(expr.binding[0])->GetFieldName());    // TODO IFieldType::GetFieldName
+                auto&               val = typemap.at(expr.binding[0]);
+                if (val->GetType() == Binding::Type::String)
+                {
+                    rslt.AddString(Str::Copy(val->GetString()));
+                }
+                else
+                {
+                    Binding::BindingContext context{};
+                    rslt.AddString(
+                        Str::Copy(val->GetBindable().TryLookupOrNull(context, L"Name")->GetString()));    // TODO IFieldType::GetFieldName
+                }
                 return rslt;
             });
         }

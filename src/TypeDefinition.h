@@ -1,5 +1,7 @@
 #pragma once
 #include "Thrift.h"
+#include <iostream>
+
 namespace IDL::Lang::TypeDefinition
 {
 template <typename T> using StrOps = Binding::StrOps<T>;
@@ -47,6 +49,7 @@ class Context
     }
 
     bool Debug() { return false; }
+    void NotifyError(int line, int col, std::string const& msg) { std::cerr << "Error : " << msg << std::endl; }
 
     IDL::Program& program;
 };

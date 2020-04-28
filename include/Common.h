@@ -1,5 +1,6 @@
 #pragma once
-#include "Value.h"
+//#include "Value.h"
+#include <shared_string.h>
 
 #include <algorithm>
 #include <array>
@@ -20,6 +21,7 @@
 #include <thread>
 #include <tuple>
 #include <vector>
+#include <string>
 
 #ifdef min
 #undef min
@@ -110,8 +112,8 @@ struct exclusive_lock
     ~exclusive_lock() { lockrelease(); }
 
     exclusive_lock(const exclusive_lock& lock) = delete;
-   // exclusive_lock(exclusive_lock&& lock)      = default;
-   // exclusive_lock& operator=(exclusive_lock&& lock) = default;
+    // exclusive_lock(exclusive_lock&& lock)      = default;
+    // exclusive_lock& operator=(exclusive_lock&& lock) = default;
     exclusive_lock& operator=(const exclusive_lock& lock) = delete;
 
     void lockacquire() { m_wlock = std::unique_lock<std::shared_mutex>(*m_mutex); }
@@ -1124,7 +1126,7 @@ struct time_point_str
 };
 }    // namespace TimeHelpers
 
-#if false 
+#if false
 defined WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <combaseapi.h>

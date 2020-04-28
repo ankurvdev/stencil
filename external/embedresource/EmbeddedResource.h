@@ -5,6 +5,8 @@
 #include <string_view>
 #include <type_traits>
 #include <functional>
+#include <stdexcept>
+
 #define COLLECTION_METHOD_PREFIX GetCollectionInfo
 #define STR(s) #s
 #define COLLECTION_FUNC(COLLECTION) GetCollectionInfo##COLLECTION

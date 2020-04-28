@@ -65,9 +65,18 @@ void CreateTemplateFromNode(tree<TemplateFragment>&          tmpl,
     auto elemNode = xml.ToElement();
 
     TemplateFragment data;
+    data.body = [&]() -> decltype(data.body) {
+        if (textNode != nullptr)
+        {
+            auto textval = Str::Convert(textNode->Value());
+            if (textval.length() > 0)
+            {
+                return Binding::Expression::Create(textval, Str::Create(L"zz"), Str::Create(L"zz"), L'_');
+            }
+        }
+        return {};
+    }();
 
-    data.body = Binding::Expression::Create(
-        Str::Convert(textNode != nullptr ? textNode->Value() : " "), Str::Create(L"zz"), Str::Create(L"zz"), L'_');
     data.name = elemNode != nullptr ? Str::Convert(elemNode->Value()) : Str::Create(L"");
     for (auto attr = elemNode == nullptr ? nullptr : elemNode->FirstAttribute(); attr; attr = attr->Next())
     {
@@ -99,7 +108,12 @@ void ExpandTemplate(tree<Str::Type>&                 codetree,
                     Binding::BindingContext&         context,
                     Binding::IBindable const&        data)
 {
-    auto it         = codetree.addchild(root, context.EvaluateExpression(data, tmplrootit->body).String());
+
+    auto it = codetree.addchild(root, [&]() {
+        if (tmplrootit->body.has_value()) return context.EvaluateExpression(data, tmplrootit->body.value()).String();
+        return std::wstring();
+    }());
+
     auto filterExpr = FindInMapOrDefault(tmplrootit->attributes, "Filter");
     if (!filterExpr.empty())
     {
@@ -146,7 +160,10 @@ void ExpandTemplate(tree<Str::Type>&                 codetree,
             continue;
         }
 
-        it = codetree.addsibling(it, context.EvaluateExpression(data, tmplit->body).String());
+        it = codetree.addsibling(it, [&]() {
+            if (tmplrootit->body.has_value()) return context.EvaluateExpression(data, tmplit->body.value()).String();
+            return std::wstring();
+        }());
 
         Binding::BindingExpr bexpr;
         for (size_t i = 0; i < Str::Size(name);)
@@ -161,6 +178,7 @@ void ExpandTemplate(tree<Str::Type>&                 codetree,
         bool first   = true;
         for (auto const& cdata : context.GetRange(data, bexpr))
         {
+            auto scope = context.ContextScope(cdata);
             if (!first && !joinStr.empty())
             {
                 codetree.addchild(it, Str::Create(joinStr));
@@ -191,24 +209,59 @@ Template CreateTemplate(XMLElement const& element, std::string_view const& name)
     return templ;
 }
 
+static std::wstring AddCDataBegin(std::wstring const& tmplview)
+{
+    std::wstringstream    sstr;
+    size_t                index = 0;
+    std::wregex           re(L"[ \t]*//(<[^/>]+>)\\s*[\r\n]");
+    std::wsregex_iterator begin(tmplview.begin(), tmplview.end(), re);
+    std::wsregex_iterator end;
+
+    for (std::wsregex_iterator i = begin; i != end; ++i)
+    {
+
+        std::wsmatch match = *i;
+        assert(match.size() == 2);
+        sstr << match.prefix();
+        sstr << L"]]>" << match[1].str() << L"<![CDATA[";
+        index = match.position(0) + match.length(0);
+    }
+    sstr << tmplview.substr(index);
+    return sstr.str();
+}
+
+static std::wstring AddCDataEnd(std::wstring const& tmplview)
+{
+    std::wstringstream    sstr;
+    size_t                index = 0;
+    std::wregex           re(L"[ \t]*//(</[^>]+>)\\s*[\r\n]");
+    std::wsregex_iterator begin(tmplview.begin(), tmplview.end(), re);
+    std::wsregex_iterator end;
+
+    for (std::wsregex_iterator i = begin; i != end; ++i)
+    {
+
+        std::wsmatch match = *i;
+        assert(match.size() == 2);
+        sstr << match.prefix();
+        sstr << L"]]>" << match[1].str() << L"<![CDATA[";
+        index = match.position(0) + match.length(0);
+    }
+    sstr << tmplview.substr(index);
+    return sstr.str();
+}
+
 void Generator::_AddTemplate(std::string_view const& name, std::string_view const& text)
 {
-    Str::Type fullTemplateContents = Str::Create(L"<ModelGenerator>" + Str::Value(Str::Convert(text.data())) + L"</ModelGenerator>");
-    std::stringstream sstr;
-    auto              tmplview = Str::Value(fullTemplateContents);
-    for (size_t i = 0, j = 0; i < tmplview.size() && j != tmplview.npos; i = j + 1)
+    if (text.length() == 0)
     {
-        j = tmplview.find(L"//<", i);
-        sstr << tmplview.substr(i, j - i);
-        if (j != tmplview.npos)
-        {
-            sstr << '<';
-            j += 2;
-        }
+        return;
     }
+    auto fullTemplateContents = Str::Create(L"<ModelGenerator><![CDATA[" + Str::Value(Str::Convert(text.data())) + L"]]></ModelGenerator>");
+    auto modified             = AddCDataEnd(AddCDataBegin(fullTemplateContents));
 
     tinyxml2::XMLDocument doc(false);
-    auto                  rc = doc.Parse(sstr.str().c_str());
+    auto                  rc = doc.Parse(wstring_to_string(modified).c_str());
     if (rc != XMLError::XML_SUCCESS)
     {
         throw std::logic_error(("Error Loading Template: \n\t%s\n" + std::string(doc.ErrorStr())).c_str());
@@ -266,6 +319,8 @@ static GeneratedCode GenerateCode(Template const& tmpl, Binding::IBindable const
     Binding::BindingContext context;
 
     GeneratedCode code;
+
+    auto scope    = context.ContextScope(data);
     code.content  = ExpandTemplate(tmpl.root, context, data);
     code.filename = std::filesystem::path(Str::Value(context.EvaluateExpression(data, tmpl.fileName).String()));
     return code;
@@ -313,4 +368,3 @@ std::vector<std::filesystem::path> Generator::Generate(bool isDryRun, std::files
 
     return outfiles;
 }
-

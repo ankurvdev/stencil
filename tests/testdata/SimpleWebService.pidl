@@ -1,0 +1,11 @@
+
+struct Data
+{
+	i32 randomInteger;
+	string randomString;
+}
+
+interface TestInterface
+{
+	Data Create(i32 randomInteger, string randomString);
+}

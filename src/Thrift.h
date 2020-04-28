@@ -64,6 +64,7 @@ class Context
     bool Debug() { return false; }
     void InitializeModelDataSources(const std::wstring_view& datasource) { program.InitializeModelDataSources(datasource); }
     void Import(Str::View const& file);
+    void NotifyError(int line, int col, std::string const& msg) { errors.push_back(ExceptionInfo{line, col, msg}); }
 
     IDL::Program&              program;
     Str::Type                  filename;
@@ -153,6 +154,29 @@ void CreateRelationship(Context& context, Str::Type& name, RelationshipComponent
         return nullptr;
     }
 #endif
+struct StrValueType : public Binding::ValueT<Binding::Type::String>, public std::enable_shared_from_this<StrValueType>
+{
+    StrValueType(Str::Type&& value) : _value(std::move(value)) {}
+    virtual Str::Type const& GetString() const override { return _value; }
+    Str::Type                _value;
+};
+
+inline std::shared_ptr<const IDLGenerics::IFieldType> CreateArrayType(Context& context, FieldType& field, int count, TypeAttributeList& map)
+{
+    auto&                                          container = context.program.Lookup<IDL::Container>(Str::Create(L"array"));
+    IDL::ContainerFieldType::ContainerFieldTypeMap containermap;
+    size_t                                         index = 0;
+    containermap[Str::Create(L"type")]                   = field.value();
+    containermap[Str::Create(L"size")]                   = std::make_shared<StrValueType>(std::to_wstring(count));
+
+    auto existing = context.program.TryGetFieldTypeName(IDL::ContainerFieldType::GenerateFieldName(container, containermap));
+    if (existing.has_value())
+    {
+        return existing.value();
+    }
+
+    return context.program.CreateFieldTypeObject<IDL::ContainerFieldType>(container, std::move(containermap), existing, std::move(map));
+}
 
 inline std::shared_ptr<const IDLGenerics::IFieldType>
 CreateContainerType(Context& context, Str::Type& id, FieldTypeList& fields, TypeAttributeList& map)

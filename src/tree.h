@@ -25,10 +25,10 @@ template <typename T> struct tree
     std::list<std::unique_ptr<_Node>> _nodes;    // TODO : avoid wastage
 
     public:
-    tree() = default;
+    tree()              = default;
     tree(tree const& r) = delete;
     tree& operator=(tree const& r) = delete;
-    tree(tree&&)  = default;
+    tree(tree&&)                   = default;
     tree& operator=(tree&&) = default;
 
     tree<T> clone() const { throw std::logic_error("Not implemented"); }

@@ -1,16 +1,28 @@
 set(EmbedResource_DIR ${CMAKE_CURRENT_LIST_DIR} CACHE PATH "Path for EmbedResource")
 
+function(build_embedresource)
+    if (TARGET embedresource)
+        return()
+    endif()
+    add_executable(embedresource ${EmbedResource_DIR}/embedresource.cpp)
+    set_target_properties(embedresource PROPERTIES PUBLIC_HEADER "${EmbedResource_DIR}/EmbeddedResource.h")
+    set(EMBEDRESOURCE_INCLUDE_DIR ${EmbedResource_DIR} CACHE PATH "Embed Resource Include Dir" FORCE)
+endfunction()
+
 function(find_or_build)
+    if (TARGET embedresource)
+        return()
+    endif()
+
     if((EXISTS ${EMBEDRESOURCE_EXECUTABLE}) AND (EXISTS ${EMBEDRESOURCE_INCLUDE_DIR}))
         return()
     endif()
 
-    find_program(binfile embedresource)
+    find_program(EMBEDRESOURCE_EXECUTABLE embedresource)
     find_file(header EmbeddedResource.h)
 
-    if((EXISTS ${binfile}) AND (EXISTS ${header}))
+    if((EXISTS ${EMBEDRESOURCE_EXECUTABLE}) AND (EXISTS ${header}))
         get_filename_component(headerdir ${header} DIRECTORY)
-        set(EMBEDRESOURCE_EXECUTABLE ${binfile} CACHE PATH "Embed Resource Binary" FORCE)
         set(EMBEDRESOURCE_INCLUDE_DIR ${headerdir} CACHE PATH "Embed Resource Include Dir" FORCE)
         return()
     endif()
@@ -25,10 +37,7 @@ function(find_or_build)
 
     set(EMBEDRESOURCE_INCLUDE_DIR ${EmbedResource_DIR} CACHE PATH "Embed Resource Include Dir" FORCE)
 
-    if (NOT TARGET embedresource)
-        add_executable(embedresource ${EmbedResource_DIR}/embedresource.cpp)
-        set_target_properties(embedresource PROPERTIES PUBLIC_HEADER "${EmbedResource_DIR}/EmbeddedResource.h")
-    endif()
+    build_embedresource()
 endfunction()
 
 function(target_add_resource target name)

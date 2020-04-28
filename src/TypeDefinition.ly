@@ -47,15 +47,15 @@ unixcomment   ("#"[^\n]*)
 <EXPR_BEGIN>\\t                    { sstr << '\t'; }
 <EXPR_BEGIN>\\u{HEX_D}{HEX_D}{HEX_D}{HEX_D}    { sstr << (char)strtoul(&yytext[2], nullptr, 16); }
 <EXPR_BEGIN>\\                    { sstr << '\\'; }
-                        
-                        
+
+
 {whitespace}         { /* do nothing */                 }
 {sillycomm}          { /* do nothing */                 }
 {multicomm}          { /* do nothing */                 }
 {comment}            { /* do nothing */                 }
 {unixcomment}        { /* do nothing */                 }
 
-                                                
+
 \"                     { sstr.str(""); sstr << "\""; BEGIN(STRING_BEGIN);}
 \'                     { sstr.str(""); BEGIN(EXPR_BEGIN);}
 "{"                    { return token::TOKEN_LeftBrace; }
@@ -107,7 +107,7 @@ containertypes: TOKEN_LessThan typelist TOKEN_GreaterThan { $$ = std::move($2); 
 | {}
 ;
 
-typelist: typelist TOKEN_Comma TOKEN_IDENTIFIER { $$.push_back(std::move($3)); }
+typelist: typelist TOKEN_Comma TOKEN_IDENTIFIER { $1.push_back($3); $$ = std::move($1);}
 | TOKEN_IDENTIFIER { $$.push_back(std::move($1)); }
 | {}
 ;

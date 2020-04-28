@@ -1,8 +1,34 @@
 #include "TestUtils.h"
 DECLARE_RESOURCE_COLLECTION(testdata);
 #include "Generator.h"
-#include "Utilities.h"
 #include "dtl/dtl.hpp"
+
+static inline std::string wstring_to_string(std::wstring_view wstr)
+{
+    std::string out(wstr.size(), 0);
+#pragma warning(push)
+#pragma warning(disable : 4996)
+    wcstombs(out.data(), wstr.data(), wstr.size());
+#pragma warning(pop)
+    return out;
+}
+
+static inline std::vector<std::string> readlines(std::filesystem::path const& filepath)
+{
+    std::vector<std::string> lines;
+    std::ifstream            file(filepath);
+    std::string              line;
+
+    while (std::getline(file, line))
+    {
+        if (line.length() > 0 && line[line.length() - 1] == '\r')
+        {
+            line.resize(line.length() - 1);
+        }
+        lines.push_back(std::move(line));
+    }
+    return lines;
+}
 
 struct ResourceFileManager
 {
@@ -93,5 +119,5 @@ TEST_CASE("CodeGen::ThriftGenerator::UserData", "[ThriftGenerator]")
 
 TEST_CASE("CodeGen::ThriftGenerator::WebService", "[ThriftGenerator]")
 {
-    REQUIRE_NOTHROW(RunTest("WebService.pidl"));
+    REQUIRE_NOTHROW(RunTest("SimpleWebService.pidl"));
 }

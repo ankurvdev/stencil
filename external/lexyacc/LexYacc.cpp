@@ -125,7 +125,7 @@ namespace zzNAMESPACEzz
     inline void LoadFile(Context& context, std::filesystem::path const& path)
     {
         std::ifstream file(path);
-        if (!file.is_open()) throw std::invalid_argument("Cannot open file");
+        if (!file.is_open()) throw std::invalid_argument("Cannot open file: " + path.string());
         return Load(context, file);
     }
 }
@@ -152,8 +152,8 @@ private:
 )";
 
     std::string template_y = R"(
-%debug 
-%defines 
+%debug
+%defines
 %define api.namespace {zzNAMESPACEzz::impl}
 %define api.parser.class {BisonParser}
 
@@ -203,7 +203,15 @@ void Load(Context& ctx, std::istream& strm)
     impl::Scanner scanner(&strm);
     impl::BisonParser p(scanner, ctx);
     p.set_debug_level(ctx.Debug());
-    if (p.parse() != 0) throw std::logic_error("Unexpected Error");
+    try
+    {
+        if (p.parse() != 0) throw std::logic_error("Unexpected Error");
+    }
+    catch(std::exception const& ex)
+    {
+        ctx.NotifyError(scanner.lineno(), -1, ex.what());
+        throw;
+    }
 }
 }
 )";

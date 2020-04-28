@@ -1,19 +1,31 @@
 
-default {
-    NativeHandlerData = 'nullptr'
-}
+default {NativeHandlerData = 'nullptr' }
 
-i16 {
-    NativeType = 'short'
-}
+char     { NativeType = 'char'      }
+byte     { NativeType = 'uint8_t'   }
+ui8      { NativeType = 'uint8_t'   }
+ui16     { NativeType = 'uint16_t'  }
+ui32     { NativeType = 'uint32_t'  }
+ui64     { NativeType = 'uint64_t'  }
 
-i32 {
-    NativeType = 'int'
-}
+i8      { NativeType = 'int8_t'     }
+i16     { NativeType = 'int16_t'    }
+i32     { NativeType = 'int32_t'    }
+i64     { NativeType = 'int64_t'    }
 
-i64 {
-    NativeType = 'int'
-}
+int8  i8    {}
+int32 i32   {}
+int16 i16   {}
+int64 i64   {}
+
+uint8  ui8  {}
+uint32 ui32 {}
+uint16 ui16 {}
+uint64 ui64 {}
+
+short i16 { }
+int i32 { }
+
 
 double {
     NativeType = 'double'
@@ -50,10 +62,6 @@ pathoutdir string {
     NativeHandler = 'OutputDirectoryHandler'
 }
 
-short i16 { }
-
-int i32 { }
-
 boolean bool { }
 
 default_struct {
@@ -67,6 +75,8 @@ default_interface {
 default_typedef {
     NativeType = '%Name%'
 }
+
+array<type,size> { NativeType = 'std::array<%type:NativeType%, %size%>' }
 
 list<type> {
     NativeType = 'std::vector<%type:NativeType%>'

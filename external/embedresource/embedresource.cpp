@@ -41,7 +41,8 @@ auto ParseArg(std::string_view arg)
 
     return std::make_tuple(std::move(resname), std::move(src), FilePathToSym(src));
 }
-int main(int argc, char** argv) try
+int main(int argc, char** argv)
+try
 {
     if (argc < 3)
     {
@@ -65,22 +66,33 @@ int main(int argc, char** argv) try
     std::ofstream ofs{dst.string()};
     ofs << "#include <EmbeddedResource.h>" << std::endl;
 
-    auto colsym = FilePathToSym(dst.stem());
+    auto                     colsym = FilePathToSym(dst.stem());
+    std::vector<std::string> symbols;
 
     for (int i = 2; i < argc; i++)
     {
         auto [resname, src, sym] = ParseArg(std::string_view(argv[i]));
-
         std::ifstream ifs{src, std::ios::binary | std::ios::in};
         if (!ifs.is_open())
         {
             throw std::invalid_argument("Cannot find file" + src.string());
         }
-        ofs << "namespace EmbeddedResource::Data::" << colsym << "::" << sym << " {" << std::endl;
-        ofs << "std::byte const _ResourceData[] = {" << std::endl;
+        if (ifs.fail())
+        {
+            throw std::logic_error("file corrupt: " + src.string());
+        }
+
         uint8_t c;
         ifs.read((char*)&c, sizeof(c));
-        for (size_t j = 0; !ifs.eof() ; j++, ifs.read((char*)&c, sizeof(c)))
+        if (ifs.fail())
+        {
+            continue;
+        }
+        symbols.push_back(FilePathToSym(src));
+        ofs << "namespace EmbeddedResource::Data::" << colsym << "::" << sym << " {" << std::endl;
+        ofs << "std::byte const _ResourceData[] = {" << std::endl;
+
+        for (size_t j = 0; !ifs.eof() && !ifs.fail(); j++, ifs.read((char*)&c, sizeof(c)))
         {
             if (j > 0)
             {
@@ -107,11 +119,15 @@ int main(int argc, char** argv) try
     ofs << "namespace EmbeddedResource::Data::" << colsym << " {" << std::endl;
 
     ofs << "EmbeddedResource::Resource::GetFunc* const  _ResourceTable[] = {" << std::endl;
-    for (int i = 2; i < argc; i++)
+    bool first = true;
+    for (const auto& ressym : symbols)
     {
-        std::filesystem::path src{argv[i]};
-        auto                  ressym = FilePathToSym(src);
-        ofs << ressym << "::GetResource" << ((i + 1 == argc) ? "" : ",");
+        if (!first)
+        {
+            ofs << ",";
+        }
+        first = false;
+        ofs << ressym << "::GetResource";
     }
 
     ofs << "};" << std::endl;

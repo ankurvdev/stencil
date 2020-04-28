@@ -1,7 +1,9 @@
+#include "DebugInfo.h"
 #include "Thrift.ly.h"
 
 #include <cstdio>
 #include <fstream>
+#include <iostream>
 
 namespace IDL::Lang::Thrift
 {
@@ -119,7 +121,19 @@ struct ThriftGenerator : Generator
     {
         IDL::Lang::Thrift::Context context{Program_()};
         context.program.SetFileName(inputFile);
-        IDL::Lang::Thrift::LoadFile(context, inputFile);
+        try
+        {
+            IDL::Lang::Thrift::LoadFile(context, inputFile);
+        }
+        catch (std::exception const& ex)
+        {
+            for (auto& err : context.errors)
+            {
+                std::cerr << "error: " << inputFile.string() << "[" << err.line << ":" << err.col << "] " << err.msg;
+            }
+            std::wcerr << context.errors.size() << IDLDebug::ErrorAggregator::Get().GetErrors() << ex.what() << std::endl;
+            throw;
+        }
     }
 };
 
