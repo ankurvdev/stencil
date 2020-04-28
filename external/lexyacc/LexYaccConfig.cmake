@@ -133,8 +133,8 @@ function(find_or_create_lexyacc)
 endfunction()
 
 function(target_add_lexyacc target lyfile)
-    find_flex()
     find_bison()
+    find_flex()
     find_or_create_lexyacc()
     get_filename_component(lyfile ${lyfile} ABSOLUTE)
 
