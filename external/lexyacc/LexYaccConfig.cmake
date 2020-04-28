@@ -91,7 +91,7 @@ function(find_flex)
     if ((EXISTS ${FLEX_INCLUDE_DIRS}) AND (EXISTS ${FLEX_EXECUTABLE}))
         return()
     endif()
-
+    message(STATUS "Flex Include Dirs: ${FLEX_INCLUDE_DIRS} Flex Exec: ${FLEX_EXECUTABLE}")
     if (DEFINED WINFLEXBISON_DIR) 
         if ((EXISTS ${WINFLEXBISON_DIR}) and (EXISTS ${WINFLEXBISON_DIR}/win_flex.exe))
             set(FLEX_EXECUTABLE ${WINFLEXBISON_DIR}/win_flex.exe CACHE PATH  "Flex executable" FORCE)
