@@ -19,6 +19,7 @@ function(download_winflexbison)
 endfunction()
 
 function(build_flex)
+    find_bison()
     set(FLEXSRC https://github.com/jwinarske/flex/archive/cmake.zip)
 
     set(builddir        ${PROJECT_BINARY_DIR}/tools/flex)
@@ -29,7 +30,7 @@ function(build_flex)
 
     file(DOWNLOAD ${FLEXSRC} ${localzip})
     execute_process(COMMAND ${CMAKE_COMMAND} -E tar -xf ${localzip} WORKING_DIRECTORY ${srcdir})
-    execute_process(COMMAND ${CMAKE_COMMAND} ${srcdir}/flex-cmake  WORKING_DIRECTORY ${builddir})
+    execute_process(COMMAND ${CMAKE_COMMAND} -DBISON_EXECUTABLE=${BISON_EXECUTABLE} ${srcdir}/flex-cmake  WORKING_DIRECTORY ${builddir})
     execute_process(COMMAND ${CMAKE_COMMAND} --build .  WORKING_DIRECTORY ${builddir})
     find_program(FLEX_EXECUTABLE flex HINTS ${builddir})
     if (NOT EXISTS ${FLEX_EXECUTABLE})
