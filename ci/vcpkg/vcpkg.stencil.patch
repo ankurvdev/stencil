@@ -1,12 +1,12 @@
-From 93479a988e9ceee322d4db202f8292cfbb222327 Mon Sep 17 00:00:00 2001
+From 4d96317809a0d3dca7d57b4a102a20bd5657e00d Mon Sep 17 00:00:00 2001
 From: "Ankur Verma (SF)" <ankurv@corp.microsoft.com>
-Date: Tue, 28 Apr 2020 20:27:27 -0700
+Date: Tue, 28 Apr 2020 21:28:26 -0700
 Subject: [PATCH] Stencil
 
 ---
  ports/stencil/CONTROL        |  3 +++
- ports/stencil/portfile.cmake | 34 ++++++++++++++++++++++++++++++++++
- 2 files changed, 37 insertions(+)
+ ports/stencil/portfile.cmake | 32 ++++++++++++++++++++++++++++++++
+ 2 files changed, 35 insertions(+)
  create mode 100644 ports/stencil/CONTROL
  create mode 100644 ports/stencil/portfile.cmake
 
@@ -21,28 +21,26 @@ index 000000000..bce9ca81c
 +Description: Code Generator based on Model Template binding Transformations
 diff --git a/ports/stencil/portfile.cmake b/ports/stencil/portfile.cmake
 new file mode 100644
-index 000000000..ee7e6cac9
+index 000000000..2ce867912
 --- /dev/null
 +++ b/ports/stencil/portfile.cmake
-@@ -0,0 +1,34 @@
-+if (DEFINED ENV{VCPKG_USE_STENCIL_SRC_DIR})
-+    execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory $ENV{VCPKG_USE_STENCIL_SRC_DIR} ${SOURCE_PATH})
-+else()
-+    set(commitId d90c8ca66dfab505800c78299079204e9510982b)
-+    set(sha512 280c8a8e7fe5e47a86b0f5e9b2017b6be02b244eee1ef5f724fb7f2392684675604733a9dce6dcd79ef4392c8a15b312a452af7735ca2d5165710e39a6ad6692)
-+    if (DEFINED ENV{VCPKG_USE_STENCIL_COMMIT})
-+        set(commit $ENV{VCPKG_USE_STENCIL_COMMIT})
-+    endif()
-+    if (DEFINED ENV{VCPKG_USE_STENCIL_SHA512})
-+        set(sha512 $ENV{VCPKG_USE_STENCIL_SHA512})
-+    endif()
-+    vcpkg_from_github(
-+        OUT_SOURCE_PATH SOURCE_PATH
-+        REPO ankurverma85/stencil
-+        REF ${commitId}
-+        SHA512 ${sha512}
-+        HEAD_REF master
-+    )
+@@ -0,0 +1,32 @@
++set(commitId d90c8ca66dfab505800c78299079204e9510982b)
++set(sha512 280c8a8e7fe5e47a86b0f5e9b2017b6be02b244eee1ef5f724fb7f2392684675604733a9dce6dcd79ef4392c8a15b312a452af7735ca2d5165710e39a6ad6692)
++if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/use_source_path)
++    file(READ ${CMAKE_CURRENT_LIST_DIR}/use_source_path srcpath)
++    string(STRIP ${srcpath} srcpath)
++    get_filename_component(VCPKG_USE_STENCIL_SRC_DIR ${srcpath} ABSOLUTE)
++    set(SOURCE_PATH ${srcpath})
++endif()
++
++if (NOT DEFINED SOURCE_PATH)
++vcpkg_from_github(
++    OUT_SOURCE_PATH SOURCE_PATH
++    REPO ankurverma85/stencil
++    REF ${commitId}
++    SHA512 ${sha512}
++    HEAD_REF master)
 +endif()
 +
 +vcpkg_configure_cmake(
