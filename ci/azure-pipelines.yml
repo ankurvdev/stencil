@@ -29,9 +29,9 @@ jobs:
       Contents: '*.zip'
       TargetFolder: $(Build.ArtifactStagingDirectory)
   - task: PublishBuildArtifacts@1
-      displayName: 'Publish Artifact'
-      inputs:
-        PathtoPublish: $(Build.ArtifactStagingDirectory)
+    displayName: 'Publish Artifact'
+    inputs:
+      pathtoPublish: $(Build.ArtifactStagingDirectory)
 
 - job: Buld_VS2019
   displayName: Build VS2019
@@ -55,6 +55,6 @@ jobs:
       Contents: '*.zip'
       TargetFolder: $(Build.ArtifactStagingDirectory)
   - task: PublishBuildArtifacts@1
-      displayName: 'Publish Artifact'
-      inputs:
-        PathtoPublish: $(Build.ArtifactStagingDirectory)
+    displayName: 'Publish Artifact'
+    inputs:
+      pathtoPublish: $(Build.ArtifactStagingDirectory)
