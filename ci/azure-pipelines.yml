@@ -1,0 +1,60 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+pr:
+- master
+
+jobs:
+- job: Build_Ubuntu
+  displayName: Build Ubuntu
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+  - bash: bash $(Build.SourcesDirectory)/ci/prepare_ubuntu_machine.sh && mkdir -p cmake-build && mkdir -p vcpkg-build
+    displayName: 'Install Build Tools'
+  - bash: bash $(Build.SourcesDirectory)/ci/build_linux.sh
+    displayName: 'Build and Test Linux'
+    workingDirectory: 'cmake-build'
+  - bash: bash $(Build.SourcesDirectory)/ci/build_with_vcpkg.sh
+    displayName: 'Build With Vcpkg'
+    workingDirectory: 'vcpkg-build'
+  - task: CopyFiles@2
+    displayName: 'Copy Files to artifact staging directory'
+    inputs:
+      SourceFolder: 'cmake-build'
+      Contents: '*.zip'
+      TargetFolder: $(Build.ArtifactStagingDirectory)
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact'
+    inputs:
+      pathtoPublish: $(Build.ArtifactStagingDirectory)
+
+- job: Buld_VS2019
+  displayName: Build VS2019
+  pool:
+    vmImage: 'windows-2019'
+  steps:
+  - task: BatchScript@1
+    displayName: "Build and Test VS2019"
+    inputs:
+      workingFolder: 'cmake-build'
+      filename:  $(Build.SourcesDirectory)/ci/build_win_msvc.bat
+  - task: BatchScript@1
+    displayName: "Build Windows with Vcpkg"
+    inputs:
+      workingFolder: 'vcpkg-build'
+      filename:  $(Build.SourcesDirectory)/ci/build_with_vcpkg.bat
+  - task: CopyFiles@2
+    displayName: 'Copy Files to artifact staging directory'
+    inputs:
+      SourceFolder: 'cmake-build'
+      Contents: '*.zip'
+      TargetFolder: $(Build.ArtifactStagingDirectory)
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact'
+    inputs:
+      pathtoPublish: $(Build.ArtifactStagingDirectory)

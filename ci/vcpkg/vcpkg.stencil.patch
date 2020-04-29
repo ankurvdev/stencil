@@ -1,0 +1,62 @@
+From 4d96317809a0d3dca7d57b4a102a20bd5657e00d Mon Sep 17 00:00:00 2001
+From: "Ankur Verma (SF)" <ankurv@corp.microsoft.com>
+Date: Tue, 28 Apr 2020 21:28:26 -0700
+Subject: [PATCH] Stencil
+
+---
+ ports/stencil/CONTROL        |  3 +++
+ ports/stencil/portfile.cmake | 32 ++++++++++++++++++++++++++++++++
+ 2 files changed, 35 insertions(+)
+ create mode 100644 ports/stencil/CONTROL
+ create mode 100644 ports/stencil/portfile.cmake
+
+diff --git a/ports/stencil/CONTROL b/ports/stencil/CONTROL
+new file mode 100644
+index 000000000..bce9ca81c
+--- /dev/null
++++ b/ports/stencil/CONTROL
+@@ -0,0 +1,3 @@
++Source: stencil
++Version: 0.0.1
++Description: Code Generator based on Model Template binding Transformations
+diff --git a/ports/stencil/portfile.cmake b/ports/stencil/portfile.cmake
+new file mode 100644
+index 000000000..2ce867912
+--- /dev/null
++++ b/ports/stencil/portfile.cmake
+@@ -0,0 +1,32 @@
++set(commitId d90c8ca66dfab505800c78299079204e9510982b)
++set(sha512 280c8a8e7fe5e47a86b0f5e9b2017b6be02b244eee1ef5f724fb7f2392684675604733a9dce6dcd79ef4392c8a15b312a452af7735ca2d5165710e39a6ad6692)
++if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/use_source_path)
++    file(READ ${CMAKE_CURRENT_LIST_DIR}/use_source_path srcpath)
++    string(STRIP ${srcpath} srcpath)
++    get_filename_component(VCPKG_USE_STENCIL_SRC_DIR ${srcpath} ABSOLUTE)
++    set(SOURCE_PATH ${srcpath})
++endif()
++
++if (NOT DEFINED SOURCE_PATH)
++vcpkg_from_github(
++    OUT_SOURCE_PATH SOURCE_PATH
++    REPO ankurverma85/stencil
++    REF ${commitId}
++    SHA512 ${sha512}
++    HEAD_REF master)
++endif()
++
++vcpkg_configure_cmake(
++    SOURCE_PATH ${SOURCE_PATH}
++    PREFER_NINJA
++    OPTIONS -DSTENCIL_INSTALL_BUILDTOOLS=ON
++)
++
++vcpkg_install_cmake()
++vcpkg_copy_pdbs()
++
++# Handle copyright
++file(INSTALL ${SOURCE_PATH}/LICENSE DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT} RENAME copyright)
++file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug")
++file(RENAME "${CURRENT_PACKAGES_DIR}/bin" "${CURRENT_PACKAGES_DIR}/tools")
++
+-- 
+2.17.1.windows.2
+
