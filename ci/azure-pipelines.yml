@@ -29,7 +29,7 @@ jobs:
       Contents: '*.zip'
       TargetFolder: $(Build.ArtifactStagingDirectory)
   - task: PublishBuildArtifacts@1
-      displayName: 'Publish Artifact: drop'
+      displayName: 'Publish Artifact'
       inputs:
         PathtoPublish: $(Build.ArtifactStagingDirectory)
 
@@ -55,6 +55,6 @@ jobs:
       Contents: '*.zip'
       TargetFolder: $(Build.ArtifactStagingDirectory)
   - task: PublishBuildArtifacts@1
-      displayName: 'Publish Artifact: drop'
+      displayName: 'Publish Artifact'
       inputs:
         PathtoPublish: $(Build.ArtifactStagingDirectory)
