@@ -14,15 +14,13 @@ jobs:
   pool:
     vmImage: 'ubuntu-latest'
   steps:
-  - bash: bash $(Build.SourcesDirectory)/ci/prepare_ubuntu_machine.sh
+  - bash: bash $(Build.SourcesDirectory)/ci/prepare_ubuntu_machine.sh && mkdir -p cmake-build && mkdir -p vcpkg-build
     displayName: 'Install Build Tools'
-  - bash: mkdir -p cmake-build
-  - bash: mkdir -p vcpkg-build
   - bash: bash $(Build.SourcesDirectory)/ci/build_linux.sh
-    displayName: 'Install Build Tools'
+    displayName: 'Build and Test Linux
     workingDirectory: 'cmake-build'
   - bash: bash $(Build.SourcesDirectory)/ci/build_with_vcpkg.sh
-    displayName: 'Install Build Tools'
+    displayName: 'Build With Vcpkg
     workingDirectory: 'vcpkg-build'
 
 - job: Buld_VS2019
@@ -31,12 +29,12 @@ jobs:
     vmImage: 'windows-2019'
   steps:
   - task: BatchScript@1
-    displayName: "Build Windows"
+    displayName: "Build and Test VS2019"
     inputs:
       workingFolder: 'cmake-build'
       filename:  $(Build.SourcesDirectory)/ci/build_win_msvc.bat
   - task: BatchScript@1
-    displayName: "Build Windows"
+    displayName: "Build Windows with Vcpkg
     inputs:
       workingFolder: 'vcpkg-build'
       filename:  $(Build.SourcesDirectory)/ci/build_with_vcpkg.bat
