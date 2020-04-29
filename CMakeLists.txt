@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 project(stencil VERSION 0.0.1)
 include(CMakePackageConfigHelpers)
 option(BUILD_TEST "Build Test" ON)
-option(STENCIL_INSTALL_BUILDTOOLS ON)
+option(STENCIL_INSTALL_BUILDTOOLS "Install Extra Build Tools with install" ON)
 set(CMAKE_CXX_STANDARD 17)
 
 set(LexYacc_DIR          ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc)

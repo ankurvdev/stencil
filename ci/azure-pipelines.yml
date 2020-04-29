@@ -26,7 +26,7 @@ jobs:
     displayName: 'Copy Files to artifact staging directory'
     inputs:
       SourceFolder: 'cmake-build'
-      Contents: '*.zip'
+      Contents: 'stencil*.zip'
       TargetFolder: $(Build.ArtifactStagingDirectory)
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact'
@@ -52,7 +52,7 @@ jobs:
     displayName: 'Copy Files to artifact staging directory'
     inputs:
       SourceFolder: 'cmake-build'
-      Contents: '*.zip'
+      Contents: 'stencil*.zip'
       TargetFolder: $(Build.ArtifactStagingDirectory)
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact'
