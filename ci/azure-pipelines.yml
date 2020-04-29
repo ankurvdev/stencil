@@ -22,6 +22,16 @@ jobs:
   - bash: bash $(Build.SourcesDirectory)/ci/build_with_vcpkg.sh
     displayName: 'Build With Vcpkg'
     workingDirectory: 'vcpkg-build'
+  - task: CopyFiles@2
+    displayName: 'Copy Files to artifact staging directory'
+    inputs:
+      SourceFolder: 'cmake-build'
+      Contents: '*.zip'
+      TargetFolder: $(Build.ArtifactStagingDirectory)
+  - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact: drop'
+      inputs:
+        PathtoPublish: $(Build.ArtifactStagingDirectory)
 
 - job: Buld_VS2019
   displayName: Build VS2019
@@ -38,3 +48,13 @@ jobs:
     inputs:
       workingFolder: 'vcpkg-build'
       filename:  $(Build.SourcesDirectory)/ci/build_with_vcpkg.bat
+  - task: CopyFiles@2
+    displayName: 'Copy Files to artifact staging directory'
+    inputs:
+      SourceFolder: 'cmake-build'
+      Contents: '*.zip'
+      TargetFolder: $(Build.ArtifactStagingDirectory)
+  - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact: drop'
+      inputs:
+        PathtoPublish: $(Build.ArtifactStagingDirectory)
