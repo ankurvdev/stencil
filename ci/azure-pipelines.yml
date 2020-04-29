@@ -16,6 +16,8 @@ jobs:
   steps:
   - bash: bash $(Build.SourcesDirectory)/ci/prepare_ubuntu_machine.sh
     displayName: 'Install Build Tools'
+  - bash: mkdir -p cmake-build
+  - bash: mkdir -p vcpkg-build
   - bash: bash $(Build.SourcesDirectory)/ci/build_linux.sh
     displayName: 'Install Build Tools'
     workingDirectory: 'cmake-build'
