@@ -36,6 +36,7 @@ set_target_properties(stencil PROPERTIES PUBLIC_HEADER "${public_headers}")
 target_link_libraries(stencil PRIVATE libstencil)
 
 if (BUILD_TEST)
+    enable_testing()
     add_executable(tests
         tests/Test_CLOpts.cpp
         tests/Test_CommandLineArgsReaderHandler.cpp
@@ -75,6 +76,7 @@ if (BUILD_TEST)
     target_link_libraries(tests PRIVATE libstencil)
     find_package (Threads)
     target_link_libraries (tests PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+    add_test(NAME tests COMMAND tests)
 endif()
 
 configure_package_config_file(cmake/stencilConfig.cmake.in
