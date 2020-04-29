@@ -17,10 +17,10 @@ jobs:
   - bash: bash $(Build.SourcesDirectory)/ci/prepare_ubuntu_machine.sh && mkdir -p cmake-build && mkdir -p vcpkg-build
     displayName: 'Install Build Tools'
   - bash: bash $(Build.SourcesDirectory)/ci/build_linux.sh
-    displayName: 'Build and Test Linux
+    displayName: 'Build and Test Linux'
     workingDirectory: 'cmake-build'
   - bash: bash $(Build.SourcesDirectory)/ci/build_with_vcpkg.sh
-    displayName: 'Build With Vcpkg
+    displayName: 'Build With Vcpkg'
     workingDirectory: 'vcpkg-build'
 
 - job: Buld_VS2019
@@ -34,7 +34,7 @@ jobs:
       workingFolder: 'cmake-build'
       filename:  $(Build.SourcesDirectory)/ci/build_win_msvc.bat
   - task: BatchScript@1
-    displayName: "Build Windows with Vcpkg
+    displayName: "Build Windows with Vcpkg"
     inputs:
       workingFolder: 'vcpkg-build'
       filename:  $(Build.SourcesDirectory)/ci/build_with_vcpkg.bat
