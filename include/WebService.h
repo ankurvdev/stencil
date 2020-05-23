@@ -5,6 +5,8 @@
 #include <httplib.h>
 #pragma warning(pop)
 
+#define STENCIL_USING_WEBSERVICE 1
+
 template <typename TInterface> struct WebServiceHandlerTraits
 {
     static constexpr const std::string_view Url()

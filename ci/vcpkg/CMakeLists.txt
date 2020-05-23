@@ -1,0 +1,31 @@
+cmake_minimum_required(VERSION 3.12)
+project(stencil VERSION 0.0.1)
+
+set(CMAKE_CXX_STANDARD 17)
+if(NOT EXISTS ${VCPKG_ROOT})
+	message(FATAL_ERROR "Please run with -DVCPKG_ROOT=<vcpkg-root>")
+endif()
+if (WIN32)
+	set(VCPKG_TARGET_TRIPLET x86-windows)
+else()
+	set(VCPKG_TARGET_TRIPLET x64-linux)
+endif()
+include(${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
+
+find_package(stencil REQUIRED)
+file(GLOB pidlfiles ${CMAKE_CURRENT_LIST_DIR}/../../tests/*.pidl)
+if ( "${pidlfiles}" STREQUAL "")
+	message(FATAL_ERROR "Cannot find any pidl files to include in ${CMAKE_CURRENT_LIST_DIR}/../../tests")
+endif()
+
+set(srcfile ${CMAKE_CURRENT_BINARY_DIR}/main.cpp)
+file(WRITE ${srcfile} "")
+add_executable(stencil_vcpkg_test ${srcfile})
+foreach(f ${pidlfiles})
+	get_filename_component(fname ${f} NAME)
+	file(APPEND ${srcfile} "#include <${fname}.h>\n")
+	target_add_stencil(stencil_vcpkg_test ${f})
+endforeach()
+
+file(APPEND ${srcfile} "int main() { return 0; }\n")
+
