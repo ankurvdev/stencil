@@ -75,8 +75,8 @@ struct TestInterface : public ReflectionBase::Interface<TestInterface>
     public:
     TestInterface() : ReflectionBase::Interface<TestInterface>(this) {}
     virtual Data::Data Create(
-        int32_t randomInteger
-,        shared_string randomString
+        int32_t const& randomInteger
+,        shared_string const& randomString
         )
         = 0;
     // static std::unique_ptr<TestInterface> Create();
@@ -126,9 +126,9 @@ template <> struct ReflectionBase::TypeTraits<SimpleWebService::TestInterface_Cr
     static constexpr std::string_view           Name() { return "Create"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
-    using Handler = ::ReflectionServices::ReflectedStructHandler<SimpleWebService::TestInterface_Create_Args,
-                                                                 Traits_arg_randomInteger
-,                                                                 Traits_arg_randomString
+    using Handler = ::ReflectionServices::ReflectedStructHandler<SimpleWebService::TestInterface_Create_Args
+                                                                 ,Traits_arg_randomInteger
+                                                                 ,Traits_arg_randomString
                                                                  >;
 };
 template <> struct ReflectionBase::InterfaceTraits<SimpleWebService::TestInterface>
@@ -152,7 +152,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Simple
     static constexpr bool             IsStatic() { return false; }
     static constexpr std::string_view Name() { return "Create"; }
 
-    static SimpleWebService::Data::Data Invoke(ArgsStruct& args)
+    static auto Invoke(ArgsStruct& args)
     {
         return args.instance->Create(
             args.get_arg_randomInteger()

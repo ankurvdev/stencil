@@ -72,52 +72,65 @@ struct ResourceFileManager
     std::unordered_map<std::string, std::filesystem::path> _openedfiles;
 };
 
-void RunTest(std::string const& pidlfile)
+void RunTest(std::initializer_list<std::string_view const> const& pidlfiles)
 {
     ResourceFileManager resfiles;
 
-    auto generator = Generator::Get("thrift");
-    generator->LoadBuilltinTemplates();
-    generator->LoadFile(resfiles.load(pidlfile, ""));
-
-    auto outfiles = generator->Generate(false, std::filesystem::current_path());
-
-    REQUIRE(outfiles.size() > 0);
-    for (auto const& path : outfiles)
+    for (auto const& pidlfile : pidlfiles)
     {
-        auto fname          = path.filename().string();
-        auto actualstring   = readlines(path);
-        auto expectedstring = readlines(resfiles.load(fname, "res_"));
 
-        dtl::Diff<std::string, std::vector<std::string>> d(actualstring, expectedstring);
-        d.compose();                // construct an edit distance and LCS and SES
-        d.composeUnifiedHunks();    // construct a difference as Unified Format with SES.
-        d.printUnifiedFormat();     // print a difference as Unified Format.
-        REQUIRE(actualstring == expectedstring);
+        auto generator = Generator::Get("thrift");
+        generator->LoadBuilltinTemplates();
+        generator->LoadFile(resfiles.load(std::string(pidlfile), ""));
+
+        auto outfiles = generator->Generate(false, std::filesystem::current_path());
+
+        REQUIRE(outfiles.size() > 0);
+        for (auto const& path : outfiles)
+        {
+            auto fname          = path.filename().string();
+            auto actualstring   = readlines(path);
+            auto expectedstring = readlines(resfiles.load(fname, "res_"));
+
+            dtl::Diff<std::string, std::vector<std::string>> d(actualstring, expectedstring);
+            d.compose();                // construct an edit distance and LCS and SES
+            d.composeUnifiedHunks();    // construct a difference as Unified Format with SES.
+
+            if (actualstring != expectedstring)
+            {
+                d.printUnifiedFormat();    // print a difference as Unified Format.
+                REQUIRE_FALSE("Comparison Failed");
+            }
+        }
     }
 }
 
 TEST_CASE("CodeGen::ThriftGenerator::CLOpts1", "[ThriftGenerator]")
 {
-    REQUIRE_NOTHROW(RunTest("CLOpts1.pidl"));
+    REQUIRE_NOTHROW(RunTest({"CLOpts1.pidl"}));
 }
 
 TEST_CASE("CodeGen::ThriftGenerator::CLOpts2", "[ThriftGenerator]")
 {
-    REQUIRE_NOTHROW(RunTest("CLOpts2.pidl"));
+    REQUIRE_NOTHROW(RunTest({"CLOpts2.pidl"}));
 }
 
 TEST_CASE("CodeGen::ThriftGenerator::UnionTest", "[ThriftGenerator]")
 {
-    REQUIRE_NOTHROW(RunTest("UnionTest.pidl"));
+    REQUIRE_NOTHROW(RunTest({"UnionTest.pidl"}));
 }
 
 TEST_CASE("CodeGen::ThriftGenerator::UserData", "[ThriftGenerator]")
 {
-    REQUIRE_NOTHROW(RunTest("UserData.pidl"));
+    REQUIRE_NOTHROW(RunTest({"UserData.pidl"}));
 }
 
-TEST_CASE("CodeGen::ThriftGenerator::WebService", "[ThriftGenerator]")
+TEST_CASE("CodeGen::ThriftGenerator::WebService1", "[ThriftGenerator]")
 {
-    REQUIRE_NOTHROW(RunTest("SimpleWebService.pidl"));
+    REQUIRE_NOTHROW(RunTest({"SimpleWebService.pidl"}));
+}
+
+TEST_CASE("CodeGen::ThriftGenerator::WebService2", "[ThriftGenerator]")
+{
+    REQUIRE_NOTHROW(RunTest({"Metadata.pidl", "ComplexWebService.pidl"}));
 }
