@@ -4,6 +4,6 @@ git -C vcpkg apply --ignore-space-change --ignore-whitespace $scriptdir/vcpkg/vc
 echo ${scriptdir}/.. > vcpkg/ports/stencil/use_source_path
 vcpkg/bootstrap-vcpkg.sh
 vcpkg/vcpkg install stencil
-cmake.exe -G "Ninja" -DVCPKG_ROOT=vcpkg %~dp0\vcpkg
-cmake.exe --build . -j --target package
-ctest.exe
+cmake -DVCPKG_ROOT=$(realpath ./vcpkg) $scriptdir\vcpkg
+cmake --build . -j --target package
+ctest
