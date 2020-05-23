@@ -27,5 +27,25 @@ foreach(f ${pidlfiles})
 	target_add_stencil(stencil_vcpkg_test ${f})
 endforeach()
 
-file(APPEND ${srcfile} "int main() { return 0; }\n")
+target_add_lexyacc(stencil_vcpkg_test ${CMAKE_CURRENT_LIST_DIR}/WavefrontObj.ly)
+target_include_directories(stencil_vcpkg_test PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+
+target_add_resource(stencil_vcpkg_test testdata ${pidlfiles})
+
+file(APPEND ${srcfile} "
+#include<WavefrontObj.ly.h>
+#include<EmbeddedResource.h>
+#include <iostream>
+DECLARE_RESOURCE_COLLECTION(testdata);
+int main() { 
+        auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
+	for (auto const& r : resourceCollection)
+        {
+		std::cout << r.string();
+	}	
+	return 0; 
+}"
+
+
+)
 
