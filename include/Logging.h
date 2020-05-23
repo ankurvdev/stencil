@@ -27,9 +27,9 @@ struct CorrelationVector
 
     static CorrelationVector Empty() { return CorrelationVector(); }
 
-    static CorrelationVector Create() { throw std::logic_error("TODO"); }
-    CorrelationVector&       Increment();
-    CorrelationVector        Extend() const;
+    static CorrelationVector Create() { return {}; }
+    CorrelationVector& Increment() { return *this; }
+    CorrelationVector  Extend() const { return CorrelationVector::Create(); }
 
     operator shared_wstring() const { return shared_wstring(std::wstring(&_cv.Vector[0], &_cv.Vector[StringSize])); }
 

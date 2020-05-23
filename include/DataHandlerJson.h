@@ -297,11 +297,11 @@ template <typename TStruct> struct CommandLineArgs
         ReaderHandler(TStruct* obj) : _tracker(obj, nullptr) {}
         virtual void HandleValue(bool value) override { _tracker.HandleValue(Value(value), nullptr); }
 
-        virtual void HandleValue(std::string const& str) override { _tracker.HandleValue(Value(str), nullptr); }
+        virtual void HandleValue(std::string_view const& str) override { _tracker.HandleValue(Value(str), nullptr); }
 
-        virtual void HandleEnum(std::string const& str) override { _tracker.HandleEnum(Value(str), nullptr); }
+        virtual void HandleEnum(std::string_view const& str) override { _tracker.HandleEnum(Value(str), nullptr); }
 
-        virtual void UnionType(std::string const& str) override { _tracker.UnionType(Value(str), nullptr); }
+        virtual void UnionType(std::string_view const& str) override { _tracker.UnionType(Value(str), nullptr); }
 
         virtual void ListStart() override
         {
@@ -313,7 +313,7 @@ template <typename TStruct> struct CommandLineArgs
 
         virtual void ObjStart() override { _tracker.ObjStart(nullptr); }
         virtual void ObjEnd() override { _tracker.ObjEnd(); }
-        virtual void ObjKey(std::string const& key) override { _tracker.ObjKey(Value{key}, nullptr); }
+        virtual void ObjKey(std::string_view const& key) override { _tracker.ObjKey(Value{key}, nullptr); }
         virtual void ObjKey(size_t index) override { _tracker.ObjKey(Value{index}, nullptr); }
 
         virtual std::shared_ptr<CommandLineArgsReader::Definition> GetCurrentContext() override

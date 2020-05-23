@@ -86,6 +86,13 @@ struct Value
         _check(Type::String);
         return _sVal;
     }
+
+    operator std::string_view() const
+    {
+        _check(Type::String);
+        return {_sVal.c_str(), _sVal.size()};
+    }
+
     operator size_t() const;
 
     //   operator double()        const { _check(Type::Double);  return _dVal; }

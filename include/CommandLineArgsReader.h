@@ -40,15 +40,15 @@ struct CommandLineArgsReader
     struct Handler
     {
         virtual void                        HandleValue(bool value)             = 0;
-        virtual void                        HandleValue(std::string const& str) = 0;
+        virtual void                        HandleValue(std::string_view const& str) = 0;
         virtual void                        ListStart()                         = 0;
         virtual void                        ListEnd()                           = 0;
         virtual void                        ObjStart()                          = 0;
         virtual void                        ObjEnd()                            = 0;
-        virtual void                        ObjKey(std::string const& key)      = 0;
+        virtual void                        ObjKey(std::string_view const& key)      = 0;
         virtual void                        ObjKey(size_t index)                = 0;
-        virtual void                        HandleEnum(std::string const& str)  = 0;
-        virtual void                        UnionType(std::string const& str)   = 0;
+        virtual void                        HandleEnum(std::string_view const& str)  = 0;
+        virtual void                        UnionType(std::string_view const& str)   = 0;
         virtual std::shared_ptr<Definition> GetCurrentContext()                 = 0;
         virtual std::string                 GenerateHelp()                      = 0;
     } * _handler;
@@ -138,23 +138,23 @@ struct CommandLineArgsReader
         return ptr;
     }
 
-    void _ProcessList(const char* val)
+    void _ProcessList(std::string_view val)
     {
         _handler->ListStart();
         char buffer[1024];
-        for (auto cPtr = clgettoken(val, buffer, 1024); cPtr != nullptr; cPtr = clgettoken(cPtr, buffer, 1024))
+        for (auto cPtr = clgettoken(val.data(), buffer, 1024); cPtr != nullptr; cPtr = clgettoken(cPtr, buffer, 1024))
         {
             this->_ProcessValue(buffer);
         }
         _handler->ListEnd();
     }
 
-    void _ProcessObject(const char* val)
+    void _ProcessObject(std::string_view val)
     {
         _handler->ObjStart();
         char   buffer[1024];
         size_t index = 0;
-        for (auto cPtr = clgettoken(val, buffer, 1024); cPtr != nullptr; cPtr = clgettoken(cPtr, buffer, 1024))
+        for (auto cPtr = clgettoken(val.data(), buffer, 1024); cPtr != nullptr; cPtr = clgettoken(cPtr, buffer, 1024))
         {
             _handler->ObjKey(index++);
             this->_ProcessValue(buffer);
@@ -162,7 +162,7 @@ struct CommandLineArgsReader
         _handler->ObjEnd();
     }
 
-    void _ProcessValue(const char* str)
+    void _ProcessValue(std::string_view str)
     {
         switch (_handler->GetCurrentContext()->GetType())
         {
