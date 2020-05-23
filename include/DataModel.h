@@ -3,6 +3,7 @@
 #include <Database2.h>
 #include <Value.h>
 #include <uuidobject.h>
+#include <Logging.h>
 
 #include <tree.h>
 

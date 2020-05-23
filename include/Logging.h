@@ -1,7 +1,9 @@
 #pragma once
-#include <cstring>
-#include <ostream>
 #include <shared_string.h>
+
+#include <cstring>
+#include <iostream>
+#include <array>
 
 struct CorrelationVector
 {

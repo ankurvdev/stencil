@@ -95,6 +95,8 @@ struct Value
 
     Type GetType() const { return _type; }
     template <typename T> Value(T val) : _type(ValueTraits<T>::ValueType()) { ValueTraits<T>::Get(*this) = val; }
+    Value(std::string_view const& str) : _type(Type::String), _sVal(str) {}
+    Value(std::string const& str) : _type(Type::String), _sVal(str) {}
     /*
     Value(double val) : _type(Type::Double), _dVal(val) {}
     Value(bool val) : _type(Type::Integer), _iVal(val) {}

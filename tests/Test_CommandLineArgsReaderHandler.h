@@ -19,7 +19,7 @@ struct DefinitionTree
 
     void                            AddComponent(std::shared_ptr<DefinitionTree> child) { children.push_back(child); }
     std::shared_ptr<DefinitionTree> FindComponent(size_t index) { return index < children.size() ? children[index] : nullptr; }
-    std::shared_ptr<DefinitionTree> FindComponent(shared_string str)
+    std::shared_ptr<DefinitionTree> FindComponent(std::string const& str)
     {
         for (auto& it : children)
         {
@@ -68,21 +68,21 @@ struct StateTraker
 
     void HandleValue(Value const& val, TStackData&& data)
     {
-        lines.push_back("v:" + _stack.back().def->def->name + "=" + ((shared_string)val).data());
+        lines.push_back("v:" + _stack.back().def->def->name + "=" + ((std::string const&)val).data());
         _Start(Mode::Val, std::move(data));
         _End(Mode::Val);
     }
 
     void HandleEnum(Value const& val, TStackData&& data)
     {
-        lines.push_back("e:" + _stack.back().def->def->name + "=" + ((shared_string)val).data());
+        lines.push_back("e:" + _stack.back().def->def->name + "=" + ((std::string const&)val).data());
         _Start(Mode::Enum, std::move(data));
         _End(Mode::Enum);
     }
 
     void SetUnionType(Value const& val, TStackData&& data)
     {
-        lines.push_back("u:" + _stack.back().def->def->name + "=" + ((shared_string)val).data());
+        lines.push_back("u:" + _stack.back().def->def->name + "=" + ((std::string const&)val).data());
         _Start(Mode::Union, std::move(data));
     }
 
@@ -156,7 +156,7 @@ struct StateTraker
         }
         else
         {
-            sub = _stack.back().def->FindComponent((shared_string)key);
+            sub = _stack.back().def->FindComponent((std::string const&)key);
         }
 
         if (sub == nullptr) throw std::logic_error("failure");
@@ -164,7 +164,7 @@ struct StateTraker
         return true;
     }
 
-    shared_string GenerateHelp()
+    std::string GenerateHelp()
     {
         lines.push_back("gh:");
         return "gh:";
@@ -191,10 +191,10 @@ struct Handler : public CommandLineArgsReader::Handler
 
     virtual void HandleValue(bool value) override { _tracker.HandleValue(Value(value), nullptr); }
 
-    virtual void HandleValue(shared_string str) override { _tracker.HandleValue(Value(str), nullptr); }
+    virtual void HandleValue(std::string const& str) override { _tracker.HandleValue(Value(str), nullptr); }
 
-    virtual void HandleEnum(shared_string str) override { _tracker.HandleEnum(Value(str), nullptr); }
-    virtual void UnionType(shared_string str) override { _tracker.SetUnionType(Value(str), nullptr); }
+    virtual void HandleEnum(std::string const& str) override { _tracker.HandleEnum(Value(str), nullptr); }
+    virtual void UnionType(std::string const& str) override { _tracker.SetUnionType(Value(str), nullptr); }
     virtual void ListStart() override
     {
         // auto sub = FindComponent(0);
@@ -205,53 +205,55 @@ struct Handler : public CommandLineArgsReader::Handler
 
     virtual void ObjStart() override { _tracker.ObjStart(nullptr); }
     virtual void ObjEnd() override { _tracker.ObjEnd(); }
-    virtual void ObjKey(Value key) override { _tracker.ObjKey(key, nullptr); }
+    virtual void ObjKey(std::string const& key) override { _tracker.ObjKey(Value{key}, nullptr); }
+    virtual void ObjKey(size_t index) override { _tracker.ObjKey(Value{index}, nullptr); }
 
     virtual std::shared_ptr<CommandLineArgsReader::Definition> GetCurrentContext() override
     {
-        return std::make_shared<CommandLineArgsReader::Definition>(shared_string(), _tracker.GetFieldTypeHint());
+        return std::make_shared<CommandLineArgsReader::Definition>(std::string(), _tracker.GetFieldTypeHint());
     }
 
-    virtual shared_string GenerateHelp() override { return _tracker.GenerateHelp(); }
+    virtual std::string GenerateHelp() override { return _tracker.GenerateHelp(); }
 
     StateTraker _tracker;
 };
 
 auto make_list()
 {
-    std::shared_ptr<DefinitionTree> meta(std::make_shared<DefinitionTree>(shared_string::make("listofint"), Definition::Type::List));
-    meta->AddComponent(std::make_shared<DefinitionTree>(shared_string::make(""), Definition::Type::Value));
+    std::shared_ptr<DefinitionTree> meta(std::make_shared<DefinitionTree>(std::string("listofint"), Definition::Type::List));
+    meta->AddComponent(std::make_shared<DefinitionTree>(std::string(), Definition::Type::Value));
     return meta;
 }
 
 auto make_obj()
 {
-    std::shared_ptr<DefinitionTree> meta(std::make_shared<DefinitionTree>(shared_string::make("obj"), Definition::Type::Object));
-    meta->AddComponent(std::make_shared<DefinitionTree>(shared_string::make("key1"), Definition::Type::Value));
-    meta->AddComponent(std::make_shared<DefinitionTree>(shared_string::make("key2"), Definition::Type::Value));
+    std::shared_ptr<DefinitionTree> meta(std::make_shared<DefinitionTree>(std::string("obj"), Definition::Type::Object));
+    meta->AddComponent(std::make_shared<DefinitionTree>(std::string("key1"), Definition::Type::Value));
+    meta->AddComponent(std::make_shared<DefinitionTree>(std::string("key2"), Definition::Type::Value));
     return meta;
 }
 
 auto make_list_of_list()
 {
-    std::shared_ptr<DefinitionTree> meta(std::make_shared<DefinitionTree>(shared_string::make("listoflist"), Definition::Type::List));
+    std::shared_ptr<DefinitionTree> meta(std::make_shared<DefinitionTree>(std::string("listoflist"), Definition::Type::List));
     meta->AddComponent(make_list());
     return meta;
 }
 
 auto make_list_of_obj()
 {
-    std::shared_ptr<DefinitionTree> meta(std::make_shared<DefinitionTree>(shared_string::make("listofobj"), Definition::Type::List));
+    std::shared_ptr<DefinitionTree> meta(std::make_shared<DefinitionTree>(std::string("listofobj"), Definition::Type::List));
     meta->AddComponent(make_obj());
     return meta;
 }
 
 auto make_obj_of_list()
 {
-    std::shared_ptr<DefinitionTree> meta(std::make_shared<DefinitionTree>(shared_string::make("objoflist"), Definition::Type::Object));
-    //    auto comp = std::shared_ptr<Definition>(std::make_shared<Definition>(shared_string::make("list1"), Definition::Type::List));
+    std::shared_ptr<DefinitionTree> meta(
+        std::make_shared<DefinitionTree>(std::string("objoflist"), Definition::Type::Object));
+    //    auto comp = std::shared_ptr<Definition>(std::make_shared<Definition>(std::string const&::make("list1"), Definition::Type::List));
     //    comp->AddComponent(());
     meta->AddComponent(make_list());
-    meta->AddComponent(std::make_shared<DefinitionTree>(shared_string::make("key2"), Definition::Type::Value));
+    meta->AddComponent(std::make_shared<DefinitionTree>(std::string("key2"), Definition::Type::Value));
     return meta;
 }

@@ -26,11 +26,11 @@ struct CommandLineArgsReader
             Union,
             Unknown
         };
-        shared_string name;
-        Type          type;
-        shared_string description;
+        std::string name;
+        Type        type;
+        std::string description;
 
-        Definition(shared_string nameIn, Type typeIn) : name(nameIn), type(typeIn) {}
+        Definition(std::string&& nameIn, Type typeIn) : name(nameIn), type(typeIn) {}
 
         Type GetType() const { return type; }
         auto GetName() const { return name; }
@@ -39,17 +39,18 @@ struct CommandLineArgsReader
 
     struct Handler
     {
-        virtual void                        HandleValue(bool value)        = 0;
-        virtual void                        HandleValue(shared_string str) = 0;
-        virtual void                        ListStart()                    = 0;
-        virtual void                        ListEnd()                      = 0;
-        virtual void                        ObjStart()                     = 0;
-        virtual void                        ObjEnd()                       = 0;
-        virtual void                        ObjKey(Value key)              = 0;
-        virtual void                        HandleEnum(shared_string str)  = 0;
-        virtual void                        UnionType(shared_string str)   = 0;
-        virtual std::shared_ptr<Definition> GetCurrentContext()            = 0;
-        virtual shared_string               GenerateHelp()                 = 0;
+        virtual void                        HandleValue(bool value)             = 0;
+        virtual void                        HandleValue(std::string const& str) = 0;
+        virtual void                        ListStart()                         = 0;
+        virtual void                        ListEnd()                           = 0;
+        virtual void                        ObjStart()                          = 0;
+        virtual void                        ObjEnd()                            = 0;
+        virtual void                        ObjKey(std::string const& key)      = 0;
+        virtual void                        ObjKey(size_t index)                = 0;
+        virtual void                        HandleEnum(std::string const& str)  = 0;
+        virtual void                        UnionType(std::string const& str)   = 0;
+        virtual std::shared_ptr<Definition> GetCurrentContext()                 = 0;
+        virtual std::string                 GenerateHelp()                      = 0;
     } * _handler;
 
     CommandLineArgsReader(Handler* handler) : _handler(handler) {}
@@ -68,7 +69,7 @@ struct CommandLineArgsReader
         if (eqPtr == nullptr || eqPtr[1] == '\0')
         {
             // Either its a boolean value or a Object and we'd like to switch context
-            _handler->ObjKey(shared_string::make(argv));
+            _handler->ObjKey(std::string(argv));
             if (_handler->GetCurrentContext()->GetType() == Definition::Type::Value)
             {
                 _handler->HandleValue(true);
@@ -77,14 +78,14 @@ struct CommandLineArgsReader
         else
         {
             std::copy(argv, eqPtr, name);
-            _handler->ObjKey(shared_string::make(name));
+            _handler->ObjKey(std::string(name));
             this->_ProcessValue(eqPtr + 1);
         }
     }
 
     void _ProcessShortArg(const char* argName, const char* argv)
     {
-        _handler->ObjKey(shared_string::make(argName));
+        _handler->ObjKey(std::string(argName));
         this->_ProcessValue(argv);
     }
 
@@ -102,7 +103,7 @@ struct CommandLineArgsReader
         case Definition::Type::Union: this->_ProcessValue(argv); break;
         case Definition::Type::Invalid:
             _handler->ObjEnd();
-            _handler->ObjKey(shared_string::make(argv));
+            _handler->ObjKey(std::string(argv));
             break;
         case Definition::Type::Unknown: throw 1;
         }
@@ -155,7 +156,7 @@ struct CommandLineArgsReader
         size_t index = 0;
         for (auto cPtr = clgettoken(val, buffer, 1024); cPtr != nullptr; cPtr = clgettoken(cPtr, buffer, 1024))
         {
-            _handler->ObjKey(Value(index++));
+            _handler->ObjKey(index++);
             this->_ProcessValue(buffer);
         }
         _handler->ObjEnd();
@@ -172,15 +173,15 @@ struct CommandLineArgsReader
             // Will be popped if this context doesnt accept the arg anymore
             _ProcessObject(str);
             break;
-        case Definition::Type::Value: _handler->HandleValue(shared_string::make(str)); break;
-        case Definition::Type::Enum: _handler->HandleEnum(shared_string::make(str)); break;
-        case Definition::Type::Union: _handler->UnionType(shared_string::make(str)); break;
+        case Definition::Type::Value: _handler->HandleValue(std::string(str)); break;
+        case Definition::Type::Enum: _handler->HandleEnum(std::string(str)); break;
+        case Definition::Type::Union: _handler->UnionType(std::string(str)); break;
         case Definition::Type::Invalid: [[fallthrough]];
         case Definition::Type::Unknown: throw "Unknown Data Type";
         }
     }
 
-    /* shared_string _Help(const char *commandName)
+    /* std::string _Help(const char *commandName)
      {
          std::vector<std::stringstream> subobjects;
          std::stringstream ss;
@@ -192,7 +193,7 @@ struct CommandLineArgsReader
          {
              ss << subss.str() << std::endl;
          }
-         return shared_string::make(ss.str());
+         return std::string::make(ss.str());
      }
 
      void _Help(std::stringstream &ss, std::shared_ptr<Definition> context, std::vector<std::stringstream> &subobjects)
@@ -259,7 +260,7 @@ struct CommandLineArgsReader
                     }
                     else
                     {
-                        _handler->ObjKey(shared_string::make(shortName));
+                        _handler->ObjKey(std::string(shortName));
                         break;
                     };
                 }
