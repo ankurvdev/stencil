@@ -19,7 +19,7 @@ struct DefinitionTree
 
     void                            AddComponent(std::shared_ptr<DefinitionTree> child) { children.push_back(child); }
     std::shared_ptr<DefinitionTree> FindComponent(size_t index) { return index < children.size() ? children[index] : nullptr; }
-    std::shared_ptr<DefinitionTree> FindComponent(std::string const& str)
+    std::shared_ptr<DefinitionTree> FindComponent(std::string_view const& str)
     {
         for (auto& it : children)
         {
@@ -68,21 +68,21 @@ struct StateTraker
 
     void HandleValue(Value const& val, TStackData&& data)
     {
-        lines.push_back("v:" + _stack.back().def->def->name + "=" + ((std::string const&)val).data());
+        lines.push_back("v:" + _stack.back().def->def->name + "=" + ((std::string_view const&)val).data());
         _Start(Mode::Val, std::move(data));
         _End(Mode::Val);
     }
 
     void HandleEnum(Value const& val, TStackData&& data)
     {
-        lines.push_back("e:" + _stack.back().def->def->name + "=" + ((std::string const&)val).data());
+        lines.push_back("e:" + _stack.back().def->def->name + "=" + ((std::string_view const&)val).data());
         _Start(Mode::Enum, std::move(data));
         _End(Mode::Enum);
     }
 
     void SetUnionType(Value const& val, TStackData&& data)
     {
-        lines.push_back("u:" + _stack.back().def->def->name + "=" + ((std::string const&)val).data());
+        lines.push_back("u:" + _stack.back().def->def->name + "=" + ((std::string_view const&)val).data());
         _Start(Mode::Union, std::move(data));
     }
 
@@ -156,7 +156,7 @@ struct StateTraker
         }
         else
         {
-            sub = _stack.back().def->FindComponent((std::string const&)key);
+            sub = _stack.back().def->FindComponent((shared_string)key);
         }
 
         if (sub == nullptr) throw std::logic_error("failure");
@@ -191,10 +191,10 @@ struct Handler : public CommandLineArgsReader::Handler
 
     virtual void HandleValue(bool value) override { _tracker.HandleValue(Value(value), nullptr); }
 
-    virtual void HandleValue(std::string const& str) override { _tracker.HandleValue(Value(str), nullptr); }
+    virtual void HandleValue(std::string_view const& str) override { _tracker.HandleValue(Value(str), nullptr); }
 
-    virtual void HandleEnum(std::string const& str) override { _tracker.HandleEnum(Value(str), nullptr); }
-    virtual void UnionType(std::string const& str) override { _tracker.SetUnionType(Value(str), nullptr); }
+    virtual void HandleEnum(std::string_view const& str) override { _tracker.HandleEnum(Value(str), nullptr); }
+    virtual void UnionType(std::string_view const& str) override { _tracker.SetUnionType(Value(str), nullptr); }
     virtual void ListStart() override
     {
         // auto sub = FindComponent(0);
@@ -205,7 +205,7 @@ struct Handler : public CommandLineArgsReader::Handler
 
     virtual void ObjStart() override { _tracker.ObjStart(nullptr); }
     virtual void ObjEnd() override { _tracker.ObjEnd(); }
-    virtual void ObjKey(std::string const& key) override { _tracker.ObjKey(Value{key}, nullptr); }
+    virtual void ObjKey(std::string_view const& key) override { _tracker.ObjKey(Value{key}, nullptr); }
     virtual void ObjKey(size_t index) override { _tracker.ObjKey(Value{index}, nullptr); }
 
     virtual std::shared_ptr<CommandLineArgsReader::Definition> GetCurrentContext() override
