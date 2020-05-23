@@ -42,12 +42,14 @@ jobs:
     displayName: "Build and Test VS2019"
     inputs:
       workingFolder: 'cmake-build'
-      filename:  $(Build.SourcesDirectory)/ci/build_win_msvc.ps1
+      targetType: 'filePath'
+      filePath:  $(Build.SourcesDirectory)/ci/build_win_msvc.ps1
   - task: Powershell@2
     displayName: "Build Windows with Vcpkg"
     inputs:
       workingFolder: 'vcpkg-build'
-      filename:  $(Build.SourcesDirectory)/ci/build_with_vcpkg.ps1
+      targetType: 'filePath'
+      filePath:  $(Build.SourcesDirectory)/ci/build_with_vcpkg.ps1
   - task: CopyFiles@2
     displayName: 'Copy Files to artifact staging directory'
     inputs:
