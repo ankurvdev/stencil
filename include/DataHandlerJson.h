@@ -27,7 +27,7 @@ struct Json
 
         bool Default()
         {
-            TODO();
+            throw std::logic_error("TODO");
             return false;
         }
 
@@ -364,7 +364,7 @@ template <typename TStruct> struct CommandLineArgs
                     args.push_back(("<" + c->name.str() + ">"));
                 }
                 break;
-            default: TODO();
+            default: throw std::logic_error("TODO");
             }
 
             table->AddRowColumn(0, 0, "Usage:");
@@ -391,7 +391,7 @@ template <typename TStruct> struct CommandLineArgs
                 }
             }
             break;
-            default: TODO();
+            default: throw std::logic_error("TODO");
             }
 
             return table;

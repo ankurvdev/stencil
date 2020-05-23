@@ -1,12 +1,19 @@
 #pragma once
-#include <Common.h>
-#include <Value.h>
 #include <filesystem>
 #include <iostream>
 #include <sstream>
+#include <cstring>
 
 struct CommandLineArgsReader
 {
+
+    inline bool stricompare(const char *str1, const char *str2)
+    {
+        auto len1 = strlen(str1);
+        auto len2 = strlen(str2);
+        return std::equal(str1, str1 + len1, str2, str2 + len2, [](char a, char b) { return tolower(a) == tolower(b); });
+    }
+
     struct Definition
     {
         enum class Type
@@ -20,7 +27,7 @@ struct CommandLineArgsReader
             Unknown
         };
         shared_string name;
-        Type          type;
+        Type type;
         shared_string description;
 
         Definition(shared_string nameIn, Type typeIn) : name(nameIn), type(typeIn) {}
@@ -32,31 +39,32 @@ struct CommandLineArgsReader
 
     struct Handler
     {
-        virtual void                        HandleValue(bool value)        = 0;
-        virtual void                        HandleValue(shared_string str) = 0;
-        virtual void                        ListStart()                    = 0;
-        virtual void                        ListEnd()                      = 0;
-        virtual void                        ObjStart()                     = 0;
-        virtual void                        ObjEnd()                       = 0;
-        virtual void                        ObjKey(Value key)    = 0;
-        virtual void                        HandleEnum(shared_string str)  = 0;
-        virtual void                        UnionType(shared_string str)   = 0;
-        virtual std::shared_ptr<Definition> GetCurrentContext()            = 0;
-        virtual shared_string               GenerateHelp()                 = 0;
+        virtual void HandleValue(bool value) = 0;
+        virtual void HandleValue(shared_string str) = 0;
+        virtual void ListStart() = 0;
+        virtual void ListEnd() = 0;
+        virtual void ObjStart() = 0;
+        virtual void ObjEnd() = 0;
+        virtual void ObjKey(Value key) = 0;
+        virtual void HandleEnum(shared_string str) = 0;
+        virtual void UnionType(shared_string str) = 0;
+        virtual std::shared_ptr<Definition> GetCurrentContext() = 0;
+        virtual shared_string GenerateHelp() = 0;
     } * _handler;
 
-    CommandLineArgsReader(Handler* handler) : _handler(handler) {}
+    CommandLineArgsReader(Handler *handler) : _handler(handler) {}
 
-    private:
-    void _ProcessLongArg(const char* argv)
+private:
+    void _ProcessLongArg(const char *argv)
     {
+
         if (stricompare(argv, "help"))
         {
             auto rslt = _handler->GenerateHelp();
             return;
         }
-        const char* eqPtr = strchr(argv, '=');
-        char        name[128]{};
+        const char *eqPtr = strchr(argv, '=');
+        char name[128]{};
         if (eqPtr == nullptr || eqPtr[1] == '\0')
         {
             // Either its a boolean value or a Object and we'd like to switch context
@@ -74,44 +82,54 @@ struct CommandLineArgsReader
         }
     }
 
-    void _ProcessShortArg(const char* argName, const char* argv)
+    void _ProcessShortArg(const char *argName, const char *argv)
     {
         _handler->ObjKey(shared_string::make(argName));
         this->_ProcessValue(argv);
     }
 
-    void _ProcessRequiredArg(size_t index, const char* argv)
+    void _ProcessRequiredArg(size_t index, const char *argv)
     {
         switch (_handler->GetCurrentContext()->GetType())
         {
-        case Definition::Type::List: this->_ProcessList(argv); break;
+        case Definition::Type::List:
+            this->_ProcessList(argv);
+            break;
         case Definition::Type::Object:
             _handler->ObjKey(0);
             this->_ProcessRequiredArg(index, argv);
             break;
-        case Definition::Type::Value: [[fallthrough]];
-        case Definition::Type::Enum: [[fallthrough]];
-        case Definition::Type::Union: this->_ProcessValue(argv); break;
+        case Definition::Type::Value:
+            [[fallthrough]];
+        case Definition::Type::Enum:
+            [[fallthrough]];
+        case Definition::Type::Union:
+            this->_ProcessValue(argv);
+            break;
         case Definition::Type::Invalid:
             _handler->ObjEnd();
             _handler->ObjKey(shared_string::make(argv));
             break;
-        case Definition::Type::Unknown: throw 1;
+        case Definition::Type::Unknown:
+            throw 1;
         }
     }
 
-    const char* clgettoken(const char* ptr, char* buffer, size_t bufSize)
+    const char *clgettoken(const char *ptr, char *buffer, size_t bufSize)
     {
         const char separator = ':', grpstart = '{', grpend = '}';
-        size_t     i = 0;
-        if (*ptr == '\0') return nullptr;
+        size_t i = 0;
+        if (*ptr == '\0')
+            return nullptr;
         if (*ptr == grpstart)
         {
             int count = 1;
             for (ptr++; i < bufSize && *ptr != '\0'; ptr++, i++)
             {
-                if (*ptr == grpstart) count++;
-                if (*ptr == grpend) count--;
+                if (*ptr == grpstart)
+                    count++;
+                if (*ptr == grpend)
+                    count--;
                 if (count == 0)
                 {
                     ptr++;
@@ -119,17 +137,20 @@ struct CommandLineArgsReader
                 }
                 buffer[i] = *ptr;
             }
-            if (*ptr == ':') ++ptr;
+            if (*ptr == ':')
+                ++ptr;
             buffer[i] = '\0';
             return ptr;
         }
-        for (; *ptr != ':' && *ptr != '\0' && i < bufSize; i++, ptr++) buffer[i] = *ptr;
-        if (*ptr == ':') ++ptr;
+        for (; *ptr != ':' && *ptr != '\0' && i < bufSize; i++, ptr++)
+            buffer[i] = *ptr;
+        if (*ptr == ':')
+            ++ptr;
         buffer[i] = '\0';
         return ptr;
     }
 
-    void _ProcessList(const char* val)
+    void _ProcessList(const char *val)
     {
         _handler->ListStart();
         char buffer[1024];
@@ -140,10 +161,10 @@ struct CommandLineArgsReader
         _handler->ListEnd();
     }
 
-    void _ProcessObject(const char* val)
+    void _ProcessObject(const char *val)
     {
         _handler->ObjStart();
-        char   buffer[1024];
+        char buffer[1024];
         size_t index = 0;
         for (auto cPtr = clgettoken(val, buffer, 1024); cPtr != nullptr; cPtr = clgettoken(cPtr, buffer, 1024))
         {
@@ -153,22 +174,32 @@ struct CommandLineArgsReader
         _handler->ObjEnd();
     }
 
-    void _ProcessValue(const char* str)
+    void _ProcessValue(const char *str)
     {
         switch (_handler->GetCurrentContext()->GetType())
         {
-        case Definition::Type::List: _ProcessList(str); break;
+        case Definition::Type::List:
+            _ProcessList(str);
+            break;
         case Definition::Type::Object:
             // All the following args will be processed in this Context now.
             // DO NOT POP this context
             // Will be popped if this context doesnt accept the arg anymore
             _ProcessObject(str);
             break;
-        case Definition::Type::Value: _handler->HandleValue(shared_string::make(str)); break;
-        case Definition::Type::Enum: _handler->HandleEnum(shared_string::make(str)); break;
-        case Definition::Type::Union: _handler->UnionType(shared_string::make(str)); break;
-        case Definition::Type::Invalid: [[fallthrough]];
-        case Definition::Type::Unknown: throw "Unknown Data Type";
+        case Definition::Type::Value:
+            _handler->HandleValue(shared_string::make(str));
+            break;
+        case Definition::Type::Enum:
+            _handler->HandleEnum(shared_string::make(str));
+            break;
+        case Definition::Type::Union:
+            _handler->UnionType(shared_string::make(str));
+            break;
+        case Definition::Type::Invalid:
+            [[fallthrough]];
+        case Definition::Type::Unknown:
+            throw "Unknown Data Type";
         }
     }
 
@@ -212,19 +243,21 @@ struct CommandLineArgsReader
          }
          ss << std::endl;
      }*/
-    public:
-    void Parse(size_t argc, const char* argv[])
+public:
+    void Parse(size_t argc, const char *argv[])
     {
-        const char* cargv;
-        size_t      requiredArgNum = 0;
+        const char *cargv;
+        size_t requiredArgNum = 0;
         for (size_t i = 1; i < argc; i++)
         {
-            if ((cargv = argv[i]) == nullptr || cargv[0] == '\0') continue;
+            if ((cargv = argv[i]) == nullptr || cargv[0] == '\0')
+                continue;
             switch (argv[i][0])
             {
             case '-':
             {
-                if (cargv[1] == '\0') break;
+                if (cargv[1] == '\0')
+                    break;
                 if (cargv[1] == '-')
                 {
                     this->_ProcessLongArg(&cargv[2]);
@@ -285,12 +318,14 @@ struct CommandLineArgsReader
                     goto repeat;
                 }
             }
-            default: this->_ProcessRequiredArg(requiredArgNum++, cargv);
+            default:
+                this->_ProcessRequiredArg(requiredArgNum++, cargv);
             }
         }
     }
 
-    template <class TDataModel> void ParseWithHelpOnError(TDataModel* pData, int argc, const char* argv[]) noexcept
+    template <class TDataModel>
+    void ParseWithHelpOnError(TDataModel *pData, int argc, const char *argv[]) noexcept
     {
         auto def = TDataModel::GetModelDefinition();
         try

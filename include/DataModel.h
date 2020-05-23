@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Database2.h>
+#include <uuidobject.h>
 #include <Value.h>
 
 #include <tree.h>
@@ -17,6 +18,9 @@
 #include <tuple>
 #include <typeinfo>
 #include <vector>
+//TODO: Get rid of this
+
+using timestamp = decltype(std::chrono::system_clock::now());
 
 namespace ReflectionBase
 {
@@ -399,7 +403,7 @@ template <typename T> struct CommonValueHandler : public IDataTypeHandler<DataTy
 
     virtual shared_string Name() const override { return shared_string::make(typeid(this).name()); }
     virtual shared_string Description() const override { return Name(); }
-    virtual shared_string AttributeValue(const std::string_view& /*key*/) const override { return shared_string::make("TODO"); }
+    virtual shared_string AttributeValue(const std::string_view& /*key*/) const override { throw std::logic_error("TODO"); }
 };
 
 template <typename T> struct EnumTraits
@@ -430,7 +434,8 @@ template <typename TEnum> struct EnumHandler : public IDataTypeHandler<DataType:
         }
         throw Exception::Exception();
     }
-    virtual Value Read(void* /*ptr*/) const override { TODO(); }
+    virtual Value Read(void* /*ptr*/) const override { throw std::logic_error("TODO")
+    ; }
 
     virtual std::vector<Value> AcceptableValues() const override
     {
@@ -443,8 +448,8 @@ template <typename TEnum> struct EnumHandler : public IDataTypeHandler<DataType:
         return values;
     }
 
-    virtual shared_string Description() const override { TODO(); }
-    virtual shared_string AttributeValue(const std::string_view& /*key*/) const override { return shared_string::make("TODO"); }
+    virtual shared_string Description() const override { throw std::logic_error("TODO"); }
+    virtual shared_string AttributeValue(const std::string_view& /*key*/) const override { throw std::logic_error("TODO"); }
     virtual shared_string Name() const override { return shared_string::make(TypeTraits<TEnum&>::Name()); }
 };
 
@@ -473,7 +478,7 @@ template <typename TValue> struct StdVectorListHandler : public IDataTypeHandler
         return shared_string::make("[" + _handler.Description().str() + " ...]");
         ;
     }
-    virtual shared_string AttributeValue(const std::string_view& /*key*/) const override { return shared_string::make("TODO"); }
+    virtual shared_string AttributeValue(const std::string_view& /*key*/) const override { throw std::logic_error("TODO"); }
     virtual shared_string Name() const override { return shared_string::make("[" + _handler.Name().str() + " ...]"); }
     virtual SubComponent  GetListItemHandler() const override { return {&_handler}; }
 
@@ -966,7 +971,7 @@ struct ReflectionBase::TypeTraits<std::unique_ptr<T>&, std::enable_if_t<std::is_
 {
     static constexpr DataType         Type() { return DataType::Object; }
     static constexpr std::string_view Name() { return ::ReflectionBase::TypeTraits<T&>::Name(); }
-    static std::string_view           AttributeValue(const std::string_view& /*key*/) { TODO(); }
+    static std::string_view           AttributeValue(const std::string_view& /*key*/) { throw std::logic_error("TODO"); }
 
     struct Handler : public ::ReflectionBase::IDataTypeHandler<DataType::Object>
     {
