@@ -55,8 +55,8 @@ struct exclusive_lock
     ~exclusive_lock() { lockrelease(); }
 
     exclusive_lock(const exclusive_lock& lock) = delete;
-   // exclusive_lock(exclusive_lock&& lock)      = default;
-   // exclusive_lock& operator=(exclusive_lock&& lock) = default;
+    // exclusive_lock(exclusive_lock&& lock)      = default;
+    // exclusive_lock& operator=(exclusive_lock&& lock) = default;
     exclusive_lock& operator=(const exclusive_lock& lock) = delete;
 
     void lockacquire() { m_wlock = std::unique_lock<std::shared_mutex>(*m_mutex); }
@@ -69,7 +69,6 @@ struct exclusive_lock
     shared_lock                         m_slock{nullptr};
     std::unique_lock<std::shared_mutex> m_wlock{};
 };
-
 
 enum class CompareResult
 {
@@ -562,10 +561,10 @@ template <size_t RecordSize> struct PageForSharedRecord : public PageForRecordIn
     PageForSharedRecord() {}
     constexpr PageForSharedRecord(PageRuntime* page) : m_page(page)
     {
-        m_pageIndex  = page->m_pageIndex;
-        //auto& buffer = page->m_page.buffer;
-        m_refCounts  = (decltype(m_refCounts))(page->m_page.buffer);
-        m_records    = (decltype(m_records))(page->m_page.buffer + sizeof(*m_refCounts));
+        m_pageIndex = page->m_pageIndex;
+        // auto& buffer = page->m_page.buffer;
+        m_refCounts = (decltype(m_refCounts))(page->m_page.buffer);
+        m_records   = (decltype(m_records))(page->m_page.buffer + sizeof(*m_refCounts));
         static_assert(sizeof(*m_records) == SlotCount * RecordSize);
         static_assert(sizeof(*m_records) + sizeof(*m_refCounts) < Page::PageSizeInBytes);
     }

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <Database2.h>
-#include <uuidobject.h>
 #include <Value.h>
+#include <uuidobject.h>
 
 #include <tree.h>
 
@@ -18,7 +18,7 @@
 #include <tuple>
 #include <typeinfo>
 #include <vector>
-//TODO: Get rid of this
+// TODO: Get rid of this
 
 using timestamp = decltype(std::chrono::system_clock::now());
 
@@ -434,8 +434,7 @@ template <typename TEnum> struct EnumHandler : public IDataTypeHandler<DataType:
         }
         throw Exception::Exception();
     }
-    virtual Value Read(void* /*ptr*/) const override { throw std::logic_error("TODO")
-    ; }
+    virtual Value Read(void* /*ptr*/) const override { throw std::logic_error("TODO"); }
 
     virtual std::vector<Value> AcceptableValues() const override
     {

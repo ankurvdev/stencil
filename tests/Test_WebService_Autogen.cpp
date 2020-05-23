@@ -10,7 +10,7 @@
 #include <string>
 #include <string_view>
 //
-//template <> struct ReflectionBase::InterfaceActivator<SimpleWebService::>
+// template <> struct ReflectionBase::InterfaceActivator<SimpleWebService::>
 //{
 //    std::unique_ptr<zzInterface_Namezz> Activate(uint64_t randomInteger, shared_string randomString)
 //    {

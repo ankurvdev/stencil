@@ -1,7 +1,7 @@
 #pragma once
 #include "shared_string.h"
-#include <cstdint>
 #include <cmath>
+#include <cstdint>
 
 template <typename TValue> struct ValueTraits;
 template <> struct ValueTraits<size_t>;
