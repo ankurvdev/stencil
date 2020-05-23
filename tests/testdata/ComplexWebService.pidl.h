@@ -694,6 +694,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Comple
         );
     }
 };
+
 template <>
 struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<ComplexWebService::KeywordS>::ApiTraits_Create>
 {
@@ -709,6 +710,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Comple
         );
     }
 };
+
 template <>
 struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<ComplexWebService::KeywordS>::ApiTraits_Delete>
 {
@@ -722,6 +724,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Comple
         );
     }
 };
+
 template <>
 struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<ComplexWebService::KeywordS>::ApiTraits_Modify>
 {
@@ -736,6 +739,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Comple
         );
     }
 };
+
 template <>
 struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<ComplexWebService::KeywordS>::ApiTraits_SetParent>
 {
@@ -750,10 +754,13 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Comple
         );
     }
 };
+
+#if (defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0)
 template <> struct WebServiceHandlerTraits<ComplexWebService::KeywordS>
 {
     static constexpr const std::string_view Url() { return std::string_view("KeywordS"); }
 };
+#endif
 
 template <> struct ReflectionBase::TypeTraits<ComplexWebService::Content_AddKeyword_Args&>
 {
@@ -829,6 +836,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Comple
         );
     }
 };
+
 template <>
 struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<ComplexWebService::Content>::ApiTraits_RemoveKeyword>
 {
@@ -843,10 +851,13 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Comple
         );
     }
 };
+
+#if (defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0)
 template <> struct WebServiceHandlerTraits<ComplexWebService::Content>
 {
     static constexpr const std::string_view Url() { return std::string_view("Content"); }
 };
+#endif
 
 template <> struct ReflectionBase::TypeTraits<ComplexWebService::Search_SearchByKeywords_Args&>
 {
@@ -932,6 +943,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Comple
         );
     }
 };
+
 template <>
 struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<ComplexWebService::Search>::ApiTraits_SearchByDate>
 {
@@ -947,10 +959,13 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Comple
         );
     }
 };
+
+#if (defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0)
 template <> struct WebServiceHandlerTraits<ComplexWebService::Search>
 {
     static constexpr const std::string_view Url() { return std::string_view("Search"); }
 };
+#endif
 
 template <> struct ReflectionBase::TypeTraits<ComplexWebService::Store_Upload_Args&>
 {
@@ -1026,6 +1041,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Comple
         );
     }
 };
+
 template <>
 struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<ComplexWebService::Store>::ApiTraits_Download>
 {
@@ -1040,10 +1056,13 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Comple
         );
     }
 };
+
+#if (defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0)
 template <> struct WebServiceHandlerTraits<ComplexWebService::Store>
 {
     static constexpr const std::string_view Url() { return std::string_view("Store"); }
 };
+#endif
 
 template <> struct ReflectionBase::TypeTraits<ComplexWebService::MapPoint::Data&>
 {
