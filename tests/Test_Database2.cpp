@@ -1,6 +1,8 @@
 #include "Test_Database2.h"
 
 #include <catch2/catch.hpp>
+#include <thread>
+
 using namespace std::string_literals;
 using namespace std::chrono_literals;
 

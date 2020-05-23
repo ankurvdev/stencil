@@ -4,6 +4,6 @@ Import-Module (Join-Path $vs2019_path "Common7\Tools\Microsoft.VisualStudio.DevS
 Enter-VsDevShell -VsInstallPath $vs2019_path -SkipAutomaticLocation -DevCmdArguments "-host_arch=amd64 -arch=amd64"
 $scriptdir = (Split-Path $MyInvocation.MyCommand.Path -Parent) 
 
-cmake.exe -DCMAKE_BUILD_TYPE=Debug $scriptdir/..
+cmake.exe $scriptdir/..
 cmake.exe --build . -j --target package
 ctest.exe -C Debug
