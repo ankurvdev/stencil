@@ -33,7 +33,7 @@ jobs:
     inputs:
       pathtoPublish: $(Build.ArtifactStagingDirectory)
 
-- job: Buld_VS2019
+- job: Build_VS2019
   displayName: Build VS2019
   pool:
     vmImage: 'windows-2019'
@@ -41,7 +41,7 @@ jobs:
   - task: Powershell@2
     displayName: "Build and Test VS2019"
     inputs:
-      workingFolder: 'cmake-build'
+      workingDirectory: 'cmake-build'
       targetType: 'filePath'
       filePath:  $(Build.SourcesDirectory)/ci/build_win_msvc.ps1
   - task: CopyFiles@2
@@ -63,7 +63,7 @@ jobs:
   - task: Powershell@2
     displayName: "Build Windows with Vcpkg"
     inputs:
-      workingFolder: 'vcpkg-build'
+      workingDirectory: 'vcpkg-build'
       targetType: 'filePath'
       errorActionPreference: 'stop'
       failOnStderr: false 
