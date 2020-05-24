@@ -18,7 +18,7 @@ template <typename TInterface> struct WebServiceHandlerTraits
 
 namespace impl
 {
-auto tokenizer(std::string_view view, char sep)
+inline auto tokenizer(std::string_view view, char sep)
 {
     struct substr
     {
