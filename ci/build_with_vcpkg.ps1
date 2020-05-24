@@ -4,7 +4,13 @@ Import-Module (Join-Path $vs2019_path "Common7\Tools\Microsoft.VisualStudio.DevS
 Enter-VsDevShell -VsInstallPath $vs2019_path -SkipAutomaticLocation -DevCmdArguments "-host_arch=amd64 -arch=amd64"
 
 echo (Get-Location | select -ExpandProperty Path)
-git clone https://github.com/Microsoft/vcpkg.git
+try {
+git clone -q https://github.com/Microsoft/vcpkg.git
+}
+catch  {
+echo "Something bad happened"
+}
+
 
 echo "Applying patches"
 git -C vcpkg apply  --ignore-space-change --ignore-whitespace $PSScriptRoot\vcpkg\vcpkg.stencil.patch
