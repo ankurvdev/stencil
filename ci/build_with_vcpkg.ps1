@@ -3,7 +3,10 @@ $vs2019_path = (@()+(&"C:\Program Files (x86)\Microsoft Visual Studio\Installer\
 Import-Module (Join-Path $vs2019_path "Common7\Tools\Microsoft.VisualStudio.DevShell.dll")
 Enter-VsDevShell -VsInstallPath $vs2019_path -SkipAutomaticLocation -DevCmdArguments "-host_arch=amd64 -arch=amd64"
 
+echo (Get-Location | select -ExpandProperty Path)
 git clone https://github.com/Microsoft/vcpkg.git
+
+echo "Applying patches"
 git -C vcpkg apply  --ignore-space-change --ignore-whitespace $PSScriptRoot\vcpkg\vcpkg.stencil.patch
 vcpkg/bootstrap-vcpkg.bat
 
