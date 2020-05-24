@@ -49,6 +49,8 @@ jobs:
     inputs:
       workingFolder: 'vcpkg-build'
       targetType: 'filePath'
+      errorActionPreference: 'stop'
+      failOnStderr: false 
       filePath:  $(Build.SourcesDirectory)/ci/build_with_vcpkg.ps1
   - task: CopyFiles@2
     displayName: 'Copy Files to artifact staging directory'
