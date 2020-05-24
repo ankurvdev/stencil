@@ -55,7 +55,7 @@ jobs:
     inputs:
       pathtoPublish: $(Build.ArtifactStagingDirectory)
       
-- job: VCPKG Build_VS2019
+- job: VCPKG_Build_VS2019
   displayName: VCPKG Build VS2019
   pool:
     vmImage: 'windows-2019'
