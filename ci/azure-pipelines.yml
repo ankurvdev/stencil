@@ -38,12 +38,21 @@ jobs:
   pool:
     vmImage: 'windows-2019'
   steps:
+  - powershell: mkdir -p cmake-build ; mkdir -p vcpkg-build
   - task: Powershell@2
     displayName: "Build and Test VS2019"
     inputs:
       workingDirectory: 'cmake-build'
       targetType: 'filePath'
       filePath:  $(Build.SourcesDirectory)/ci/build_win_msvc.ps1
+  - task: Powershell@2
+    displayName: "Build Windows with Vcpkg"
+    inputs:
+      workingDirectory: 'vcpkg-build'
+      targetType: 'filePath'
+      errorActionPreference: 'stop'
+      failOnStderr: false
+      filePath:  $(Build.SourcesDirectory)/ci/build_with_vcpkg.ps1
   - task: CopyFiles@2
     displayName: 'Copy Files to artifact staging directory'
     inputs:
@@ -54,17 +63,3 @@ jobs:
     displayName: 'Publish Artifact'
     inputs:
       pathtoPublish: $(Build.ArtifactStagingDirectory)
-      
-- job: VCPKG_Build_VS2019
-  displayName: VCPKG Build VS2019
-  pool:
-    vmImage: 'windows-2019'
-  steps:
-  - task: Powershell@2
-    displayName: "Build Windows with Vcpkg"
-    inputs:
-      workingDirectory: 'vcpkg-build'
-      targetType: 'filePath'
-      errorActionPreference: 'stop'
-      failOnStderr: false 
-      filePath:  $(Build.SourcesDirectory)/ci/build_with_vcpkg.ps1
