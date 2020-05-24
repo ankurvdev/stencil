@@ -15,4 +15,3 @@ Set-Content -Path vcpkg\ports\stencil\use_source_path -Value $PSScriptRoot\..
 vcpkg\vcpkg install stencil
 cmake.exe -DVCPKG_ROOT:FILEPATH=$(Resolve-Path vcpkg) $PSScriptRoot\vcpkg
 cmake.exe --build . -j
-ctest.exe .
