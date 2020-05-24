@@ -6,14 +6,12 @@ Enter-VsDevShell -VsInstallPath $vs2019_path -SkipAutomaticLocation -DevCmdArgum
 echo (Get-Location | select -ExpandProperty Path)
 try {
 git clone -q https://github.com/Microsoft/vcpkg.git
+git -C vcpkg apply  --ignore-space-change --ignore-whitespace $PSScriptRoot\vcpkg\vcpkg.stencil.patch
 }
 catch  {
 echo "Something bad happened"
 }
 
-
-echo "Applying patches"
-git -C vcpkg apply  --ignore-space-change --ignore-whitespace $PSScriptRoot\vcpkg\vcpkg.stencil.patch
 vcpkg/bootstrap-vcpkg.bat
 
 Set-Content -Path vcpkg\ports\stencil\use_source_path -Value $PSScriptRoot\..
