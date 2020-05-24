@@ -1,8 +1,0 @@
-struct CommandLineOptions 
-{
-		string workingDirectory	(Name1 = "Working Directory", Description = "Location of path where it'll store its database and other info"),
-		list<string> libraries	(Name1 = "Library Directories", Description = "Locations of Directories to store files"),
-		list<string> scan	(Name1 = "Scan Directories", Description = "List of Directories to scan for Document files"),
-		i32	httpsPort = 3443	(Name1 = "Listen Port", Description = "TCP port on which to listen for incoming HTTP connections"),
-		bool daemon = false	(Name1 = "Run as Daemon", Description = "Run as daemon")
-}

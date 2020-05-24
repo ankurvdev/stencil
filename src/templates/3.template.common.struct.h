@@ -214,7 +214,7 @@ struct zzInterface_Namezz : public ReflectionBase::Interface<zzInterface_Namezz>
     //<Function>
     virtual zzReturnType_NativeTypezz zzFunction_Namezz(
         //<Args_Field Join=','>
-        zzFieldType_NativeTypezz zzNamezz
+        zzFieldType_NativeTypezz const& zzNamezz
         //</Args_Field>
         )
         = 0;
@@ -266,9 +266,9 @@ template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzInterface_Name
     static constexpr std::string_view           Name() { return "zzFunction_Namezz"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
-    using Handler = ::ReflectionServices::ReflectedStructHandler<zzProgram_Namezz::zzInterface_Namezz_zzFunction_Namezz_Args,
-                                                                 //<Args_Field Join=','>
-                                                                 Traits_arg_zzNamezz
+    using Handler = ::ReflectionServices::ReflectedStructHandler<zzProgram_Namezz::zzInterface_Namezz_zzFunction_Namezz_Args
+                                                                 //<Args_Field>
+                                                                 ,Traits_arg_zzNamezz
                                                                  //</Args_Field>
                                                                  >;
 };
@@ -302,7 +302,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<zzProg
     static constexpr bool             IsStatic() { return false; }
     static constexpr std::string_view Name() { return "zzNamezz"; }
 
-    static zzProgram_Namezz::zzReturnType_NativeTypezz Invoke(ArgsStruct& args)
+    static auto Invoke(ArgsStruct& args)
     {
         return args.instance->zzNamezz(
             //<Args_Field Join=','>
@@ -311,12 +311,14 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<zzProg
         );
     }
 };
-//</Function>
 
+//</Function>
+#if (defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0)
 template <> struct WebServiceHandlerTraits<zzProgram_Namezz::zzInterface_Namezz>
 {
     static constexpr const std::string_view Url() { return std::string_view("zzInterface_Namezz"); }
 };
+#endif
 
 //</Interface>
 

@@ -48,7 +48,9 @@ if (BUILD_TEST)
         tests/Test_WebService_Autogen.cpp
     )
     file(GLOB resfiles tests/testdata/*)
-    target_add_resource(tests testdata ${resfiles})
+    file(GLOB pidlfiles tests/*.pidl)
+
+    target_add_resource(tests testdata ${resfiles} ${pidlfiles})
     target_include_directories(tests PUBLIC src external/catch2)
     target_include_directories(tests PUBLIC src external)
 

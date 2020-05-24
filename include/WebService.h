@@ -1,9 +1,11 @@
-#include <Common.h>
 #include <DataHandlerJson.h>
 #include <DataModel.h>
+
 #pragma warning(push, 0)
 #include <httplib.h>
 #pragma warning(pop)
+
+#define STENCIL_USING_WEBSERVICE 1
 
 template <typename TInterface> struct WebServiceHandlerTraits
 {
@@ -151,10 +153,66 @@ struct WebServiceImpl
 
     private:
     virtual std::string ServiceRequest(httplib::Request const& request, const char* url) = 0;
+#if 0
+    bool FindDefinition(const shared_string &url, const InterfaceDefinition **pdef = nullptr, const InterfaceApiDefinition **papidef = nullptr) const
+    {
+        pdef && (*pdef = nullptr);
+        papidef && (*papidef = nullptr);
 
+        auto def = this->m_Root;
+        auto its = url.begin(1), ite = its;
+        // Look for the namespace
+        for (; !(ite = its.str().find('/')).empty(); its = ite + 1)
+        {
+            auto olddef = def;
+            for (auto it = def->ChildIteratorBegin(); it != def->ChildIteratorEnd(); ++it)
+            {
+                if ((*it)->get_Name() == its.str(ite))
+                {
+                    def = *it;
+                    break;
+                }
+            }
+            if (olddef == def) return false;
+        }
+
+        // Find api name;
+        const InterfaceApiDefinition *apidef = nullptr;
+        for (const auto &api : def->get_Apis())
+        {
+            if (api.get_Name() == its.str())
+            {
+                apidef = &api;
+                break;
+            }
+        }
+        if (apidef == nullptr) return false;
+
+        pdef && (*pdef = def);
+        papidef && (*papidef = apidef);
+        return true;
+    }
+
+    shared_string Eval(const shared_string &url, const UrlArgsHandler::UrlParams &urlParams) const
+    {
+        const InterfaceDefinition *def = nullptr;
+        const InterfaceApiDefinition *apidef = nullptr;
+        if (!FindDefinition(url, &def, &apidef)) throw HandlerNotFound();
+        UrlArgsHandler inputHandler;
+        JsonDataHandler outputHandler;
+        auto intrface = TInterfaceFactory::Activate(def);
+        return apidef->ActivateAndInvoke(intrface, outputHandler, inputHandler, urlParams);
+    }
+
+#endif
     int             _port;
     httplib::Server _server;
 };
+
+template <typename T1, typename T2> inline bool iequal(T1 const& a, T2 const& b)
+{
+    return std::equal(a.begin(), a.end(), b.begin(), b.end(), [](auto a, auto b) { return tolower(a) == tolower(b); });
+}
 
 template <typename TInterface, typename TInterfaceApi, typename... TInterfaceApis>
 static auto WebServiceRequestExecuteApis(httplib::Request const& request, const std::string_view& apiname, const char* moreurl)
@@ -203,15 +261,14 @@ static auto WebServiceRequestExecuteApis(httplib::Request const& request, const 
 
 template <typename TInterface, typename... TApis>
 static auto ProcessWebServiceRequestForInterface(httplib::Request const& request,
-                                                          const std::string_view& apiname,
-                                                          const char*             moreurl,
-                                                          ::ReflectionBase::InterfaceApiPack<TApis...>)
+                                                 const std::string_view& apiname,
+                                                 const char*             moreurl,
+                                                 ::ReflectionBase::InterfaceApiPack<TApis...>)
 {
     return WebServiceRequestExecuteApis<TInterface, TApis...>(request, apiname, moreurl);
 }
 
-template <typename TInterface, typename... TInterfaces>
-static auto WebServiceRequest(httplib::Request const& request, const char* url)
+template <typename TInterface, typename... TInterfaces> static auto WebServiceRequest(httplib::Request const& request, const char* url)
 {
     using Apis          = typename ::ReflectionBase::InterfaceTraits<TInterface>::Apis;
     constexpr auto name = WebServiceHandlerTraits<TInterface>::Url();

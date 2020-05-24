@@ -65,7 +65,7 @@ function(target_add_stencil target)
         list(APPEND inputs ${tmp})
     endforeach()
 
-    get_filename_component(stencil_include ${STENCIL_EXECUTABLE} DIRECTORY)
+    get_filename_component(stencil_dir ${STENCIL_EXECUTABLE} DIRECTORY)
 
     set(outputs)
 
@@ -101,7 +101,7 @@ function(target_add_stencil target)
                COMMENT "Generating IDL code :  ${STENCIL_EXECUTABLE} --outdir=${outdir} ${ARGN}"
                VERBATIM)
 
-    target_include_directories(${target} PUBLIC ${stencil_dir}/../include/stencil)
+    target_include_directories(${target} PUBLIC ${stencil_dir}/../include)
     target_include_directories(${target} PUBLIC ${outdir} )
     target_sources(${target} PRIVATE ${inputs} ${outputs})
 endfunction()

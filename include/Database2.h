@@ -1,7 +1,8 @@
 #pragma once
 
-#include <Common.h>
 #include <DataModel.h>
+
+#include <Logging.h>
 
 #include <assert.h>
 #include <bitset>
@@ -11,9 +12,65 @@
 #include <shared_mutex>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 namespace Database2
 {
+template <typename> struct is_tuple : std::false_type
+{
+};
+
+template <typename... T> struct is_tuple<std::tuple<T...>> : std::true_type
+{
+};
+
+struct shared_lock
+{
+    private:
+    shared_lock(std::shared_mutex* mutex) : m_mutex(mutex){};
+
+    public:
+    shared_lock(std::shared_mutex& mutex) : m_mutex(&mutex) { lockacquire(); }
+    ~shared_lock() { lockrelease(); }
+
+    void lockacquire()
+    {
+        if (m_mutex) m_rlock = std::shared_lock(*m_mutex);
+    }
+    void lockrelease()
+    {
+        if (m_mutex) m_rlock.unlock();
+    }
+
+    std::shared_mutex* m_mutex{nullptr};
+
+    friend struct exclusive_lock;
+    std::shared_lock<std::shared_mutex> m_rlock;
+
+    friend struct exclusive_lock;
+};
+
+struct exclusive_lock
+{
+    exclusive_lock(std::shared_mutex& mutex) : m_mutex(&mutex) { lockacquire(); }
+    ~exclusive_lock() { lockrelease(); }
+
+    exclusive_lock(const exclusive_lock& lock) = delete;
+    // exclusive_lock(exclusive_lock&& lock)      = default;
+    // exclusive_lock& operator=(exclusive_lock&& lock) = default;
+    exclusive_lock& operator=(const exclusive_lock& lock) = delete;
+
+    void lockacquire() { m_wlock = std::unique_lock<std::shared_mutex>(*m_mutex); }
+    void lockrelease() { m_wlock = std::unique_lock<std::shared_mutex>{}; }
+
+    shared_lock const& shared() const { return m_slock; }
+
+    std::shared_mutex* m_mutex{nullptr};
+
+    shared_lock                         m_slock{nullptr};
+    std::unique_lock<std::shared_mutex> m_wlock{};
+};
+
 enum class CompareResult
 {
     Equal,
@@ -362,8 +419,6 @@ struct SerDes
 // All non-seriazable and tracking objects go here
 struct PageRuntime
 {
-    using exclusive_lock = ::exclusive_lock;
-    using shared_lock    = ::shared_lock;
     enum class Flag
     {
         Dirty,
@@ -429,8 +484,6 @@ template <size_t RecordSize> struct PageForRecord : public PageForRecordInterfac
         return SlotCount;
     }
 
-    using shared_lock                 = PageRuntime::shared_lock;
-    using exclusive_lock              = PageRuntime::exclusive_lock;
     static constexpr size_t SlotCount = GetSlotCapacity();
 
     PageForRecord() {}
@@ -504,17 +557,15 @@ template <size_t RecordSize> struct PageForSharedRecord : public PageForRecordIn
         return slotcount;
     }
 
-    using shared_lock                 = PageRuntime::shared_lock;
-    using exclusive_lock              = PageRuntime::exclusive_lock;
     static constexpr size_t SlotCount = GetSlotCapacity();
 
     PageForSharedRecord() {}
     constexpr PageForSharedRecord(PageRuntime* page) : m_page(page)
     {
-        m_pageIndex  = page->m_pageIndex;
-        //auto& buffer = page->m_page.buffer;
-        m_refCounts  = (decltype(m_refCounts))(page->m_page.buffer);
-        m_records    = (decltype(m_records))(page->m_page.buffer + sizeof(*m_refCounts));
+        m_pageIndex = page->m_pageIndex;
+        // auto& buffer = page->m_page.buffer;
+        m_refCounts = (decltype(m_refCounts))(page->m_page.buffer);
+        m_records   = (decltype(m_records))(page->m_page.buffer + sizeof(*m_refCounts));
         static_assert(sizeof(*m_records) == SlotCount * RecordSize);
         static_assert(sizeof(*m_records) + sizeof(*m_refCounts) < Page::PageSizeInBytes);
     }
@@ -1095,7 +1146,7 @@ template <typename TDb> struct DatabaseT
                 // Next N args are for N child objects
                 // The rest of the args are for the child objects.
                 // TODO figure out if thats possible
-                TODO("TODO_OBJREF");
+                throw std::logic_error("TODO_OBJREF");
             }
             else
             {
@@ -1167,7 +1218,7 @@ template <typename TDb> struct DatabaseT
 
     template <typename TObj> void _ReleaseChildRefs(wlock const& /*lock*/, impl::PageForRecordInterface::SlotObj /*slotobj*/)
     {
-        TODO("TODO_OBJREF");
+        throw std::logic_error("TODO_OBJREF");
 #if TODO_OBJREF
         if constexpr (std::is_base_of<RefOwnerMarker, TObj>::value)
         {

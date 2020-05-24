@@ -19,7 +19,7 @@ function(find_or_build)
     endif()
 
     find_program(EMBEDRESOURCE_EXECUTABLE embedresource)
-    find_file(header EmbeddedResource.h)
+    find_file(header EmbeddedResource.h HINTS ${EmbedResource_DIR}/../../../include)
 
     if((EXISTS ${EMBEDRESOURCE_EXECUTABLE}) AND (EXISTS ${header}))
         get_filename_component(headerdir ${header} DIRECTORY)

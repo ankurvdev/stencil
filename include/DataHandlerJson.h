@@ -27,7 +27,7 @@ struct Json
 
         bool Default()
         {
-            TODO();
+            throw std::logic_error("TODO");
             return false;
         }
 
@@ -297,11 +297,11 @@ template <typename TStruct> struct CommandLineArgs
         ReaderHandler(TStruct* obj) : _tracker(obj, nullptr) {}
         virtual void HandleValue(bool value) override { _tracker.HandleValue(Value(value), nullptr); }
 
-        virtual void HandleValue(shared_string str) override { _tracker.HandleValue(Value(str), nullptr); }
+        virtual void HandleValue(std::string_view const& str) override { _tracker.HandleValue(Value(str), nullptr); }
 
-        virtual void HandleEnum(shared_string str) override { _tracker.HandleEnum(Value(str), nullptr); }
+        virtual void HandleEnum(std::string_view const& str) override { _tracker.HandleEnum(Value(str), nullptr); }
 
-        virtual void UnionType(shared_string str) override { _tracker.UnionType(Value(str), nullptr); }
+        virtual void UnionType(std::string_view const& str) override { _tracker.UnionType(Value(str), nullptr); }
 
         virtual void ListStart() override
         {
@@ -313,7 +313,8 @@ template <typename TStruct> struct CommandLineArgs
 
         virtual void ObjStart() override { _tracker.ObjStart(nullptr); }
         virtual void ObjEnd() override { _tracker.ObjEnd(); }
-        virtual void ObjKey(Value key) override { _tracker.ObjKey(key, nullptr); }
+        virtual void ObjKey(std::string_view const& key) override { _tracker.ObjKey(Value{key}, nullptr); }
+        virtual void ObjKey(size_t index) override { _tracker.ObjKey(Value{index}, nullptr); }
 
         virtual std::shared_ptr<CommandLineArgsReader::Definition> GetCurrentContext() override
         {
@@ -364,7 +365,7 @@ template <typename TStruct> struct CommandLineArgs
                     args.push_back(("<" + c->name.str() + ">"));
                 }
                 break;
-            default: TODO();
+            default: throw std::logic_error("TODO");
             }
 
             table->AddRowColumn(0, 0, "Usage:");
@@ -391,7 +392,7 @@ template <typename TStruct> struct CommandLineArgs
                 }
             }
             break;
-            default: TODO();
+            default: throw std::logic_error("TODO");
             }
 
             return table;
@@ -422,7 +423,7 @@ template <typename TStruct> struct CommandLineArgs
             return lines;
         }
 
-        virtual shared_string GenerateHelp()
+        virtual std::string GenerateHelp()
         {
             // Print Current Context
 

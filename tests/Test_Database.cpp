@@ -79,7 +79,7 @@ TEST_CASE("CodeGen::Database2::SaveAndLoad")
 
         {
             // Create More objects
-            auto   lock = database.LockForEdit();
+            auto lock = database.LockForEdit();
             for (size_t i = 0; i < std::size(data); i++)
             {
                 auto [id1, obj1] = database.Create<UserData::Identity::Data>(lock, data[i].name, data[i].uri, L"", L"", L"");

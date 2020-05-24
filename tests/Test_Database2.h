@@ -134,7 +134,6 @@ struct Database2::ObjTraits<TestData::DataStore, TestData::Simple> : Database2::
     }
 };
 
-
 #if TODO_OBJREF
 template <> struct Database2::ObjTraits<TestData::DataStore, TestData::WithString>
 {
