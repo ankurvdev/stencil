@@ -1,4 +1,4 @@
-# Stencil
+# Overview
 
 ![Build status](https://dev.azure.com/ankurverma0037/ankurverma/_apis/build/status/ankurverma85.stencil)
 
@@ -16,7 +16,8 @@ Built-in templates for
 * C++ based REST HTTP Web-service (JSON) based on IDL interface definition. 
 * MySQL records and tables (TODO)
 
-## Examples (JSON, Command Line)
+
+# Example Code Usage (JSON, Command Line)
 Consider a simple IDL (foo.pidl)
 ```
 struct Foo 
@@ -27,7 +28,7 @@ struct Foo
   bool         b = false	(Description = "A switch")
 }
 ```
-Here's the C++ Code to use for Json serialization/deserialization and cli args parsing
+C++ Code
 ```
 #include <foo.pidl.h>
 
@@ -48,3 +49,89 @@ int main(int arg, char* argv[])
 
 ```
 
+# Example Code Usage: MySQL/Simple Table Based read/write
+
+IDL example
+```
+
+struct UserData
+{
+    //databaseref<wstring> name;
+    timestamp modified;
+    timestamp creation;
+}
+
+struct Identity
+{
+    db_encrypted_unique_wstring username;
+    db_encrypted_unique_wstring password;
+    db_encrypted_unique_wstring privatekey;
+    db_encrypted_unique_wstring clientcert;
+    db_encrypted_unique_wstring secretcode;
+}
+
+struct RemoteHost
+{
+    db_encrypted_unique_wstring name;
+    db_encrypted_unique_wstring uri;
+    uuidref<Identity> identity;
+}
+
+relationship database owner = UserData : object = RemoteHost, Identity
+relationship uuidbasedobject object = RemoteHost, Identity
+relationship encryptedobject object = Identity
+relationship timestamped object = RemoteHost, Identity, UserData
+```
+C++ Code
+```
+#include <UserData.pidl.h>
+#include <Database2.h>
+int main(int argc, char *argv[])
+{
+// TODO
+}
+```
+
+# Example Code Usage: Web Interface
+IDL example (Service.pidl)
+```
+
+struct Data
+{
+	i32 result;
+}
+
+interface TestInterface
+{
+	Data AddNumber(i32 num1, i32 num2);
+}
+
+```
+C++ Code
+```
+#include <Service.pidl.h>
+#include <WebService.h>
+
+class TestInterfaceImpl : public TestInterface
+{
+    public:
+    // Inherited via TestInterface
+    virtual Data AddNumber(int32_t num1, int32_tnum2) override { return Data{ num1 + num2}; }
+
+};
+
+template <> struct ReflectionBase::InterfaceActivator<TestInterface>
+{
+   std::unique_ptr<TestInterface> Activate()
+   {
+       return new TestInterfaceImpl();
+    }
+};
+
+int main(int argc, char* argv[])
+{
+        WebService<TestInterface> svc;
+        svc.StartOnPort(8080);
+        svc.WaitForStop();
+}
+```
