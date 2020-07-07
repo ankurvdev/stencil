@@ -10,9 +10,29 @@
 #include <fstream>
 #include <map>
 #include <shared_mutex>
+#include <span>
 #include <string>
-#include <vector>
 #include <unordered_map>
+#include <vector>
+#define TODO_OBJREF 0
+
+#define DELETE_COPY_AND_MOVE(name)         \
+    name(name const&) = delete;            \
+    name(name&&)      = delete;            \
+    name& operator=(name const&) = delete; \
+    name& operator=(name&&) = delete
+
+#define DELETE_COPY_DEFAULT_MOVE(name)     \
+    name(name const&) = delete;            \
+    name(name&&)      = default;           \
+    name& operator=(name const&) = delete; \
+    name& operator=(name&&) = default
+
+#define ONLY_MOVE_CONSTRUCT(name)          \
+    name(name const&) = delete;            \
+    name(name&&)      = default;           \
+    name& operator=(name const&) = delete; \
+    name& operator=(name&&) = delete
 
 namespace Database2
 {
@@ -24,35 +44,48 @@ template <typename... T> struct is_tuple<std::tuple<T...>> : std::true_type
 {
 };
 
+struct shared_lock : std::unique_lock<std::shared_mutex>
+{
+    shared_lock(std::shared_mutex& mutex) : std::unique_lock<std::shared_mutex>(mutex) {}
+    DELETE_COPY_DEFAULT_MOVE(shared_lock);
+};
+
+struct exclusive_lock : std::unique_lock<std::shared_mutex>
+{
+    exclusive_lock(std::shared_mutex& mutex) : std::unique_lock<std::shared_mutex>(mutex) {}
+    DELETE_COPY_DEFAULT_MOVE(exclusive_lock);
+};
+
+#if 0
 struct shared_lock
 {
     private:
-    shared_lock(std::shared_mutex* mutex) : m_mutex(mutex){};
+    shared_lock(std::shared_mutex* mutex) : _mutex(mutex){};
 
     public:
-    shared_lock(std::shared_mutex& mutex) : m_mutex(&mutex) { lockacquire(); }
+    shared_lock(std::shared_mutex& mutex) : _mutex(&mutex) { lockacquire(); }
     ~shared_lock() { lockrelease(); }
 
     void lockacquire()
     {
-        if (m_mutex) m_rlock = std::shared_lock(*m_mutex);
+        if (_mutex) _rlock = std::shared_lock(*_mutex);
     }
     void lockrelease()
     {
-        if (m_mutex) m_rlock.unlock();
+        if (_mutex) _rlock.unlock();
     }
 
-    std::shared_mutex* m_mutex{nullptr};
+    std::shared_mutex* _mutex{nullptr};
 
     friend struct exclusive_lock;
-    std::shared_lock<std::shared_mutex> m_rlock;
+    std::shared_lock<std::shared_mutex> _rlock;
 
     friend struct exclusive_lock;
 };
 
 struct exclusive_lock
 {
-    exclusive_lock(std::shared_mutex& mutex) : m_mutex(&mutex) { lockacquire(); }
+    exclusive_lock(std::shared_mutex& mutex) : _mutex(&mutex) { lockacquire(); }
     ~exclusive_lock() { lockrelease(); }
 
     exclusive_lock(const exclusive_lock& lock) = delete;
@@ -60,16 +93,17 @@ struct exclusive_lock
     // exclusive_lock& operator=(exclusive_lock&& lock) = default;
     exclusive_lock& operator=(const exclusive_lock& lock) = delete;
 
-    void lockacquire() { m_wlock = std::unique_lock<std::shared_mutex>(*m_mutex); }
-    void lockrelease() { m_wlock = std::unique_lock<std::shared_mutex>{}; }
+    void lockacquire() { _wlock = std::unique_lock<std::shared_mutex>(*_mutex); }
+    void lockrelease() { _wlock = std::unique_lock<std::shared_mutex>{}; }
 
-    shared_lock const& shared() const { return m_slock; }
+    shared_lock const& shared() const { return _slock; }
 
-    std::shared_mutex* m_mutex{nullptr};
+    std::shared_mutex* _mutex{nullptr};
 
-    shared_lock                         m_slock{nullptr};
-    std::unique_lock<std::shared_mutex> m_wlock{};
+    shared_lock                         _slock{nullptr};
+    std::unique_lock<std::shared_mutex> _wlock{};
 };
+#endif
 
 enum class CompareResult
 {
@@ -116,14 +150,6 @@ template <typename TDb, typename TObj> struct FixedSizeObjTraits
     constexpr static size_t    RecordSize() { return sizeof(TObj); }
     constexpr bool             IsEncrypted() { return false; }
     constexpr static size_t    StructMemberCount() { return 0; }    // Unavailable / not-needed
-
-    // using RefType = struct Ref<TDb, TObj>;
-    // static const TObj&   GetView(const RecordBuffer& buffer);
-    // static CompareResult Compare(TDb& owner, const TObj& lhs, const TObj& rhs)
-
-    // template <typename... TArgs> static std::tuple<RefType, TObj> Create(TOwner& owner, TArgs&&... args);
-
-    // static void Release();
 };
 
 template <typename TDb, typename TObj> struct ObjTraits : FixedSizeObjTraits<TDb, TObj>
@@ -154,7 +180,6 @@ template <typename T> constexpr void VerifyTypeTraits()
 
 namespace Database2::impl
 {
-using namespace Database2;
 
 struct Ref
 {
@@ -173,6 +198,18 @@ struct Ref
 
     static Ref Invalid() { return Ref{}; }
     bool       Valid() const { return page >= 2 && slot < 1000; }
+};
+
+struct SlotObj
+{
+    Ref::SlotIndex     index{0};
+    std::span<uint8_t> data{};
+};
+
+struct SlotView
+{
+    Ref::SlotIndex           index{0};
+    std::span<uint8_t const> data{};
 };
 
 // Keep this always at 8192 uint8_ts to optimize memory usage
@@ -252,11 +289,15 @@ struct SerDes
     }
 
     public:
+    SerDes() = default;
+    DELETE_COPY_AND_MOVE(SerDes);
+
     ~SerDes()
     {
         if (_flushto == nullptr) return;
         _flushto->flush();
     }
+
     void InitInMemory()
     {
         _loadedPages[0] = std::make_unique<Page>();
@@ -326,7 +367,7 @@ struct SerDes
     }
 
     private:
-    static const size_t PageStreamOffset(size_t page) { return (page * Page::PageSizeInBytes) + sizeof(Header); }
+    static const std::streamoff PageStreamOffset(size_t page) { return std::streamoff(page * Page::PageSizeInBytes + sizeof(Header)); }
 
     static const uint32_t GetPageIndexFromOffset(std::streamoff offset)
     {
@@ -369,7 +410,7 @@ struct SerDes
     static void _ReadPage(Page& page, uint32_t index, std::istream& stream)
     {
         assert(!stream.fail());
-        std::streampos offsetreq = PageStreamOffset(index);
+        std::streamoff offsetreq{PageStreamOffset(index)};
         stream.seekg(offsetreq + (std::streampos)Page::PageSizeInBytes, std::ios_base::beg);
         auto offsetcur = stream.tellg();
         if (offsetcur != (offsetreq + (std::streampos)Page::PageSizeInBytes))
@@ -389,7 +430,7 @@ struct SerDes
     static void _WritePage(Page const& page, uint32_t index, std::ostream& stream)
     {
         assert(!stream.fail());
-        std::streamoff offsetreq = PageStreamOffset(index);
+        std::streamoff offsetreq{PageStreamOffset(index)};
         stream.seekp(offsetreq, std::ios_base::beg);
         auto offsetcur = stream.tellp();
         assert(offsetcur >= 0);
@@ -419,47 +460,72 @@ struct SerDes
 // All non-seriazable and tracking objects go here
 struct PageRuntime
 {
+    public:
+    ObjTypeId TypeId() const { return _page.header.typeId; }
+
+    void MarkSlotFree(Ref::SlotIndex slot)
+    {
+        _availableSlot = std::min(slot, _availableSlot);
+        MarkDirty();
+    }
+
+    void MarkDirty() { _flags.set((size_t)Flag::Dirty); }
+    void Flush(SerDes& serdes)
+    {
+        if (!_flags.test((size_t)Flag::Dirty)) return;
+        serdes.WritePage(_page, _pageIndex);
+        _flags.reset((size_t)Flag::Dirty);
+    }
+
+    PageRuntime(ObjTypeId id, Ref::PageIndex pageIndex)
+    {
+        _page.header.typeId = id;
+        _pageIndex          = pageIndex;
+    }
+
+    std::span<uint8_t>       RawData() { return _page.buffer; }
+    std::span<uint8_t const> RawData() const { return _page.buffer; }
+
+    template <typename T> std::span<T> Get(size_t offset = 0)
+    {
+        auto ptr = reinterpret_cast<T*>(_page.buffer + offset);
+        return std::span<T>(ptr, std::size(_page.buffer) - offset);
+    }
+
+    template <typename T> std::span<T const> Get(size_t offset = 0) const
+    {
+        auto ptr = reinterpret_cast<T*>(_page.buffer + offset);
+        return std::span<T>(ptr, std::size(_page.buffer) - offset);
+    }
+
+    template <typename TPage> TPage As() { return TPage(*this); }
+
+    // private:
     enum class Flag
     {
         Dirty,
         COUNT
     };
+
     using Flags = std::bitset<(size_t)Flag::COUNT>;
 
-    Ref::SlotIndex m_availableSlot = 0;
-    Ref::PageIndex m_pageIndex     = 0;
-    Flags          m_flags{};
-    Page           m_page;
+    Ref::SlotIndex _availableSlot = 0;
+    Ref::PageIndex _pageIndex     = 0;
+    Flags          _flags{};
+    Page           _page;
 
-    void MarkDirty() { m_flags.set((size_t)Flag::Dirty); }
-    void Flush(SerDes& serdes)
-    {
-        if (!m_flags.test((size_t)Flag::Dirty)) return;
-        serdes.WritePage(m_page, m_pageIndex);
-        m_flags.reset((size_t)Flag::Dirty);
-    }
-
-    PageRuntime(ObjTypeId id) { m_page.header.typeId = id; }
+    friend struct PageManager;
 };
 
 struct PageForRecordInterface
 {
     virtual ~PageForRecordInterface() = default;
-    struct ArrayView
-    {
-        size_t   size{0};
-        uint8_t* buffer{nullptr};
-    };
 
-    struct SlotObj
-    {
-        Ref::SlotIndex index{0};
-        ArrayView      data{};
-    };
+    virtual size_t   GetSlotCount() const                                             = 0;
+    virtual bool     ValidSlot(size_t index) const                                    = 0;
+    virtual SlotView Get(shared_lock const& guardscope, Ref::SlotIndex slot) const    = 0;
+    virtual SlotObj  Get(exclusive_lock const& guardscope, Ref::SlotIndex slot) const = 0;
 
-    virtual size_t  GetSlotCount() const                                           = 0;
-    virtual bool    ValidSlot(size_t index) const                                  = 0;
-    virtual SlotObj Get(shared_lock const& guardscope, Ref::SlotIndex slot) const  = 0;
     virtual uint8_t Release(exclusive_lock const& guardscope, Ref::SlotIndex slot) = 0;
 };
 
@@ -486,56 +552,67 @@ template <size_t RecordSize> struct PageForRecord : public PageForRecordInterfac
 
     static constexpr size_t SlotCount = GetSlotCapacity();
 
-    PageForRecord() {}
-    PageForRecord(PageRuntime* page) : m_page(page)
+    PageForRecord(PageRuntime& page) : _page(page)
     {
-        m_pageIndex = page->m_pageIndex;
-        m_slots     = (decltype(m_slots))(page->m_page.buffer);
-        m_records   = (decltype(m_records))(page->m_page.buffer + sizeof(*m_slots));
-        static_assert(sizeof(*m_records) == SlotCount * RecordSize);
-        static_assert(sizeof(*m_records) + sizeof(*m_slots) < Page::PageSizeInBytes);
-        while (m_page->m_availableSlot < m_slots->size() && m_slots->test(m_page->m_availableSlot)) ++m_page->m_availableSlot;
+        _slots   = (decltype(_slots))(page._page.buffer);
+        _records = (decltype(_records))(page._page.buffer + sizeof(*_slots));
+
+        static_assert(sizeof(*_records) == SlotCount * RecordSize);
+        static_assert(sizeof(*_records) + sizeof(*_slots) < Page::PageSizeInBytes);
+
+        while (_page._availableSlot < _slots->size() && _slots->test(_page._availableSlot)) ++_page._availableSlot;
         // TODO unit test
     }
 
+    DELETE_COPY_AND_MOVE(PageForRecord);
+
+    Ref::PageIndex PageIndex() const { return _page._pageIndex; }
+
     size_t GetSlotCount() const override { return SlotCount; }
-    bool   ValidSlot(size_t index) const override { return m_slots->test(index); }
-    bool   Full(shared_lock const& /*guardscope*/) { return m_page->m_availableSlot >= m_slots->size(); }
+    bool   ValidSlot(size_t index) const override { return _slots->test(index); }
+
+    template <typename TLock> bool Full(TLock const& /*guardscope*/) { return _page._availableSlot >= _slots->size(); }
 
     SlotObj Allocate([[maybe_unused]] exclusive_lock const& guardscope)
     {
-        assert(!Full(guardscope.shared()));
-        assert(!m_slots->test(m_page->m_availableSlot));
-        Ref::SlotIndex slot = m_page->m_availableSlot;
-        ++m_page->m_availableSlot;
-        m_slots->set(slot);
-        auto& rec = m_records->at(slot);
+        assert(!Full(guardscope));
+        assert(!_slots->test(_page._availableSlot));
+
+        Ref::SlotIndex slot = _page._availableSlot;
+        ++_page._availableSlot;
+        _slots->set(slot);
+        auto& rec = _records->at(slot);
         std::fill(rec.begin(), rec.end(), (uint8_t)0);
-        m_page->MarkDirty();
-        return SlotObj{slot, {rec.size(), rec.data()}};
+        _page.MarkDirty();
+        return SlotObj{slot, rec};
     }
 
     uint8_t Release(exclusive_lock const& /*guardscope*/, Ref::SlotIndex slot) override
     {
-        auto& rec = m_records->at(slot);
+        auto& rec = _records->at(slot);
         std::fill(rec.begin(), rec.end(), (uint8_t)0);
-        m_page->m_availableSlot = std::min(slot, m_page->m_availableSlot);
-        m_page->MarkDirty();
+        _page.MarkSlotFree(slot);
         return 0;
     }
 
-    SlotObj Get(shared_lock const& /*guardscope*/, Ref::SlotIndex slot) const override
+    SlotView Get(shared_lock const& /*guardscope*/, Ref::SlotIndex slot) const override
     {
-        assert(m_slots->test(slot));
-        auto& rec = m_records->at(slot);
-        return SlotObj{slot, {rec.size(), rec.data()}};
+        assert(_slots->test(slot));
+        auto& rec = _records->at(slot);
+        return SlotView{slot, rec};
     }
 
-    PageRuntime*            m_page{nullptr};
-    Ref::PageIndex          m_pageIndex = 0;
-    std::bitset<SlotCount>* m_slots     = nullptr;
+    SlotObj Get(exclusive_lock const& /*guardscope*/, Ref::SlotIndex slot) const override
+    {
+        assert(_slots->test(slot));
+        auto& rec = _records->at(slot);
+        return SlotObj{slot, rec};
+    }
+
+    PageRuntime&            _page;
+    std::bitset<SlotCount>* _slots = nullptr;
     // Warning.. using bitset make this non portable across 32 bit and 64 bit
-    std::array<std::array<uint8_t, RecordSize>, SlotCount>* m_records = nullptr;
+    std::array<std::array<uint8_t, RecordSize>, SlotCount>* _records = nullptr;
 };
 
 // In memory transformation for temporary computation
@@ -559,102 +636,117 @@ template <size_t RecordSize> struct PageForSharedRecord : public PageForRecordIn
 
     static constexpr size_t SlotCount = GetSlotCapacity();
 
-    PageForSharedRecord() {}
-    constexpr PageForSharedRecord(PageRuntime* page) : m_page(page)
+    constexpr PageForSharedRecord(PageRuntime& page) : _page(page)
     {
-        m_pageIndex = page->m_pageIndex;
-        // auto& buffer = page->m_page.buffer;
-        m_refCounts = (decltype(m_refCounts))(page->m_page.buffer);
-        m_records   = (decltype(m_records))(page->m_page.buffer + sizeof(*m_refCounts));
-        static_assert(sizeof(*m_records) == SlotCount * RecordSize);
-        static_assert(sizeof(*m_records) + sizeof(*m_refCounts) < Page::PageSizeInBytes);
+        _pageIndex = page._pageIndex;
+        // auto& buffer = page->_page.buffer;
+        _refCounts = (decltype(_refCounts))(page._page.buffer);
+        _records   = (decltype(_records))(page._page.buffer + sizeof(*_refCounts));
+        static_assert(sizeof(*_records) == SlotCount * RecordSize);
+        static_assert(sizeof(*_records) + sizeof(*_refCounts) < Page::PageSizeInBytes);
     }
 
+    DELETE_COPY_AND_MOVE(PageForSharedRecord);
+
     size_t  GetSlotCount() const override { return SlotCount; }
-    bool    ValidSlot(size_t slot) const override { return m_refCounts->at(slot) > 0; }
-    uint8_t GetRefCount(Ref::SlotIndex slot) const { return m_refCounts->at(slot); }
-    bool    Full(shared_lock const& guardscope) { return m_page->m_availableSlot >= m_refCounts->size(); }
+    bool    ValidSlot(size_t slot) const override { return _refCounts->at(slot) > 0; }
+    uint8_t GetRefCount(Ref::SlotIndex slot) const { return _refCounts->at(slot); }
+    bool    Full(shared_lock const& guardscope) { return _page->_availableSlot >= _refCounts->size(); }
 
     SlotObj Allocate(exclusive_lock const& guardscope)
     {
-        assert(!Full(guardscope.shared()));
-        assert(m_refCounts[m_page->m_availableSlot] == 0u);
-        Ref::SlotIndex slot = m_page->m_availableSlot;
-        ++m_page->m_availableSlot;
-        m_refCounts[m_page->m_availableSlot]++;
-        std::array<uint8_t, RecordSize>& rec = m_records->at(slot);
+        assert(!Full(guardscope));
+        assert(_refCounts[_page->_availableSlot] == 0u);
+        Ref::SlotIndex slot = _page->_availableSlot;
+        ++_page->_availableSlot;
+        _refCounts[_page->_availableSlot]++;
+        std::array<uint8_t, RecordSize>& rec = _records->at(slot);
         std::fill(rec.begin(), rec.end(), 0u);
-        m_page->MarkDirty();
+        _page->MarkDirty();
         return SlotObj{slot, {rec.size(), rec.data()}};
     }
 
     uint8_t Release(exclusive_lock const& /*guardscope*/, Ref::SlotIndex slot)
     {
-        assert(m_refCounts->at(slot) > 0u);
-        m_refCounts->at(slot)--;
-        if (m_refCounts->at(slot) == 0u)
+        assert(_refCounts->at(slot) > 0u);
+        _refCounts->at(slot)--;
+        if (_refCounts->at(slot) == 0u)
         {
-            std::array<uint8_t, RecordSize>& rec = m_records->at(slot);
+            std::array<uint8_t, RecordSize>& rec = _records->at(slot);
             std::fill(rec.begin(), rec.end(), uint8_t{0u});
-            m_page->m_availableSlot = std::min(slot, m_page->m_availableSlot);
+            _page._availableSlot = std::min(slot, _page._availableSlot);
         }
-        return m_refCounts->at(slot);
+        return _refCounts->at(slot);
     }
 
-    SlotObj Get(shared_lock const& /*guardscope*/, Ref::SlotIndex slot) const override
+    SlotView Get(shared_lock const& /*guardscope*/, Ref::SlotIndex slot) const override
     {
-        assert(m_refCounts->at(slot) > 0);
-        auto& rec = m_records->at(slot);
-        return SlotObj{slot, {rec.size(), rec.data()}};
+        assert(_refCounts->at(slot) > 0);
+        auto& rec = _records->at(slot);
+        return SlotView{slot, rec};
     }
 
-    PageRuntime*                                            m_page{nullptr};
-    uint32_t                                                m_pageIndex = 0;
-    std::array<uint8_t, SlotCount>*                         m_refCounts = nullptr;
-    std::array<std::array<uint8_t, RecordSize>, SlotCount>* m_records   = nullptr;
+    SlotObj Get(exclusive_lock const& /*guardscope*/, Ref::SlotIndex slot) const override
+    {
+        assert(_refCounts->at(slot) > 0);
+        auto& rec = _records->at(slot);
+        return SlotObj{slot, rec};
+    }
+
+    PageRuntime& _page;
+    uint32_t     _pageIndex = 0;
+
+    std::array<uint8_t, SlotCount>* _refCounts = nullptr;
+
+    std::array<std::array<uint8_t, RecordSize>, SlotCount>* _records = nullptr;
 };
 
 template <> struct PageForRecord<0> : public PageForRecordInterface
 {
-    size_t  GetSlotCount() const override { return impl->GetSlotCount(); }
-    bool    ValidSlot(size_t index) const override { return impl->ValidSlot(index); }
-    SlotObj Get(shared_lock const& guardscope, Ref::SlotIndex slot) const override { return impl->Get(guardscope, slot); }
+    size_t   GetSlotCount() const override { return impl->GetSlotCount(); }
+    bool     ValidSlot(size_t index) const override { return impl->ValidSlot(index); }
+    SlotObj  Get(exclusive_lock const& guardscope, Ref::SlotIndex slot) const override { return impl->Get(guardscope, slot); }
+    SlotView Get(shared_lock const& guardscope, Ref::SlotIndex slot) const override { return impl->Get(guardscope, slot); }
 
-    PageForRecord(PageRuntime* page) : m_page(page)
+    PageForRecord(PageRuntime& page) : _page(page)
     {
-        auto typeId = page->m_page.header.typeId;
+        auto typeId = page.TypeId();
         assert(typeId > 0xff);
         auto logRecordSize = typeId & 0xff;
         assert(logRecordSize < 12);
-        m_recordSize = (uint64_t)1 << logRecordSize;
+        _recordSize = (uint64_t)1 << logRecordSize;
         switch (logRecordSize)
         {
         default:
         case 0x0:
         case 0x1: throw Logging::TODOCreateException("Blob data size outside range");
-        case 0x2: impl = std::make_unique<PageForRecord<(1 << 0x2)>>(m_page); break;
-        case 0x3: impl = std::make_unique<PageForRecord<(1 << 0x3)>>(m_page); break;
-        case 0x4: impl = std::make_unique<PageForRecord<(1 << 0x4)>>(m_page); break;
-        case 0x5: impl = std::make_unique<PageForRecord<(1 << 0x5)>>(m_page); break;
-        case 0x6: impl = std::make_unique<PageForRecord<(1 << 0x6)>>(m_page); break;
-        case 0x7: impl = std::make_unique<PageForRecord<(1 << 0x7)>>(m_page); break;
-        case 0x8: impl = std::make_unique<PageForRecord<(1 << 0x8)>>(m_page); break;
-        case 0x9: impl = std::make_unique<PageForRecord<(1 << 0x9)>>(m_page); break;
-        case 0xa: impl = std::make_unique<PageForRecord<(1 << 0xa)>>(m_page); break;
-        case 0xb: impl = std::make_unique<PageForRecord<(1 << 0xb)>>(m_page); break;
+        case 0x2: impl = std::make_unique<PageForRecord<(1 << 0x2)>>(_page); break;
+        case 0x3: impl = std::make_unique<PageForRecord<(1 << 0x3)>>(_page); break;
+        case 0x4: impl = std::make_unique<PageForRecord<(1 << 0x4)>>(_page); break;
+        case 0x5: impl = std::make_unique<PageForRecord<(1 << 0x5)>>(_page); break;
+        case 0x6: impl = std::make_unique<PageForRecord<(1 << 0x6)>>(_page); break;
+        case 0x7: impl = std::make_unique<PageForRecord<(1 << 0x7)>>(_page); break;
+        case 0x8: impl = std::make_unique<PageForRecord<(1 << 0x8)>>(_page); break;
+        case 0x9: impl = std::make_unique<PageForRecord<(1 << 0x9)>>(_page); break;
+        case 0xa: impl = std::make_unique<PageForRecord<(1 << 0xa)>>(_page); break;
+        case 0xb: impl = std::make_unique<PageForRecord<(1 << 0xb)>>(_page); break;
         }
     }
+
+    DELETE_COPY_AND_MOVE(PageForRecord);
 
     uint8_t Release(exclusive_lock const& guardscope, Ref::SlotIndex slot) override { return impl->Release(guardscope, slot); }
 
     std::unique_ptr<PageForRecordInterface> impl;
-    PageRuntime*                            m_page;
-    size_t                                  m_recordSize = 0;
+
+    PageRuntime& _page;
+    size_t       _recordSize = 0;
 };
 
 template <> struct PageForSharedRecord<0> : public PageForRecord<0>
 {
-    PageForSharedRecord(PageRuntime* page) : PageForRecord(page) {}
+    PageForSharedRecord(PageRuntime& page) : PageForRecord(page) {}
+    DELETE_COPY_AND_MOVE(PageForSharedRecord);
 };
 
 struct JournalPage
@@ -669,60 +761,63 @@ struct JournalPage
 
     struct Entry
     {
-        Ref::PageIndex pageIndex;
-        ObjTypeId      typeId;
+        Ref::PageIndex pageIndex{0};
+        ObjTypeId      typeId{0};
     };
 
-    JournalPage(PageRuntime* page) : _page(page)
-    {
-        if (_page == nullptr) return;
-        _header  = reinterpret_cast<Header*>(page->m_page.buffer);
-        _typeIds = reinterpret_cast<ObjTypeId*>(page->m_page.buffer + sizeof(Header));
-    }
+    DELETE_COPY_AND_MOVE(JournalPage);
 
     Ref::PageIndex GetEntryCount() const { return EntryCount; }
-    Entry          GetJournalEntry(Ref::PageIndex index) const
+
+    Entry GetJournalEntry(Ref::PageIndex entryIndex) const
     {
-        return {(Ref::PageIndex)(_header->startPageIndex + index), _GetRef((Ref::PageIndex)(_header->startPageIndex + index))};
+        Ref::PageIndex pageIndex = static_cast<Ref::PageIndex>(_StartPageIndex() + entryIndex);
+        return Entry{pageIndex, _page.Get<ObjTypeId>(sizeof(Header))[entryIndex]};
     }
 
-    Ref::PageIndex GetNextJornalPage() const { return _header->nextJournalPage; }
+    Ref::PageIndex GetNextJornalPage() const { return _page.Get<Header>()[0].nextJournalPage; }
 
-    ObjTypeId& _GetRef(Ref::PageIndex pageIndex) const
-    {
-        assert(pageIndex >= _header->startPageIndex);
-        assert(pageIndex < _header->startPageIndex + EntryCount);
-        return _typeIds[pageIndex - _header->startPageIndex];
-    }
     void RecordJournalEntry(Entry const& entry)
     {
-        assert(_GetRef(entry.pageIndex) == 0);
-        _GetRef(entry.pageIndex) = entry.typeId;
-        _page->MarkDirty();
+        assert(entry.pageIndex >= _StartPageIndex());
+        assert(entry.pageIndex < _StartPageIndex() + EntryCount);
+
+        _page.Get<ObjTypeId>(sizeof(Header))[static_cast<size_t>(entry.pageIndex - _StartPageIndex())] = entry.typeId;
+        _page.MarkDirty();
     }
 
+    // TODO : This should have been used
     void InitializeEmptyJournal(Ref::PageIndex startPageIndex)
     {
-        std::fill(std::begin(_page->m_page.buffer), std::end(_page->m_page.buffer), (uint8_t)0);
-        _header->startPageIndex = startPageIndex;
-        _page->MarkDirty();
+        _page.Get<Header>()[0].startPageIndex = startPageIndex;
+        _page.MarkDirty();
     }
 
-    Header*      _header{};
-    ObjTypeId*   _typeIds{};
-    PageRuntime* _page = nullptr;
+    Ref::PageIndex _StartPageIndex() const { return _page.Get<Header>()[0].startPageIndex; }
+
+    private:
+    JournalPage(PageRuntime& page) : _page(page) {}
+
+    PageRuntime& _page;
+    friend struct PageRuntime;
 };
 
 struct HeaderPage
 {
-    HeaderPage(PageRuntime* page) : _page(page) {}
-    PageRuntime* _page;
+    DELETE_COPY_AND_MOVE(HeaderPage);
+
+    private:
+    HeaderPage(PageRuntime& page) : _page(page) {}
+    PageRuntime& _page;
+
+    friend struct PageRuntime;
 };
 
 struct PageManager
 {
     public:    // Constructor, destructor
     PageManager() = default;
+    DELETE_COPY_AND_MOVE(PageManager);
 
     PageManager(std::filesystem::path const& path)
     {
@@ -762,29 +857,30 @@ struct PageManager
     Ref::PageIndex GetPageCount() const { return (Ref::PageIndex)_pages.size(); }
     ObjTypeId      GetPageObjTypeId(Ref::PageIndex pageIndex) const { return _pageTypes[pageIndex]; }
 
-    impl::PageRuntime* LoadPage(ObjTypeId id, Ref::PageIndex pageIndex)
+    impl::PageRuntime& LoadPage(ObjTypeId id, Ref::PageIndex pageIndex)
     {
         auto& page = _pages[pageIndex];
         if (page != nullptr)
         {
-            return page.get();
+            return *page.get();
         }
-        page              = std::make_unique<impl::PageRuntime>(id);
-        page->m_pageIndex = pageIndex;
-        _serdes.ReadPage(page->m_page, pageIndex);
-        return page.get();
+
+        page = std::make_unique<impl::PageRuntime>(id, pageIndex);
+
+        _serdes.ReadPage(page->_page, pageIndex);
+        return *page.get();
     }
 
-    impl::PageRuntime* CreateNewPage(ObjTypeId objTypeId)
+    impl::PageRuntime& CreateNewPage(ObjTypeId objTypeId)
     {
-        auto ptr         = new impl::PageRuntime(objTypeId);
-        ptr->m_pageIndex = (Ref::PageIndex)_pages.size();
+        auto ptr = new impl::PageRuntime(objTypeId, static_cast<Ref::PageIndex>(_pages.size()));
         assert(_pages.size() == _pageTypes.size());
         _pages.push_back(std::unique_ptr<impl::PageRuntime>(ptr));
         _pageTypes.push_back(objTypeId);
-        _serdes.WritePage(ptr->m_page, ptr->m_pageIndex);
-        _RecordJournalEntry(ptr->m_pageIndex, objTypeId);
-        return ptr;
+
+        _serdes.WritePage(ptr->_page, ptr->_pageIndex);
+        _RecordJournalEntry(ptr->_pageIndex, objTypeId);
+        return *ptr;
     }
 
     private:    // Methods
@@ -794,25 +890,24 @@ struct PageManager
         assert(pageCount >= 2);
         _pages.resize(pageCount);    // atleast one header page and one journal page
         _pageTypes.resize(pageCount, 0);
-        _header = LoadPage(0, 0);
-        _LoadJournal();
     }
 
+    /// <summary>
+    /// Record a journal entry
+    /// </summary>
+    /// <param name="pageIndex"></param>
+    /// <param name="objTypeId"></param>
     void _RecordJournalEntry(Ref::PageIndex pageIndex, ObjTypeId objTypeId)
     {
-        // TODO check if journal is full
-        _journal.RecordJournalEntry({pageIndex, objTypeId});
-    }
-
-    void _LoadJournal()
-    {
-        Ref::PageIndex i = 1;
+        // TODO : Perf optimization . DO not go through all journal pages
+        Ref::PageIndex i = _journalPageIndex;
         while (i != 0)
         {
-            _journal = JournalPage(LoadPage(0, i));
-            for (Ref::PageIndex j = 0; j < _journal.GetEntryCount(); j++)
+            auto journal = LoadPage(0, i).As<JournalPage>();
+
+            for (Ref::PageIndex j = 0; j < journal.GetEntryCount(); j++)
             {
-                auto entry = _journal.GetJournalEntry(j);
+                auto entry = journal.GetJournalEntry(j);
                 if (entry.typeId == 0)
                 {
                     continue;
@@ -820,14 +915,19 @@ struct PageManager
                 assert(_pageTypes[entry.pageIndex] == 0);
                 _pageTypes[entry.pageIndex] = entry.typeId;
             }
-            i = _journal.GetNextJornalPage();
+
+            _journalPageIndex = i;
+            i                 = journal.GetNextJornalPage();
+            if (i == 0)
+            {
+                journal.RecordJournalEntry({pageIndex, objTypeId});
+            }
         }
     }
 
     private:    // Members
-    HeaderPage   _header{nullptr};
-    JournalPage  _journal{nullptr};
-    impl::SerDes _serdes;
+    impl::SerDes   _serdes;
+    Ref::PageIndex _journalPageIndex = 1;
 
     std::vector<ObjTypeId>                          _pageTypes;
     std::vector<std::unique_ptr<impl::PageRuntime>> _pages;
@@ -848,9 +948,9 @@ template <typename TDb, typename TObj, typename TLock> struct Iterator
     static auto Begin(TLock* lock, Database& db)
     {
         Iterator it;
-        it.m_lock    = lock;
-        it.m_db      = &db;
-        it.m_current = impl::Ref(0, 0);
+        it._lock    = lock;
+        it._db      = &db;
+        it._current = impl::Ref(0, 0);
         it._MoveToValidSlot();
         return it;
     }
@@ -858,11 +958,11 @@ template <typename TDb, typename TObj, typename TLock> struct Iterator
     static auto End() { return Iterator(); }
     static auto Range(Database& db) { return Range(Begin(db), End()); }
 
-    bool      operator==(Iterator const& rhs) const { return m_lock == rhs.m_lock && m_db == rhs.m_db && m_current == rhs.m_current; }
+    bool      operator==(Iterator const& rhs) const { return _lock == rhs._lock && _db == rhs._db && _current == rhs._current; }
     bool      operator!=(Iterator const& rhs) const { return !(*this == rhs); }
     Iterator& operator++()
     {
-        m_current.slot++;
+        _current.slot++;
         _MoveToValidSlot();
         return *this;
     }
@@ -871,23 +971,23 @@ template <typename TDb, typename TObj, typename TLock> struct Iterator
 
     auto Get()
     {
-        if (m_db == nullptr)
+        if (_db == nullptr)
         {
             throw Logging::TODOCreateException("Reached the end of iteration");
         }
-        return this->m_db->Get(*this->m_lock, this->m_current);
+        return this->_db->Get(*this->_lock, this->_current);
     }
 
     void _MoveToValidSlot()
     {
-        if (m_db == nullptr)
+        if (_db == nullptr)
         {
             return;
         }
 
-        auto& pi      = m_current.page;
-        auto& si      = m_current.slot;
-        auto& pagemgr = m_db->_pagemgr;
+        auto& pi      = _current.page;
+        auto& si      = _current.slot;
+        auto& pagemgr = _db->_pagemgr;
 
         for (; pi < pagemgr.GetPageCount(); pi++, si = 0)
         {
@@ -919,17 +1019,17 @@ template <typename TDb, typename TObj, typename TLock> struct Iterator
         *this = End();
     }
 
-    Iterator(shared_lock& lock, Database& db) : m_db(db), m_lock(&lock) {}
+    Iterator(shared_lock& lock, Database& db) : _db(db), _lock(&lock) {}
     Iterator() = default;
 
-    TLock*    m_lock = nullptr;
-    Database* m_db   = nullptr;
-    Ref       m_current{impl::Ref::Invalid()};
+    TLock*    _lock = nullptr;
+    Database* _db   = nullptr;
+    Ref       _current{impl::Ref::Invalid()};
 };
 
 template <typename TDb, typename TObj, typename TLock> struct RefAndObjIterator : public Iterator<TDb, TObj, TLock>
 {
-    auto operator*() { return std::make_tuple(this->m_current, this->Get()); }
+    auto operator*() { return std::make_tuple(this->_current, this->Get()); }
 };
 
 }    // namespace Database2::impl
@@ -941,6 +1041,7 @@ template <typename TDb, typename TObj> struct Ref : impl::Ref
     Ref() = default;
     Ref(impl::Ref const& val) : impl::Ref(val) {}
 };
+
 #if 0
 struct RefOwnerMarker
 {
@@ -969,9 +1070,11 @@ template <typename TDb, typename TOwner, typename... TObjs> struct RefOwner : Re
     impl::Ref                            ref[sizeof...(TObjs)];
 };
 #endif
+
 struct ChildRefMarker
 {
 };
+
 template <typename TObj> struct ChildRef : ChildRefMarker
 {
     using Obj = TObj;
@@ -1000,6 +1103,7 @@ template <typename TObj> struct ChildRef : ChildRefMarker
     }
     impl::Ref ref{0, 0};
 };
+
 template <typename TDb> struct DatabaseT
 {
     public:    // Internal type declarations
@@ -1014,59 +1118,86 @@ template <typename TDb> struct DatabaseT
     template <typename TObj> using EditT       = typename Traits<TObj>::EditType;    // Edit the serialized buffer (with write lock)
     template <typename TObj> using RefAndViewT = std::tuple<RefT<TObj>, ViewT<TObj>>;
     template <typename TObj> using RefAndEditT = std::tuple<RefT<TObj>, EditT<TObj>>;
+
     template <typename TObj> struct RangeForViewT
     {
-        rlock& m_lock;
+        RangeForViewT(rlock& lock, DatabaseT<TDb>& db) :
+            _lock(lock),
+            _begin{impl::RefAndObjIterator<TDb, TObj, rlock>::Begin(&lock, db)},
+            _end{impl::RefAndObjIterator<TDb, TObj, rlock>::End()}
+        {
+        }
 
-        impl::RefAndObjIterator<TDb, TObj, rlock> m_begin;
-        impl::RefAndObjIterator<TDb, TObj, rlock> m_end;
+        ONLY_MOVE_CONSTRUCT(RangeForViewT);
 
-        auto begin() const { return m_begin; }
-        auto end() const { return m_end; }
+        rlock& _lock;
+
+        impl::RefAndObjIterator<TDb, TObj, rlock> _begin;
+        impl::RefAndObjIterator<TDb, TObj, rlock> _end;
+
+        auto begin() const { return _begin; }
+        auto end() const { return _end; }
     };
+
     template <typename TObj> struct RangeForEditT
     {
-        wlock& m_lock;
+        RangeForEditT(wlock& lock, DatabaseT<TDb>& db) :
+            _lock(lock),
+            _begin{impl::RefAndObjIterator<TDb, TObj, wlock>::Begin(&lock, db)},
+            _end{impl::RefAndObjIterator<TDb, TObj, wlock>::End()}
+        {
+        }
 
-        impl::RefAndObjIterator<TDb, TObj, wlock> m_begin;
-        impl::RefAndObjIterator<TDb, TObj, wlock> m_end;
+        ONLY_MOVE_CONSTRUCT(RangeForEditT);
 
-        auto begin() const { return m_begin; }
-        auto end() const { return m_end; }
+        wlock& _lock;
+
+        impl::RefAndObjIterator<TDb, TObj, wlock> _begin;
+        impl::RefAndObjIterator<TDb, TObj, wlock> _end;
+
+        auto begin() const { return _begin; }
+        auto end() const { return _end; }
     };
 
     template <typename TObj> constexpr ObjTypeId TypeId() { return Traits<TObj>::TypeId(); }
 
     public:    // Constructor Destructor
-    DatabaseT() {}
+    DatabaseT() = default;
     DatabaseT(TDb* ptr) { Init(ptr); }
     DatabaseT(TDb* ptr, std::filesystem::path const& path) : _ptr(ptr), _pagemgr(path){};
     DatabaseT(TDb* ptr, std::ofstream&& stream) : _ptr(ptr), _pagemgr(stream){};
     DatabaseT(TDb* ptr, std::ifstream&& stream) : _ptr(ptr), _pagemgr(stream){};
 
+    DELETE_COPY_AND_MOVE(DatabaseT);
+
     public:    // Methods
     rlock LockForRead() { return shared_lock(_mutex); }
     wlock LockForEdit() { return exclusive_lock(_mutex); }
 
-    template <size_t TRecordSize> auto _Allocate(wlock const& lock, ObjTypeId typeId)
+    template <size_t TRecordSize> impl::PageRuntime& _FindOrCreatePage(wlock const& lock, ObjTypeId typeId)
     {
-        impl::PageForRecord<TRecordSize> page;
         assert(_pagemgr.GetPageCount() > 1);
-        for (impl::Ref::PageIndex i = _pagemgr.GetPageCount() - (uint8_t)1; i > 0; i--)
+        for (impl::Ref::PageIndex i = _pagemgr.GetPageCount() - 1u; i > 0; i--)
         {
-            if (_pagemgr.GetPageObjTypeId(i) != typeId) continue;
-            page = _pagemgr.LoadPage(typeId, i);
-            if (!page.Full(lock.shared())) break;
+            if (_pagemgr.GetPageObjTypeId(i) != typeId)
+            {
+                continue;
+            }
+            auto& page = _pagemgr.LoadPage(typeId, i);
+            if (!page.As<impl::PageForRecord<TRecordSize>>().Full(lock))
+            {
+                return page;
+            }
         }
 
-        if (page.m_pageIndex == 0 || page.Full(lock.shared()))
-        {
-            page = _pagemgr.CreateNewPage(typeId);
-        }
+        return _pagemgr.CreateNewPage(typeId);
+    }
 
+    template <size_t TRecordSize> std::tuple<impl::Ref, impl::SlotObj> _Allocate(wlock const& lock, ObjTypeId typeId)
+    {
+        auto page = _FindOrCreatePage<TRecordSize>(lock, typeId).As<impl::PageForRecord<TRecordSize>>();
         auto slot = page.Allocate(lock);
-
-        return std::make_tuple(impl::Ref(page.m_pageIndex, slot.index), (void*)slot.data.buffer);
+        return std::make_tuple(impl::Ref(page.PageIndex(), slot.index), slot);
     }
 
     template <size_t LogN> auto _AllocateForDataSize(size_t dataSize, wlock const& lock, ObjTypeId typeId)
@@ -1150,7 +1281,7 @@ template <typename TDb> struct DatabaseT
             }
             else
             {
-                auto editptr = new (buffer) WireT<TObj>{recsize, std::forward<TArgs>(args)...};
+                auto editptr = new (buffer.data.data()) WireT<TObj>{recsize, std::forward<TArgs>(args)...};
                 return RefAndEditT<TObj>(RefT<TObj>{ref}, *editptr);
             }
         }
@@ -1163,7 +1294,7 @@ template <typename TDb> struct DatabaseT
 
                 // static_assert(Traits<TObj>::StructMemberCount() == sizeof...(args));
                 // auto wireobj = new (buffer) Traits<TObj>::WireT{};
-                auto wireobj = new (buffer) WireT<TObj>();
+                auto wireobj = new (buffer.data.data()) WireT<TObj>();
                 static_assert(sizeof...(args) == Traits<TObj>::StructMemberCount());
                 _FillParent<0, sizeof...(args), TObj>(lock, *wireobj, std::forward<TArgs>(args)...);
                 return RefAndEditT<TObj>(RefT<TObj>{ref}, *wireobj);
@@ -1187,7 +1318,7 @@ template <typename TDb> struct DatabaseT
         impl::PageForRecord<Traits<TObj>::RecordSize()> page(_pagemgr.LoadPage(TypeId<TObj>(), id.page));
 
         auto slot   = page.Get(lock, id.slot);
-        auto objptr = reinterpret_cast<WireT<TObj>*>(slot.data.buffer);
+        auto objptr = reinterpret_cast<WireT<TObj> const*>(slot.data.data());
         return *objptr;
     }
 
@@ -1197,26 +1328,17 @@ template <typename TDb> struct DatabaseT
         assert(id.page < _pagemgr.GetPageCount());
         impl::PageForRecord<Traits<TObj>::RecordSize()> page(_pagemgr.LoadPage(TypeId<TObj>(), id.page));
 
-        auto slot = page.Get(lock.shared(), id.slot);
-        page.m_page->MarkDirty();
-        EditT<TObj> editobj(*reinterpret_cast<WireT<TObj>*>(slot.data.buffer));
-        page.m_page->MarkDirty();    // TODO : test
+        auto slot = page.Get(lock, id.slot);
+        page._page.MarkDirty();
+        EditT<TObj> editobj(*reinterpret_cast<WireT<TObj>*>(slot.data.data()));
+        page._page.MarkDirty();    // TODO : test
         return editobj;
     }
 
-    template <typename TObj> RangeForViewT<TObj> Objects(rlock& lock)
-    {
-        return RangeForViewT<TObj>{
-            lock, impl::RefAndObjIterator<TDb, TObj, rlock>::Begin(&lock, *this), impl::RefAndObjIterator<TDb, TObj, rlock>::End()};
-    }
+    template <typename TObj> RangeForViewT<TObj> Objects(rlock& lock) { return RangeForViewT<TObj>(lock, *this); }
+    template <typename TObj> RangeForEditT<TObj> Objects(wlock& lock) { return RangeForEditT<TObj>(lock, *this); }
 
-    template <typename TObj> RangeForEditT<TObj> Objects(wlock& lock)
-    {
-        return RangeForEditT<TObj>{
-            lock, impl::RefAndObjIterator<TDb, TObj, wlock>::Begin(&lock, *this), impl::RefAndObjIterator<TDb, TObj, wlock>::End()};
-    }
-
-    template <typename TObj> void _ReleaseChildRefs(wlock const& /*lock*/, impl::PageForRecordInterface::SlotObj /*slotobj*/)
+    template <typename TObj> void _ReleaseChildRefs(wlock const& /*lock*/, impl::SlotObj /*slotobj*/)
     {
         throw std::logic_error("TODO_OBJREF");
 #if TODO_OBJREF
@@ -1252,7 +1374,7 @@ template <typename TDb> struct DatabaseT
             auto refcount = page.Release(lock, id.slot);
             if (refcount == 0)
             {
-                _ReleaseChildRefs<TObj>(lock, page.Get(lock.shared(), id.slot));
+                _ReleaseChildRefs<TObj>(lock, page.Get(lock, id.slot));
             }
         }
         else
@@ -1360,6 +1482,9 @@ namespace Database2
 
 template <typename TDb, typename TObj> struct OwnerT : public virtual DatabaseT<TDb>
 {
+    OwnerT()  = default;
+    ~OwnerT() = default;
+    DELETE_COPY_AND_MOVE(OwnerT);
 };
 
 template <typename TDb, typename TObj> struct ObjectT

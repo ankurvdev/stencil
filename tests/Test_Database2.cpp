@@ -1,6 +1,9 @@
 #include "Test_Database2.h"
 
+#pragma warning(push, 1)
 #include <catch2/catch.hpp>
+#pragma warning(pop)
+
 #include <thread>
 
 using namespace std::string_literals;

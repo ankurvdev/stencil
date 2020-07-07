@@ -21,7 +21,7 @@ std::string FilePathToSym(std::filesystem::path filepath)
 auto ParseArg(std::string_view arg)
 {
     // If name is resname:filepath use resname or else convert filename into a symbol
-    auto                  idx = arg.find('!');
+    int                   idx = static_cast<int>(arg.find('!'));
     std::string           resname;
     std::filesystem::path src;
     if (idx == std::string::npos)

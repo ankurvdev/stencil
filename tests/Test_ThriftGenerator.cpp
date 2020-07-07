@@ -1,7 +1,9 @@
 #include "TestUtils.h"
 DECLARE_RESOURCE_COLLECTION(testdata);
 #include "Generator.h"
+#pragma warning(push, 0)
 #include "dtl/dtl.hpp"
+#pragma warning(pop)
 
 static inline std::string wstring_to_string(std::wstring_view wstr)
 {

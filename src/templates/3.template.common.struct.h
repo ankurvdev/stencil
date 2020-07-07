@@ -91,6 +91,9 @@ struct Data :
             //</Attribute>
             return ::ReflectionServices::EmptyAttributeValue(key);
             //</Field>
+
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -173,6 +176,8 @@ struct Data : public ReflectionBase::ObjMarker
         }
             //</Field>
 
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -211,6 +216,7 @@ struct zzInterface_Namezz : public ReflectionBase::Interface<zzInterface_Namezz>
 {
     public:
     zzInterface_Namezz() : ReflectionBase::Interface<zzInterface_Namezz>(this) {}
+    virtual ~zzInterface_Namezz() = default;
     //<Function>
     virtual zzReturnType_NativeTypezz zzFunction_Namezz(
         //<Args_Field Join=','>
@@ -226,6 +232,7 @@ struct zzInterface_NamezzFactory : public ReflectionBase::InterfaceFactory<zzInt
 {
     public:
     virtual std::unique_ptr<zzInterface_Namezz> Activate() = 0;
+    virtual ~zzInterface_NamezzFactory()                   = default;
 };
 
 //<Function>
@@ -268,7 +275,8 @@ template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzInterface_Name
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<zzProgram_Namezz::zzInterface_Namezz_zzFunction_Namezz_Args
                                                                  //<Args_Field>
-                                                                 ,Traits_arg_zzNamezz
+                                                                 ,
+                                                                 Traits_arg_zzNamezz
                                                                  //</Args_Field>
                                                                  >;
 };

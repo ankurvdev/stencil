@@ -4,15 +4,23 @@
 class JsonDataModel;
 
 #ifdef USE_RAPIDJSON
-
-#include <rapidjson/reader.h>
-#include <rapidjson/writer.h>
+#pragma warning(push, 0)
+#include <json/json.hpp>
+#pragma warning(pop)
 
 struct Json
 {
-    template <typename TStruct> struct RapidJsonReader : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, RapidJsonReader<TStruct>>
+    using number_float_t    = double;
+    using number_integer_t  = int;
+    using number_unsigned_t = unsigned;
+    using string_t          = std::string;
+    using binary_t          = std::string;
+
+    template <typename TStruct> struct Reader : public nlohmann::json_sax<nlohmann::json>
     {
-        RapidJsonReader(TStruct* ptr) : _tracker(ptr, nullptr) {}
+        using sax = typename nlohmann::json_sax<nlohmann::json>;
+
+        Reader(TStruct* ptr) : _tracker(ptr, nullptr) {}
 
 #define SAFEEXEC(stmt) \
     try                \
@@ -31,38 +39,29 @@ struct Json
             return false;
         }
 
-        bool Null() { SAFEEXEC(_tracker.HandleValue(Value(nullptr), nullptr)); }
-        bool Bool(bool val) { SAFEEXEC(_tracker.HandleValue(Value(val), nullptr)); }
-        bool Int(int val) { SAFEEXEC(_tracker.HandleValue(Value(val), nullptr)); }
-        bool Uint(unsigned val) { SAFEEXEC(_tracker.HandleValue(Value(val), nullptr)); }
-        bool Int64(int64_t val) { SAFEEXEC(_tracker.HandleValue(Value(val), nullptr)); }
-        bool Uint64(uint64_t val) { SAFEEXEC(_tracker.HandleValue(Value(val), nullptr)); }
-        bool Double(double val) { SAFEEXEC(_tracker.HandleValue(Value(val), nullptr)); }
+        bool null() override { SAFEEXEC(_tracker.HandleValue(Value(nullptr), nullptr)); }
+        bool boolean(bool val) override { SAFEEXEC(_tracker.HandleValue(Value(val), nullptr)); }
+        bool number_integer(sax::number_integer_t val) override { SAFEEXEC(_tracker.HandleValue(Value(val), nullptr)); }
+        bool number_unsigned(sax::number_unsigned_t val) override { SAFEEXEC(_tracker.HandleValue(Value(val), nullptr)); }
+        bool number_float(sax::number_float_t val, const string_t& /*s*/) override { SAFEEXEC(_tracker.HandleValue(Value(val), nullptr)); }
 
-        bool String(const char* str, rapidjson::SizeType length, bool /*copy*/)
-        {
-            SAFEEXEC(_tracker.HandleValue(Value(shared_string::make(std::string_view(str, length))), nullptr));
-        }
+        bool string(sax::string_t& val) override { SAFEEXEC(_tracker.HandleValue(Value(shared_string::make(val)), nullptr)); }
+        bool binary(sax::binary_t& /*val*/) override { throw std::logic_error("TODO"); }
 
-        bool Key(const char* str, rapidjson::SizeType length, bool /*copy*/)
-        {
-            SAFEEXEC(_tracker.ObjKey(Value(shared_string::make(std::string_view(str, length))), nullptr));
-        }
+        bool start_object(std::size_t /*elements*/) override { SAFEEXEC(_tracker.ObjStart(nullptr)); }
+        bool end_object() override { SAFEEXEC(_tracker.ObjEnd()); }
+        bool start_array(std::size_t /*elements*/) override { SAFEEXEC(_tracker.ListStart(nullptr)); }
+        bool end_array() override { SAFEEXEC(_tracker.ListEnd()); }
+        // called when an object key is parsed; value is passed and can be safely moved away
+        bool key(string_t& val) override { SAFEEXEC(_tracker.ObjKey(Value(shared_string::make(val)), nullptr)); }
 
-        bool StartObject() { SAFEEXEC(_tracker.ObjStart(nullptr)); }
-        bool EndObject(rapidjson::SizeType /*memberCount*/) { SAFEEXEC(_tracker.ObjEnd()); }
-        bool StartArray()
-        {
-            {
-                SAFEEXEC(_tracker.ListStart(nullptr));
-            }
-        }
-        bool EndArray(rapidjson::SizeType /*elementCount*/) { SAFEEXEC(_tracker.ListEnd()); }
+        // called when a parse error occurs; byte position, the last token, and an exception is passed
+        bool parse_error(std::size_t /*position*/, const std::string& /*last_token*/, const nlohmann::json::exception& ex) override { throw ex; }
 
         ReflectionServices::StateTraker<TStruct, void*> _tracker;
     };
 
-    template <typename T, typename = void> struct RapidJsonWriter
+    template <typename T, typename = void> struct Writer
     {
         static std::string Stringify(const T& obj)
         {
@@ -71,7 +70,7 @@ struct Json
         }
     };
 
-    template <typename T> struct RapidJsonWriter<T, std::enable_if_t<std::is_base_of<::ReflectionBase::ObjMarker, T>::value>>
+    template <typename T> struct Writer<T, std::enable_if_t<std::is_base_of<::ReflectionBase::ObjMarker, T>::value>>
     {
         static std::string Stringify(const T& obj)
         {
@@ -80,28 +79,25 @@ struct Json
         }
     };
 
-    template <typename T> struct RapidJsonWriter<T, std::enable_if_t<Value::Supported<T>::value>>
+    template <typename T> struct Writer<T, std::enable_if_t<Value::Supported<T>::value>>
     {
         static std::string Stringify(const T& obj) { return Value(obj).convert<shared_string>().str(); }
     };
 
-    template <typename T> struct RapidJsonWriter<T, std::enable_if_t<std::is_base_of<::ReflectionBase::InterfaceMarker, T>::value>>
+    template <typename T> struct Writer<T, std::enable_if_t<std::is_base_of<::ReflectionBase::InterfaceMarker, T>::value>>
     {
         static std::string Stringify(const T& obj) { return obj.Id(); }
     };
 
-    template <typename T>
-    struct RapidJsonWriter<std::unique_ptr<T>, std::enable_if_t<std::is_base_of<::ReflectionBase::InterfaceMarker, T>::value>>
+    template <typename T> struct Writer<std::unique_ptr<T>, std::enable_if_t<std::is_base_of<::ReflectionBase::InterfaceMarker, T>::value>>
     {
         static std::string Stringify(const std::unique_ptr<T>& obj) { return std::string(obj->GetObjectUuid().ToString()); }
     };
 
     template <typename TStruct> static void Load(TStruct& obj, const std::string& str)
     {
-        RapidJsonReader<TStruct> handler(&obj);
-        rapidjson::Reader        reader;
-        rapidjson::StringStream  ss(str.c_str());
-        reader.Parse(ss, handler);
+        Reader<TStruct> handler(&obj);
+        nlohmann::json::sax_parse(str, &handler);
     }
 
     template <typename TStruct> static std::unique_ptr<TStruct> Parse(const std::string& str)
@@ -111,9 +107,8 @@ struct Json
         return ptr;
     }
 
-    template <typename T> static std::string Stringify(const T& obj) { return RapidJsonWriter<T>::Stringify(obj); }
+    template <typename T> static std::string Stringify(const T& obj) { return Writer<T>::Stringify(obj); }
 };
-
 #endif
 
 #include "CommandLineArgsReader.h"
@@ -365,6 +360,13 @@ template <typename TStruct> struct CommandLineArgs
                     args.push_back(("<" + c->name.str() + ">"));
                 }
                 break;
+            case ::ReflectionBase::DataType::Value: [[__fallthrough]];
+            case ::ReflectionBase::DataType::Enum: [[__fallthrough]];
+            case ::ReflectionBase::DataType::List: [[__fallthrough]];
+
+            case ::ReflectionBase::DataType::Unknown: [[__fallthrough]];
+            case ::ReflectionBase::DataType::Invalid: [[__fallthrough]];
+
             default: throw std::logic_error("TODO");
             }
 
@@ -392,6 +394,13 @@ template <typename TStruct> struct CommandLineArgs
                 }
             }
             break;
+            case ::ReflectionBase::DataType::Value: [[__fallthrough]];
+            case ::ReflectionBase::DataType::Enum: [[__fallthrough]];
+            case ::ReflectionBase::DataType::List: [[__fallthrough]];
+
+            case ::ReflectionBase::DataType::Unknown: [[__fallthrough]];
+            case ::ReflectionBase::DataType::Invalid: [[__fallthrough]];
+
             default: throw std::logic_error("TODO");
             }
 

@@ -83,7 +83,7 @@ void CreateTemplateFromNode(tree<TemplateFragment>&          tmpl,
         data.attributes[attr->Name()] = Str::Value(Str::Convert(attr->Value()));
     }
 
-    data.rowstart = data.rowend = xml.GetLineNum();
+    data.rowstart = data.rowend = static_cast<size_t>(xml.GetLineNum());
     data.sourceFileName         = name;
 
     auto it = tmpl.addchild(parent, std::move(data));
@@ -224,7 +224,7 @@ static std::wstring AddCDataBegin(std::wstring const& tmplview)
         assert(match.size() == 2);
         sstr << match.prefix();
         sstr << L"]]>" << match[1].str() << L"<![CDATA[";
-        index = match.position(0) + match.length(0);
+        index = static_cast<size_t>(match.position(0u) + match.length(0u));
     }
     sstr << tmplview.substr(index);
     return sstr.str();
@@ -245,7 +245,7 @@ static std::wstring AddCDataEnd(std::wstring const& tmplview)
         assert(match.size() == 2);
         sstr << match.prefix();
         sstr << L"]]>" << match[1].str() << L"<![CDATA[";
-        index = match.position(0) + match.length(0);
+        index = static_cast<size_t>(match.position(0u) + match.length(0u));
     }
     sstr << tmplview.substr(index);
     return sstr.str();

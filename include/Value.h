@@ -27,8 +27,8 @@ struct Value
     } _type
         = Type::Empty;
 
-    uint64_t      _iVal = 0;
-    double        _dVal = 0;
+    int64_t       _iVal{0};
+    double        _dVal{0.0};
     shared_string _sVal;
 
     template <typename T> struct UnknownTraits
@@ -131,7 +131,7 @@ struct Value
     static double _strtodouble(shared_string str) { return atof(str.c_str()); }
 
     static shared_string _booltostr(bool val) { return (val ? shared_string::make("true") : shared_string::make("false")); }
-    static shared_string _inttostr(uint64_t val) { return shared_string::make(std::to_string(val)); }
+    static shared_string _inttostr(int64_t val) { return shared_string::make(std::to_string(val)); }
     static shared_string _doubletostr(double val) { return shared_string::make(std::to_string(val)); }
 
     static int _doubletoint(double val) { return (int)std::round(val); }
@@ -144,6 +144,8 @@ struct Value
         case Type::Integer: return Value(_iVal);
         case Type::Double: return Value(_doubletoint(_dVal));
         case Type::String: return Value(_strtoint(_sVal));
+        case Type::Unknown: [[__fallthrough]];
+
         default: throw UnsupportedCast();
         }
     }
@@ -156,6 +158,8 @@ struct Value
         case Type::Integer: return Value((int)round(_dVal));
         case Type::Double: return Value(_dVal);
         case Type::String: return Value(_strtodouble(_sVal));
+        case Type::Unknown: [[__fallthrough]];
+
         default: throw UnsupportedCast();
         }
     }
@@ -168,6 +172,8 @@ struct Value
         case Type::Integer: return Value(_inttostr(_iVal));
         case Type::Double: return Value(_doubletostr(_dVal));
         case Type::String: return Value(_sVal);
+        case Type::Unknown: [[__fallthrough]];
+
         default: throw UnsupportedCast();
         }
     }
@@ -180,6 +186,8 @@ struct Value
         case Type::Integer: return cast_integer();
         case Type::Double: return cast_double();
         case Type::String: return cast_string();
+        case Type::Unknown: [[__fallthrough]];
+
         default: throw UnsupportedCast();
         }
     }

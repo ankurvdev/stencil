@@ -27,7 +27,7 @@ struct UuidStr
 
     constexpr UuidStr(const std::string_view strin)
     {
-        for (int i = 0; i < Size; i++)
+        for (size_t i = 0; i < Size; i++)
         {
             str[i]  = (char)strin[i];
             wstr[i] = (wchar_t)strin[i];
@@ -35,7 +35,7 @@ struct UuidStr
     }
     constexpr UuidStr(const std::wstring_view strin)
     {
-        for (int i = 0; i < Size; i++)
+        for (size_t i = 0; i < Size; i++)
         {
             str[i]  = (char)strin[i];
             wstr[i] = (wchar_t)strin[i];
@@ -166,8 +166,8 @@ inline UuidStr constexpr UuidToString(Uuid const& uuid)
     struct tohex
     {
         static constexpr char convert(uint8_t c) { return c < 10 ? ('0' + c) : ('a' + (c - 10)); }
-        static constexpr char l(uint8_t c) { return convert(c & 0xf); }
-        static constexpr char h(uint8_t c) { return convert(c >> 4); }
+        static constexpr char l(uint8_t c) { return convert(c & 0xfu); }
+        static constexpr char h(uint8_t c) { return convert(static_cast<uint8_t>(c >> 4u)); }
     };
 
     char str[] = {'{',
@@ -222,8 +222,8 @@ inline constexpr Uuid::Uuid(UuidStr const& str)
 {
     struct tobyte
     {
-        static constexpr uint8_t convert(char c) { return (c < 'a' ? (c - '0') : (c - 'a' + 10)) & 0xf; }
-        static constexpr uint8_t join(char h, char l) { return convert(h) << 4 | convert(l); }
+        static constexpr uint8_t convert(char c) { return (c < 'a' ? (c - '0') : (c - 'a' + 10)) & 0xfu; }
+        static constexpr uint8_t join(char h, char l) { return static_cast<uint8_t>(convert(h) << 4u | convert(l)); }
     };
 
     data[0x0] = tobyte::join(str.str[1], str.str[2]);

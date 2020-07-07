@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.12)
 project(stencil VERSION 0.0.1)
 include(CMakePackageConfigHelpers)
+include(BuildEnv.cmake)
 option(BUILD_TEST "Build Test" ON)
 option(STENCIL_INSTALL_BUILDTOOLS "Install Extra Build Tools with install" ON)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 set(LexYacc_DIR          ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc)
 set(EmbedResource_DIR    ${CMAKE_CURRENT_LIST_DIR}/external/embedresource)
@@ -27,6 +28,8 @@ target_add_lexyacc(libstencil src/TypeDefinition.ly)
 
 target_include_directories(libstencil PUBLIC src external/tinyxml2)
 target_sources(libstencil PRIVATE external/tinyxml2/tinyxml2.cpp)
+# wd4365 signed unsigned mismatch
+set_source_files_properties(external/tinyxml2/tinyxml2.cpp PROPERTIES COMPILE_FLAGS "-wd4365")
 add_executable(stencil src/main.cpp)
 
 file(GLOB public_headers ${CMAKE_CURRENT_LIST_DIR}/include/*)

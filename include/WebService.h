@@ -97,7 +97,7 @@ struct WebServiceImpl
     {
     };
 
-    ~WebServiceImpl()
+    virtual ~WebServiceImpl()
     {
         if (_server.is_running())
         {

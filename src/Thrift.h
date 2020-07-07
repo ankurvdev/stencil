@@ -165,9 +165,8 @@ inline std::shared_ptr<const IDLGenerics::IFieldType> CreateArrayType(Context& c
 {
     auto&                                          container = context.program.Lookup<IDL::Container>(Str::Create(L"array"));
     IDL::ContainerFieldType::ContainerFieldTypeMap containermap;
-    size_t                                         index = 0;
-    containermap[Str::Create(L"type")]                   = field.value();
-    containermap[Str::Create(L"size")]                   = std::make_shared<StrValueType>(std::to_wstring(count));
+    containermap.insert(std::make_pair(Str::Create(L"type"), field.value()));
+    containermap.insert(std::make_pair(Str::Create(L"size"), std::make_shared<StrValueType>(std::to_wstring(count))));
 
     auto existing = context.program.TryGetFieldTypeName(IDL::ContainerFieldType::GenerateFieldName(container, containermap));
     if (existing.has_value())

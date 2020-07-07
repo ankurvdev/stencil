@@ -32,7 +32,7 @@ function(build_flex)
     execute_process(COMMAND ./autogen.sh WORKING_DIRECTORY ${srcdir}/flex-master)
     execute_process(COMMAND ./configure --prefix=${builddir} WORKING_DIRECTORY ${srcdir}/flex-master)
     execute_process(COMMAND make install WORKING_DIRECTORY ${srcdir}/flex-master)
-    
+
     find_program(FLEX_EXECUTABLE flex HINTS ${builddir})
     if (NOT EXISTS ${FLEX_EXECUTABLE})
         message(FATAL_ERROR "Cannot build flex in ${builddir}")
@@ -57,8 +57,8 @@ function(find_bison)
     if (EXISTS ${BISON_EXECUTABLE})
         return()
     endif()
-      if (DEFINED WINFLEXBISON_DIR) 
-        if ((EXISTS ${WINFLEXBISON_DIR}) and (EXISTS ${WINFLEXBISON_DIR}/win_bison.exe))
+      if (DEFINED WINFLEXBISON_DIR)
+        if ((EXISTS ${WINFLEXBISON_DIR}) AND (EXISTS ${WINFLEXBISON_DIR}/win_bison.exe))
             set(BISON_EXECUTABLE ${WINFLEXBISON_DIR}/win_bison.exe CACHE PATH  "Bison executable" FORCE)
             return()
         endif()
@@ -77,7 +77,7 @@ function(find_bison)
             return()
         endif()
     endif()
-    
+
     if (WIN32)
         download_winflexbison()
     else()
@@ -90,8 +90,8 @@ function(find_flex)
     if (EXISTS ${FLEX_EXECUTABLE})
         return()
     endif()
-    if (DEFINED WINFLEXBISON_DIR) 
-        if ((EXISTS ${WINFLEXBISON_DIR}) and (EXISTS ${WINFLEXBISON_DIR}/win_flex.exe))
+    if (DEFINED WINFLEXBISON_DIR)
+        if ((EXISTS ${WINFLEXBISON_DIR}) AND (EXISTS ${WINFLEXBISON_DIR}/win_flex.exe))
             set(FLEX_EXECUTABLE ${WINFLEXBISON_DIR}/win_flex.exe CACHE PATH  "Flex executable" FORCE)
             return()
         endif()
@@ -109,7 +109,7 @@ function(find_flex)
             return()
         endif()
     endif()
-    
+
     if (WIN32)
         download_winflexbison()
     else()
@@ -153,7 +153,7 @@ function(target_add_lexyacc target lyfile)
             set(FLEX_INCLUDE_DIR ${LexYacc_DIR} CACHE PATH "Flex Include" FORCE)
         endif()
     endif()
-    
+
     cmake_parse_arguments(lexyacc "" "NAME" "" ${ARGN})
 
     if (NOT lexyacc_NAME)
@@ -164,7 +164,7 @@ function(target_add_lexyacc target lyfile)
 
     set(lytgt ${target}_lexyacc_${lexyacc_NAME})
     set(outdir ${CMAKE_CURRENT_BINARY_DIR}/${lytgt})
-    
+
     file(MAKE_DIRECTORY ${outdir})
     set(yh ${outdir}/${lexyacc_NAME}.yacc.h)
     set(yc ${outdir}/${lexyacc_NAME}.yacc.cpp)
@@ -174,15 +174,15 @@ function(target_add_lexyacc target lyfile)
     set(hh ${outdir}/${lexyacc_NAME}.ly.h)
 
     set(outputs ${yy} ${yh} ${yc} ${ll} ${lc} ${hh})
-    if (TARGET lexyacc)  
+    if (TARGET lexyacc)
         add_custom_command(
-            OUTPUT  ${yy} ${ll} 
+            OUTPUT  ${yy} ${ll}
             COMMAND lexyacc ${lyfile} --outdir ${outdir} --prefix ${lexyacc_NAME}
             DEPENDS lexyacc ${lyfile}
         )
     else()
         add_custom_command(
-            OUTPUT  ${yy} ${ll} 
+            OUTPUT  ${yy} ${ll}
             COMMAND ${LEXYACC_EXECUTABLE} ${lyfile} --outdir ${outdir} --prefix ${lexyacc_NAME}
             DEPENDS ${LEXYACC_EXECUTABLE} ${lyfile}
         )
@@ -207,10 +207,13 @@ function(target_add_lexyacc target lyfile)
     else()
         message(STATUS "Flex include dir :: ${FLEX_INCLUDE_DIR} :: ${FLEX_INCLUDE_DIRS}")
         target_include_directories(${target} PRIVATE ${FLEX_INCLUDE_DIR})
-    endif() 
+    endif()
 
     if (MSVC)
-        set_source_files_properties(${lc} PROPERTIES COMPILE_FLAGS "-wd4005 -wd4065")
-        set_source_files_properties(${yc} PROPERTIES COMPILE_FLAGS "-wd4065 -wd4127")
+        # 4244 return type conversion possible loss of data
+        # 4365 signed unsigned mismatch
+        # 4626 assignment operator implicitly defined as deleted
+        set_source_files_properties(${lc} PROPERTIES COMPILE_FLAGS "-wd4005 -wd4065 -wd4244 -wd4365 -wd4626")
+        set_source_files_properties(${yc} PROPERTIES COMPILE_FLAGS "-wd4065 -wd4127 -wd4244 -wd4365 -wd4626")
     endif()
 endfunction()

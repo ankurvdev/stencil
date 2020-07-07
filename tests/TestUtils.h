@@ -1,6 +1,10 @@
 #pragma once
 #include <EmbeddedResource.h>
+
+#pragma warning(push, 0)
 #include <catch2/catch.hpp>
+#pragma warning(pop)
+
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -33,9 +37,10 @@ inline void CheckOutputAgainstResource(std::vector<std::string> const& lines, st
     size_t row = 0;
     for (auto& l : lines)
     {
-        REQUIRE_FALSE((its + l.length()) == expectedoutput.end());
-        std::string expectedline(its, its + l.length());
-        its += l.length();
+        auto ite = its + static_cast<int>(l.length());
+        REQUIRE_FALSE(ite == expectedoutput.end());
+        std::string expectedline(its, ite);
+        its = ite;
         while (its != expectedoutput.end() && (*its == '\n' || *its == '\r')) ++its;
         ++row;
     }

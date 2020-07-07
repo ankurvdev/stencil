@@ -1,5 +1,8 @@
 #include "Test_DataHandlerJson.h"
+
+#pragma warning(push, 1)
 #include <catch2/catch.hpp>
+#pragma warning(pop)
 
 TEST_CASE("CodeGen::JsonDataHandler", "[DataHandlerJson]")
 {

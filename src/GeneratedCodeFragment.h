@@ -6,13 +6,13 @@
 #include <regex>
 #include <string>
 #include <vector>
-
-struct Content
-{
-    tree<TemplateFragment>::iterator templ;
-    Binding::IBindable const&        dataContext;
-    std::wstring                     code;
-};
+//
+//struct Content
+//{
+//    tree<TemplateFragment>::iterator templ;
+//    Binding::IBindable const&        dataContext;
+//    std::wstring                     code;
+//};
 
 struct GeneratedCode
 {

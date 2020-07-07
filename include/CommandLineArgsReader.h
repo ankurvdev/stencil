@@ -39,6 +39,8 @@ struct CommandLineArgsReader
 
     struct Handler
     {
+        virtual ~Handler() = default;
+
         virtual void                        HandleValue(bool value)             = 0;
         virtual void                        HandleValue(std::string_view const& str) = 0;
         virtual void                        ListStart()                         = 0;

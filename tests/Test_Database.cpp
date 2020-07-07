@@ -1,5 +1,9 @@
 #include "Test_Database.h"
+
+#pragma warning(push, 1)
 #include <catch2/catch.hpp>
+#pragma warning(pop)
+
 #include <iterator>
 using namespace std::string_literals;
 
@@ -80,16 +84,16 @@ TEST_CASE("CodeGen::Database2::SaveAndLoad")
         {
             // Create More objects
             auto lock = database.LockForEdit();
-            for (size_t i = 0; i < std::size(data); i++)
+            for (auto const& d : data)
             {
-                auto [id1, obj1] = database.Create<UserData::Identity::Data>(lock, data[i].name, data[i].uri, L"", L"", L"");
-                auto [id2, obj2] = database.Create<UserData::RemoteHost::Data>(lock, data[i].name, data[i].uri, obj1.id);
+                auto [id1, obj1] = database.Create<UserData::Identity::Data>(lock, d.name, d.uri, L"", L"", L"");
+                auto [id2, obj2] = database.Create<UserData::RemoteHost::Data>(lock, d.name, d.uri, obj1.id);
                 REQUIRE(id1.Valid());
                 REQUIRE(id2.Valid());
                 auto name = obj2.name().Get(lock, database);
                 auto uri  = obj2.uri().Get(lock, database);
-                REQUIRE(name == data[i].name);
-                REQUIRE(uri == data[i].uri);
+                REQUIRE(name == d.name);
+                REQUIRE(uri == d.uri);
             }
         }
         {

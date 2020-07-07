@@ -1,10 +1,15 @@
 #include "WebService.h"
+
+#pragma warning(push, 0)
 #include <catch2/catch.hpp>
+#pragma warning(pop)
 
 struct TestInterface : public ReflectionBase::Interface<TestInterface>
 {
     public:
     TestInterface() : ReflectionBase::Interface<TestInterface>(this) {}
+    virtual ~TestInterface() = default;
+
     virtual uint64_t                      AddNumber(uint64_t num1, uint64_t num2) = 0;
     static std::unique_ptr<TestInterface> Create(uint64_t randomInteger, shared_string randomString);
 };
@@ -12,6 +17,8 @@ struct TestInterface : public ReflectionBase::Interface<TestInterface>
 struct TestInterfaceFactory : public ReflectionBase::InterfaceFactory<TestInterface>
 {
     public:
+    virtual ~TestInterfaceFactory() = default;
+
     virtual std::unique_ptr<TestInterface> Activate(uint64_t randomInteger, shared_string randomString) = 0;
 };
 

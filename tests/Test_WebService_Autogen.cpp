@@ -2,8 +2,8 @@
 #include <SimpleWebService.pidl.h>
 #include <ComplexWebService.pidl.h>
 
+#pragma warning(push, 1)
 #include <catch2/catch.hpp>
-#pragma warning(push, 0)
 #include <httplib.h>
 #pragma warning(pop)
 

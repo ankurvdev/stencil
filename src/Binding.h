@@ -12,6 +12,39 @@
 #include <unordered_map>
 #include <vector>
 
+#pragma warning(push)
+#pragma warning(disable : 4371)    // Object layout under /vd2 will change due to virtual base
+
+#define DELETE_MOVE_ASSIGNMENT(name)        \
+    name(name const&) = default;            \
+    name(name&&)      = default;            \
+    name& operator=(name const&) = default; \
+    name& operator=(name&&) = delete
+
+#define DELETE_MOVE_AND_COPY_ASSIGNMENT(name) \
+    name(name const&) = default;              \
+    name(name&&)      = default;              \
+    name& operator=(name const&) = delete;    \
+    name& operator=(name&&) = delete
+
+#define DELETE_COPY_AND_MOVE(name)         \
+    name(name const&) = delete;            \
+    name(name&&)      = delete;            \
+    name& operator=(name const&) = delete; \
+    name& operator=(name&&) = delete
+
+#define DELETE_COPY_DEFAULT_MOVE(name)     \
+    name(name const&) = delete;            \
+    name(name&&)      = default;           \
+    name& operator=(name const&) = delete; \
+    name& operator=(name&&) = default
+
+#define ONLY_MOVE_CONSTRUCT(name)          \
+    name(name const&) = delete;            \
+    name(name&&)      = default;           \
+    name& operator=(name const&) = delete; \
+    name& operator=(name&&) = delete
+
 #if !defined TODO
 #define TODO(...) throw std::logic_error("Not Implemented")
 #endif
@@ -44,7 +77,7 @@ template <> struct StrOps<std::wstring>
     {
         Type out;
         out.resize(in.size());
-        std::transform(in.begin(), in.end(), out.begin(), [](char a) -> wchar_t { return a; });
+        std::transform(in.begin(), in.end(), out.begin(), [](auto const a) { return static_cast<wchar_t>(a); });
         return out;
     }
 
@@ -162,31 +195,28 @@ struct Expression
     void AddString(Str::Type&& val)
     {
         assert(!Str::IsEmpty(val));
-        _pieces.emplace_back(Piece{Piece::PieceType::String, nullptr, std::move(val)});
+        _pieces.emplace_back(std::move(val));
     }
 
     void AddExpressionString(Str::View const& str, wchar_t sep)
     {
-        Piece piece;
-        piece.piecetype = Piece::PieceType::Expr;
-        piece.expr      = std::make_unique<BindingExpr>();
-        size_t start    = 0;
-        auto   next     = Str::Find(str, sep);
+        auto   expr  = std::make_unique<BindingExpr>();
+        size_t start = 0;
+        auto   next  = Str::Find(str, sep);
         while (next != Str::InvalidIndex)
         {
-            piece.expr->binding.push_back(Str::Create(Str::SubString(str, start, next - start)));
+            expr->binding.push_back(Str::Create(Str::SubString(str, start, next - start)));
             start = next + 1;
             next  = Str::Find(str, sep, start);
         }
-        piece.expr->binding.push_back(Str::Create(Str::SubString(str, start)));
-        _pieces.push_back(std::move(piece));
+        expr->binding.push_back(Str::Create(Str::SubString(str, start)));
+        _pieces.emplace_back(std::move(expr));
     }
 
     void AddBindingExpression(std::unique_ptr<BindingExpr>&& expr)
     {
         assert(expr->binding.size() > 0);
-        Piece piece{Piece::PieceType::Expr, std::move(expr), {}};
-        _pieces.push_back(std::move(piece));
+        _pieces.emplace_back(std::move(expr));
     }
 
     Expression Clone() const
@@ -202,6 +232,11 @@ struct Expression
 
     struct Piece
     {
+        Piece(std::unique_ptr<BindingExpr>&& exprIn) : piecetype(PieceType::Expr), expr(std::move(exprIn)) {}
+        Piece(Str::Type&& textIn) : piecetype(PieceType::String), text(std::move(textIn)) {}
+        ~Piece()            = default;
+        ONLY_MOVE_CONSTRUCT(Piece);
+
         enum class PieceType
         {
             Expr,
@@ -219,18 +254,16 @@ struct Expression
 
         Piece clone() const
         {
-
-            std::vector<Str::Type> bindings;
             if (expr != nullptr)
             {
+                std::vector<Str::Type> bindings;
                 for (auto& s : expr->binding)
                 {
                     bindings.push_back(Str::Copy(s));
                 }
+                return Piece(std::unique_ptr<BindingExpr>(new BindingExpr{std::move(bindings)}));
             }
-            return Piece{piecetype,
-                         (expr == nullptr ? nullptr : std::unique_ptr<BindingExpr>(new BindingExpr{std::move(bindings)})),
-                         Str::Copy(text)};
+            return Piece(Str::Copy(text));
         }
     };
 
@@ -306,6 +339,8 @@ struct Expression
 // Bindable Dictionary Object with Name and Bindable Named Values.
 struct IBindable
 {
+    virtual ~IBindable() = default;
+
     // TODO : Can this be Str::View ??
     virtual Str::Type                     ObjectTypeName() const                                                 = 0;
     virtual Str::Type                     ObjectId() const                                                       = 0;
@@ -325,6 +360,7 @@ struct IBindableComponent
 
 struct IValueArray
 {
+    virtual ~IValueArray() = default;
     struct Iterator
     {
         Iterator() {}
@@ -565,6 +601,7 @@ struct BindingContext
             _stack.push_back(std::cref(ptr));
         }
         ~Scope() { _stack.pop_back(); }
+        DELETE_COPY_AND_MOVE(Scope);
         std::vector<std::reference_wrapper<const IBindable>>& _stack;
     };
 
@@ -619,6 +656,7 @@ struct BindableBase : public IBindable, public ValueT<Type::Object>
             {
                 Expression _expr;
                 Value(Expression&& expr) : _expr(std::move(expr)) {}
+                DELETE_COPY_AND_MOVE(Value);
                 Expression const& GetExpr() const override { return _expr; }
             };
 
@@ -688,13 +726,13 @@ struct BindableBase : public IBindable, public ValueT<Type::Object>
         }
 
         TranformationBindableComponent(std::shared_ptr<const BindableBase> base, const TObject& obj, TFunc func) :
-            _base(base), _obj(obj), _func(func)
+            _base(base), _func(func), _obj(obj)
         {
         }
 
         std::shared_ptr<const BindableBase> _base;
+        TFunc const                         _func;
         const TObject&                      _obj;
-        const TFunc                         _func;
     };
 
     template <typename TObject, typename TFunc>
@@ -774,6 +812,8 @@ template <typename TOwner, typename TObject> struct BindableObjectArray : public
                                public std::enable_shared_from_this<BindableComponent>
 
     {
+        DELETE_MOVE_AND_COPY_ASSIGNMENT(BindableComponent);
+
         BindableComponent(TOwner& obj) : _obj(obj) {}
         virtual size_t    GetKeyCount() const override { return 1; }
         virtual Str::Type GetKeyAt([[maybe_unused]] size_t index) const override
@@ -814,8 +854,9 @@ struct GetterT<TObject, IBindable const&>
     virtual IBindable const& GetBindable() const override { return (_ptr.*_func)(); }
 
     virtual std::shared_ptr<const IValue> Get() const override { return this->shared_from_this(); }
-    TFunc                                 _func;
-    const TObject&                        _ptr;
+
+    const TObject& _ptr;
+    TFunc          _func;
 };
 
 template <typename TObject> struct GetterT<TObject, Str::Type> : public IValue::Getter
@@ -846,8 +887,8 @@ struct GetterT<TObject, Binding::Expression const&>
     virtual Binding::Expression const&    GetExpr() const override { return (_ptr.*_func)(); }
     virtual std::shared_ptr<const IValue> Get() const override { return this->shared_from_this(); }
 
-    TFunc          _func;
     const TObject& _ptr;
+    TFunc          _func;
 };
 
 template <typename TObject> struct GetterT<TObject, Binding::Expression> : public ValueT<Type::Expr>, public IValue::Getter
@@ -973,3 +1014,4 @@ template <typename TOwner, typename TParent = TOwner> struct BindableDictionaryT
 };
 
 }    // namespace Binding
+#pragma warning(pop)

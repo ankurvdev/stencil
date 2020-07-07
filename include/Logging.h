@@ -1,9 +1,9 @@
 #pragma once
 #include <shared_string.h>
 
+#include <array>
 #include <cstring>
 #include <iostream>
-#include <array>
 
 struct CorrelationVector
 {
@@ -28,8 +28,8 @@ struct CorrelationVector
     static CorrelationVector Empty() { return CorrelationVector(); }
 
     static CorrelationVector Create() { return {}; }
-    CorrelationVector& Increment() { return *this; }
-    CorrelationVector  Extend() const { return CorrelationVector::Create(); }
+    CorrelationVector&       Increment() { return *this; }
+    CorrelationVector        Extend() const { return CorrelationVector::Create(); }
 
     operator shared_wstring() const { return shared_wstring(std::wstring(&_cv.Vector[0], &_cv.Vector[StringSize])); }
 
@@ -208,8 +208,7 @@ template <> struct PrettyPrinter<shared_wstring>
 {
     static void Print(PrettyPrintStream& buffer, const char* context, const shared_wstring& obj)
     {
-        throw std::logic_error("Not Implemented");
-        // buffer << context << " = " << (obj.empty() ? L"(empty)" : obj.data());
+        PrettyPrinter<shared_string>::Print(buffer, context, shared_wstring_to_string(obj));
     }
 };
 

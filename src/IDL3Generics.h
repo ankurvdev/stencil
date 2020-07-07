@@ -9,6 +9,12 @@
 #include <string>
 #include <type_traits>
 #include <vector>
+
+#pragma warning(push)
+#pragma warning(disable : 4435)    // Object layout under /vd2 will change due to virtual base
+#pragma warning(disable : 4355)    // this used in base member initializer list
+// TODO remove this disable
+
 #define WIDENSTR(x) WIDENSTR_(x)
 #define WIDENSTR_(x) L##x
 
@@ -82,8 +88,8 @@ template <typename TOwner, typename TObject> struct NamedIndexT
 {
     struct Owner : public Binding::BindableObjectArray<TOwner, TObject>
     {
-
         Owner(TOwner& owner) : Binding::BindableObjectArray<TOwner, TObject>(owner), _owner(owner) {}
+        DELETE_MOVE_AND_COPY_ASSIGNMENT(Owner);
 
         template <typename... TArgs> std::shared_ptr<TObject>& CreateNamedObject(TArgs&&... args)
         {
@@ -132,15 +138,17 @@ template <typename TOwner, typename TObject> struct NamedIndexT
         using ParentType = TOwner;
 
         NamedObject(std::shared_ptr<TOwner> owner, TObject& object, Str::Type&& name) :
-            Binding::BindableParent<TOwner, TObject>(object),
             Binding::BindableT<TObject, NamedObject>(object, Str::Create(L"Name"), &NamedObject::Name),
+            Binding::BindableParent<TOwner, TObject>(object),
             _name(std::move(name)),
-            _owner(owner),
-            _object(object)
+            _object(object),
+            _owner(owner)
         {
             static_assert(std::is_base_of_v<NamedObject, TObject>, "TObject should have NamedObject as a base class");
             this->SetName(Str::Copy(_name));
         }
+
+        DELETE_MOVE_AND_COPY_ASSIGNMENT(NamedObject);
 
         TOwner&   Parent() const { return *_owner; }
         Str::Type Name() const { return Str::Copy(_name); }
@@ -194,6 +202,7 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
     struct Owner : public NamedIndexT<TOwner, TObject>::Owner, public virtual FieldTypeStore
     {
         Owner(TOwner& owner) : NamedIndexT<TOwner, TObject>::Owner(owner) {}
+        DELETE_MOVE_AND_COPY_ASSIGNMENT(Owner);
 
         template <typename... TArgs> auto CreateFieldTypeObject(TArgs&&... args)
         {
@@ -237,6 +246,8 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
                 AddBaseObject(basetype.value());
             }
         }
+        DELETE_MOVE_AND_COPY_ASSIGNMENT(FieldType);
+
         //  virtual Str::Type GetFieldName() const override;
         virtual void AddAttributes(std::shared_ptr<Binding::AttributeMap> map) {}
         void         SetFieldId(size_t id) { _fieldId = id; }
@@ -293,6 +304,8 @@ template <typename TOwner, typename TObject> struct StorageIndexT
     {
         Owner(TOwner& owner) : FieldTypeIndex<TOwner, TObject>::Owner(owner) {}
 
+        DELETE_MOVE_AND_COPY_ASSIGNMENT(Owner);
+
         template <typename... TArgs> auto CreateStorageObject(TArgs&&... args)
         {
             static_assert(std::is_base_of<StorageIndexT<TOwner, TObject>::StorageType, TObject>::value);
@@ -310,11 +323,13 @@ template <typename TOwner, typename TObject> struct StorageIndexT
         OBJECTNAME(StructAttributeFieldValue);
 
         StructAttributeFieldValue(std::shared_ptr<FieldAttribute> owner, Str::Type&& name, Binding::Expression&& value) :
-            _value(std::move(value)),
+            Binding::BindableT<StructAttributeFieldValue>(*this, Str::Create(L"Value"), &StructAttributeFieldValue::Value),
             NamedIndexT<FieldAttribute, StructAttributeFieldValue>::NamedObject(owner, *this, std::move(name)),
-            Binding::BindableT<StructAttributeFieldValue>(*this, Str::Create(L"Value"), &StructAttributeFieldValue::Value)
+            _value(std::move(value))
         {
         }
+
+        ONLY_MOVE_CONSTRUCT(StructAttributeFieldValue);
 
         auto const& Value() const { return _value; }
 
@@ -328,9 +343,11 @@ template <typename TOwner, typename TObject> struct StorageIndexT
     {
         OBJECTNAME(FieldAttribute);
 
+        DELETE_MOVE_AND_COPY_ASSIGNMENT(FieldAttribute);
+
         FieldAttribute(std::shared_ptr<TObject> owner, Str::Type&& name) :
-            NamedIndexT<FieldAttribute, StructAttributeFieldValue>::Owner(*this),
-            NamedIndexT<TObject, FieldAttribute>::NamedObject(owner, *this, std::move(name))
+            NamedIndexT<TObject, FieldAttribute>::NamedObject(owner, *this, std::move(name)),
+            NamedIndexT<FieldAttribute, StructAttributeFieldValue>::Owner(*this)
         {
         }
 
@@ -347,6 +364,7 @@ template <typename TOwner, typename TObject> struct StorageIndexT
                    public NamedIndexT<TObject, Field>::NamedObject
     {
         OBJECTNAME(Field);
+        DELETE_MOVE_AND_COPY_ASSIGNMENT(Field);
 
         Field(std::shared_ptr<TObject>               owner,
               Str::Type&&                            name,
@@ -365,8 +383,8 @@ template <typename TOwner, typename TObject> struct StorageIndexT
             IDLGenerics::AnnotatedObjectT<Field>(map),
             NamedIndexT<TObject, Field>::NamedObject(owner, *this, std::move(name)),
             _defaultValue(defaultValue),
-            _map(map),
-            _fieldType(fieldType)
+            _fieldType(fieldType),
+            _map(map)
         {
         }
 
@@ -416,14 +434,16 @@ template <typename TOwner, typename TObject> struct StorageIndexT
                     Str::Type&&                                      name,
                     std::optional<std::shared_ptr<const IFieldType>> basetype,
                     std::shared_ptr<Binding::AttributeMap>           map) :
-            _owner(owner),
-            _obj(obj),
             FieldTypeIndex<TOwner, TObject>::FieldType(owner, obj, std::move(name), basetype, map),
             NamedIndexT<TObject, FieldAttribute>::Owner(obj),
-            NamedIndexT<TObject, Field>::Owner(obj)
+            NamedIndexT<TObject, Field>::Owner(obj),
+            _obj(obj),
+            _owner(owner)
         {
             static_assert(std::is_base_of_v<StorageType, TObject>, "StorageType should be a base of TObject");
         }
+
+        DELETE_MOVE_AND_COPY_ASSIGNMENT(StorageType);
 
         void CreateField(std::shared_ptr<const IDLGenerics::IFieldType> fieldType,
                          Str::Type&&                                    name,
@@ -454,3 +474,5 @@ template <typename TOwner, typename TObject> struct StorageIndexT
 };
 
 }    // namespace IDLGenerics
+
+#pragma warning(pop)

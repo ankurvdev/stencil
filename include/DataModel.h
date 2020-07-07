@@ -1,9 +1,9 @@
 #pragma once
 
 #include <Database2.h>
+#include <Logging.h>
 #include <Value.h>
 #include <uuidobject.h>
-#include <Logging.h>
 
 #include <tree.h>
 
@@ -101,6 +101,8 @@ template <DataType TDataType> struct IDataTypeHandler;
 
 template <> struct IDataTypeHandler<DataType::Unknown>
 {
+    virtual ~IDataTypeHandler<DataType::Unknown>()                          = default;
+
     virtual shared_string Name() const                                      = 0;
     virtual shared_string Description() const                               = 0;
     virtual shared_string AttributeValue(const std::string_view& key) const = 0;
@@ -129,6 +131,7 @@ template <> struct IDataTypeHandler<DataType::Unknown>
 
 template <> struct IDataTypeHandler<DataType::Value> : public IDataTypeHandler<DataType::Unknown>
 {
+    virtual ~IDataTypeHandler<DataType::Value>() = default;
     DataType                                 GetDataType() const override { return DataType::Value; }
     const IDataTypeHandler<DataType::Value>* ValueHandler() const override { return this; }
 
@@ -147,6 +150,7 @@ template <> struct IDataTypeHandler<DataType::Value> : public IDataTypeHandler<D
 
 template <> struct IDataTypeHandler<DataType::List> : public IDataTypeHandler<DataType::Unknown>
 {
+    virtual ~IDataTypeHandler<DataType::List>() = default;
     DataType                                GetDataType() const override { return DataType::List; }
     const IDataTypeHandler<DataType::List>* ListHandler() const override { return this; }
 
@@ -175,6 +179,7 @@ template <> struct IDataTypeHandler<DataType::List> : public IDataTypeHandler<Da
 
 template <> struct IDataTypeHandler<DataType::Object> : IDataTypeHandler<DataType::Unknown>
 {
+    virtual ~IDataTypeHandler<DataType::Object>() = default;
     DataType                                  GetDataType() const override { return DataType::Object; }
     const IDataTypeHandler<DataType::Object>* ObjectHandler() const override { return this; }
 
@@ -216,6 +221,7 @@ template <> struct IDataTypeHandler<DataType::Object> : IDataTypeHandler<DataTyp
 
 template <> struct IDataTypeHandler<DataType::Enum> : IDataTypeHandler<DataType::Unknown>
 {
+    virtual ~IDataTypeHandler<DataType::Enum>() = default;
     DataType                                GetDataType() const override { return DataType::Enum; }
     const IDataTypeHandler<DataType::Enum>* EnumHandler() const override { return this; }
 
@@ -239,6 +245,7 @@ template <> struct IDataTypeHandler<DataType::Enum> : IDataTypeHandler<DataType:
 
 template <> struct IDataTypeHandler<DataType::Union> : IDataTypeHandler<DataType::Unknown>
 {
+    virtual ~IDataTypeHandler<DataType::Union>() = default;
     DataType                                 GetDataType() const override { return DataType::Union; }
     const IDataTypeHandler<DataType::Union>* UnionHandler() const override { return this; }
 
@@ -335,6 +342,7 @@ template <typename TInterface> struct InterfaceActivator
 
 struct IInterfaceApiHandler
 {
+    virtual ~IInterfaceApiHandler()                                              = default;
     virtual shared_string                              Name()                    = 0;
     virtual const IDataTypeHandler<DataType::Unknown>* ReturnDataHandler() const = 0;
     virtual const IDataTypeHandler<DataType::Unknown>* ArgsHandler() const       = 0;
@@ -343,6 +351,7 @@ struct IInterfaceApiHandler
 
 struct IInterfaceHandler
 {
+    virtual ~IInterfaceHandler()                                    = default;
     virtual shared_string               Name()                      = 0;
     virtual const IInterfaceApiHandler* FindApi(Value& value) const = 0;
 };
