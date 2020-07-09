@@ -215,8 +215,9 @@ struct Data : public ReflectionBase::ObjMarker
 struct zzInterface_Namezz : public ReflectionBase::Interface<zzInterface_Namezz>
 {
     public:
-    zzInterface_Namezz() : ReflectionBase::Interface<zzInterface_Namezz>(this) {}
+    zzInterface_Namezz()          = default;
     virtual ~zzInterface_Namezz() = default;
+    DELETE_COPY_AND_MOVE(zzInterface_Namezz);
     //<Function>
     virtual zzReturnType_NativeTypezz zzFunction_Namezz(
         //<Args_Field Join=','>
@@ -396,7 +397,7 @@ template <> struct ReflectionServices::EnumTraits<zzUnion_Program_Namezz::zzUnio
 
 template <> struct ValueTraits<zzUnion_Program_Namezz::zzUnion_Namezz::UnionType>
 {
-    static constexpr auto ValueType() { return Value::Type::Integer; }
+    static constexpr auto ValueType() { return Value::Type::Unsigned; }
     static void           Get(Value& /*obj*/) { throw 1; }
     static void           Get(const Value& /*obj*/) { throw 1; }
     static void           Check() { throw 1; }

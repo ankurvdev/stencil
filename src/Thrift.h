@@ -55,6 +55,9 @@ class Context
 {
     public:
     Context(IDL::Program& p) : program(p) {}
+
+    ONLY_MOVE_CONSTRUCT(Context);
+
     struct ExceptionInfo
     {
         int         line;

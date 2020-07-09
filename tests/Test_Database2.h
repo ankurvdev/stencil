@@ -101,7 +101,8 @@ struct WithEncryptedSharedString : Database::DatabaseObjRef<DataStore, WithEncry
 #endif
 struct DataStore : public Database2::DatabaseT<DataStore>
 {
-    template <typename... TArgs> DataStore(TArgs&&... args) : Database2::DatabaseT<DataStore>(this, std::forward<TArgs>(args)...) {}
+    template <typename... TArgs> DataStore(TArgs&&... args) : Database2::DatabaseT<DataStore>( std::forward<TArgs>(args)...) {}
+    DELETE_COPY_AND_MOVE(DataStore);
 };
 }    // namespace TestData
 

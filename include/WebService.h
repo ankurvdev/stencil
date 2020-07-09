@@ -2,6 +2,7 @@
 #include <DataModel.h>
 
 #pragma warning(push, 0)
+#pragma warning(disable : 4365)
 #include <httplib.h>
 #pragma warning(pop)
 
@@ -22,9 +23,9 @@ inline auto tokenizer(std::string_view view, char sep)
 {
     struct substr
     {
-        size_t                  index = 0;
-        size_t                  size  = 0;
-        const std::string_view& view;
+        size_t           index = 0;
+        size_t           size  = 0;
+        std::string_view view;
     };
     struct iterator
     {
@@ -96,6 +97,8 @@ struct WebServiceImpl
     struct HandlerNotFound
     {
     };
+    WebServiceImpl() = default;
+    DELETE_COPY_AND_MOVE(WebServiceImpl);
 
     virtual ~WebServiceImpl()
     {
@@ -123,9 +126,8 @@ struct WebServiceImpl
             }
         });
         _server.set_error_handler([](const auto& /*req*/, auto& res) {
-            auto fmt = "<p>Error Status: <span style='color:red;'>%d</span></p>";
             char buf[BUFSIZ];
-            snprintf(buf, sizeof(buf), fmt, res.status);
+            snprintf(buf, sizeof(buf), "<p>Error Status: <span style='color:red;'>%d</span></p>", res.status);
             res.set_content(buf, "text/html");
         });
         _port         = port;
@@ -152,7 +154,7 @@ struct WebServiceImpl
     std::mutex              _mutex;
 
     private:
-    virtual std::string ServiceRequest(httplib::Request const& request, const char* url) = 0;
+    virtual std::string ServiceRequest(httplib::Request const& request, const std::string_view& url) = 0;
 #if 0
     bool FindDefinition(const shared_string &url, const InterfaceDefinition **pdef = nullptr, const InterfaceApiDefinition **papidef = nullptr) const
     {
@@ -215,7 +217,7 @@ template <typename T1, typename T2> inline bool iequal(T1 const& a, T2 const& b)
 }
 
 template <typename TInterface, typename TInterfaceApi, typename... TInterfaceApis>
-static auto WebServiceRequestExecuteApis(httplib::Request const& request, const std::string_view& apiname, const char* moreurl)
+static auto WebServiceRequestExecuteApis(httplib::Request const& request, const std::string_view& apiname, const std::string_view& moreurl)
 {
     constexpr const std::string_view name = ::ReflectionBase::InterfaceApiTraits<TInterfaceApi>::Name();
     if (!iequal(name, apiname))
@@ -226,7 +228,7 @@ static auto WebServiceRequestExecuteApis(httplib::Request const& request, const 
         }
         else
         {
-            throw "Api not found";
+            throw std::runtime_error("Api not found");
         }
     }
 
@@ -236,9 +238,9 @@ static auto WebServiceRequestExecuteApis(httplib::Request const& request, const 
 
     if constexpr (!::ReflectionBase::InterfaceApiTraits<TInterfaceApi>::IsStatic())
     {
-        if (moreurl && moreurl[0])
+        if (!moreurl.empty())
         {
-            args.instance = TInterface::FindObjectById(std::string_view(moreurl));
+            args.instance = TInterface::FindObjectById(moreurl);
         }
     }
 
@@ -262,38 +264,42 @@ static auto WebServiceRequestExecuteApis(httplib::Request const& request, const 
 template <typename TInterface, typename... TApis>
 static auto ProcessWebServiceRequestForInterface(httplib::Request const& request,
                                                  const std::string_view& apiname,
-                                                 const char*             moreurl,
+                                                 const std::string_view& moreurl,
                                                  ::ReflectionBase::InterfaceApiPack<TApis...>)
 {
     return WebServiceRequestExecuteApis<TInterface, TApis...>(request, apiname, moreurl);
 }
 
-template <typename TInterface, typename... TInterfaces> static auto WebServiceRequest(httplib::Request const& request, const char* url)
+template <typename TInterface, typename... TInterfaces>
+static auto WebServiceRequest(httplib::Request const& request, const std::string_view& url)
 {
     using Apis          = typename ::ReflectionBase::InterfaceTraits<TInterface>::Apis;
-    constexpr auto name = WebServiceHandlerTraits<TInterface>::Url();
-    if (!iequal(std::string_view(url, name.length()), name) || url[name.length()] != '/')
+    constexpr std::string_view name = WebServiceHandlerTraits<TInterface>::Url();
+    if (!iequal(url.substr(0u, name.length()), name) || url[name.length()] != '/')
     {
         if constexpr (sizeof...(TInterfaces) != 0)
         {
             return WebServiceRequest<TInterfaces...>(request, url);
         }
 
-        throw "Invalid Service Request";
+        throw std::runtime_error("Invalid Service Request");
     }
 
-    const char *ptrs = &url[name.length()] + 1, *ptre = nullptr;
-    for (ptre = ptrs; *ptre && *ptre != '/'; ++ptre)
-        ;
-    std::string_view apiname(ptrs, (ptre - ptrs));
-    return ProcessWebServiceRequestForInterface<TInterface>(request, apiname, ptre, Apis());
+    auto offsets = name.length() + 1u;
+    auto offsete = url.find('/', offsets);
+
+    std::string_view apiname(url.substr(offsets, static_cast<size_t>(offsete - offsets)));
+    return ProcessWebServiceRequestForInterface<TInterface>(request, apiname, url.substr(offsete), Apis());
 }
 
 }    // namespace impl
 
 template <typename... TInterfaces> struct WebService : public impl::WebServiceImpl
 {
-    virtual std::string ServiceRequest(httplib::Request const& request, const char* url) override
+    WebService() = default;
+    DELETE_COPY_AND_MOVE(WebService);
+
+    virtual std::string ServiceRequest(httplib::Request const& request, const std::string_view& url) override
     {
         return impl::WebServiceRequest<TInterfaces...>(request, url);
     }

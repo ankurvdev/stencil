@@ -129,7 +129,10 @@ inline shared_string shared_wstring_to_string(const shared_wstring& str)
 inline shared_wstring shared_string_to_wstring(const shared_string& str)
 {
     if (str.empty()) return nullptr;
-    return shared_wstring::make(std::wstring(str.begin(), str.end()));
+    std::wstring out;
+    out.reserve(str.size());
+    std::transform(str.begin(), str.end(), out.begin(), [](auto const a) { return static_cast<wchar_t>(a); });
+    return shared_wstring::make(std::move(out));
 }
 
 inline shared_string operator+(const std::string& str1, const shared_string& str2)

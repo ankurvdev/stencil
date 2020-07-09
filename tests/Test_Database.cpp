@@ -1,8 +1,5 @@
 #include "Test_Database.h"
-
-#pragma warning(push, 1)
-#include <catch2/catch.hpp>
-#pragma warning(pop)
+#include "TestUtils.h"
 
 #include <iterator>
 using namespace std::string_literals;
@@ -29,7 +26,7 @@ TEST_CASE("CodeGen::Database2::SaveAndLoad")
     // Create New Database and Create Objects
     {
         UserData::UserData::Data database;
-        database.Init(&database, filepath);
+        database.Init(filepath);
         std::vector<Database2::Ref<UserData::UserData::Data, UserData::RemoteHost::Data>> objs;
 
         size_t i = 0;
@@ -64,7 +61,7 @@ TEST_CASE("CodeGen::Database2::SaveAndLoad")
     // Count objects in a new session
     {
         UserData::UserData::Data database;
-        database.Init(&database, filepath);
+        database.Init(filepath);
 
         {
             auto   lock = database.LockForEdit();

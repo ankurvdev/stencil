@@ -1,14 +1,12 @@
 #include "WebService.h"
-
-#pragma warning(push, 0)
-#include <catch2/catch.hpp>
-#pragma warning(pop)
+#include "TestUtils.h"
 
 struct TestInterface : public ReflectionBase::Interface<TestInterface>
 {
     public:
-    TestInterface() : ReflectionBase::Interface<TestInterface>(this) {}
+    TestInterface()          = default;
     virtual ~TestInterface() = default;
+    DELETE_COPY_AND_MOVE(TestInterface);
 
     virtual uint64_t                      AddNumber(uint64_t num1, uint64_t num2) = 0;
     static std::unique_ptr<TestInterface> Create(uint64_t randomInteger, shared_string randomString);
@@ -180,6 +178,8 @@ class TestInterfaceImpl : public TestInterface
     virtual uint64_t AddNumber(uint64_t num1, uint64_t num2) override { return num1 + num2; }
 
     TestInterfaceImpl(uint64_t randomInteger, shared_string randomString) : _randomInteger(randomInteger), _randomString(randomString) {}
+
+    DELETE_COPY_AND_MOVE(TestInterfaceImpl);
 
     uint64_t      _randomInteger;
     shared_string _randomString;

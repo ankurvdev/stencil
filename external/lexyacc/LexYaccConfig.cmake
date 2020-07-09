@@ -213,7 +213,10 @@ function(target_add_lexyacc target lyfile)
         # 4244 return type conversion possible loss of data
         # 4365 signed unsigned mismatch
         # 4626 assignment operator implicitly defined as deleted
-        set_source_files_properties(${lc} PROPERTIES COMPILE_FLAGS "-wd4005 -wd4065 -wd4244 -wd4365 -wd4626")
-        set_source_files_properties(${yc} PROPERTIES COMPILE_FLAGS "-wd4065 -wd4127 -wd4244 -wd4365 -wd4626")
+        # 4625 copy constructor implicitly defined as deleted
+        # 5027 move assignment operator implicitly defined as deleted
+        # 4668 is not defined as a preprocessor macro, replacing with '0' for '#if/#elif'
+        set_source_files_properties(${lc} PROPERTIES COMPILE_FLAGS "-wd4005 -wd4065 -wd4244 -wd4365 -wd4626 -wd4625 -wd4668 -wd5027")
+        set_source_files_properties(${yc} PROPERTIES COMPILE_FLAGS "-wd4065 -wd4127 -wd4244 -wd4365 -wd4626 -wd4625 -wd4668 -wd5027")
     endif()
 endfunction()

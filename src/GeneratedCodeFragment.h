@@ -6,17 +6,13 @@
 #include <regex>
 #include <string>
 #include <vector>
-//
-//struct Content
-//{
-//    tree<TemplateFragment>::iterator templ;
-//    Binding::IBindable const&        dataContext;
-//    std::wstring                     code;
-//};
 
 struct GeneratedCode
 {
     tree<Binding::Str::Type> content{};
-    std::wstring             datasource;
-    std::filesystem::path    filename;
+    std::wstring             datasource{};
+    std::filesystem::path    filename{};
+
+    GeneratedCode() = default;
+    DELETE_COPY_DEFAULT_MOVE(GeneratedCode);
 };

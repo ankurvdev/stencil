@@ -1,7 +1,10 @@
 #include "Generator.h"
 #include "Thrift.h"
 
+#pragma warning(push, 0)
 #include <cxxopts.hpp>
+#pragma warning(pop)
+
 #include <iostream>
 #include <string>
 

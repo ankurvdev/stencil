@@ -56,55 +56,6 @@ struct exclusive_lock : std::unique_lock<std::shared_mutex>
     DELETE_COPY_DEFAULT_MOVE(exclusive_lock);
 };
 
-#if 0
-struct shared_lock
-{
-    private:
-    shared_lock(std::shared_mutex* mutex) : _mutex(mutex){};
-
-    public:
-    shared_lock(std::shared_mutex& mutex) : _mutex(&mutex) { lockacquire(); }
-    ~shared_lock() { lockrelease(); }
-
-    void lockacquire()
-    {
-        if (_mutex) _rlock = std::shared_lock(*_mutex);
-    }
-    void lockrelease()
-    {
-        if (_mutex) _rlock.unlock();
-    }
-
-    std::shared_mutex* _mutex{nullptr};
-
-    friend struct exclusive_lock;
-    std::shared_lock<std::shared_mutex> _rlock;
-
-    friend struct exclusive_lock;
-};
-
-struct exclusive_lock
-{
-    exclusive_lock(std::shared_mutex& mutex) : _mutex(&mutex) { lockacquire(); }
-    ~exclusive_lock() { lockrelease(); }
-
-    exclusive_lock(const exclusive_lock& lock) = delete;
-    // exclusive_lock(exclusive_lock&& lock)      = default;
-    // exclusive_lock& operator=(exclusive_lock&& lock) = default;
-    exclusive_lock& operator=(const exclusive_lock& lock) = delete;
-
-    void lockacquire() { _wlock = std::unique_lock<std::shared_mutex>(*_mutex); }
-    void lockrelease() { _wlock = std::unique_lock<std::shared_mutex>{}; }
-
-    shared_lock const& shared() const { return _slock; }
-
-    std::shared_mutex* _mutex{nullptr};
-
-    shared_lock                         _slock{nullptr};
-    std::unique_lock<std::shared_mutex> _wlock{};
-};
-#endif
-
 enum class CompareResult
 {
     Equal,
@@ -853,6 +804,9 @@ struct PageManager
         }
     }
 
+    auto LockForRead() { return shared_lock(_mutex); }
+    auto LockForEdit() { return exclusive_lock(_mutex); }
+
     public:    // Methods
     Ref::PageIndex GetPageCount() const { return (Ref::PageIndex)_pages.size(); }
     ObjTypeId      GetPageObjTypeId(Ref::PageIndex pageIndex) const { return _pageTypes[pageIndex]; }
@@ -926,8 +880,9 @@ struct PageManager
     }
 
     private:    // Members
-    impl::SerDes   _serdes;
-    Ref::PageIndex _journalPageIndex = 1;
+    std::shared_mutex _mutex;
+    impl::SerDes      _serdes;
+    Ref::PageIndex    _journalPageIndex = 1;
 
     std::vector<ObjTypeId>                          _pageTypes;
     std::vector<std::unique_ptr<impl::PageRuntime>> _pages;
@@ -989,25 +944,25 @@ template <typename TDb, typename TObj, typename TLock> struct Iterator
         auto& si      = _current.slot;
         auto& pagemgr = _db->_pagemgr;
 
-        for (; pi < pagemgr.GetPageCount(); pi++, si = 0)
+        for (; pi < pagemgr->GetPageCount(); pi++, si = 0)
         {
-            if (pagemgr.GetPageObjTypeId(pi) == 0) continue;
+            if (pagemgr->GetPageObjTypeId(pi) == 0) continue;
             if constexpr (Traits::RecordSize() == 0)
             {
-                if ((pagemgr.GetPageObjTypeId(pi) & ~(0xff)) != Traits::TypeId())
+                if ((pagemgr->GetPageObjTypeId(pi) & ~(0xff)) != Traits::TypeId())
                 {
                     continue;
                 }
             }
             else
             {
-                if (pagemgr.GetPageObjTypeId(pi) != Traits::TypeId())
+                if (pagemgr->GetPageObjTypeId(pi) != Traits::TypeId())
                 {
                     continue;
                 }
             }
 
-            PageForRecord<Traits::RecordSize()> page = pagemgr.LoadPage(Traits::TypeId(), pi);
+            PageForRecord<Traits::RecordSize()> page = pagemgr->LoadPage(Traits::TypeId(), pi);
             for (; si != page.GetSlotCount(); ++si)
             {
                 if (page.ValidSlot(si))
@@ -1162,35 +1117,35 @@ template <typename TDb> struct DatabaseT
     template <typename TObj> constexpr ObjTypeId TypeId() { return Traits<TObj>::TypeId(); }
 
     public:    // Constructor Destructor
-    DatabaseT() = default;
-    DatabaseT(TDb* ptr) { Init(ptr); }
-    DatabaseT(TDb* ptr, std::filesystem::path const& path) : _ptr(ptr), _pagemgr(path){};
-    DatabaseT(TDb* ptr, std::ofstream&& stream) : _ptr(ptr), _pagemgr(stream){};
-    DatabaseT(TDb* ptr, std::ifstream&& stream) : _ptr(ptr), _pagemgr(stream){};
+    DatabaseT() { Init(); }
+    ~DatabaseT() = default;
+    DEFAULT_COPY_AND_MOVE(DatabaseT);
 
-    DELETE_COPY_AND_MOVE(DatabaseT);
+    DatabaseT(std::filesystem::path const& path) : _pagemgr(std::make_shared<impl::PageManager>(path)){};
+    DatabaseT(std::ofstream&& stream) : _pagemgr(std::make_shared<impl::PageManager>(stream)){};
+    DatabaseT(std::ifstream&& stream) : _pagemgr(std::make_shared<impl::PageManager>(stream)){};
 
     public:    // Methods
-    rlock LockForRead() { return shared_lock(_mutex); }
-    wlock LockForEdit() { return exclusive_lock(_mutex); }
+    auto LockForRead() { return _pagemgr->LockForRead(); }
+    auto LockForEdit() { return _pagemgr->LockForEdit(); }
 
     template <size_t TRecordSize> impl::PageRuntime& _FindOrCreatePage(wlock const& lock, ObjTypeId typeId)
     {
-        assert(_pagemgr.GetPageCount() > 1);
-        for (impl::Ref::PageIndex i = _pagemgr.GetPageCount() - 1u; i > 0; i--)
+        assert(_pagemgr->GetPageCount() > 1);
+        for (impl::Ref::PageIndex i = _pagemgr->GetPageCount() - 1u; i > 0; i--)
         {
-            if (_pagemgr.GetPageObjTypeId(i) != typeId)
+            if (_pagemgr->GetPageObjTypeId(i) != typeId)
             {
                 continue;
             }
-            auto& page = _pagemgr.LoadPage(typeId, i);
+            auto& page = _pagemgr->LoadPage(typeId, i);
             if (!page.As<impl::PageForRecord<TRecordSize>>().Full(lock))
             {
                 return page;
             }
         }
 
-        return _pagemgr.CreateNewPage(typeId);
+        return _pagemgr->CreateNewPage(typeId);
     }
 
     template <size_t TRecordSize> std::tuple<impl::Ref, impl::SlotObj> _Allocate(wlock const& lock, ObjTypeId typeId)
@@ -1314,8 +1269,8 @@ template <typename TDb> struct DatabaseT
     template <typename TObj> ViewT<TObj> Get(rlock const& lock, RefT<TObj> const& id)
     {
         assert(id.Valid());
-        assert(id.page < _pagemgr.GetPageCount());
-        impl::PageForRecord<Traits<TObj>::RecordSize()> page(_pagemgr.LoadPage(TypeId<TObj>(), id.page));
+        assert(id.page < _pagemgr->GetPageCount());
+        impl::PageForRecord<Traits<TObj>::RecordSize()> page(_pagemgr->LoadPage(TypeId<TObj>(), id.page));
 
         auto slot   = page.Get(lock, id.slot);
         auto objptr = reinterpret_cast<WireT<TObj> const*>(slot.data.data());
@@ -1325,8 +1280,8 @@ template <typename TDb> struct DatabaseT
     template <typename TObj> EditT<TObj> Get(wlock const& lock, RefT<TObj> const& id)
     {
         assert(id.Valid());
-        assert(id.page < _pagemgr.GetPageCount());
-        impl::PageForRecord<Traits<TObj>::RecordSize()> page(_pagemgr.LoadPage(TypeId<TObj>(), id.page));
+        assert(id.page < _pagemgr->GetPageCount());
+        impl::PageForRecord<Traits<TObj>::RecordSize()> page(_pagemgr->LoadPage(TypeId<TObj>(), id.page));
 
         auto slot = page.Get(lock, id.slot);
         page._page.MarkDirty();
@@ -1369,7 +1324,7 @@ template <typename TDb> struct DatabaseT
         //      Mark the page as dirty
         if (Traits<TObj>::GetOwnership() == Ownership::Shared)
         {
-            impl::PageForSharedRecord<Traits<TObj>::RecordSize()> page(_pagemgr.LoadPage(TypeId<TObj>(), id.page));
+            impl::PageForSharedRecord<Traits<TObj>::RecordSize()> page(_pagemgr->LoadPage(TypeId<TObj>(), id.page));
 
             auto refcount = page.Release(lock, id.slot);
             if (refcount == 0)
@@ -1379,31 +1334,19 @@ template <typename TDb> struct DatabaseT
         }
         else
         {
-            impl::PageForRecord<Traits<TObj>::RecordSize()> page(_pagemgr.LoadPage(TypeId<TObj>(), id.page));
+            impl::PageForRecord<Traits<TObj>::RecordSize()> page(_pagemgr->LoadPage(TypeId<TObj>(), id.page));
             page.Release(lock, id.slot);
         }
     }
 
-    ~DatabaseT() {}
+    void Init(std::filesystem::path const& path) { _pagemgr->Init(path); }
+    void Init() { _pagemgr->Init(); }
 
-    void Init(TDb* thisptr, std::filesystem::path const& path)
-    {
-        assert(thisptr != nullptr && _ptr == nullptr);
-        _ptr = thisptr;
-        _pagemgr.Init(path);
-    }
-    void Init(TDb* thisptr)
-    {
-        assert(thisptr != nullptr && _ptr == nullptr);
-        _ptr = thisptr;
-        _pagemgr.Init();
-    }
-    void Flush(exclusive_lock const& /*guardscope*/) { _pagemgr.Flush(); }
+    void Flush(exclusive_lock const& /*guardscope*/) { _pagemgr->Flush(); }
 
     private:
-    TDb*              _ptr{nullptr};
-    std::shared_mutex _mutex;
-    impl::PageManager _pagemgr;
+    // std::shared_mutex _mutex;
+    std::shared_ptr<impl::PageManager> _pagemgr = std::make_shared<impl::PageManager>();
 
     // friends
     template <typename _TDb, typename TObj, typename TLock> friend struct impl::Iterator;
@@ -1482,9 +1425,12 @@ namespace Database2
 
 template <typename TDb, typename TObj> struct OwnerT : public virtual DatabaseT<TDb>
 {
-    OwnerT()  = default;
-    ~OwnerT() = default;
-    DELETE_COPY_AND_MOVE(OwnerT);
+    OwnerT()              = default;
+    ~OwnerT()             = default;
+    OwnerT(const OwnerT&) = default;
+    OwnerT& operator=(OwnerT const&) = default;
+    OwnerT(OwnerT&&) { throw std::logic_error("Not Impl"); }
+    OwnerT& operator=(OwnerT&&) { throw std::logic_error("Not Impl"); }
 };
 
 template <typename TDb, typename TObj> struct ObjectT

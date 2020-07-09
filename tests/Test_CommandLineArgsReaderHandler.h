@@ -150,7 +150,7 @@ struct StateTraker
     bool TryObjKey(Value key, TStackData&& data)
     {
         decltype(_stack.back().def->FindComponent(0)) sub;
-        if (key.GetType() == Value::Type::Integer)
+        if (key.GetType() == Value::Type::Unsigned)
         {
             sub = _stack.back().def->FindComponent(key.convert<size_t>());
         }

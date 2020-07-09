@@ -49,14 +49,14 @@ struct TestStruct1 : public ReflectionBase::ObjMarker
     std::vector<short>& get_field4() { return _field4; }
     void                set_field4(std::vector<short>&& value) { _field4 = std::move(value); }
 
-    std::unique_ptr<TestStruct2>& get_field5() { return _field5; }
-    void                          set_field5(std::unique_ptr<TestStruct2>&& value) { _field5 = std::move(value); }
+    std::shared_ptr<TestStruct2>& get_field5() { return _field5; }
+    void                          set_field5(std::shared_ptr<TestStruct2>&& value) { _field5 = std::move(value); }
 
     shared_string                _field1;
     bool                         _field2{};
     short                        _field3{};
     std::vector<short>           _field4;
-    std::unique_ptr<TestStruct2> _field5;
+    std::shared_ptr<TestStruct2> _field5;
 };
 
 template <> struct ReflectionBase::TypeTraits<TestStruct1&>

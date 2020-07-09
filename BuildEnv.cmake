@@ -34,7 +34,7 @@ function(EnableStrictCompilation)
     if (${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
         set(extraflags 
             -Wall       # Enable all errors
-#            -WX     # All warnings as errors
+            -WX     # All warnings as errors
             /permissive- # strict compilation
             #suppression list
             /wd4068  # unknown pragma

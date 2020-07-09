@@ -408,7 +408,7 @@ template <typename TStruct> struct CommandLineArgs
         }
 
         void _RecursivelyAddHelp(std::vector<std::string>&                                lines,
-                                 std::deque<std::unique_ptr<::ReflectionBase::DataInfo>>& pending,
+                                 std::deque<std::shared_ptr<::ReflectionBase::DataInfo>>& pending,
                                  int /*depth*/)
         {
             auto& info      = pending.front();
@@ -423,7 +423,7 @@ template <typename TStruct> struct CommandLineArgs
         std::vector<std::string> _GenerateContextHelp()
         {
             std::vector<std::string>                                lines;
-            std::deque<std::unique_ptr<::ReflectionBase::DataInfo>> pending;
+            std::deque<std::shared_ptr<::ReflectionBase::DataInfo>> pending;
             pending.push_back(std::move(_tracker.GetHandler()->GetDataInfo()));
             for (int i = 0; pending.size() > 0; i++)
             {

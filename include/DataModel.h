@@ -5,7 +5,7 @@
 #include <Value.h>
 #include <uuidobject.h>
 
-#include <tree.h>
+#include <shared_tree.h>
 
 #include <bitset>
 #include <ctype.h>
@@ -85,13 +85,13 @@ struct Flags : std::bitset<static_cast<size_t>(Flag::Max) + 1u>
 
 struct DataInfo
 {
-    shared_string                          name;
-    shared_string                          description;
-    shared_string                          typeinfo;
-    DataType                               datatype;
-    Flags                                  flags;
-    std::vector<Value>                     acceptablevalues;
-    std::vector<std::unique_ptr<DataInfo>> children;
+    shared_string                          name{};
+    shared_string                          description{};
+    shared_string                          typeinfo{};
+    DataType                               datatype{};
+    Flags                                  flags{};
+    std::vector<Value>                     acceptablevalues{};
+    std::vector<std::shared_ptr<DataInfo>> children{};
     bool                                   optional() const { return flags[Flag::Optional]; }
     bool                                   hasdefaultvalue() const { return flags[Flag::HasDefaultValue]; }
     bool                                   required() const { return !(flags[Flag::Optional] || flags[Flag::HasDefaultValue]); }
@@ -101,7 +101,7 @@ template <DataType TDataType> struct IDataTypeHandler;
 
 template <> struct IDataTypeHandler<DataType::Unknown>
 {
-    virtual ~IDataTypeHandler<DataType::Unknown>()                          = default;
+    virtual ~IDataTypeHandler<DataType::Unknown>() = default;
 
     virtual shared_string Name() const                                      = 0;
     virtual shared_string Description() const                               = 0;
@@ -109,9 +109,9 @@ template <> struct IDataTypeHandler<DataType::Unknown>
 
     virtual DataType GetDataType() const = 0;
 
-    virtual std::unique_ptr<DataInfo> GetDataInfo() const
+    virtual std::shared_ptr<DataInfo> GetDataInfo() const
     {
-        return std::unique_ptr<DataInfo>(new DataInfo{Name(), Description(), Name(), GetDataType(), {}, {}, {}});
+        return std::shared_ptr<DataInfo>(new DataInfo{Name(), Description(), Name(), GetDataType(), {}, {}, {}});
     }
 
     virtual const IDataTypeHandler<DataType::Value>*  ValueHandler() const  = 0;
@@ -204,9 +204,9 @@ template <> struct IDataTypeHandler<DataType::Object> : IDataTypeHandler<DataTyp
     virtual shared_string             Name() const override                                                          = 0;
     virtual shared_string             Description() const override                                                   = 0;
     virtual shared_string             AttributeValue(const std::string_view& key) const override                     = 0;
-    virtual std::unique_ptr<DataInfo> GetDataInfo() const override
+    virtual std::shared_ptr<DataInfo> GetDataInfo() const override
     {
-        std::vector<std::unique_ptr<DataInfo>> children;
+        std::vector<std::shared_ptr<DataInfo>> children;
         for (size_t i = 0; i < GetSubComponentCount(); i++)
         {
             auto h     = GetSubComponentAt(nullptr, i);
@@ -215,7 +215,7 @@ template <> struct IDataTypeHandler<DataType::Object> : IDataTypeHandler<DataTyp
             children.push_back(std::move(info));
         }
 
-        return std::unique_ptr<DataInfo>(new DataInfo{Name(), Description(), Name(), GetDataType(), {}, {}, std::move(children)});
+        return std::shared_ptr<DataInfo>(new DataInfo{Name(), Description(), Name(), GetDataType(), {}, {}, std::move(children)});
     }
 };
 
@@ -237,9 +237,9 @@ template <> struct IDataTypeHandler<DataType::Enum> : IDataTypeHandler<DataType:
     virtual shared_string      AttributeValue(const std::string_view& key) const override = 0;
     virtual std::vector<Value> AcceptableValues() const                                   = 0;
 
-    virtual std::unique_ptr<DataInfo> GetDataInfo() const override
+    virtual std::shared_ptr<DataInfo> GetDataInfo() const override
     {
-        return std::unique_ptr<DataInfo>(new DataInfo{Name(), Description(), Name(), GetDataType(), {}, AcceptableValues(), {}});
+        return std::shared_ptr<DataInfo>(new DataInfo{Name(), Description(), Name(), GetDataType(), {}, AcceptableValues(), {}});
     }
 };
 
@@ -278,9 +278,9 @@ template <> struct IDataTypeHandler<DataType::Union> : IDataTypeHandler<DataType
     virtual shared_string                  AttributeValue(const std::string_view& key) const override = 0;
     virtual std::vector<Value>             AcceptableTypeNames() const                                = 0;
     virtual std::vector<UnionSubComponent> SubComponentHandlers() const                               = 0;
-    virtual std::unique_ptr<DataInfo>      GetDataInfo() const override
+    virtual std::shared_ptr<DataInfo>      GetDataInfo() const override
     {
-        std::vector<std::unique_ptr<DataInfo>> children;
+        std::vector<std::shared_ptr<DataInfo>> children;
         for (auto& h : SubComponentHandlers())
         {
             auto info  = h.handler->GetDataInfo();
@@ -288,7 +288,7 @@ template <> struct IDataTypeHandler<DataType::Union> : IDataTypeHandler<DataType
             children.push_back(std::move(info));
         }
 
-        return std::unique_ptr<DataInfo>(
+        return std::shared_ptr<DataInfo>(
             new DataInfo{Name(), Description(), Name(), GetDataType(), {}, AcceptableTypeNames(), std::move(children)});
     }
 };
@@ -315,11 +315,13 @@ template <typename TInterface> struct Interface : public InterfaceMarker
     using Id = UuidBasedId<TInterface>;
     const Id& GetObjectUuid() { return _id; }
 
-    static TInterface* FindObjectById(const Id& id) { return _GetRegistry()[id]->m_ptr; }
+    static TInterface* FindObjectById(const Id& id) { return static_cast<TInterface*>(_GetRegistry()[id]); }
 
     static TInterface* FindObjectById(const std::string_view& id) { return FindObjectById(UuidStr(id)); }
 
-    Interface(TInterface* ptr) : m_ptr(ptr) { _GetRegistry()[_id] = this; }
+    Interface() { _GetRegistry()[_id] = this; }
+
+    DELETE_COPY_AND_MOVE(Interface);
 
     static std::map<Id, Interface<TInterface>*>& _GetRegistry()
     {
@@ -327,8 +329,7 @@ template <typename TInterface> struct Interface : public InterfaceMarker
         return registry;
     }
 
-    TInterface* m_ptr;
-    Id          _id = Id::Create();
+    Id _id = Id::Create();
 };
 
 template <typename TInterface> struct InterfaceFactory : public InterfaceFactoryMarker, public InterfaceMarker
@@ -425,7 +426,7 @@ template <typename TEnum> struct EnumHandler : public IDataTypeHandler<DataType:
 {
     virtual void Write(void* ptr, Value const& value) const override
     {
-        if (value.GetType() == Value::Type::Integer)
+        if (value.GetType() == Value::Type::Unsigned)
         {
             *(static_cast<TEnum*>(ptr)) = (TEnum)((uint32_t)value);
             return;
@@ -491,9 +492,9 @@ template <typename TValue> struct StdVectorListHandler : public IDataTypeHandler
     virtual shared_string Name() const override { return shared_string::make("[" + _handler.Name().str() + " ...]"); }
     virtual SubComponent  GetListItemHandler() const override { return {&_handler}; }
 
-    virtual std::unique_ptr<DataInfo> GetDataInfo() const override
+    virtual std::shared_ptr<DataInfo> GetDataInfo() const override
     {
-        return std::unique_ptr<DataInfo>(
+        return std::shared_ptr<DataInfo>(
             new DataInfo{Name(), Description(), Name(), GetDataType(), Flags{Flag::Optional, Flag::HasDefaultValue}, {}, {}});
     }
 
@@ -553,7 +554,7 @@ template <typename TFieldTraits> struct ObjectDataTypeHandler<DataType::Value, T
     }
     virtual shared_string Name() const override { return shared_string::make(FieldTypeTraits::Name()); }
 
-    virtual std::unique_ptr<DataInfo> GetDataInfo() const override
+    virtual std::shared_ptr<DataInfo> GetDataInfo() const override
     {
         auto info   = IDataTypeHandler<DataType::Value>::GetDataInfo();
         info->flags = TFieldTraits::Flags();
@@ -595,7 +596,7 @@ template <typename TFieldTraits> struct ObjectDataTypeHandler<DataType::List, TF
         return shared_string::make(TFieldTraits::TAttributeValue(key));
     }
     virtual shared_string             Name() const override { return shared_string::make(FieldTypeTraits::Name()); }
-    virtual std::unique_ptr<DataInfo> GetDataInfo() const override
+    virtual std::shared_ptr<DataInfo> GetDataInfo() const override
     {
         auto info   = IDataTypeHandler<DataType::List>::GetDataInfo();
         info->flags = TFieldTraits::Flags();
@@ -638,7 +639,7 @@ template <typename TFieldTraits> struct ObjectDataTypeHandler<DataType::Object, 
     {
         return _handler.CastToObject()->GetSubComponentAt(rawptr, index);
     }
-    virtual std::unique_ptr<DataInfo> GetDataInfo() const override
+    virtual std::shared_ptr<DataInfo> GetDataInfo() const override
     {
         auto info   = IDataTypeHandler<DataType::Object>::GetDataInfo();
         info->flags = TFieldTraits::Flags();
@@ -710,7 +711,7 @@ template <typename TStruct, typename... TFieldTraits> struct ReflectedStructHand
     bool TryGetSubComponent(void* rawptr, Value& key, SubComponent& subcomponent) const override
     {
         auto ptr = static_cast<TStruct*>(rawptr);
-        if (key.GetType() == Value::Type::Integer)
+        if (key.GetType() == Value::Type::Unsigned)
         {
             return _FindMatch<TFieldTraits...>(key.convert<size_t>(), ptr, subcomponent);
         }
@@ -988,6 +989,44 @@ struct ReflectionBase::TypeTraits<std::unique_ptr<T>&, std::enable_if_t<std::is_
         virtual bool TryGetSubComponent(void* rawptr, Value& key, SubComponent& subcomponent) const override
         {
             auto& obj = *static_cast<std::unique_ptr<T>*>(rawptr);
+            if (obj == nullptr)
+            {
+                obj.reset(new T());
+            }
+            return _handler.TryGetSubComponent(obj.get(), key, subcomponent);
+        }
+        virtual void End() const override {}
+
+        virtual shared_string Description() const override { return AttributeValue("Description"); }
+        virtual shared_string AttributeValue(const std::string_view& key) const override
+        {
+            return shared_string::make(::ReflectionBase::TypeTraits<T&>::AttributeValue(key));
+        }
+        virtual shared_string Name() const override { return shared_string::make(::ReflectionBase::TypeTraits<T&>::Name()); }
+        virtual size_t        GetSubComponentCount() const override { return _handler.GetSubComponentCount(); }
+        virtual SubComponent  GetSubComponentAt(void* rawptr, size_t index) const override
+        {
+            return _handler.GetSubComponentAt(rawptr, index);
+        }
+
+        typename ::ReflectionBase::TypeTraits<T&>::Handler _handler;
+    };
+};
+
+
+template <typename T>
+struct ReflectionBase::TypeTraits<std::shared_ptr<T>&, std::enable_if_t<std::is_base_of<::ReflectionBase::ObjMarker, T>::value>>
+{
+    static constexpr DataType         Type() { return DataType::Object; }
+    static constexpr std::string_view Name() { return ::ReflectionBase::TypeTraits<T&>::Name(); }
+    static std::string_view           AttributeValue(const std::string_view& /*key*/) { throw std::logic_error("TODO"); }
+
+    struct Handler : public ::ReflectionBase::IDataTypeHandler<DataType::Object>
+    {
+        virtual void Start() const override {}
+        virtual bool TryGetSubComponent(void* rawptr, Value& key, SubComponent& subcomponent) const override
+        {
+            auto& obj = *static_cast<std::shared_ptr<T>*>(rawptr);
             if (obj == nullptr)
             {
                 obj.reset(new T());

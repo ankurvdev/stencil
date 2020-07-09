@@ -2,6 +2,7 @@
 #include <EmbeddedResource.h>
 
 #pragma warning(push, 0)
+#pragma warning(disable: 4868)
 #include <catch2/catch.hpp>
 #pragma warning(pop)
 

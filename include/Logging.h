@@ -5,6 +5,46 @@
 #include <cstring>
 #include <iostream>
 
+#define DEFAULT_COPY_AND_MOVE(name)        \
+    name(name const&) = default;            \
+    name(name&&)      = default;            \
+    name& operator=(name const&) = default; \
+    name& operator=(name&&) = delete
+
+#define DELETE_MOVE_ASSIGNMENT(name)        \
+    name(name const&) = default;            \
+    name(name&&)      = default;            \
+    name& operator=(name const&) = default; \
+    name& operator=(name&&) = delete
+
+#define DELETE_MOVE_AND_COPY_ASSIGNMENT(name) \
+    name(name const&) = default;              \
+    name(name&&)      = default;              \
+    name& operator=(name const&) = delete;    \
+    name& operator=(name&&) = delete
+
+#define DELETE_COPY_AND_MOVE(name)         \
+    name(name const&) = delete;            \
+    name(name&&)      = delete;            \
+    name& operator=(name const&) = delete; \
+    name& operator=(name&&) = delete
+
+#define DELETE_COPY_DEFAULT_MOVE(name)     \
+    name(name const&) = delete;            \
+    name(name&&)      = default;           \
+    name& operator=(name const&) = delete; \
+    name& operator=(name&&) = default
+
+#define ONLY_MOVE_CONSTRUCT(name)          \
+    name(name const&) = delete;            \
+    name(name&&)      = default;           \
+    name& operator=(name const&) = delete; \
+    name& operator=(name&&) = delete
+
+#if !defined TODO
+#define TODO(...) throw std::logic_error("Not Implemented")
+#endif
+
 struct CorrelationVector
 {
     static constexpr size_t StringSize = 129;
@@ -31,7 +71,7 @@ struct CorrelationVector
     CorrelationVector&       Increment() { return *this; }
     CorrelationVector        Extend() const { return CorrelationVector::Create(); }
 
-    operator shared_wstring() const { return shared_wstring(std::wstring(&_cv.Vector[0], &_cv.Vector[StringSize])); }
+    operator shared_wstring() const { return shared_string_to_wstring(shared_string(_cv.Vector)); }
 
     operator shared_string() const { return shared_string(_cv.Vector); }
 
@@ -52,29 +92,36 @@ enum class Severity : uint16_t
     Trace   = 512
 };
 
-template <std::size_t N> struct memstreambuf : public std::streambuf
+template <std::size_t N = 1024> class memstream : public std::ostream
 {
-    std::array<char, N> buf;
+    private:
+    struct memstreambuf : public std::streambuf
+    {
+        std::array<char, N> buf;
+
+        public:
+        memstreambuf() { setp(buf.data(), buf.data() + buf.size()); }
+        //    std::streambuf* setbuf(char_type* const s, std::streamsize const n) final { TODO(""); }
+        //    pos_type seekpos(pos_type const pos, std::ios_base::openmode const which = std::ios_base::in | std::ios_base::out) final {
+        //    TODO(""); } std::streamsize xsgetn(char_type* const s, std::streamsize const count) final { TODO(""); } std::streamsize
+        //    xsputn(char_type const* s, std::streamsize const count) final { TODO(""); }
+    };
 
     public:
-    memstreambuf() { setp(buf.data(), buf.data() + buf.size()); }
-    //    std::streambuf* setbuf(char_type* const s, std::streamsize const n) final { TODO(""); }
-    //    pos_type seekpos(pos_type const pos, std::ios_base::openmode const which = std::ios_base::in | std::ios_base::out) final {
-    //    TODO(""); } std::streamsize xsgetn(char_type* const s, std::streamsize const count) final { TODO(""); } std::streamsize
-    //    xsputn(char_type const* s, std::streamsize const count) final { TODO(""); }
-};
-
-template <std::size_t N = 1024> class memstream : public memstreambuf<N>, public std::ostream
-{
-    public:
-    memstream() : std::ostream(this) {}
-    memstream(memstream const& stream) { this->buf = stream.buf; }
+    memstream() : std::ostream(&_strmbuf) {}
+    memstream(memstream const& stream) { this->_strmbuf.buf = stream._strmbuf.buf; }
     memstream& operator=(memstream const& stream)
     {
-        this->buf = stream.buf;
+        this->_strmbuf.buf = stream._strmbuf.buf;
         return *this;
     }
+
+    auto data() const { return _strmbuf.buf.data(); }
+
+    private:
+    memstreambuf _strmbuf;
 };
+
 using PrettyPrintStream = memstream<1024>;
 
 template <typename T, typename = void> struct PrettyPrinter;
@@ -128,7 +175,7 @@ template <typename TraceTraits, typename... TArgs> void Log(const CorrelationVec
 
     Logging::PrettyPrintStream buffer;
     TraceTraits::ConstructMessage(buffer, std::forward<TArgs>(args)...);
-    logger.callback(logger.callbackData, TraceTraits::VerbosityLevel, strrchr(typeid(TraceTraits).name(), ':') + 1, buffer.buf.data());
+    logger.callback(logger.callbackData, TraceTraits::VerbosityLevel, strrchr(typeid(TraceTraits).name(), ':') + 1, buffer.data());
 }
 
 inline void AddTraceCallback(Severity level, void* cbData, TraceCallback* callback)
@@ -150,12 +197,12 @@ template <typename TraceTraits> struct Exception : public std::exception
         auto& logger = GetLogger();
         if (logger.callback)
         {
-            logger.callback(logger.callbackData, Severity::Error, strrchr(typeid(TraceTraits).name(), ':') + 1, buffer.buf.data());
+            logger.callback(logger.callbackData, Severity::Error, strrchr(typeid(TraceTraits).name(), ':') + 1, buffer.data());
         }
     }
 
     Exception(Exception const& ex) { buffer = ex.buffer; }
-    const char*       what() const noexcept(true) override { return buffer.buf.data(); }
+    const char*       what() const noexcept(true) override { return buffer.data(); }
     PrettyPrintStream buffer;
 };
 

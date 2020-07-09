@@ -29,6 +29,7 @@ class Context
 {
     public:
     Context(IDL::Program& programIn) : program(programIn) {}
+    ONLY_MOVE_CONSTRUCT(Context);
 
     void CreateFieldDefinition(NameWithTypeList&& name, NameWithTypeList&& basename, Attributes&& map)
     {

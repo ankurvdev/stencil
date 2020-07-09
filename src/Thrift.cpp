@@ -72,7 +72,7 @@ void CreateRelectionshipDefinitionRecursively(Context&                          
         auto& strct     = context.program.Lookup<IDL::Struct>(it->second);
 
         IDL::ContainerFieldType::ContainerFieldTypeMap containermap;
-        containermap[Str::Create(L"object")] = strct.shared_from_this();
+        containermap.insert(std::make_pair(Str::Create(L"object"), strct.shared_from_this()));
         auto existing = context.program.TryGetFieldTypeName(IDL::ContainerFieldType::GenerateFieldName(container, containermap));
         if (!existing.has_value())
         {

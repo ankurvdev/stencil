@@ -1,4 +1,6 @@
 #pragma once
+#include <ClassHelperMacros.h>
+
 #include <Binding.h>
 
 #include <sstream>
@@ -46,8 +48,7 @@ template <typename TFunc> struct ThreadActionContextImpl
         }
     }
 
-    ThreadActionContextImpl(ThreadActionContextImpl const&) = delete;
-    ThreadActionContextImpl(ThreadActionContextImpl&&)      = delete;
+    DELETE_MOVE_AND_COPY_ASSIGNMENT(ThreadActionContextImpl);
 
     Str::View _what;
     TFunc     _func;

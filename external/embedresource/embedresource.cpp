@@ -21,7 +21,7 @@ std::string FilePathToSym(std::filesystem::path filepath)
 auto ParseArg(std::string_view arg)
 {
     // If name is resname:filepath use resname or else convert filename into a symbol
-    int                   idx = static_cast<int>(arg.find('!'));
+    size_t                idx = static_cast<size_t>(arg.find('!'));
     std::string           resname;
     std::filesystem::path src;
     if (idx == std::string::npos)
@@ -35,7 +35,7 @@ auto ParseArg(std::string_view arg)
         {
             throw std::invalid_argument("Invalid name for resource: " + std::string(arg));
         }
-        src     = std::filesystem::path(std::string(arg.begin() + idx + 1, arg.end()));
+        src     = std::filesystem::path(std::string(arg.begin() + static_cast<int>(idx + 1), arg.end()));
         resname = std::string_view(arg.data(), idx);
     }
 
