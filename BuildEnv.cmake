@@ -3,8 +3,13 @@ set(CMAKE_CXX_STANDARD 20)
 function(_FixFlags name)
     cmake_parse_arguments("" "" "" "VALUE;EXCLUDE;APPEND" ${ARGN})
     if (NOT _VALUE)
-        set(_VALUE ${${name}})
+        if (NOT ${name})
+            set(_VALUE " ")
+        else()
+            set(_VALUE ${${name}})
+        endif()
     endif()
+
     set(origlist ${_VALUE})
 
     string(REPLACE " " ";" origlist ${origlist})
@@ -51,11 +56,10 @@ function(EnableStrictCompilation)
         _FixFlags(CMAKE_CXX_FLAGS EXCLUDE ${exclusions}  APPEND ${extraflags})
         _FixFlags(CMAKE_C_FLAGS_DEBUG APPEND /RTCcsu)
 
-    elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL ClangTODO)
+    elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL Clang)
         set(extraflags 
-            /Wall   # Enable all errors
-            /WX     # All warnings as errors
-            /permissive- # strict compilation
+            -Wall   # Enable all errors
+            -WX     # All warnings as errors
             #suppression list
             -Wno-unknown-argument
             -Wno-unknown-pragmas
@@ -65,12 +69,12 @@ function(EnableStrictCompilation)
             -Wno-documentation-unknown-command
         )
 
-        set(exclusions "[-/]W[a-zA-Z1-9]+" "[-/]permissive?")
+        set(exclusions "[-/]W[a-zA-Z1-9]+")
 
         _FixFlags(CMAKE_C_FLAGS EXCLUDE ${exclusions} APPEND ${extraflags})
-        _FixFlags(CMAKE_CXX_FLAGS EXCLUDE ${exclusions}  APPEND ${extraflags})
+        _FixFlags(CMAKE_CXX_FLAGS EXCLUDE ${exclusions} APPEND ${extraflags})
 
-        message(FATAL_ERROR "Unknown compiler : ${CMAKE_CXX_COMPILER_ID}")
+        #message(FATAL_ERROR "Unknown compiler : ${CMAKE_CXX_COMPILER_ID}")
     else()
         message(STATUS "CMAKE_C_FLAGS                  : ${CMAKE_C_FLAGS}")
         message(STATUS "CMAKE_C_FLAGS_DEBUG            : ${CMAKE_C_FLAGS_DEBUG}")
