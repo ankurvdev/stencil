@@ -107,7 +107,7 @@ struct Value
     Value(std::string_view const& str) : _type(Type::String), _sVal(str) {}
     Value(std::string const& str) : _type(Type::String), _sVal(str) {}
 
-    Value()               = default;
+    Value() = default;
     Value(std::nullptr_t) {}
 
     static bool _strtobool(shared_string str)
@@ -141,7 +141,7 @@ struct Value
         case Type::Unsigned: return Value(_uVal);
         case Type::Double: return Value(_doubletoint(_dVal));
         case Type::String: return Value(_strtoint(_sVal));
-        case Type::Unknown: [[__fallthrough]];
+        case Type::Unknown: [[fallthrough]];
 
         default: throw UnsupportedCast();
         }
@@ -156,7 +156,7 @@ struct Value
         case Type::Unsigned: return Value(static_cast<uint64_t>(round(_dVal)));
         case Type::Double: return Value(_dVal);
         case Type::String: return Value(_strtodouble(_sVal));
-        case Type::Unknown: [[__fallthrough]];
+        case Type::Unknown: [[fallthrough]];
 
         default: throw UnsupportedCast();
         }
@@ -171,7 +171,7 @@ struct Value
         case Type::Unsigned: return Value(_inttostr(_uVal));
         case Type::Double: return Value(_doubletostr(_dVal));
         case Type::String: return Value(_sVal);
-        case Type::Unknown: [[__fallthrough]];
+        case Type::Unknown: [[fallthrough]];
 
         default: throw UnsupportedCast();
         }
@@ -186,7 +186,7 @@ struct Value
         case Type::Unsigned: return cast_integer();
         case Type::Double: return cast_double();
         case Type::String: return cast_string();
-        case Type::Unknown: [[__fallthrough]];
+        case Type::Unknown: [[fallthrough]];
 
         default: throw UnsupportedCast();
         }

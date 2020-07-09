@@ -56,10 +56,10 @@ function(EnableStrictCompilation)
         _FixFlags(CMAKE_CXX_FLAGS EXCLUDE ${exclusions}  APPEND ${extraflags})
         _FixFlags(CMAKE_C_FLAGS_DEBUG APPEND /RTCcsu)
 
-    elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL Clang)
+    elseif((${CMAKE_CXX_COMPILER_ID} STREQUAL Clang) OR (${CMAKE_CXX_COMPILER_ID} STREQUAL GNU))
         set(extraflags 
             -Wall   # Enable all errors
-            -WX     # All warnings as errors
+            -Werror     # All warnings as errors
             #suppression list
             -Wno-unknown-argument
             -Wno-unknown-pragmas

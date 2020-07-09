@@ -28,8 +28,10 @@ target_add_lexyacc(libstencil src/TypeDefinition.ly)
 
 target_include_directories(libstencil PUBLIC src external/tinyxml2)
 target_sources(libstencil PRIVATE external/tinyxml2/tinyxml2.cpp)
-# wd4365 signed unsigned mismatch
-set_source_files_properties(external/tinyxml2/tinyxml2.cpp PROPERTIES COMPILE_FLAGS "-wd4365")
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
+    # wd4365 signed unsigned mismatch
+    set_source_files_properties(external/tinyxml2/tinyxml2.cpp PROPERTIES COMPILE_FLAGS "-wd4365")
+endif()
 add_executable(stencil src/main.cpp)
 
 file(GLOB public_headers ${CMAKE_CURRENT_LIST_DIR}/include/*)

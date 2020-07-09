@@ -1,8 +1,8 @@
-#include "WebService.h"
 #include "TestUtils.h"
+#include "WebService.h"
 
-#include <SimpleWebService.pidl.h>
 #include <ComplexWebService.pidl.h>
+#include <SimpleWebService.pidl.h>
 
 #include <sstream>
 #include <string>

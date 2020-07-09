@@ -8,6 +8,7 @@
 #include <shared_tree.h>
 
 #include <bitset>
+#include <climits>
 #include <ctype.h>
 #include <list>
 #include <map>
@@ -1012,7 +1013,6 @@ struct ReflectionBase::TypeTraits<std::unique_ptr<T>&, std::enable_if_t<std::is_
         typename ::ReflectionBase::TypeTraits<T&>::Handler _handler;
     };
 };
-
 
 template <typename T>
 struct ReflectionBase::TypeTraits<std::shared_ptr<T>&, std::enable_if_t<std::is_base_of<::ReflectionBase::ObjMarker, T>::value>>

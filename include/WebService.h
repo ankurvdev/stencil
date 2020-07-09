@@ -273,7 +273,7 @@ static auto ProcessWebServiceRequestForInterface(httplib::Request const& request
 template <typename TInterface, typename... TInterfaces>
 static auto WebServiceRequest(httplib::Request const& request, const std::string_view& url)
 {
-    using Apis          = typename ::ReflectionBase::InterfaceTraits<TInterface>::Apis;
+    using Apis                      = typename ::ReflectionBase::InterfaceTraits<TInterface>::Apis;
     constexpr std::string_view name = WebServiceHandlerTraits<TInterface>::Url();
     if (!iequal(url.substr(0u, name.length()), name) || url[name.length()] != '/')
     {

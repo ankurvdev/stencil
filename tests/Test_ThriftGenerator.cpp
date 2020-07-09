@@ -50,8 +50,7 @@ struct ResourceFileManager
         {
             return it->second;
         }
-        auto             resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
-        std::string_view expectedoutput;
+        auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
         for (auto const& r : resourceCollection)
         {
             if (wstring_to_string(r.name()) == name)

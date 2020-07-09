@@ -41,18 +41,18 @@ struct CommandLineArgsReader
     {
         virtual ~Handler() = default;
 
-        virtual void                        HandleValue(bool value)             = 0;
+        virtual void                        HandleValue(bool value)                  = 0;
         virtual void                        HandleValue(std::string_view const& str) = 0;
-        virtual void                        ListStart()                         = 0;
-        virtual void                        ListEnd()                           = 0;
-        virtual void                        ObjStart()                          = 0;
-        virtual void                        ObjEnd()                            = 0;
+        virtual void                        ListStart()                              = 0;
+        virtual void                        ListEnd()                                = 0;
+        virtual void                        ObjStart()                               = 0;
+        virtual void                        ObjEnd()                                 = 0;
         virtual void                        ObjKey(std::string_view const& key)      = 0;
-        virtual void                        ObjKey(size_t index)                = 0;
+        virtual void                        ObjKey(size_t index)                     = 0;
         virtual void                        HandleEnum(std::string_view const& str)  = 0;
         virtual void                        UnionType(std::string_view const& str)   = 0;
-        virtual std::shared_ptr<Definition> GetCurrentContext()                 = 0;
-        virtual std::string                 GenerateHelp()                      = 0;
+        virtual std::shared_ptr<Definition> GetCurrentContext()                      = 0;
+        virtual std::string                 GenerateHelp()                           = 0;
     } * _handler;
 
     CommandLineArgsReader(Handler* handler) : _handler(handler) {}
@@ -113,7 +113,7 @@ struct CommandLineArgsReader
 
     const char* clgettoken(const char* ptr, char* buffer, size_t bufSize)
     {
-        const char separator = ':', grpstart = '{', grpend = '}';
+        const char grpstart = '{', grpend = '}';
         size_t     i = 0;
         if (*ptr == '\0') return nullptr;
         if (*ptr == grpstart)

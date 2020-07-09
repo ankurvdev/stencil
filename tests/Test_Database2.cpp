@@ -177,7 +177,7 @@ template <size_t N, typename... TObjs> auto CreateObjects(DB& db)
     for (size_t i = 0; i < 1000; i++)
     {
         arrayoftuples[i].reset(new Tuple(ObjTester<N, TObjs>{i}...));
-        std::apply([&](auto&... x) { auto t = std::make_tuple(x.CreateObj(lock, db)...); }, *arrayoftuples[i].get());
+        std::apply([&](auto&... x) { [[maybe_unused]] auto tmp = std::make_tuple(x.CreateObj(lock, db)...); }, *arrayoftuples[i].get());
     }
     return arrayoftuples;
 }
@@ -187,7 +187,7 @@ template <size_t N, typename T> void VerifyObjects(T const& arrayoftuples, DB& d
     auto lock = db.LockForRead();
     for (auto& t : arrayoftuples)
     {
-        std::apply([&](auto&... x) { auto t = std::make_tuple(x.VerifyObj(lock, db)...); }, *t.get());
+        std::apply([&](auto&... x) { [[maybe_unused]] auto tmp = std::make_tuple(x.VerifyObj(lock, db)...); }, *t.get());
     }
 }
 
@@ -199,7 +199,7 @@ template <size_t N> struct ObjTester<N, Database2::ByteString>
         ref              = ref1;
         auto obj1        = db.Get(lock, ref);
         REQUIRE(obj == TestValue<N, Database2::ByteString>());
-        // REQUIRE(obj1 == TestValue<Database2::ByteString>());
+        REQUIRE(obj1 == TestValue<N, Database2::ByteString>());
         return true;
     }
     template <typename TLock> bool VerifyObj(TLock const& lock, DB& db)
@@ -392,7 +392,7 @@ TEST_CASE("CodeGen::Database2::UniqueSharedAndSelf", "[Database2]")
         {
             auto   lock  = store.LockForRead();
             size_t count = 0;
-            for (auto const [ref, obj] : store.Objects<Database2::ByteString>(lock))
+            for ([[maybe_unused]] auto const [ref, obj] : store.Objects<Database2::ByteString>(lock))
             {
                 count++;
             }
@@ -405,7 +405,7 @@ TEST_CASE("CodeGen::Database2::UniqueSharedAndSelf", "[Database2]")
                 store.Delete(lock, ref);
             }
             size_t count = 0;
-            for (auto const [ref, obj] : store.Objects<Database2::ByteString>(lock))
+            for ([[maybe_unused]] auto const [ref, obj] : store.Objects<Database2::ByteString>(lock))
             {
                 count++;
             }

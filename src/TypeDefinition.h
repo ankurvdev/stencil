@@ -50,7 +50,10 @@ class Context
     }
 
     bool Debug() { return false; }
-    void NotifyError(int line, int col, std::string const& msg) { std::cerr << "Error[" <<line << ":" << col<<  "] : " << msg << std::endl; }
+    void NotifyError(int line, int col, std::string const& msg)
+    {
+        std::cerr << "Error[" << line << ":" << col << "] : " << msg << std::endl;
+    }
 
     IDL::Program& program;
 };

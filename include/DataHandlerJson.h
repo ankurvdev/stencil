@@ -56,7 +56,10 @@ struct Json
         bool key(string_t& val) override { SAFEEXEC(_tracker.ObjKey(Value(shared_string::make(val)), nullptr)); }
 
         // called when a parse error occurs; byte position, the last token, and an exception is passed
-        bool parse_error(std::size_t /*position*/, const std::string& /*last_token*/, const nlohmann::json::exception& ex) override { throw ex; }
+        bool parse_error(std::size_t /*position*/, const std::string& /*last_token*/, const nlohmann::json::exception& ex) override
+        {
+            throw ex;
+        }
 
         ReflectionServices::StateTraker<TStruct, void*> _tracker;
     };
@@ -360,12 +363,12 @@ template <typename TStruct> struct CommandLineArgs
                     args.push_back(("<" + c->name.str() + ">"));
                 }
                 break;
-            case ::ReflectionBase::DataType::Value: [[__fallthrough]];
-            case ::ReflectionBase::DataType::Enum: [[__fallthrough]];
-            case ::ReflectionBase::DataType::List: [[__fallthrough]];
+            case ::ReflectionBase::DataType::Value: [[fallthrough]];
+            case ::ReflectionBase::DataType::Enum: [[fallthrough]];
+            case ::ReflectionBase::DataType::List: [[fallthrough]];
 
-            case ::ReflectionBase::DataType::Unknown: [[__fallthrough]];
-            case ::ReflectionBase::DataType::Invalid: [[__fallthrough]];
+            case ::ReflectionBase::DataType::Unknown: [[fallthrough]];
+            case ::ReflectionBase::DataType::Invalid: [[fallthrough]];
 
             default: throw std::logic_error("TODO");
             }
@@ -394,12 +397,12 @@ template <typename TStruct> struct CommandLineArgs
                 }
             }
             break;
-            case ::ReflectionBase::DataType::Value: [[__fallthrough]];
-            case ::ReflectionBase::DataType::Enum: [[__fallthrough]];
-            case ::ReflectionBase::DataType::List: [[__fallthrough]];
+            case ::ReflectionBase::DataType::Value: [[fallthrough]];
+            case ::ReflectionBase::DataType::Enum: [[fallthrough]];
+            case ::ReflectionBase::DataType::List: [[fallthrough]];
 
-            case ::ReflectionBase::DataType::Unknown: [[__fallthrough]];
-            case ::ReflectionBase::DataType::Invalid: [[__fallthrough]];
+            case ::ReflectionBase::DataType::Unknown: [[fallthrough]];
+            case ::ReflectionBase::DataType::Invalid: [[fallthrough]];
 
             default: throw std::logic_error("TODO");
             }
@@ -432,7 +435,7 @@ template <typename TStruct> struct CommandLineArgs
             return lines;
         }
 
-        virtual std::string GenerateHelp()
+        virtual std::string GenerateHelp() override
         {
             // Print Current Context
 

@@ -5,7 +5,7 @@
 #include <cstring>
 #include <iostream>
 
-#define DEFAULT_COPY_AND_MOVE(name)        \
+#define DEFAULT_COPY_AND_MOVE(name)         \
     name(name const&) = default;            \
     name(name&&)      = default;            \
     name& operator=(name const&) = default; \

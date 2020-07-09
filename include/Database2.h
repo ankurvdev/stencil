@@ -16,24 +16,6 @@
 #include <vector>
 #define TODO_OBJREF 0
 
-#define DELETE_COPY_AND_MOVE(name)         \
-    name(name const&) = delete;            \
-    name(name&&)      = delete;            \
-    name& operator=(name const&) = delete; \
-    name& operator=(name&&) = delete
-
-#define DELETE_COPY_DEFAULT_MOVE(name)     \
-    name(name const&) = delete;            \
-    name(name&&)      = default;           \
-    name& operator=(name const&) = delete; \
-    name& operator=(name&&) = default
-
-#define ONLY_MOVE_CONSTRUCT(name)          \
-    name(name const&) = delete;            \
-    name(name&&)      = default;           \
-    name& operator=(name const&) = delete; \
-    name& operator=(name&&) = delete
-
 namespace Database2
 {
 template <typename> struct is_tuple : std::false_type
@@ -602,22 +584,22 @@ template <size_t RecordSize> struct PageForSharedRecord : public PageForRecordIn
     size_t  GetSlotCount() const override { return SlotCount; }
     bool    ValidSlot(size_t slot) const override { return _refCounts->at(slot) > 0; }
     uint8_t GetRefCount(Ref::SlotIndex slot) const { return _refCounts->at(slot); }
-    bool    Full(shared_lock const& guardscope) { return _page->_availableSlot >= _refCounts->size(); }
+    bool    Full(shared_lock const& guardscope) { return _page._availableSlot >= _refCounts->size(); }
 
     SlotObj Allocate(exclusive_lock const& guardscope)
     {
         assert(!Full(guardscope));
-        assert(_refCounts[_page->_availableSlot] == 0u);
-        Ref::SlotIndex slot = _page->_availableSlot;
-        ++_page->_availableSlot;
-        _refCounts[_page->_availableSlot]++;
+        assert(_refCounts[_page._availableSlot] == 0u);
+        Ref::SlotIndex slot = _page._availableSlot;
+        ++_page._availableSlot;
+        _refCounts[_page._availableSlot]++;
         std::array<uint8_t, RecordSize>& rec = _records->at(slot);
         std::fill(rec.begin(), rec.end(), 0u);
-        _page->MarkDirty();
+        _page.MarkDirty();
         return SlotObj{slot, {rec.size(), rec.data()}};
     }
 
-    uint8_t Release(exclusive_lock const& /*guardscope*/, Ref::SlotIndex slot)
+    uint8_t Release(exclusive_lock const& /*guardscope*/, Ref::SlotIndex slot) override
     {
         assert(_refCounts->at(slot) > 0u);
         _refCounts->at(slot)--;
@@ -758,8 +740,7 @@ struct HeaderPage
     DELETE_COPY_AND_MOVE(HeaderPage);
 
     private:
-    HeaderPage(PageRuntime& page) : _page(page) {}
-    PageRuntime& _page;
+    HeaderPage(PageRuntime&) {}
 
     friend struct PageRuntime;
 };
@@ -1150,7 +1131,7 @@ template <typename TDb> struct DatabaseT
 
     template <size_t TRecordSize> std::tuple<impl::Ref, impl::SlotObj> _Allocate(wlock const& lock, ObjTypeId typeId)
     {
-        auto page = _FindOrCreatePage<TRecordSize>(lock, typeId).As<impl::PageForRecord<TRecordSize>>();
+        auto page = _FindOrCreatePage<TRecordSize>(lock, typeId).template As<impl::PageForRecord<TRecordSize>>();
         auto slot = page.Allocate(lock);
         return std::make_tuple(impl::Ref(page.PageIndex(), slot.index), slot);
     }
