@@ -1,0 +1,54 @@
+Usage:    <CommandLineOptions>...                                                                 
+Description:                                                                                      
+Command Line tool for windows-store operations                                                    
+                                                                                                  
+List of available options:                                                                        
+install    Install a specific product                                                             
+queue      Listen for progress notifications for a specific product or all queued products        
+pause      Pause the given product                                                                
+cancel     Cancel the given product                                                               
+resume     Resume the given product                                                               
+update     Check for updates for a given product or all installed products                        
+hydrate    Download document for a given product                                                  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Usage:            <ProductId>                            
+Description:                                             
+Install a specific product                               
+                                                         
+--Repair          Repair existing installated product    
+--ForceNonSD      Force installation to non SD           
+--TargetVolume    Target Volume                          
+--User            User to install for                    
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Usage:                                                                             
+Description:                                                                       
+Listen for progress notifications for a specific product or all queued products    
+                                                                                   
+--ProductId    Catalog/Product:Sku:Bundle                                          
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Usage:    <ProductId>      
+Description:               
+Pause the given product    
+                           
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Usage:    <ProductId>       
+Description:                
+Cancel the given product    
+                            
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Usage:    <ProductId>       
+Description:                
+Resume the given product    
+                            
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Usage:                                                             
+Description:                                                       
+Check for updates for a given product or all installed products    
+                                                                   
+--ProductId    Catalog/Product:Sku:Bundle                          
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Usage:    <ProductId>                    
+Description:                             
+Download document for a given product    
+                                         
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

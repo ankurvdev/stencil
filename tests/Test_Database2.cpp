@@ -227,6 +227,7 @@ template <size_t N> struct ObjTester<N, TestData::WithSimpleRef>
         ref              = ref1;
         auto obj1        = db.Get(lock, ref);
         REQUIRE(obj.uuid == TestUuid<N, Type>());
+        REQUIRE(obj1.uuid == TestUuid<N, Type>());
         return true;
     }
 

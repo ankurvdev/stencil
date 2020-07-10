@@ -10,7 +10,7 @@ struct UuidStr
     constexpr UuidStr() {}
     constexpr UuidStr(const char strin[Size]) : str()
     {
-        for (int i = 0; i < Size; i++)
+        for (size_t i = 0; i < Size; i++)
         {
             str[i]  = (char)strin[i];
             wstr[i] = (wchar_t)strin[i];
@@ -18,7 +18,7 @@ struct UuidStr
     }
     constexpr UuidStr(const wchar_t strin[Size])
     {
-        for (int i = 0; i < Size; i++)
+        for (size_t i = 0; i < Size; i++)
         {
             str[i]  = (char)strin[i];
             wstr[i] = (wchar_t)strin[i];

@@ -605,6 +605,10 @@ struct BindingContext
 
 struct BindableBase : public IBindable, public ValueT<Type::Object>
 {
+    BindableBase() = default;
+    ~BindableBase() = default;
+    DELETE_COPY_AND_MOVE(BindableBase);
+
     void AddBaseObject(std::shared_ptr<const BindableBase> const& basePtr)
     {
         // assert(basePtr != nullptr);
