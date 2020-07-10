@@ -769,6 +769,7 @@ template <typename TParent, typename TObject> struct BindableParent : public vir
     };
 
     BindableParent() : _bindableComponent(std::make_shared<BindableComponent>(*this)) { Register(_bindableComponent); }
+    DELETE_COPY_AND_MOVE(BindableParent);
 
     std::shared_ptr<BindableComponent> _bindableComponent;
 };
@@ -776,6 +777,8 @@ template <typename TParent, typename TObject> struct BindableParent : public vir
 template <typename TOwner, typename TObject> struct BindableObjectArray : public virtual BindableBase
 {
     BindableObjectArray() { Register(_bindableComponent); }
+    ~BindableObjectArray() = default;
+    DELETE_COPY_AND_MOVE(BindableObjectArray);
 
     void AddToArray(std::shared_ptr<const BindableBase> obj) { _bindableComponent->_array.push_back(obj); }
 
@@ -926,6 +929,8 @@ template <typename TOwner, typename TParent = TOwner> struct BindableT : public 
         _AddBindableComponents(SUPER(TOwner), std::forward<TArgs>(args)...);
         for (auto& c : _bindableComponent) Register(c);
     }
+    ~BindableT() = default;
+    DELETE_COPY_AND_MOVE(BindableT);
 
     std::vector<std::shared_ptr<BindableComponent>> _bindableComponent;
 };
@@ -939,6 +944,7 @@ template <typename TOwner, typename TParent = TOwner> struct BindableDictionaryT
             AddAttributes(map);
         }
     }
+    DELETE_COPY_AND_MOVE(BindableDictionaryT);
 
     struct BindableComponent : public IBindableComponent
     {

@@ -56,6 +56,8 @@ struct AnnotatedObjectT : public Binding::BindableObjectArray<AnnotatedObjectT<T
 {
     using Self = AnnotatedObjectT<TOwner, TParent>;
     AnnotatedObjectT(std::shared_ptr<Binding::AttributeMap> map) : Binding::BindableDictionaryT<Self>(map) { AddAttributes(map); }
+    ~AnnotatedObjectT() = default;
+    DELETE_COPY_AND_MOVE(AnnotatedObjectT);
 
     void AddAttributes(std::shared_ptr<Binding::AttributeMap> map)
     {
@@ -145,6 +147,10 @@ template <typename TOwner, typename TObject> struct NamedIndexT
 struct IFieldType : public virtual Binding::BindableBase
 {
     public:
+    IFieldType() = default;
+    ~IFieldType() = default;
+    DELETE_COPY_AND_MOVE(IFieldType);
+
     // virtual const Binding::IBindable& GetBindable() const = 0;
     virtual Str::Type GetFieldName() const = 0;
     Str::Type         GetFieldCategory() const { return ObjectTypeName(); }
