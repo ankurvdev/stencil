@@ -308,7 +308,7 @@ TEST_CASE("CodeGen::Database2::SaveAndLoadFile", "[Database2]")
     // Empty Constructor for in-memory datastore
     {
         {
-            DB datastore{};
+            DB datastore{DB::InMemory};
             CreateObjects<0, ALL_TESTED_TYPES>(datastore);
         }
         {

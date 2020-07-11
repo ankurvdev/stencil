@@ -9,7 +9,8 @@ struct Data;
 namespace CommandLineOptions
 {
 
-struct Data : public ReflectionBase::ObjMarker
+struct Data :
+    public ReflectionBase::ObjMarker
 {
     /*template <typename...TArgs> Data(TArgs&& ... args)
     {
@@ -19,11 +20,11 @@ struct Data : public ReflectionBase::ObjMarker
     enum class FieldIndex
     {
         Invalid,
-        workingDirectory,
-        libraries,
-        scan,
-        httpsPort,
-        daemon
+        workingDirectory
+,        libraries
+,        scan
+,        httpsPort
+,        daemon
     };
 
     static constexpr std::string_view FieldAttributeValue(FieldIndex index, const std::string_view& key)
@@ -50,6 +51,8 @@ struct Data : public ReflectionBase::ObjMarker
             if (key == "Description") return "Run as daemon";
             if (key == "Name1") return "Run as Daemon";
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -61,7 +64,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     shared_string&       workingDirectory() { return _workingDirectory; }
     const shared_string& workingDirectory() const { return _workingDirectory; }
-    void                 workingDirectory(shared_string&& val) { _workingDirectory = std::move(val); }
+    void                            workingDirectory(shared_string&& val) { _workingDirectory = std::move(val); }
 
     shared_string& get_workingDirectory()
     {
@@ -76,7 +79,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     std::vector<shared_string>&       libraries() { return _libraries; }
     const std::vector<shared_string>& libraries() const { return _libraries; }
-    void                              libraries(std::vector<shared_string>&& val) { _libraries = std::move(val); }
+    void                            libraries(std::vector<shared_string>&& val) { _libraries = std::move(val); }
 
     std::vector<shared_string>& get_libraries()
     {
@@ -91,7 +94,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     std::vector<shared_string>&       scan() { return _scan; }
     const std::vector<shared_string>& scan() const { return _scan; }
-    void                              scan(std::vector<shared_string>&& val) { _scan = std::move(val); }
+    void                            scan(std::vector<shared_string>&& val) { _scan = std::move(val); }
 
     std::vector<shared_string>& get_scan()
     {
@@ -106,7 +109,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     int32_t&       httpsPort() { return _httpsPort; }
     const int32_t& httpsPort() const { return _httpsPort; }
-    void           httpsPort(int32_t&& val) { _httpsPort = std::move(val); }
+    void                            httpsPort(int32_t&& val) { _httpsPort = std::move(val); }
 
     int32_t& get_httpsPort()
     {
@@ -121,7 +124,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     bool&       daemon() { return _daemon; }
     const bool& daemon() const { return _daemon; }
-    void        daemon(bool&& val) { _daemon = std::move(val); }
+    void                            daemon(bool&& val) { _daemon = std::move(val); }
 
     bool& get_daemon()
     {
@@ -129,6 +132,7 @@ struct Data : public ReflectionBase::ObjMarker
         ;
     }
     void set_daemon(bool&& val) { _daemon = std::move(val); }
+
 };
 
 }    // namespace CommandLineOptions
@@ -149,7 +153,10 @@ template <> struct ReflectionBase::TypeTraits<CLOpts1::CommandLineOptions::Data&
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::workingDirectory, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     struct Traits_libraries
     {
@@ -164,7 +171,10 @@ template <> struct ReflectionBase::TypeTraits<CLOpts1::CommandLineOptions::Data&
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::libraries, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     struct Traits_scan
     {
@@ -179,7 +189,10 @@ template <> struct ReflectionBase::TypeTraits<CLOpts1::CommandLineOptions::Data&
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::scan, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     struct Traits_httpsPort
     {
@@ -196,7 +209,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts1::CommandLineOptions::Data&
 
         static const ::ReflectionBase::Flags Flags()
         {
-            return ::ReflectionBase::Flags{::ReflectionBase::Flag::HasDefaultValue, ::ReflectionBase::Flag::Max};
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::HasDefaultValue,
+                                           ::ReflectionBase::Flag::Max};
         }
     };
     struct Traits_daemon
@@ -214,17 +228,22 @@ template <> struct ReflectionBase::TypeTraits<CLOpts1::CommandLineOptions::Data&
 
         static const ::ReflectionBase::Flags Flags()
         {
-            return ::ReflectionBase::Flags{::ReflectionBase::Flag::HasDefaultValue, ::ReflectionBase::Flag::Max};
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::HasDefaultValue,
+                                           ::ReflectionBase::Flag::Max};
         }
     };
     static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
     static constexpr std::string_view           Name() { return "CommandLineOptions"; }
-    static constexpr std::string_view AttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
+    static constexpr std::string_view           AttributeValue(const std::string_view& key)
+    {
+        return ::ReflectionServices::EmptyAttributeValue(key);
+    }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<CLOpts1::CommandLineOptions::Data,
-                                                                 Traits_workingDirectory,
-                                                                 Traits_libraries,
-                                                                 Traits_scan,
-                                                                 Traits_httpsPort,
-                                                                 Traits_daemon>;
+                                                                 Traits_workingDirectory
+,                                                                 Traits_libraries
+,                                                                 Traits_scan
+,                                                                 Traits_httpsPort
+,                                                                 Traits_daemon
+                                                                 >;
 };

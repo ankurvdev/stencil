@@ -11,7 +11,7 @@
 #include <climits>
 #include <ctype.h>
 #include <list>
-#include <map>
+#include <unordered_map>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,7 +60,7 @@ enum class DataType
     Object,
     Enum,
     Union,
-    Unknown
+    Unknown //TODO : Why Invalid and Unknown
 };
 
 enum class Flag : uint8_t
@@ -312,21 +312,21 @@ struct InterfaceObjectTracker
 
 template <typename TInterface> struct Interface : public InterfaceMarker
 {
-    constexpr const char* Name() { return typeid(TInterface).name(); }
+    constexpr std::string_view Name() { return typeid(TInterface).name(); }
     using Id = UuidBasedId<TInterface>;
     const Id& GetObjectUuid() { return _id; }
 
+    /// TODO : Fix pointers
     static TInterface* FindObjectById(const Id& id) { return static_cast<TInterface*>(_GetRegistry()[id]); }
-
-    static TInterface* FindObjectById(const std::string_view& id) { return FindObjectById(UuidStr(id)); }
+    static TInterface* FindObjectById(const std::string_view& id) { return FindObjectById(Id{UuidStr(id)}); }
 
     Interface() { _GetRegistry()[_id] = this; }
 
     DELETE_COPY_AND_MOVE(Interface);
 
-    static std::map<Id, Interface<TInterface>*>& _GetRegistry()
+    static std::unordered_map<Id, Interface<TInterface>*>& _GetRegistry()
     {
-        static std::map<Id, Interface<TInterface>*> registry;
+        static std::unordered_map<Id, Interface<TInterface>*> registry;
         return registry;
     }
 
@@ -420,7 +420,7 @@ template <typename T> struct CommonValueHandler : public IDataTypeHandler<DataTy
 
 template <typename T> struct EnumTraits
 {
-    static constexpr const char* EnumStrings[] = {"Invalid", 0};
+    static constexpr std::string_view EnumStrings[] = {"Invalid", 0};
 };
 
 template <typename TEnum> struct EnumHandler : public IDataTypeHandler<DataType::Enum>

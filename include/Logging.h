@@ -75,9 +75,9 @@ struct CorrelationVector
 
     operator shared_string() const { return shared_string(_cv.Vector); }
 
-    operator const char*() const { return _cv.Vector; }
+    operator std::string_view() const { return _cv.Vector; }
 
-    const char* c_str() const { return _cv.Vector; }
+    std::string_view c_str() const { return _cv.Vector; }
 };
 
 namespace Logging
@@ -129,27 +129,32 @@ template <typename T, typename = void> struct PrettyPrinter;
 struct PrettyPrint
 {
     template <typename T>
-    static void PrintOnePropertyPair(PrettyPrintStream& buffer, const char* context, const char* name, const T& obj) noexcept(true)
+    static void
+    PrintOnePropertyPair(PrettyPrintStream& buffer, std::string_view const& context, std::string_view name, const T& obj) noexcept(true)
     {
-        PrettyPrinter<T>::Print(buffer, (name == nullptr ? context : name), obj);
+        PrettyPrinter<T>::Print(buffer, (name.empty() ? context : name), obj);
     }
 
     template <typename T, typename... TArgs>
-    static void
-    PrintProperties(PrettyPrintStream& buffer, const char* context, const char* name, const T& obj, TArgs&&... args) noexcept(true)
+    static void PrintProperties(PrettyPrintStream& buffer,
+                                std::string_view   context,
+                                std::string_view   name,
+                                const T&           obj,
+                                TArgs&&... args) noexcept(true)
     {
         PrintOnePropertyPair(buffer, context, name, obj);
         PrintProperties(buffer, context, std::forward<TArgs>(args)...);
     }
 
     template <typename T>
-    static void PrintProperties(PrettyPrintStream& buffer, const char* context, const char* name, const T& obj) noexcept(true)
+    static void
+    PrintProperties(PrettyPrintStream& buffer, std::string_view const& context, std::string_view name, const T& obj) noexcept(true)
     {
         PrintOnePropertyPair(buffer, context, name, obj);
     }
 };
 
-typedef void TraceCallback(void* cbData, Severity level, const char* context, const char* message);
+typedef void TraceCallback(void* cbData, Severity level, std::string_view const& context, std::string_view message);
 
 struct SingletonLogger
 {
@@ -229,7 +234,7 @@ struct TODOCreateException : public Exception<TODOCreateExceptionTraits>
 
 template <> struct PrettyPrinter<std::string_view>
 {
-    static void Print(PrettyPrintStream& buffer, const char* context, std::string_view const& obj)
+    static void Print(PrettyPrintStream& buffer, std::string_view const& context, std::string_view const& obj)
     {
         buffer << context << " = " << (obj.empty() ? "(empty)" : obj.data());
     }
@@ -237,7 +242,7 @@ template <> struct PrettyPrinter<std::string_view>
 
 template <> struct PrettyPrinter<std::string>
 {
-    static void Print(PrettyPrintStream& buffer, const char* context, std::string const& obj)
+    static void Print(PrettyPrintStream& buffer, std::string_view const& context, std::string const& obj)
     {
         buffer << context << " = " << (obj.empty() ? "(empty)" : obj.data());
     }
@@ -245,7 +250,7 @@ template <> struct PrettyPrinter<std::string>
 
 template <> struct PrettyPrinter<shared_string>
 {
-    static void Print(PrettyPrintStream& buffer, const char* context, const shared_string& obj)
+    static void Print(PrettyPrintStream& buffer, std::string_view const& context, const shared_string& obj)
     {
         buffer << context << " = " << (obj.empty() ? "(empty)" : obj.data());
     }
@@ -253,7 +258,7 @@ template <> struct PrettyPrinter<shared_string>
 
 template <> struct PrettyPrinter<shared_wstring>
 {
-    static void Print(PrettyPrintStream& buffer, const char* context, const shared_wstring& obj)
+    static void Print(PrettyPrintStream& buffer, std::string_view const& context, const shared_wstring& obj)
     {
         PrettyPrinter<shared_string>::Print(buffer, context, shared_wstring_to_string(obj));
     }
@@ -261,16 +266,19 @@ template <> struct PrettyPrinter<shared_wstring>
 
 template <> struct PrettyPrinter<int>
 {
-    static void Print(PrettyPrintStream& buffer, const char* context, int obj) { buffer << context << " = " << obj; }
+    static void Print(PrettyPrintStream& buffer, std::string_view const& context, int obj) { buffer << context << " = " << obj; }
 };
 
 template <> struct PrettyPrinter<size_t>
 {
-    static void Print(PrettyPrintStream& buffer, const char* context, size_t obj) { buffer << context << " = " << obj; }
+    static void Print(PrettyPrintStream& buffer, std::string_view const& context, size_t obj) { buffer << context << " = " << obj; }
 };
 
 template <> struct PrettyPrinter<CorrelationVector>
 {
-    static void Print(PrettyPrintStream& buffer, const char* /*context*/, const CorrelationVector& cv) { buffer << "cv = " << cv.c_str(); }
+    static void Print(PrettyPrintStream& buffer, std::string_view /*context*/, const CorrelationVector& cv)
+    {
+        buffer << "cv = " << cv.c_str();
+    }
 };
 }    // namespace Logging

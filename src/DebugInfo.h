@@ -1,6 +1,4 @@
 #pragma once
-#include <ClassHelperMacros.h>
-
 #include <Binding.h>
 
 #include <sstream>

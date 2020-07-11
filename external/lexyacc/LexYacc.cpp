@@ -102,9 +102,7 @@ try
     std::stringstream(temp) >> nmsp;
 
     std::string template_lyh = R"(
-#pragma warning(push, 0)
 #include "zzPREFIXzz.h"
-#pragma warning(pop)
 
 #include <filesystem>
 #include <fstream>

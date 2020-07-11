@@ -267,7 +267,7 @@ template <typename TStruct> struct CommandLineArgs
     {
         static void ConstructMessage(Logging::PrettyPrintStream& buffer, std::string helpstr)
         {
-            Logging::PrettyPrint::PrintProperties(buffer, nullptr, "help", helpstr);
+            Logging::PrettyPrint::PrintProperties(buffer, {}, "help", helpstr);
         }
     };
 
@@ -275,7 +275,7 @@ template <typename TStruct> struct CommandLineArgs
     {
         static void ConstructMessage(Logging::PrettyPrintStream& buffer, std::string helpstr)
         {
-            Logging::PrettyPrint::PrintProperties(buffer, nullptr, "help", helpstr);
+            Logging::PrettyPrint::PrintProperties(buffer, {}, "help", helpstr);
         }
     };
 
@@ -325,7 +325,10 @@ template <typename TStruct> struct CommandLineArgs
             case ReflectionBase::DataType::Enum: type = CommandLineArgsReader::Definition::Type::Enum; break;
             case ReflectionBase::DataType::Union: type = CommandLineArgsReader::Definition::Type::Union; break;
             case ReflectionBase::DataType::Invalid: type = CommandLineArgsReader::Definition::Type::Invalid; break;
-            case ReflectionBase::DataType::Unknown: type = CommandLineArgsReader::Definition::Type::Unknown; break;
+            case ReflectionBase::DataType::Unknown: [[fallthrough]];    // TODO
+            default:
+                throw std::logic_error("Unknown Data Type");
+                // TODO: case ReflectionBase::DataType::Unknown: type = CommandLineArgsReader::Definition::Type::Unknown; break;
             }
 
             return std::make_shared<CommandLineArgsReader::Definition>("empty", type);
@@ -437,28 +440,44 @@ template <typename TStruct> struct CommandLineArgs
 
         virtual std::string GenerateHelp() override
         {
+            std::stringstream ss;
+            _helpInfo = _GenerateContextHelp();
+            for (auto& l : _helpInfo)
+            {
+                ss << std::move(l);
+            }
+            return ss.str();
+
             // Print Current Context
 
             // Print Error
 
             // Print context help
 
-            throw HelpException(std::move(_GenerateContextHelp()));
+            // throw HelpException(std::move());
         }
 
         ReflectionServices::StateTraker<TStruct, std::shared_ptr<CommandLineArgsReader::Definition>> _tracker;
+
+        std::vector<std::string> _helpInfo;
     };
 
-    void Load(TStruct* obj, size_t argc, const char* argv[])
+    // TODO: Get rid of pointers
+    void Load(TStruct* obj, std::span<std::string_view> args)
     {
         ReaderHandler handler(obj);
-        CommandLineArgsReader(&handler).Parse(argc, argv);
+        CommandLineArgsReader(&handler).Parse(args);
+        std::swap(_helpInfo, handler._helpInfo);
     }
 
-    std::unique_ptr<TStruct> Parse(size_t argc, const char* argv[])
+    std::unique_ptr<TStruct> Parse(std::span<std::string_view> args)
     {
         std::unique_ptr<TStruct> ptr(new TStruct());
-        Load(ptr.get(), argc, argv);
+        Load(ptr.get(), args);
         return ptr;
     }
+
+    std::vector<std::string> const& HelpInfo() const { return _helpInfo; }
+
+    std::vector<std::string> _helpInfo;
 };

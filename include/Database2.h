@@ -708,6 +708,8 @@ struct JournalPage
         return Entry{pageIndex, _page.Get<ObjTypeId>(sizeof(Header))[entryIndex]};
     }
 
+    bool Full(Ref::PageIndex pageIndex) const { return pageIndex - _StartPageIndex() > EntryCount; }
+
     Ref::PageIndex GetNextJornalPage() const { return _page.Get<Header>()[0].nextJournalPage; }
 
     void RecordJournalEntry(Entry const& entry)
@@ -834,29 +836,27 @@ struct PageManager
     /// <param name="objTypeId"></param>
     void _RecordJournalEntry(Ref::PageIndex pageIndex, ObjTypeId objTypeId)
     {
-        // TODO : Perf optimization . DO not go through all journal pages
-        Ref::PageIndex i = _journalPageIndex;
-        while (i != 0)
+
+        auto journal = LoadPage(0, _journalPageIndex).As<JournalPage>();
+        if (journal.Full(pageIndex))
         {
-            auto journal = LoadPage(0, i).As<JournalPage>();
-
-            for (Ref::PageIndex j = 0; j < journal.GetEntryCount(); j++)
+            _journalPageIndex = journal.GetNextJornalPage();
+            if (_journalPageIndex == 0)
             {
-                auto entry = journal.GetJournalEntry(j);
-                if (entry.typeId == 0)
-                {
-                    continue;
-                }
-                assert(_pageTypes[entry.pageIndex] == 0);
-                _pageTypes[entry.pageIndex] = entry.typeId;
+                auto& page       = CreateNewPage(0);
+                auto  newJournal = page.As<JournalPage>();
+                newJournal.InitializeEmptyJournal(pageIndex);
+                _journalPageIndex = page._pageIndex;
             }
-
-            _journalPageIndex = i;
-            i                 = journal.GetNextJornalPage();
-            if (i == 0)
+            else
             {
-                journal.RecordJournalEntry({pageIndex, objTypeId});
+                assert(_pageTypes[_journalPageIndex] == 0);
             }
+            _RecordJournalEntry(pageIndex, objTypeId);
+        }
+        else
+        {
+            journal.RecordJournalEntry({pageIndex, objTypeId});
         }
     }
 
@@ -1098,10 +1098,14 @@ template <typename TDb> struct DatabaseT
     template <typename TObj> constexpr ObjTypeId TypeId() { return Traits<TObj>::TypeId(); }
 
     public:    // Constructor Destructor
-    DatabaseT() { Init(); }
+    static constexpr struct InMemoryType
+    {
+    } InMemory{};
+
+    DatabaseT()  = default;
     ~DatabaseT() = default;
     DEFAULT_COPY_AND_MOVE(DatabaseT);
-
+    DatabaseT(InMemoryType) { Init(); };
     DatabaseT(std::filesystem::path const& path) : _pagemgr(std::make_shared<impl::PageManager>(path)){};
     DatabaseT(std::ofstream&& stream) : _pagemgr(std::make_shared<impl::PageManager>(stream)){};
     DatabaseT(std::ifstream&& stream) : _pagemgr(std::make_shared<impl::PageManager>(stream)){};

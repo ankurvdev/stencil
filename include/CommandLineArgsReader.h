@@ -2,17 +2,19 @@
 #include <cstring>
 #include <filesystem>
 #include <iostream>
+#include <span>
 #include <sstream>
 
 struct CommandLineArgsReader
 {
-
-    inline bool stricompare(const char* str1, const char* str2)
+    struct Exception : std::exception
     {
-        auto len1 = strlen(str1);
-        auto len2 = strlen(str2);
-        return std::equal(str1, str1 + len1, str2, str2 + len2, [](char a, char b) { return tolower(a) == tolower(b); });
-    }
+        Exception(std::span<std::string_view> const& /*args*/, size_t /*index*/) {}
+        const char* what() const override { return _message.c_str(); }
+
+        private:
+        std::string _message{"Error Processoing args. TODO: Create a more detailed message"};
+    };
 
     struct Definition
     {
@@ -24,10 +26,9 @@ struct CommandLineArgsReader
             Value,
             Enum,
             Union,
-            Unknown
         };
         std::string name;
-        Type        type;
+        Type        type{Type::Invalid};
         std::string description;
 
         Definition(std::string&& nameIn, Type typeIn) : name(nameIn), type(typeIn) {}
@@ -58,7 +59,12 @@ struct CommandLineArgsReader
     CommandLineArgsReader(Handler* handler) : _handler(handler) {}
 
     private:
-    void _ProcessLongArg(const char* argv)
+    auto stricompare(std::string_view const& l, std::string_view const& r)
+    {
+        return std::equal(l.begin(), l.end(), r.begin(), r.end(), [](auto lc, auto rc) { return std::tolower(lc) == std::tolower(rc); });
+    }
+
+    void _ProcessLongArg(std::string_view const& argv)
     {
 
         if (stricompare(argv, "help"))
@@ -66,12 +72,12 @@ struct CommandLineArgsReader
             auto rslt = _handler->GenerateHelp();
             return;
         }
-        const char* eqPtr = strchr(argv, '=');
-        char        name[128]{};
-        if (eqPtr == nullptr || eqPtr[1] == '\0')
+        auto eqPtr = std::find(argv.begin(), argv.end(), '=');
+        char name[128]{};
+        if (eqPtr == argv.end())
         {
             // Either its a boolean value or a Object and we'd like to switch context
-            _handler->ObjKey(std::string(argv));
+            _handler->ObjKey(argv);
             if (_handler->GetCurrentContext()->GetType() == Definition::Type::Value)
             {
                 _handler->HandleValue(true);
@@ -79,19 +85,19 @@ struct CommandLineArgsReader
         }
         else
         {
-            std::copy(argv, eqPtr, name);
-            _handler->ObjKey(std::string(name));
-            this->_ProcessValue(eqPtr + 1);
+            std::copy(argv.begin(), eqPtr, name);
+            _handler->ObjKey(name);
+            this->_ProcessValue(argv.substr(static_cast<size_t>(std::distance(argv.begin(), ++eqPtr))));
         }
     }
 
-    void _ProcessShortArg(const char* argName, const char* argv)
+    void _ProcessShortArg(std::string_view const& argName, std::string_view const& argv)
     {
-        _handler->ObjKey(std::string(argName));
+        _handler->ObjKey(argName);
         this->_ProcessValue(argv);
     }
 
-    void _ProcessRequiredArg(size_t index, const char* argv)
+    void _ProcessRequiredArg(size_t index, std::string_view const& argv)
     {
         switch (_handler->GetCurrentContext()->GetType())
         {
@@ -105,66 +111,120 @@ struct CommandLineArgsReader
         case Definition::Type::Union: this->_ProcessValue(argv); break;
         case Definition::Type::Invalid:
             _handler->ObjEnd();
-            _handler->ObjKey(std::string(argv));
+            _handler->ObjKey(argv);
             break;
-        case Definition::Type::Unknown: throw 1;
+        default: throw std::logic_error("Invalid State Processing Required Arg");
         }
     }
 
-    const char* clgettoken(const char* ptr, char* buffer, size_t bufSize)
+    auto _ValueTokens(std::string_view const& str)
     {
-        const char grpstart = '{', grpend = '}';
-        size_t     i = 0;
-        if (*ptr == '\0') return nullptr;
-        if (*ptr == grpstart)
+        struct Iterator
         {
-            int count = 1;
-            for (ptr++; i < bufSize && *ptr != '\0'; ptr++, i++)
+            Iterator() = default;
+            Iterator(std::string_view const& str) : _str(str) { _MoveNext(); }
+            // DEFAULT_COPY_AND_MOVE(Iterator);
+
+            bool operator==(Iterator const& it) const
             {
-                if (*ptr == grpstart) count++;
-                if (*ptr == grpend) count--;
-                if (count == 0)
-                {
-                    ptr++;
-                    break;
-                }
-                buffer[i] = *ptr;
+                return it._str.data() == _str.data() && it._offset == _offset && it._token == _token;
             }
-            if (*ptr == ':') ++ptr;
-            buffer[i] = '\0';
-            return ptr;
-        }
-        for (; *ptr != ':' && *ptr != '\0' && i < bufSize; i++, ptr++) buffer[i] = *ptr;
-        if (*ptr == ':') ++ptr;
-        buffer[i] = '\0';
-        return ptr;
+            bool operator!=(Iterator const& it) const { return !(*this == it); }
+
+            auto _substr(std::string_view::iterator b, std::string_view::iterator e)
+            {
+                return _str.substr(static_cast<size_t>(b - _str.begin()), static_cast<size_t>(e - b));
+            }
+
+            Iterator& _MoveNext()
+            {
+                if (_str.empty()) return *this;
+                const char grpstart = '{', grpend = '}';
+                auto       its = _str.begin() + static_cast<int>(_offset);
+
+                if (its == _str.end()) return _Terminate();
+                if (*its == ':') ++its;
+                if (its == _str.end()) return _Terminate();
+
+                if (*its == grpstart)
+                {
+                    ///{ .... { ... { ... } ... } ...}
+                    auto ite   = ++its;
+                    int  count = 1;
+                    for (; count > 0 && ite != _str.end(); ++ite)
+                    {
+                        if (*ite == grpstart) count++;
+                        if (*ite == grpend) count--;
+                    }
+                    if (count != 0)
+                    {
+                        // TODO: TEst
+                        throw std::runtime_error("Unclosed parenthesis");
+                    }
+                    _token  = _substr(its, ite - 1);
+                    _offset = static_cast<size_t>(ite - _str.begin());
+                }
+                else
+                {
+                    auto ite = std::find(its, _str.end(), ':');
+                    _token   = _substr(its, ite);
+                    _offset  = static_cast<size_t>(ite - _str.begin());
+                }
+
+                return *this;
+            }
+
+            Iterator& _Terminate()
+            {
+                _str    = {};
+                _offset = 0;
+                _token  = {};
+                return *this;
+            }
+
+            std::string_view const& operator*() const { return _token; }
+            Iterator&               operator++() { return _MoveNext(); }
+
+            std::string_view _str{};
+            std::string_view _token{};
+            size_t           _offset{};
+        };
+
+        struct Range
+        {
+            Range(std::string_view const& str) : _begin(str) {}
+            Iterator _begin;
+            Iterator _end{};
+            auto     begin() { return _begin; }
+            auto     end() { return _end; }
+        };
+        return Range(str);
     }
 
-    void _ProcessList(std::string_view val)
+    void _ProcessList(std::string_view const& val)
     {
         _handler->ListStart();
-        char buffer[1024];
-        for (auto cPtr = clgettoken(val.data(), buffer, 1024); cPtr != nullptr; cPtr = clgettoken(cPtr, buffer, 1024))
+        for (auto const& subval : _ValueTokens(val))
         {
-            this->_ProcessValue(buffer);
+            this->_ProcessValue(subval);
         }
+
         _handler->ListEnd();
     }
 
-    void _ProcessObject(std::string_view val)
+    void _ProcessObject(std::string_view const& val)
     {
         _handler->ObjStart();
-        char   buffer[1024];
         size_t index = 0;
-        for (auto cPtr = clgettoken(val.data(), buffer, 1024); cPtr != nullptr; cPtr = clgettoken(cPtr, buffer, 1024))
+        for (auto const& subval : _ValueTokens(val))
         {
             _handler->ObjKey(index++);
-            this->_ProcessValue(buffer);
+            this->_ProcessValue(subval);
         }
         _handler->ObjEnd();
     }
 
-    void _ProcessValue(std::string_view str)
+    void _ProcessValue(std::string_view const& str)
     {
         switch (_handler->GetCurrentContext()->GetType())
         {
@@ -175,11 +235,11 @@ struct CommandLineArgsReader
             // Will be popped if this context doesnt accept the arg anymore
             _ProcessObject(str);
             break;
-        case Definition::Type::Value: _handler->HandleValue(std::string(str)); break;
-        case Definition::Type::Enum: _handler->HandleEnum(std::string(str)); break;
-        case Definition::Type::Union: _handler->UnionType(std::string(str)); break;
+        case Definition::Type::Value: _handler->HandleValue(str); break;
+        case Definition::Type::Enum: _handler->HandleEnum(str); break;
+        case Definition::Type::Union: _handler->UnionType(str); break;
         case Definition::Type::Invalid: [[fallthrough]];
-        case Definition::Type::Unknown: throw "Unknown Data Type";
+        default: throw std::logic_error("Error Processing Value");
         }
     }
 
@@ -224,93 +284,117 @@ struct CommandLineArgsReader
          ss << std::endl;
      }*/
     public:
-    void Parse(size_t argc, const char* argv[])
+    void Parse(std::span<std::string_view> const& args)
     {
-        const char* cargv;
-        size_t      requiredArgNum = 0;
-        for (size_t i = 1; i < argc; i++)
+        size_t requiredArgNum = 0;
+        enum class Mode
         {
-            if ((cargv = argv[i]) == nullptr || cargv[0] == '\0') continue;
-            switch (argv[i][0])
-            {
-            case '-':
-            {
-                if (cargv[1] == '\0') break;
-                if (cargv[1] == '-')
-                {
-                    this->_ProcessLongArg(&cargv[2]);
-                    break;
-                }
-                char shortName[2]{};
+            Normal,
+            ShortArg
 
-            repeat:
-                /* Three types of short args
-                 * -zxvf
-                 * -zValue
-                 * -z Value*/
-                shortName[0] = cargv[2];
-                if (shortName[0] == 'h')
+        } mode{Mode::Normal};
+
+        char   shortName{};
+        size_t index = 0;
+        for (auto const& arg : args.subspan(1))
+        {
+            ++index;
+            auto it = arg.begin();
+            if (it == arg.end())
+            {
+                // TODO: Log warning
+                continue;
+            }
+
+            switch (mode)
+            {
+            case Mode::Normal:
+            {
+                if (*it == '-')
                 {
-                    auto rslt = _handler->GenerateHelp();
-                    return;
-                }
-                while (true)
-                {
-                    if (_handler->GetCurrentContext()->GetType() == Definition::Type::Invalid)
+                    if ((++it) == arg.end())
                     {
-                        _handler->ObjEnd();
+                        throw Exception(args, index);
                     }
-                    else
+
+                    if (*it == '-')
                     {
-                        _handler->ObjKey(std::string(shortName));
+                        this->_ProcessLongArg(arg.substr(2));
                         break;
-                    };
-                }
-
-                bool needsArg = _handler->GetCurrentContext()->GetType() != Definition::Type::Value;
-                if (needsArg)
-                {
-                    if (cargv[2] == '\0')
-                    {
-                        i++;
-                        if (i == argc)
-                        {
-                            throw 1;
-                        }
-                        cargv = argv[i];
-                        this->_ProcessShortArg(shortName, cargv);
                     }
                     else
                     {
-                        this->_ProcessShortArg(shortName, &cargv[2]);
+                        for (; it != arg.end(); ++it)
+                        {
+                            /* Three types of short args
+                             * -zxvf
+                             * -zValue
+                             * -z Value*/
+                            shortName = *it;
+                            if (shortName == 'h')
+                            {
+                                auto rslt = _handler->GenerateHelp();
+                                return;
+                            }
+
+                            // End any current contexts that need values
+                            // TODO : Should this be list / something other than invalid
+                            // Why would this be invalid
+                            while (_handler->GetCurrentContext()->GetType() == Definition::Type::Invalid)
+                            {
+                                _handler->ObjEnd();
+                            }
+
+                            _handler->ObjKey(std::string_view(&shortName, 1));
+
+                            bool needsArg = _handler->GetCurrentContext()->GetType() != Definition::Type::Value;
+                            if (needsArg)
+                            {
+                                if (arg.size() > 2)
+                                {
+                                    // -zValue
+                                    this->_ProcessShortArg(std::string_view(&shortName, 1), arg.substr(2));
+                                }
+                                else
+                                {
+                                    // -z Value. Value is in the next arg
+                                    mode = Mode::ShortArg;
+                                }
+                                break;    // Out of the inner loop.
+                            }
+                            // -zxvf continue for mode
+                        }
                     }
                 }
                 else
                 {
-                    if (cargv[2] == '\0')
-                    {
-                        break;
-                    }
-                    cargv++;
-                    // There's another switch in the same switch text (eg: -zxvf)
-                    goto repeat;
+                    this->_ProcessRequiredArg(requiredArgNum++, arg);
                 }
             }
-            default: this->_ProcessRequiredArg(requiredArgNum++, cargv);
+            break;
+
+            case Mode::ShortArg:
+            {
+                // -z Value. Value of the short arg
+                this->_ProcessShortArg(std::string_view(&shortName, 1), arg);
+                mode = Mode::Normal;
+            }
+            break;
             }
         }
     }
 
-    template <class TDataModel> void ParseWithHelpOnError(TDataModel* pData, int argc, const char* argv[]) noexcept
+    template <class TDataModel> void ParseWithHelpOnError(TDataModel* pData, std::span<std::string_view> args) noexcept
     {
         auto def = TDataModel::GetModelDefinition();
         try
         {
-            _Deserialize(def, pData, argc, argv);
+            _Deserialize(def, pData, args);
         }
-        catch (...)
+        catch (CommandLineArgsReader::Exception const& ex)
         {
-            Help(def, argv[0]);
+            std::cerr << ex.what() << std::endl;
+            Help(def, args[0]);
         }
     }
 };

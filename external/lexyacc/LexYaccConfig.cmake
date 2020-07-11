@@ -209,7 +209,7 @@ function(target_add_lexyacc target lyfile)
         target_include_directories(${target} PRIVATE ${FLEX_INCLUDE_DIR})
     endif()
 
-    if (MSVC)
+    if (${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
         # 4244 return type conversion possible loss of data
         # 4365 signed unsigned mismatch
         # 4626 assignment operator implicitly defined as deleted

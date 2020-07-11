@@ -132,12 +132,28 @@ struct Value
 
     static int _doubletoint(double val) { return (int)std::round(val); }
 
-    Value cast_integer() const
+    Value cast_signed() const
     {
         switch (_type)
         {
         case Type::Empty: throw UnsupportedCast();
         case Type::Signed: return Value(_iVal);
+        case Type::Unsigned: return Value(static_cast<int64_t>(_uVal));
+        case Type::Double: return Value(_doubletoint(_dVal));
+        case Type::String: return Value(_strtoint(_sVal));
+        case Type::Unknown: [[fallthrough]];
+
+        default: throw UnsupportedCast();
+        }
+    }
+
+    
+    Value cast_unsigned() const
+    {
+        switch (_type)
+        {
+        case Type::Empty: throw UnsupportedCast();
+        case Type::Signed: return Value(static_cast<uint64_t>(_iVal));
         case Type::Unsigned: return Value(_uVal);
         case Type::Double: return Value(_doubletoint(_dVal));
         case Type::String: return Value(_strtoint(_sVal));
@@ -182,8 +198,8 @@ struct Value
         switch (type)
         {
         case Type::Empty: return Value();
-        case Type::Signed: return cast_integer();
-        case Type::Unsigned: return cast_integer();
+        case Type::Signed: return cast_signed();
+        case Type::Unsigned: return cast_unsigned();
         case Type::Double: return cast_double();
         case Type::String: return cast_string();
         case Type::Unknown: [[fallthrough]];

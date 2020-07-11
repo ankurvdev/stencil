@@ -1,6 +1,4 @@
 #pragma once
-#include <ClassHelperMacros.h>
-
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
@@ -12,6 +10,46 @@
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
+
+#define DEFAULT_COPY_AND_MOVE(name)         \
+    name(name const&) = default;            \
+    name(name&&)      = default;            \
+    name& operator=(name const&) = default; \
+    name& operator=(name&&) = delete
+
+#define DELETE_MOVE_ASSIGNMENT(name)        \
+    name(name const&) = default;            \
+    name(name&&)      = default;            \
+    name& operator=(name const&) = default; \
+    name& operator=(name&&) = delete
+
+#define DELETE_MOVE_AND_COPY_ASSIGNMENT(name) \
+    name(name const&) = default;              \
+    name(name&&)      = default;              \
+    name& operator=(name const&) = delete;    \
+    name& operator=(name&&) = delete
+
+#define DELETE_COPY_AND_MOVE(name)         \
+    name(name const&) = delete;            \
+    name(name&&)      = delete;            \
+    name& operator=(name const&) = delete; \
+    name& operator=(name&&) = delete
+
+#define DELETE_COPY_DEFAULT_MOVE(name)     \
+    name(name const&) = delete;            \
+    name(name&&)      = default;           \
+    name& operator=(name const&) = delete; \
+    name& operator=(name&&) = default
+
+#define ONLY_MOVE_CONSTRUCT(name)          \
+    name(name const&) = delete;            \
+    name(name&&)      = default;           \
+    name& operator=(name const&) = delete; \
+    name& operator=(name&&) = delete
+
+#if !defined TODO
+#define TODO(...) throw std::logic_error("Not Implemented")
+#endif
 
 #pragma warning(push)
 #pragma warning(disable : 4371)    // Object layout under /vd2 will change due to virtual base
@@ -41,6 +79,7 @@ template <> struct StrOps<std::wstring>
         else
             return Convert(std::string_view(in));
     }
+
     static Type Convert(std::string_view const& in)
     {
         Type out;
@@ -605,7 +644,7 @@ struct BindingContext
 
 struct BindableBase : public IBindable, public ValueT<Type::Object>
 {
-    BindableBase() = default;
+    BindableBase()  = default;
     ~BindableBase() = default;
     DELETE_COPY_AND_MOVE(BindableBase);
 
@@ -767,8 +806,12 @@ template <typename TParent, typename TObject> struct BindableParent : public vir
         Str::Type                         _ownerName{Str::Create(TParent::BindingKeyName())};
         Str::Type                         _objectName{Str::Create(TObject::BindingKeyName())};
     };
-
+#pragma warning(push)
+#pragma warning(disable : 4355)    // this used in base member initializer list
+                                   // TODO remove this disable
     BindableParent() : _bindableComponent(std::make_shared<BindableComponent>(*this)) { Register(_bindableComponent); }
+#pragma warning(pop)
+
     DELETE_COPY_AND_MOVE(BindableParent);
 
     std::shared_ptr<BindableComponent> _bindableComponent;

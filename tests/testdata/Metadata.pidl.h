@@ -14,16 +14,17 @@ namespace DigitalAssetInfo
 {
 struct Data;
 }
-typedef tree<shared_string>              Keyword;
-typedef tree<shared_string>              Entity;
-typedef std::vector<MapPoint::Data>      AreaPolygon;
-typedef tree<GeographicalArea::Data>     GeographicalLocation;
-typedef std::vector<tree<shared_string>> Keywords;
-typedef std::vector<tree<shared_string>> Entities;
+typedef shared_tree<shared_string> Keyword;
+typedef shared_tree<shared_string> Entity;
+typedef std::vector<MapPoint::Data> AreaPolygon;
+typedef shared_tree<GeographicalArea::Data> GeographicalLocation;
+typedef std::vector<shared_tree<shared_string>> Keywords;
+typedef std::vector<shared_tree<shared_string>> Entities;
 namespace MapPoint
 {
 
-struct Data : public ReflectionBase::ObjMarker
+struct Data :
+    public ReflectionBase::ObjMarker
 {
     /*template <typename...TArgs> Data(TArgs&& ... args)
     {
@@ -33,16 +34,20 @@ struct Data : public ReflectionBase::ObjMarker
     enum class FieldIndex
     {
         Invalid,
-        latitude,
-        longitude
+        latitude
+,        longitude
     };
 
     static constexpr std::string_view FieldAttributeValue(FieldIndex index, const std::string_view& key)
     {
         switch (index)
         {
-        case FieldIndex::latitude: return ::ReflectionServices::EmptyAttributeValue(key);
-        case FieldIndex::longitude: return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::latitude:
+            return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::longitude:
+            return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -54,7 +59,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     int64_t&       latitude() { return _latitude; }
     const int64_t& latitude() const { return _latitude; }
-    void           latitude(int64_t&& val) { _latitude = std::move(val); }
+    void                            latitude(int64_t&& val) { _latitude = std::move(val); }
 
     int64_t& get_latitude()
     {
@@ -69,7 +74,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     int64_t&       longitude() { return _longitude; }
     const int64_t& longitude() const { return _longitude; }
-    void           longitude(int64_t&& val) { _longitude = std::move(val); }
+    void                            longitude(int64_t&& val) { _longitude = std::move(val); }
 
     int64_t& get_longitude()
     {
@@ -77,13 +82,15 @@ struct Data : public ReflectionBase::ObjMarker
         ;
     }
     void set_longitude(int64_t&& val) { _longitude = std::move(val); }
+
 };
 
 }    // namespace MapPoint
 namespace GeographicalArea
 {
 
-struct Data : public ReflectionBase::ObjMarker
+struct Data :
+    public ReflectionBase::ObjMarker
 {
     /*template <typename...TArgs> Data(TArgs&& ... args)
     {
@@ -93,18 +100,23 @@ struct Data : public ReflectionBase::ObjMarker
     enum class FieldIndex
     {
         Invalid,
-        type,
-        name,
-        areaPolygon
+        type
+,        name
+,        areaPolygon
     };
 
     static constexpr std::string_view FieldAttributeValue(FieldIndex index, const std::string_view& key)
     {
         switch (index)
         {
-        case FieldIndex::type: return ::ReflectionServices::EmptyAttributeValue(key);
-        case FieldIndex::name: return ::ReflectionServices::EmptyAttributeValue(key);
-        case FieldIndex::areaPolygon: return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::type:
+            return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::name:
+            return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::areaPolygon:
+            return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -116,7 +128,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     shared_string&       type() { return _type; }
     const shared_string& type() const { return _type; }
-    void                 type(shared_string&& val) { _type = std::move(val); }
+    void                            type(shared_string&& val) { _type = std::move(val); }
 
     shared_string& get_type()
     {
@@ -131,7 +143,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     shared_string&       name() { return _name; }
     const shared_string& name() const { return _name; }
-    void                 name(shared_string&& val) { _name = std::move(val); }
+    void                            name(shared_string&& val) { _name = std::move(val); }
 
     shared_string& get_name()
     {
@@ -146,7 +158,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     std::vector<MapPoint::Data>&       areaPolygon() { return _areaPolygon; }
     const std::vector<MapPoint::Data>& areaPolygon() const { return _areaPolygon; }
-    void                               areaPolygon(std::vector<MapPoint::Data>&& val) { _areaPolygon = std::move(val); }
+    void                            areaPolygon(std::vector<MapPoint::Data>&& val) { _areaPolygon = std::move(val); }
 
     std::vector<MapPoint::Data>& get_areaPolygon()
     {
@@ -154,13 +166,15 @@ struct Data : public ReflectionBase::ObjMarker
         ;
     }
     void set_areaPolygon(std::vector<MapPoint::Data>&& val) { _areaPolygon = std::move(val); }
+
 };
 
 }    // namespace GeographicalArea
 namespace DigitalAssetInfo
 {
 
-struct Data : public ReflectionBase::ObjMarker
+struct Data :
+    public ReflectionBase::ObjMarker
 {
     /*template <typename...TArgs> Data(TArgs&& ... args)
     {
@@ -170,24 +184,32 @@ struct Data : public ReflectionBase::ObjMarker
     enum class FieldIndex
     {
         Invalid,
-        id,
-        keywords,
-        location,
-        md5sum,
-        thumbnailBlob,
-        fileUrl
+        id
+,        keywords
+,        location
+,        md5sum
+,        thumbnailBlob
+,        fileUrl
     };
 
     static constexpr std::string_view FieldAttributeValue(FieldIndex index, const std::string_view& key)
     {
         switch (index)
         {
-        case FieldIndex::id: return ::ReflectionServices::EmptyAttributeValue(key);
-        case FieldIndex::keywords: return ::ReflectionServices::EmptyAttributeValue(key);
-        case FieldIndex::location: return ::ReflectionServices::EmptyAttributeValue(key);
-        case FieldIndex::md5sum: return ::ReflectionServices::EmptyAttributeValue(key);
-        case FieldIndex::thumbnailBlob: return ::ReflectionServices::EmptyAttributeValue(key);
-        case FieldIndex::fileUrl: return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::id:
+            return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::keywords:
+            return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::location:
+            return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::md5sum:
+            return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::thumbnailBlob:
+            return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::fileUrl:
+            return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -199,7 +221,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     int32_t&       id() { return _id; }
     const int32_t& id() const { return _id; }
-    void           id(int32_t&& val) { _id = std::move(val); }
+    void                            id(int32_t&& val) { _id = std::move(val); }
 
     int32_t& get_id()
     {
@@ -209,34 +231,34 @@ struct Data : public ReflectionBase::ObjMarker
     void set_id(int32_t&& val) { _id = std::move(val); }
 
     private:
-    std::vector<tree<shared_string>> _keywords = {};
+    std::vector<shared_tree<shared_string>> _keywords = {};
 
     public:
-    std::vector<tree<shared_string>>&       keywords() { return _keywords; }
-    const std::vector<tree<shared_string>>& keywords() const { return _keywords; }
-    void                                    keywords(std::vector<tree<shared_string>>&& val) { _keywords = std::move(val); }
+    std::vector<shared_tree<shared_string>>&       keywords() { return _keywords; }
+    const std::vector<shared_tree<shared_string>>& keywords() const { return _keywords; }
+    void                            keywords(std::vector<shared_tree<shared_string>>&& val) { _keywords = std::move(val); }
 
-    std::vector<tree<shared_string>>& get_keywords()
+    std::vector<shared_tree<shared_string>>& get_keywords()
     {
         return _keywords;
         ;
     }
-    void set_keywords(std::vector<tree<shared_string>>&& val) { _keywords = std::move(val); }
+    void set_keywords(std::vector<shared_tree<shared_string>>&& val) { _keywords = std::move(val); }
 
     private:
-    tree<GeographicalArea::Data> _location = {};
+    shared_tree<GeographicalArea::Data> _location = {};
 
     public:
-    tree<GeographicalArea::Data>&       location() { return _location; }
-    const tree<GeographicalArea::Data>& location() const { return _location; }
-    void                                location(tree<GeographicalArea::Data>&& val) { _location = std::move(val); }
+    shared_tree<GeographicalArea::Data>&       location() { return _location; }
+    const shared_tree<GeographicalArea::Data>& location() const { return _location; }
+    void                            location(shared_tree<GeographicalArea::Data>&& val) { _location = std::move(val); }
 
-    tree<GeographicalArea::Data>& get_location()
+    shared_tree<GeographicalArea::Data>& get_location()
     {
         return _location;
         ;
     }
-    void set_location(tree<GeographicalArea::Data>&& val) { _location = std::move(val); }
+    void set_location(shared_tree<GeographicalArea::Data>&& val) { _location = std::move(val); }
 
     private:
     int64_t _md5sum = {};
@@ -244,7 +266,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     int64_t&       md5sum() { return _md5sum; }
     const int64_t& md5sum() const { return _md5sum; }
-    void           md5sum(int64_t&& val) { _md5sum = std::move(val); }
+    void                            md5sum(int64_t&& val) { _md5sum = std::move(val); }
 
     int64_t& get_md5sum()
     {
@@ -259,7 +281,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     shared_string&       thumbnailBlob() { return _thumbnailBlob; }
     const shared_string& thumbnailBlob() const { return _thumbnailBlob; }
-    void                 thumbnailBlob(shared_string&& val) { _thumbnailBlob = std::move(val); }
+    void                            thumbnailBlob(shared_string&& val) { _thumbnailBlob = std::move(val); }
 
     shared_string& get_thumbnailBlob()
     {
@@ -274,7 +296,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     shared_string&       fileUrl() { return _fileUrl; }
     const shared_string& fileUrl() const { return _fileUrl; }
-    void                 fileUrl(shared_string&& val) { _fileUrl = std::move(val); }
+    void                            fileUrl(shared_string&& val) { _fileUrl = std::move(val); }
 
     shared_string& get_fileUrl()
     {
@@ -282,15 +304,16 @@ struct Data : public ReflectionBase::ObjMarker
         ;
     }
     void set_fileUrl(shared_string&& val) { _fileUrl = std::move(val); }
+
 };
 
 }    // namespace DigitalAssetInfo
-typedef tree<shared_string>              Keyword;
-typedef tree<shared_string>              Entity;
-typedef std::vector<MapPoint::Data>      AreaPolygon;
-typedef tree<GeographicalArea::Data>     GeographicalLocation;
-typedef std::vector<tree<shared_string>> Keywords;
-typedef std::vector<tree<shared_string>> Entities;
+typedef shared_tree<shared_string> Keyword;
+typedef shared_tree<shared_string> Entity;
+typedef std::vector<MapPoint::Data> AreaPolygon;
+typedef shared_tree<GeographicalArea::Data> GeographicalLocation;
+typedef std::vector<shared_tree<shared_string>> Keywords;
+typedef std::vector<shared_tree<shared_string>> Entities;
 }    // namespace Metadata
 
 template <> struct ReflectionBase::TypeTraits<Metadata::MapPoint::Data&>
@@ -308,7 +331,10 @@ template <> struct ReflectionBase::TypeTraits<Metadata::MapPoint::Data&>
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::latitude, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     struct Traits_longitude
     {
@@ -323,13 +349,22 @@ template <> struct ReflectionBase::TypeTraits<Metadata::MapPoint::Data&>
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::longitude, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
     static constexpr std::string_view           Name() { return "MapPoint"; }
-    static constexpr std::string_view AttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
+    static constexpr std::string_view           AttributeValue(const std::string_view& key)
+    {
+        return ::ReflectionServices::EmptyAttributeValue(key);
+    }
 
-    using Handler = ::ReflectionServices::ReflectedStructHandler<Metadata::MapPoint::Data, Traits_latitude, Traits_longitude>;
+    using Handler = ::ReflectionServices::ReflectedStructHandler<Metadata::MapPoint::Data,
+                                                                 Traits_latitude
+,                                                                 Traits_longitude
+                                                                 >;
 };
 template <> struct ReflectionBase::TypeTraits<Metadata::GeographicalArea::Data&>
 {
@@ -346,7 +381,10 @@ template <> struct ReflectionBase::TypeTraits<Metadata::GeographicalArea::Data&>
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::type, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     struct Traits_name
     {
@@ -361,7 +399,10 @@ template <> struct ReflectionBase::TypeTraits<Metadata::GeographicalArea::Data&>
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::name, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     struct Traits_areaPolygon
     {
@@ -376,14 +417,23 @@ template <> struct ReflectionBase::TypeTraits<Metadata::GeographicalArea::Data&>
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::areaPolygon, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
     static constexpr std::string_view           Name() { return "GeographicalArea"; }
-    static constexpr std::string_view AttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
+    static constexpr std::string_view           AttributeValue(const std::string_view& key)
+    {
+        return ::ReflectionServices::EmptyAttributeValue(key);
+    }
 
-    using Handler
-        = ::ReflectionServices::ReflectedStructHandler<Metadata::GeographicalArea::Data, Traits_type, Traits_name, Traits_areaPolygon>;
+    using Handler = ::ReflectionServices::ReflectedStructHandler<Metadata::GeographicalArea::Data,
+                                                                 Traits_type
+,                                                                 Traits_name
+,                                                                 Traits_areaPolygon
+                                                                 >;
 };
 template <> struct ReflectionBase::TypeTraits<Metadata::DigitalAssetInfo::Data&>
 {
@@ -400,7 +450,10 @@ template <> struct ReflectionBase::TypeTraits<Metadata::DigitalAssetInfo::Data&>
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::id, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     struct Traits_keywords
     {
@@ -415,7 +468,10 @@ template <> struct ReflectionBase::TypeTraits<Metadata::DigitalAssetInfo::Data&>
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::keywords, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     struct Traits_location
     {
@@ -430,7 +486,10 @@ template <> struct ReflectionBase::TypeTraits<Metadata::DigitalAssetInfo::Data&>
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::location, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     struct Traits_md5sum
     {
@@ -445,7 +504,10 @@ template <> struct ReflectionBase::TypeTraits<Metadata::DigitalAssetInfo::Data&>
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::md5sum, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     struct Traits_thumbnailBlob
     {
@@ -460,7 +522,10 @@ template <> struct ReflectionBase::TypeTraits<Metadata::DigitalAssetInfo::Data&>
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::thumbnailBlob, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     struct Traits_fileUrl
     {
@@ -475,17 +540,24 @@ template <> struct ReflectionBase::TypeTraits<Metadata::DigitalAssetInfo::Data&>
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::fileUrl, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
     static constexpr std::string_view           Name() { return "DigitalAssetInfo"; }
-    static constexpr std::string_view AttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
+    static constexpr std::string_view           AttributeValue(const std::string_view& key)
+    {
+        return ::ReflectionServices::EmptyAttributeValue(key);
+    }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<Metadata::DigitalAssetInfo::Data,
-                                                                 Traits_id,
-                                                                 Traits_keywords,
-                                                                 Traits_location,
-                                                                 Traits_md5sum,
-                                                                 Traits_thumbnailBlob,
-                                                                 Traits_fileUrl>;
+                                                                 Traits_id
+,                                                                 Traits_keywords
+,                                                                 Traits_location
+,                                                                 Traits_md5sum
+,                                                                 Traits_thumbnailBlob
+,                                                                 Traits_fileUrl
+                                                                 >;
 };

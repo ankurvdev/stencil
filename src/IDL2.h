@@ -10,8 +10,6 @@
 
 #pragma warning(push)
 #pragma warning(disable : 4435)    // Object layout under /vd2 will change due to virtual base
-#pragma warning(disable : 4355)    // this used in base member initializer list
-// TODO remove this disable
 
 namespace IDL
 {

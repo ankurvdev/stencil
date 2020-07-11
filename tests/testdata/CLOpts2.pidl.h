@@ -33,7 +33,8 @@ struct Data;
 namespace InstallOptions
 {
 
-struct Data : public ReflectionBase::ObjMarker
+struct Data :
+    public ReflectionBase::ObjMarker
 {
     /*template <typename...TArgs> Data(TArgs&& ... args)
     {
@@ -43,11 +44,11 @@ struct Data : public ReflectionBase::ObjMarker
     enum class FieldIndex
     {
         Invalid,
-        ProductId,
-        Repair,
-        ForceNonSD,
-        TargetVolume,
-        User
+        ProductId
+,        Repair
+,        ForceNonSD
+,        TargetVolume
+,        User
     };
 
     static constexpr std::string_view FieldAttributeValue(FieldIndex index, const std::string_view& key)
@@ -69,6 +70,8 @@ struct Data : public ReflectionBase::ObjMarker
         case FieldIndex::User:
             if (key == "Description") return "User to install for";
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -80,7 +83,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     shared_string&       ProductId() { return _ProductId; }
     const shared_string& ProductId() const { return _ProductId; }
-    void                 ProductId(shared_string&& val) { _ProductId = std::move(val); }
+    void                            ProductId(shared_string&& val) { _ProductId = std::move(val); }
 
     shared_string& get_ProductId()
     {
@@ -95,7 +98,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     bool&       Repair() { return _Repair; }
     const bool& Repair() const { return _Repair; }
-    void        Repair(bool&& val) { _Repair = std::move(val); }
+    void                            Repair(bool&& val) { _Repair = std::move(val); }
 
     bool& get_Repair()
     {
@@ -110,7 +113,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     bool&       ForceNonSD() { return _ForceNonSD; }
     const bool& ForceNonSD() const { return _ForceNonSD; }
-    void        ForceNonSD(bool&& val) { _ForceNonSD = std::move(val); }
+    void                            ForceNonSD(bool&& val) { _ForceNonSD = std::move(val); }
 
     bool& get_ForceNonSD()
     {
@@ -125,7 +128,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     shared_string&       TargetVolume() { return _TargetVolume; }
     const shared_string& TargetVolume() const { return _TargetVolume; }
-    void                 TargetVolume(shared_string&& val) { _TargetVolume = std::move(val); }
+    void                            TargetVolume(shared_string&& val) { _TargetVolume = std::move(val); }
 
     shared_string& get_TargetVolume()
     {
@@ -140,7 +143,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     shared_string&       User() { return _User; }
     const shared_string& User() const { return _User; }
-    void                 User(shared_string&& val) { _User = std::move(val); }
+    void                            User(shared_string&& val) { _User = std::move(val); }
 
     shared_string& get_User()
     {
@@ -148,13 +151,15 @@ struct Data : public ReflectionBase::ObjMarker
         ;
     }
     void set_User(shared_string&& val) { _User = std::move(val); }
+
 };
 
 }    // namespace InstallOptions
 namespace QueueOptions
 {
 
-struct Data : public ReflectionBase::ObjMarker
+struct Data :
+    public ReflectionBase::ObjMarker
 {
     /*template <typename...TArgs> Data(TArgs&& ... args)
     {
@@ -174,6 +179,8 @@ struct Data : public ReflectionBase::ObjMarker
         case FieldIndex::ProductId:
             if (key == "Description") return "Catalog/Product:Sku:Bundle";
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -185,7 +192,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     shared_string&       ProductId() { return _ProductId; }
     const shared_string& ProductId() const { return _ProductId; }
-    void                 ProductId(shared_string&& val) { _ProductId = std::move(val); }
+    void                            ProductId(shared_string&& val) { _ProductId = std::move(val); }
 
     shared_string& get_ProductId()
     {
@@ -193,13 +200,15 @@ struct Data : public ReflectionBase::ObjMarker
         ;
     }
     void set_ProductId(shared_string&& val) { _ProductId = std::move(val); }
+
 };
 
 }    // namespace QueueOptions
 namespace PauseOptions
 {
 
-struct Data : public ReflectionBase::ObjMarker
+struct Data :
+    public ReflectionBase::ObjMarker
 {
     /*template <typename...TArgs> Data(TArgs&& ... args)
     {
@@ -219,6 +228,8 @@ struct Data : public ReflectionBase::ObjMarker
         case FieldIndex::ProductId:
             if (key == "Description") return "Catalog/Product:Sku:Bundle";
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -230,7 +241,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     shared_string&       ProductId() { return _ProductId; }
     const shared_string& ProductId() const { return _ProductId; }
-    void                 ProductId(shared_string&& val) { _ProductId = std::move(val); }
+    void                            ProductId(shared_string&& val) { _ProductId = std::move(val); }
 
     shared_string& get_ProductId()
     {
@@ -238,13 +249,15 @@ struct Data : public ReflectionBase::ObjMarker
         ;
     }
     void set_ProductId(shared_string&& val) { _ProductId = std::move(val); }
+
 };
 
 }    // namespace PauseOptions
 namespace CancelOptions
 {
 
-struct Data : public ReflectionBase::ObjMarker
+struct Data :
+    public ReflectionBase::ObjMarker
 {
     /*template <typename...TArgs> Data(TArgs&& ... args)
     {
@@ -264,6 +277,8 @@ struct Data : public ReflectionBase::ObjMarker
         case FieldIndex::ProductId:
             if (key == "Description") return "Catalog/Product:Sku:Bundle";
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -275,7 +290,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     shared_string&       ProductId() { return _ProductId; }
     const shared_string& ProductId() const { return _ProductId; }
-    void                 ProductId(shared_string&& val) { _ProductId = std::move(val); }
+    void                            ProductId(shared_string&& val) { _ProductId = std::move(val); }
 
     shared_string& get_ProductId()
     {
@@ -283,13 +298,15 @@ struct Data : public ReflectionBase::ObjMarker
         ;
     }
     void set_ProductId(shared_string&& val) { _ProductId = std::move(val); }
+
 };
 
 }    // namespace CancelOptions
 namespace ResumeOptions
 {
 
-struct Data : public ReflectionBase::ObjMarker
+struct Data :
+    public ReflectionBase::ObjMarker
 {
     /*template <typename...TArgs> Data(TArgs&& ... args)
     {
@@ -309,6 +326,8 @@ struct Data : public ReflectionBase::ObjMarker
         case FieldIndex::ProductId:
             if (key == "Description") return "Catalog/Product:Sku:Bundle";
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -320,7 +339,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     shared_string&       ProductId() { return _ProductId; }
     const shared_string& ProductId() const { return _ProductId; }
-    void                 ProductId(shared_string&& val) { _ProductId = std::move(val); }
+    void                            ProductId(shared_string&& val) { _ProductId = std::move(val); }
 
     shared_string& get_ProductId()
     {
@@ -328,13 +347,15 @@ struct Data : public ReflectionBase::ObjMarker
         ;
     }
     void set_ProductId(shared_string&& val) { _ProductId = std::move(val); }
+
 };
 
 }    // namespace ResumeOptions
 namespace UpdateOptions
 {
 
-struct Data : public ReflectionBase::ObjMarker
+struct Data :
+    public ReflectionBase::ObjMarker
 {
     /*template <typename...TArgs> Data(TArgs&& ... args)
     {
@@ -354,6 +375,8 @@ struct Data : public ReflectionBase::ObjMarker
         case FieldIndex::ProductId:
             if (key == "Description") return "Catalog/Product:Sku:Bundle";
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -365,7 +388,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     shared_string&       ProductId() { return _ProductId; }
     const shared_string& ProductId() const { return _ProductId; }
-    void                 ProductId(shared_string&& val) { _ProductId = std::move(val); }
+    void                            ProductId(shared_string&& val) { _ProductId = std::move(val); }
 
     shared_string& get_ProductId()
     {
@@ -373,13 +396,15 @@ struct Data : public ReflectionBase::ObjMarker
         ;
     }
     void set_ProductId(shared_string&& val) { _ProductId = std::move(val); }
+
 };
 
 }    // namespace UpdateOptions
 namespace HydrateOptions
 {
 
-struct Data : public ReflectionBase::ObjMarker
+struct Data :
+    public ReflectionBase::ObjMarker
 {
     /*template <typename...TArgs> Data(TArgs&& ... args)
     {
@@ -399,6 +424,8 @@ struct Data : public ReflectionBase::ObjMarker
         case FieldIndex::ProductId:
             if (key == "Description") return "Catalog/Product:Sku:Bundle";
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -410,7 +437,7 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     shared_string&       ProductId() { return _ProductId; }
     const shared_string& ProductId() const { return _ProductId; }
-    void                 ProductId(shared_string&& val) { _ProductId = std::move(val); }
+    void                            ProductId(shared_string&& val) { _ProductId = std::move(val); }
 
     shared_string& get_ProductId()
     {
@@ -418,6 +445,7 @@ struct Data : public ReflectionBase::ObjMarker
         ;
     }
     void set_ProductId(shared_string&& val) { _ProductId = std::move(val); }
+
 };
 
 }    // namespace HydrateOptions
@@ -430,13 +458,13 @@ namespace CommandLineOptions
 enum class UnionType
 {
     Invalid,
-    install,
-    queue,
-    pause,
-    cancel,
-    resume,
-    update,
-    hydrate
+    install
+,    queue
+,    pause
+,    cancel
+,    resume
+,    update
+,    hydrate
 };
 
 struct Data : public ReflectionBase::ObjMarker
@@ -455,13 +483,13 @@ struct Data : public ReflectionBase::ObjMarker
     enum class FieldIndex
     {
         Invalid,
-        install,
-        queue,
-        pause,
-        cancel,
-        resume,
-        update,
-        hydrate
+        install
+,        queue
+,        pause
+,        cancel
+,        resume
+,        update
+,        hydrate
     };
 
     static constexpr std::string_view FieldAttributeValue(FieldIndex index, const std::string_view& key)
@@ -496,6 +524,8 @@ struct Data : public ReflectionBase::ObjMarker
         {
             return ::ReflectionServices::EmptyAttributeValue(key);
         }
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -507,8 +537,8 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     InstallOptions::Data&       install() { return _install; }
     const InstallOptions::Data& install() const { return _install; }
-    void                        install(const InstallOptions::Data& val) { _install = val; }
-    void                        install(InstallOptions::Data&& val) { _install = std::move(val); }
+    void                            install(const InstallOptions::Data& val) { _install = val; }
+    void                            install(InstallOptions::Data&& val) { _install = std::move(val); }
 
     InstallOptions::Data& get_install()
     {
@@ -523,8 +553,8 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     QueueOptions::Data&       queue() { return _queue; }
     const QueueOptions::Data& queue() const { return _queue; }
-    void                      queue(const QueueOptions::Data& val) { _queue = val; }
-    void                      queue(QueueOptions::Data&& val) { _queue = std::move(val); }
+    void                            queue(const QueueOptions::Data& val) { _queue = val; }
+    void                            queue(QueueOptions::Data&& val) { _queue = std::move(val); }
 
     QueueOptions::Data& get_queue()
     {
@@ -539,8 +569,8 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     PauseOptions::Data&       pause() { return _pause; }
     const PauseOptions::Data& pause() const { return _pause; }
-    void                      pause(const PauseOptions::Data& val) { _pause = val; }
-    void                      pause(PauseOptions::Data&& val) { _pause = std::move(val); }
+    void                            pause(const PauseOptions::Data& val) { _pause = val; }
+    void                            pause(PauseOptions::Data&& val) { _pause = std::move(val); }
 
     PauseOptions::Data& get_pause()
     {
@@ -555,8 +585,8 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     CancelOptions::Data&       cancel() { return _cancel; }
     const CancelOptions::Data& cancel() const { return _cancel; }
-    void                       cancel(const CancelOptions::Data& val) { _cancel = val; }
-    void                       cancel(CancelOptions::Data&& val) { _cancel = std::move(val); }
+    void                            cancel(const CancelOptions::Data& val) { _cancel = val; }
+    void                            cancel(CancelOptions::Data&& val) { _cancel = std::move(val); }
 
     CancelOptions::Data& get_cancel()
     {
@@ -571,8 +601,8 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     ResumeOptions::Data&       resume() { return _resume; }
     const ResumeOptions::Data& resume() const { return _resume; }
-    void                       resume(const ResumeOptions::Data& val) { _resume = val; }
-    void                       resume(ResumeOptions::Data&& val) { _resume = std::move(val); }
+    void                            resume(const ResumeOptions::Data& val) { _resume = val; }
+    void                            resume(ResumeOptions::Data&& val) { _resume = std::move(val); }
 
     ResumeOptions::Data& get_resume()
     {
@@ -587,8 +617,8 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     UpdateOptions::Data&       update() { return _update; }
     const UpdateOptions::Data& update() const { return _update; }
-    void                       update(const UpdateOptions::Data& val) { _update = val; }
-    void                       update(UpdateOptions::Data&& val) { _update = std::move(val); }
+    void                            update(const UpdateOptions::Data& val) { _update = val; }
+    void                            update(UpdateOptions::Data&& val) { _update = std::move(val); }
 
     UpdateOptions::Data& get_update()
     {
@@ -603,8 +633,8 @@ struct Data : public ReflectionBase::ObjMarker
     public:
     HydrateOptions::Data&       hydrate() { return _hydrate; }
     const HydrateOptions::Data& hydrate() const { return _hydrate; }
-    void                        hydrate(const HydrateOptions::Data& val) { _hydrate = val; }
-    void                        hydrate(HydrateOptions::Data&& val) { _hydrate = std::move(val); }
+    void                            hydrate(const HydrateOptions::Data& val) { _hydrate = val; }
+    void                            hydrate(HydrateOptions::Data&& val) { _hydrate = std::move(val); }
 
     HydrateOptions::Data& get_hydrate()
     {
@@ -612,6 +642,7 @@ struct Data : public ReflectionBase::ObjMarker
         ;
     }
     void set_hydrate(HydrateOptions::Data&& val) { _hydrate = std::move(val); }
+
 };
 }    // namespace CommandLineOptions
 }    // namespace CLOpts2
@@ -631,7 +662,10 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::InstallOptions::Data&>
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::ProductId, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     struct Traits_Repair
     {
@@ -648,7 +682,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::InstallOptions::Data&>
 
         static const ::ReflectionBase::Flags Flags()
         {
-            return ::ReflectionBase::Flags{::ReflectionBase::Flag::HasDefaultValue, ::ReflectionBase::Flag::Max};
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::HasDefaultValue,
+                                           ::ReflectionBase::Flag::Max};
         }
     };
     struct Traits_ForceNonSD
@@ -666,7 +701,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::InstallOptions::Data&>
 
         static const ::ReflectionBase::Flags Flags()
         {
-            return ::ReflectionBase::Flags{::ReflectionBase::Flag::HasDefaultValue, ::ReflectionBase::Flag::Max};
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::HasDefaultValue,
+                                           ::ReflectionBase::Flag::Max};
         }
     };
     struct Traits_TargetVolume
@@ -684,7 +720,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::InstallOptions::Data&>
 
         static const ::ReflectionBase::Flags Flags()
         {
-            return ::ReflectionBase::Flags{::ReflectionBase::Flag::HasDefaultValue, ::ReflectionBase::Flag::Max};
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::HasDefaultValue,
+                                           ::ReflectionBase::Flag::Max};
         }
     };
     struct Traits_User
@@ -702,7 +739,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::InstallOptions::Data&>
 
         static const ::ReflectionBase::Flags Flags()
         {
-            return ::ReflectionBase::Flags{::ReflectionBase::Flag::HasDefaultValue, ::ReflectionBase::Flag::Max};
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::HasDefaultValue,
+                                           ::ReflectionBase::Flag::Max};
         }
     };
     static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
@@ -714,11 +752,12 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::InstallOptions::Data&>
     }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<CLOpts2::InstallOptions::Data,
-                                                                 Traits_ProductId,
-                                                                 Traits_Repair,
-                                                                 Traits_ForceNonSD,
-                                                                 Traits_TargetVolume,
-                                                                 Traits_User>;
+                                                                 Traits_ProductId
+,                                                                 Traits_Repair
+,                                                                 Traits_ForceNonSD
+,                                                                 Traits_TargetVolume
+,                                                                 Traits_User
+                                                                 >;
 };
 template <> struct ReflectionBase::TypeTraits<CLOpts2::QueueOptions::Data&>
 {
@@ -737,7 +776,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::QueueOptions::Data&>
 
         static const ::ReflectionBase::Flags Flags()
         {
-            return ::ReflectionBase::Flags{::ReflectionBase::Flag::HasDefaultValue, ::ReflectionBase::Flag::Max};
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::HasDefaultValue,
+                                           ::ReflectionBase::Flag::Max};
         }
     };
     static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
@@ -748,7 +788,9 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::QueueOptions::Data&>
         return ::ReflectionServices::EmptyAttributeValue(key);
     }
 
-    using Handler = ::ReflectionServices::ReflectedStructHandler<CLOpts2::QueueOptions::Data, Traits_ProductId>;
+    using Handler = ::ReflectionServices::ReflectedStructHandler<CLOpts2::QueueOptions::Data,
+                                                                 Traits_ProductId
+                                                                 >;
 };
 template <> struct ReflectionBase::TypeTraits<CLOpts2::PauseOptions::Data&>
 {
@@ -765,7 +807,10 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::PauseOptions::Data&>
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::ProductId, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
     static constexpr std::string_view           Name() { return "PauseOptions"; }
@@ -775,7 +820,9 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::PauseOptions::Data&>
         return ::ReflectionServices::EmptyAttributeValue(key);
     }
 
-    using Handler = ::ReflectionServices::ReflectedStructHandler<CLOpts2::PauseOptions::Data, Traits_ProductId>;
+    using Handler = ::ReflectionServices::ReflectedStructHandler<CLOpts2::PauseOptions::Data,
+                                                                 Traits_ProductId
+                                                                 >;
 };
 template <> struct ReflectionBase::TypeTraits<CLOpts2::CancelOptions::Data&>
 {
@@ -792,7 +839,10 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CancelOptions::Data&>
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::ProductId, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
     static constexpr std::string_view           Name() { return "CancelOptions"; }
@@ -802,7 +852,9 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CancelOptions::Data&>
         return ::ReflectionServices::EmptyAttributeValue(key);
     }
 
-    using Handler = ::ReflectionServices::ReflectedStructHandler<CLOpts2::CancelOptions::Data, Traits_ProductId>;
+    using Handler = ::ReflectionServices::ReflectedStructHandler<CLOpts2::CancelOptions::Data,
+                                                                 Traits_ProductId
+                                                                 >;
 };
 template <> struct ReflectionBase::TypeTraits<CLOpts2::ResumeOptions::Data&>
 {
@@ -819,7 +871,10 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::ResumeOptions::Data&>
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::ProductId, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
     static constexpr std::string_view           Name() { return "ResumeOptions"; }
@@ -829,7 +884,9 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::ResumeOptions::Data&>
         return ::ReflectionServices::EmptyAttributeValue(key);
     }
 
-    using Handler = ::ReflectionServices::ReflectedStructHandler<CLOpts2::ResumeOptions::Data, Traits_ProductId>;
+    using Handler = ::ReflectionServices::ReflectedStructHandler<CLOpts2::ResumeOptions::Data,
+                                                                 Traits_ProductId
+                                                                 >;
 };
 template <> struct ReflectionBase::TypeTraits<CLOpts2::UpdateOptions::Data&>
 {
@@ -848,7 +905,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::UpdateOptions::Data&>
 
         static const ::ReflectionBase::Flags Flags()
         {
-            return ::ReflectionBase::Flags{::ReflectionBase::Flag::HasDefaultValue, ::ReflectionBase::Flag::Max};
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::HasDefaultValue,
+                                           ::ReflectionBase::Flag::Max};
         }
     };
     static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
@@ -859,7 +917,9 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::UpdateOptions::Data&>
         return ::ReflectionServices::EmptyAttributeValue(key);
     }
 
-    using Handler = ::ReflectionServices::ReflectedStructHandler<CLOpts2::UpdateOptions::Data, Traits_ProductId>;
+    using Handler = ::ReflectionServices::ReflectedStructHandler<CLOpts2::UpdateOptions::Data,
+                                                                 Traits_ProductId
+                                                                 >;
 };
 template <> struct ReflectionBase::TypeTraits<CLOpts2::HydrateOptions::Data&>
 {
@@ -876,7 +936,10 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::HydrateOptions::Data&>
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::ProductId, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
     static constexpr std::string_view           Name() { return "HydrateOptions"; }
@@ -886,18 +949,28 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::HydrateOptions::Data&>
         return ::ReflectionServices::EmptyAttributeValue(key);
     }
 
-    using Handler = ::ReflectionServices::ReflectedStructHandler<CLOpts2::HydrateOptions::Data, Traits_ProductId>;
+    using Handler = ::ReflectionServices::ReflectedStructHandler<CLOpts2::HydrateOptions::Data,
+                                                                 Traits_ProductId
+                                                                 >;
 };
 template <> struct ReflectionServices::EnumTraits<CLOpts2::CommandLineOptions::UnionType>
 {
-    static constexpr const char* EnumStrings[] = {"Invalid", "install", "queue", "pause", "cancel", "resume", "update", "hydrate", 0};
+    static constexpr const char* EnumStrings[] = {"Invalid",
+                                                  "install",
+                                                  "queue",
+                                                  "pause",
+                                                  "cancel",
+                                                  "resume",
+                                                  "update",
+                                                  "hydrate",
+                                                  0};
 
     using ValueType = uint32_t;
 };
 
 template <> struct ValueTraits<CLOpts2::CommandLineOptions::UnionType>
 {
-    static constexpr auto ValueType() { return Value::Type::Integer; }
+    static constexpr auto ValueType() { return Value::Type::Unsigned; }
     static void           Get(Value& /*obj*/) { throw 1; }
     static void           Get(const Value& /*obj*/) { throw 1; }
     static void           Check() { throw 1; }
@@ -926,7 +999,10 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::Data&
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::install, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     struct Traits_queue
     {
@@ -941,7 +1017,10 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::Data&
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::queue, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     struct Traits_pause
     {
@@ -956,7 +1035,10 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::Data&
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::pause, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     struct Traits_cancel
     {
@@ -971,7 +1053,10 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::Data&
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::cancel, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     struct Traits_resume
     {
@@ -986,7 +1071,10 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::Data&
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::resume, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     struct Traits_update
     {
@@ -1001,7 +1089,10 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::Data&
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::update, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     struct Traits_hydrate
     {
@@ -1016,7 +1107,10 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::Data&
             return TOwner::FieldAttributeValue(TOwner::FieldIndex::hydrate, key);
         }
 
-        static const ::ReflectionBase::Flags Flags() { return ::ReflectionBase::Flags{::ReflectionBase::Flag::Max}; }
+        static const ::ReflectionBase::Flags Flags()
+        {
+            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
+        }
     };
     static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
     static constexpr std::string_view           Name() { return "CommandLineOptions"; }
@@ -1028,11 +1122,12 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::Data&
 
     using Handler = ::ReflectionServices::ReflectedUnionHandler<CLOpts2::CommandLineOptions::Data,
                                                                 CLOpts2::CommandLineOptions::UnionType,
-                                                                Traits_install,
-                                                                Traits_queue,
-                                                                Traits_pause,
-                                                                Traits_cancel,
-                                                                Traits_resume,
-                                                                Traits_update,
-                                                                Traits_hydrate>;
+                                                                Traits_install
+,                                                                Traits_queue
+,                                                                Traits_pause
+,                                                                Traits_cancel
+,                                                                Traits_resume
+,                                                                Traits_update
+,                                                                Traits_hydrate
+                                                                >;
 };

@@ -42,10 +42,10 @@ struct UuidStr
         }
     }
 
-    operator const wchar_t*() const { return wstr; }
-    operator const char*() const { return str; }
-    operator wchar_t*() { return wstr; }
-    operator char*() { return str; }
+    operator std::wstring_view() const { return wstr; }
+    operator std::string_view() const { return str; }
+    // operator wchar_t*() { return wstr; }
+    // operator char*() { return str; }
 };
 
 struct Uuid
@@ -119,7 +119,18 @@ template <typename T> struct UuidBasedId
     public:
     static constexpr UuidBasedId<T> Invalid() { return UuidBasedId<T>(); }
     friend UuidObjectT<T>;
+
+    friend std::hash<UuidBasedId<T>>;
 };
+
+namespace std
+{
+template <typename T> struct hash<UuidBasedId<T>>
+{
+    // TODO: Do a better job here
+    std::size_t operator()(UuidBasedId<T> const& s) const noexcept { return std::hash<std::string_view>{}(s.ToString()); }
+};
+}    // namespace std
 
 template <typename T> struct UuidObjectT
 {
