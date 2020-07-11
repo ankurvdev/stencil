@@ -827,6 +827,23 @@ struct PageManager
         assert(pageCount >= 2);
         _pages.resize(pageCount);    // atleast one header page and one journal page
         _pageTypes.resize(pageCount, 0);
+
+        Ref::PageIndex curJournalPage = 1;
+        while (curJournalPage != 0)
+        {
+            auto journal = LoadPage(0, curJournalPage).As<JournalPage>();
+            for (Ref::PageIndex j = 0; j < journal.GetEntryCount(); j++)
+            {
+                auto entry = journal.GetJournalEntry(j);
+                if (entry.typeId == 0)
+                {
+                    continue;
+                }
+                assert(_pageTypes[entry.pageIndex] == 0);
+                _pageTypes[entry.pageIndex] = entry.typeId;
+            }
+            curJournalPage = journal.GetNextJornalPage();
+        }
     }
 
     /// <summary>
