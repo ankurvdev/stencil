@@ -10,7 +10,7 @@ struct CommandLineArgsReader
     struct Exception : std::exception
     {
         Exception(std::span<std::string_view> const& /*args*/, size_t /*index*/) {}
-        const char* what() const override { return _message.c_str(); }
+        const char* what() const noexcept(true) override { return _message.c_str(); }
 
         private:
         std::string _message{"Error Processoing args. TODO: Create a more detailed message"};

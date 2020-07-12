@@ -15,10 +15,6 @@ template <typename TStruct, typename... TArgs> TStruct ParseArgs(TArgs&&... args
     return data;
 }
 
-template <typename TStruct, typename... TArgs> std::string P(TArgs&&... args)
-{
-}
-
 template <typename TException> struct ExceptionMatcher : public Catch::MatcherBase<TException>
 {
     bool match(TException const& se) const override { return _stricmp(se.what(), _expected->what()) == 0; }

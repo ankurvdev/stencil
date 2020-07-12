@@ -7,11 +7,12 @@
 
 #include <shared_tree.h>
 
+#include <algorithm>
 #include <bitset>
 #include <climits>
 #include <ctype.h>
 #include <list>
-#include <unordered_map>
+#include <span>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,7 +20,9 @@
 #include <string>
 #include <tuple>
 #include <typeinfo>
+#include <unordered_map>
 #include <vector>
+
 // TODO: Get rid of this
 
 using timestamp = decltype(std::chrono::system_clock::now());
@@ -60,7 +63,7 @@ enum class DataType
     Object,
     Enum,
     Union,
-    Unknown //TODO : Why Invalid and Unknown
+    Unknown    // TODO : Why Invalid and Unknown
 };
 
 enum class Flag : uint8_t
@@ -420,7 +423,7 @@ template <typename T> struct CommonValueHandler : public IDataTypeHandler<DataTy
 
 template <typename T> struct EnumTraits
 {
-    static constexpr std::string_view EnumStrings[] = {"Invalid", 0};
+    static constexpr std::string_view EnumStrings[]{"Invalid"};    // 0 is always invalid
 };
 
 template <typename TEnum> struct EnumHandler : public IDataTypeHandler<DataType::Enum>
@@ -434,12 +437,12 @@ template <typename TEnum> struct EnumHandler : public IDataTypeHandler<DataType:
         }
         if (value.GetType() == Value::Type::String)
         {
-            auto enumnames = EnumTraits<TEnum>::EnumStrings;
-            for (size_t i = 1; enumnames[i]; i++)    // 0 is always invalid
+            auto const& enumnames = EnumTraits<TEnum>::EnumStrings;
+            for (size_t i = 1; i < std::size(enumnames); i++)    // 0 is always invalid
             {
                 if ((shared_string)value == enumnames[i])
                 {
-                    *(static_cast<TEnum*>(ptr)) = (TEnum)i;
+                    *(static_cast<TEnum*>(ptr)) = static_cast<TEnum>(i);
                     return;
                 }
             }

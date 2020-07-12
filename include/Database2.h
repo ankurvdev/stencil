@@ -28,7 +28,7 @@ struct BlobDataSizeOutofRange : std::exception
 
     DEFAULT_COPY_AND_MOVE(BlobDataSizeOutofRange);
 
-    const char* what() const { return _buffer.data(); }
+    const char* what() const noexcept(true) override { return _buffer.data(); }
 
     uint32_t                     typeId;
     uint64_t                     recordSize;
@@ -725,7 +725,7 @@ struct JournalPage
         return Entry{pageIndex, _page.Get<ObjTypeId>(sizeof(Header))[entryIndex]};
     }
 
-    bool Full(Ref::PageIndex pageIndex) const { return pageIndex - _StartPageIndex() > EntryCount; }
+    bool Full(Ref::PageIndex pageIndex) const { return pageIndex - _StartPageIndex() - EntryCount > 0; }
 
     Ref::PageIndex GetNextJornalPage() const { return _page.Get<Header>()[0].nextJournalPage; }
 
