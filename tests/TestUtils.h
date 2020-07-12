@@ -3,11 +3,9 @@
 
 #pragma warning(push, 0)
 #pragma warning(disable : 4868)
+#pragma warning(disable : 4738)
 #include <catch2/catch.hpp>
-#pragma warning(pop)
-
-#pragma warning(push, 0)
-#include "dtl/dtl.hpp"
+#include <dtl/dtl.hpp>
 #pragma warning(pop
 
 #include <filesystem>

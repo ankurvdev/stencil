@@ -91,12 +91,11 @@ LEXYACC:YACC:START
 %%
 
 lines : lines line
-| line
+|
 ;
 
 line : TOKEN_RELATIONSHIP TOKEN_IDENTIFIER TOKEN_LeftBrace relationshipcomponents TOKEN_RightBrace { context.CreateRelationshipDefinition(std::move($2), std::move($4)); }
 | name optionalname definition { context.CreateFieldDefinition(std::move($1), std::move($2), std::move($3)); }
-|
 ;
 
 optionalname: name { $$ = std::move($1); } | {} ;

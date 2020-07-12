@@ -10,6 +10,7 @@ catch{
     echo "Git commands somehow are causing issues. Fix me later (TODO)"
 }
 
+Set-Item ENV:\VCPKG_ROOT $(Resolve-Path vcpkg)
 vcpkg/bootstrap-vcpkg.bat
 Set-Content -Path vcpkg\ports\stencil\use_source_path -Value $PSScriptRoot\..
 vcpkg\vcpkg install stencil:x64-windows

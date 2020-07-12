@@ -737,13 +737,13 @@ struct BindableBase : public IBindable, public ValueT<Type::Object>
         }
 
         TranformationBindableComponent(std::shared_ptr<const BindableBase> base, const TObject& obj, TFunc func) :
-            _base(base), _func(func), _obj(obj)
+            _base(base), _obj(obj), _func(func)
         {
         }
 
         std::shared_ptr<const BindableBase> _base;
-        TFunc const                         _func;
         const TObject&                      _obj;
+        TFunc const                         _func;
     };
 
     template <typename TObject, typename TFunc>
@@ -868,14 +868,14 @@ struct GetterT<TObject, IBindable const&>
     : public ValueT<Type::Object>, public IValue::Getter, public std::enable_shared_from_this<GetterT<TObject, IBindable const&>>
 {
     typedef IBindable const& (TObject::*TFunc)() const;
-    GetterT(const TObject& ptr, TFunc func) : _ptr(ptr), _func(func) {}
+    GetterT(const TObject& ptr, TFunc func) : _func(func), _ptr(ptr) {}
 
     virtual IBindable const& GetBindable() const override { return (_ptr.*_func)(); }
 
     virtual std::shared_ptr<const IValue> Get() const override { return this->shared_from_this(); }
 
+    TFunc const    _func;
     const TObject& _ptr;
-    TFunc          _func;
 };
 
 template <typename TObject> struct GetterT<TObject, Str::Type> : public IValue::Getter
@@ -901,13 +901,13 @@ struct GetterT<TObject, Binding::Expression const&>
     : public ValueT<Type::Expr>, public IValue::Getter, public std::enable_shared_from_this<GetterT<TObject, Binding::Expression const&>>
 {
     typedef Binding::Expression const& (TObject::*TFunc)() const;
-    GetterT(const TObject& ptr, TFunc func) : _ptr(ptr), _func(func) {}
+    GetterT(const TObject& ptr, TFunc func) : _func(func), _ptr(ptr) {}
 
     virtual Binding::Expression const&    GetExpr() const override { return (_ptr.*_func)(); }
     virtual std::shared_ptr<const IValue> Get() const override { return this->shared_from_this(); }
 
+    TFunc const    _func;
     const TObject& _ptr;
-    TFunc          _func;
 };
 
 template <typename TObject> struct GetterT<TObject, Binding::Expression> : public ValueT<Type::Expr>, public IValue::Getter
@@ -925,7 +925,7 @@ template <typename TObject> struct GetterT<TObject, Binding::Expression> : publi
     virtual std::shared_ptr<const IValue> Get() const override { return std::make_shared<ValueType>((_ptr.*_func)()); }
 
     const TObject& _ptr;
-    TFunc          _func;
+    TFunc const    _func;
 };
 
 // Inherit to expose well defined property names and their values
