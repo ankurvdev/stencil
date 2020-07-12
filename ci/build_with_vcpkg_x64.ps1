@@ -14,5 +14,9 @@ Set-Item ENV:\VCPKG_ROOT $(Resolve-Path vcpkg)
 vcpkg/bootstrap-vcpkg.bat
 Set-Content -Path vcpkg\ports\stencil\use_source_path -Value $PSScriptRoot\..
 vcpkg\vcpkg install stencil:x64-windows
+
+Get-Content vcpkg\buildtrees\stencil\install-x64-windows-rel-out.log
+Get-Content vcpkg\buildtrees\stencil\install-x64-windows-dbg-out.log
+
 cmake.exe -DVCPKG_ROOT:FILEPATH=$(Resolve-Path vcpkg) -DVCPKG_TARGET_TRIPLET=x64-windows $PSScriptRoot\vcpkg
 cmake.exe --build . -j
