@@ -780,7 +780,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Comple
     }
 };
 
-#if (defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0)
+#if ((defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0))
 template <> struct WebServiceHandlerTraits<ComplexWebService::KeywordS>
 {
     static constexpr const std::string_view Url() { return std::string_view("KeywordS"); }
@@ -879,7 +879,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Comple
     }
 };
 
-#if (defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0)
+#if ((defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0))
 template <> struct WebServiceHandlerTraits<ComplexWebService::Content>
 {
     static constexpr const std::string_view Url() { return std::string_view("Content"); }
@@ -990,7 +990,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Comple
     }
 };
 
-#if (defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0)
+#if ((defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0))
 template <> struct WebServiceHandlerTraits<ComplexWebService::Search>
 {
     static constexpr const std::string_view Url() { return std::string_view("Search"); }
@@ -1089,7 +1089,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Comple
     }
 };
 
-#if (defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0)
+#if ((defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0))
 template <> struct WebServiceHandlerTraits<ComplexWebService::Store>
 {
     static constexpr const std::string_view Url() { return std::string_view("Store"); }

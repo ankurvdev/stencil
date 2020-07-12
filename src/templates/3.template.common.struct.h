@@ -322,7 +322,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<zzProg
 };
 
 //</Function>
-#if (defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0)
+#if ((defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0))
 template <> struct WebServiceHandlerTraits<zzProgram_Namezz::zzInterface_Namezz>
 {
     static constexpr const std::string_view Url() { return std::string_view("zzInterface_Namezz"); }

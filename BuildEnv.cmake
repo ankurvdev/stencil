@@ -46,7 +46,8 @@ function(EnableStrictCompilation)
             /wd4514  # unreferenced inline function has been removed
             /wd4820  # bytes padding added after data member in struct
             /wd5045  # Spectre mitigation insertion
-            /wd4710  # Function not inlined . TODO remove this once msvc crt does not throw this error
+            /wd4710  # Function not inlined. VS2019 CRT throws this
+            /wd4711  # Function selected for automatic inline. VS2019 CRT throws this
             /showIncludes
         )
 

@@ -57,7 +57,7 @@ std::ostream& operator<<(std::ostream& strm, std::wstring_view wstr)
 void Generator::_AddTypeDefinitions(std::string_view const& /*name*/, std::string_view const& text)
 {
     IDL::Lang::TypeDefinition::Context loadcontext{*_program};
-    IDL::Lang::TypeDefinition::LoadString(loadcontext, text.data());
+    IDL::Lang::TypeDefinition::LoadString(loadcontext, text);
 }
 
 void CreateTemplateFromNode(tree<TemplateFragment>&          tmpl,

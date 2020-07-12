@@ -18,6 +18,23 @@
 
 namespace Database2
 {
+
+struct BlobDataSizeOutofRange : std::exception
+{
+    BlobDataSizeOutofRange(uint32_t typeId, uint64_t recordSize)
+    {
+        _buffer << "Database Error: Blob size out of range. TypeId = " << typeId << " RecordSize = " << recordSize;
+    }
+
+    DEFAULT_COPY_AND_MOVE(BlobDataSizeOutofRange);
+
+    const char* what() const { return _buffer.data(); }
+
+    uint32_t                     typeId;
+    uint64_t                     recordSize;
+    ::Logging::PrettyPrintStream _buffer;
+};
+
 template <typename> struct is_tuple : std::false_type
 {
 };
@@ -652,7 +669,7 @@ template <> struct PageForRecord<0> : public PageForRecordInterface
         {
         default:
         case 0x0:
-        case 0x1: throw Logging::TODOCreateException("Blob data size outside range");
+        case 0x1: throw Database2::BlobDataSizeOutofRange{typeId, _recordSize};
         case 0x2: impl = std::make_unique<PageForRecord<(1 << 0x2)>>(_page); break;
         case 0x3: impl = std::make_unique<PageForRecord<(1 << 0x3)>>(_page); break;
         case 0x4: impl = std::make_unique<PageForRecord<(1 << 0x4)>>(_page); break;
@@ -721,7 +738,6 @@ struct JournalPage
         _page.MarkDirty();
     }
 
-    // TODO : This should have been used
     void InitializeEmptyJournal(Ref::PageIndex startPageIndex)
     {
         _page.Get<Header>()[0].startPageIndex = startPageIndex;
@@ -1173,7 +1189,7 @@ template <typename TDb> struct DatabaseT
             }
             else
             {
-                throw "TODO";
+                throw std::logic_error("Not Implemented");
             }
         }
     }

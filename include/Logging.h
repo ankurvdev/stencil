@@ -97,7 +97,7 @@ template <std::size_t N = 1024> class memstream : public std::ostream
     private:
     struct memstreambuf : public std::streambuf
     {
-        std::array<char, N> buf;
+        std::array<char, N> buf{};
 
         public:
         memstreambuf() { setp(buf.data(), buf.data() + buf.size()); }
@@ -109,7 +109,7 @@ template <std::size_t N = 1024> class memstream : public std::ostream
 
     public:
     memstream() : std::ostream(&_strmbuf) {}
-    memstream(memstream const& stream) { this->_strmbuf.buf = stream._strmbuf.buf; }
+    memstream(memstream const& stream) : std::ostream(&_strmbuf) { this->_strmbuf.buf = stream._strmbuf.buf; }
     memstream& operator=(memstream const& stream)
     {
         this->_strmbuf.buf = stream._strmbuf.buf;

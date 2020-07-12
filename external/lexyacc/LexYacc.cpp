@@ -112,9 +112,10 @@ namespace zzNAMESPACEzz
 {
     void Load(Context& context, std::istream& strm);
 
-    inline void LoadString(Context& context, const char *str)
+    inline void LoadString(Context& context, std::string_view const& str)
     {
-        std::stringstream sstrm(str);
+        std::string temp(str); // TODO : avoid reallocating a string
+        std::stringstream sstrm(temp);
         return Load(context, sstrm);
     }
 
@@ -208,7 +209,7 @@ zzYACCzz
 
 void zzNAMESPACEzz::impl::BisonParser::error(const location_type&l, const std::string& message)
 {
-    std::cerr << "Error: " << message << " at " << l << "\n";
+    std::cerr << "Error(zzPREFIXzz): " << message << " at " << l << "\n";
 }
 
 namespace zzNAMESPACEzz
@@ -220,7 +221,8 @@ void Load(Context& ctx, std::istream& strm)
     p.set_debug_level(ctx.Debug());
     try
     {
-        if (p.parse() != 0) throw std::logic_error("Unexpected Error");
+        auto rslt= p.parse();
+        if (rslt != 0) throw std::logic_error("Unexpected Error : " + std::to_string(rslt));
     }
     catch(std::exception const& ex)
     {
