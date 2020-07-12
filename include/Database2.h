@@ -725,9 +725,15 @@ struct JournalPage
         return Entry{pageIndex, _page.Get<ObjTypeId>(sizeof(Header))[entryIndex]};
     }
 
-    bool Full(Ref::PageIndex pageIndex) const { return pageIndex - _StartPageIndex() - EntryCount > 0; }
+    bool Full(Ref::PageIndex pageIndex) const { return pageIndex > EntryCount + _StartPageIndex(); }
 
     Ref::PageIndex GetNextJornalPage() const { return _page.Get<Header>()[0].nextJournalPage; }
+
+    void SetNextJornalPage(Ref::PageIndex pageIndex) const
+    {
+        _page.Get<Header>()[0].nextJournalPage = pageIndex;
+        _page.MarkDirty();
+    }
 
     void RecordJournalEntry(Entry const& entry)
     {
@@ -832,7 +838,10 @@ struct PageManager
         _pageTypes.push_back(objTypeId);
 
         _serdes.WritePage(ptr->_page, ptr->_pageIndex);
-        _RecordJournalEntry(ptr->_pageIndex, objTypeId);
+        if (objTypeId != 0)
+        {
+            _RecordJournalEntry(ptr->_pageIndex, objTypeId);
+        }
         return *ptr;
     }
 
@@ -869,7 +878,6 @@ struct PageManager
     /// <param name="objTypeId"></param>
     void _RecordJournalEntry(Ref::PageIndex pageIndex, ObjTypeId objTypeId)
     {
-
         auto journal = LoadPage(0, _journalPageIndex).As<JournalPage>();
         if (journal.Full(pageIndex))
         {
@@ -879,6 +887,7 @@ struct PageManager
                 auto& page       = CreateNewPage(0);
                 auto  newJournal = page.As<JournalPage>();
                 newJournal.InitializeEmptyJournal(pageIndex);
+                journal.SetNextJornalPage(page._pageIndex);
                 _journalPageIndex = page._pageIndex;
             }
             else
