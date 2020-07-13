@@ -9,11 +9,28 @@ struct CommandLineArgsReader
 {
     struct Exception : std::exception
     {
-        Exception(std::span<std::string_view> const& /*args*/, size_t /*index*/) {}
+        Exception(std::string_view const& msg, std::span<std::string_view> const& args, size_t index)
+        {
+            std::stringstream ss;
+            ss << "Error processing args : " << msg << std::endl;
+
+            for (size_t i = std::max(3u, index) - 3; i < index && i < args.size(); i++)
+            {
+                ss << args[i] << " ";
+            }
+
+            ss << std::endl << " ==> " << args[index] << " <== " << std::endl;
+            for (size_t i = index; i < 3 && i < args.size(); i++)
+            {
+                ss << args[i] << " ";
+            }
+            _message = ss.str();
+        }
+
         const char* what() const noexcept(true) override { return _message.c_str(); }
 
         private:
-        std::string _message{"Error Processoing args. TODO: Create a more detailed message"};
+        std::string _message;
     };
 
     struct Definition
@@ -87,34 +104,46 @@ struct CommandLineArgsReader
         {
             std::copy(argv.begin(), eqPtr, name);
             _handler->ObjKey(name);
-            this->_ProcessValue(argv.substr(static_cast<size_t>(std::distance(argv.begin(), ++eqPtr))));
+            _ProcessValue(argv.substr(static_cast<size_t>(std::distance(argv.begin(), ++eqPtr))));
         }
     }
 
     void _ProcessShortArg(std::string_view const& argName, std::string_view const& argv)
     {
         _handler->ObjKey(argName);
-        this->_ProcessValue(argv);
+        _ProcessValue(argv);
     }
 
     void _ProcessRequiredArg(size_t index, std::string_view const& argv)
     {
+        auto argToUse = argv;
         switch (_handler->GetCurrentContext()->GetType())
         {
-        case Definition::Type::List: this->_ProcessList(argv); break;
+        case Definition::Type::List: _ProcessList(argv); break;
         case Definition::Type::Object:
             _handler->ObjKey(0);
-            this->_ProcessRequiredArg(index, argv);
+            _ProcessRequiredArg(index, argv);
             break;
         case Definition::Type::Value: [[fallthrough]];
         case Definition::Type::Enum: [[fallthrough]];
-        case Definition::Type::Union: this->_ProcessValue(argv); break;
+        case Definition::Type::Union: _ProcessValue(argv); break;
         case Definition::Type::Invalid:
             _handler->ObjEnd();
             _handler->ObjKey(argv);
             break;
         default: throw std::logic_error("Invalid State Processing Required Arg");
         }
+    }
+
+    int _CountBrackets(std::string_view const& str)
+    {
+        int count = 0;
+        for (auto const& ch : str)
+        {
+            if (ch == '{') count++;
+            if (ch == '}') count--;
+        }
+        return count;
     }
 
     auto _ValueTokens(std::string_view const& str)
@@ -158,8 +187,7 @@ struct CommandLineArgsReader
                     }
                     if (count != 0)
                     {
-                        // TODO: TEst
-                        throw std::runtime_error("Unclosed parenthesis");
+                        throw std::logic_error("Unclosed parenthesis");
                     }
                     _token  = _substr(its, ite - 1);
                     _offset = static_cast<size_t>(ite - _str.begin());
@@ -206,7 +234,7 @@ struct CommandLineArgsReader
         _handler->ListStart();
         for (auto const& subval : _ValueTokens(val))
         {
-            this->_ProcessValue(subval);
+            _ProcessValue(subval);
         }
 
         _handler->ListEnd();
@@ -219,107 +247,94 @@ struct CommandLineArgsReader
         for (auto const& subval : _ValueTokens(val))
         {
             _handler->ObjKey(index++);
-            this->_ProcessValue(subval);
+            _ProcessValue(subval);
         }
         _handler->ObjEnd();
     }
 
-    void _ProcessValue(std::string_view const& str)
+    void _ProcessValue(std::string_view const& val)
     {
+        auto valToUse = val;
+      //  if (val.size() > 1 && *val.begin() == '{' && *val.rbegin() == '}') valToUse = val.substr(1, val.size() - 2);
+
         switch (_handler->GetCurrentContext()->GetType())
         {
-        case Definition::Type::List: _ProcessList(str); break;
+        case Definition::Type::List: _ProcessList(valToUse); break;
         case Definition::Type::Object:
             // All the following args will be processed in this Context now.
             // DO NOT POP this context
             // Will be popped if this context doesnt accept the arg anymore
-            _ProcessObject(str);
+            _ProcessObject(valToUse);
             break;
-        case Definition::Type::Value: _handler->HandleValue(str); break;
-        case Definition::Type::Enum: _handler->HandleEnum(str); break;
-        case Definition::Type::Union: _handler->UnionType(str); break;
+        case Definition::Type::Value: _handler->HandleValue(valToUse); break;
+        case Definition::Type::Enum: _handler->HandleEnum(valToUse); break;
+        case Definition::Type::Union: _handler->UnionType(valToUse); break;
         case Definition::Type::Invalid: [[fallthrough]];
         default: throw std::logic_error("Error Processing Value");
         }
     }
 
-    /* std::string _Help(const char *commandName)
-     {
-         std::vector<std::stringstream> subobjects;
-         std::stringstream ss;
-         ss << "usage:";
-         ss << std::experimental::filesystem::path(commandName).filename();
-         ss << " ";
-         this->_Help(ss, _handler->GetCurrentContext(), subobjects);
-         for (auto &subss : subobjects)
-         {
-             ss << subss.str() << std::endl;
-         }
-         return std::string::make(ss.str());
-     }
-
-     void _Help(std::stringstream &ss, std::shared_ptr<Definition> context, std::vector<std::stringstream> &subobjects)
-     {
-         ss << context->GetTypeDescription().c_str();
-         switch (context->GetType())
-         {
-         case Definition::Type::Object:
-         {
-             ss << "..." << std::endl;
-             _tra
-             for (const auto &sub : context->GetObjectComponents())
-             {
-                 std::stringstream ss;
-                 _Help(ss, sub, subobjects);
-                 subobjects.push_back(std::move(ss));
-             }
-         }
-         break;
-         case Definition::Type::List:
-             ss << "list" << std::endl;
-             break;
-         case Definition::Type::Value:
-             break;
-         }
-         ss << std::endl;
-     }*/
     public:
     void Parse(std::span<std::string_view> const& args)
     {
-        size_t requiredArgNum = 0;
+        size_t            requiredArgNum = 0;
+        int               bracketCount   = 0;
+        std::string_view  longArgName;
+        std::stringstream accumulation;
+
         enum class Mode
         {
             Normal,
             ShortArg
-
         } mode{Mode::Normal};
 
-        char   shortName{};
+        char shortName{};
+
         size_t index = 0;
         for (auto const& arg : args.subspan(1))
         {
             ++index;
-            auto it = arg.begin();
-            if (it == arg.end())
+            if (arg.size() == 0)
             {
-                // TODO: Log warning
                 continue;
+            }
+            bool useAccumulated = bracketCount != 0;
+            bracketCount += _CountBrackets(arg);
+            if (bracketCount < 0)
+            {
+                throw Exception("Illegal Bracket usage", args, index);
+            }
+
+            if (bracketCount > 0)
+            {
+                accumulation << arg;
+                continue;
+            }
+
+            std::string      accumlated;
+            std::string_view argToUse = arg;
+            if (useAccumulated)
+            {
+                accumlated = accumulation.str();
+                accumulation.str("");
+                argToUse = accumlated;
             }
 
             switch (mode)
             {
             case Mode::Normal:
             {
+                auto it = arg.begin();
                 if (*it == '-')
                 {
                     if ((++it) == arg.end())
                     {
-                        throw Exception(args, index);
+                        throw Exception("Empty Switch", args, index);
                     }
 
                     if (*it == '-')
                     {
-                        this->_ProcessLongArg(arg.substr(2));
+                        _ProcessLongArg(arg.substr(2));
                         break;
                     }
                     else
@@ -353,7 +368,7 @@ struct CommandLineArgsReader
                                 if (arg.size() > 2)
                                 {
                                     // -zValue
-                                    this->_ProcessShortArg(std::string_view(&shortName, 1), arg.substr(2));
+                                    _ProcessShortArg(std::string_view(&shortName, 1), arg.substr(2));
                                 }
                                 else
                                 {
@@ -368,22 +383,20 @@ struct CommandLineArgsReader
                 }
                 else
                 {
-                    this->_ProcessRequiredArg(requiredArgNum++, arg);
+                    _ProcessRequiredArg(requiredArgNum++, arg);
                 }
             }
             break;
-
             case Mode::ShortArg:
             {
                 // -z Value. Value of the short arg
-                this->_ProcessShortArg(std::string_view(&shortName, 1), arg);
+                _ProcessShortArg(std::string_view(&shortName, 1), argToUse);
                 mode = Mode::Normal;
             }
             break;
             }
         }
     }
-
     template <class TDataModel> void ParseWithHelpOnError(TDataModel* pData, std::span<std::string_view> args) noexcept
     {
         auto def = TDataModel::GetModelDefinition();

@@ -101,10 +101,6 @@ template <std::size_t N = 1024> class memstream : public std::ostream
 
         public:
         memstreambuf() { setp(buf.data(), buf.data() + buf.size()); }
-        //    std::streambuf* setbuf(char_type* const s, std::streamsize const n) final { TODO(""); }
-        //    pos_type seekpos(pos_type const pos, std::ios_base::openmode const which = std::ios_base::in | std::ios_base::out) final {
-        //    TODO(""); } std::streamsize xsgetn(char_type* const s, std::streamsize const count) final { TODO(""); } std::streamsize
-        //    xsputn(char_type const* s, std::streamsize const count) final { TODO(""); }
     };
 
     public:
