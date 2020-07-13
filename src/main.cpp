@@ -1,7 +1,11 @@
 #include "Generator.h"
 #include "Thrift.h"
-
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winvalid-source-encoding"
+#pragma warning(push, 0)
 #include <cxxopts.hpp>
+#pragma warning(pop)
+#pragma clang diagnostic pop
 #include <iostream>
 #include <string>
 

@@ -32,6 +32,8 @@ struct Data :
             return ::ReflectionServices::EmptyAttributeValue(key);
         case FieldIndex::randomString:
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -73,7 +75,9 @@ struct Data :
 struct TestInterface : public ReflectionBase::Interface<TestInterface>
 {
     public:
-    TestInterface() : ReflectionBase::Interface<TestInterface>(this) {}
+    TestInterface()          = default;
+    virtual ~TestInterface() = default;
+    DELETE_COPY_AND_MOVE(TestInterface);
     virtual Data::Data Create(
         int32_t const& randomInteger
 ,        shared_string const& randomString
@@ -86,6 +90,7 @@ struct TestInterfaceFactory : public ReflectionBase::InterfaceFactory<TestInterf
 {
     public:
     virtual std::unique_ptr<TestInterface> Activate() = 0;
+    virtual ~TestInterfaceFactory()                   = default;
 };
 
 struct TestInterface_Create_Args
@@ -127,8 +132,10 @@ template <> struct ReflectionBase::TypeTraits<SimpleWebService::TestInterface_Cr
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<SimpleWebService::TestInterface_Create_Args
-                                                                 ,Traits_arg_randomInteger
-                                                                 ,Traits_arg_randomString
+                                                                 ,
+                                                                 Traits_arg_randomInteger
+                                                                 ,
+                                                                 Traits_arg_randomString
                                                                  >;
 };
 template <> struct ReflectionBase::InterfaceTraits<SimpleWebService::TestInterface>
@@ -161,7 +168,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Simple
     }
 };
 
-#if (defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0)
+#if ((defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0))
 template <> struct WebServiceHandlerTraits<SimpleWebService::TestInterface>
 {
     static constexpr const std::string_view Url() { return std::string_view("TestInterface"); }

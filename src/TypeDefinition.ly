@@ -66,8 +66,8 @@ unixcomment   ("#"[^\n]*)
 "="                    { return token::TOKEN_Equal; }
 "relationship"         { return token::TOKEN_RELATIONSHIP; }
 
-{IDENTIFIER}   { lval->emplace<TextValue>(StrOps<TextValue>::Convert(yytext)); return token::TOKEN_IDENTIFIER; }
-{FALLBACK_CH}  { }
+{IDENTIFIER}    { lval->emplace<TextValue>(StrOps<TextValue>::Convert(yytext)); return token::TOKEN_IDENTIFIER; }
+.               { throw std::runtime_error("Unknown Character:" + std::to_string((int)(yytext[0]))); }
 %%
 LEXYACC:LEX:END
 
@@ -91,7 +91,8 @@ LEXYACC:YACC:START
 %%
 
 lines : lines line
-|;
+|
+;
 
 line : TOKEN_RELATIONSHIP TOKEN_IDENTIFIER TOKEN_LeftBrace relationshipcomponents TOKEN_RightBrace { context.CreateRelationshipDefinition(std::move($2), std::move($4)); }
 | name optionalname definition { context.CreateFieldDefinition(std::move($1), std::move($2), std::move($3)); }

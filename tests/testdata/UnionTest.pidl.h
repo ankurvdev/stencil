@@ -32,6 +32,8 @@ struct Data :
             return ::ReflectionServices::EmptyAttributeValue(key);
         case FieldIndex::field2:
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -115,6 +117,8 @@ struct Data : public ReflectionBase::ObjMarker
         {
             return ::ReflectionServices::EmptyAttributeValue(key);
         }
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -218,7 +222,7 @@ template <> struct ReflectionServices::EnumTraits<UnionTest::Union1::UnionType>
 
 template <> struct ValueTraits<UnionTest::Union1::UnionType>
 {
-    static constexpr auto ValueType() { return Value::Type::Integer; }
+    static constexpr auto ValueType() { return Value::Type::Unsigned; }
     static void           Get(Value& /*obj*/) { throw 1; }
     static void           Get(const Value& /*obj*/) { throw 1; }
     static void           Check() { throw 1; }

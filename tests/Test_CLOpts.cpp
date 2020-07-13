@@ -9,9 +9,9 @@
 
 template <typename TStruct, typename... TArgs> TStruct ParseArgs(TArgs&&... args)
 {
-    TStruct     data;
-    const char* testargv[] = {"test", std::forward<TArgs>(args)...};
-    CommandLineArgs<TStruct>().Load(&data, std::size(testargv), testargv);
+    TStruct          data;
+    std::string_view testargv[] = {"test", std::forward<TArgs>(args)...};
+    CommandLineArgs<TStruct>().Load(&data, testargv);
     return data;
 }
 
@@ -33,22 +33,11 @@ template <typename TStruct, typename TException, typename... TArgs> auto Require
 
 template <typename TStruct, typename... TArgs> std::vector<std::string> RequireGenerateHelpException(TArgs&&... args)
 {
-    using TException = typename CommandLineArgs<TStruct>::HelpException;
-    try
-    {
-        ParseArgs<TStruct>(std::forward<TArgs>(args)...);
-    }
-    catch (const TException& ex)
-    {
-        return ex.helpinfolines;
-    }
-    catch (...)
-    {
-        FAIL("Unexpected Exception. Was expecting a Help Exception");
-    }
-    FAIL("Unexpected Exception. Was expecting a Help Exception");
-
-    return {};
+    TStruct          data;
+    std::string_view testargv[] = {"test", std::forward<TArgs>(args)...};
+    CommandLineArgs<TStruct> cli;
+    cli.Load(&data, testargv);
+    return cli.HelpInfo();
 };
 
 TEST_CASE("CodeGen::CommandLineArgs::Simplecase", "[CommandLineArgs]")
@@ -166,5 +155,5 @@ TEST_CASE("CodeGen::CommandLineArgs::Help")
         output.push_back("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     }
 
-    CheckOutputAgainstResource(output, L"testdata_output_CLOpts2_Union_Help.txt");
+    CheckOutputAgainstResource(output, "testdata_output_CLOpts2_Union_Help.txt");
 }

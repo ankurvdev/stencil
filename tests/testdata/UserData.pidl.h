@@ -43,6 +43,8 @@ struct Data :
             return ::ReflectionServices::EmptyAttributeValue(key);
         case FieldIndex::creation:
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -120,6 +122,8 @@ struct Data :
             return ::ReflectionServices::EmptyAttributeValue(key);
         case FieldIndex::secretcode:
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -235,6 +239,8 @@ struct Data :
             return ::ReflectionServices::EmptyAttributeValue(key);
         case FieldIndex::identity:
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);

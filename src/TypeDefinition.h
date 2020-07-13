@@ -29,6 +29,7 @@ class Context
 {
     public:
     Context(IDL::Program& programIn) : program(programIn) {}
+    ONLY_MOVE_CONSTRUCT(Context);
 
     void CreateFieldDefinition(NameWithTypeList&& name, NameWithTypeList&& basename, Attributes&& map)
     {
@@ -49,7 +50,10 @@ class Context
     }
 
     bool Debug() { return false; }
-    void NotifyError(int line, int col, std::string const& msg) { std::cerr << "Error : " << msg << std::endl; }
+    void NotifyError(int line, int col, std::string const& msg)
+    {
+        std::cerr << "Error(TypeDefinition)[" << line << ":" << col << "] : " << msg << std::endl;
+    }
 
     IDL::Program& program;
 };

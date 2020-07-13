@@ -150,7 +150,7 @@ struct StateTraker
     bool TryObjKey(Value key, TStackData&& data)
     {
         decltype(_stack.back().def->FindComponent(0)) sub;
-        if (key.GetType() == Value::Type::Integer)
+        if (key.GetType() == Value::Type::Unsigned)
         {
             sub = _stack.back().def->FindComponent(key.convert<size_t>());
         }
@@ -249,8 +249,7 @@ auto make_list_of_obj()
 
 auto make_obj_of_list()
 {
-    std::shared_ptr<DefinitionTree> meta(
-        std::make_shared<DefinitionTree>(std::string("objoflist"), Definition::Type::Object));
+    std::shared_ptr<DefinitionTree> meta(std::make_shared<DefinitionTree>(std::string("objoflist"), Definition::Type::Object));
     //    auto comp = std::shared_ptr<Definition>(std::make_shared<Definition>(std::string const&::make("list1"), Definition::Type::List));
     //    comp->AddComponent(());
     meta->AddComponent(make_list());

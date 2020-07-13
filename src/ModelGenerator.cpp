@@ -4,6 +4,10 @@
 
 #include "TypeDefinition.ly.h"
 
+#pragma warning(push, 0)
+#include <tinyxml2.h>
+#pragma warning(pop)
+
 #include <EmbeddedResource.h>
 #include <fstream>
 #include <iostream>
@@ -11,7 +15,7 @@
 #include <set>
 #include <stdexcept>
 #include <string_view>
-#include <tinyxml2.h>
+
 #include <vector>
 
 DECLARE_RESOURCE_COLLECTION(templates);
@@ -53,7 +57,7 @@ std::ostream& operator<<(std::ostream& strm, std::wstring_view wstr)
 void Generator::_AddTypeDefinitions(std::string_view const& /*name*/, std::string_view const& text)
 {
     IDL::Lang::TypeDefinition::Context loadcontext{*_program};
-    IDL::Lang::TypeDefinition::LoadString(loadcontext, text.data());
+    IDL::Lang::TypeDefinition::LoadString(loadcontext, text);
 }
 
 void CreateTemplateFromNode(tree<TemplateFragment>&          tmpl,
@@ -83,7 +87,7 @@ void CreateTemplateFromNode(tree<TemplateFragment>&          tmpl,
         data.attributes[attr->Name()] = Str::Value(Str::Convert(attr->Value()));
     }
 
-    data.rowstart = data.rowend = xml.GetLineNum();
+    data.rowstart = data.rowend = static_cast<size_t>(xml.GetLineNum());
     data.sourceFileName         = name;
 
     auto it = tmpl.addchild(parent, std::move(data));
@@ -110,7 +114,10 @@ void ExpandTemplate(tree<Str::Type>&                 codetree,
 {
 
     auto it = codetree.addchild(root, [&]() {
-        if (tmplrootit->body.has_value()) return context.EvaluateExpression(data, tmplrootit->body.value()).String();
+        if (tmplrootit->body != nullptr)
+        {
+            return context.EvaluateExpression(data, *tmplrootit->body)->String();
+        }
         return std::wstring();
     }());
 
@@ -124,7 +131,7 @@ void ExpandTemplate(tree<Str::Type>&                 codetree,
         //        auto                   paramName = splitintotwo(filterExpr, ":");
         Binding::Expression expr;
         expr.AddString(Str::Create(prefix));
-        if (suffix != Str::Value(context.EvaluateExpression(data, expr).String()))
+        if (suffix != Str::Value(context.EvaluateExpression(data, expr)->String()))
         {
             return;
         }
@@ -148,7 +155,7 @@ void ExpandTemplate(tree<Str::Type>&                 codetree,
                 std::vector<Str::Type> b;
                 b.push_back(Str::Convert(lhs.c_str()));
                 expr.AddBindingExpression(std::unique_ptr<Binding::BindingExpr>(new Binding::BindingExpr{std::move(b)}));
-                auto rslt = context.EvaluateExpression(data, expr).String();
+                auto rslt = context.EvaluateExpression(data, expr)->String();
                 if (!Str::Equal(rslt, Str::Create(rhs)))
                 {
                     allgood = false;
@@ -161,7 +168,10 @@ void ExpandTemplate(tree<Str::Type>&                 codetree,
         }
 
         it = codetree.addsibling(it, [&]() {
-            if (tmplrootit->body.has_value()) return context.EvaluateExpression(data, tmplit->body.value()).String();
+            if (tmplrootit->body != nullptr)
+            {
+                return context.EvaluateExpression(data, *tmplit->body)->String();
+            }
             return std::wstring();
         }());
 
@@ -224,7 +234,7 @@ static std::wstring AddCDataBegin(std::wstring const& tmplview)
         assert(match.size() == 2);
         sstr << match.prefix();
         sstr << L"]]>" << match[1].str() << L"<![CDATA[";
-        index = match.position(0) + match.length(0);
+        index = static_cast<size_t>(match.position(0u) + match.length(0u));
     }
     sstr << tmplview.substr(index);
     return sstr.str();
@@ -245,7 +255,7 @@ static std::wstring AddCDataEnd(std::wstring const& tmplview)
         assert(match.size() == 2);
         sstr << match.prefix();
         sstr << L"]]>" << match[1].str() << L"<![CDATA[";
-        index = match.position(0) + match.length(0);
+        index = static_cast<size_t>(match.position(0u) + match.length(0u));
     }
     sstr << tmplview.substr(index);
     return sstr.str();
@@ -257,7 +267,7 @@ void Generator::_AddTemplate(std::string_view const& name, std::string_view cons
     {
         return;
     }
-    auto fullTemplateContents = Str::Create(L"<ModelGenerator><![CDATA[" + Str::Value(Str::Convert(text.data())) + L"]]></ModelGenerator>");
+    auto fullTemplateContents = Str::Create(L"<ModelGenerator><![CDATA[" + Str::Value(Str::Convert(text)) + L"]]></ModelGenerator>");
     auto modified             = AddCDataEnd(AddCDataBegin(fullTemplateContents));
 
     tinyxml2::XMLDocument doc(false);
@@ -318,11 +328,11 @@ static GeneratedCode GenerateCode(Template const& tmpl, Binding::IBindable const
 {
     Binding::BindingContext context;
 
-    GeneratedCode code;
+    GeneratedCode code{};
 
     auto scope    = context.ContextScope(data);
     code.content  = ExpandTemplate(tmpl.root, context, data);
-    code.filename = std::filesystem::path(Str::Value(context.EvaluateExpression(data, tmpl.fileName).String()));
+    code.filename = std::filesystem::path(Str::Value(context.EvaluateExpression(data, *tmpl.fileName)->String()));
     return code;
 }
 

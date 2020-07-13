@@ -70,6 +70,8 @@ struct Data :
         case FieldIndex::User:
             if (key == "Description") return "User to install for";
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -177,6 +179,8 @@ struct Data :
         case FieldIndex::ProductId:
             if (key == "Description") return "Catalog/Product:Sku:Bundle";
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -224,6 +228,8 @@ struct Data :
         case FieldIndex::ProductId:
             if (key == "Description") return "Catalog/Product:Sku:Bundle";
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -271,6 +277,8 @@ struct Data :
         case FieldIndex::ProductId:
             if (key == "Description") return "Catalog/Product:Sku:Bundle";
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -318,6 +326,8 @@ struct Data :
         case FieldIndex::ProductId:
             if (key == "Description") return "Catalog/Product:Sku:Bundle";
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -365,6 +375,8 @@ struct Data :
         case FieldIndex::ProductId:
             if (key == "Description") return "Catalog/Product:Sku:Bundle";
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -412,6 +424,8 @@ struct Data :
         case FieldIndex::ProductId:
             if (key == "Description") return "Catalog/Product:Sku:Bundle";
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -510,6 +524,8 @@ struct Data : public ReflectionBase::ObjMarker
         {
             return ::ReflectionServices::EmptyAttributeValue(key);
         }
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -954,7 +970,7 @@ template <> struct ReflectionServices::EnumTraits<CLOpts2::CommandLineOptions::U
 
 template <> struct ValueTraits<CLOpts2::CommandLineOptions::UnionType>
 {
-    static constexpr auto ValueType() { return Value::Type::Integer; }
+    static constexpr auto ValueType() { return Value::Type::Unsigned; }
     static void           Get(Value& /*obj*/) { throw 1; }
     static void           Get(const Value& /*obj*/) { throw 1; }
     static void           Check() { throw 1; }

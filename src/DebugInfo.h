@@ -37,7 +37,7 @@ struct ErrorAggregator
 
 template <typename TFunc> struct ThreadActionContextImpl
 {
-    ThreadActionContextImpl(Str::View const& what, TFunc func) : _what(what), _func(func) {}
+    ThreadActionContextImpl(Str::View const& what, TFunc&& func) : _what(what), _func(std::move(func)) {}
     ~ThreadActionContextImpl()
     {
         if (std::uncaught_exceptions() > 0)
@@ -46,13 +46,15 @@ template <typename TFunc> struct ThreadActionContextImpl
         }
     }
 
-    TFunc     _func;
+    DELETE_MOVE_AND_COPY_ASSIGNMENT(ThreadActionContextImpl);
+
     Str::View _what;
+    TFunc     _func;
 };
 
-template <typename TFunc> auto ThreadActionContext(Str::View const& what, TFunc func)
+template <typename TFunc> auto ThreadActionContext(Str::View const& what, TFunc&& func)
 {
-    return ThreadActionContextImpl<TFunc>(what, func);
+    return ThreadActionContextImpl<TFunc>(what, std::move(func));
 }
 
 struct DebugContext

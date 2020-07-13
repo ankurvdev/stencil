@@ -14,12 +14,12 @@ namespace DigitalAssetInfo
 {
 struct Data;
 }
-typedef tree<shared_string> Keyword;
-typedef tree<shared_string> Entity;
+typedef shared_tree<shared_string> Keyword;
+typedef shared_tree<shared_string> Entity;
 typedef std::vector<MapPoint::Data> AreaPolygon;
-typedef tree<GeographicalArea::Data> GeographicalLocation;
-typedef std::vector<tree<shared_string>> Keywords;
-typedef std::vector<tree<shared_string>> Entities;
+typedef shared_tree<GeographicalArea::Data> GeographicalLocation;
+typedef std::vector<shared_tree<shared_string>> Keywords;
+typedef std::vector<shared_tree<shared_string>> Entities;
 namespace MapPoint
 {
 
@@ -46,6 +46,8 @@ struct Data :
             return ::ReflectionServices::EmptyAttributeValue(key);
         case FieldIndex::longitude:
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -113,6 +115,8 @@ struct Data :
             return ::ReflectionServices::EmptyAttributeValue(key);
         case FieldIndex::areaPolygon:
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -204,6 +208,8 @@ struct Data :
             return ::ReflectionServices::EmptyAttributeValue(key);
         case FieldIndex::fileUrl:
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -225,34 +231,34 @@ struct Data :
     void set_id(int32_t&& val) { _id = std::move(val); }
 
     private:
-    std::vector<tree<shared_string>> _keywords = {};
+    std::vector<shared_tree<shared_string>> _keywords = {};
 
     public:
-    std::vector<tree<shared_string>>&       keywords() { return _keywords; }
-    const std::vector<tree<shared_string>>& keywords() const { return _keywords; }
-    void                            keywords(std::vector<tree<shared_string>>&& val) { _keywords = std::move(val); }
+    std::vector<shared_tree<shared_string>>&       keywords() { return _keywords; }
+    const std::vector<shared_tree<shared_string>>& keywords() const { return _keywords; }
+    void                            keywords(std::vector<shared_tree<shared_string>>&& val) { _keywords = std::move(val); }
 
-    std::vector<tree<shared_string>>& get_keywords()
+    std::vector<shared_tree<shared_string>>& get_keywords()
     {
         return _keywords;
         ;
     }
-    void set_keywords(std::vector<tree<shared_string>>&& val) { _keywords = std::move(val); }
+    void set_keywords(std::vector<shared_tree<shared_string>>&& val) { _keywords = std::move(val); }
 
     private:
-    tree<GeographicalArea::Data> _location = {};
+    shared_tree<GeographicalArea::Data> _location = {};
 
     public:
-    tree<GeographicalArea::Data>&       location() { return _location; }
-    const tree<GeographicalArea::Data>& location() const { return _location; }
-    void                            location(tree<GeographicalArea::Data>&& val) { _location = std::move(val); }
+    shared_tree<GeographicalArea::Data>&       location() { return _location; }
+    const shared_tree<GeographicalArea::Data>& location() const { return _location; }
+    void                            location(shared_tree<GeographicalArea::Data>&& val) { _location = std::move(val); }
 
-    tree<GeographicalArea::Data>& get_location()
+    shared_tree<GeographicalArea::Data>& get_location()
     {
         return _location;
         ;
     }
-    void set_location(tree<GeographicalArea::Data>&& val) { _location = std::move(val); }
+    void set_location(shared_tree<GeographicalArea::Data>&& val) { _location = std::move(val); }
 
     private:
     int64_t _md5sum = {};
@@ -302,25 +308,27 @@ struct Data :
 };
 
 }    // namespace DigitalAssetInfo
-typedef tree<shared_string> Keyword;
-typedef tree<shared_string> Entity;
+typedef shared_tree<shared_string> Keyword;
+typedef shared_tree<shared_string> Entity;
 typedef std::vector<MapPoint::Data> AreaPolygon;
-typedef tree<GeographicalArea::Data> GeographicalLocation;
-typedef std::vector<tree<shared_string>> Keywords;
-typedef std::vector<tree<shared_string>> Entities;
+typedef shared_tree<GeographicalArea::Data> GeographicalLocation;
+typedef std::vector<shared_tree<shared_string>> Keywords;
+typedef std::vector<shared_tree<shared_string>> Entities;
 struct KeywordS : public ReflectionBase::Interface<KeywordS>
 {
     public:
-    KeywordS() : ReflectionBase::Interface<KeywordS>(this) {}
-    virtual tree<shared_string> Find(
-        tree<shared_string> const& root
+    KeywordS()          = default;
+    virtual ~KeywordS() = default;
+    DELETE_COPY_AND_MOVE(KeywordS);
+    virtual shared_tree<shared_string> Find(
+        shared_tree<shared_string> const& root
 ,        shared_string const& query
 ,        shared_string const& type
         )
         = 0;
-    virtual tree<shared_string> Create(
+    virtual shared_tree<shared_string> Create(
         shared_string const& word
-,        tree<shared_string> const& parent
+,        shared_tree<shared_string> const& parent
         )
         = 0;
     virtual int32_t Delete(
@@ -331,7 +339,7 @@ struct KeywordS : public ReflectionBase::Interface<KeywordS>
         )
         = 0;
     virtual int32_t SetParent(
-        tree<shared_string> const& parent
+        shared_tree<shared_string> const& parent
         )
         = 0;
     // static std::unique_ptr<KeywordS> Create();
@@ -341,15 +349,16 @@ struct KeywordSFactory : public ReflectionBase::InterfaceFactory<KeywordS>
 {
     public:
     virtual std::unique_ptr<KeywordS> Activate() = 0;
+    virtual ~KeywordSFactory()                   = default;
 };
 
 struct KeywordS_Find_Args
 {
     KeywordS* instance = nullptr;
 
-    tree<shared_string>  arg_root{};
-    tree<shared_string>& get_arg_root() { return arg_root; }
-    void                      set_arg_root(tree<shared_string>&& value) { arg_root = std::move(value); }
+    shared_tree<shared_string>  arg_root{};
+    shared_tree<shared_string>& get_arg_root() { return arg_root; }
+    void                      set_arg_root(shared_tree<shared_string>&& value) { arg_root = std::move(value); }
     shared_string  arg_query{};
     shared_string& get_arg_query() { return arg_query; }
     void                      set_arg_query(shared_string&& value) { arg_query = std::move(value); }
@@ -365,9 +374,9 @@ struct KeywordS_Create_Args
     shared_string  arg_word{};
     shared_string& get_arg_word() { return arg_word; }
     void                      set_arg_word(shared_string&& value) { arg_word = std::move(value); }
-    tree<shared_string>  arg_parent{};
-    tree<shared_string>& get_arg_parent() { return arg_parent; }
-    void                      set_arg_parent(tree<shared_string>&& value) { arg_parent = std::move(value); }
+    shared_tree<shared_string>  arg_parent{};
+    shared_tree<shared_string>& get_arg_parent() { return arg_parent; }
+    void                      set_arg_parent(shared_tree<shared_string>&& value) { arg_parent = std::move(value); }
 };
 
 struct KeywordS_Delete_Args
@@ -389,21 +398,23 @@ struct KeywordS_SetParent_Args
 {
     KeywordS* instance = nullptr;
 
-    tree<shared_string>  arg_parent{};
-    tree<shared_string>& get_arg_parent() { return arg_parent; }
-    void                      set_arg_parent(tree<shared_string>&& value) { arg_parent = std::move(value); }
+    shared_tree<shared_string>  arg_parent{};
+    shared_tree<shared_string>& get_arg_parent() { return arg_parent; }
+    void                      set_arg_parent(shared_tree<shared_string>&& value) { arg_parent = std::move(value); }
 };
 
 struct Content : public ReflectionBase::Interface<Content>
 {
     public:
-    Content() : ReflectionBase::Interface<Content>(this) {}
+    Content()          = default;
+    virtual ~Content() = default;
+    DELETE_COPY_AND_MOVE(Content);
     virtual int32_t AddKeyword(
-        tree<shared_string> const& keyword
+        shared_tree<shared_string> const& keyword
         )
         = 0;
     virtual int32_t RemoveKeyword(
-        tree<shared_string> const& keyword
+        shared_tree<shared_string> const& keyword
         )
         = 0;
     // static std::unique_ptr<Content> Create();
@@ -413,32 +424,35 @@ struct ContentFactory : public ReflectionBase::InterfaceFactory<Content>
 {
     public:
     virtual std::unique_ptr<Content> Activate() = 0;
+    virtual ~ContentFactory()                   = default;
 };
 
 struct Content_AddKeyword_Args
 {
     Content* instance = nullptr;
 
-    tree<shared_string>  arg_keyword{};
-    tree<shared_string>& get_arg_keyword() { return arg_keyword; }
-    void                      set_arg_keyword(tree<shared_string>&& value) { arg_keyword = std::move(value); }
+    shared_tree<shared_string>  arg_keyword{};
+    shared_tree<shared_string>& get_arg_keyword() { return arg_keyword; }
+    void                      set_arg_keyword(shared_tree<shared_string>&& value) { arg_keyword = std::move(value); }
 };
 
 struct Content_RemoveKeyword_Args
 {
     Content* instance = nullptr;
 
-    tree<shared_string>  arg_keyword{};
-    tree<shared_string>& get_arg_keyword() { return arg_keyword; }
-    void                      set_arg_keyword(tree<shared_string>&& value) { arg_keyword = std::move(value); }
+    shared_tree<shared_string>  arg_keyword{};
+    shared_tree<shared_string>& get_arg_keyword() { return arg_keyword; }
+    void                      set_arg_keyword(shared_tree<shared_string>&& value) { arg_keyword = std::move(value); }
 };
 
 struct Search : public ReflectionBase::Interface<Search>
 {
     public:
-    Search() : ReflectionBase::Interface<Search>(this) {}
+    Search()          = default;
+    virtual ~Search() = default;
+    DELETE_COPY_AND_MOVE(Search);
     virtual std::vector<long> SearchByKeywords(
-        std::vector<tree<shared_string>> const& keywords
+        std::vector<shared_tree<shared_string>> const& keywords
         )
         = 0;
     virtual std::vector<long> SearchByDate(
@@ -453,15 +467,16 @@ struct SearchFactory : public ReflectionBase::InterfaceFactory<Search>
 {
     public:
     virtual std::unique_ptr<Search> Activate() = 0;
+    virtual ~SearchFactory()                   = default;
 };
 
 struct Search_SearchByKeywords_Args
 {
     Search* instance = nullptr;
 
-    std::vector<tree<shared_string>>  arg_keywords{};
-    std::vector<tree<shared_string>>& get_arg_keywords() { return arg_keywords; }
-    void                      set_arg_keywords(std::vector<tree<shared_string>>&& value) { arg_keywords = std::move(value); }
+    std::vector<shared_tree<shared_string>>  arg_keywords{};
+    std::vector<shared_tree<shared_string>>& get_arg_keywords() { return arg_keywords; }
+    void                      set_arg_keywords(std::vector<shared_tree<shared_string>>&& value) { arg_keywords = std::move(value); }
 };
 
 struct Search_SearchByDate_Args
@@ -479,7 +494,9 @@ struct Search_SearchByDate_Args
 struct Store : public ReflectionBase::Interface<Store>
 {
     public:
-    Store() : ReflectionBase::Interface<Store>(this) {}
+    Store()          = default;
+    virtual ~Store() = default;
+    DELETE_COPY_AND_MOVE(Store);
     virtual DigitalAssetInfo::Data Upload(
         shared_string const& file
         )
@@ -495,6 +512,7 @@ struct StoreFactory : public ReflectionBase::InterfaceFactory<Store>
 {
     public:
     virtual std::unique_ptr<Store> Activate() = 0;
+    virtual ~StoreFactory()                   = default;
 };
 
 struct Store_Upload_Args
@@ -551,9 +569,12 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::KeywordS_Find_A
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<ComplexWebService::KeywordS_Find_Args
-                                                                 ,Traits_arg_root
-                                                                 ,Traits_arg_query
-                                                                 ,Traits_arg_type
+                                                                 ,
+                                                                 Traits_arg_root
+                                                                 ,
+                                                                 Traits_arg_query
+                                                                 ,
+                                                                 Traits_arg_type
                                                                  >;
 };
 template <> struct ReflectionBase::TypeTraits<ComplexWebService::KeywordS_Create_Args&>
@@ -581,8 +602,10 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::KeywordS_Create
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<ComplexWebService::KeywordS_Create_Args
-                                                                 ,Traits_arg_word
-                                                                 ,Traits_arg_parent
+                                                                 ,
+                                                                 Traits_arg_word
+                                                                 ,
+                                                                 Traits_arg_parent
                                                                  >;
 };
 template <> struct ReflectionBase::TypeTraits<ComplexWebService::KeywordS_Delete_Args&>
@@ -610,7 +633,8 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::KeywordS_Modify
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<ComplexWebService::KeywordS_Modify_Args
-                                                                 ,Traits_arg_word
+                                                                 ,
+                                                                 Traits_arg_word
                                                                  >;
 };
 template <> struct ReflectionBase::TypeTraits<ComplexWebService::KeywordS_SetParent_Args&>
@@ -629,7 +653,8 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::KeywordS_SetPar
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<ComplexWebService::KeywordS_SetParent_Args
-                                                                 ,Traits_arg_parent
+                                                                 ,
+                                                                 Traits_arg_parent
                                                                  >;
 };
 template <> struct ReflectionBase::InterfaceTraits<ComplexWebService::KeywordS>
@@ -755,7 +780,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Comple
     }
 };
 
-#if (defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0)
+#if ((defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0))
 template <> struct WebServiceHandlerTraits<ComplexWebService::KeywordS>
 {
     static constexpr const std::string_view Url() { return std::string_view("KeywordS"); }
@@ -778,7 +803,8 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::Content_AddKeyw
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<ComplexWebService::Content_AddKeyword_Args
-                                                                 ,Traits_arg_keyword
+                                                                 ,
+                                                                 Traits_arg_keyword
                                                                  >;
 };
 template <> struct ReflectionBase::TypeTraits<ComplexWebService::Content_RemoveKeyword_Args&>
@@ -797,7 +823,8 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::Content_RemoveK
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<ComplexWebService::Content_RemoveKeyword_Args
-                                                                 ,Traits_arg_keyword
+                                                                 ,
+                                                                 Traits_arg_keyword
                                                                  >;
 };
 template <> struct ReflectionBase::InterfaceTraits<ComplexWebService::Content>
@@ -852,7 +879,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Comple
     }
 };
 
-#if (defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0)
+#if ((defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0))
 template <> struct WebServiceHandlerTraits<ComplexWebService::Content>
 {
     static constexpr const std::string_view Url() { return std::string_view("Content"); }
@@ -875,7 +902,8 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::Search_SearchBy
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<ComplexWebService::Search_SearchByKeywords_Args
-                                                                 ,Traits_arg_keywords
+                                                                 ,
+                                                                 Traits_arg_keywords
                                                                  >;
 };
 template <> struct ReflectionBase::TypeTraits<ComplexWebService::Search_SearchByDate_Args&>
@@ -903,8 +931,10 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::Search_SearchBy
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<ComplexWebService::Search_SearchByDate_Args
-                                                                 ,Traits_arg_startDate
-                                                                 ,Traits_arg_endDate
+                                                                 ,
+                                                                 Traits_arg_startDate
+                                                                 ,
+                                                                 Traits_arg_endDate
                                                                  >;
 };
 template <> struct ReflectionBase::InterfaceTraits<ComplexWebService::Search>
@@ -960,7 +990,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Comple
     }
 };
 
-#if (defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0)
+#if ((defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0))
 template <> struct WebServiceHandlerTraits<ComplexWebService::Search>
 {
     static constexpr const std::string_view Url() { return std::string_view("Search"); }
@@ -983,7 +1013,8 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::Store_Upload_Ar
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<ComplexWebService::Store_Upload_Args
-                                                                 ,Traits_arg_file
+                                                                 ,
+                                                                 Traits_arg_file
                                                                  >;
 };
 template <> struct ReflectionBase::TypeTraits<ComplexWebService::Store_Download_Args&>
@@ -1002,7 +1033,8 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::Store_Download_
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<ComplexWebService::Store_Download_Args
-                                                                 ,Traits_arg_content
+                                                                 ,
+                                                                 Traits_arg_content
                                                                  >;
 };
 template <> struct ReflectionBase::InterfaceTraits<ComplexWebService::Store>
@@ -1057,7 +1089,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Comple
     }
 };
 
-#if (defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0)
+#if ((defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0))
 template <> struct WebServiceHandlerTraits<ComplexWebService::Store>
 {
     static constexpr const std::string_view Url() { return std::string_view("Store"); }

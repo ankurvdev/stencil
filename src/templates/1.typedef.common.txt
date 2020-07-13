@@ -83,7 +83,7 @@ list<type> {
 }
 
 tree<type> list {
-    NativeType = 'tree<%type:NativeType%>'
+    NativeType = 'shared_tree<%type:NativeType%>'
 }
 
 uuidref<type> {

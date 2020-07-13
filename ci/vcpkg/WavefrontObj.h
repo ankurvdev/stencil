@@ -48,14 +48,14 @@ template <typename T> inline std::vector<T> ListAdd(std::vector<T>& l, T& obj)
 
 inline FaceElems ListAdd(FaceElems& elems, FaceElem& e)
 {
-    elems.vertices.push_back(e.vertex - 1);
+    elems.vertices.push_back(static_cast<uint16_t>(e.vertex - 1u));
     if (e.texel != InvalidTexel)
     {
-        elems.texels.push_back(e.texel - 1);
+        elems.texels.push_back(static_cast<uint16_t>(e.texel - 1u));
     }
     if (e.normal != InvalidNormal)
     {
-        elems.normals.push_back(e.normal - 1);
+        elems.normals.push_back(static_cast<uint16_t>(e.normal - 1u));
     }
     return std::move(elems);
 }
@@ -86,7 +86,7 @@ struct Context
     };
 
     bool Debug() { return false; }
-    void NotifyError(int line, int col, std::string const& msg) {}
+    void NotifyError(int /*line*/, int /*col*/, std::string const& /*msg*/) {}
 
     void CreateVertex(double x, double y, double z) { vertices.emplace_back(Vertex{x, y, z}); }
     void CreateTexel(double u, double v) { texels.emplace_back(Texel{u, v}); }

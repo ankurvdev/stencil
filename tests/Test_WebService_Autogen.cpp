@@ -1,11 +1,8 @@
+#include "TestUtils.h"
 #include "WebService.h"
-#include <SimpleWebService.pidl.h>
-#include <ComplexWebService.pidl.h>
 
-#include <catch2/catch.hpp>
-#pragma warning(push, 0)
-#include <httplib.h>
-#pragma warning(pop)
+#include <ComplexWebService.pidl.h>
+#include <SimpleWebService.pidl.h>
 
 #include <sstream>
 #include <string>

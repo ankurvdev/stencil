@@ -1,10 +1,13 @@
+#include "TestUtils.h"
 #include "WebService.h"
-#include <catch2/catch.hpp>
 
 struct TestInterface : public ReflectionBase::Interface<TestInterface>
 {
     public:
-    TestInterface() : ReflectionBase::Interface<TestInterface>(this) {}
+    TestInterface()          = default;
+    virtual ~TestInterface() = default;
+    DELETE_COPY_AND_MOVE(TestInterface);
+
     virtual uint64_t                      AddNumber(uint64_t num1, uint64_t num2) = 0;
     static std::unique_ptr<TestInterface> Create(uint64_t randomInteger, shared_string randomString);
 };
@@ -12,6 +15,8 @@ struct TestInterface : public ReflectionBase::Interface<TestInterface>
 struct TestInterfaceFactory : public ReflectionBase::InterfaceFactory<TestInterface>
 {
     public:
+    virtual ~TestInterfaceFactory() = default;
+
     virtual std::unique_ptr<TestInterface> Activate(uint64_t randomInteger, shared_string randomString) = 0;
 };
 
@@ -173,6 +178,8 @@ class TestInterfaceImpl : public TestInterface
     virtual uint64_t AddNumber(uint64_t num1, uint64_t num2) override { return num1 + num2; }
 
     TestInterfaceImpl(uint64_t randomInteger, shared_string randomString) : _randomInteger(randomInteger), _randomString(randomString) {}
+
+    DELETE_COPY_AND_MOVE(TestInterfaceImpl);
 
     uint64_t      _randomInteger;
     shared_string _randomString;

@@ -14,12 +14,12 @@ namespace DigitalAssetInfo
 {
 struct Data;
 }
-typedef tree<shared_string> Keyword;
-typedef tree<shared_string> Entity;
+typedef shared_tree<shared_string> Keyword;
+typedef shared_tree<shared_string> Entity;
 typedef std::vector<MapPoint::Data> AreaPolygon;
-typedef tree<GeographicalArea::Data> GeographicalLocation;
-typedef std::vector<tree<shared_string>> Keywords;
-typedef std::vector<tree<shared_string>> Entities;
+typedef shared_tree<GeographicalArea::Data> GeographicalLocation;
+typedef std::vector<shared_tree<shared_string>> Keywords;
+typedef std::vector<shared_tree<shared_string>> Entities;
 namespace MapPoint
 {
 
@@ -46,6 +46,8 @@ struct Data :
             return ::ReflectionServices::EmptyAttributeValue(key);
         case FieldIndex::longitude:
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -113,6 +115,8 @@ struct Data :
             return ::ReflectionServices::EmptyAttributeValue(key);
         case FieldIndex::areaPolygon:
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -204,6 +208,8 @@ struct Data :
             return ::ReflectionServices::EmptyAttributeValue(key);
         case FieldIndex::fileUrl:
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
@@ -225,34 +231,34 @@ struct Data :
     void set_id(int32_t&& val) { _id = std::move(val); }
 
     private:
-    std::vector<tree<shared_string>> _keywords = {};
+    std::vector<shared_tree<shared_string>> _keywords = {};
 
     public:
-    std::vector<tree<shared_string>>&       keywords() { return _keywords; }
-    const std::vector<tree<shared_string>>& keywords() const { return _keywords; }
-    void                            keywords(std::vector<tree<shared_string>>&& val) { _keywords = std::move(val); }
+    std::vector<shared_tree<shared_string>>&       keywords() { return _keywords; }
+    const std::vector<shared_tree<shared_string>>& keywords() const { return _keywords; }
+    void                            keywords(std::vector<shared_tree<shared_string>>&& val) { _keywords = std::move(val); }
 
-    std::vector<tree<shared_string>>& get_keywords()
+    std::vector<shared_tree<shared_string>>& get_keywords()
     {
         return _keywords;
         ;
     }
-    void set_keywords(std::vector<tree<shared_string>>&& val) { _keywords = std::move(val); }
+    void set_keywords(std::vector<shared_tree<shared_string>>&& val) { _keywords = std::move(val); }
 
     private:
-    tree<GeographicalArea::Data> _location = {};
+    shared_tree<GeographicalArea::Data> _location = {};
 
     public:
-    tree<GeographicalArea::Data>&       location() { return _location; }
-    const tree<GeographicalArea::Data>& location() const { return _location; }
-    void                            location(tree<GeographicalArea::Data>&& val) { _location = std::move(val); }
+    shared_tree<GeographicalArea::Data>&       location() { return _location; }
+    const shared_tree<GeographicalArea::Data>& location() const { return _location; }
+    void                            location(shared_tree<GeographicalArea::Data>&& val) { _location = std::move(val); }
 
-    tree<GeographicalArea::Data>& get_location()
+    shared_tree<GeographicalArea::Data>& get_location()
     {
         return _location;
         ;
     }
-    void set_location(tree<GeographicalArea::Data>&& val) { _location = std::move(val); }
+    void set_location(shared_tree<GeographicalArea::Data>&& val) { _location = std::move(val); }
 
     private:
     int64_t _md5sum = {};
@@ -302,12 +308,12 @@ struct Data :
 };
 
 }    // namespace DigitalAssetInfo
-typedef tree<shared_string> Keyword;
-typedef tree<shared_string> Entity;
+typedef shared_tree<shared_string> Keyword;
+typedef shared_tree<shared_string> Entity;
 typedef std::vector<MapPoint::Data> AreaPolygon;
-typedef tree<GeographicalArea::Data> GeographicalLocation;
-typedef std::vector<tree<shared_string>> Keywords;
-typedef std::vector<tree<shared_string>> Entities;
+typedef shared_tree<GeographicalArea::Data> GeographicalLocation;
+typedef std::vector<shared_tree<shared_string>> Keywords;
+typedef std::vector<shared_tree<shared_string>> Entities;
 }    // namespace Metadata
 
 template <> struct ReflectionBase::TypeTraits<Metadata::MapPoint::Data&>

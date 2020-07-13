@@ -1,5 +1,5 @@
 #include "Test_DataHandlerJson.h"
-#include <catch2/catch.hpp>
+#include "TestUtils.h"
 
 TEST_CASE("CodeGen::JsonDataHandler", "[DataHandlerJson]")
 {

@@ -28,7 +28,7 @@ sudo apt-get update && \
 sudo apt-get install --yes --no-install-recommends --quiet \
     clang-10 \
     clang-format-10 \
-    libstdc++-9-dev \
+    libstdc++-10-dev \
     cmake flex bison gettext \
 
 

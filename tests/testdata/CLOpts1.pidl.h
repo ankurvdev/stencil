@@ -51,6 +51,8 @@ struct Data :
             if (key == "Description") return "Run as daemon";
             if (key == "Name1") return "Run as Daemon";
             return ::ReflectionServices::EmptyAttributeValue(key);
+        case FieldIndex::Invalid: break;
+
         default: break;
         }
         return ::ReflectionServices::EmptyAttributeValue(key);
