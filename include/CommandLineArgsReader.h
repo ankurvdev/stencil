@@ -14,7 +14,7 @@ struct CommandLineArgsReader
             std::stringstream ss;
             ss << "Error processing args : " << msg << std::endl;
 
-            for (size_t i = std::max(3u, index) - 3; i < index && i < args.size(); i++)
+            for (size_t i = std::max(size_t{3u}, index) - 3; i < index && i < args.size(); i++)
             {
                 ss << args[i] << " ";
             }
@@ -116,7 +116,6 @@ struct CommandLineArgsReader
 
     void _ProcessRequiredArg(size_t index, std::string_view const& argv)
     {
-        auto argToUse = argv;
         switch (_handler->GetCurrentContext()->GetType())
         {
         case Definition::Type::List: _ProcessList(argv); break;
@@ -279,7 +278,6 @@ struct CommandLineArgsReader
     {
         size_t            requiredArgNum = 0;
         int               bracketCount   = 0;
-        std::string_view  longArgName;
         std::stringstream accumulation;
 
         enum class Mode
