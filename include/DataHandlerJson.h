@@ -3,18 +3,18 @@
 #include <deque>
 class JsonDataModel;
 
-#ifdef USE_RAPIDJSON
+#ifdef USE_NLOHMANN_JSON
 #pragma warning(push, 0)
-#include <json/json.hpp>
+#include <nlohmann/json.hpp>
 #pragma warning(pop)
 
 struct Json
 {
-    using number_float_t    = double;
-    using number_integer_t  = int;
+    using number_float_t = double;
+    using number_integer_t = int;
     using number_unsigned_t = unsigned;
-    using string_t          = std::string;
-    using binary_t          = std::string;
+    using string_t = std::string;
+    using binary_t = std::string;
 
     template <typename TStruct> struct Reader : public nlohmann::json_sax<nlohmann::json>
     {
@@ -137,7 +137,7 @@ struct Table
 {
     struct ColumnSpan
     {
-        size_t      column  = 0;
+        size_t      column = 0;
         size_t      colspan = 0;
         std::string text;
     };
@@ -153,7 +153,7 @@ struct Table
 
     void AddColumn(size_t col, size_t span, std::string text)
     {
-        ColumnSpan col1{col, span, text};
+        ColumnSpan col1{ col, span, text };
         rows.back().columns.push_back(std::move(col1));
     }
 
@@ -203,7 +203,7 @@ struct Table
                 }
                 if (col.colspan == 0)
                 {
-                    auto neededwidth         = _FindColumnWidth(col);
+                    auto neededwidth = _FindColumnWidth(col);
                     columnwidths[col.column] = std::max(columnwidths[col.column], neededwidth);
                 }
             }
@@ -213,9 +213,9 @@ struct Table
         {
             for (auto& col : row.columns)
             {
-                auto farright    = std::min((size_t)(col.colspan) + col.column, columnwidths.size() - 1);
+                auto farright = std::min((size_t)(col.colspan) + col.column, columnwidths.size() - 1);
                 auto neededwidth = _FindColumnWidth(col);
-                auto remaining   = neededwidth;
+                auto remaining = neededwidth;
                 for (size_t i = col.column; i < farright && remaining > columnwidths[i]; i++)
                 {
                     remaining -= columnwidths[i];
@@ -230,7 +230,7 @@ struct Table
     std::vector<std::string> PrintAsLines() const
     {
         auto                widths = _FindColumnWidths();
-        std::vector<size_t> offsets{0};
+        std::vector<size_t> offsets{ 0 };
         offsets.reserve(widths.size());
         size_t bufferwidth = 1;
         for (size_t i = 0; i < widths.size(); i++)
@@ -311,8 +311,8 @@ template <typename TStruct> struct CommandLineArgs
 
         virtual void ObjStart() override { _tracker.ObjStart(nullptr); }
         virtual void ObjEnd() override { _tracker.ObjEnd(); }
-        virtual void ObjKey(std::string_view const& key) override { _tracker.ObjKey(Value{key}, nullptr); }
-        virtual void ObjKey(size_t index) override { _tracker.ObjKey(Value{index}, nullptr); }
+        virtual void ObjKey(std::string_view const& key) override { _tracker.ObjKey(Value{ key }, nullptr); }
+        virtual void ObjKey(size_t index) override { _tracker.ObjKey(Value{ index }, nullptr); }
 
         virtual std::shared_ptr<CommandLineArgsReader::Definition> GetCurrentContext() override
         {
@@ -413,11 +413,11 @@ template <typename TStruct> struct CommandLineArgs
             return table;
         }
 
-        void _RecursivelyAddHelp(std::vector<std::string>&                                lines,
-                                 std::deque<std::shared_ptr<::ReflectionBase::DataInfo>>& pending,
-                                 int /*depth*/)
+        void _RecursivelyAddHelp(std::vector<std::string>& lines,
+            std::deque<std::shared_ptr<::ReflectionBase::DataInfo>>& pending,
+            int /*depth*/)
         {
-            auto& info      = pending.front();
+            auto& info = pending.front();
             auto  infolines = _PrintUsage(*info)->PrintAsLines();
             for (auto& l : infolines)
             {
@@ -463,14 +463,16 @@ template <typename TStruct> struct CommandLineArgs
     };
 
     // TODO: Get rid of pointers
-    void Load(TStruct* obj, std::span<std::string_view> args)
+    template <typename TStr>
+    void Load(TStruct* obj, std::span<TStr> const& args)
     {
         ReaderHandler handler(obj);
         CommandLineArgsReader(&handler).Parse(args);
         std::swap(_helpInfo, handler._helpInfo);
     }
 
-    std::unique_ptr<TStruct> Parse(std::span<std::string_view> args)
+    template <typename TStr>
+    std::unique_ptr<TStruct> Parse(std::span<TStr> const& args)
     {
         std::unique_ptr<TStruct> ptr(new TStruct());
         Load(ptr.get(), args);
