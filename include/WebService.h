@@ -254,7 +254,7 @@ static auto WebServiceRequestExecuteApis(httplib::Request const& request, const 
     }
 
     auto retval = ::ReflectionBase::InterfaceApiTraits<TInterfaceApi>::Invoke(args);
-#ifdef USE_RAPIDJSON
+#ifdef USE_NLOHMANN_JSON
     return ::Json::Stringify<decltype(retval)>(retval);
 #else
     throw std::logic_error("No json stringifier defined");

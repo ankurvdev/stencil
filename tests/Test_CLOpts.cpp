@@ -11,7 +11,7 @@ template <typename TStruct, typename... TArgs> TStruct ParseArgs(TArgs&&... args
 {
     TStruct          data;
     std::string_view testargv[] = {"test", std::forward<TArgs>(args)...};
-    CommandLineArgs<TStruct>().Load(&data, testargv);
+    CommandLineArgs<TStruct>().template Load<std::string_view>(&data, testargv);
     return data;
 }
 
@@ -36,7 +36,7 @@ template <typename TStruct, typename... TArgs> std::vector<std::string> RequireG
     TStruct          data;
     std::string_view testargv[] = {"test", std::forward<TArgs>(args)...};
     CommandLineArgs<TStruct> cli;
-    cli.Load(&data, testargv);
+    cli.template Load<std::string_view>(&data, testargv);
     return cli.HelpInfo();
 };
 
