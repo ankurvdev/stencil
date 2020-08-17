@@ -254,7 +254,7 @@ static auto WebServiceRequestExecuteApis(httplib::Request const& request, const 
     }
 
     auto retval = ::ReflectionBase::InterfaceApiTraits<TInterfaceApi>::Invoke(args);
-#ifdef USE_RAPIDJSON
+#ifdef USE_NLOHMANN_JSON
     return ::Json::Stringify<decltype(retval)>(retval);
 #else
     throw std::logic_error("No json stringifier defined");
@@ -285,9 +285,9 @@ static auto WebServiceRequest(httplib::Request const& request, const std::string
         throw std::runtime_error("Invalid Service Request");
     }
 
-    auto offsets = name.length() + 1u;
-    auto ite = std::find(url.begin() + static_cast<int>(offsets), url.end(), '/');
-    size_t offsete = static_cast<size_t>(std::distance(url.begin(), ite));
+    auto             offsets = name.length() + 1u;
+    auto             ite     = std::find(url.begin() + static_cast<int>(offsets), url.end(), '/');
+    size_t           offsete = static_cast<size_t>(std::distance(url.begin(), ite));
     std::string_view apiname(url.substr(offsets, static_cast<size_t>(offsete - offsets)));
     return ProcessWebServiceRequestForInterface<TInterface>(request, apiname, url.substr(offsete), Apis());
 }

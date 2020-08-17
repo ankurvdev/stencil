@@ -22,7 +22,7 @@ TEST_CASE("CodeGen::CommandLineReaderHandler", "[CommandLineArgsReader]")
                                    "--listofint=1:2:4",
                                    "--key2=str5"};
 
-        REQUIRE_NOTHROW(CommandLineArgsReader(&handler).Parse(args));
+        REQUIRE_NOTHROW(CommandLineArgsReader(&handler).template Parse<std::string_view>(args));
         CheckOutputAgainstResource(handler._tracker.lines, "testdata_CommandLineReaderHandler_SimpleTest_output.txt");
     }
 
@@ -45,11 +45,10 @@ TEST_CASE("CodeGen::CommandLineReaderHandler", "[CommandLineArgsReader]")
                                    "--listofint=1:2:4",
                                    "--key2=str5"};
 
-        REQUIRE_THROWS_MATCHES(CommandLineArgsReader(&handler).Parse(args),
+        REQUIRE_THROWS_MATCHES(CommandLineArgsReader(&handler).template Parse<std::string_view>(args),
                                CommandLineArgsReader::Exception,
                                Catch::Message("Error processing args : Illegal Bracket usage\ntest --key1=str0 --listofint=1:2:3:4 \n ==> "
                                               "--listoflist={1:2}:{3:4}:{5:6}} <== \n"));
         CheckOutputAgainstResource(handler._tracker.lines, "testdata_CommandLineReaderHandler_ExtraBracket_output.txt");
-
     }
 }

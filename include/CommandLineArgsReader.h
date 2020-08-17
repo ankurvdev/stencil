@@ -9,7 +9,7 @@ struct CommandLineArgsReader
 {
     struct Exception : std::exception
     {
-        Exception(std::string_view const& msg, std::span<std::string_view> const& args, size_t index)
+        template <typename TStr> Exception(std::string_view const& msg, std::span<TStr> const& args, size_t index)
         {
             std::stringstream ss;
             ss << "Error processing args : " << msg << std::endl;
@@ -254,7 +254,7 @@ struct CommandLineArgsReader
     void _ProcessValue(std::string_view const& val)
     {
         auto valToUse = val;
-      //  if (val.size() > 1 && *val.begin() == '{' && *val.rbegin() == '}') valToUse = val.substr(1, val.size() - 2);
+        //  if (val.size() > 1 && *val.begin() == '{' && *val.rbegin() == '}') valToUse = val.substr(1, val.size() - 2);
 
         switch (_handler->GetCurrentContext()->GetType())
         {
@@ -274,7 +274,7 @@ struct CommandLineArgsReader
     }
 
     public:
-    void Parse(std::span<std::string_view> const& args)
+    template <typename TStr> void Parse(std::span<TStr> const& args)
     {
         size_t            requiredArgNum = 0;
         int               bracketCount   = 0;
@@ -289,7 +289,7 @@ struct CommandLineArgsReader
         char shortName{};
 
         size_t index = 0;
-        for (auto const& arg : args.subspan(1))
+        for (std::string_view arg : args.subspan(1))
         {
             ++index;
             if (arg.size() == 0)

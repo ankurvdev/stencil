@@ -3,9 +3,9 @@
 #include <deque>
 class JsonDataModel;
 
-#ifdef USE_RAPIDJSON
+#ifdef USE_NLOHMANN_JSON
 #pragma warning(push, 0)
-#include <json/json.hpp>
+#include <nlohmann/json.hpp>
 #pragma warning(pop)
 
 struct Json
@@ -463,14 +463,14 @@ template <typename TStruct> struct CommandLineArgs
     };
 
     // TODO: Get rid of pointers
-    void Load(TStruct* obj, std::span<std::string_view> args)
+    template <typename TStr> void Load(TStruct* obj, std::span<TStr> const& args)
     {
         ReaderHandler handler(obj);
         CommandLineArgsReader(&handler).Parse(args);
         std::swap(_helpInfo, handler._helpInfo);
     }
 
-    std::unique_ptr<TStruct> Parse(std::span<std::string_view> args)
+    template <typename TStr> std::unique_ptr<TStruct> Parse(std::span<TStr> const& args)
     {
         std::unique_ptr<TStruct> ptr(new TStruct());
         Load(ptr.get(), args);
