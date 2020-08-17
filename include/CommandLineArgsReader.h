@@ -9,13 +9,12 @@ struct CommandLineArgsReader
 {
     struct Exception : std::exception
     {
-        template<typename TStr>
-        Exception(std::string_view const& msg, std::span<TStr> const& args, size_t index)
+        template <typename TStr> Exception(std::string_view const& msg, std::span<TStr> const& args, size_t index)
         {
             std::stringstream ss;
             ss << "Error processing args : " << msg << std::endl;
 
-            for (size_t i = std::max(size_t{ 3u }, index) - 3; i < index && i < args.size(); i++)
+            for (size_t i = std::max(size_t{3u}, index) - 3; i < index && i < args.size(); i++)
             {
                 ss << args[i] << " ";
             }
@@ -30,7 +29,7 @@ struct CommandLineArgsReader
 
         const char* what() const noexcept(true) override { return _message.c_str(); }
 
-    private:
+        private:
         std::string _message;
     };
 
@@ -46,7 +45,7 @@ struct CommandLineArgsReader
             Union,
         };
         std::string name;
-        Type        type{ Type::Invalid };
+        Type        type{Type::Invalid};
         std::string description;
 
         Definition(std::string&& nameIn, Type typeIn) : name(nameIn), type(typeIn) {}
@@ -60,23 +59,23 @@ struct CommandLineArgsReader
     {
         virtual ~Handler() = default;
 
-        virtual void                        HandleValue(bool value) = 0;
+        virtual void                        HandleValue(bool value)                  = 0;
         virtual void                        HandleValue(std::string_view const& str) = 0;
-        virtual void                        ListStart() = 0;
-        virtual void                        ListEnd() = 0;
-        virtual void                        ObjStart() = 0;
-        virtual void                        ObjEnd() = 0;
-        virtual void                        ObjKey(std::string_view const& key) = 0;
-        virtual void                        ObjKey(size_t index) = 0;
-        virtual void                        HandleEnum(std::string_view const& str) = 0;
-        virtual void                        UnionType(std::string_view const& str) = 0;
-        virtual std::shared_ptr<Definition> GetCurrentContext() = 0;
-        virtual std::string                 GenerateHelp() = 0;
-    } *_handler;
+        virtual void                        ListStart()                              = 0;
+        virtual void                        ListEnd()                                = 0;
+        virtual void                        ObjStart()                               = 0;
+        virtual void                        ObjEnd()                                 = 0;
+        virtual void                        ObjKey(std::string_view const& key)      = 0;
+        virtual void                        ObjKey(size_t index)                     = 0;
+        virtual void                        HandleEnum(std::string_view const& str)  = 0;
+        virtual void                        UnionType(std::string_view const& str)   = 0;
+        virtual std::shared_ptr<Definition> GetCurrentContext()                      = 0;
+        virtual std::string                 GenerateHelp()                           = 0;
+    } * _handler;
 
     CommandLineArgsReader(Handler* handler) : _handler(handler) {}
 
-private:
+    private:
     auto stricompare(std::string_view const& l, std::string_view const& r)
     {
         return std::equal(l.begin(), l.end(), r.begin(), r.end(), [](auto lc, auto rc) { return std::tolower(lc) == std::tolower(rc); });
@@ -178,7 +177,7 @@ private:
                 if (*its == grpstart)
                 {
                     ///{ .... { ... { ... } ... } ...}
-                    auto ite = ++its;
+                    auto ite   = ++its;
                     int  count = 1;
                     for (; count > 0 && ite != _str.end(); ++ite)
                     {
@@ -189,14 +188,14 @@ private:
                     {
                         throw std::logic_error("Unclosed parenthesis");
                     }
-                    _token = _substr(its, ite - 1);
+                    _token  = _substr(its, ite - 1);
                     _offset = static_cast<size_t>(ite - _str.begin());
                 }
                 else
                 {
                     auto ite = std::find(its, _str.end(), ':');
-                    _token = _substr(its, ite);
-                    _offset = static_cast<size_t>(ite - _str.begin());
+                    _token   = _substr(its, ite);
+                    _offset  = static_cast<size_t>(ite - _str.begin());
                 }
 
                 return *this;
@@ -204,14 +203,14 @@ private:
 
             Iterator& _Terminate()
             {
-                _str = {};
+                _str    = {};
                 _offset = 0;
-                _token = {};
+                _token  = {};
                 return *this;
             }
 
             std::string_view const& operator*() const { return _token; }
-            Iterator& operator++() { return _MoveNext(); }
+            Iterator&               operator++() { return _MoveNext(); }
 
             std::string_view _str{};
             std::string_view _token{};
@@ -274,19 +273,18 @@ private:
         }
     }
 
-public:
-    template<typename TStr>
-    void Parse(std::span<TStr> const& args)
+    public:
+    template <typename TStr> void Parse(std::span<TStr> const& args)
     {
         size_t            requiredArgNum = 0;
-        int               bracketCount = 0;
+        int               bracketCount   = 0;
         std::stringstream accumulation;
 
         enum class Mode
         {
             Normal,
             ShortArg
-        } mode{ Mode::Normal };
+        } mode{Mode::Normal};
 
         char shortName{};
 

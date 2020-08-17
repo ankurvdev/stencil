@@ -33,8 +33,8 @@ template <typename TStruct, typename TException, typename... TArgs> auto Require
 
 template <typename TStruct, typename... TArgs> std::vector<std::string> RequireGenerateHelpException(TArgs&&... args)
 {
-    TStruct          data;
-    std::string_view testargv[] = {"test", std::forward<TArgs>(args)...};
+    TStruct                  data;
+    std::string_view         testargv[] = {"test", std::forward<TArgs>(args)...};
     CommandLineArgs<TStruct> cli;
     cli.template Load<std::string_view>(&data, testargv);
     return cli.HelpInfo();

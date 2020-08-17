@@ -147,7 +147,6 @@ struct Value
         }
     }
 
-    
     Value cast_unsigned() const
     {
         switch (_type)

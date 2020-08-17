@@ -50,6 +50,5 @@ TEST_CASE("CodeGen::CommandLineReaderHandler", "[CommandLineArgsReader]")
                                Catch::Message("Error processing args : Illegal Bracket usage\ntest --key1=str0 --listofint=1:2:3:4 \n ==> "
                                               "--listoflist={1:2}:{3:4}:{5:6}} <== \n"));
         CheckOutputAgainstResource(handler._tracker.lines, "testdata_CommandLineReaderHandler_ExtraBracket_output.txt");
-
     }
 }

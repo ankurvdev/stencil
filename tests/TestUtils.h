@@ -83,7 +83,9 @@ struct ResourceFileManager
     std::unordered_map<std::string, std::filesystem::path> _openedfiles;
 };
 
-inline void CompareLines(std::vector<std::string> const& actualstring, std::vector<std::string> const& expectedstring, std::string const& resname = "test")
+inline void CompareLines(std::vector<std::string> const& actualstring,
+                         std::vector<std::string> const& expectedstring,
+                         std::string const&              resname = "test")
 {
 
     dtl::Diff<std::string, std::vector<std::string>> d(actualstring, expectedstring);
@@ -94,7 +96,7 @@ inline void CompareLines(std::vector<std::string> const& actualstring, std::vect
     {
         d.printUnifiedFormat();    // print a difference as Unified Format.
         {
-            std::ofstream f(resname  + "_failure.txt");
+            std::ofstream f(resname + "_failure.txt");
             for (auto& l : actualstring)
             {
                 f << l << std::endl;

@@ -4,7 +4,6 @@ struct ModelDefinition
 };
 const int EnumKeyCount = 0;
 const int EnumCount    = 0;
-// int       resolve_enum(const char** names, int count, const char* name);
 struct zzFieldType_NativeTypezz
 {
     int a;
