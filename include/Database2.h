@@ -49,9 +49,9 @@ struct shared_lock : std::unique_lock<std::shared_mutex>
     DELETE_COPY_DEFAULT_MOVE(shared_lock);
 };
 
-struct exclusive_lock : std::unique_lock<std::shared_mutex>
+struct exclusive_lock : shared_lock
 {
-    exclusive_lock(std::shared_mutex& mutex) : std::unique_lock<std::shared_mutex>(mutex) {}
+    exclusive_lock(std::shared_mutex& mutex) : shared_lock(mutex) {}
     DELETE_COPY_DEFAULT_MOVE(exclusive_lock);
 };
 
