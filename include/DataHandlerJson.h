@@ -3,7 +3,7 @@
 #include <deque>
 class JsonDataModel;
 
-#ifdef USE_RAPIDJSON
+#ifdef USE_NLOHMANN_JSON
 #pragma warning(push, 0)
 #include <json/json.hpp>
 #pragma warning(pop)
