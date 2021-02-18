@@ -10,7 +10,7 @@ pr:
 
 jobs:
 - job: Build_Ubuntu
-  displayName: [x64] Build Ubuntu
+  displayName: '[x64] Build Ubuntu'
   pool:
     vmImage: 'ubuntu-latest'
   steps:
@@ -34,7 +34,7 @@ jobs:
       pathtoPublish: $(Build.ArtifactStagingDirectory)
 
 - job: Build_VS2019_x64
-  displayName: [x64] Build VS2019
+  displayName: '[x64] Build VS2019'
   pool:
     vmImage: 'windows-2019'
   steps:
@@ -66,7 +66,7 @@ jobs:
 
 
 - job: Build_VS2019_x86
-  displayName: [x86] Build VS2019
+  displayName: '[x86] Build VS2019'
   pool:
     vmImage: 'windows-2019'
   steps:
