@@ -14,6 +14,7 @@ EnableStrictCompilation()
 option(YAML_CPP_BUILD_CONTRIB "Enable yaml-cpp contrib in library" OFF)
 option(YAML_CPP_BUILD_TOOLS "Enable parse tools" OFF)
 option(YAML_CPP_BUILD_TESTS "Test" OFF)
+option(YAML_BUILD_SHARED_LIBS "Shared" OFF)
 add_subdirectory(external/yaml-cpp)
 
 SupressWarningForTarget(yaml-cpp)
