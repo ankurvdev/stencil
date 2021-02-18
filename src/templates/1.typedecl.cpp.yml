@@ -1,0 +1,139 @@
+FieldTypes:
+  default:
+    NativeType: void
+    NativeHandler: VoidHandler
+    NativeHandlerData: nullptr
+    DefaultValue: '{}'
+  auto:
+    NativeType: auto
+  void:
+    NativeType: void
+  char:
+    NativeType: char
+  size:
+    NativeType: size_t
+  uint8:
+    NativeType: uint8_t
+  uint16:
+    NativeType: uint16_t
+  uint32:
+    NativeType: uint32_t
+  uint64:
+    NativeType: uint64_t
+  int8:
+    NativeType: int8_t
+  int16:
+    NativeType: int16_t
+  int32:
+    NativeType: int32_t
+  int64:
+    NativeType: int64_t
+  double:
+    NativeType: double
+  float:
+    NativeType: float
+  bool:
+    NativeType: bool
+  string: 
+    NativeType: shared_string
+  wstring:
+    NativeType: shared_wstring
+  timestamp:
+    NativeType: timestamp
+  ui8: uint8
+  ui16: uint16
+  ui32: uint32
+  ui64: uint64
+  i8: int8
+  i16: int16
+  i32: int32
+  i64: int64
+  short: int16
+  ushort: uint16
+  int: int32
+  uint: uint32
+  boolean: bool
+
+Struct:
+  NativeType: '::%Program:Name%::%Struct:Name%::Data'
+Interface:
+  NativeType: 'long'
+FunctionArgs:
+  NativeType: '::%Program:Name%::%Struct:Name%::Data'
+Typedef:
+  NativeType: '%Name%'
+Union:
+  NativeType: '::%Program:Name%::Union  '
+
+Containers:
+  array:
+    Params: [type, size]
+    NativeType: 'std::array<%type:NativeType%, %size%>'
+    Accessors: 
+      at: 
+        ReturnType: '%type%'
+        Args: size
+        Id: 1
+  list:
+    Params: [type]
+    NativeType: 'std::vector<%type:NativeType%>'
+    Accessors: 
+      at: 
+        ReturnType: '%type%'
+        Args: size
+        Id: 1
+    Mutators: 
+      add: 
+        ReturnType: void
+        Args: '%type%'
+        Id: 1
+      remove: 
+        ReturnType: void
+        Args: size
+        Id: 2
+      #remove_matching: 
+      #  ReturnType: void
+      #  Args: auto
+      #  Id: 3
+  tree: 
+    Inherit: list
+    Params: [type]
+    NativeType: 'shared_tree<%type:NativeType%>'
+  map:
+    Params: [key, value]
+    NativeType: 'std::map<%key:NativeType%, %value:NativeType%>'
+  hashtable:
+    Params: [key, value]
+    NativeType: 'std::unordered_map<%key:NativeType%, %value:NativeType%>'
+  optionalprops:
+    Params: [object]
+    NativeType: '::Stencil::OptionalPropsT<%object:NativeType%>'
+  observableprops:
+    Params: [object]
+    NativeType: '::Stencil::ObservablePropsT<%object:NativeType%>'
+  timestamped:
+    Params: [object]
+    NativeType: '::Stencil::TimestampedT<%object:NativeType%>'
+  uuidbasedobject:
+    Params: [object]
+    NativeType: '::UuidObjectT<%object:NativeType%>'
+  uuidref:
+    Params: [type]
+    NativeType: '::UuidBasedId<%type:NativeType%>'
+    DefaultValue: '::UuidBasedId<%type:NativeType%>::Create()'
+
+Relationships:
+  optionalprops:
+    object: optionalprops
+  observableprops:
+    object: observableprops
+# TODO
+#  - path:
+#      NativeType: std::filesystem::path
+#    - pathinfile: path
+#      NativeHandler: InputFileHandler
+#    - pathoutfile: path
+#      NativeHandler: OutputFileHandler
+#    - pathindir: path
+#      NativeHandler: InputDirectoryHandler
+

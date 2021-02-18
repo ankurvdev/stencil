@@ -1,17 +1,20 @@
 #pragma once
-#include <Binding.h>
-
+#include <functional>
 #include <sstream>
-
+#include <cassert>
 namespace IDLDebug
 {
 using Str = Binding::Str;
 
 struct ErrorAggregator
 {
-    void AddContextInfo(Str::View const& what, Str::View const& str)
+    void AddContextInfo(size_t indent, Str::View const& what, Str::View const& str)
     {
         std::wstringstream stream;
+        for (size_t i = 0; i < indent; i++)
+        {
+            stream << '\t';
+        }
         stream << '[' << what << ']' << '\t' << str.data();
         _lines.push_back(stream.str());
     }
@@ -27,34 +30,64 @@ struct ErrorAggregator
         return str.str();
     }
 
-    static ErrorAggregator& Get()
+    ErrorAggregator()
     {
-        static ErrorAggregator ptr;
+        assert(GetPtr() == nullptr);
+        GetPtr() = this;
+    }
+
+    size_t Incr() { return _indent++; }
+    size_t Decr()
+    {
+        assert(_indent > 0);
+        return _indent--;
+    }
+
+    ~ErrorAggregator()
+    {
+        GetPtr() = nullptr;
+        if (std::uncaught_exceptions() > 0)
+        {
+            std::wcerr << GetErrors();
+        }
+    }
+
+    private:
+    static ErrorAggregator*& GetPtr()
+    {
+        thread_local ErrorAggregator* ptr = nullptr;
         return ptr;
     }
+
+    static ErrorAggregator& Get() { return *GetPtr(); }
+
+    size_t                 _indent = 0;
     std::vector<Str::Type> _lines;
+    friend struct ThreadActionContextImpl;
 };
 
-template <typename TFunc> struct ThreadActionContextImpl
+struct ThreadActionContextImpl
 {
-    ThreadActionContextImpl(Str::View const& what, TFunc&& func) : _what(what), _func(std::move(func)) {}
+    ThreadActionContextImpl(Str::View const& what, std::function<Str::Type()>&& func) : _what(what), _func(std::move(func)) {}
     ~ThreadActionContextImpl()
     {
         if (std::uncaught_exceptions() > 0)
         {
-            ErrorAggregator::Get().AddContextInfo(_what, _func());
+            ErrorAggregator::Get().AddContextInfo(_indent, _what, _func());
         }
+        ErrorAggregator::Get().Decr();
     }
 
     DELETE_MOVE_AND_COPY_ASSIGNMENT(ThreadActionContextImpl);
 
-    Str::View _what;
-    TFunc     _func;
+    size_t                     _indent = ErrorAggregator::Get().Incr();
+    Str::View                  _what;
+    std::function<Str::Type()> _func;
 };
 
-template <typename TFunc> auto ThreadActionContext(Str::View const& what, TFunc&& func)
+inline auto ThreadActionContext(Str::View const& what, std::function<Str::Type()>&& func)
 {
-    return ThreadActionContextImpl<TFunc>(what, std::move(func));
+    return ThreadActionContextImpl(what, std::move(func));
 }
 
 struct DebugContext
@@ -130,3 +163,11 @@ struct Exception : public std::exception
 }    // namespace IDLDebug
 #endif
 }    // namespace IDLDebug
+
+#define ACTION_CONTEXT_IMPL1(line, file, fnname, fn) auto actionctxvar_##line = IDLDebug::ThreadActionContextImpl(L##file fnname, (fn))
+#define ACTION_CONTEXT_IMPL2(line, file, fnname, fn) ACTION_CONTEXT_IMPL1(line, file, fnname, fn)
+#ifdef _WIN32
+#define ACTION_CONTEXT(fn) ACTION_CONTEXT_IMPL2(__LINE__, __FILE__, __FUNCTION__, fn)
+#else
+#define ACTION_CONTEXT(fn) ACTION_CONTEXT_IMPL2(__LINE__, __FILE__, "", fn)
+#endif

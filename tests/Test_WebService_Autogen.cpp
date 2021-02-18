@@ -1,5 +1,4 @@
 #include "TestUtils.h"
-#include "WebService.h"
 
 #include <ComplexWebService.pidl.h>
 #include <SimpleWebService.pidl.h>

@@ -1,5 +1,5 @@
-#include "Database2.h"
 #include "UserData.pidl.h"
+#include "stencil/Database2.h"
 
 template <>
 struct Database2::ObjTraits<UserData::UserData::Data, UserData::RemoteHost::Data>

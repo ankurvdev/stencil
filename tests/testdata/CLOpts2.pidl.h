@@ -1,5 +1,5 @@
 #pragma once
-#include <DataModel.h>
+#include <stencil/stencil.h>
 namespace CLOpts2
 {
 namespace InstallOptions
@@ -51,6 +51,17 @@ struct Data :
 ,        User
     };
 
+    static constexpr size_t FieldCount()
+    {
+        return 0u
+               + 1u
+               + 1u
+               + 1u
+               + 1u
+               + 1u
+            ;
+    }
+
     static constexpr std::string_view FieldAttributeValue(FieldIndex index, const std::string_view& key)
     {
         switch (index)
@@ -84,13 +95,16 @@ struct Data :
     shared_string&       ProductId() { return _ProductId; }
     const shared_string& ProductId() const { return _ProductId; }
     void                            ProductId(shared_string&& val) { _ProductId = std::move(val); }
+    shared_string&       get_ProductId() { return _ProductId; }
 
-    shared_string& get_ProductId()
+    bool isset_ProductId() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::ProductId); }
+
+    void set_ProductId(shared_string&& val)
     {
-        return _ProductId;
-        ;
+        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
+        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
+        _ProductId = std::move(val);
     }
-    void set_ProductId(shared_string&& val) { _ProductId = std::move(val); }
 
     private:
     bool _Repair = 0;
@@ -99,13 +113,16 @@ struct Data :
     bool&       Repair() { return _Repair; }
     const bool& Repair() const { return _Repair; }
     void                            Repair(bool&& val) { _Repair = std::move(val); }
+    bool&       get_Repair() { return _Repair; }
 
-    bool& get_Repair()
+    bool isset_Repair() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::Repair); }
+
+    void set_Repair(bool&& val)
     {
-        return _Repair;
-        ;
+        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::Repair, _Repair, val);
+        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::Repair, _Repair, val);
+        _Repair = std::move(val);
     }
-    void set_Repair(bool&& val) { _Repair = std::move(val); }
 
     private:
     bool _ForceNonSD = 0;
@@ -114,13 +131,16 @@ struct Data :
     bool&       ForceNonSD() { return _ForceNonSD; }
     const bool& ForceNonSD() const { return _ForceNonSD; }
     void                            ForceNonSD(bool&& val) { _ForceNonSD = std::move(val); }
+    bool&       get_ForceNonSD() { return _ForceNonSD; }
 
-    bool& get_ForceNonSD()
+    bool isset_ForceNonSD() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::ForceNonSD); }
+
+    void set_ForceNonSD(bool&& val)
     {
-        return _ForceNonSD;
-        ;
+        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ForceNonSD, _ForceNonSD, val);
+        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ForceNonSD, _ForceNonSD, val);
+        _ForceNonSD = std::move(val);
     }
-    void set_ForceNonSD(bool&& val) { _ForceNonSD = std::move(val); }
 
     private:
     shared_string _TargetVolume = "";
@@ -129,13 +149,16 @@ struct Data :
     shared_string&       TargetVolume() { return _TargetVolume; }
     const shared_string& TargetVolume() const { return _TargetVolume; }
     void                            TargetVolume(shared_string&& val) { _TargetVolume = std::move(val); }
+    shared_string&       get_TargetVolume() { return _TargetVolume; }
 
-    shared_string& get_TargetVolume()
+    bool isset_TargetVolume() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::TargetVolume); }
+
+    void set_TargetVolume(shared_string&& val)
     {
-        return _TargetVolume;
-        ;
+        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::TargetVolume, _TargetVolume, val);
+        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::TargetVolume, _TargetVolume, val);
+        _TargetVolume = std::move(val);
     }
-    void set_TargetVolume(shared_string&& val) { _TargetVolume = std::move(val); }
 
     private:
     shared_string _User = "";
@@ -144,13 +167,16 @@ struct Data :
     shared_string&       User() { return _User; }
     const shared_string& User() const { return _User; }
     void                            User(shared_string&& val) { _User = std::move(val); }
+    shared_string&       get_User() { return _User; }
 
-    shared_string& get_User()
+    bool isset_User() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::User); }
+
+    void set_User(shared_string&& val)
     {
-        return _User;
-        ;
+        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::User, _User, val);
+        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::User, _User, val);
+        _User = std::move(val);
     }
-    void set_User(shared_string&& val) { _User = std::move(val); }
 
 };
 
@@ -172,6 +198,13 @@ struct Data :
         ProductId
     };
 
+    static constexpr size_t FieldCount()
+    {
+        return 0u
+               + 1u
+            ;
+    }
+
     static constexpr std::string_view FieldAttributeValue(FieldIndex index, const std::string_view& key)
     {
         switch (index)
@@ -193,13 +226,16 @@ struct Data :
     shared_string&       ProductId() { return _ProductId; }
     const shared_string& ProductId() const { return _ProductId; }
     void                            ProductId(shared_string&& val) { _ProductId = std::move(val); }
+    shared_string&       get_ProductId() { return _ProductId; }
 
-    shared_string& get_ProductId()
+    bool isset_ProductId() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::ProductId); }
+
+    void set_ProductId(shared_string&& val)
     {
-        return _ProductId;
-        ;
+        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
+        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
+        _ProductId = std::move(val);
     }
-    void set_ProductId(shared_string&& val) { _ProductId = std::move(val); }
 
 };
 
@@ -221,6 +257,13 @@ struct Data :
         ProductId
     };
 
+    static constexpr size_t FieldCount()
+    {
+        return 0u
+               + 1u
+            ;
+    }
+
     static constexpr std::string_view FieldAttributeValue(FieldIndex index, const std::string_view& key)
     {
         switch (index)
@@ -242,13 +285,16 @@ struct Data :
     shared_string&       ProductId() { return _ProductId; }
     const shared_string& ProductId() const { return _ProductId; }
     void                            ProductId(shared_string&& val) { _ProductId = std::move(val); }
+    shared_string&       get_ProductId() { return _ProductId; }
 
-    shared_string& get_ProductId()
+    bool isset_ProductId() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::ProductId); }
+
+    void set_ProductId(shared_string&& val)
     {
-        return _ProductId;
-        ;
+        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
+        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
+        _ProductId = std::move(val);
     }
-    void set_ProductId(shared_string&& val) { _ProductId = std::move(val); }
 
 };
 
@@ -270,6 +316,13 @@ struct Data :
         ProductId
     };
 
+    static constexpr size_t FieldCount()
+    {
+        return 0u
+               + 1u
+            ;
+    }
+
     static constexpr std::string_view FieldAttributeValue(FieldIndex index, const std::string_view& key)
     {
         switch (index)
@@ -291,13 +344,16 @@ struct Data :
     shared_string&       ProductId() { return _ProductId; }
     const shared_string& ProductId() const { return _ProductId; }
     void                            ProductId(shared_string&& val) { _ProductId = std::move(val); }
+    shared_string&       get_ProductId() { return _ProductId; }
 
-    shared_string& get_ProductId()
+    bool isset_ProductId() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::ProductId); }
+
+    void set_ProductId(shared_string&& val)
     {
-        return _ProductId;
-        ;
+        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
+        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
+        _ProductId = std::move(val);
     }
-    void set_ProductId(shared_string&& val) { _ProductId = std::move(val); }
 
 };
 
@@ -319,6 +375,13 @@ struct Data :
         ProductId
     };
 
+    static constexpr size_t FieldCount()
+    {
+        return 0u
+               + 1u
+            ;
+    }
+
     static constexpr std::string_view FieldAttributeValue(FieldIndex index, const std::string_view& key)
     {
         switch (index)
@@ -340,13 +403,16 @@ struct Data :
     shared_string&       ProductId() { return _ProductId; }
     const shared_string& ProductId() const { return _ProductId; }
     void                            ProductId(shared_string&& val) { _ProductId = std::move(val); }
+    shared_string&       get_ProductId() { return _ProductId; }
 
-    shared_string& get_ProductId()
+    bool isset_ProductId() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::ProductId); }
+
+    void set_ProductId(shared_string&& val)
     {
-        return _ProductId;
-        ;
+        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
+        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
+        _ProductId = std::move(val);
     }
-    void set_ProductId(shared_string&& val) { _ProductId = std::move(val); }
 
 };
 
@@ -367,6 +433,13 @@ struct Data :
         Invalid,
         ProductId
     };
+
+    static constexpr size_t FieldCount()
+    {
+        return 0u
+               + 1u
+            ;
+    }
 
     static constexpr std::string_view FieldAttributeValue(FieldIndex index, const std::string_view& key)
     {
@@ -389,13 +462,16 @@ struct Data :
     shared_string&       ProductId() { return _ProductId; }
     const shared_string& ProductId() const { return _ProductId; }
     void                            ProductId(shared_string&& val) { _ProductId = std::move(val); }
+    shared_string&       get_ProductId() { return _ProductId; }
 
-    shared_string& get_ProductId()
+    bool isset_ProductId() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::ProductId); }
+
+    void set_ProductId(shared_string&& val)
     {
-        return _ProductId;
-        ;
+        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
+        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
+        _ProductId = std::move(val);
     }
-    void set_ProductId(shared_string&& val) { _ProductId = std::move(val); }
 
 };
 
@@ -416,6 +492,13 @@ struct Data :
         Invalid,
         ProductId
     };
+
+    static constexpr size_t FieldCount()
+    {
+        return 0u
+               + 1u
+            ;
+    }
 
     static constexpr std::string_view FieldAttributeValue(FieldIndex index, const std::string_view& key)
     {
@@ -438,13 +521,16 @@ struct Data :
     shared_string&       ProductId() { return _ProductId; }
     const shared_string& ProductId() const { return _ProductId; }
     void                            ProductId(shared_string&& val) { _ProductId = std::move(val); }
+    shared_string&       get_ProductId() { return _ProductId; }
 
-    shared_string& get_ProductId()
+    bool isset_ProductId() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::ProductId); }
+
+    void set_ProductId(shared_string&& val)
     {
-        return _ProductId;
-        ;
+        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
+        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
+        _ProductId = std::move(val);
     }
-    void set_ProductId(shared_string&& val) { _ProductId = std::move(val); }
 
 };
 
@@ -532,116 +618,116 @@ struct Data : public ReflectionBase::ObjMarker
     }
 
     private:
-    InstallOptions::Data _install;
+    ::CLOpts2::InstallOptions::Data _install;
 
     public:
-    InstallOptions::Data&       install() { return _install; }
-    const InstallOptions::Data& install() const { return _install; }
-    void                            install(const InstallOptions::Data& val) { _install = val; }
-    void                            install(InstallOptions::Data&& val) { _install = std::move(val); }
+    ::CLOpts2::InstallOptions::Data&       install() { return _install; }
+    const ::CLOpts2::InstallOptions::Data& install() const { return _install; }
+    void                            install(const ::CLOpts2::InstallOptions::Data& val) { _install = val; }
+    void                            install(::CLOpts2::InstallOptions::Data&& val) { _install = std::move(val); }
 
-    InstallOptions::Data& get_install()
+    ::CLOpts2::InstallOptions::Data& get_install()
     {
         return _install;
         ;
     }
-    void set_install(InstallOptions::Data&& val) { _install = std::move(val); }
+    void set_install(::CLOpts2::InstallOptions::Data&& val) { _install = std::move(val); }
 
     private:
-    QueueOptions::Data _queue;
+    ::CLOpts2::QueueOptions::Data _queue;
 
     public:
-    QueueOptions::Data&       queue() { return _queue; }
-    const QueueOptions::Data& queue() const { return _queue; }
-    void                            queue(const QueueOptions::Data& val) { _queue = val; }
-    void                            queue(QueueOptions::Data&& val) { _queue = std::move(val); }
+    ::CLOpts2::QueueOptions::Data&       queue() { return _queue; }
+    const ::CLOpts2::QueueOptions::Data& queue() const { return _queue; }
+    void                            queue(const ::CLOpts2::QueueOptions::Data& val) { _queue = val; }
+    void                            queue(::CLOpts2::QueueOptions::Data&& val) { _queue = std::move(val); }
 
-    QueueOptions::Data& get_queue()
+    ::CLOpts2::QueueOptions::Data& get_queue()
     {
         return _queue;
         ;
     }
-    void set_queue(QueueOptions::Data&& val) { _queue = std::move(val); }
+    void set_queue(::CLOpts2::QueueOptions::Data&& val) { _queue = std::move(val); }
 
     private:
-    PauseOptions::Data _pause;
+    ::CLOpts2::PauseOptions::Data _pause;
 
     public:
-    PauseOptions::Data&       pause() { return _pause; }
-    const PauseOptions::Data& pause() const { return _pause; }
-    void                            pause(const PauseOptions::Data& val) { _pause = val; }
-    void                            pause(PauseOptions::Data&& val) { _pause = std::move(val); }
+    ::CLOpts2::PauseOptions::Data&       pause() { return _pause; }
+    const ::CLOpts2::PauseOptions::Data& pause() const { return _pause; }
+    void                            pause(const ::CLOpts2::PauseOptions::Data& val) { _pause = val; }
+    void                            pause(::CLOpts2::PauseOptions::Data&& val) { _pause = std::move(val); }
 
-    PauseOptions::Data& get_pause()
+    ::CLOpts2::PauseOptions::Data& get_pause()
     {
         return _pause;
         ;
     }
-    void set_pause(PauseOptions::Data&& val) { _pause = std::move(val); }
+    void set_pause(::CLOpts2::PauseOptions::Data&& val) { _pause = std::move(val); }
 
     private:
-    CancelOptions::Data _cancel;
+    ::CLOpts2::CancelOptions::Data _cancel;
 
     public:
-    CancelOptions::Data&       cancel() { return _cancel; }
-    const CancelOptions::Data& cancel() const { return _cancel; }
-    void                            cancel(const CancelOptions::Data& val) { _cancel = val; }
-    void                            cancel(CancelOptions::Data&& val) { _cancel = std::move(val); }
+    ::CLOpts2::CancelOptions::Data&       cancel() { return _cancel; }
+    const ::CLOpts2::CancelOptions::Data& cancel() const { return _cancel; }
+    void                            cancel(const ::CLOpts2::CancelOptions::Data& val) { _cancel = val; }
+    void                            cancel(::CLOpts2::CancelOptions::Data&& val) { _cancel = std::move(val); }
 
-    CancelOptions::Data& get_cancel()
+    ::CLOpts2::CancelOptions::Data& get_cancel()
     {
         return _cancel;
         ;
     }
-    void set_cancel(CancelOptions::Data&& val) { _cancel = std::move(val); }
+    void set_cancel(::CLOpts2::CancelOptions::Data&& val) { _cancel = std::move(val); }
 
     private:
-    ResumeOptions::Data _resume;
+    ::CLOpts2::ResumeOptions::Data _resume;
 
     public:
-    ResumeOptions::Data&       resume() { return _resume; }
-    const ResumeOptions::Data& resume() const { return _resume; }
-    void                            resume(const ResumeOptions::Data& val) { _resume = val; }
-    void                            resume(ResumeOptions::Data&& val) { _resume = std::move(val); }
+    ::CLOpts2::ResumeOptions::Data&       resume() { return _resume; }
+    const ::CLOpts2::ResumeOptions::Data& resume() const { return _resume; }
+    void                            resume(const ::CLOpts2::ResumeOptions::Data& val) { _resume = val; }
+    void                            resume(::CLOpts2::ResumeOptions::Data&& val) { _resume = std::move(val); }
 
-    ResumeOptions::Data& get_resume()
+    ::CLOpts2::ResumeOptions::Data& get_resume()
     {
         return _resume;
         ;
     }
-    void set_resume(ResumeOptions::Data&& val) { _resume = std::move(val); }
+    void set_resume(::CLOpts2::ResumeOptions::Data&& val) { _resume = std::move(val); }
 
     private:
-    UpdateOptions::Data _update;
+    ::CLOpts2::UpdateOptions::Data _update;
 
     public:
-    UpdateOptions::Data&       update() { return _update; }
-    const UpdateOptions::Data& update() const { return _update; }
-    void                            update(const UpdateOptions::Data& val) { _update = val; }
-    void                            update(UpdateOptions::Data&& val) { _update = std::move(val); }
+    ::CLOpts2::UpdateOptions::Data&       update() { return _update; }
+    const ::CLOpts2::UpdateOptions::Data& update() const { return _update; }
+    void                            update(const ::CLOpts2::UpdateOptions::Data& val) { _update = val; }
+    void                            update(::CLOpts2::UpdateOptions::Data&& val) { _update = std::move(val); }
 
-    UpdateOptions::Data& get_update()
+    ::CLOpts2::UpdateOptions::Data& get_update()
     {
         return _update;
         ;
     }
-    void set_update(UpdateOptions::Data&& val) { _update = std::move(val); }
+    void set_update(::CLOpts2::UpdateOptions::Data&& val) { _update = std::move(val); }
 
     private:
-    HydrateOptions::Data _hydrate;
+    ::CLOpts2::HydrateOptions::Data _hydrate;
 
     public:
-    HydrateOptions::Data&       hydrate() { return _hydrate; }
-    const HydrateOptions::Data& hydrate() const { return _hydrate; }
-    void                            hydrate(const HydrateOptions::Data& val) { _hydrate = val; }
-    void                            hydrate(HydrateOptions::Data&& val) { _hydrate = std::move(val); }
+    ::CLOpts2::HydrateOptions::Data&       hydrate() { return _hydrate; }
+    const ::CLOpts2::HydrateOptions::Data& hydrate() const { return _hydrate; }
+    void                            hydrate(const ::CLOpts2::HydrateOptions::Data& val) { _hydrate = val; }
+    void                            hydrate(::CLOpts2::HydrateOptions::Data&& val) { _hydrate = std::move(val); }
 
-    HydrateOptions::Data& get_hydrate()
+    ::CLOpts2::HydrateOptions::Data& get_hydrate()
     {
         return _hydrate;
         ;
     }
-    void set_hydrate(HydrateOptions::Data&& val) { _hydrate = std::move(val); }
+    void set_hydrate(::CLOpts2::HydrateOptions::Data&& val) { _hydrate = std::move(val); }
 
 };
 }    // namespace CommandLineOptions
@@ -651,7 +737,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::InstallOptions::Data&>
 {
     struct Traits_ProductId
     {
-        using TOwner = CLOpts2::InstallOptions::Data;
+        using TOwner     = CLOpts2::InstallOptions::Data;
+        using TFieldType = shared_string;
 
         static constexpr std::string_view Name() { return "ProductId"; }
 
@@ -669,7 +756,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::InstallOptions::Data&>
     };
     struct Traits_Repair
     {
-        using TOwner = CLOpts2::InstallOptions::Data;
+        using TOwner     = CLOpts2::InstallOptions::Data;
+        using TFieldType = bool;
 
         static constexpr std::string_view Name() { return "Repair"; }
 
@@ -688,7 +776,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::InstallOptions::Data&>
     };
     struct Traits_ForceNonSD
     {
-        using TOwner = CLOpts2::InstallOptions::Data;
+        using TOwner     = CLOpts2::InstallOptions::Data;
+        using TFieldType = bool;
 
         static constexpr std::string_view Name() { return "ForceNonSD"; }
 
@@ -707,7 +796,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::InstallOptions::Data&>
     };
     struct Traits_TargetVolume
     {
-        using TOwner = CLOpts2::InstallOptions::Data;
+        using TOwner     = CLOpts2::InstallOptions::Data;
+        using TFieldType = shared_string;
 
         static constexpr std::string_view Name() { return "TargetVolume"; }
 
@@ -726,7 +816,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::InstallOptions::Data&>
     };
     struct Traits_User
     {
-        using TOwner = CLOpts2::InstallOptions::Data;
+        using TOwner     = CLOpts2::InstallOptions::Data;
+        using TFieldType = shared_string;
 
         static constexpr std::string_view Name() { return "User"; }
 
@@ -751,6 +842,18 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::InstallOptions::Data&>
         return ::ReflectionServices::EmptyAttributeValue(key);
     }
 
+    using ThisType = CLOpts2::InstallOptions::Data;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && ReflectionBase::AreEqual(obj1.ProductId(), obj2.ProductId())
+               && ReflectionBase::AreEqual(obj1.Repair(), obj2.Repair())
+               && ReflectionBase::AreEqual(obj1.ForceNonSD(), obj2.ForceNonSD())
+               && ReflectionBase::AreEqual(obj1.TargetVolume(), obj2.TargetVolume())
+               && ReflectionBase::AreEqual(obj1.User(), obj2.User())
+            ;
+    }
+
     using Handler = ::ReflectionServices::ReflectedStructHandler<CLOpts2::InstallOptions::Data,
                                                                  Traits_ProductId
 ,                                                                 Traits_Repair
@@ -759,11 +862,66 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::InstallOptions::Data&>
 ,                                                                 Traits_User
                                                                  >;
 };
+
+template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, CLOpts2::InstallOptions::Data>>>
+{
+    using TData = T;
+
+    // TODO : Tentative: We hate pointers
+    TData const* const _ptr;
+    // TODO : Better way to unify creation interface
+    bool _changed = false;
+
+    DELETE_COPY_AND_MOVE(DeltaTracker);
+
+    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    {
+        // TODO: Tentative
+        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
+    }
+
+    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
+
+    size_t NumFields() const { return TData::FieldCount(); }
+    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+
+    uint8_t MutatorIndex() const;
+    bool    OnlyHasDefaultMutator() const;
+
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+
+    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId:
+            lambda(DeltaTracker<shared_string>(&_ptr->ProductId(), IsFieldChanged(TData::FieldIndex::ProductId)));
+            return;
+        case TData::FieldIndex::Repair:
+            lambda(DeltaTracker<bool>(&_ptr->Repair(), IsFieldChanged(TData::FieldIndex::Repair)));
+            return;
+        case TData::FieldIndex::ForceNonSD:
+            lambda(DeltaTracker<bool>(&_ptr->ForceNonSD(), IsFieldChanged(TData::FieldIndex::ForceNonSD)));
+            return;
+        case TData::FieldIndex::TargetVolume:
+            lambda(DeltaTracker<shared_string>(&_ptr->TargetVolume(), IsFieldChanged(TData::FieldIndex::TargetVolume)));
+            return;
+        case TData::FieldIndex::User:
+            lambda(DeltaTracker<shared_string>(&_ptr->User(), IsFieldChanged(TData::FieldIndex::User)));
+            return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+};
+
 template <> struct ReflectionBase::TypeTraits<CLOpts2::QueueOptions::Data&>
 {
     struct Traits_ProductId
     {
-        using TOwner = CLOpts2::QueueOptions::Data;
+        using TOwner     = CLOpts2::QueueOptions::Data;
+        using TFieldType = shared_string;
 
         static constexpr std::string_view Name() { return "ProductId"; }
 
@@ -788,15 +946,66 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::QueueOptions::Data&>
         return ::ReflectionServices::EmptyAttributeValue(key);
     }
 
+    using ThisType = CLOpts2::QueueOptions::Data;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && ReflectionBase::AreEqual(obj1.ProductId(), obj2.ProductId())
+            ;
+    }
+
     using Handler = ::ReflectionServices::ReflectedStructHandler<CLOpts2::QueueOptions::Data,
                                                                  Traits_ProductId
                                                                  >;
 };
+
+template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, CLOpts2::QueueOptions::Data>>>
+{
+    using TData = T;
+
+    // TODO : Tentative: We hate pointers
+    TData const* const _ptr;
+    // TODO : Better way to unify creation interface
+    bool _changed = false;
+
+    DELETE_COPY_AND_MOVE(DeltaTracker);
+
+    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    {
+        // TODO: Tentative
+        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
+    }
+
+    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
+
+    size_t NumFields() const { return TData::FieldCount(); }
+    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+
+    uint8_t MutatorIndex() const;
+    bool    OnlyHasDefaultMutator() const;
+
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+
+    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId:
+            lambda(DeltaTracker<shared_string>(&_ptr->ProductId(), IsFieldChanged(TData::FieldIndex::ProductId)));
+            return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+};
+
 template <> struct ReflectionBase::TypeTraits<CLOpts2::PauseOptions::Data&>
 {
     struct Traits_ProductId
     {
-        using TOwner = CLOpts2::PauseOptions::Data;
+        using TOwner     = CLOpts2::PauseOptions::Data;
+        using TFieldType = shared_string;
 
         static constexpr std::string_view Name() { return "ProductId"; }
 
@@ -820,15 +1029,66 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::PauseOptions::Data&>
         return ::ReflectionServices::EmptyAttributeValue(key);
     }
 
+    using ThisType = CLOpts2::PauseOptions::Data;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && ReflectionBase::AreEqual(obj1.ProductId(), obj2.ProductId())
+            ;
+    }
+
     using Handler = ::ReflectionServices::ReflectedStructHandler<CLOpts2::PauseOptions::Data,
                                                                  Traits_ProductId
                                                                  >;
 };
+
+template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, CLOpts2::PauseOptions::Data>>>
+{
+    using TData = T;
+
+    // TODO : Tentative: We hate pointers
+    TData const* const _ptr;
+    // TODO : Better way to unify creation interface
+    bool _changed = false;
+
+    DELETE_COPY_AND_MOVE(DeltaTracker);
+
+    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    {
+        // TODO: Tentative
+        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
+    }
+
+    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
+
+    size_t NumFields() const { return TData::FieldCount(); }
+    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+
+    uint8_t MutatorIndex() const;
+    bool    OnlyHasDefaultMutator() const;
+
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+
+    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId:
+            lambda(DeltaTracker<shared_string>(&_ptr->ProductId(), IsFieldChanged(TData::FieldIndex::ProductId)));
+            return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+};
+
 template <> struct ReflectionBase::TypeTraits<CLOpts2::CancelOptions::Data&>
 {
     struct Traits_ProductId
     {
-        using TOwner = CLOpts2::CancelOptions::Data;
+        using TOwner     = CLOpts2::CancelOptions::Data;
+        using TFieldType = shared_string;
 
         static constexpr std::string_view Name() { return "ProductId"; }
 
@@ -852,15 +1112,66 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CancelOptions::Data&>
         return ::ReflectionServices::EmptyAttributeValue(key);
     }
 
+    using ThisType = CLOpts2::CancelOptions::Data;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && ReflectionBase::AreEqual(obj1.ProductId(), obj2.ProductId())
+            ;
+    }
+
     using Handler = ::ReflectionServices::ReflectedStructHandler<CLOpts2::CancelOptions::Data,
                                                                  Traits_ProductId
                                                                  >;
 };
+
+template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, CLOpts2::CancelOptions::Data>>>
+{
+    using TData = T;
+
+    // TODO : Tentative: We hate pointers
+    TData const* const _ptr;
+    // TODO : Better way to unify creation interface
+    bool _changed = false;
+
+    DELETE_COPY_AND_MOVE(DeltaTracker);
+
+    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    {
+        // TODO: Tentative
+        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
+    }
+
+    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
+
+    size_t NumFields() const { return TData::FieldCount(); }
+    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+
+    uint8_t MutatorIndex() const;
+    bool    OnlyHasDefaultMutator() const;
+
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+
+    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId:
+            lambda(DeltaTracker<shared_string>(&_ptr->ProductId(), IsFieldChanged(TData::FieldIndex::ProductId)));
+            return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+};
+
 template <> struct ReflectionBase::TypeTraits<CLOpts2::ResumeOptions::Data&>
 {
     struct Traits_ProductId
     {
-        using TOwner = CLOpts2::ResumeOptions::Data;
+        using TOwner     = CLOpts2::ResumeOptions::Data;
+        using TFieldType = shared_string;
 
         static constexpr std::string_view Name() { return "ProductId"; }
 
@@ -884,15 +1195,66 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::ResumeOptions::Data&>
         return ::ReflectionServices::EmptyAttributeValue(key);
     }
 
+    using ThisType = CLOpts2::ResumeOptions::Data;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && ReflectionBase::AreEqual(obj1.ProductId(), obj2.ProductId())
+            ;
+    }
+
     using Handler = ::ReflectionServices::ReflectedStructHandler<CLOpts2::ResumeOptions::Data,
                                                                  Traits_ProductId
                                                                  >;
 };
+
+template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, CLOpts2::ResumeOptions::Data>>>
+{
+    using TData = T;
+
+    // TODO : Tentative: We hate pointers
+    TData const* const _ptr;
+    // TODO : Better way to unify creation interface
+    bool _changed = false;
+
+    DELETE_COPY_AND_MOVE(DeltaTracker);
+
+    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    {
+        // TODO: Tentative
+        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
+    }
+
+    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
+
+    size_t NumFields() const { return TData::FieldCount(); }
+    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+
+    uint8_t MutatorIndex() const;
+    bool    OnlyHasDefaultMutator() const;
+
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+
+    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId:
+            lambda(DeltaTracker<shared_string>(&_ptr->ProductId(), IsFieldChanged(TData::FieldIndex::ProductId)));
+            return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+};
+
 template <> struct ReflectionBase::TypeTraits<CLOpts2::UpdateOptions::Data&>
 {
     struct Traits_ProductId
     {
-        using TOwner = CLOpts2::UpdateOptions::Data;
+        using TOwner     = CLOpts2::UpdateOptions::Data;
+        using TFieldType = shared_string;
 
         static constexpr std::string_view Name() { return "ProductId"; }
 
@@ -917,15 +1279,66 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::UpdateOptions::Data&>
         return ::ReflectionServices::EmptyAttributeValue(key);
     }
 
+    using ThisType = CLOpts2::UpdateOptions::Data;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && ReflectionBase::AreEqual(obj1.ProductId(), obj2.ProductId())
+            ;
+    }
+
     using Handler = ::ReflectionServices::ReflectedStructHandler<CLOpts2::UpdateOptions::Data,
                                                                  Traits_ProductId
                                                                  >;
 };
+
+template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, CLOpts2::UpdateOptions::Data>>>
+{
+    using TData = T;
+
+    // TODO : Tentative: We hate pointers
+    TData const* const _ptr;
+    // TODO : Better way to unify creation interface
+    bool _changed = false;
+
+    DELETE_COPY_AND_MOVE(DeltaTracker);
+
+    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    {
+        // TODO: Tentative
+        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
+    }
+
+    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
+
+    size_t NumFields() const { return TData::FieldCount(); }
+    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+
+    uint8_t MutatorIndex() const;
+    bool    OnlyHasDefaultMutator() const;
+
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+
+    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId:
+            lambda(DeltaTracker<shared_string>(&_ptr->ProductId(), IsFieldChanged(TData::FieldIndex::ProductId)));
+            return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+};
+
 template <> struct ReflectionBase::TypeTraits<CLOpts2::HydrateOptions::Data&>
 {
     struct Traits_ProductId
     {
-        using TOwner = CLOpts2::HydrateOptions::Data;
+        using TOwner     = CLOpts2::HydrateOptions::Data;
+        using TFieldType = shared_string;
 
         static constexpr std::string_view Name() { return "ProductId"; }
 
@@ -949,10 +1362,60 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::HydrateOptions::Data&>
         return ::ReflectionServices::EmptyAttributeValue(key);
     }
 
+    using ThisType = CLOpts2::HydrateOptions::Data;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && ReflectionBase::AreEqual(obj1.ProductId(), obj2.ProductId())
+            ;
+    }
+
     using Handler = ::ReflectionServices::ReflectedStructHandler<CLOpts2::HydrateOptions::Data,
                                                                  Traits_ProductId
                                                                  >;
 };
+
+template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, CLOpts2::HydrateOptions::Data>>>
+{
+    using TData = T;
+
+    // TODO : Tentative: We hate pointers
+    TData const* const _ptr;
+    // TODO : Better way to unify creation interface
+    bool _changed = false;
+
+    DELETE_COPY_AND_MOVE(DeltaTracker);
+
+    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    {
+        // TODO: Tentative
+        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
+    }
+
+    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
+
+    size_t NumFields() const { return TData::FieldCount(); }
+    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+
+    uint8_t MutatorIndex() const;
+    bool    OnlyHasDefaultMutator() const;
+
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+
+    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId:
+            lambda(DeltaTracker<shared_string>(&_ptr->ProductId(), IsFieldChanged(TData::FieldIndex::ProductId)));
+            return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+};
+
 template <> struct ReflectionServices::EnumTraits<CLOpts2::CommandLineOptions::UnionType>
 {
     static constexpr const char* EnumStrings[] = {"Invalid",
@@ -988,7 +1451,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::Data&
 {
     struct Traits_install
     {
-        using TOwner = CLOpts2::CommandLineOptions::Data;
+        using TOwner     = CLOpts2::CommandLineOptions::Data;
+        using TFieldType = ::CLOpts2::InstallOptions::Data;
 
         static constexpr std::string_view Name() { return "install"; }
 
@@ -1006,7 +1470,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::Data&
     };
     struct Traits_queue
     {
-        using TOwner = CLOpts2::CommandLineOptions::Data;
+        using TOwner     = CLOpts2::CommandLineOptions::Data;
+        using TFieldType = ::CLOpts2::QueueOptions::Data;
 
         static constexpr std::string_view Name() { return "queue"; }
 
@@ -1024,7 +1489,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::Data&
     };
     struct Traits_pause
     {
-        using TOwner = CLOpts2::CommandLineOptions::Data;
+        using TOwner     = CLOpts2::CommandLineOptions::Data;
+        using TFieldType = ::CLOpts2::PauseOptions::Data;
 
         static constexpr std::string_view Name() { return "pause"; }
 
@@ -1042,7 +1508,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::Data&
     };
     struct Traits_cancel
     {
-        using TOwner = CLOpts2::CommandLineOptions::Data;
+        using TOwner     = CLOpts2::CommandLineOptions::Data;
+        using TFieldType = ::CLOpts2::CancelOptions::Data;
 
         static constexpr std::string_view Name() { return "cancel"; }
 
@@ -1060,7 +1527,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::Data&
     };
     struct Traits_resume
     {
-        using TOwner = CLOpts2::CommandLineOptions::Data;
+        using TOwner     = CLOpts2::CommandLineOptions::Data;
+        using TFieldType = ::CLOpts2::ResumeOptions::Data;
 
         static constexpr std::string_view Name() { return "resume"; }
 
@@ -1078,7 +1546,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::Data&
     };
     struct Traits_update
     {
-        using TOwner = CLOpts2::CommandLineOptions::Data;
+        using TOwner     = CLOpts2::CommandLineOptions::Data;
+        using TFieldType = ::CLOpts2::UpdateOptions::Data;
 
         static constexpr std::string_view Name() { return "update"; }
 
@@ -1096,7 +1565,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::Data&
     };
     struct Traits_hydrate
     {
-        using TOwner = CLOpts2::CommandLineOptions::Data;
+        using TOwner     = CLOpts2::CommandLineOptions::Data;
+        using TFieldType = ::CLOpts2::HydrateOptions::Data;
 
         static constexpr std::string_view Name() { return "hydrate"; }
 
@@ -1118,6 +1588,20 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::Data&
     {
         if (key == "Description") return "Command Line tool for windows-store operations";
         return ::ReflectionServices::EmptyAttributeValue(key);
+    }
+
+    using ThisType = CLOpts2::CommandLineOptions::Data;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && ReflectionBase::AreEqual(obj1.install(), obj2.install())
+               && ReflectionBase::AreEqual(obj1.queue(), obj2.queue())
+               && ReflectionBase::AreEqual(obj1.pause(), obj2.pause())
+               && ReflectionBase::AreEqual(obj1.cancel(), obj2.cancel())
+               && ReflectionBase::AreEqual(obj1.resume(), obj2.resume())
+               && ReflectionBase::AreEqual(obj1.update(), obj2.update())
+               && ReflectionBase::AreEqual(obj1.hydrate(), obj2.hydrate())
+            ;
     }
 
     using Handler = ::ReflectionServices::ReflectedUnionHandler<CLOpts2::CommandLineOptions::Data,

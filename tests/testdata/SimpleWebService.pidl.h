@@ -1,5 +1,5 @@
 #pragma once
-#include <DataModel.h>
+#include <stencil/stencil.h>
 namespace SimpleWebService
 {
 namespace Data
@@ -24,6 +24,14 @@ struct Data :
 ,        randomString
     };
 
+    static constexpr size_t FieldCount()
+    {
+        return 0u
+               + 1u
+               + 1u
+            ;
+    }
+
     static constexpr std::string_view FieldAttributeValue(FieldIndex index, const std::string_view& key)
     {
         switch (index)
@@ -46,13 +54,16 @@ struct Data :
     int32_t&       randomInteger() { return _randomInteger; }
     const int32_t& randomInteger() const { return _randomInteger; }
     void                            randomInteger(int32_t&& val) { _randomInteger = std::move(val); }
+    int32_t&       get_randomInteger() { return _randomInteger; }
 
-    int32_t& get_randomInteger()
+    bool isset_randomInteger() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::randomInteger); }
+
+    void set_randomInteger(int32_t&& val)
     {
-        return _randomInteger;
-        ;
+        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::randomInteger, _randomInteger, val);
+        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::randomInteger, _randomInteger, val);
+        _randomInteger = std::move(val);
     }
-    void set_randomInteger(int32_t&& val) { _randomInteger = std::move(val); }
 
     private:
     shared_string _randomString = {};
@@ -61,13 +72,16 @@ struct Data :
     shared_string&       randomString() { return _randomString; }
     const shared_string& randomString() const { return _randomString; }
     void                            randomString(shared_string&& val) { _randomString = std::move(val); }
+    shared_string&       get_randomString() { return _randomString; }
 
-    shared_string& get_randomString()
+    bool isset_randomString() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::randomString); }
+
+    void set_randomString(shared_string&& val)
     {
-        return _randomString;
-        ;
+        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::randomString, _randomString, val);
+        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::randomString, _randomString, val);
+        _randomString = std::move(val);
     }
-    void set_randomString(shared_string&& val) { _randomString = std::move(val); }
 
 };
 
@@ -78,7 +92,7 @@ struct TestInterface : public ReflectionBase::Interface<TestInterface>
     TestInterface()          = default;
     virtual ~TestInterface() = default;
     DELETE_COPY_AND_MOVE(TestInterface);
-    virtual Data::Data Create(
+    virtual ::SimpleWebService::Data::Data Create(
         int32_t const& randomInteger
 ,        shared_string const& randomString
         )
@@ -97,12 +111,14 @@ struct TestInterface_Create_Args
 {
     TestInterface* instance = nullptr;
 
-    int32_t  arg_randomInteger{};
-    int32_t& get_arg_randomInteger() { return arg_randomInteger; }
-    void                      set_arg_randomInteger(int32_t&& value) { arg_randomInteger = std::move(value); }
-    shared_string  arg_randomString{};
-    shared_string& get_arg_randomString() { return arg_randomString; }
-    void                      set_arg_randomString(shared_string&& value) { arg_randomString = std::move(value); }
+    int32_t        arg_randomInteger{};
+    int32_t&       get_arg_randomInteger() { return arg_randomInteger; }
+    int32_t const& get_carg_randomInteger() const { return arg_randomInteger; }
+    void                            set_arg_randomInteger(int32_t&& value) { arg_randomInteger = std::move(value); }
+    shared_string        arg_randomString{};
+    shared_string&       get_arg_randomString() { return arg_randomString; }
+    shared_string const& get_carg_randomString() const { return arg_randomString; }
+    void                            set_arg_randomString(shared_string&& value) { arg_randomString = std::move(value); }
 };
 
 }    // namespace SimpleWebService
@@ -111,7 +127,9 @@ template <> struct ReflectionBase::TypeTraits<SimpleWebService::TestInterface_Cr
 {
     struct Traits_arg_randomInteger
     {
-        using TOwner = SimpleWebService::TestInterface_Create_Args;
+        using TOwner     = SimpleWebService::TestInterface_Create_Args;
+        using TFieldType = int32_t;
+
         static constexpr std::string_view    Name() { return "randomInteger"; }
         static const ::ReflectionBase::Flags Flags() { return {}; }
         static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
@@ -120,7 +138,9 @@ template <> struct ReflectionBase::TypeTraits<SimpleWebService::TestInterface_Cr
     };
     struct Traits_arg_randomString
     {
-        using TOwner = SimpleWebService::TestInterface_Create_Args;
+        using TOwner     = SimpleWebService::TestInterface_Create_Args;
+        using TFieldType = shared_string;
+
         static constexpr std::string_view    Name() { return "randomString"; }
         static const ::ReflectionBase::Flags Flags() { return {}; }
         static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
@@ -130,6 +150,15 @@ template <> struct ReflectionBase::TypeTraits<SimpleWebService::TestInterface_Cr
     static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
     static constexpr std::string_view           Name() { return "Create"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
+
+    using ThisType = SimpleWebService::TestInterface_Create_Args;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && ReflectionBase::AreEqual(obj1.get_carg_randomInteger(), obj2.get_carg_randomInteger())
+               && ReflectionBase::AreEqual(obj1.get_carg_randomString(), obj2.get_carg_randomString())
+            ;
+    }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<SimpleWebService::TestInterface_Create_Args
                                                                  ,
@@ -179,7 +208,8 @@ template <> struct ReflectionBase::TypeTraits<SimpleWebService::Data::Data&>
 {
     struct Traits_randomInteger
     {
-        using TOwner = SimpleWebService::Data::Data;
+        using TOwner     = SimpleWebService::Data::Data;
+        using TFieldType = int32_t;
 
         static constexpr std::string_view Name() { return "randomInteger"; }
 
@@ -197,7 +227,8 @@ template <> struct ReflectionBase::TypeTraits<SimpleWebService::Data::Data&>
     };
     struct Traits_randomString
     {
-        using TOwner = SimpleWebService::Data::Data;
+        using TOwner     = SimpleWebService::Data::Data;
+        using TFieldType = shared_string;
 
         static constexpr std::string_view Name() { return "randomString"; }
 
@@ -220,8 +251,62 @@ template <> struct ReflectionBase::TypeTraits<SimpleWebService::Data::Data&>
         return ::ReflectionServices::EmptyAttributeValue(key);
     }
 
+    using ThisType = SimpleWebService::Data::Data;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && ReflectionBase::AreEqual(obj1.randomInteger(), obj2.randomInteger())
+               && ReflectionBase::AreEqual(obj1.randomString(), obj2.randomString())
+            ;
+    }
+
     using Handler = ::ReflectionServices::ReflectedStructHandler<SimpleWebService::Data::Data,
                                                                  Traits_randomInteger
 ,                                                                 Traits_randomString
                                                                  >;
 };
+
+template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, SimpleWebService::Data::Data>>>
+{
+    using TData = T;
+
+    // TODO : Tentative: We hate pointers
+    TData const* const _ptr;
+    // TODO : Better way to unify creation interface
+    bool _changed = false;
+
+    DELETE_COPY_AND_MOVE(DeltaTracker);
+
+    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    {
+        // TODO: Tentative
+        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
+    }
+
+    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
+
+    size_t NumFields() const { return TData::FieldCount(); }
+    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+
+    uint8_t MutatorIndex() const;
+    bool    OnlyHasDefaultMutator() const;
+
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+
+    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::randomInteger:
+            lambda(DeltaTracker<int32_t>(&_ptr->randomInteger(), IsFieldChanged(TData::FieldIndex::randomInteger)));
+            return;
+        case TData::FieldIndex::randomString:
+            lambda(DeltaTracker<shared_string>(&_ptr->randomString(), IsFieldChanged(TData::FieldIndex::randomString)));
+            return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+};
+

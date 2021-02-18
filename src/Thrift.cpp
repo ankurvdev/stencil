@@ -1,4 +1,3 @@
-#include "DebugInfo.h"
 #include "Thrift.ly.h"
 
 #include <cstdio>
@@ -119,8 +118,11 @@ struct ThriftGenerator : Generator
 {
     virtual void LoadFile(std::filesystem::path const& inputFile) override
     {
+        FinalizeTypeDefinitions();
+
         IDL::Lang::Thrift::Context context{Program_()};
         context.program.SetFileName(inputFile);
+        IDLDebug::ErrorAggregator errorAggregator;
         try
         {
             IDL::Lang::Thrift::LoadFile(context, inputFile);
@@ -131,7 +133,7 @@ struct ThriftGenerator : Generator
             {
                 std::cerr << "error: " << inputFile.string() << "[" << err.line << ":" << err.col << "] " << err.msg;
             }
-            std::wcerr << context.errors.size() << IDLDebug::ErrorAggregator::Get().GetErrors() << ex.what() << std::endl;
+            std::wcerr << " " << context.errors.size() << std::endl << errorAggregator.GetErrors() << std::endl << ex.what() << std::endl;
             throw;
         }
     }

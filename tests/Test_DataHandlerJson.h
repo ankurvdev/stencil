@@ -1,4 +1,5 @@
-#include "DataHandlerJson.h"
+#include <stencil/DataHandlerJson.h>
+
 #include <assert.h>
 #include <iostream>
 #include <sstream>
@@ -17,8 +18,8 @@ template <> struct ReflectionBase::TypeTraits<TestStruct2&>
 {
     struct Traits_field1
     {
-        using TOwner = TestStruct2;
-
+        using TOwner     = TestStruct2;
+        using TFieldType = shared_string;
         static const ::ReflectionBase::Flags Flags() { return {}; }
 
         static constexpr std::string_view Name() { return "field1"; }
@@ -64,7 +65,9 @@ template <> struct ReflectionBase::TypeTraits<TestStruct1&>
 
     struct Traits_field1
     {
-        using TOwner = TestStruct1;
+        using TOwner     = TestStruct1;
+        using TFieldType = shared_string;
+
         static const ::ReflectionBase::Flags Flags() { return {}; }
 
         static constexpr std::string_view Name() { return "field1"; }
@@ -75,7 +78,9 @@ template <> struct ReflectionBase::TypeTraits<TestStruct1&>
     };
     struct Traits_field2
     {
-        using TOwner = TestStruct1;
+        using TOwner     = TestStruct1;
+        using TFieldType = bool;
+
         static const ::ReflectionBase::Flags Flags() { return {}; }
 
         static constexpr std::string_view Name() { return "field2"; }
@@ -86,7 +91,9 @@ template <> struct ReflectionBase::TypeTraits<TestStruct1&>
     };
     struct Traits_field3
     {
-        using TOwner = TestStruct1;
+        using TOwner     = TestStruct1;
+        using TFieldType = short;
+
         static const ::ReflectionBase::Flags Flags() { return {}; }
 
         static constexpr std::string_view Name() { return "field3"; }
@@ -97,7 +104,9 @@ template <> struct ReflectionBase::TypeTraits<TestStruct1&>
     };
     struct Traits_field4
     {
-        using TOwner = TestStruct1;
+        using TOwner     = TestStruct1;
+        using TFieldType = std::vector<short>;
+
         static const ::ReflectionBase::Flags Flags() { return {}; }
 
         static constexpr std::string_view Name() { return "field4"; }
@@ -108,7 +117,9 @@ template <> struct ReflectionBase::TypeTraits<TestStruct1&>
     };
     struct Traits_field5
     {
-        using TOwner = TestStruct1;
+        using TOwner     = TestStruct1;
+        using TFieldType = std::shared_ptr<TestStruct2>;
+
         static const ::ReflectionBase::Flags Flags() { return {}; }
 
         static constexpr std::string_view Name() { return "field5"; }

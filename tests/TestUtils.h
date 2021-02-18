@@ -88,7 +88,7 @@ inline void CompareLines(std::vector<std::string> const& actualstring,
                          std::string const&              resname = "test")
 {
 
-    dtl::Diff<std::string, std::vector<std::string>> d(actualstring, expectedstring);
+    dtl::Diff<std::string, std::vector<std::string>> d(expectedstring, actualstring);
     d.compose();                // construct an edit distance and LCS and SES
     d.composeUnifiedHunks();    // construct a difference as Unified Format with SES.
 

@@ -1,10 +1,10 @@
 #include "GeneratedCodeFragment.h"
+#include "Generator.h"
 #include "IDL2.h"
 #include "TemplateFragment.h"
 
-#include "TypeDefinition.ly.h"
-
 #pragma warning(push, 0)
+#include "yaml-cpp/yaml.h"
 #include <tinyxml2.h>
 #pragma warning(pop)
 
@@ -54,10 +54,268 @@ std::ostream& operator<<(std::ostream& strm, std::wstring_view wstr)
     return strm;
 }
 
+void Generator::FieldTypeDecl::Merge(FieldTypeDecl&& decl)
+{
+    if (!decl.name.empty())
+    {
+        if (name.empty())
+        {
+            name = std::move(decl.name);
+        }
+        else if (name != decl.name)
+        {
+            throw std::logic_error("Cannot merge differently name FieldTypes");
+        }
+    }
+
+    if (!decl.baseField.empty())
+    {
+        if (baseField.empty())
+        {
+            baseField = std::move(decl.baseField);
+        }
+        else if (baseField != decl.baseField)
+        {
+            throw std::logic_error("Can only have 1 base field");
+        }
+    }
+
+    if (decl.annotationMap != nullptr)
+    {
+        if (annotationMap == nullptr)
+        {
+            annotationMap = std::move(decl.annotationMap);
+        }
+        else
+        {
+            for (auto const& [k, v] : decl.annotationMap->GetAttributes())
+            {
+                auto copied = v;
+                annotationMap->AddEntry(k, std::move(copied));
+            }
+        }
+    }
+
+    for (auto& v : decl.mutators)
+    {
+        mutators.push_back(std::move(v));
+    }
+
+    for (auto& v : decl.accessors)
+    {
+        accessors.push_back(std::move(v));
+    }
+}
+
+namespace YAML
+{
+template <> struct convert<std::wstring>
+{
+    static bool decode(YAML::Node const& node, std::wstring& val)
+    {
+        val = Str::Convert(node.as<std::string>());
+        return true;
+    }
+};
+
+template <> struct convert<std::vector<Generator::MutatorAccessorDefinition>>
+{
+    static bool decode(YAML::Node const& node, std::vector<Generator::MutatorAccessorDefinition>& valarr)
+    {
+        for (auto it = node.begin(); it != node.end(); ++it)
+        {
+            Generator::MutatorAccessorDefinition val;
+            val.name = it->first.as<std::wstring>();
+            val.id   = it->second["Id"].as<uint8_t>();
+            val.returnType
+                = Binding::Expression::Create(it->second["ReturnType"].as<std::wstring>(), Str::Create(L"%"), Str::Create(L"%"), L':');
+            auto& nargs = it->second["Args"];
+            if (nargs.IsDefined() && !nargs.IsNull())
+            {
+                if (nargs.IsScalar())
+                {
+                    auto str = nargs.as<std::wstring>();
+                    val.args = {Binding::Expression::Create(str, Str::Create(L"%"), Str::Create(L"%"), L':')};
+                }
+                else
+                {
+                    for (auto it1 = nargs.begin(); it1 != nargs.end(); ++it1)
+                    {
+                        val.args.push_back(
+                            Binding::Expression::Create(it1->second.as<std::wstring>(), Str::Create(L"%"), Str::Create(L"%"), L':'));
+                    }
+                }
+            }
+            else
+            {
+                throw std::invalid_argument("Args not found for :" + it->first.as<std::string>());
+            }
+            valarr.push_back(std::move(val));
+        }
+
+        return true;
+    }
+};
+
+template <> struct convert<Generator::FieldTypeDecl>
+{
+    static bool decode(YAML::Node const& node, Generator::FieldTypeDecl& val)
+    {
+        if (node.IsScalar())
+        {
+            val.baseField = node.as<std::wstring>();
+            return true;
+        }
+        for (auto it1 = node.begin(); it1 != node.end(); ++it1)
+        {
+            auto propname = it1->first.as<std::wstring>();
+            if (propname == L"Mutators")
+            {
+                val.mutators = it1->second.as<std::vector<Generator::MutatorAccessorDefinition>>();
+            }
+            else if (propname == L"Accessors")
+            {
+                val.accessors = it1->second.as<std::vector<Generator::MutatorAccessorDefinition>>();
+            }
+            else if (propname == L"Inherits")
+            {
+                val.baseField = it1->second.as<std::wstring>();
+            }
+            else
+            {
+                auto annotationMap
+                    = val.annotationMap == nullptr ? (val.annotationMap = std::make_shared<Binding::AttributeMap>()) : val.annotationMap;
+                auto propval = it1->second.as<std::wstring>();
+                auto expr    = Binding::Expression::Create(propval, Str::Create(L"%"), Str::Create(L"%"), L':');
+                (*annotationMap).AddEntry(propname, std::move(expr));
+            }
+        }
+        return true;
+    }
+};
+
+template <> struct convert<Generator::ContainerTypeDecl>
+{
+    static bool decode(YAML::Node const& node, Generator::ContainerTypeDecl& val)
+    {
+        if (node.IsScalar())
+        {
+            val.baseField = node.as<std::wstring>();
+            return true;
+        }
+        for (auto it1 = node.begin(); it1 != node.end(); ++it1)
+        {
+            auto propname = it1->first.as<std::wstring>();
+            if (propname == L"Mutators")
+            {
+                val.mutators = it1->second.as<std::vector<Generator::MutatorAccessorDefinition>>();
+            }
+            else if (propname == L"Accessors")
+            {
+                val.accessors = it1->second.as<std::vector<Generator::MutatorAccessorDefinition>>();
+            }
+            else if (propname == L"Inherits")
+            {
+                val.baseField = it1->second.as<std::wstring>();
+            }
+            else if (propname == L"Params")
+            {
+                val.args = it1->second.as<std::vector<std::wstring>>();
+            }
+            else
+            {
+                auto annotationMap
+                    = val.annotationMap == nullptr ? (val.annotationMap = std::make_shared<Binding::AttributeMap>()) : val.annotationMap;
+                auto propval = it1->second.as<std::wstring>();
+                auto expr    = Binding::Expression::Create(propval, Str::Create(L"%"), Str::Create(L"%"), L':');
+                (*annotationMap).AddEntry(propname, std::move(expr));
+            }
+        }
+        return true;
+    }
+};
+
+}    // namespace YAML
+
+void debug(YAML::Node const& node)
+{
+    std::stringstream ss;
+    ss << node;
+    ss << "Defined:" << node.IsDefined() << std::endl;
+    if (node.IsDefined())
+    {
+        ss << "Null:" << node.IsNull() << std::endl;
+        ss << "Scalar:" << node.IsScalar() << std::endl;
+        ss << "Map:" << node.IsMap() << std::endl;
+        ss << "Sequence:" << node.IsSequence() << std::endl;
+        ss << "Type:" << node.Type() << std::endl;
+        auto st = ss.str();
+        std::cout << st;
+    }
+}
+
 void Generator::_AddTypeDefinitions(std::string_view const& /*name*/, std::string_view const& text)
 {
-    IDL::Lang::TypeDefinition::Context loadcontext{*_program};
-    IDL::Lang::TypeDefinition::LoadString(loadcontext, text);
+    YAML::Node config = YAML::Load(std::string(text));
+    for (auto it = config.begin(); it != config.end(); it++)
+    {
+        auto propname = it->first.as<std::string>();
+        if (propname == "FieldTypes")
+        {
+            for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+            {
+                auto fieldTypeDecl = it1->second.as<FieldTypeDecl>();
+                fieldTypeDecl.name = it1->first.as<std::wstring>();
+                _FindOrInsertFieldTypeDecl(fieldTypeDecl.name).Merge(std::move(fieldTypeDecl));
+            }
+        }
+        else if (propname == "Struct")
+        {
+            _structDefault.Merge(it->second.as<FieldTypeDecl>());
+        }
+
+        else if (propname == "Union")
+        {
+            _unionDefault.Merge(it->second.as<FieldTypeDecl>());
+        }
+
+        else if (propname == "Interface")
+        {
+            _interfaceDefault.Merge(it->second.as<FieldTypeDecl>());
+        }
+        else if (propname == "FunctionArgs")
+        {
+            _fnargsDefault.Merge(it->second.as<FieldTypeDecl>());
+        }
+        else if (propname == "Typedef")
+        {
+            _typedefDefault.Merge(it->second.as<FieldTypeDecl>());
+        }
+        else if (propname == "Containers")
+        {
+            for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+            {
+                auto typedecl = it1->second.as<ContainerTypeDecl>();
+                typedecl.name = it1->first.as<std::wstring>();
+                _FindOrInsertContainerDecls(typedecl.name).Merge(std::move(typedecl));
+            }
+        }
+        else if (propname == "Relationships")
+        {
+            for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+            {
+                auto& objmap = _relationshipDefs[it1->first.as<StrType>()];
+                for (auto it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+                {
+                    objmap[it2->first.as<StrType>()] = it2->second.as<StrType>();
+                }
+            }
+        }
+        else
+        {
+            throw std::logic_error("Unrecognized type");
+        }
+    }
 }
 
 void CreateTemplateFromNode(tree<TemplateFragment>&          tmpl,
@@ -110,7 +368,7 @@ void ExpandTemplate(tree<Str::Type>&                 codetree,
                     tree<TemplateFragment> const&    tmpl,
                     tree<TemplateFragment>::iterator tmplrootit,
                     Binding::BindingContext&         context,
-                    Binding::IBindable const&        data)
+                    Binding::IBindable&              data)
 {
 
     auto it = codetree.addchild(root, [&]() {
@@ -186,7 +444,7 @@ void ExpandTemplate(tree<Str::Type>&                 codetree,
 
         auto joinStr = FindInMapOrDefault(tmplit->attributes, "Join");
         bool first   = true;
-        for (auto const& cdata : context.GetRange(data, bexpr))
+        for (auto& cdata : context.GetRange(data, bexpr))
         {
             auto scope = context.ContextScope(cdata);
             if (!first && !joinStr.empty())
@@ -199,7 +457,7 @@ void ExpandTemplate(tree<Str::Type>&                 codetree,
     }
 }
 
-tree<Str::Type> ExpandTemplate(tree<TemplateFragment> const& tmpl, Binding::BindingContext& context, Binding::IBindable const& data)
+tree<Str::Type> ExpandTemplate(tree<TemplateFragment> const& tmpl, Binding::BindingContext& context, Binding::IBindable& data)
 {
     tree<Str::Type> codetree;
     for (auto it = tmpl.rootbegin(); it != tmpl.rootend(); ++it)
@@ -291,8 +549,7 @@ void Generator::_AddTemplate(std::string_view const& name, std::string_view cons
 
 void Generator::_AddContent(std::string_view const& name, std::string_view const& text)
 {
-
-    if (name.find("typedef") != std::string_view ::npos)
+    if (name.find("typedecl") != std::string_view ::npos)
     {
         _AddTypeDefinitions(name, text);
     }
@@ -300,6 +557,102 @@ void Generator::_AddContent(std::string_view const& name, std::string_view const
     {
         _AddTemplate(name, text);
     }
+}
+
+void Generator::FinalizeTypeDefinitions()
+{
+    if (_finalized)
+    {
+        return;
+    }
+    auto defaultFieldTypeDecl = &_fieldTypeDecls[_fieldTypeDeclMap[L"default"]];
+
+    // Relay inheritance
+    for (auto& v : _fieldTypeDecls)
+    {
+        if (v.name == L"default") continue;
+        auto baseFieldType = defaultFieldTypeDecl;
+        if (!v.baseField.empty())
+        {
+            baseFieldType = &_fieldTypeDecls[_fieldTypeDeclMap[v.baseField]];
+        }
+        for (auto& m : baseFieldType->mutators)
+        {
+            v.mutators.push_back(m);
+        }
+        for (auto& a : baseFieldType->accessors)
+        {
+            v.accessors.push_back(a);
+        }
+    }
+    for (auto& v : _containerDecls)
+    {
+        if (v.baseField.empty())
+        {
+            continue;
+        }
+        auto baseFieldType = &_containerDecls[_containerDeclMap[v.baseField]];
+        for (auto& m : baseFieldType->mutators)
+        {
+            v.mutators.push_back(m);
+        }
+        for (auto& a : baseFieldType->accessors)
+        {
+            v.accessors.push_back(a);
+        }
+    }
+
+    for (auto& v : _fieldTypeDecls)
+    {
+        auto fieldtype = _program->CreateFieldTypeObject<IDL::NativeFieldType>(
+            std::move(v.name), _program->TryGetFieldTypeName(v.baseField), v.annotationMap);
+        for (auto& m : v.mutators)
+        {
+            if (m.args.size() > 1)
+            {
+                throw std::logic_error("Multiple args not yet supported");
+            }
+
+            fieldtype->CreateMutator(std::move(m.name), m.id, m.returnType, m.args[0]);
+        }
+        for (auto& m : v.accessors)
+        {
+            if (m.args.size() > 1)
+            {
+                throw std::logic_error("Multiple args not yet supported");
+            }
+
+            fieldtype->CreateAccessor(std::move(m.name), m.id, m.returnType, m.args[0]);
+        }
+    }
+
+    for (auto& v : _containerDecls)
+    {
+        auto base      = _program->TryLookup<IDL::Container>(v.baseField);
+        auto container = _program->CreateNamedObject<IDL::Container>(std::move(v.name), std::move(v.args), base, v.annotationMap);
+        for (auto& m : v.mutators)
+        {
+            container->AddMutator(std::move(m));
+        }
+        for (auto& m : v.accessors)
+        {
+            container->AddAccessor(std::move(m));
+        }
+    }
+
+    for (auto& [k, v] : _relationshipDefs)
+    {
+        _program->CreateNamedObject<IDL::RelationshipDefinition>(Str::Create(k), nullptr, std::move(v));
+    }
+
+    std::optional<std::shared_ptr<IDLGenerics::IFieldType>> emptyBaseField;
+    _program->CreateFieldTypeObject<IDL::NativeFieldType>(L"default_struct", emptyBaseField, _structDefault.annotationMap);
+    _program->CreateFieldTypeObject<IDL::NativeFieldType>(L"default_union", emptyBaseField, _unionDefault.annotationMap);
+    _program->CreateFieldTypeObject<IDL::NativeFieldType>(L"default_interface", emptyBaseField, _interfaceDefault.annotationMap);
+    _program->CreateFieldTypeObject<IDL::NativeFieldType>(L"default_typedef", emptyBaseField, _typedefDefault.annotationMap);
+    _program->CreateFieldTypeObject<IDL::NativeFieldType>(L"default_functionargs", emptyBaseField, _fnargsDefault.annotationMap);
+
+    _finalized = true;
 }
 
 void Generator::LoadBuilltinTemplates()
@@ -324,7 +677,7 @@ void Generator::LoadTemplate(std::filesystem::path const& templateFilePath)
     _AddContent(templateFilePath.filename().string(), readfile(templateFilePath));
 }
 
-static GeneratedCode GenerateCode(Template const& tmpl, Binding::IBindable const& data)
+static GeneratedCode GenerateCode(Template const& tmpl, Binding::IBindable& data)
 {
     Binding::BindingContext context;
 
@@ -352,7 +705,7 @@ inline void WriteCodeToStream(std::ostream&                    strm,
 std::vector<std::filesystem::path> Generator::Generate(bool isDryRun, std::filesystem::path const& outDir)
 {
     std::vector<std::filesystem::path> outfiles;
-
+    IDLDebug::ErrorAggregator          errorAggregator;
     for (auto& tmpl : _templates)
     {
         if (!Str::IsEmpty(tmpl.dataSource) && !_program->TryLookup<IDL::DataSource>(Str::Create(tmpl.dataSource)).has_value())
