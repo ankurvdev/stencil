@@ -1,22 +1,32 @@
 cmake_minimum_required(VERSION 3.12)
-project(stencil VERSION 0.0.1)
-include(../../BuildEnv.cmake)
-set(CMAKE_CXX_STANDARD 20)
-if(NOT EXISTS ${VCPKG_ROOT})
+if(NOT EXISTS "${VCPKG_ROOT}")
     message(FATAL_ERROR "Please run with -DVCPKG_ROOT=<vcpkg-root>")
 endif()
 
 if (NOT DEFINED VCPKG_TARGET_TRIPLET)
     if (WIN32)
-        set(VCPKG_TARGET_TRIPLET x86-windows CACHE STRING "" FORCE)
+        set(VCPKG_TARGET_TRIPLET x86-windows)
     else()
-        set(VCPKG_TARGET_TRIPLET x64-linux CACHE STRING "" FORCE)
+        set(VCPKG_TARGET_TRIPLET x64-linux)
     endif()
 endif()
 
+include(${CMAKE_CURRENT_LIST_DIR}/../../BuildEnv.cmake)
 include(${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
+message(STATUS " 
+    CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}
+    CMAKE_LIBRARY_PATH: ${CMAKE_LIBRARY_PATH}
+    CMAKE_FIND_ROOT_PATH: ${CMAKE_FIND_ROOT_PATH}
+    VCPKG_CMAKE_FIND_ROOT_PATH: ${VCPKG_CMAKE_FIND_ROOT_PATH}
+    VCPKG_TARGET_TRIPLET: ${VCPKG_TARGET_TRIPLET}
+")
 
-message(STATUS "Using Triplet ${VCPKG_TARGET_TRIPLET}")
+project(stencil-test VERSION 0.0.1)
+
+EnableStrictCompilation()
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_FIND_DEBUG_MODE TRUE)
+
 find_package(stencil REQUIRED)
 file(GLOB pidlfiles ${CMAKE_CURRENT_LIST_DIR}/../../tests/*.pidl)
 if ( "${pidlfiles}" STREQUAL "")
@@ -50,7 +60,8 @@ int main() {
     }
     return 0;
 }"
-
-
 )
+
+enable_testing()
+add_test(NAME stencil_vcpkg_test COMMAND stencil_vcpkg_test)
 

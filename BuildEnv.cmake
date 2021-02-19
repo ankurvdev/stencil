@@ -1,5 +1,3 @@
-set(CMAKE_CXX_STANDARD 20)
-
 macro(_FixFlags name)
     cmake_parse_arguments("" "" "" "VALUE;EXCLUDE;APPEND" ${ARGN})
     if (NOT _VALUE)

@@ -42,7 +42,7 @@ jobs:
         Arch: x64
   pool:
     vmImage: 'windows-2019'
-  displayName: '[$(Arch)] Build VS2019'
+  displayName: 'Build VS2019'
   steps:
   - powershell: mkdir -p cmake-build ; mkdir -p vcpkg-build
   - task: Powershell@2

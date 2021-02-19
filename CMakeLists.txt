@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.12)
 include(BuildEnv.cmake)
 
 project(stencil VERSION 0.0.1)
+
 include(CMakePackageConfigHelpers)
 
 option(BUILD_TEST "Build Test" ON)
@@ -125,7 +126,7 @@ install(
 install(FILES
     cmake/stencilTargets.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/stencilConfig.cmake
-    DESTINATION share/stencil/cmake
+    DESTINATION share/stencil
 )
 
 if(STENCIL_INSTALL_BUILDTOOLS)
@@ -134,7 +135,7 @@ if(STENCIL_INSTALL_BUILDTOOLS)
     install(FILES
         ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc/LexYaccConfig.cmake
         ${CMAKE_CURRENT_LIST_DIR}/external/embedresource/EmbedResourceConfig.cmake
-        DESTINATION share/stencil/cmake
+        DESTINATION share/stencil
     )
 endif()
 

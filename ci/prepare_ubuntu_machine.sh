@@ -2,7 +2,7 @@
 if ((EUID != 0)); then
   echo "Rerunning as root - current Effective UID = ${EUID}"
   id
-  sudo $0 $*
+  sudo bash $0 $*
   exit 0
 fi
 

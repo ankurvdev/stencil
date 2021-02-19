@@ -4,21 +4,43 @@ param (
 . $PSScriptRoot\start_devenv.ps1
 Start-Devenv $arch
 $ErrorActionPreference = "Stop"
-try {
-    git clone -q https://github.com/Microsoft/vcpkg.git
-    git -C vcpkg apply  --ignore-space-change --ignore-whitespace --whitespace=fix $PSScriptRoot\vcpkg\vcpkg.stencil.patch
-}
-catch{
-    Write-Content "Git commands somehow are causing issues. Fix me later (TODO)"
+if (! (Test-Path vcpkg)) {
+    git clone -q https://github.com/ankurverma85/vcpkg.git
+    git checkout ankurv/stencil
 }
 
-Set-Item ENV:\VCPKG_ROOT $(Resolve-Path vcpkg)
-vcpkg/bootstrap-vcpkg.bat
+if ((Test-Path vcpkg\ports\stencil)) {
+    Get-Item vcpkg\ports\stencil | Remove-Item -Recurse 
+}
+
+Copy-Item -Recurse $PSScriptRoot\vcpkg\port.stencil vcpkg\ports\stencil
+Get-Item vcpkg\ports\stencil
+
+$triplet = $arch + "-windows"
+Set-Item ENV:/VCPKG_ROOT $(Resolve-Path vcpkg)
+Set-Item ENV:/VCPKG_BINARY_SOURCES "clear"
+if (! (Test-Path vcpkg/vcpkg.exe)) {
+    vcpkg/bootstrap-vcpkg.bat
+}
 Set-Content -Path vcpkg\ports\stencil\use_source_path -Value $PSScriptRoot\..
-vcpkg\vcpkg install stencil:$arch-windows
+vcpkg\vcpkg.exe install ("stencil:" + $triplet)
+$vcpkgroot = $(Resolve-Path vcpkg)
+function TestWithVCPKG {
+    param (
+        [ValidateSet("Debug", "Release")] $config
+    )
+    if ((Test-Path Test-Debug)) {
+        Get-Item Test-Debug | Remove-Item -Recurse 
+    }
+    mkdir Test-Debug
+    Push-Location Test-Debug
+    cmake.exe -DVCPKG_ROOT:PATH=$vcpkgroot -DVCPKG_VERBOSE:BOOL=ON ("-DVCPKG_TARGET_TRIPLET:STRING=" + $triplet) $PSScriptRoot\vcpkg
+    cmake.exe --build . --config $config -j
+    ctest . -C $config 
+    Pop-Location
+    Get-Item Test-Debug | Remove-Item -Recurse
+}
 
-Get-Content vcpkg\buildtrees\stencil\install-$arch-windows-rel-out.log
-Get-Content vcpkg\buildtrees\stencil\install-$arch-windows-dbg-out.log
+TestWithVCPKG "Debug"
+TestWithVCPKG "Release"
 
-cmake.exe -DVCPKG_ROOT:FILEPATH=$(Resolve-Path vcpkg) -DVCPKG_TARGET_TRIPLET=$arch-windows $PSScriptRoot\vcpkg
-cmake.exe --build . -j
