@@ -12,7 +12,7 @@ jobs:
 - job: Build_Ubuntu
   displayName: '[x64] Build Ubuntu'
   pool:
-    vmImage: 'windows-2019'
+    vmImage: 'ubuntu-20.04'
   steps:
   - bash: bash $(Build.SourcesDirectory)/ci/prepare_ubuntu_machine.sh && mkdir -p cmake-build && mkdir -p vcpkg-build
     displayName: 'Install Build Tools'
@@ -44,10 +44,13 @@ jobs:
         VMImage: 'windows-2019'
       x64_linux:
         Triplet: x64-linux
-        VMImage: 'windows-2019'
+        VMImage: 'ubuntu-20.04'
+  pool:
+    vmImage: $(VMImage)
   steps:
     - bash: bash $(Build.SourcesDirectory)/ci/prepare_ubuntu_machine.sh mkdir -p vcpkg-build
       displayName: 'Install Build Tools'
+      condition: eq($(VMImage), 'ubuntu-20.04')
     - task: UsePythonVersion@0
       inputs:
         versionSpec: '3.x' 
