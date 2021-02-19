@@ -33,7 +33,7 @@ jobs:
     inputs:
       pathtoPublish: $(Build.ArtifactStagingDirectory)
 
-- job: VCPKG Workflow
+- job: VCPKG_Workflow
   strategy:
     matrix:
       x86_windows:
