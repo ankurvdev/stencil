@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.12)
 
 include(BuildEnv.cmake)
-include(CMakePackageConfigHelpers)
 
 project(stencil VERSION 0.0.1)
+include(CMakePackageConfigHelpers)
 
 option(BUILD_TEST "Build Test" ON)
 option(STENCIL_INSTALL_BUILDTOOLS "Install Extra Build Tools with install" ON)

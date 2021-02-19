@@ -33,10 +33,16 @@ jobs:
     inputs:
       pathtoPublish: $(Build.ArtifactStagingDirectory)
 
-- job: Build_VS2019_x64
-  displayName: '[x64] Build VS2019'
+- job: Build_VS2019
+  strategy:
+    matrix:
+      x86:
+        Arch: x86
+      x64:
+        Arch: x64
   pool:
     vmImage: 'windows-2019'
+  displayName: '[$(Arch)] Build VS2019'
   steps:
   - powershell: mkdir -p cmake-build ; mkdir -p vcpkg-build
   - task: Powershell@2
@@ -44,7 +50,8 @@ jobs:
     inputs:
       workingDirectory: 'cmake-build'
       targetType: 'filePath'
-      filePath:  $(Build.SourcesDirectory)/ci/build_win_msvc_x64.ps1
+      filePath:  $(Build.SourcesDirectory)/ci/build_win_msvc.ps1
+      arguments: $(Arch)
   - task: Powershell@2
     displayName: "Build Windows with Vcpkg"
     inputs:
@@ -52,39 +59,8 @@ jobs:
       targetType: 'filePath'
       errorActionPreference: 'stop'
       failOnStderr: false
-      filePath:  $(Build.SourcesDirectory)/ci/build_with_vcpkg_x64.ps1
-  - task: CopyFiles@2
-    displayName: 'Copy Files to artifact staging directory'
-    inputs:
-      SourceFolder: 'cmake-build'
-      Contents: 'stencil*.zip'
-      TargetFolder: $(Build.ArtifactStagingDirectory)
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publish Artifact'
-    inputs:
-      pathtoPublish: $(Build.ArtifactStagingDirectory)
-
-
-- job: Build_VS2019_x86
-  displayName: '[x86] Build VS2019'
-  pool:
-    vmImage: 'windows-2019'
-  steps:
-  - powershell: mkdir -p cmake-build ; mkdir -p vcpkg-build
-  - task: Powershell@2
-    displayName: "Build and Test VS2019"
-    inputs:
-      workingDirectory: 'cmake-build'
-      targetType: 'filePath'
-      filePath:  $(Build.SourcesDirectory)/ci/build_win_msvc_x86.ps1
-  - task: Powershell@2
-    displayName: "Build Windows with Vcpkg"
-    inputs:
-      workingDirectory: 'vcpkg-build'
-      targetType: 'filePath'
-      errorActionPreference: 'stop'
-      failOnStderr: false
-      filePath:  $(Build.SourcesDirectory)/ci/build_with_vcpkg_x86.ps1
+      filePath:  $(Build.SourcesDirectory)/ci/build_with_vcpkg.ps1 
+      arguments: $(Arch)
   - task: CopyFiles@2
     displayName: 'Copy Files to artifact staging directory'
     inputs:
