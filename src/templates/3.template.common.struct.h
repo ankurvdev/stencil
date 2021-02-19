@@ -45,7 +45,7 @@ void* GetExtensionData()
 
 //<Template file="zzFileNamezz.h">
 #pragma once
-#include <DataModel.h>
+#include <stencil/stencil.h>
 namespace zzProgram_Namezz
 {
 //<Struct>
@@ -80,6 +80,15 @@ struct Data :
         //</Field>
     };
 
+    static constexpr size_t FieldCount()
+    {
+        return 0u
+               //<Field >
+               + 1u
+            //</Field>
+            ;
+    }
+
     static constexpr std::string_view FieldAttributeValue(FieldIndex index, const std::string_view& key)
     {
         switch (index)
@@ -107,14 +116,30 @@ struct Data :
     zzFieldType_NativeTypezz&       zzNamezz() { return _zzNamezz; }
     const zzFieldType_NativeTypezz& zzNamezz() const { return _zzNamezz; }
     void                            zzNamezz(zzFieldType_NativeTypezz&& val) { _zzNamezz = std::move(val); }
+    zzFieldType_NativeTypezz&       get_zzNamezz() { return _zzNamezz; }
 
-    zzFieldType_NativeTypezz& get_zzNamezz()
+    bool isset_zzNamezz() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::zzField_Namezz); }
+
+    void set_zzNamezz(zzFieldType_NativeTypezz&& val)
     {
-        return _zzNamezz;
-        ;
+        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::zzField_Namezz, _zzNamezz, val);
+        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::zzField_Namezz, _zzNamezz, val);
+        _zzNamezz = std::move(val);
     }
-    void set_zzNamezz(zzFieldType_NativeTypezz&& val) { _zzNamezz = std::move(val); }
 
+    //<FieldType_Mutator>
+    zzReturnType_NativeTypezz zzNamezz_zzField_Namezz(zzArg_NativeTypezz&& args)
+    {
+        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::zzField_Namezz, uint8_t{zzIdzz}, _zzField_Namezz, args);
+        return Stencil::Mutators<zzField_FieldType_NativeTypezz>::zzNamezz(_zzField_Namezz, std::move(args));
+    }
+    //</FieldType_Mutator>
+    //<FieldType_Accessor>
+    zzReturnType_NativeTypezz zzNamezz_zzField_Namezz(zzArg_NativeTypezz const& args) const
+    {
+        return Stencil::Accessors<zzField_FieldType_NativeTypezz>::zzNamezz(_zzField_Namezz, args);
+    }
+    //</FieldType_Accessor>
     //</Field>
 };
 
@@ -242,9 +267,10 @@ struct zzInterface_Namezz_zzFunction_Namezz_Args
     zzInterface_Namezz* instance = nullptr;
 
     //<Args_Field>
-    zzFieldType_NativeTypezz  arg_zzNamezz{};
-    zzFieldType_NativeTypezz& get_arg_zzNamezz() { return arg_zzNamezz; }
-    void                      set_arg_zzNamezz(zzFieldType_NativeTypezz&& value) { arg_zzNamezz = std::move(value); }
+    zzFieldType_NativeTypezz        arg_zzNamezz{};
+    zzFieldType_NativeTypezz&       get_arg_zzNamezz() { return arg_zzNamezz; }
+    zzFieldType_NativeTypezz const& get_carg_zzNamezz() const { return arg_zzNamezz; }
+    void                            set_arg_zzNamezz(zzFieldType_NativeTypezz&& value) { arg_zzNamezz = std::move(value); }
     //</Args_Field>
 };
 
@@ -261,7 +287,9 @@ template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzInterface_Name
 
     struct Traits_arg_zzNamezz
     {
-        using TOwner = zzProgram_Namezz::zzInterface_Namezz_zzFunction_Namezz_Args;
+        using TOwner     = zzProgram_Namezz::zzInterface_Namezz_zzFunction_Namezz_Args;
+        using TFieldType = zzFieldType_NativeTypezz;
+
         static constexpr std::string_view    Name() { return "zzNamezz"; }
         static const ::ReflectionBase::Flags Flags() { return {}; }
         static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
@@ -273,6 +301,16 @@ template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzInterface_Name
     static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
     static constexpr std::string_view           Name() { return "zzFunction_Namezz"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
+
+    using ThisType = zzProgram_Namezz::zzInterface_Namezz_zzFunction_Namezz_Args;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               //<Args_Field>
+               && ReflectionBase::AreEqual(obj1.get_carg_zzNamezz(), obj2.get_carg_zzNamezz())
+            //</Args_Field>
+            ;
+    }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<zzProgram_Namezz::zzInterface_Namezz_zzFunction_Namezz_Args
                                                                  //<Args_Field>
@@ -339,7 +377,8 @@ template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzStruct_Namezz:
 
     struct Traits_zzNamezz
     {
-        using TOwner = zzStruct_Program_Namezz::zzStruct_Namezz::Data;
+        using TOwner     = zzStruct_Program_Namezz::zzStruct_Namezz::Data;
+        using TFieldType = zzFieldType_NativeTypezz;
 
         static constexpr std::string_view Name() { return "zzNamezz"; }
 
@@ -373,12 +412,66 @@ template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzStruct_Namezz:
         return ::ReflectionServices::EmptyAttributeValue(key);
     }
 
+    using ThisType = zzProgram_Namezz::zzStruct_Namezz::Data;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               //<Field>
+               && ReflectionBase::AreEqual(obj1.zzNamezz(), obj2.zzNamezz())
+            //</Field>
+            ;
+    }
+
     using Handler = ::ReflectionServices::ReflectedStructHandler<zzProgram_Namezz::zzStruct_Namezz::Data,
                                                                  //<Field Join=','>
                                                                  Traits_zzNamezz
                                                                  //</Field>
                                                                  >;
 };
+
+template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, zzProgram_Namezz::zzStruct_Namezz::Data>>>
+{
+    using TData = T;
+
+    // TODO : Tentative: We hate pointers
+    TData const* const _ptr;
+    // TODO : Better way to unify creation interface
+    bool _changed = false;
+
+    DELETE_COPY_AND_MOVE(DeltaTracker);
+
+    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    {
+        // TODO: Tentative
+        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
+    }
+
+    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
+
+    size_t NumFields() const { return TData::FieldCount(); }
+    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+
+    uint8_t MutatorIndex() const;
+    bool    OnlyHasDefaultMutator() const;
+
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+
+    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        //<Field>
+        case TData::FieldIndex::zzNamezz:
+            lambda(DeltaTracker<zzFieldType_NativeTypezz>(&_ptr->zzNamezz(), IsFieldChanged(TData::FieldIndex::zzNamezz)));
+            return;
+        //</Field>
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+};
+
 //</Struct>
 
 //<Union>
@@ -416,7 +509,8 @@ template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzUnion_Namezz::
     //<Field>
     struct Traits_zzNamezz
     {
-        using TOwner = zzUnion_Program_Namezz::zzUnion_Namezz::Data;
+        using TOwner     = zzUnion_Program_Namezz::zzUnion_Namezz::Data;
+        using TFieldType = zzFieldType_NativeTypezz;
 
         static constexpr std::string_view Name() { return "zzNamezz"; }
 
@@ -449,6 +543,16 @@ template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzUnion_Namezz::
         //</Attribute>
 
         return ::ReflectionServices::EmptyAttributeValue(key);
+    }
+
+    using ThisType = zzProgram_Namezz::zzUnion_Namezz::Data;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               //<Field>
+               && ReflectionBase::AreEqual(obj1.zzNamezz(), obj2.zzNamezz())
+            //</Field>
+            ;
     }
 
     using Handler = ::ReflectionServices::ReflectedUnionHandler<zzProgram_Namezz::zzUnion_Namezz::Data,

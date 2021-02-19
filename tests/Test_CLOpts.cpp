@@ -1,7 +1,7 @@
 #include "CLOpts1.pidl.h"
 #include "CLOpts2.pidl.h"
 
-#include "DataHandlerJson.h"
+#include "stencil/stencil.h"
 
 #define CATCH_CONFIG_MAIN
 #include "TestUtils.h"

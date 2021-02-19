@@ -142,7 +142,7 @@ Static
 %type<Struct>         Struct
 %type<Union>          Union
 %type<Interface>      Interface
-%type<Extends>        Extends
+%type<Interface>      Extends
 %type<Function>       Function
 %type<Field>          Field
 %type<FieldType>      FieldType FunctionType ContainerType ArrayType

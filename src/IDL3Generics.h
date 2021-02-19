@@ -15,11 +15,11 @@
 
 #define WIDENSTR(x) WIDENSTR_(x)
 #define WIDENSTR_(x) L##x
-#define OBJECTNAME(str)                                                                             \
-    static constexpr auto BindingKeyName() { return std::wstring_view(WIDENSTR(#str)); }            \
-    Str::Type             ObjectTypeName() const override { return Str::Create(BindingKeyName()); } \
-    struct                                                                                          \
-    {                                                                                               \
+#define OBJECTNAME(str)                                                                       \
+    static constexpr auto BindingKeyName() { return std::wstring_view(WIDENSTR(#str)); }      \
+    Str::Type             ObjectTypeName() override { return Str::Create(BindingKeyName()); } \
+    struct                                                                                    \
+    {                                                                                         \
     } dummy
 
 namespace IDLGenerics
@@ -151,9 +151,9 @@ struct IFieldType : public virtual Binding::BindableBase
     ~IFieldType() = default;
     DELETE_COPY_AND_MOVE(IFieldType);
 
-    // virtual const Binding::IBindable& GetBindable() const = 0;
-    virtual Str::Type GetFieldName() const = 0;
-    Str::Type         GetFieldCategory() const { return ObjectTypeName(); }
+    // virtual Binding::IBindable& GetBindable() const = 0;
+    virtual Str::Type GetFieldName() = 0;
+    Str::Type         GetFieldCategory() { return ObjectTypeName(); }
 
     template <typename TFieldType> static Str::Type GetFieldCategoryStatic()
     {
@@ -167,9 +167,9 @@ struct IFieldType : public virtual Binding::BindableBase
 
 struct FieldTypeStore
 {
-    std::shared_ptr<const IFieldType> GetFieldTypeName(Str::View const& name) const
+    std::shared_ptr<IFieldType> GetFieldTypeName(Str::View const& name) const
     {
-        auto context = IDLDebug::ThreadActionContext(L"LookupFieldType", [&]() { return name; });
+        ACTION_CONTEXT([&]() { return L"Searching For FieldType::" + Str::Create(name); });
         return _fieldTypeMap.at(Str::Type(name));
     }
     std::optional<std::shared_ptr</*const*/ IFieldType>> TryGetFieldTypeName(Str::View const& name) const
@@ -202,18 +202,131 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
         }
     };
 
+    struct FieldType;
+
+    struct Mutator : public std::enable_shared_from_this<Mutator>,
+                     public NamedIndexT<TOwner, Mutator>::NamedObject,
+                     Binding::BindableT<Mutator>
+
+    {
+        OBJECTNAME(Mutator);
+        DELETE_COPY_AND_MOVE(Mutator);
+
+        Mutator(std::shared_ptr<TOwner>                    owner,
+                TObject*                                   fieldType,
+                Str::Type&&                                name,
+                uint8_t                                    id,
+                std::shared_ptr<const Binding::Expression> returnType,
+                std::shared_ptr<const Binding::Expression> argType) :
+            NamedIndexT<TOwner, Mutator>::NamedObject(owner, std::move(name)),
+            Binding::BindableT<Mutator>(Str::Create(L"FieldType"),
+                                        &Mutator::GetFieldTypeBindable,
+                                        Str::Create(L"Id"),
+                                        &Mutator::GetId,
+                                        Str::Create(L"ReturnType"),
+                                        &Mutator::GetReturnTypeBindable,
+                                        Str::Create(L"Arg"),
+                                        &Mutator::GetArgTypeBindable),
+            _id(id),
+            _argType(argType),
+            _returnType(returnType),
+            _owner(owner),
+            _fieldType(fieldType)
+        {
+        }
+        auto                GetId() const { return Str::Create(std::to_wstring(_id)); }
+        Binding::IBindable& GetFieldTypeBindable() const { return *_fieldType; }
+
+        Binding::IBindable& GetReturnTypeBindable() const
+        {
+            ACTION_CONTEXT([&]() { return L"Mutator ReturnType: " + _returnType->Stringify(); });
+            return *_owner->GetFieldTypeName(Binding::BindingContext::EvaluateExpression(*_returnType)->String());
+        }
+
+        Binding::IBindable& GetArgTypeBindable() const
+        {
+            ACTION_CONTEXT([&]() { return L"Mutator ArgType: " + _argType->Stringify(); });
+            return *_owner->GetFieldTypeName(Binding::BindingContext::EvaluateExpression(*_argType)->String());
+        }
+        uint8_t                                    _id;
+        std::shared_ptr<const Binding::Expression> _argType;
+        std::shared_ptr<const Binding::Expression> _returnType;
+        std::shared_ptr<TOwner>                    _owner;
+        TObject*                                   _fieldType;
+    };
+
+    struct Accessor : public std::enable_shared_from_this<Accessor>,
+                      public NamedIndexT<TOwner, Accessor>::NamedObject,
+                      Binding::BindableT<Accessor>
+    {
+        OBJECTNAME(Accessor);
+
+        DELETE_COPY_AND_MOVE(Accessor);
+
+        Accessor(std::shared_ptr<TOwner>                    owner,
+                 TObject*                                   fieldType,
+                 Str::Type&&                                name,
+                 uint8_t                                    id,
+                 std::shared_ptr<const Binding::Expression> returnType,
+                 std::shared_ptr<const Binding::Expression> argType) :
+            NamedIndexT<TOwner, Accessor>::NamedObject(owner, std::move(name)),
+            Binding::BindableT<Accessor>(Str::Create(L"FieldType"),
+                                         &Accessor::GetFieldTypeBindable,
+                                         Str::Create(L"Id"),
+                                         &Accessor::GetId,
+                                         Str::Create(L"ReturnType"),
+                                         &Accessor::GetReturnTypeBindable,
+                                         Str::Create(L"Arg"),
+                                         &Accessor::GetArgTypeBindable),
+            _id(id),
+            _argType(argType),
+            _returnType(returnType),
+            _owner(owner),
+            _fieldType(fieldType)
+
+        {
+        }
+        auto GetId() const { return Str::Create(std::to_wstring(_id)); }
+
+        Binding::IBindable& GetFieldTypeBindable() const { return *_fieldType; }
+
+        Binding::IBindable& GetReturnTypeBindable() const
+        {
+            ACTION_CONTEXT([&]() { return L"Mutator ReturnType: " + _returnType->Stringify(); });
+            return *_owner->GetFieldTypeName(Binding::BindingContext::EvaluateExpression(*_returnType)->String());
+        }
+
+        Binding::IBindable& GetArgTypeBindable() const
+        {
+            ACTION_CONTEXT([&]() { return L"Mutator ArgType: " + _argType->Stringify(); });
+            return *_owner->GetFieldTypeName(Binding::BindingContext::EvaluateExpression(*_argType)->String());
+        }
+
+        uint8_t                                    _id;
+        std::shared_ptr<const Binding::Expression> _argType;
+        std::shared_ptr<const Binding::Expression> _returnType;
+        std::shared_ptr<TOwner>                    _owner;
+        TObject*                                   _fieldType;
+    };
+
     struct FieldType : public IFieldType,
                        public Binding::BindableT<TObject, FieldType>,
                        public IDLGenerics::AnnotatedObjectT<TOwner, FieldType>,
+                       public NamedIndexT<TOwner, Mutator>::Owner,
+                       public NamedIndexT<TOwner, Accessor>::Owner,
                        public NamedIndexT<TOwner, TObject>::NamedObject
+
     {
-        FieldType(std::shared_ptr<TOwner>                          owner,
-                  Str::Type&&                                      name,
-                  std::optional<std::shared_ptr<const IFieldType>> basetype,
-                  std::shared_ptr<Binding::AttributeMap>           map) :
+        using MutatorType  = Mutator;
+        using AccessorType = Accessor;
+        FieldType(std::shared_ptr<TOwner>                    owner,
+                  Str::Type&&                                name,
+                  std::optional<std::shared_ptr<IFieldType>> basetype,
+                  std::shared_ptr<Binding::AttributeMap>     map) :
             Binding::BindableT<TObject, FieldType>(Str::Create(L"Id"), &FieldType::GetFieldId),
             IDLGenerics::AnnotatedObjectT<TOwner, FieldType>(map),
-            NamedIndexT<TOwner, TObject>::NamedObject(owner, std::move(name))
+            NamedIndexT<TOwner, TObject>::NamedObject(owner, std::move(name)),
+            _owner(owner)
         {
             static_assert(std::is_base_of_v<FieldType, TObject>, "TObject should have FieldType as a base class");
 
@@ -233,13 +346,28 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
                 AddBaseObject(basetype.value());
             }
         }
+
         DELETE_COPY_AND_MOVE(FieldType);
 
-        //  virtual Str::Type GetFieldName() const override;
+        template <typename... TArgs> auto CreateMutator(TArgs&&... args)
+        {
+            auto fieldType = static_cast<TObject*>(this);
+            return NamedIndexT<TOwner, Mutator>::Owner::CreateNamedObject(_owner, fieldType, std::forward<TArgs>(args)...);
+        }
+
+        template <typename... TArgs> auto CreateAccessor(TArgs&&... args)
+        {
+            auto fieldType = static_cast<TObject*>(this);
+            return NamedIndexT<TOwner, Accessor>::Owner::CreateNamedObject(_owner, fieldType, std::forward<TArgs>(args)...);
+        }
+
+        //  virtual Str::Type GetFieldName() override;
         virtual void AddAttributes(std::shared_ptr<Binding::AttributeMap> map) {}
         void         SetFieldId(size_t id) { _fieldId = id; }
         Str::Type    GetFieldId() const { return Str::Create(std::to_wstring(_fieldId)); }
         size_t       _fieldId{};
+
+        std::shared_ptr<TOwner> _owner;
     };
 };
 
@@ -354,7 +482,7 @@ template <typename TOwner, typename TObject> struct StorageIndexT
 
         Field(std::shared_ptr<TObject>               owner,
               Str::Type&&                            name,
-              std::shared_ptr<const IFieldType>      fieldType,
+              std::shared_ptr<IFieldType>            fieldType,
               std::shared_ptr<ConstValue>            defaultValue,
               std::shared_ptr<Binding::AttributeMap> map) :
             Binding::BindableT<Field>(Str::Create(L"FieldType"),
@@ -400,13 +528,13 @@ template <typename TOwner, typename TObject> struct StorageIndexT
 
         Str::Type IsOptional() const { return Str::Create(L"false"); }
 
-        const Binding::IBindable& GetFieldTypeBindable() const { return *_fieldType; }
-        bool                      HasAttributes() const { return _map != nullptr; }
-        const auto&               GetAttributes() const { return _map->GetAttributes(); }
+        Binding::IBindable& GetFieldTypeBindable() const { return *_fieldType; }
+        bool                HasAttributes() const { return _map != nullptr; }
+        const auto&         GetAttributes() const { return _map->GetAttributes(); }
 
         std::shared_ptr<ConstValue> _defaultValue;
 
-        std::shared_ptr<const IFieldType>      _fieldType;
+        std::shared_ptr<IFieldType>            _fieldType;
         std::shared_ptr<Binding::AttributeMap> _map;
     };
 
@@ -414,10 +542,10 @@ template <typename TOwner, typename TObject> struct StorageIndexT
                          public NamedIndexT<TObject, FieldAttribute>::Owner,
                          public NamedIndexT<TObject, Field>::Owner
     {
-        StorageType(std::shared_ptr<TOwner>                          owner,
-                    Str::Type&&                                      name,
-                    std::optional<std::shared_ptr<const IFieldType>> basetype,
-                    std::shared_ptr<Binding::AttributeMap>           map) :
+        StorageType(std::shared_ptr<TOwner>                    owner,
+                    Str::Type&&                                name,
+                    std::optional<std::shared_ptr<IFieldType>> basetype,
+                    std::shared_ptr<Binding::AttributeMap>     map) :
             FieldTypeIndex<TOwner, TObject>::FieldType(owner, std::move(name), basetype, map), _owner(owner)
         {
             static_assert(std::is_base_of_v<StorageType, TObject>, "StorageType should be a base of TObject");
@@ -425,10 +553,10 @@ template <typename TOwner, typename TObject> struct StorageIndexT
 
         DELETE_COPY_AND_MOVE(StorageType);
 
-        void CreateField(std::shared_ptr<const IDLGenerics::IFieldType> fieldType,
-                         Str::Type&&                                    name,
-                         std::shared_ptr<ConstValue>                    defaultValue,
-                         std::shared_ptr<Binding::AttributeMap>         map)
+        void CreateField(std::shared_ptr<IDLGenerics::IFieldType> fieldType,
+                         Str::Type&&                              name,
+                         std::shared_ptr<ConstValue>              defaultValue,
+                         std::shared_ptr<Binding::AttributeMap>   map)
         {
             auto field = NamedIndexT<TObject, Field>::Owner::CreateNamedObject(
                 SUPER(TObject).shared_from_this(), Str::Copy(name), fieldType, defaultValue, map);
@@ -446,7 +574,7 @@ template <typename TOwner, typename TObject> struct StorageIndexT
             // Make sure all attributes on fields
         }
 
-        virtual Str::Type GetFieldName() const override { return Str::Copy(this->Name()); }
+        virtual Str::Type GetFieldName() override { return Str::Copy(this->Name()); }
 
         std::shared_ptr<TOwner> _owner;
     };

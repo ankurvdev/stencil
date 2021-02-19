@@ -1,3 +1,5 @@
+#define CATCH_CONFIG_MAIN
+
 #include "TestUtils.h"
 DECLARE_RESOURCE_COLLECTION(testdata);
 #include "Generator.h"
@@ -54,4 +56,9 @@ TEST_CASE("CodeGen::ThriftGenerator::WebService1", "[ThriftGenerator]")
 TEST_CASE("CodeGen::ThriftGenerator::WebService2", "[ThriftGenerator]")
 {
     REQUIRE_NOTHROW(RunTest({"Metadata.pidl", "ComplexWebService.pidl"}));
+}
+
+TEST_CASE("CodeGen::ThriftGenerator::Avid", "[ThriftGenerator]")
+{
+    REQUIRE_NOTHROW(RunTest({"Avid.pidl"}));
 }

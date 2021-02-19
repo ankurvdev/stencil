@@ -1,6 +1,4 @@
-set(CMAKE_CXX_STANDARD 20)
-
-function(_FixFlags name)
+macro(_FixFlags name)
     cmake_parse_arguments("" "" "" "VALUE;EXCLUDE;APPEND" ${ARGN})
     if (NOT _VALUE)
         if (NOT ${name})
@@ -26,10 +24,10 @@ function(_FixFlags name)
     list(JOIN cflags " " cflagsstr)
 
     message(STATUS "${name}: ${_VALUE} ==> ${cflagsstr}")
-    set(${name} "${cflagsstr}" CACHE STRING "" FORCE)
-endfunction()
+    set(${name} "${cflagsstr}")
+endmacro()
 
-function(EnableStrictCompilation)
+macro(EnableStrictCompilation)
     file(TIMESTAMP ${CMAKE_CURRENT_LIST_FILE} filetime)
 
     if (STRICT_COMPILATION_MODE AND STRICT_COMPILATION_MODE STREQUAL ${filetime})
@@ -41,6 +39,7 @@ function(EnableStrictCompilation)
             -Wall       # Enable all errors
             -WX     # All warnings as errors
             /permissive- # strict compilation
+            /bigobj
             #suppression list
             /wd4068  # unknown pragma
             /wd4514  # unreferenced inline function has been removed
@@ -50,7 +49,7 @@ function(EnableStrictCompilation)
             /wd4710  # Function not inlined. VS2019 CRT throws this
             /wd4711  # Function selected for automatic inline. VS2019 CRT throws this
             /wd4738  # storing 32-bit float result in memory, possible loss of performance 10.0.19041.0\ucrt\corecrt_math.h(642)
-            /showIncludes
+            #/showIncludes
         )
 
         set(exclusions "[-/]W[a-zA-Z1-9]+" "[-/]permissive?")
@@ -93,7 +92,28 @@ function(EnableStrictCompilation)
 
         message(FATAL_ERROR "Unknown compiler : ${CMAKE_CXX_COMPILER_ID}")
     endif()
-    set(STRICT_COMPILATION_MODE ${filetime} CACHE INTERNAL "Is Strict Compilation mode enabled" FORCE)
-endfunction()
+    set(STRICT_COMPILATION_MODE ${filetime})
+endmacro()
 
-EnableStrictCompilation()
+macro (SupressWarningForFile f)
+    message(WARNING "Suppressing Warnings for ${f}")
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+        set_source_files_properties("${f}" PROPERTIES COMPILE_FLAGS -WX-)
+    elseif((${CMAKE_CXX_COMPILER_ID} STREQUAL Clang) OR (${CMAKE_CXX_COMPILER_ID} STREQUAL GNU))
+        set_source_files_properties("${f}" PROPERTIES COMPILE_FLAGS -Wno-error)
+    else()
+        message(FATAL_ERROR "Unknown compiler : ${CMAKE_CXX_COMPILER_ID}")
+    endif()
+endmacro()
+
+
+macro (SupressWarningForTarget targetName)
+    message(WARNING "Suppressing Warnings for ${targetName}")
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+        target_compile_options(${targetName} PRIVATE "-WX-")
+    elseif((${CMAKE_CXX_COMPILER_ID} STREQUAL Clang) OR (${CMAKE_CXX_COMPILER_ID} STREQUAL GNU))
+        target_compile_options(${targetName} PRIVATE "-Wno-error")
+    else()
+        message(FATAL_ERROR "Unknown compiler : ${CMAKE_CXX_COMPILER_ID}")
+    endif()
+endmacro()

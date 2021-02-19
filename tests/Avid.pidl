@@ -1,0 +1,83 @@
+struct GPS
+{
+    int32 heading;
+    double lat;
+    double lon;
+    double speed;
+    timestamp utc;
+    double galt;
+    double climb;
+    double epx;
+    double epy;
+    double epv;
+    double ept;
+    double eps;
+    double epc;
+    double eph;
+    double sep;
+}
+
+struct Aircraft
+{
+    timestamp   seen;
+    uint32      addr;       /* ICAO address */
+    char[7]     hexaddr; /* Printable ICAO address */
+    char[9]     flight;  /* Flight number */
+    int32       altitude;
+    int32       groundSpeed;
+    int32       track;
+    double      lat;
+    double      lon;
+    int32       verticalRate;
+    int32       messageCount;
+
+    int32 odd_cprlat;
+    int32 odd_cprlon;
+    timestamp odd_cprtime;
+
+    int32 even_cprlat;
+    int32 even_cprlon;
+    timestamp even_cprtime;
+}
+
+struct Traffic
+{
+    list<Aircraft> aircrafts
+}
+
+struct Motion
+{
+    int64 mag_x;
+    int64 mag_y;
+    int64 mag_z;
+
+    int64 acc_x;
+    int64 acc_y;
+    int64 acc_z;
+
+    int64 rot_x;
+    int64 rot_y;
+    int64 rot_z;
+
+    double dmag_x;
+    double dmag_y;
+    double dmag_z;
+
+    double dacc_x;
+    double dacc_y;
+    double dacc_z;
+
+    double drot_x;
+    double drot_y;
+    double drot_z;
+}
+
+struct Pressure
+{
+    double pressure;
+    double temperature;
+}
+
+relationship observableprops object = GPS, Pressure, Aircraft, Motion, Traffic
+relationship optionalprops 	 object = GPS, Pressure
+relationship timestamped 	 object = GPS, Aircraft, Traffic, Motion, Pressure

@@ -29,8 +29,7 @@ using Typedef   = std::optional<std::shared_ptr<IDL::Typedef>>;
 using Struct    = std::optional<std::shared_ptr<IDL::Struct>>;
 using Union     = std::optional<std::shared_ptr<IDL::Union>>;
 using Interface = std::optional<std::shared_ptr<IDL::Interface>>;
-using Extends   = std::optional<std::shared_ptr<const IDL::Interface>>;
-using FieldType = std::optional<std::shared_ptr<const IDLGenerics::IFieldType>>;
+using FieldType = std::optional<std::shared_ptr<IDLGenerics::IFieldType>>;
 
 using Id = Str::Type;
 
@@ -160,11 +159,11 @@ void CreateRelationship(Context& context, Str::Type& name, RelationshipComponent
 struct StrValueType : public Binding::ValueT<Binding::Type::String>, public std::enable_shared_from_this<StrValueType>
 {
     StrValueType(Str::Type&& value) : _value(std::move(value)) {}
-    virtual Str::Type const& GetString() const override { return _value; }
+    virtual Str::Type const& GetString() override { return _value; }
     Str::Type                _value;
 };
 
-inline std::shared_ptr<const IDLGenerics::IFieldType> CreateArrayType(Context& context, FieldType& field, int count, TypeAttributeList& map)
+inline std::shared_ptr<IDLGenerics::IFieldType> CreateArrayType(Context& context, FieldType& field, int count, TypeAttributeList& map)
 {
     auto&                                          container = context.program.Lookup<IDL::Container>(Str::Create(L"array"));
     IDL::ContainerFieldType::ContainerFieldTypeMap containermap;
@@ -180,7 +179,7 @@ inline std::shared_ptr<const IDLGenerics::IFieldType> CreateArrayType(Context& c
     return context.program.CreateFieldTypeObject<IDL::ContainerFieldType>(container, std::move(containermap), existing, std::move(map));
 }
 
-inline std::shared_ptr<const IDLGenerics::IFieldType>
+inline std::shared_ptr<IDLGenerics::IFieldType>
 CreateContainerType(Context& context, Str::Type& id, FieldTypeList& fields, TypeAttributeList& map)
 {
     auto& container = context.program.Lookup<IDL::Container>(std::move(id));
@@ -201,7 +200,7 @@ CreateContainerType(Context& context, Str::Type& id, FieldTypeList& fields, Type
     return context.program.CreateFieldTypeObject<IDL::ContainerFieldType>(container, std::move(containermap), existing, std::move(map));
 }
 
-inline std::shared_ptr<const IDLGenerics::IFieldType> FindFieldType(Context& context, Str::Type& name)
+inline std::shared_ptr<IDLGenerics::IFieldType> FindFieldType(Context& context, Str::Type& name)
 {
     return context.program.GetFieldTypeName(std::move(name));
 }
@@ -217,7 +216,7 @@ inline TypeAttributeList CreateAttributeMapEntry(TypeAttributeList ptr, TypeAttr
     return ptr;
 }
 
-inline Interface CreateInterface(Context& context, Str::Type& name, Extends& /*base*/, FunctionList& functions, TypeAttributeList& map)
+inline Interface CreateInterface(Context& context, Str::Type& name, Interface& /*base*/, FunctionList& functions, TypeAttributeList& map)
 {
     auto iface = context.program.CreateStorageObject<IDL::Interface>(std::move(name), map);
     for (auto& f : functions)

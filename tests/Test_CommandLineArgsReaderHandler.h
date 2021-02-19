@@ -1,5 +1,4 @@
-#include "CommandLineArgsReader.h"
-#include "Value.h"
+#include <stencil/stencil.h>
 
 #include <assert.h>
 #include <iostream>

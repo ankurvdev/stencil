@@ -1,11 +1,14 @@
 #pragma once
+
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
+#include <iostream>
 #include <memory>
 #include <optional>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 #include <string_view>
 #include <type_traits>
 #include <unordered_map>
@@ -108,7 +111,12 @@ template <> struct StrOps<std::wstring>
     static size_t Size(View const& s) { return s.size(); }
 };
 using Str = StrOps<std::wstring>;
+}    // namespace Binding
 
+#include "DebugInfo.h"
+
+namespace Binding
+{
 enum class Type
 {
     String,
@@ -124,6 +132,18 @@ struct Expression;
 struct BindingExpr
 {
     std::vector<Str::Type> binding;
+
+    Str::Type Stringify() const
+    {
+        std::wstringstream ws;
+        ws << "%";
+        for (auto const& b : binding)
+        {
+            ws << b << ".";
+        }
+        ws << "%";
+        return Str::Create(ws.str());
+    }
 };
 
 struct Expression
@@ -286,6 +306,27 @@ struct Expression
         return true;
     }
 
+    Str::Type Stringify() const
+    {
+        std::wstringstream ss;
+        for (auto& p : _pieces)
+        {
+            if (p.piecetype == Piece::PieceType::String)
+            {
+                ss << p.text;
+            }
+            else if (p.piecetype == Piece::PieceType::Expr)
+            {
+                ss << p.expr->Stringify();
+            }
+            else
+            {
+                throw std::logic_error("Invalid Piece Type");
+            }
+        }
+        return Str::Create(ss.str());
+    }
+
     Str::Type String() const
     {
         std::wstringstream ss;
@@ -349,9 +390,9 @@ struct IBindable
     virtual ~IBindable() = default;
 
     // TODO : Can this be Str::View ??
-    virtual Str::Type                     ObjectTypeName() const                                                 = 0;
-    virtual Str::Type                     ObjectId() const                                                       = 0;
-    virtual std::shared_ptr<const IValue> TryLookupOrNull(BindingContext& context, Str::View const& param) const = 0;
+    virtual Str::Type               ObjectTypeName()                                                 = 0;
+    virtual Str::Type               ObjectId()                                                       = 0;
+    virtual std::shared_ptr<IValue> TryLookupOrNull(BindingContext& context, Str::View const& param) = 0;
 };
 
 // TODO : Do we really need it
@@ -359,10 +400,10 @@ struct IBindableComponent
 {
     virtual ~IBindableComponent() = default;
 
-    virtual size_t                        GetKeyCount() const                                                   = 0;
-    virtual Str::Type                     GetKeyAt(size_t index) const                                          = 0;
-    virtual Str::Type                     ComponentName() const                                                 = 0;
-    virtual std::shared_ptr<const IValue> TryLookupValue(BindingContext& context, Str::View const& param) const = 0;
+    virtual size_t                  GetKeyCount()                                                   = 0;
+    virtual Str::Type               GetKeyAt(size_t index)                                          = 0;
+    virtual Str::Type               ComponentName()                                                 = 0;
+    virtual std::shared_ptr<IValue> TryLookupValue(BindingContext& context, Str::View const& param) = 0;
 };
 
 struct IValueArray
@@ -371,7 +412,7 @@ struct IValueArray
     struct Iterator
     {
         Iterator() {}
-        Iterator(IValueArray const& ptr) : _ptr(ptr) { _CheckEnd(); }
+        Iterator(IValueArray& ptr) : _ptr(ptr) { _CheckEnd(); }
         Iterator& operator++()
         {
             if (!_ptr.has_value()) return *this;
@@ -394,17 +435,17 @@ struct IValueArray
                    && (!_ptr.has_value() || &_ptr.value().get() == &rhs._ptr.value().get());
         }
 
-        bool             operator!=(const Iterator& rhs) const { return !((*this) == rhs); }
-        IBindable const& operator*() const { return _ptr->get().GetObjectAt(_index); }
+        bool       operator!=(const Iterator& rhs) const { return !((*this) == rhs); }
+        IBindable& operator*() const { return _ptr->get().GetObjectAt(_index); }
 
         private:
-        std::optional<std::reference_wrapper<const IValueArray>> _ptr;
+        std::optional<std::reference_wrapper<IValueArray>> _ptr;
 
         size_t _index{0};
     };
 
-    virtual size_t           GetCount() const                = 0;
-    virtual IBindable const& GetObjectAt(size_t index) const = 0;
+    virtual size_t     GetCount()                = 0;
+    virtual IBindable& GetObjectAt(size_t index) = 0;
 };
 
 template <typename TBegin, typename TEnd = TBegin> struct RangeT
@@ -426,17 +467,37 @@ struct IValue
     public:
     virtual ~IValue() = default;
 
-    virtual Type               GetType() const     = 0;
-    virtual Str::Type const&   GetString() const   = 0;
-    virtual Expression const&  GetExpr() const     = 0;
-    virtual IValueArray const& GetArray() const    = 0;
-    virtual IBindable const&   GetBindable() const = 0;
+    virtual Type              GetType()     = 0;
+    virtual Str::Type const&  GetString()   = 0;
+    virtual Expression const& GetExpr()     = 0;
+    virtual IValueArray&      GetArray()    = 0;
+    virtual IBindable&        GetBindable() = 0;
 
     struct Getter
     {
-        virtual ~Getter()                                 = default;
-        virtual std::shared_ptr<const IValue> Get() const = 0;
+        virtual ~Getter()                     = default;
+        virtual std::shared_ptr<IValue> Get() = 0;
     };
+
+    Str::Type Stringify()
+    {
+        switch (GetType())
+        {
+        case Type::String: return L"Value[String]: " + GetString();
+        case Type::Expr: return L"Value[Expr]:" + GetExpr().Stringify();
+        case Type::Array:
+        {
+
+            if (GetArray().GetCount() == 0)
+                return L"Value[Array] Length: 0 ";
+            else
+                return L"Value[Array] Length: " + Str::Create(std::to_wstring(GetArray().GetCount())) + L"[Type]: "
+                       + GetArray().GetObjectAt(0).ObjectTypeName();
+        }
+        case Type::Object: return L"Value[Object] Type: " + GetBindable().ObjectTypeName() + L"Id:" + GetBindable().ObjectId();
+        }
+        throw std::logic_error("Cannot identify Value Type");
+    }
 };
 
 template <Type TType> struct ValueT;
@@ -444,10 +505,10 @@ template <> struct ValueT<Type::String> : IValue
 {
     // virtual Str::Type const& GetString() const { throw std::logic_error(""); }
 
-    virtual Type               GetType() const override { return Type::String; }
-    virtual Expression const&  GetExpr() const override { throw std::logic_error(""); }
-    virtual IValueArray const& GetArray() const override { throw std::logic_error(""); }
-    virtual IBindable const&   GetBindable() const override { throw std::logic_error(""); }
+    virtual Type              GetType() override { return Type::String; }
+    virtual Expression const& GetExpr() override { throw std::logic_error(""); }
+    virtual IValueArray&      GetArray() override { throw std::logic_error(""); }
+    virtual IBindable&        GetBindable() override { throw std::logic_error(""); }
 };
 
 template <Type TType> struct ValueT;
@@ -455,10 +516,10 @@ template <> struct ValueT<Type::Array> : IValue
 {
     //  virtual IValueArray const & GetArray() const { throw std::logic_error(""); }
 
-    virtual Type              GetType() const override { return Type::Array; }
-    virtual Str::Type const&  GetString() const override { throw std::logic_error(""); }
-    virtual Expression const& GetExpr() const override { throw std::logic_error(""); }
-    virtual IBindable const&  GetBindable() const override { throw std::logic_error(""); }
+    virtual Type              GetType() override { return Type::Array; }
+    virtual Str::Type const&  GetString() override { throw std::logic_error("Querying Array Value as a String"); }
+    virtual Expression const& GetExpr() override { throw std::logic_error("Querying Array Value as an Expression"); }
+    virtual IBindable&        GetBindable() override { throw std::logic_error("Querying Array Value as a BindableObject"); }
 };
 
 template <Type TType> struct ValueT;
@@ -466,21 +527,21 @@ template <> struct ValueT<Type::Expr> : IValue
 {
     // virtual Expression const&  GetExpr() const { throw std::logic_error(""); }
 
-    virtual Type               GetType() const override { return Type::Expr; }
-    virtual Str::Type const&   GetString() const override { throw std::logic_error(""); }
-    virtual IValueArray const& GetArray() const override { throw std::logic_error(""); }
-    virtual IBindable const&   GetBindable() const override { throw std::logic_error(""); }
+    virtual Type             GetType() override { return Type::Expr; }
+    virtual Str::Type const& GetString() override { throw std::logic_error(""); }
+    virtual IValueArray&     GetArray() override { throw std::logic_error(""); }
+    virtual IBindable&       GetBindable() override { throw std::logic_error(""); }
 };
 
 template <Type TType> struct ValueT;
 template <> struct ValueT<Type::Object> : IValue
 {
-    // virtual IBindable const&            GetBindable() const { throw std::logic_error(""); }
+    // virtual IBindable&            GetBindable() const { throw std::logic_error(""); }
 
-    virtual Type               GetType() const override { return Type::Object; }
-    virtual Str::Type const&   GetString() const override { throw std::logic_error(""); }
-    virtual Expression const&  GetExpr() const override { throw std::logic_error(""); }
-    virtual IValueArray const& GetArray() const override { throw std::logic_error(""); }
+    virtual Type              GetType() override { return Type::Object; }
+    virtual Str::Type const&  GetString() override { throw std::logic_error(""); }
+    virtual Expression const& GetExpr() override { throw std::logic_error(""); }
+    virtual IValueArray&      GetArray() override { throw std::logic_error(""); }
 };
 
 // TODO : do we really need a AttributeMap class ?
@@ -496,25 +557,29 @@ struct AttributeMap
 
 struct BindingContext
 {
-    BindingContext(const BindingContext&) = delete;
-    BindingContext(BindingContext&&)      = delete;
-    BindingContext& operator=(BindingContext&&) = delete;
-    BindingContext& operator=(const BindingContext&) = delete;
-    BindingContext()                                 = default;
+    DELETE_COPY_AND_MOVE(BindingContext);
 
-    auto GetRange(IBindable const& ptr, BindingExpr const& expr)
+    BindingContext()
+    {
+        _previousContext      = _currentThreadContext;
+        _currentThreadContext = this;
+    };
+
+    ~BindingContext() { _currentThreadContext = _previousContext; }
+
+    auto GetRange(IBindable& ptr, BindingExpr const& expr)
     {
         struct Range
         {
             auto begin() { return IValueArray::Iterator(value->GetArray()); }
             auto end() { return IValueArray::Iterator(); }
 
-            std::shared_ptr<const IValue> value;
+            std::shared_ptr<IValue> value;
         };
         return Range{EvaluateArray(ptr, expr)};
     }
 
-    bool _FindBindableByNameInContextStack(Str::View const& name, std::reference_wrapper<const IBindable>& ptr)
+    bool _FindBindableByNameInContextStack(Str::View const& name, std::reference_wrapper<IBindable>& ptr)
     {
         // Start looking from the top of the stack to grab the most relevant item for that type
         for (auto it = _stack.rbegin(); it != _stack.rend(); ++it)
@@ -529,7 +594,7 @@ struct BindingContext
         return false;
     }
 
-    std::shared_ptr<const IValue> _TryEvaluateBindingExprOrNull(BindingExpr const& expr)
+    std::shared_ptr<IValue> _TryEvaluateBindingExprOrNull(BindingExpr const& expr)
     {
         assert(expr.binding.size() > 0);
         if (expr.binding.size() == 1)
@@ -547,12 +612,12 @@ struct BindingContext
             return val;
         }
 
-        std::reference_wrapper<const IBindable> ptr = _stack.back();
+        std::reference_wrapper<IBindable> ptr = _stack.back();
 
         auto bit = expr.binding.begin();
         if (_FindBindableByNameInContextStack(*bit, ptr)) ++bit;
 
-        std::shared_ptr<const IValue>       val;
+        std::shared_ptr<IValue>             val;
         std::vector<std::unique_ptr<Scope>> scopes;
 
         scopes.emplace_back(new Scope(*this, ptr.get()));
@@ -602,44 +667,49 @@ struct BindingContext
 
     struct Scope
     {
-        Scope(BindingContext& context, IBindable const& ptr) : Scope(context._stack, ptr) {}
-        Scope(std::vector<std::reference_wrapper<const IBindable>>& stack, IBindable const& ptr) : _stack(stack)
-        {
-            _stack.push_back(std::cref(ptr));
-        }
+        Scope(BindingContext& context, IBindable& ptr) : Scope(context._stack, ptr) {}
+        Scope(std::vector<std::reference_wrapper<IBindable>>& stack, IBindable& ptr) : _stack(stack) { _stack.push_back(std::ref(ptr)); }
         ~Scope() { _stack.pop_back(); }
         DELETE_COPY_AND_MOVE(Scope);
-        std::vector<std::reference_wrapper<const IBindable>>& _stack;
+        std::vector<std::reference_wrapper<IBindable>>& _stack;
     };
 
-    auto ContextScope(IBindable const& ptr) { return Scope{*this, ptr}; }
+    auto ContextScope(IBindable& ptr) { return Scope{*this, ptr}; }
 
-    std::shared_ptr<const IValue> EvaluateArray(IBindable const& ptr, BindingExpr const& expr)
+    std::shared_ptr<IValue> EvaluateArray(IBindable& ptr, BindingExpr const& expr)
     {
+        ACTION_CONTEXT([&]() { return L"Bindable: " + ptr.ObjectTypeName() + L" Expression:" + expr.Stringify(); });
+
         Scope scope(_stack, ptr);
         auto  val = _TryEvaluateBindingExprOrNull(expr);
         if (val == nullptr)
         {
+            _TryEvaluateBindingExprOrNull(expr);
             throw std::logic_error("Unable to Evaluate");
         }
         assert(val->GetType() == Type::Array);
         return val;
     }
 
-    auto EvaluateExpression(IBindable const& ptr, Expression const& expr)
+    auto EvaluateExpression(IBindable& ptr, Expression const& expr)
     {
         Scope scope(_stack, ptr);
         return _EvaluateExpression(expr);
     }
 
-    std::shared_ptr<const IValue> TryEvaluateBindingExprOrNull(IBindable const& ptr, BindingExpr const& expr)
+    std::shared_ptr<IValue> TryEvaluateBindingExprOrNull(IBindable& ptr, BindingExpr const& expr)
     {
         Scope scope(_stack, ptr);
         return _TryEvaluateBindingExprOrNull(expr);
     }
 
+    static auto EvaluateExpression(Expression const& expr) { return _currentThreadContext->_EvaluateExpression(expr); }
+
     private:
-    std::vector<std::reference_wrapper<const IBindable>> _stack;
+    thread_local static inline BindingContext* _currentThreadContext = nullptr;
+
+    BindingContext*                                _previousContext = nullptr;
+    std::vector<std::reference_wrapper<IBindable>> _stack;
 };    // namespace Binding
 
 struct BindableBase : public IBindable, public ValueT<Type::Object>
@@ -648,17 +718,17 @@ struct BindableBase : public IBindable, public ValueT<Type::Object>
     ~BindableBase() = default;
     DELETE_COPY_AND_MOVE(BindableBase);
 
-    void AddBaseObject(std::shared_ptr<const BindableBase> const& basePtr)
+    void AddBaseObject(std::shared_ptr<BindableBase> const& basePtr)
     {
         // assert(basePtr != nullptr);
         _baseptr.push_back(basePtr);
     }
 
-    void Register(std::shared_ptr<const IBindableComponent> const& obj) { _components.push_back(obj); }
+    void Register(std::shared_ptr<IBindableComponent> const& obj) { _components.push_back(obj); }
 
-    IBindable const& GetBindable() const override { return *this; }
+    IBindable& GetBindable() override { return *this; }
 
-    virtual std::shared_ptr<const IValue> TryLookupOrNull(BindingContext& context, Str::View const& param) const override
+    virtual std::shared_ptr<IValue> TryLookupOrNull(BindingContext& context, Str::View const& param) override
     {
         auto val = _TryLookupOrNull(context, param);
         if (val != nullptr && val->GetType() == Type::Expr)
@@ -668,7 +738,7 @@ struct BindableBase : public IBindable, public ValueT<Type::Object>
                 std::shared_ptr<Expression> _expr;
                 Value(std::shared_ptr<Expression>&& expr) : _expr(std::move(expr)) {}
                 DELETE_COPY_AND_MOVE(Value);
-                Expression const& GetExpr() const override { return *_expr; }
+                Expression const& GetExpr() override { return *_expr; }
             };
 
             return std::make_shared<Value>(context.EvaluateExpression(*this, val->GetExpr()));
@@ -676,7 +746,7 @@ struct BindableBase : public IBindable, public ValueT<Type::Object>
         return val;
     }
 
-    std::shared_ptr<const IValue> _TryLookupOrNull(BindingContext& context, Str::View const& param) const
+    std::shared_ptr<IValue> _TryLookupOrNull(BindingContext& context, Str::View const& param)
     {
         if (Str::IEqual(param, ObjectTypeName()))
         {
@@ -704,7 +774,7 @@ struct BindableBase : public IBindable, public ValueT<Type::Object>
         return nullptr;
     }
 
-    virtual Str::Type ObjectId() const override { return Str::Copy(_name); }
+    virtual Str::Type ObjectId() override { return Str::Copy(_name); }
 
     void SetName(Str::Type&& name) { std::swap(_name, name); }
 
@@ -714,17 +784,17 @@ struct BindableBase : public IBindable, public ValueT<Type::Object>
         {
             Value(std::shared_ptr<Binding::Expression>&& expr) : _expr(std::move(expr)) {}
 
-            virtual Expression const&            GetExpr() const override { return *_expr; }
+            virtual Expression const&            GetExpr() override { return *_expr; }
             std::shared_ptr<Binding::Expression> _expr;
         };
 
-        typedef std::shared_ptr<Binding::Expression> (TObject::*TFunc)(BindingContext& context, Binding::Expression const& val) const;
+        typedef std::shared_ptr<Binding::Expression> (TObject::*TFunc)(BindingContext& context, Binding::Expression const& val);
 
-        virtual size_t    GetKeyCount() const override { return 0; }
-        virtual Str::Type GetKeyAt(size_t /*index*/) const override { return Str::Type(); }
-        virtual Str::Type ComponentName() const override { return Str::Create(Str::Value(_base->ObjectTypeName()) + L"Tranform"); }
+        virtual size_t    GetKeyCount() override { return 0; }
+        virtual Str::Type GetKeyAt(size_t /*index*/) override { return Str::Type(); }
+        virtual Str::Type ComponentName() override { return Str::Create(Str::Value(_base->ObjectTypeName()) + L"Tranform"); }
 
-        virtual std::shared_ptr<const IValue> TryLookupValue(BindingContext& context, Str::View const& key) const override
+        virtual std::shared_ptr<IValue> TryLookupValue(BindingContext& context, Str::View const& key) override
         {
             auto valout = _base->TryLookupOrNull(context, key);
             if (valout == nullptr)
@@ -736,18 +806,16 @@ struct BindableBase : public IBindable, public ValueT<Type::Object>
             return std::make_shared<Value>(std::move(newexpr));
         }
 
-        TranformationBindableComponent(std::shared_ptr<const BindableBase> base, const TObject& obj, TFunc func) :
-            _base(base), _obj(obj), _func(func)
+        TranformationBindableComponent(std::shared_ptr<BindableBase> base, TObject& obj, TFunc func) : _base(base), _obj(obj), _func(func)
         {
         }
 
-        std::shared_ptr<const BindableBase> _base;
-        const TObject&                      _obj;
-        TFunc const                         _func;
+        std::shared_ptr<BindableBase> _base;
+        TObject&                      _obj;
+        TFunc const                   _func;
     };
 
-    template <typename TObject, typename TFunc>
-    void AddObjectWithTranform(std::shared_ptr<const BindableBase> bindable, const TObject& obj, TFunc func)
+    template <typename TObject, typename TFunc> void AddObjectWithTranform(std::shared_ptr<BindableBase> bindable, TObject& obj, TFunc func)
     {
         _transformations.push_back(std::make_shared<TranformationBindableComponent<TObject>>(bindable, obj, func));
     }
@@ -756,9 +824,9 @@ struct BindableBase : public IBindable, public ValueT<Type::Object>
     Str::Type                   _name;
     std::weak_ptr<BindableBase> _self;
     //   mutable IDLDebug::DebugContext                   _debugcontext;
-    std::vector<std::shared_ptr<const BindableBase>>       _baseptr;
-    std::vector<std::shared_ptr<const IBindableComponent>> _transformations;
-    std::vector<std::shared_ptr<const IBindableComponent>> _components;
+    std::vector<std::shared_ptr<BindableBase>>       _baseptr;
+    std::vector<std::shared_ptr<IBindableComponent>> _transformations;
+    std::vector<std::shared_ptr<IBindableComponent>> _components;
 };
 
 template <typename TParent, typename TObject> struct BindableParent : public virtual BindableBase
@@ -770,8 +838,8 @@ template <typename TParent, typename TObject> struct BindableParent : public vir
                                public std::enable_shared_from_this<BindableComponent>
     {
         BindableComponent(BindableParent<TParent, TObject>& owner) : _owner(owner){};
-        virtual size_t    GetKeyCount() const override { return 3; }
-        virtual Str::Type GetKeyAt(size_t index) const override
+        virtual size_t    GetKeyCount() override { return 3; }
+        virtual Str::Type GetKeyAt(size_t index) override
         {
             switch (index)
             {
@@ -782,11 +850,11 @@ template <typename TParent, typename TObject> struct BindableParent : public vir
             }
         }
 
-        virtual Str::Type ComponentName() const override
+        virtual Str::Type ComponentName() override
         {
             return Str::Create(L"BindableParent_" + Str::Value(_ownerName) + L"_" + Str::Value(_objectName));
         }
-        virtual std::shared_ptr<const IValue> TryLookupValue(BindingContext& /*context */, Str::View const& key) const override
+        virtual std::shared_ptr<IValue> TryLookupValue(BindingContext& /*context */, Str::View const& key) override
         {
             if (key == _parent || key == _ownerName)
             {
@@ -799,7 +867,7 @@ template <typename TParent, typename TObject> struct BindableParent : public vir
             return {};
         }
 
-        virtual IBindable const& GetBindable() const override { return static_cast<TObject&>(_owner).Parent(); }
+        virtual IBindable& GetBindable() override { return static_cast<TObject&>(_owner).Parent(); }
 
         BindableParent<TParent, TObject>& _owner;
         Str::Type                         _parent{Str::Create(L"Parent")};
@@ -823,7 +891,7 @@ template <typename TOwner, typename TObject> struct BindableObjectArray : public
     ~BindableObjectArray() = default;
     DELETE_COPY_AND_MOVE(BindableObjectArray);
 
-    void AddToArray(std::shared_ptr<const BindableBase> obj) { _bindableComponent->_array.push_back(obj); }
+    void AddToArray(std::shared_ptr<BindableBase> obj) { _bindableComponent->_array.push_back(obj); }
 
     struct BindableComponent : public IBindableComponent,
                                public ValueT<Type::Array>,
@@ -834,14 +902,14 @@ template <typename TOwner, typename TObject> struct BindableObjectArray : public
         DELETE_MOVE_AND_COPY_ASSIGNMENT(BindableComponent);
 
         BindableComponent() = default;
-        virtual size_t    GetKeyCount() const override { return 1; }
-        virtual Str::Type GetKeyAt([[maybe_unused]] size_t index) const override
+        virtual size_t    GetKeyCount() override { return 1; }
+        virtual Str::Type GetKeyAt([[maybe_unused]] size_t index) override
         {
             assert(index == 0);
             return Str::Copy(_key);
         }
-        virtual Str::Type                     ComponentName() const override { return Str::Copy(_key); }
-        virtual std::shared_ptr<const IValue> TryLookupValue(BindingContext& /*context */, Str::View const& key) const override
+        virtual Str::Type               ComponentName() override { return Str::Copy(_key); }
+        virtual std::shared_ptr<IValue> TryLookupValue(BindingContext& /*context */, Str::View const& key) override
         {
             if (key == _key)
             {
@@ -850,12 +918,12 @@ template <typename TOwner, typename TObject> struct BindableObjectArray : public
             return {};
         }
 
-        IValueArray const& GetArray() const override { return *this; }
-        size_t             GetCount() const override { return _array.size(); }
-        IBindable const&   GetObjectAt(size_t index) const override { return *_array[index]; }
-        Str::Type          _key = Str::Create(TObject::BindingKeyName());
+        IValueArray& GetArray() override { return *this; }
+        size_t       GetCount() override { return _array.size(); }
+        IBindable&   GetObjectAt(size_t index) override { return *_array[index]; }
+        Str::Type    _key = Str::Create(TObject::BindingKeyName());
 
-        std::vector<std::shared_ptr<const BindableBase>> _array;
+        std::vector<std::shared_ptr<BindableBase>> _array;
     };
 
     std::shared_ptr<BindableComponent> _bindableComponent = std::make_shared<BindableComponent>();
@@ -864,15 +932,30 @@ template <typename TOwner, typename TObject> struct BindableObjectArray : public
 template <typename TObject, typename TReturnValue> struct GetterT;
 
 template <typename TObject>
-struct GetterT<TObject, IBindable const&>
-    : public ValueT<Type::Object>, public IValue::Getter, public std::enable_shared_from_this<GetterT<TObject, IBindable const&>>
+struct GetterT<TObject, IBindable&>
+    : public ValueT<Type::Object>, public IValue::Getter, public std::enable_shared_from_this<GetterT<TObject, IBindable&>>
 {
-    typedef IBindable const& (TObject::*TFunc)() const;
+    typedef IBindable& (TObject::*TFunc)() const;
     GetterT(const TObject& ptr, TFunc func) : _func(func), _ptr(ptr) {}
 
-    virtual IBindable const& GetBindable() const override { return (_ptr.*_func)(); }
+    virtual IBindable& GetBindable() override { return (_ptr.*_func)(); }
 
-    virtual std::shared_ptr<const IValue> Get() const override { return this->shared_from_this(); }
+    virtual std::shared_ptr<IValue> Get() override { return this->shared_from_this(); }
+
+    TFunc const    _func;
+    const TObject& _ptr;
+};
+
+template <typename TObject>
+struct GetterT<TObject, std::shared_ptr<IBindable>>
+    : public ValueT<Type::Object>, public IValue::Getter, public std::enable_shared_from_this<GetterT<TObject, std::shared_ptr<IBindable>>>
+{
+    typedef std::shared_ptr<IBindable> (TObject::*TFunc)() const;
+    GetterT(const TObject& ptr, TFunc func) : _func(func), _ptr(ptr) {}
+
+    virtual IBindable& GetBindable() override { return (_ptr.*_func)(); }
+
+    virtual std::shared_ptr<IValue> Get() override { return this->shared_from_this(); }
 
     TFunc const    _func;
     const TObject& _ptr;
@@ -886,11 +969,11 @@ template <typename TObject> struct GetterT<TObject, Str::Type> : public IValue::
     struct ValueType : public ValueT<Type::String>, public std::enable_shared_from_this<ValueType>
     {
         ValueType(Str::Type&& value) : _value(std::move(value)) {}
-        virtual Str::Type const& GetString() const override { return _value; }
+        virtual Str::Type const& GetString() override { return _value; }
         Str::Type                _value;
     };
 
-    virtual std::shared_ptr<const IValue> Get() const override { return std::make_shared<ValueType>((_ptr.*_func)()); }
+    virtual std::shared_ptr<IValue> Get() override { return std::make_shared<ValueType>((_ptr.*_func)()); }
 
     const TObject& _ptr;
     TFunc          _func;
@@ -903,8 +986,8 @@ struct GetterT<TObject, Binding::Expression const&>
     typedef Binding::Expression const& (TObject::*TFunc)() const;
     GetterT(const TObject& ptr, TFunc func) : _func(func), _ptr(ptr) {}
 
-    virtual Binding::Expression const&    GetExpr() const override { return (_ptr.*_func)(); }
-    virtual std::shared_ptr<const IValue> Get() const override { return this->shared_from_this(); }
+    virtual Binding::Expression const& GetExpr() override { return (_ptr.*_func)(); }
+    virtual std::shared_ptr<IValue>    Get() override { return this->shared_from_this(); }
 
     TFunc const    _func;
     const TObject& _ptr;
@@ -918,11 +1001,11 @@ template <typename TObject> struct GetterT<TObject, Binding::Expression> : publi
     struct ValueType : public ValueT<Type::Expr>, public std::enable_shared_from_this<ValueType>
     {
         ValueType(Expression&& value) : _value(std::move(value)) {}
-        virtual Expression const& GetExpr() const override { return _value; }
+        virtual Expression const& GetExpr() override { return _value; }
         Expression                _value;
     };
 
-    virtual std::shared_ptr<const IValue> Get() const override { return std::make_shared<ValueType>((_ptr.*_func)()); }
+    virtual std::shared_ptr<IValue> Get() override { return std::make_shared<ValueType>((_ptr.*_func)()); }
 
     const TObject& _ptr;
     TFunc const    _func;
@@ -937,14 +1020,14 @@ template <typename TOwner, typename TParent = TOwner> struct BindableT : public 
             _ptr(ptr), _key(std::move(key)), _getter(std::move(getter))
         {
         }
-        virtual size_t    GetKeyCount() const override { return 1; }
-        virtual Str::Type GetKeyAt([[maybe_unused]] size_t index) const override
+        virtual size_t    GetKeyCount() override { return 1; }
+        virtual Str::Type GetKeyAt([[maybe_unused]] size_t index) override
         {
             assert(index == 0);
             return Str::Copy(_key);
         }
-        virtual Str::Type                     ComponentName() const override { return Str::Copy(_component); }
-        virtual std::shared_ptr<const IValue> TryLookupValue(BindingContext& /*context */, Str::View const& key) const override
+        virtual Str::Type               ComponentName() override { return Str::Copy(_component); }
+        virtual std::shared_ptr<IValue> TryLookupValue(BindingContext& /*context */, Str::View const& key) override
         {
             return key == _key ? _getter->Get() : nullptr;
         }
@@ -999,7 +1082,7 @@ template <typename TOwner, typename TParent = TOwner> struct BindableDictionaryT
             }
             Str::Type                            key;
             std::shared_ptr<Binding::Expression> value;
-            virtual const Binding::Expression&   GetExpr() const override { return *value; }
+            virtual const Binding::Expression&   GetExpr() override { return *value; }
         };
 
         BindableComponent(std::shared_ptr<AttributeMap> map)
@@ -1015,10 +1098,10 @@ template <typename TOwner, typename TParent = TOwner> struct BindableDictionaryT
                 _map[Str::Copy(it->key)] = it;
             }
         }
-        virtual size_t                        GetKeyCount() const override { return _values.size(); }
-        virtual Str::Type                     GetKeyAt(size_t index) const override { return Str::Copy(_values[index]->key); }
-        virtual Str::Type                     ComponentName() const override { return Str::Copy(_component); }
-        virtual std::shared_ptr<const IValue> TryLookupValue(BindingContext& /*context */, Str::View const& key) const override
+        virtual size_t                  GetKeyCount() override { return _values.size(); }
+        virtual Str::Type               GetKeyAt(size_t index) override { return Str::Copy(_values[index]->key); }
+        virtual Str::Type               ComponentName() override { return Str::Copy(_component); }
+        virtual std::shared_ptr<IValue> TryLookupValue(BindingContext& /*context */, Str::View const& key) override
         {
             auto it = _map.find(key.data());
             return it != _map.end() ? it->second : nullptr;

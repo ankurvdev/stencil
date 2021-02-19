@@ -1,5 +1,5 @@
 #pragma once
-#include <DataModel.h>
+#include <stencil/stencil.h>
 namespace UnionTest
 {
 namespace Struct1
@@ -24,6 +24,14 @@ struct Data :
 ,        field2
     };
 
+    static constexpr size_t FieldCount()
+    {
+        return 0u
+               + 1u
+               + 1u
+            ;
+    }
+
     static constexpr std::string_view FieldAttributeValue(FieldIndex index, const std::string_view& key)
     {
         switch (index)
@@ -46,13 +54,16 @@ struct Data :
     shared_string&       field1() { return _field1; }
     const shared_string& field1() const { return _field1; }
     void                            field1(shared_string&& val) { _field1 = std::move(val); }
+    shared_string&       get_field1() { return _field1; }
 
-    shared_string& get_field1()
+    bool isset_field1() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::field1); }
+
+    void set_field1(shared_string&& val)
     {
-        return _field1;
-        ;
+        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::field1, _field1, val);
+        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::field1, _field1, val);
+        _field1 = std::move(val);
     }
-    void set_field1(shared_string&& val) { _field1 = std::move(val); }
 
     private:
     shared_string _field2 = {};
@@ -61,13 +72,16 @@ struct Data :
     shared_string&       field2() { return _field2; }
     const shared_string& field2() const { return _field2; }
     void                            field2(shared_string&& val) { _field2 = std::move(val); }
+    shared_string&       get_field2() { return _field2; }
 
-    shared_string& get_field2()
+    bool isset_field2() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::field2); }
+
+    void set_field2(shared_string&& val)
     {
-        return _field2;
-        ;
+        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::field2, _field2, val);
+        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::field2, _field2, val);
+        _field2 = std::move(val);
     }
-    void set_field2(shared_string&& val) { _field2 = std::move(val); }
 
 };
 
@@ -164,7 +178,8 @@ template <> struct ReflectionBase::TypeTraits<UnionTest::Struct1::Data&>
 {
     struct Traits_field1
     {
-        using TOwner = UnionTest::Struct1::Data;
+        using TOwner     = UnionTest::Struct1::Data;
+        using TFieldType = shared_string;
 
         static constexpr std::string_view Name() { return "field1"; }
 
@@ -182,7 +197,8 @@ template <> struct ReflectionBase::TypeTraits<UnionTest::Struct1::Data&>
     };
     struct Traits_field2
     {
-        using TOwner = UnionTest::Struct1::Data;
+        using TOwner     = UnionTest::Struct1::Data;
+        using TFieldType = shared_string;
 
         static constexpr std::string_view Name() { return "field2"; }
 
@@ -205,11 +221,65 @@ template <> struct ReflectionBase::TypeTraits<UnionTest::Struct1::Data&>
         return ::ReflectionServices::EmptyAttributeValue(key);
     }
 
+    using ThisType = UnionTest::Struct1::Data;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && ReflectionBase::AreEqual(obj1.field1(), obj2.field1())
+               && ReflectionBase::AreEqual(obj1.field2(), obj2.field2())
+            ;
+    }
+
     using Handler = ::ReflectionServices::ReflectedStructHandler<UnionTest::Struct1::Data,
                                                                  Traits_field1
 ,                                                                 Traits_field2
                                                                  >;
 };
+
+template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, UnionTest::Struct1::Data>>>
+{
+    using TData = T;
+
+    // TODO : Tentative: We hate pointers
+    TData const* const _ptr;
+    // TODO : Better way to unify creation interface
+    bool _changed = false;
+
+    DELETE_COPY_AND_MOVE(DeltaTracker);
+
+    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    {
+        // TODO: Tentative
+        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
+    }
+
+    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
+
+    size_t NumFields() const { return TData::FieldCount(); }
+    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+
+    uint8_t MutatorIndex() const;
+    bool    OnlyHasDefaultMutator() const;
+
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+
+    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::field1:
+            lambda(DeltaTracker<shared_string>(&_ptr->field1(), IsFieldChanged(TData::FieldIndex::field1)));
+            return;
+        case TData::FieldIndex::field2:
+            lambda(DeltaTracker<shared_string>(&_ptr->field2(), IsFieldChanged(TData::FieldIndex::field2)));
+            return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+};
+
 template <> struct ReflectionServices::EnumTraits<UnionTest::Union1::UnionType>
 {
     static constexpr const char* EnumStrings[] = {"Invalid",
@@ -240,7 +310,8 @@ template <> struct ReflectionBase::TypeTraits<UnionTest::Union1::Data&>
 {
     struct Traits_field1
     {
-        using TOwner = UnionTest::Union1::Data;
+        using TOwner     = UnionTest::Union1::Data;
+        using TFieldType = int32_t;
 
         static constexpr std::string_view Name() { return "field1"; }
 
@@ -258,7 +329,8 @@ template <> struct ReflectionBase::TypeTraits<UnionTest::Union1::Data&>
     };
     struct Traits_field2
     {
-        using TOwner = UnionTest::Union1::Data;
+        using TOwner     = UnionTest::Union1::Data;
+        using TFieldType = int32_t;
 
         static constexpr std::string_view Name() { return "field2"; }
 
@@ -279,6 +351,15 @@ template <> struct ReflectionBase::TypeTraits<UnionTest::Union1::Data&>
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
         return ::ReflectionServices::EmptyAttributeValue(key);
+    }
+
+    using ThisType = UnionTest::Union1::Data;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && ReflectionBase::AreEqual(obj1.field1(), obj2.field1())
+               && ReflectionBase::AreEqual(obj1.field2(), obj2.field2())
+            ;
     }
 
     using Handler = ::ReflectionServices::ReflectedUnionHandler<UnionTest::Union1::Data,

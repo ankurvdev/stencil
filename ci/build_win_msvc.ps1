@@ -1,6 +1,9 @@
-$vs2019_path = (@()+(&"C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -version 16.0 -property installationpath))[-1]
-Import-Module (Join-Path $vs2019_path "Common7\Tools\Microsoft.VisualStudio.DevShell.dll")
-Enter-VsDevShell -VsInstallPath $vs2019_path -SkipAutomaticLocation -DevCmdArguments "-host_arch=amd64 -arch=amd64"
+param (
+    [ValidateSet("x86", "x64")] $arch
+)
+. $PSScriptRoot\start_devenv.ps1
+Start-Devenv $arch
+
 $ErrorActionPreference = "Stop"
 
 cmake.exe $PSScriptRoot\..

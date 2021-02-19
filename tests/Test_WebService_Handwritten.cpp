@@ -1,5 +1,5 @@
 #include "TestUtils.h"
-#include "WebService.h"
+#include "stencil/stencil.h"
 
 struct TestInterface : public ReflectionBase::Interface<TestInterface>
 {
@@ -46,7 +46,8 @@ template <> struct ReflectionBase::TypeTraits<TestInterface_AddNumber_Args&>
 {
     struct Traits_arg_num1
     {
-        using TOwner = TestInterface_AddNumber_Args;
+        using TOwner     = TestInterface_AddNumber_Args;
+        using TFieldType = uint64_t;
         static constexpr std::string_view    Name() { return "num1"; }
         static const ::ReflectionBase::Flags Flags() { return {}; }
         static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
@@ -56,7 +57,8 @@ template <> struct ReflectionBase::TypeTraits<TestInterface_AddNumber_Args&>
 
     struct Traits_arg_num2
     {
-        using TOwner = TestInterface_AddNumber_Args;
+        using TOwner     = TestInterface_AddNumber_Args;
+        using TFieldType = uint64_t;
 
         static constexpr std::string_view    Name() { return "num2"; }
         static const ::ReflectionBase::Flags Flags() { return {}; }
@@ -92,7 +94,9 @@ template <> struct ReflectionBase::TypeTraits<TestInterface_Create_Args&>
 {
     struct Traits_arg_randomInteger
     {
-        using TOwner = TestInterface_Create_Args;
+        using TOwner     = TestInterface_Create_Args;
+        using TFieldType = uint64_t;
+
         static const ::ReflectionBase::Flags Flags() { return {}; }
 
         static constexpr std::string_view Name() { return "randomInteger"; }
@@ -104,7 +108,9 @@ template <> struct ReflectionBase::TypeTraits<TestInterface_Create_Args&>
 
     struct Traits_arg_randomString
     {
-        using TOwner = TestInterface_Create_Args;
+        using TOwner     = TestInterface_Create_Args;
+        using TFieldType = shared_string;
+
         static const ::ReflectionBase::Flags Flags() { return {}; }
 
         static constexpr std::string_view Name() { return "randomString"; }

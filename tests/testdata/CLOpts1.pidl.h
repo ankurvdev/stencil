@@ -1,5 +1,5 @@
 #pragma once
-#include <DataModel.h>
+#include <stencil/stencil.h>
 namespace CLOpts1
 {
 namespace CommandLineOptions
@@ -26,6 +26,17 @@ struct Data :
 ,        httpsPort
 ,        daemon
     };
+
+    static constexpr size_t FieldCount()
+    {
+        return 0u
+               + 1u
+               + 1u
+               + 1u
+               + 1u
+               + 1u
+            ;
+    }
 
     static constexpr std::string_view FieldAttributeValue(FieldIndex index, const std::string_view& key)
     {
@@ -65,13 +76,16 @@ struct Data :
     shared_string&       workingDirectory() { return _workingDirectory; }
     const shared_string& workingDirectory() const { return _workingDirectory; }
     void                            workingDirectory(shared_string&& val) { _workingDirectory = std::move(val); }
+    shared_string&       get_workingDirectory() { return _workingDirectory; }
 
-    shared_string& get_workingDirectory()
+    bool isset_workingDirectory() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::workingDirectory); }
+
+    void set_workingDirectory(shared_string&& val)
     {
-        return _workingDirectory;
-        ;
+        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::workingDirectory, _workingDirectory, val);
+        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::workingDirectory, _workingDirectory, val);
+        _workingDirectory = std::move(val);
     }
-    void set_workingDirectory(shared_string&& val) { _workingDirectory = std::move(val); }
 
     private:
     std::vector<shared_string> _libraries = {};
@@ -80,14 +94,31 @@ struct Data :
     std::vector<shared_string>&       libraries() { return _libraries; }
     const std::vector<shared_string>& libraries() const { return _libraries; }
     void                            libraries(std::vector<shared_string>&& val) { _libraries = std::move(val); }
+    std::vector<shared_string>&       get_libraries() { return _libraries; }
 
-    std::vector<shared_string>& get_libraries()
+    bool isset_libraries() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::libraries); }
+
+    void set_libraries(std::vector<shared_string>&& val)
     {
-        return _libraries;
-        ;
+        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::libraries, _libraries, val);
+        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::libraries, _libraries, val);
+        _libraries = std::move(val);
     }
-    void set_libraries(std::vector<shared_string>&& val) { _libraries = std::move(val); }
 
+    void add_libraries(shared_string&& args)
+    {
+        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::libraries, uint8_t{1}, _libraries, args);
+        return Stencil::Mutators<std::vector<shared_string>>::add(_libraries, std::move(args));
+    }
+    void remove_libraries(size_t&& args)
+    {
+        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::libraries, uint8_t{2}, _libraries, args);
+        return Stencil::Mutators<std::vector<shared_string>>::remove(_libraries, std::move(args));
+    }
+    shared_string at_libraries(size_t const& args) const
+    {
+        return Stencil::Accessors<std::vector<shared_string>>::at(_libraries, args);
+    }
     private:
     std::vector<shared_string> _scan = {};
 
@@ -95,14 +126,31 @@ struct Data :
     std::vector<shared_string>&       scan() { return _scan; }
     const std::vector<shared_string>& scan() const { return _scan; }
     void                            scan(std::vector<shared_string>&& val) { _scan = std::move(val); }
+    std::vector<shared_string>&       get_scan() { return _scan; }
 
-    std::vector<shared_string>& get_scan()
+    bool isset_scan() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::scan); }
+
+    void set_scan(std::vector<shared_string>&& val)
     {
-        return _scan;
-        ;
+        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::scan, _scan, val);
+        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::scan, _scan, val);
+        _scan = std::move(val);
     }
-    void set_scan(std::vector<shared_string>&& val) { _scan = std::move(val); }
 
+    void add_scan(shared_string&& args)
+    {
+        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::scan, uint8_t{1}, _scan, args);
+        return Stencil::Mutators<std::vector<shared_string>>::add(_scan, std::move(args));
+    }
+    void remove_scan(size_t&& args)
+    {
+        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::scan, uint8_t{2}, _scan, args);
+        return Stencil::Mutators<std::vector<shared_string>>::remove(_scan, std::move(args));
+    }
+    shared_string at_scan(size_t const& args) const
+    {
+        return Stencil::Accessors<std::vector<shared_string>>::at(_scan, args);
+    }
     private:
     int32_t _httpsPort = 3443;
 
@@ -110,13 +158,16 @@ struct Data :
     int32_t&       httpsPort() { return _httpsPort; }
     const int32_t& httpsPort() const { return _httpsPort; }
     void                            httpsPort(int32_t&& val) { _httpsPort = std::move(val); }
+    int32_t&       get_httpsPort() { return _httpsPort; }
 
-    int32_t& get_httpsPort()
+    bool isset_httpsPort() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::httpsPort); }
+
+    void set_httpsPort(int32_t&& val)
     {
-        return _httpsPort;
-        ;
+        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::httpsPort, _httpsPort, val);
+        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::httpsPort, _httpsPort, val);
+        _httpsPort = std::move(val);
     }
-    void set_httpsPort(int32_t&& val) { _httpsPort = std::move(val); }
 
     private:
     bool _daemon = 0;
@@ -125,13 +176,16 @@ struct Data :
     bool&       daemon() { return _daemon; }
     const bool& daemon() const { return _daemon; }
     void                            daemon(bool&& val) { _daemon = std::move(val); }
+    bool&       get_daemon() { return _daemon; }
 
-    bool& get_daemon()
+    bool isset_daemon() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::daemon); }
+
+    void set_daemon(bool&& val)
     {
-        return _daemon;
-        ;
+        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::daemon, _daemon, val);
+        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::daemon, _daemon, val);
+        _daemon = std::move(val);
     }
-    void set_daemon(bool&& val) { _daemon = std::move(val); }
 
 };
 
@@ -142,7 +196,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts1::CommandLineOptions::Data&
 {
     struct Traits_workingDirectory
     {
-        using TOwner = CLOpts1::CommandLineOptions::Data;
+        using TOwner     = CLOpts1::CommandLineOptions::Data;
+        using TFieldType = shared_string;
 
         static constexpr std::string_view Name() { return "workingDirectory"; }
 
@@ -160,7 +215,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts1::CommandLineOptions::Data&
     };
     struct Traits_libraries
     {
-        using TOwner = CLOpts1::CommandLineOptions::Data;
+        using TOwner     = CLOpts1::CommandLineOptions::Data;
+        using TFieldType = std::vector<shared_string>;
 
         static constexpr std::string_view Name() { return "libraries"; }
 
@@ -178,7 +234,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts1::CommandLineOptions::Data&
     };
     struct Traits_scan
     {
-        using TOwner = CLOpts1::CommandLineOptions::Data;
+        using TOwner     = CLOpts1::CommandLineOptions::Data;
+        using TFieldType = std::vector<shared_string>;
 
         static constexpr std::string_view Name() { return "scan"; }
 
@@ -196,7 +253,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts1::CommandLineOptions::Data&
     };
     struct Traits_httpsPort
     {
-        using TOwner = CLOpts1::CommandLineOptions::Data;
+        using TOwner     = CLOpts1::CommandLineOptions::Data;
+        using TFieldType = int32_t;
 
         static constexpr std::string_view Name() { return "httpsPort"; }
 
@@ -215,7 +273,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts1::CommandLineOptions::Data&
     };
     struct Traits_daemon
     {
-        using TOwner = CLOpts1::CommandLineOptions::Data;
+        using TOwner     = CLOpts1::CommandLineOptions::Data;
+        using TFieldType = bool;
 
         static constexpr std::string_view Name() { return "daemon"; }
 
@@ -239,6 +298,18 @@ template <> struct ReflectionBase::TypeTraits<CLOpts1::CommandLineOptions::Data&
         return ::ReflectionServices::EmptyAttributeValue(key);
     }
 
+    using ThisType = CLOpts1::CommandLineOptions::Data;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && ReflectionBase::AreEqual(obj1.workingDirectory(), obj2.workingDirectory())
+               && ReflectionBase::AreEqual(obj1.libraries(), obj2.libraries())
+               && ReflectionBase::AreEqual(obj1.scan(), obj2.scan())
+               && ReflectionBase::AreEqual(obj1.httpsPort(), obj2.httpsPort())
+               && ReflectionBase::AreEqual(obj1.daemon(), obj2.daemon())
+            ;
+    }
+
     using Handler = ::ReflectionServices::ReflectedStructHandler<CLOpts1::CommandLineOptions::Data,
                                                                  Traits_workingDirectory
 ,                                                                 Traits_libraries
@@ -247,3 +318,57 @@ template <> struct ReflectionBase::TypeTraits<CLOpts1::CommandLineOptions::Data&
 ,                                                                 Traits_daemon
                                                                  >;
 };
+
+template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, CLOpts1::CommandLineOptions::Data>>>
+{
+    using TData = T;
+
+    // TODO : Tentative: We hate pointers
+    TData const* const _ptr;
+    // TODO : Better way to unify creation interface
+    bool _changed = false;
+
+    DELETE_COPY_AND_MOVE(DeltaTracker);
+
+    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    {
+        // TODO: Tentative
+        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
+    }
+
+    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
+
+    size_t NumFields() const { return TData::FieldCount(); }
+    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+
+    uint8_t MutatorIndex() const;
+    bool    OnlyHasDefaultMutator() const;
+
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+
+    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::workingDirectory:
+            lambda(DeltaTracker<shared_string>(&_ptr->workingDirectory(), IsFieldChanged(TData::FieldIndex::workingDirectory)));
+            return;
+        case TData::FieldIndex::libraries:
+            lambda(DeltaTracker<std::vector<shared_string>>(&_ptr->libraries(), IsFieldChanged(TData::FieldIndex::libraries)));
+            return;
+        case TData::FieldIndex::scan:
+            lambda(DeltaTracker<std::vector<shared_string>>(&_ptr->scan(), IsFieldChanged(TData::FieldIndex::scan)));
+            return;
+        case TData::FieldIndex::httpsPort:
+            lambda(DeltaTracker<int32_t>(&_ptr->httpsPort(), IsFieldChanged(TData::FieldIndex::httpsPort)));
+            return;
+        case TData::FieldIndex::daemon:
+            lambda(DeltaTracker<bool>(&_ptr->daemon(), IsFieldChanged(TData::FieldIndex::daemon)));
+            return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+};
+
