@@ -19,7 +19,7 @@ jobs:
   - bash: bash $(Build.SourcesDirectory)/ci/build_linux.sh
     displayName: 'Build and Test Linux'
     workingDirectory: 'cmake-build'
-  - bash: bash $(Build.SourcesDirectory)/ci/build_with_vcpkg.sh
+  - bash: python3 $(Build.SourcesDirectory)/ci/build_with_vcpkg.py
     displayName: 'Build With Vcpkg'
     workingDirectory: 'vcpkg-build'
   - task: CopyFiles@2
