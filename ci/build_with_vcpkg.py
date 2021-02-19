@@ -41,8 +41,8 @@ def TestVcpkgBuild(config):
         "-DVCPKG_TARGET_TRIPLET=" + triplet,
         "-DVCPKG_VERBOSE:BOOL=ON", 
         os.path.join(scriptdir, "vcpkg")], cwd=testdir)
-    subprocess.check_call(["cmake", "--build", ".", "-j", "--target", "package", + (["--config", config] if sys.platform == "win32" else [])], cwd=testdir)
-    subprocess.check_call(["ctest", ".", + (["-C", config] if sys.platform == "win32" else [])], cwd=testdir)
+    subprocess.check_call(["cmake", "--build", ".", "-j", "--target", "package"] + (["--config", config] if sys.platform == "win32" else []), cwd=testdir)
+    subprocess.check_call(["ctest", "."] + (["-C", config] if sys.platform == "win32" else []), cwd=testdir)
 
 TestVcpkgBuild("Debug")
 TestVcpkgBuild("Release")
