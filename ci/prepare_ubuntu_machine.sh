@@ -19,7 +19,6 @@ apt-get install --yes --no-install-recommends --quiet \
     software-properties-common
 
 CLANG_VERSION=12
-STDLIB_VERSION=11
 
 UBUNTU_CODENAME=$(lsb_release --codename --short)
 UBUNTU_VERSION=$(lsb_release --release --short)
@@ -27,7 +26,7 @@ UBUNTU_VERSION=$(lsb_release --release --short)
 # Configure package repository for clang toolchain.
 wget -q -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
 apt-key adv --list-public-keys --with-fingerprint --with-colons | grep -i 6084F3CF814B57C1CF12EFD515CF4D18AF4F7421
-apt-add-repository "deb http://apt.llvm.org/${UBUNTU_CODENAME}/ llvm-toolchain-${UBUNTU_CODENAME}-10 main"
+apt-add-repository "deb http://apt.llvm.org/${UBUNTU_CODENAME}/ llvm-toolchain-${UBUNTU_CODENAME}-${CLANG_VERSION} main"
 
 # CMake repositoryn for latest cmake
 wget -q -O - https://apt.kitware.com/keys/kitware-archive-latest.asc | apt-key add -
@@ -43,7 +42,7 @@ apt-get update && \
 apt-get install --yes --no-install-recommends --quiet \
     clang-${CLANG_VERSION} \
     clang-format-${CLANG_VERSION} \
-    libstdc++-${STDLIB_VERSION}-dev \
+    libc++-${CLANG_VERSION}-dev libc++abi-${CLANG_VERSION}-dev \
     cmake flex bison gettext \
 
 update-alternatives --install /usr/bin/cc cc /usr/bin/clang-${CLANG_VERSION} 100
