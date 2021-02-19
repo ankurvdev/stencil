@@ -35,14 +35,16 @@ def TestVcpkgBuild(config):
     testdir =  os.path.join(workdir, "Test-" + config)
     if os.path.exists(testdir): shutil.rmtree(testdir)
     os.makedirs(testdir)
+    cmakebuildextraargs =  (["--config", config] if sys.platform == "win32" else [])
+    ctestextraargs =  (["-C", config] if sys.platform == "win32" else [])
     subprocess.check_call(["cmake",
         "-DCMAKE_BUILD_TYPE=" + config, 
         "-DVCPKG_ROOT:PATH=" + vcpkgroot, 
         "-DVCPKG_TARGET_TRIPLET=" + triplet,
         "-DVCPKG_VERBOSE:BOOL=ON", 
         os.path.join(scriptdir, "vcpkg")], cwd=testdir)
-    subprocess.check_call(["cmake", "--build", ".", "-j", "--target", "package"] + (["--config", config] if sys.platform == "win32" else []), cwd=testdir)
-    subprocess.check_call(["ctest", "."] + (["-C", config] if sys.platform == "win32" else []), cwd=testdir)
+    subprocess.check_call(["cmake", "--build", ".", "-j"] +cmakebuildextraargs, cwd=testdir)
+    subprocess.check_call(["ctest", "."] + ctestextraargs, cwd=testdir)
 
 TestVcpkgBuild("Debug")
 TestVcpkgBuild("Release")
