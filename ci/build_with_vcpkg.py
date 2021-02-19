@@ -14,7 +14,7 @@ os.makedirs(args.workdir, exist_ok=True)
 vcpkgroot = os.path.join(args.workdir, "vcpkg")
 
 if not os.path.exists(vcpkgroot):
-    subprocess.check_call(["git", "clone", "-q", "https://github.com/ankurverma85/vcpkg.git", "--branch", "ankurv/stencil", "--depth 1"], cwd=args.workdir)
+    subprocess.check_call(["git", "clone", "-q", "https://github.com/ankurverma85/vcpkg.git", "--branch", "ankurv/stencil", "--depth", "1"], cwd=args.workdir)
 
 stencilportdir = os.path.join(vcpkgroot, "ports", "stencil")
 scriptdir = os.path.abspath(os.path.dirname(__file__))
