@@ -12,7 +12,7 @@ jobs:
 - job: Build_Ubuntu
   displayName: '[x64] Build Ubuntu'
   pool:
-    vmImage: 'ubuntu-latest'
+    vmImage: 'ubuntu-20.04'
   steps:
   - bash: bash $(Build.SourcesDirectory)/ci/prepare_ubuntu_machine.sh && mkdir -p cmake-build && mkdir -p vcpkg-build
     displayName: 'Install Build Tools'
