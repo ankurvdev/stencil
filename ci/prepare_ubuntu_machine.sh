@@ -42,7 +42,7 @@ update-alternatives --install /usr/bin/cc cc /usr/bin/clang-${CLANG_VERSION} 100
 update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-${CLANG_VERSION} 100
 
 # Print out tool version info
-for tool in cmake cc gcc g++ clang-${CLANG_VERSION}; do
+for tool in cmake cc gcc g++ clang-${CLANG_VERSION} flex bison; do
   echo .
   echo "-- ${tool} version"
   command -v ${tool}

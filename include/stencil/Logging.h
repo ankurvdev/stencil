@@ -41,13 +41,15 @@
     name& operator=(name const&) = delete; \
     name& operator=(name&&) = delete
 
-inline void TodoFunc(std::string const& msg)
+inline void TodoFunc([[maybe_unused]] std::string const& msg)
 {
+#ifdef _DEBUG
     throw std::logic_error("Not Implemented:" + msg);
+#endif
 }
 
 #if !defined TODO
-#define TODO(...) TodoFunc(""  #__VA_ARGS__)
+#define TODO(...) TodoFunc("" #__VA_ARGS__)
 #endif
 
 struct CorrelationVector
