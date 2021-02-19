@@ -1,3 +1,6 @@
+# Exit immediately if a command exits with a non-zero status.
+set -e
+set -o pipefail
 
 if ((EUID != 0)); then
   echo "Rerunning as root - current Effective UID = ${EUID}"
@@ -5,10 +8,6 @@ if ((EUID != 0)); then
   sudo bash $0 $*
   exit 0
 fi
-
-# Exit immediately if a command exits with a non-zero status.
-set -e
-set -o pipefail
 
 # Install build pre-requisites.
 apt-get update && \
