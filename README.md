@@ -1,3 +1,13 @@
+- [Overview](#overview)
+- [Using Built-in Templates](#using-built-in-templates)
+	- [JSON](#json-cli-args-parsing)
+	- [Command Line Args Parsing](#json-cli-args-parsing)
+	- [Data Storage : MySQL](#data-storage)
+	- [JSON Web-Service](#rest-based-web-servicejson)
+- [Writing Custom Templates](#writing-custom-templates)
+	- [Code Templates](#code-templates)
+	- [Native Types](#native-types)
+
 # Overview
 
 ![Build status](https://dev.azure.com/ankurverma0037/ankurverma/_apis/build/status/ankurverma85.stencil)
@@ -8,16 +18,23 @@ Currently support IDL representations
 
 * Custom [Thrift](https://en.wikipedia.org/wiki/Apache_Thrift)-like IDL 
 
-Built-in templates for 
+Built-in templates for
 
-* JSON import/export 
-* Command line parsing 
-* Table Based disk read/write of records represented in IDL 
-* C++ based REST HTTP Web-service (JSON) based on IDL interface definition. 
-* MySQL records and tables (TODO)
+* JSON Data-Serialization/Deserialization
+* Command line Args parsing 
+* Data Storage : MySQL
+* Data Storage : Custom (Pagified) storage of records
+* Web-Service : C++ based REST HTTP Web-service (JSON) based on IDL interface definition. 
+
+It also supports writing your own custom templates that can be binded with the IDL representation to generate any kind of custom code (not limited to c++). Combined with custom native-types specifications this can be used to generate code in any language with only configuration and templates and without the need for changing the utility. 
+For more details see Custom Templates below
 
 
-# Example Code Usage (JSON, Command Line)
+# Using Built-in templates
+
+The following code usage examples demonstrate how to use the builtin templates for each use-case
+
+## JSON, CLI args parsing
 Consider a simple IDL (foo.pidl)
 ```
 struct Foo 
@@ -49,7 +66,7 @@ int main(int arg, char* argv[])
 
 ```
 
-# Example Code Usage: MySQL/Simple Table Based read/write
+# Data Storage
 
 IDL example
 ```
@@ -92,7 +109,7 @@ int main(int argc, char *argv[])
 }
 ```
 
-# Example Code Usage: Web Interface
+# REST based Web-Service(JSON)
 IDL example (Service.pidl)
 ```
 
@@ -135,3 +152,8 @@ int main(int argc, char* argv[])
         svc.WaitForStop();
 }
 ```
+# Writing Custom Templates
+
+## Code Templates
+
+## Native Types
