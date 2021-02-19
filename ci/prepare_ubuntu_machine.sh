@@ -31,16 +31,10 @@ apt-add-repository "deb http://apt.llvm.org/${UBUNTU_CODENAME}/ llvm-toolchain-$
 wget -q -O - https://apt.kitware.com/keys/kitware-archive-latest.asc | apt-key add -
 apt-add-repository "deb https://apt.kitware.com/ubuntu/ ${UBUNTU_CODENAME} main"
 
-# Required for providing latest stl headers (libstdc++-)
-# Configure package repository for gcc toolchain.
-# https://wiki.ubuntu.com/ToolChain
-add-apt-repository "ppa:ubuntu-toolchain-r/test"
-
 # Install build pre-requisites.
 apt-get update && \
 apt-get install --yes --no-install-recommends --quiet \
-    clang-${CLANG_VERSION} \
-    clang-format-${CLANG_VERSION} \
+    clang-${CLANG_VERSION} clang-format-${CLANG_VERSION} \
     libc++-${CLANG_VERSION}-dev libc++abi-${CLANG_VERSION}-dev \
     cmake flex bison gettext \
 
