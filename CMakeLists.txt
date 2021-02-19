@@ -133,6 +133,7 @@ if(STENCIL_INSTALL_BUILDTOOLS)
     install(TARGETS embedresource EXPORT embedresourceTargets)
     install(TARGETS lexyacc       EXPORT lexyaccTargets)
     install(FILES
+        ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc/FlexLexer.h
         ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc/LexYaccConfig.cmake
         ${CMAKE_CURRENT_LIST_DIR}/external/embedresource/EmbedResourceConfig.cmake
         DESTINATION share/stencil
