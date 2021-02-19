@@ -5,8 +5,7 @@ param (
 Start-Devenv $arch
 $ErrorActionPreference = "Stop"
 if (! (Test-Path vcpkg)) {
-    git clone -q https://github.com/ankurverma85/vcpkg.git
-    git checkout ankurv/stencil
+    git clone -q https://github.com/ankurverma85/vcpkg.git --branch ankurv/stencil --depth 1
 }
 
 if ((Test-Path vcpkg\ports\stencil)) {

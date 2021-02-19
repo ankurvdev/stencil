@@ -18,8 +18,8 @@ apt-get install --yes --no-install-recommends --quiet \
     lsb-release \
     software-properties-common
 
-CLANG_VERSION=11
-STDLIB_VERSION=10
+CLANG_VERSION=12
+STDLIB_VERSION=11
 
 UBUNTU_CODENAME=$(lsb_release --codename --short)
 UBUNTU_VERSION=$(lsb_release --release --short)
