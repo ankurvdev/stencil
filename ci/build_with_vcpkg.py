@@ -27,9 +27,9 @@ shutil.copytree(os.path.join(scriptdir, "vcpkg", "port.stencil"), stencilportdir
 with open(os.path.join(stencilportdir, "use_source_path"), "w") as f:
     f.write(os.path.abspath(os.path.dirname(scriptdir)))
 
-subprocess.check_call(os.path.join("vcpkg", bootstrapscript), shell=True)
+subprocess.check_call(os.path.join("vcpkg", bootstrapscript), shell=True, cwd=args.workdir)
 vcpkgexe = shutil.which("vcpkg", path=vcpkgroot)
-subprocess.check_call([vcpkgexe, "install", "stencil"])
+subprocess.check_call([vcpkgexe, "install", "stencil:" + triplet])
 
 def TestVcpkgBuild(config):
     testdir =  os.path.join(args.workdir, "Test-" + config)
