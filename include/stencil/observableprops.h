@@ -135,11 +135,23 @@ template <typename T> struct ObservablePropsT : Observable
 {
     std::bitset<32> _changetracker;
 
+    struct MutationInfo
+    {
+        uint8_t              fieldIndex;
+        uint8_t              mutationIndex;
+        std::vector<uint8_t> mutationData;
+    };
+
+    std::vector<MutationInfo> mutations;
+
     template <typename TFieldEnum> void NotifyChanged(TFieldEnum fieldIndex) { _changetracker.set(static_cast<size_t>(fieldIndex)); }
     template <typename TFieldEnum, typename TFieldType, typename TValueType>
-    void NotifyMutation(TFieldEnum /*fieldIndex*/, uint8_t /*mutationIndex*/, TFieldType const& /*fieldType*/, TValueType const& /*val*/)
+
+    void NotifyMutation(TFieldEnum fieldIndex, uint8_t mutationIndex, TFieldType const& fieldType, TValueType const& val)
     {
-        TODO("Whats a mutation");
+        MutationInfo info{
+            static_cast<uint8_t>(fieldIndex), mutationIndex, Mutators<TFieldType>::GenerateMutationData(mutationIndex, fieldType, val)};
+        mutations.push_back(std::move(info));
     }
 
     DeltaTracker<T> Edit()

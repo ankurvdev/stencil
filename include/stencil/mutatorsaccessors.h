@@ -1,3 +1,6 @@
+#pragma once
+#include "datarecorder.h"
+
 namespace Stencil
 {
 template <typename T> struct Mutators;
@@ -22,6 +25,28 @@ template <typename T> struct Mutators<std::vector<T>>
                 return;
             }
         }
+    }
+
+    static std::vector<uint8_t> GenerateMutationData(uint8_t mutationIndex, std::vector<T> const& /*fieldVal*/, T const& val)
+    {
+        if (mutationIndex == 1)    // add
+        {
+            return BinarySerDesHandler<T>::Serialize(val);
+        }
+
+        TODO("Whats a mutation");
+        return {};
+    }
+
+    static std::vector<uint8_t> GenerateMutationData(uint8_t mutationIndex, std::vector<T> const& /*fieldVal*/, size_t const& val)
+    {
+        if (mutationIndex == 2)    // add
+        {
+            return BinarySerDesHandler<size_t>::Serialize(val);
+        }
+
+        TODO("Whats a mutation");
+        return {};
     }
 };
 

@@ -25,6 +25,7 @@ void RecordTrafficRemoveIndex(std::filesystem::path const& recordlog, size_t ind
     data.remove_aircrafts(size_t{index});
     recorder.Record(data, ctx);
 }
+
 //
 // void RecordTrafficRemoveMatching(std::filesystem::path const& recordlog, char hexaddr)
 //{
@@ -115,7 +116,6 @@ TEST_CASE("DataRecorder - Properties", "[DataRecorder]")
         }
     }
 
-#if 0
     SECTION("one property list-add")
     {
         RecordTrafficAdd(recordlog, 1);
@@ -155,7 +155,7 @@ TEST_CASE("DataRecorder - Properties", "[DataRecorder]")
             }
         }
     }
-#endif
+
     SECTION("one property list-edit") {}
     SECTION("one property list-set") {}
 

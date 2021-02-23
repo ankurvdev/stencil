@@ -200,14 +200,14 @@ template <> struct IDataTypeHandler<DataType::Object> : IDataTypeHandler<DataTyp
         void*                                      ptr;
     };
 
-    virtual void                      Start() const                                                                  = 0;
-    virtual bool                      TryGetSubComponent(void* rawptr, Value& key, SubComponent& subcomponent) const = 0;
-    virtual size_t                    GetSubComponentCount() const                                                   = 0;
-    virtual SubComponent              GetSubComponentAt(void* rawptr, size_t index) const                            = 0;
-    virtual void                      End() const                                                                    = 0;
-    virtual shared_string             Name() const override                                                          = 0;
-    virtual shared_string             Description() const override                                                   = 0;
-    virtual shared_string             AttributeValue(const std::string_view& key) const override                     = 0;
+    virtual void                      Start() const                                                                        = 0;
+    virtual bool                      TryGetSubComponent(void* rawptr, Value const& key, SubComponent& subcomponent) const = 0;
+    virtual size_t                    GetSubComponentCount() const                                                         = 0;
+    virtual SubComponent              GetSubComponentAt(void* rawptr, size_t index) const                                  = 0;
+    virtual void                      End() const                                                                          = 0;
+    virtual shared_string             Name() const override                                                                = 0;
+    virtual shared_string             Description() const override                                                         = 0;
+    virtual shared_string             AttributeValue(const std::string_view& key) const override                           = 0;
     virtual std::shared_ptr<DataInfo> GetDataInfo() const override
     {
         std::vector<std::shared_ptr<DataInfo>> children;
@@ -534,6 +534,7 @@ template <typename TValue, size_t N> struct StdArrayListHandler : public IDataTy
 
     bool TryGetSubComponent(void* ptr, size_t index, SubComponent& subcomponent) const override
     {
+        if (index >= N) return false;
         auto vecptr  = static_cast<std::array<TValue, N>*>(ptr);
         subcomponent = {&_handler, &((*vecptr)[index])};
         return true;
@@ -675,7 +676,7 @@ template <typename TFieldTraits> struct ObjectDataTypeHandler<DataType::Object, 
 
     virtual void Start() const override{};
     virtual void End() const override {}
-    virtual bool TryGetSubComponent(void* rawptr, Value& key, SubComponent& subcomponent) const override
+    virtual bool TryGetSubComponent(void* rawptr, Value const& key, SubComponent& subcomponent) const override
     {
         auto  structptr = static_cast<TOwner*>(rawptr);
         auto& obj       = (structptr->*(TFieldTraits::TPropertyGetter()))();
@@ -768,7 +769,7 @@ template <typename TStruct, typename... TFieldTraits> struct ReflectedStructHand
         }
     }
 
-    bool TryGetSubComponent(void* rawptr, Value& key, SubComponent& subcomponent) const override
+    bool TryGetSubComponent(void* rawptr, Value const& key, SubComponent& subcomponent) const override
     {
         auto ptr = static_cast<TStruct*>(rawptr);
         if (key.GetType() == Value::Type::Unsigned)
@@ -1125,7 +1126,7 @@ struct ReflectionBase::TypeTraits<std::unique_ptr<T>&, std::enable_if_t<std::is_
     struct Handler : public ::ReflectionBase::IDataTypeHandler<DataType::Object>
     {
         virtual void Start() const override {}
-        virtual bool TryGetSubComponent(void* rawptr, Value& key, SubComponent& subcomponent) const override
+        virtual bool TryGetSubComponent(void* rawptr, Value const& key, SubComponent& subcomponent) const override
         {
             auto& obj = *static_cast<std::unique_ptr<T>*>(rawptr);
             if (obj == nullptr)
@@ -1164,7 +1165,7 @@ struct ReflectionBase::TypeTraits<std::shared_ptr<T>&, std::enable_if_t<std::is_
     struct Handler : public ::ReflectionBase::IDataTypeHandler<DataType::Object>
     {
         virtual void Start() const override {}
-        virtual bool TryGetSubComponent(void* rawptr, Value& key, SubComponent& subcomponent) const override
+        virtual bool TryGetSubComponent(void* rawptr, Value const& key, SubComponent& subcomponent) const override
         {
             auto& obj = *static_cast<std::shared_ptr<T>*>(rawptr);
             if (obj == nullptr)

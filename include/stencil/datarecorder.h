@@ -160,9 +160,17 @@ struct BinarySerDes
             }
         }
         break;
-        case ReflectionBase::DataType::Object: TODO();
+        case ReflectionBase::DataType::Object: [[fallthrough]];
+        case ReflectionBase::DataType::List:
+        {
+            for (size_t i = 0; visitor.TrySelect(i); i++)
+            {
+                Serialize(visitor, writer);
+                visitor.GoBackUp();
+            }
+        }
+        break;
         case ReflectionBase::DataType::Enum: TODO();
-        case ReflectionBase::DataType::List: TODO();
         case ReflectionBase::DataType::Union: TODO();
         case ReflectionBase::DataType::Invalid: [[fallthrough]];
         case ReflectionBase::DataType::Unknown: throw std::runtime_error("Unsupported Data Type");
@@ -200,6 +208,7 @@ struct BinarySerDes
         }
     }
 };
+
 template <typename T> struct Visitor
 {
     static constexpr auto GetPtrType()
@@ -262,6 +271,50 @@ template <typename T> struct Visitor
     };
 
     Visitor(T& obj) { _stack.push_back(StateStack{&_rootHandler, static_cast<decltype(GetPtrType())>(&obj), Mode::Obj}); }
+
+    bool TrySelect(Value const& val)
+    {
+        {
+            switch (GetDataTypeHint())
+            {
+            case ReflectionBase::DataType::Object:
+            {
+                auto& state = _stack.back();
+                auto  cptr  = const_cast<void*>(state.Ptr);    // Shhh... Thats ok.
+                ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::Object>::SubComponent sub;
+
+                if (!state.Handler->ObjectHandler()->TryGetSubComponent(cptr, val, sub))
+                {
+                    return false;
+                }
+                _stack.push_back(StateStack{sub.handler, sub.ptr, Mode::Obj});
+                return true;
+            }
+
+            case ReflectionBase::DataType::List:
+            {
+                auto& state = _stack.back();
+                auto  cptr  = const_cast<void*>(state.Ptr);    // Shhh... Thats ok.
+                ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::List>::SubComponent sub;
+
+                if (!state.Handler->ListHandler()->TryGetSubComponent(cptr, val, sub))
+                {
+                    return false;
+                }
+                _stack.push_back(StateStack{sub.handler, sub.ptr, Mode::Obj});
+                return true;
+            }
+
+            case ReflectionBase::DataType::Union: TODO(); throw std::runtime_error("Not yet supported. Get to work");
+
+            case ReflectionBase::DataType::Value: [[fallthrough]];
+            case ReflectionBase::DataType::Enum: [[fallthrough]];
+            case ReflectionBase::DataType::Invalid: [[fallthrough]];
+            case ReflectionBase::DataType::Unknown: break;
+            }
+            throw std::runtime_error("Unsupported Data Type");
+        }
+    }
 
     Visitor& Select(Value const& val)
     {
@@ -535,6 +588,17 @@ template <typename T> struct PatchHandler
         }
 
         return reader.GetIterator();
+    }
+};
+
+template <typename T> struct BinarySerDesHandler
+{
+    static std::vector<uint8_t> Serialize(T const& obj)
+    {
+        Writer           writer;
+        Visitor<T const> visitor(obj);
+        visitor.Serialize(writer);
+        return writer.Reset();
     }
 };
 
