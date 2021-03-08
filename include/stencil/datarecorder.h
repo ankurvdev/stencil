@@ -1,5 +1,6 @@
 #pragma once
 #include "observableprops.h"
+#include "visitor.h"
 
 #include <chrono>
 #include <condition_variable>
@@ -209,216 +210,6 @@ struct BinarySerDes
     }
 };
 
-template <typename T> struct Visitor
-{
-    static constexpr auto GetPtrType()
-    {
-        if constexpr (std::is_const_v<T>)
-        {
-            void const* ptr{nullptr};
-            return ptr;
-        }
-        else
-        {
-            void* ptr{nullptr};
-            return ptr;
-        }
-    }
-    /*
-    ReflectionServices should provide an Object Browser(Mutator/Accessor), (Const)Visitor ?
-        - Ability to Dive into List, Objects
-        - No need for Handlers.
-        - Serialize/Deserialize using a class Handler at any point during the browser.
-        - Optionally carry DeltaTracker data but no need to explicity specify
-
-    Usage Spec
-        Deserialize : Visit for edit
-            ReflectionServices::ObjectVisitor<Avid::GPS::Data const> visitor;
-        Serialize: Visit for read
-            ReflectionServices::ObjectVisitor<Avid::GPS::Data> visitor;
-        Ability to dive into List, objects, maps etc
-            visitor.Select(Value{});
-            visitor.Select<T, Deserializer>(Value{});
-            visitor.Select<T>(T const&);
-            visitor.GoBackUp(); // Go back up
-        Serialize Deserialize using a class Handler at any point during the browser
-            visitor.Serialize<TSerializer>(); // Current DeltaTracker
-            visitor.Deserialize<TDeserializer>(TDeserizlier::Input const&) // Current DeltaTracker
-        Optionally carry DeltaTracker data but no need to explicitly specify
-            ?? template<typename T, typename TDeltaTracker = void *> // Try void but void* should work too.
-            ?? All Select variants and constructors have TDeltaTracker ctx = {} optional param
-        Note:
-        Handlers accept const for browsing and non-const for editing
-        Ediiting on non-const throws exception
-    */
-    // TODO: const T&
-    public:    // Declarations
-    enum Mode
-    {
-        Default,
-        Enum,
-        List,
-        Obj,
-        Union,
-        Key,    // List: Integer, Union: Integer, Obj: String/Integer
-    };
-
-    struct StateStack
-    {
-        const ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::Unknown>* Handler = nullptr;
-        decltype(GetPtrType())                                                     Ptr     = nullptr;
-        Mode                                                                       mode;
-    };
-
-    Visitor(T& obj) { _stack.push_back(StateStack{&_rootHandler, static_cast<decltype(GetPtrType())>(&obj), Mode::Obj}); }
-
-    bool TrySelect(Value const& val)
-    {
-        {
-            switch (GetDataTypeHint())
-            {
-            case ReflectionBase::DataType::Object:
-            {
-                auto& state = _stack.back();
-                auto  cptr  = const_cast<void*>(state.Ptr);    // Shhh... Thats ok.
-                ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::Object>::SubComponent sub;
-
-                if (!state.Handler->ObjectHandler()->TryGetSubComponent(cptr, val, sub))
-                {
-                    return false;
-                }
-                _stack.push_back(StateStack{sub.handler, sub.ptr, Mode::Obj});
-                return true;
-            }
-
-            case ReflectionBase::DataType::List:
-            {
-                auto& state = _stack.back();
-                auto  cptr  = const_cast<void*>(state.Ptr);    // Shhh... Thats ok.
-                ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::List>::SubComponent sub;
-
-                if (!state.Handler->ListHandler()->TryGetSubComponent(cptr, val, sub))
-                {
-                    return false;
-                }
-                _stack.push_back(StateStack{sub.handler, sub.ptr, Mode::Obj});
-                return true;
-            }
-
-            case ReflectionBase::DataType::Union: TODO(); throw std::runtime_error("Not yet supported. Get to work");
-
-            case ReflectionBase::DataType::Value: [[fallthrough]];
-            case ReflectionBase::DataType::Enum: [[fallthrough]];
-            case ReflectionBase::DataType::Invalid: [[fallthrough]];
-            case ReflectionBase::DataType::Unknown: break;
-            }
-            throw std::runtime_error("Unsupported Data Type");
-        }
-    }
-
-    Visitor& Select(Value const& val)
-    {
-        switch (GetDataTypeHint())
-        {
-        case ReflectionBase::DataType::Object:
-        {
-            auto& state = _stack.back();
-            auto  cptr  = const_cast<void*>(state.Ptr);    // Shhh... Thats ok.
-            auto  sub   = state.Handler->ObjectHandler()->GetSubComponentAt(cptr, val.convert<size_t>());
-            _stack.push_back(StateStack{sub.handler, sub.ptr, Mode::Obj});
-            return *this;
-        }
-        case ReflectionBase::DataType::List: TODO();
-        case ReflectionBase::DataType::Union: TODO(); throw std::runtime_error("Not yet supported. Get to work");
-
-        case ReflectionBase::DataType::Value: [[fallthrough]];
-        case ReflectionBase::DataType::Enum: [[fallthrough]];
-        case ReflectionBase::DataType::Invalid: [[fallthrough]];
-        case ReflectionBase::DataType::Unknown: break;
-        }
-        throw std::runtime_error("Unsupported Data Type");
-    }
-
-    template <typename TKey, typename TSerDes = BinarySerDes> Visitor& Select(TKey const& key)
-    {
-        if constexpr (Value::Supported<TKey>::value)
-        {
-            return Select(Value{key});
-        }
-        else
-        {
-            TODO();
-            return *this;
-        }
-    }
-
-    Visitor& GoBackUp()
-    {
-        _stack.pop_back();
-        return *this;
-    }
-
-    auto  GetDataTypeHint() const { return _stack.back().Handler->GetDataType(); }
-    Value GetValue() const
-    {
-        switch (GetDataTypeHint())
-        {
-
-        case ReflectionBase::DataType::Value:
-        {
-            auto& state = _stack.back();
-            auto  cptr  = const_cast<void*>(state.Ptr);    // Shhh... Thats ok.
-            return state.Handler->ValueHandler()->Read(cptr);
-        }
-        case ReflectionBase::DataType::Enum: [[fallthrough]];
-
-        case ReflectionBase::DataType::Object: [[fallthrough]];
-        case ReflectionBase::DataType::List: [[fallthrough]];
-        case ReflectionBase::DataType::Union: [[fallthrough]];
-
-        case ReflectionBase::DataType::Invalid: [[fallthrough]];
-        case ReflectionBase::DataType::Unknown: break;
-        }
-        throw std::runtime_error("Unsupported Data Type");
-    }
-
-    void SetValue(Value const& val)
-    {
-        static_assert(!std::is_const_v<T>, "Cannot SetValue into a const type");
-
-        switch (GetDataTypeHint())
-        {
-        case ReflectionBase::DataType::Value:
-        {
-            auto& state = _stack.back();
-            auto  cptr  = const_cast<void*>(state.Ptr);    // Shhh... Thats ok.
-            return state.Handler->ValueHandler()->Write(cptr, val);
-        }
-        case ReflectionBase::DataType::Enum: [[fallthrough]];
-
-        case ReflectionBase::DataType::Object: [[fallthrough]];
-        case ReflectionBase::DataType::List: [[fallthrough]];
-        case ReflectionBase::DataType::Union: [[fallthrough]];
-
-        case ReflectionBase::DataType::Invalid: [[fallthrough]];
-        case ReflectionBase::DataType::Unknown: break;
-        }
-        throw std::runtime_error("Unsupported Data Type");
-    }
-
-    template <typename TSerDes = BinarySerDes> void Serialize(Writer& writer) { return BinarySerDes::Serialize(*this, writer); }
-
-    template <typename TSerDes = BinarySerDes> void Deserialize(Reader& reader)
-    {
-        static_assert(!std::is_const_v<T>, "Cannot Deserialize into a const type");
-        BinarySerDes::Deserialize(*this, reader);
-    }
-
-    private:
-    typename ReflectionBase::TypeTraits<std::remove_const_t<T>&>::Handler _rootHandler;
-    std::vector<StateStack>                                               _stack;
-};
-
 template <typename T> struct PatchHandler
 {
     static std::vector<uint8_t> Create(T const& obj, DeltaTracker<T> const& ctx)
@@ -447,14 +238,14 @@ template <typename T> struct PatchHandler
                       || DeltaTracker<TObj>::Type() == ReflectionBase::DataType::Value)
         {
             // Dump the entire value
-            visitor.Serialize(writer);
+            BinarySerDes::Serialize(visitor, writer);
         }
         else if constexpr (DeltaTracker<TObj>::Type() == ReflectionBase::DataType::List)
         {
             writer << ctx.MutatorIndex();
             if (ctx.MutatorIndex() == 0)    // Set
             {
-                visitor.Serialize(writer);
+                BinarySerDes::Serialize(visitor, writer);
             }
             else if (ctx.MutatorIndex() == 1)    // List Add
             {
@@ -535,7 +326,7 @@ template <typename T> struct PatchHandler
         if constexpr (ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Enum
                       || ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Value)
         {
-            visitor.Deserialize(reader);
+            BinarySerDes::Deserialize(visitor, reader);
         }
 
         else if constexpr (ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::List)
@@ -572,7 +363,7 @@ template <typename T> struct PatchHandler
             for (uint8_t i = 0; i < fieldCount; i++)
             {
                 visitor.Select(reader.read<uint8_t>());
-                visitor.Deserialize(reader);
+                BinarySerDes::Deserialize(visitor, reader);
                 visitor.GoBackUp();
             }
         }
@@ -597,7 +388,7 @@ template <typename T> struct BinarySerDesHandler
     {
         Writer           writer;
         Visitor<T const> visitor(obj);
-        visitor.Serialize(writer);
+        BinarySerDes::Serialize(visitor, writer);
         return writer.Reset();
     }
 };

@@ -23,8 +23,13 @@
 #include <unordered_map>
 #include <vector>
 
-// TODO: Get rid of this
-
+/* TODO: 
+* 1. Get rid of timestamp
+* 2. Fix interfaces . No more templated virtual classes. Simplify and isolate
+* 3. Union -> Variant
+* 4. Value -> Fixed64BitValue
+* 5. 
+*/
 using timestamp = decltype(std::chrono::system_clock::now());
 
 namespace ReflectionBase
@@ -639,12 +644,13 @@ template <typename TFieldTraits> struct ObjectDataTypeHandler<DataType::List, TF
         return _handler.MoveNext((void*)&obj);
     }
 
-    virtual bool TryGetSubComponent(void* rawptr, size_t /*index*/, SubComponent& subcomponent) const override
+    virtual bool TryGetSubComponent(void* rawptr, size_t index, SubComponent& subcomponent) const override
     {
         auto  structptr = static_cast<TOwner*>(rawptr);
         auto& obj       = (structptr->*(TFieldTraits::TPropertyGetter()))();
-        subcomponent    = {&_handler, (void*)&obj};
-        return true;
+        return _handler.TryGetSubComponent(&obj, index, subcomponent);
+        //subcomponent    = {&_handler, (void*)&obj};
+        //return true;
     }
 
     virtual shared_string Description() const override
@@ -1084,7 +1090,7 @@ template <typename T> struct ReflectionBase::TypeTraits<std::vector<T>&>
     {
         return "list<" + std::string(::ReflectionBase::TypeTraits<T&>::AttributeValue("Description")) + ">";
     }
-    static std::string_view AttributeValue(const std::string_view& key) { return ""; }
+    static std::string_view AttributeValue(const std::string_view& /*key*/) { return ""; }
 
     bool AreEqual(std::vector<T>& obj1, std::vector<T>& obj2)
     {

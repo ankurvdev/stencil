@@ -6,3 +6,24 @@ struct CommandLineOptions
 		i32	httpsPort = 3443	(Name1 = "Listen Port", Description = "TCP port on which to listen for incoming HTTP connections"),
 		bool daemon = false	(Name1 = "Run as Daemon", Description = "Run as daemon")
 }
+
+struct SimpleObj
+{
+	string field1;
+	string field2;
+}
+
+struct ObjWithList
+{
+	list<string> field1;
+}
+
+struct CLOptsTest
+{
+	string key1;
+	list<i32> listofint;
+	list<list<i32>> listoflist
+	list<SimpleObj> listofobj
+	ObjWithList objoflist
+	string key2;
+}
