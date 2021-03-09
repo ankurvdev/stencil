@@ -1,6 +1,7 @@
 #pragma once
 #include "base.h"
 #include "optionalprops.h"
+#include "mutatorsaccessors.h"
 
 #include <bitset>
 namespace Stencil

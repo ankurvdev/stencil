@@ -1,5 +1,6 @@
 #pragma once
-#include "datarecorder.h"
+#include "serdes.h"
+#include "visitor.h"
 
 namespace Stencil
 {
@@ -27,22 +28,30 @@ template <typename T> struct Mutators<std::vector<T>>
         }
     }
 
+    template <typename TSerDes = BinarySerDes>
     static std::vector<uint8_t> GenerateMutationData(uint8_t mutationIndex, std::vector<T> const& /*fieldVal*/, T const& val)
     {
         if (mutationIndex == 1)    // add
         {
-            return BinarySerDesHandler<T>::Serialize(val);
+            Visitor<T const> visitor(val);
+            Writer     writer;
+            TSerDes::Serialize(visitor, writer);
+            return writer.Reset();
         }
 
         TODO("Whats a mutation");
         return {};
     }
 
+    template <typename TSerDes = BinarySerDes>
     static std::vector<uint8_t> GenerateMutationData(uint8_t mutationIndex, std::vector<T> const& /*fieldVal*/, size_t const& val)
     {
         if (mutationIndex == 2)    // add
         {
-            return BinarySerDesHandler<size_t>::Serialize(val);
+            Visitor<size_t const> visitor(val);
+            Writer                writer;
+            TSerDes::Serialize(visitor, writer);
+            return writer.Reset();
         }
 
         TODO("Whats a mutation");

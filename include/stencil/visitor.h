@@ -117,7 +117,7 @@ template <typename T> struct Visitor
         return *this;
     }
 
-    template <typename TKey, typename TSerDes = BinarySerDes> Visitor& Select(TKey const& key)
+    template <typename TKey, typename TSerDes> Visitor& Select(TKey const& key)
     {
         if constexpr (Value::Supported<TKey>::value)
         {
