@@ -30,49 +30,6 @@ template <typename T, typename _Ts = void> struct DeltaTracker
         throw std::logic_error("Illegal Visit");
     }
 };
-#if 0
-template < typename T> struct GenericDeltaTracker
-{
-    T* const   _ptr;
-    bool const _changed{false};
-
-    DELETE_COPY_AND_MOVE(GenericDeltaTracker);
-
-    GenericDeltaTracker(T* ptr) : _ptr(ptr){};
-
-    using TData = T;
-    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
-
-    bool IsChanged() const { return _changed; }
-
-    size_t NumFields() const { return 0; }
-
-    bool   OnlyHasDefaultMutator() const { return true; }
-    size_t CountFieldsChanged() const { return 0; }
-
-    uint8_t MutatorIndex() const;
-
-    template <typename TLambda, typename TFieldIndex> void Visit(TFieldIndex /*index*/, TLambda&& /*lambda*/) const
-    {
-        throw std::logic_error("Illegal Visit");
-    }
-};
-
-template <typename T> struct DeltaTracker<T, std::enable_if_t<Value::Supported<T>::value>> : GenericDeltaTracker<T>
-{
-    DELETE_COPY_AND_MOVE(DeltaTracker);
-    template <typename... TArgs> DeltaTracker(TArgs&&... args) : GenericDeltaTracker<T>(std::forward<TArgs>(args)...) {}
-};
-
-template <typename TClock> struct DeltaTracker<std::chrono::time_point<TClock>> : GenericDeltaTracker<std::chrono::time_point<TClock>>
-{
-    DELETE_COPY_AND_MOVE(DeltaTracker);
-    template <typename... TArgs>
-    DeltaTracker(TArgs&&... args) : GenericDeltaTracker<std::chrono::time_point<TClock>>(std::forward<TArgs>(args)...)
-    {
-    }
-};
-#endif
 template <typename T, size_t N> struct DeltaTracker<std::array<T, N>>
 {
     using TData = std::array<T, N>;

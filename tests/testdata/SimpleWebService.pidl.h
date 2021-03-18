@@ -60,7 +60,6 @@ struct Data :
 
     void set_randomInteger(int32_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::randomInteger, _randomInteger, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::randomInteger, _randomInteger, val);
         _randomInteger = std::move(val);
     }
@@ -78,7 +77,6 @@ struct Data :
 
     void set_randomString(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::randomString, _randomString, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::randomString, _randomString, val);
         _randomString = std::move(val);
     }
@@ -271,42 +269,61 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     using TData = T;
 
     // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
+    TData* const _ptr;
     // TODO : Better way to unify creation interface
-    bool _changed = false;
 
+    std::bitset<TData::FieldCount() + 1> _fieldtracker;
+    DeltaTracker<int32_t> _subtracker_randomInteger;
+    DeltaTracker<shared_string> _subtracker_randomString;
     DELETE_COPY_AND_MOVE(DeltaTracker);
 
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    DeltaTracker(TData* ptr) :
+        _ptr(ptr)
+        ,
+        _subtracker_randomInteger(&_ptr->randomInteger())
+        ,
+        _subtracker_randomString(&_ptr->randomString())
     {
         // TODO: Tentative
         static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
 
+    TData& Obj() { return *_ptr; }
+
     static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
 
     size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+    bool   IsChanged() const { return _fieldtracker.any(); }
 
     uint8_t MutatorIndex() const;
     bool    OnlyHasDefaultMutator() const;
 
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
 
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::randomInteger:
-            lambda(DeltaTracker<int32_t>(&_ptr->randomInteger(), IsFieldChanged(TData::FieldIndex::randomInteger)));
-            return;
-        case TData::FieldIndex::randomString:
-            lambda(DeltaTracker<shared_string>(&_ptr->randomString(), IsFieldChanged(TData::FieldIndex::randomString)));
-            return;
+        case TData::FieldIndex::randomInteger: lambda(_subtracker_randomInteger); return;
+        case TData::FieldIndex::randomString: lambda(_subtracker_randomString); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    void set_randomInteger(int32_t&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::randomInteger, _ptr->randomInteger(), val);
+        _ptr->set_randomInteger(std::move(val));
+    }
+
+    void set_randomString(shared_string&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::randomString, _ptr->randomString(), val);
+        _ptr->set_randomString(std::move(val));
+    }
+
 };
 

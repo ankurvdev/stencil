@@ -23,13 +23,7 @@
 #include <unordered_map>
 #include <vector>
 
-/* TODO: 
-* 1. Get rid of timestamp
-* 2. Fix interfaces . No more templated virtual classes. Simplify and isolate
-* 3. Union -> Variant
-* 4. Value -> Fixed64BitValue
-* 5. 
-*/
+// TODO: Get rid of this
 using timestamp = decltype(std::chrono::system_clock::now());
 
 namespace ReflectionBase
@@ -649,8 +643,6 @@ template <typename TFieldTraits> struct ObjectDataTypeHandler<DataType::List, TF
         auto  structptr = static_cast<TOwner*>(rawptr);
         auto& obj       = (structptr->*(TFieldTraits::TPropertyGetter()))();
         return _handler.TryGetSubComponent(&obj, index, subcomponent);
-        //subcomponent    = {&_handler, (void*)&obj};
-        //return true;
     }
 
     virtual shared_string Description() const override

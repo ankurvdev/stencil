@@ -94,7 +94,6 @@ struct Data :
 
     void set_workingDirectory(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::workingDirectory, _workingDirectory, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::workingDirectory, _workingDirectory, val);
         _workingDirectory = std::move(val);
     }
@@ -112,7 +111,6 @@ struct Data :
 
     void set_libraries(std::vector<shared_string>&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::libraries, _libraries, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::libraries, _libraries, val);
         _libraries = std::move(val);
     }
@@ -144,7 +142,6 @@ struct Data :
 
     void set_scan(std::vector<shared_string>&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::scan, _scan, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::scan, _scan, val);
         _scan = std::move(val);
     }
@@ -176,7 +173,6 @@ struct Data :
 
     void set_httpsPort(int32_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::httpsPort, _httpsPort, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::httpsPort, _httpsPort, val);
         _httpsPort = std::move(val);
     }
@@ -194,7 +190,6 @@ struct Data :
 
     void set_daemon(bool&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::daemon, _daemon, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::daemon, _daemon, val);
         _daemon = std::move(val);
     }
@@ -256,7 +251,6 @@ struct Data :
 
     void set_field1(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::field1, _field1, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::field1, _field1, val);
         _field1 = std::move(val);
     }
@@ -274,7 +268,6 @@ struct Data :
 
     void set_field2(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::field2, _field2, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::field2, _field2, val);
         _field2 = std::move(val);
     }
@@ -332,7 +325,6 @@ struct Data :
 
     void set_field1(std::vector<shared_string>&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::field1, _field1, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::field1, _field1, val);
         _field1 = std::move(val);
     }
@@ -424,7 +416,6 @@ struct Data :
 
     void set_key1(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::key1, _key1, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::key1, _key1, val);
         _key1 = std::move(val);
     }
@@ -442,7 +433,6 @@ struct Data :
 
     void set_listofint(std::vector<int32_t>&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::listofint, _listofint, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::listofint, _listofint, val);
         _listofint = std::move(val);
     }
@@ -474,7 +464,6 @@ struct Data :
 
     void set_listoflist(std::vector<std::vector<int32_t>>&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::listoflist, _listoflist, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::listoflist, _listoflist, val);
         _listoflist = std::move(val);
     }
@@ -506,7 +495,6 @@ struct Data :
 
     void set_listofobj(std::vector<::CLOpts1::SimpleObj::Data>&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::listofobj, _listofobj, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::listofobj, _listofobj, val);
         _listofobj = std::move(val);
     }
@@ -538,7 +526,6 @@ struct Data :
 
     void set_objoflist(::CLOpts1::ObjWithList::Data&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::objoflist, _objoflist, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::objoflist, _objoflist, val);
         _objoflist = std::move(val);
     }
@@ -556,7 +543,6 @@ struct Data :
 
     void set_key2(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::key2, _key2, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::key2, _key2, val);
         _key2 = std::move(val);
     }
@@ -698,52 +684,134 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     using TData = T;
 
     // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
+    TData* const _ptr;
     // TODO : Better way to unify creation interface
-    bool _changed = false;
 
+    std::bitset<TData::FieldCount() + 1> _fieldtracker;
+    DeltaTracker<shared_string> _subtracker_workingDirectory;
+    DeltaTracker<std::vector<shared_string>> _subtracker_libraries;
+    DeltaTracker<std::vector<shared_string>> _subtracker_scan;
+    DeltaTracker<int32_t> _subtracker_httpsPort;
+    DeltaTracker<bool> _subtracker_daemon;
     DELETE_COPY_AND_MOVE(DeltaTracker);
 
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    DeltaTracker(TData* ptr) :
+        _ptr(ptr)
+        ,
+        _subtracker_workingDirectory(&_ptr->workingDirectory())
+        ,
+        _subtracker_libraries(&_ptr->libraries())
+        ,
+        _subtracker_scan(&_ptr->scan())
+        ,
+        _subtracker_httpsPort(&_ptr->httpsPort())
+        ,
+        _subtracker_daemon(&_ptr->daemon())
     {
         // TODO: Tentative
         static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
 
+    TData& Obj() { return *_ptr; }
+
     static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
 
     size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+    bool   IsChanged() const { return _fieldtracker.any(); }
 
     uint8_t MutatorIndex() const;
     bool    OnlyHasDefaultMutator() const;
 
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
 
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::workingDirectory:
-            lambda(DeltaTracker<shared_string>(&_ptr->workingDirectory(), IsFieldChanged(TData::FieldIndex::workingDirectory)));
-            return;
-        case TData::FieldIndex::libraries:
-            lambda(DeltaTracker<std::vector<shared_string>>(&_ptr->libraries(), IsFieldChanged(TData::FieldIndex::libraries)));
-            return;
-        case TData::FieldIndex::scan:
-            lambda(DeltaTracker<std::vector<shared_string>>(&_ptr->scan(), IsFieldChanged(TData::FieldIndex::scan)));
-            return;
-        case TData::FieldIndex::httpsPort:
-            lambda(DeltaTracker<int32_t>(&_ptr->httpsPort(), IsFieldChanged(TData::FieldIndex::httpsPort)));
-            return;
-        case TData::FieldIndex::daemon:
-            lambda(DeltaTracker<bool>(&_ptr->daemon(), IsFieldChanged(TData::FieldIndex::daemon)));
-            return;
+        case TData::FieldIndex::workingDirectory: lambda(_subtracker_workingDirectory); return;
+        case TData::FieldIndex::libraries: lambda(_subtracker_libraries); return;
+        case TData::FieldIndex::scan: lambda(_subtracker_scan); return;
+        case TData::FieldIndex::httpsPort: lambda(_subtracker_httpsPort); return;
+        case TData::FieldIndex::daemon: lambda(_subtracker_daemon); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    void set_workingDirectory(shared_string&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::workingDirectory, _ptr->workingDirectory(), val);
+        _ptr->set_workingDirectory(std::move(val));
+    }
+
+    void set_libraries(std::vector<shared_string>&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::libraries, _ptr->libraries(), val);
+        _ptr->set_libraries(std::move(val));
+    }
+
+    void add_libraries(shared_string&& args)
+    {
+        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::libraries, uint8_t{1}, _libraries,
+        //        args);
+        return _ptr->add_libraries(std::move(args));
+
+        //        return Stencil::Mutators<std::vector<shared_string>>::add(_libraries, std::move(args));
+    }
+    void remove_libraries(size_t&& args)
+    {
+        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::libraries, uint8_t{2}, _libraries,
+        //        args);
+        return _ptr->remove_libraries(std::move(args));
+
+        //        return Stencil::Mutators<std::vector<shared_string>>::remove(_libraries, std::move(args));
+    }
+    shared_string at_libraries(size_t const& args) const
+    {
+        //        return Stencil::Accessors<std::vector<shared_string>>::at(_libraries, args);
+        return _ptr->at_libraries(args);
+    }
+    void set_scan(std::vector<shared_string>&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::scan, _ptr->scan(), val);
+        _ptr->set_scan(std::move(val));
+    }
+
+    void add_scan(shared_string&& args)
+    {
+        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::scan, uint8_t{1}, _scan,
+        //        args);
+        return _ptr->add_scan(std::move(args));
+
+        //        return Stencil::Mutators<std::vector<shared_string>>::add(_scan, std::move(args));
+    }
+    void remove_scan(size_t&& args)
+    {
+        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::scan, uint8_t{2}, _scan,
+        //        args);
+        return _ptr->remove_scan(std::move(args));
+
+        //        return Stencil::Mutators<std::vector<shared_string>>::remove(_scan, std::move(args));
+    }
+    shared_string at_scan(size_t const& args) const
+    {
+        //        return Stencil::Accessors<std::vector<shared_string>>::at(_scan, args);
+        return _ptr->at_scan(args);
+    }
+    void set_httpsPort(int32_t&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::httpsPort, _ptr->httpsPort(), val);
+        _ptr->set_httpsPort(std::move(val));
+    }
+
+    void set_daemon(bool&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::daemon, _ptr->daemon(), val);
+        _ptr->set_daemon(std::move(val));
+    }
+
 };
 
 template <> struct ReflectionBase::TypeTraits<CLOpts1::SimpleObj::Data&>
@@ -813,43 +881,62 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     using TData = T;
 
     // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
+    TData* const _ptr;
     // TODO : Better way to unify creation interface
-    bool _changed = false;
 
+    std::bitset<TData::FieldCount() + 1> _fieldtracker;
+    DeltaTracker<shared_string> _subtracker_field1;
+    DeltaTracker<shared_string> _subtracker_field2;
     DELETE_COPY_AND_MOVE(DeltaTracker);
 
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    DeltaTracker(TData* ptr) :
+        _ptr(ptr)
+        ,
+        _subtracker_field1(&_ptr->field1())
+        ,
+        _subtracker_field2(&_ptr->field2())
     {
         // TODO: Tentative
         static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
 
+    TData& Obj() { return *_ptr; }
+
     static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
 
     size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+    bool   IsChanged() const { return _fieldtracker.any(); }
 
     uint8_t MutatorIndex() const;
     bool    OnlyHasDefaultMutator() const;
 
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
 
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::field1:
-            lambda(DeltaTracker<shared_string>(&_ptr->field1(), IsFieldChanged(TData::FieldIndex::field1)));
-            return;
-        case TData::FieldIndex::field2:
-            lambda(DeltaTracker<shared_string>(&_ptr->field2(), IsFieldChanged(TData::FieldIndex::field2)));
-            return;
+        case TData::FieldIndex::field1: lambda(_subtracker_field1); return;
+        case TData::FieldIndex::field2: lambda(_subtracker_field2); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    void set_field1(shared_string&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::field1, _ptr->field1(), val);
+        _ptr->set_field1(std::move(val));
+    }
+
+    void set_field2(shared_string&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::field2, _ptr->field2(), val);
+        _ptr->set_field2(std::move(val));
+    }
+
 };
 
 template <> struct ReflectionBase::TypeTraits<CLOpts1::ObjWithList::Data&>
@@ -898,39 +985,72 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     using TData = T;
 
     // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
+    TData* const _ptr;
     // TODO : Better way to unify creation interface
-    bool _changed = false;
 
+    std::bitset<TData::FieldCount() + 1> _fieldtracker;
+    DeltaTracker<std::vector<shared_string>> _subtracker_field1;
     DELETE_COPY_AND_MOVE(DeltaTracker);
 
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    DeltaTracker(TData* ptr) :
+        _ptr(ptr)
+        ,
+        _subtracker_field1(&_ptr->field1())
     {
         // TODO: Tentative
         static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
 
+    TData& Obj() { return *_ptr; }
+
     static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
 
     size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+    bool   IsChanged() const { return _fieldtracker.any(); }
 
     uint8_t MutatorIndex() const;
     bool    OnlyHasDefaultMutator() const;
 
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
 
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::field1:
-            lambda(DeltaTracker<std::vector<shared_string>>(&_ptr->field1(), IsFieldChanged(TData::FieldIndex::field1)));
-            return;
+        case TData::FieldIndex::field1: lambda(_subtracker_field1); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
+    }
+
+    void set_field1(std::vector<shared_string>&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::field1, _ptr->field1(), val);
+        _ptr->set_field1(std::move(val));
+    }
+
+    void add_field1(shared_string&& args)
+    {
+        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::field1, uint8_t{1}, _field1,
+        //        args);
+        return _ptr->add_field1(std::move(args));
+
+        //        return Stencil::Mutators<std::vector<shared_string>>::add(_field1, std::move(args));
+    }
+    void remove_field1(size_t&& args)
+    {
+        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::field1, uint8_t{2}, _field1,
+        //        args);
+        return _ptr->remove_field1(std::move(args));
+
+        //        return Stencil::Mutators<std::vector<shared_string>>::remove(_field1, std::move(args));
+    }
+    shared_string at_field1(size_t const& args) const
+    {
+        //        return Stencil::Accessors<std::vector<shared_string>>::at(_field1, args);
+        return _ptr->at_field1(args);
     }
 };
 
@@ -1085,54 +1205,164 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     using TData = T;
 
     // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
+    TData* const _ptr;
     // TODO : Better way to unify creation interface
-    bool _changed = false;
 
+    std::bitset<TData::FieldCount() + 1> _fieldtracker;
+    DeltaTracker<shared_string> _subtracker_key1;
+    DeltaTracker<std::vector<int32_t>> _subtracker_listofint;
+    DeltaTracker<std::vector<std::vector<int32_t>>> _subtracker_listoflist;
+    DeltaTracker<std::vector<::CLOpts1::SimpleObj::Data>> _subtracker_listofobj;
+    DeltaTracker<::CLOpts1::ObjWithList::Data> _subtracker_objoflist;
+    DeltaTracker<shared_string> _subtracker_key2;
     DELETE_COPY_AND_MOVE(DeltaTracker);
 
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    DeltaTracker(TData* ptr) :
+        _ptr(ptr)
+        ,
+        _subtracker_key1(&_ptr->key1())
+        ,
+        _subtracker_listofint(&_ptr->listofint())
+        ,
+        _subtracker_listoflist(&_ptr->listoflist())
+        ,
+        _subtracker_listofobj(&_ptr->listofobj())
+        ,
+        _subtracker_objoflist(&_ptr->objoflist())
+        ,
+        _subtracker_key2(&_ptr->key2())
     {
         // TODO: Tentative
         static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
 
+    TData& Obj() { return *_ptr; }
+
     static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
 
     size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+    bool   IsChanged() const { return _fieldtracker.any(); }
 
     uint8_t MutatorIndex() const;
     bool    OnlyHasDefaultMutator() const;
 
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
 
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::key1:
-            lambda(DeltaTracker<shared_string>(&_ptr->key1(), IsFieldChanged(TData::FieldIndex::key1)));
-            return;
-        case TData::FieldIndex::listofint:
-            lambda(DeltaTracker<std::vector<int32_t>>(&_ptr->listofint(), IsFieldChanged(TData::FieldIndex::listofint)));
-            return;
-        case TData::FieldIndex::listoflist:
-            lambda(DeltaTracker<std::vector<std::vector<int32_t>>>(&_ptr->listoflist(), IsFieldChanged(TData::FieldIndex::listoflist)));
-            return;
-        case TData::FieldIndex::listofobj:
-            lambda(DeltaTracker<std::vector<::CLOpts1::SimpleObj::Data>>(&_ptr->listofobj(), IsFieldChanged(TData::FieldIndex::listofobj)));
-            return;
-        case TData::FieldIndex::objoflist:
-            lambda(DeltaTracker<::CLOpts1::ObjWithList::Data>(&_ptr->objoflist(), IsFieldChanged(TData::FieldIndex::objoflist)));
-            return;
-        case TData::FieldIndex::key2:
-            lambda(DeltaTracker<shared_string>(&_ptr->key2(), IsFieldChanged(TData::FieldIndex::key2)));
-            return;
+        case TData::FieldIndex::key1: lambda(_subtracker_key1); return;
+        case TData::FieldIndex::listofint: lambda(_subtracker_listofint); return;
+        case TData::FieldIndex::listoflist: lambda(_subtracker_listoflist); return;
+        case TData::FieldIndex::listofobj: lambda(_subtracker_listofobj); return;
+        case TData::FieldIndex::objoflist: lambda(_subtracker_objoflist); return;
+        case TData::FieldIndex::key2: lambda(_subtracker_key2); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    void set_key1(shared_string&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::key1, _ptr->key1(), val);
+        _ptr->set_key1(std::move(val));
+    }
+
+    void set_listofint(std::vector<int32_t>&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::listofint, _ptr->listofint(), val);
+        _ptr->set_listofint(std::move(val));
+    }
+
+    void add_listofint(int32_t&& args)
+    {
+        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::listofint, uint8_t{1}, _listofint,
+        //        args);
+        return _ptr->add_listofint(std::move(args));
+
+        //        return Stencil::Mutators<std::vector<int32_t>>::add(_listofint, std::move(args));
+    }
+    void remove_listofint(size_t&& args)
+    {
+        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::listofint, uint8_t{2}, _listofint,
+        //        args);
+        return _ptr->remove_listofint(std::move(args));
+
+        //        return Stencil::Mutators<std::vector<int32_t>>::remove(_listofint, std::move(args));
+    }
+    int32_t at_listofint(size_t const& args) const
+    {
+        //        return Stencil::Accessors<std::vector<int32_t>>::at(_listofint, args);
+        return _ptr->at_listofint(args);
+    }
+    void set_listoflist(std::vector<std::vector<int32_t>>&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::listoflist, _ptr->listoflist(), val);
+        _ptr->set_listoflist(std::move(val));
+    }
+
+    void add_listoflist(std::vector<int32_t>&& args)
+    {
+        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::listoflist, uint8_t{1}, _listoflist,
+        //        args);
+        return _ptr->add_listoflist(std::move(args));
+
+        //        return Stencil::Mutators<std::vector<std::vector<int32_t>>>::add(_listoflist, std::move(args));
+    }
+    void remove_listoflist(size_t&& args)
+    {
+        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::listoflist, uint8_t{2}, _listoflist,
+        //        args);
+        return _ptr->remove_listoflist(std::move(args));
+
+        //        return Stencil::Mutators<std::vector<std::vector<int32_t>>>::remove(_listoflist, std::move(args));
+    }
+    std::vector<int32_t> at_listoflist(size_t const& args) const
+    {
+        //        return Stencil::Accessors<std::vector<std::vector<int32_t>>>::at(_listoflist, args);
+        return _ptr->at_listoflist(args);
+    }
+    void set_listofobj(std::vector<::CLOpts1::SimpleObj::Data>&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::listofobj, _ptr->listofobj(), val);
+        _ptr->set_listofobj(std::move(val));
+    }
+
+    void add_listofobj(::CLOpts1::SimpleObj::Data&& args)
+    {
+        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::listofobj, uint8_t{1}, _listofobj,
+        //        args);
+        return _ptr->add_listofobj(std::move(args));
+
+        //        return Stencil::Mutators<std::vector<::CLOpts1::SimpleObj::Data>>::add(_listofobj, std::move(args));
+    }
+    void remove_listofobj(size_t&& args)
+    {
+        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::listofobj, uint8_t{2}, _listofobj,
+        //        args);
+        return _ptr->remove_listofobj(std::move(args));
+
+        //        return Stencil::Mutators<std::vector<::CLOpts1::SimpleObj::Data>>::remove(_listofobj, std::move(args));
+    }
+    ::CLOpts1::SimpleObj::Data at_listofobj(size_t const& args) const
+    {
+        //        return Stencil::Accessors<std::vector<::CLOpts1::SimpleObj::Data>>::at(_listofobj, args);
+        return _ptr->at_listofobj(args);
+    }
+    void set_objoflist(::CLOpts1::ObjWithList::Data&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::objoflist, _ptr->objoflist(), val);
+        _ptr->set_objoflist(std::move(val));
+    }
+
+    void set_key2(shared_string&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::key2, _ptr->key2(), val);
+        _ptr->set_key2(std::move(val));
+    }
+
 };
 

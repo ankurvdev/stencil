@@ -71,7 +71,6 @@ struct Data :
 
     void set_modified(timestamp&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::modified, _modified, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::modified, _modified, val);
         _modified = std::move(val);
     }
@@ -89,7 +88,6 @@ struct Data :
 
     void set_creation(timestamp&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::creation, _creation, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::creation, _creation, val);
         _creation = std::move(val);
     }
@@ -167,7 +165,6 @@ struct Data :
 
     void set_username(::Database2::ChildRef<Database2::WideString>&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::username, _username, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::username, _username, val);
         _username = std::move(val);
     }
@@ -185,7 +182,6 @@ struct Data :
 
     void set_password(::Database2::ChildRef<Database2::WideString>&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::password, _password, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::password, _password, val);
         _password = std::move(val);
     }
@@ -203,7 +199,6 @@ struct Data :
 
     void set_privatekey(::Database2::ChildRef<Database2::WideString>&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::privatekey, _privatekey, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::privatekey, _privatekey, val);
         _privatekey = std::move(val);
     }
@@ -221,7 +216,6 @@ struct Data :
 
     void set_clientcert(::Database2::ChildRef<Database2::WideString>&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::clientcert, _clientcert, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::clientcert, _clientcert, val);
         _clientcert = std::move(val);
     }
@@ -239,7 +233,6 @@ struct Data :
 
     void set_secretcode(::Database2::ChildRef<Database2::WideString>&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::secretcode, _secretcode, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::secretcode, _secretcode, val);
         _secretcode = std::move(val);
     }
@@ -308,7 +301,6 @@ struct Data :
 
     void set_name(::Database2::ChildRef<Database2::WideString>&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::name, _name, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::name, _name, val);
         _name = std::move(val);
     }
@@ -326,7 +318,6 @@ struct Data :
 
     void set_uri(::Database2::ChildRef<Database2::WideString>&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::uri, _uri, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::uri, _uri, val);
         _uri = std::move(val);
     }
@@ -344,7 +335,6 @@ struct Data :
 
     void set_identity(::UuidBasedId<::UserData::Identity::Data>&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::identity, _identity, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::identity, _identity, val);
         _identity = std::move(val);
     }
@@ -421,43 +411,62 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     using TData = T;
 
     // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
+    TData* const _ptr;
     // TODO : Better way to unify creation interface
-    bool _changed = false;
 
+    std::bitset<TData::FieldCount() + 1> _fieldtracker;
+    DeltaTracker<timestamp> _subtracker_modified;
+    DeltaTracker<timestamp> _subtracker_creation;
     DELETE_COPY_AND_MOVE(DeltaTracker);
 
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    DeltaTracker(TData* ptr) :
+        _ptr(ptr)
+        ,
+        _subtracker_modified(&_ptr->modified())
+        ,
+        _subtracker_creation(&_ptr->creation())
     {
         // TODO: Tentative
         static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
 
+    TData& Obj() { return *_ptr; }
+
     static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
 
     size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+    bool   IsChanged() const { return _fieldtracker.any(); }
 
     uint8_t MutatorIndex() const;
     bool    OnlyHasDefaultMutator() const;
 
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
 
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::modified:
-            lambda(DeltaTracker<timestamp>(&_ptr->modified(), IsFieldChanged(TData::FieldIndex::modified)));
-            return;
-        case TData::FieldIndex::creation:
-            lambda(DeltaTracker<timestamp>(&_ptr->creation(), IsFieldChanged(TData::FieldIndex::creation)));
-            return;
+        case TData::FieldIndex::modified: lambda(_subtracker_modified); return;
+        case TData::FieldIndex::creation: lambda(_subtracker_creation); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    void set_modified(timestamp&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::modified, _ptr->modified(), val);
+        _ptr->set_modified(std::move(val));
+    }
+
+    void set_creation(timestamp&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::creation, _ptr->creation(), val);
+        _ptr->set_creation(std::move(val));
+    }
+
 };
 
 template <> struct ReflectionBase::TypeTraits<UserData::Identity::Data&>
@@ -590,52 +599,92 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     using TData = T;
 
     // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
+    TData* const _ptr;
     // TODO : Better way to unify creation interface
-    bool _changed = false;
 
+    std::bitset<TData::FieldCount() + 1> _fieldtracker;
+    DeltaTracker<::Database2::ChildRef<Database2::WideString>> _subtracker_username;
+    DeltaTracker<::Database2::ChildRef<Database2::WideString>> _subtracker_password;
+    DeltaTracker<::Database2::ChildRef<Database2::WideString>> _subtracker_privatekey;
+    DeltaTracker<::Database2::ChildRef<Database2::WideString>> _subtracker_clientcert;
+    DeltaTracker<::Database2::ChildRef<Database2::WideString>> _subtracker_secretcode;
     DELETE_COPY_AND_MOVE(DeltaTracker);
 
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    DeltaTracker(TData* ptr) :
+        _ptr(ptr)
+        ,
+        _subtracker_username(&_ptr->username())
+        ,
+        _subtracker_password(&_ptr->password())
+        ,
+        _subtracker_privatekey(&_ptr->privatekey())
+        ,
+        _subtracker_clientcert(&_ptr->clientcert())
+        ,
+        _subtracker_secretcode(&_ptr->secretcode())
     {
         // TODO: Tentative
         static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
 
+    TData& Obj() { return *_ptr; }
+
     static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
 
     size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+    bool   IsChanged() const { return _fieldtracker.any(); }
 
     uint8_t MutatorIndex() const;
     bool    OnlyHasDefaultMutator() const;
 
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
 
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::username:
-            lambda(DeltaTracker<::Database2::ChildRef<Database2::WideString>>(&_ptr->username(), IsFieldChanged(TData::FieldIndex::username)));
-            return;
-        case TData::FieldIndex::password:
-            lambda(DeltaTracker<::Database2::ChildRef<Database2::WideString>>(&_ptr->password(), IsFieldChanged(TData::FieldIndex::password)));
-            return;
-        case TData::FieldIndex::privatekey:
-            lambda(DeltaTracker<::Database2::ChildRef<Database2::WideString>>(&_ptr->privatekey(), IsFieldChanged(TData::FieldIndex::privatekey)));
-            return;
-        case TData::FieldIndex::clientcert:
-            lambda(DeltaTracker<::Database2::ChildRef<Database2::WideString>>(&_ptr->clientcert(), IsFieldChanged(TData::FieldIndex::clientcert)));
-            return;
-        case TData::FieldIndex::secretcode:
-            lambda(DeltaTracker<::Database2::ChildRef<Database2::WideString>>(&_ptr->secretcode(), IsFieldChanged(TData::FieldIndex::secretcode)));
-            return;
+        case TData::FieldIndex::username: lambda(_subtracker_username); return;
+        case TData::FieldIndex::password: lambda(_subtracker_password); return;
+        case TData::FieldIndex::privatekey: lambda(_subtracker_privatekey); return;
+        case TData::FieldIndex::clientcert: lambda(_subtracker_clientcert); return;
+        case TData::FieldIndex::secretcode: lambda(_subtracker_secretcode); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    void set_username(::Database2::ChildRef<Database2::WideString>&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::username, _ptr->username(), val);
+        _ptr->set_username(std::move(val));
+    }
+
+    void set_password(::Database2::ChildRef<Database2::WideString>&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::password, _ptr->password(), val);
+        _ptr->set_password(std::move(val));
+    }
+
+    void set_privatekey(::Database2::ChildRef<Database2::WideString>&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::privatekey, _ptr->privatekey(), val);
+        _ptr->set_privatekey(std::move(val));
+    }
+
+    void set_clientcert(::Database2::ChildRef<Database2::WideString>&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::clientcert, _ptr->clientcert(), val);
+        _ptr->set_clientcert(std::move(val));
+    }
+
+    void set_secretcode(::Database2::ChildRef<Database2::WideString>&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::secretcode, _ptr->secretcode(), val);
+        _ptr->set_secretcode(std::move(val));
+    }
+
 };
 
 template <> struct ReflectionBase::TypeTraits<UserData::RemoteHost::Data&>
@@ -726,45 +775,71 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     using TData = T;
 
     // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
+    TData* const _ptr;
     // TODO : Better way to unify creation interface
-    bool _changed = false;
 
+    std::bitset<TData::FieldCount() + 1> _fieldtracker;
+    DeltaTracker<::Database2::ChildRef<Database2::WideString>> _subtracker_name;
+    DeltaTracker<::Database2::ChildRef<Database2::WideString>> _subtracker_uri;
+    DeltaTracker<::UuidBasedId<::UserData::Identity::Data>> _subtracker_identity;
     DELETE_COPY_AND_MOVE(DeltaTracker);
 
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    DeltaTracker(TData* ptr) :
+        _ptr(ptr)
+        ,
+        _subtracker_name(&_ptr->name())
+        ,
+        _subtracker_uri(&_ptr->uri())
+        ,
+        _subtracker_identity(&_ptr->identity())
     {
         // TODO: Tentative
         static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
 
+    TData& Obj() { return *_ptr; }
+
     static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
 
     size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+    bool   IsChanged() const { return _fieldtracker.any(); }
 
     uint8_t MutatorIndex() const;
     bool    OnlyHasDefaultMutator() const;
 
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
 
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::name:
-            lambda(DeltaTracker<::Database2::ChildRef<Database2::WideString>>(&_ptr->name(), IsFieldChanged(TData::FieldIndex::name)));
-            return;
-        case TData::FieldIndex::uri:
-            lambda(DeltaTracker<::Database2::ChildRef<Database2::WideString>>(&_ptr->uri(), IsFieldChanged(TData::FieldIndex::uri)));
-            return;
-        case TData::FieldIndex::identity:
-            lambda(DeltaTracker<::UuidBasedId<::UserData::Identity::Data>>(&_ptr->identity(), IsFieldChanged(TData::FieldIndex::identity)));
-            return;
+        case TData::FieldIndex::name: lambda(_subtracker_name); return;
+        case TData::FieldIndex::uri: lambda(_subtracker_uri); return;
+        case TData::FieldIndex::identity: lambda(_subtracker_identity); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    void set_name(::Database2::ChildRef<Database2::WideString>&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::name, _ptr->name(), val);
+        _ptr->set_name(std::move(val));
+    }
+
+    void set_uri(::Database2::ChildRef<Database2::WideString>&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::uri, _ptr->uri(), val);
+        _ptr->set_uri(std::move(val));
+    }
+
+    void set_identity(::UuidBasedId<::UserData::Identity::Data>&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::identity, _ptr->identity(), val);
+        _ptr->set_identity(std::move(val));
+    }
+
 };
 

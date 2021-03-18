@@ -131,7 +131,6 @@ struct Data :
 
     void set_heading(int32_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::heading, _heading, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::heading, _heading, val);
         _heading = std::move(val);
     }
@@ -149,7 +148,6 @@ struct Data :
 
     void set_lat(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::lat, _lat, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::lat, _lat, val);
         _lat = std::move(val);
     }
@@ -167,7 +165,6 @@ struct Data :
 
     void set_lon(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::lon, _lon, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::lon, _lon, val);
         _lon = std::move(val);
     }
@@ -185,7 +182,6 @@ struct Data :
 
     void set_speed(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::speed, _speed, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::speed, _speed, val);
         _speed = std::move(val);
     }
@@ -203,7 +199,6 @@ struct Data :
 
     void set_utc(timestamp&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::utc, _utc, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::utc, _utc, val);
         _utc = std::move(val);
     }
@@ -221,7 +216,6 @@ struct Data :
 
     void set_galt(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::galt, _galt, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::galt, _galt, val);
         _galt = std::move(val);
     }
@@ -239,7 +233,6 @@ struct Data :
 
     void set_climb(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::climb, _climb, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::climb, _climb, val);
         _climb = std::move(val);
     }
@@ -257,7 +250,6 @@ struct Data :
 
     void set_epx(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::epx, _epx, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::epx, _epx, val);
         _epx = std::move(val);
     }
@@ -275,7 +267,6 @@ struct Data :
 
     void set_epy(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::epy, _epy, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::epy, _epy, val);
         _epy = std::move(val);
     }
@@ -293,7 +284,6 @@ struct Data :
 
     void set_epv(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::epv, _epv, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::epv, _epv, val);
         _epv = std::move(val);
     }
@@ -311,7 +301,6 @@ struct Data :
 
     void set_ept(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ept, _ept, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ept, _ept, val);
         _ept = std::move(val);
     }
@@ -329,7 +318,6 @@ struct Data :
 
     void set_eps(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::eps, _eps, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::eps, _eps, val);
         _eps = std::move(val);
     }
@@ -347,7 +335,6 @@ struct Data :
 
     void set_epc(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::epc, _epc, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::epc, _epc, val);
         _epc = std::move(val);
     }
@@ -365,7 +352,6 @@ struct Data :
 
     void set_eph(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::eph, _eph, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::eph, _eph, val);
         _eph = std::move(val);
     }
@@ -383,7 +369,6 @@ struct Data :
 
     void set_sep(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::sep, _sep, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::sep, _sep, val);
         _sep = std::move(val);
     }
@@ -507,7 +492,6 @@ struct Data :
 
     void set_seen(timestamp&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::seen, _seen, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::seen, _seen, val);
         _seen = std::move(val);
     }
@@ -525,7 +509,6 @@ struct Data :
 
     void set_addr(uint32_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::addr, _addr, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::addr, _addr, val);
         _addr = std::move(val);
     }
@@ -543,7 +526,6 @@ struct Data :
 
     void set_hexaddr(std::array<char, 7>&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::hexaddr, _hexaddr, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::hexaddr, _hexaddr, val);
         _hexaddr = std::move(val);
     }
@@ -565,7 +547,6 @@ struct Data :
 
     void set_flight(std::array<char, 9>&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::flight, _flight, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::flight, _flight, val);
         _flight = std::move(val);
     }
@@ -587,7 +568,6 @@ struct Data :
 
     void set_altitude(int32_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::altitude, _altitude, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::altitude, _altitude, val);
         _altitude = std::move(val);
     }
@@ -605,7 +585,6 @@ struct Data :
 
     void set_groundSpeed(int32_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::groundSpeed, _groundSpeed, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::groundSpeed, _groundSpeed, val);
         _groundSpeed = std::move(val);
     }
@@ -623,7 +602,6 @@ struct Data :
 
     void set_track(int32_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::track, _track, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::track, _track, val);
         _track = std::move(val);
     }
@@ -641,7 +619,6 @@ struct Data :
 
     void set_lat(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::lat, _lat, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::lat, _lat, val);
         _lat = std::move(val);
     }
@@ -659,7 +636,6 @@ struct Data :
 
     void set_lon(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::lon, _lon, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::lon, _lon, val);
         _lon = std::move(val);
     }
@@ -677,7 +653,6 @@ struct Data :
 
     void set_verticalRate(int32_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::verticalRate, _verticalRate, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::verticalRate, _verticalRate, val);
         _verticalRate = std::move(val);
     }
@@ -695,7 +670,6 @@ struct Data :
 
     void set_messageCount(int32_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::messageCount, _messageCount, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::messageCount, _messageCount, val);
         _messageCount = std::move(val);
     }
@@ -713,7 +687,6 @@ struct Data :
 
     void set_odd_cprlat(int32_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::odd_cprlat, _odd_cprlat, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::odd_cprlat, _odd_cprlat, val);
         _odd_cprlat = std::move(val);
     }
@@ -731,7 +704,6 @@ struct Data :
 
     void set_odd_cprlon(int32_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::odd_cprlon, _odd_cprlon, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::odd_cprlon, _odd_cprlon, val);
         _odd_cprlon = std::move(val);
     }
@@ -749,7 +721,6 @@ struct Data :
 
     void set_odd_cprtime(timestamp&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::odd_cprtime, _odd_cprtime, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::odd_cprtime, _odd_cprtime, val);
         _odd_cprtime = std::move(val);
     }
@@ -767,7 +738,6 @@ struct Data :
 
     void set_even_cprlat(int32_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::even_cprlat, _even_cprlat, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::even_cprlat, _even_cprlat, val);
         _even_cprlat = std::move(val);
     }
@@ -785,7 +755,6 @@ struct Data :
 
     void set_even_cprlon(int32_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::even_cprlon, _even_cprlon, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::even_cprlon, _even_cprlon, val);
         _even_cprlon = std::move(val);
     }
@@ -803,7 +772,6 @@ struct Data :
 
     void set_even_cprtime(timestamp&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::even_cprtime, _even_cprtime, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::even_cprtime, _even_cprtime, val);
         _even_cprtime = std::move(val);
     }
@@ -863,7 +831,6 @@ struct Data :
 
     void set_aircrafts(std::vector<::Avid::Aircraft::Data>&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::aircrafts, _aircrafts, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::aircrafts, _aircrafts, val);
         _aircrafts = std::move(val);
     }
@@ -1005,7 +972,6 @@ struct Data :
 
     void set_mag_x(int64_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::mag_x, _mag_x, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::mag_x, _mag_x, val);
         _mag_x = std::move(val);
     }
@@ -1023,7 +989,6 @@ struct Data :
 
     void set_mag_y(int64_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::mag_y, _mag_y, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::mag_y, _mag_y, val);
         _mag_y = std::move(val);
     }
@@ -1041,7 +1006,6 @@ struct Data :
 
     void set_mag_z(int64_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::mag_z, _mag_z, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::mag_z, _mag_z, val);
         _mag_z = std::move(val);
     }
@@ -1059,7 +1023,6 @@ struct Data :
 
     void set_acc_x(int64_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::acc_x, _acc_x, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::acc_x, _acc_x, val);
         _acc_x = std::move(val);
     }
@@ -1077,7 +1040,6 @@ struct Data :
 
     void set_acc_y(int64_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::acc_y, _acc_y, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::acc_y, _acc_y, val);
         _acc_y = std::move(val);
     }
@@ -1095,7 +1057,6 @@ struct Data :
 
     void set_acc_z(int64_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::acc_z, _acc_z, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::acc_z, _acc_z, val);
         _acc_z = std::move(val);
     }
@@ -1113,7 +1074,6 @@ struct Data :
 
     void set_rot_x(int64_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::rot_x, _rot_x, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::rot_x, _rot_x, val);
         _rot_x = std::move(val);
     }
@@ -1131,7 +1091,6 @@ struct Data :
 
     void set_rot_y(int64_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::rot_y, _rot_y, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::rot_y, _rot_y, val);
         _rot_y = std::move(val);
     }
@@ -1149,7 +1108,6 @@ struct Data :
 
     void set_rot_z(int64_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::rot_z, _rot_z, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::rot_z, _rot_z, val);
         _rot_z = std::move(val);
     }
@@ -1167,7 +1125,6 @@ struct Data :
 
     void set_dmag_x(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::dmag_x, _dmag_x, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::dmag_x, _dmag_x, val);
         _dmag_x = std::move(val);
     }
@@ -1185,7 +1142,6 @@ struct Data :
 
     void set_dmag_y(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::dmag_y, _dmag_y, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::dmag_y, _dmag_y, val);
         _dmag_y = std::move(val);
     }
@@ -1203,7 +1159,6 @@ struct Data :
 
     void set_dmag_z(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::dmag_z, _dmag_z, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::dmag_z, _dmag_z, val);
         _dmag_z = std::move(val);
     }
@@ -1221,7 +1176,6 @@ struct Data :
 
     void set_dacc_x(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::dacc_x, _dacc_x, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::dacc_x, _dacc_x, val);
         _dacc_x = std::move(val);
     }
@@ -1239,7 +1193,6 @@ struct Data :
 
     void set_dacc_y(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::dacc_y, _dacc_y, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::dacc_y, _dacc_y, val);
         _dacc_y = std::move(val);
     }
@@ -1257,7 +1210,6 @@ struct Data :
 
     void set_dacc_z(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::dacc_z, _dacc_z, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::dacc_z, _dacc_z, val);
         _dacc_z = std::move(val);
     }
@@ -1275,7 +1227,6 @@ struct Data :
 
     void set_drot_x(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::drot_x, _drot_x, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::drot_x, _drot_x, val);
         _drot_x = std::move(val);
     }
@@ -1293,7 +1244,6 @@ struct Data :
 
     void set_drot_y(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::drot_y, _drot_y, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::drot_y, _drot_y, val);
         _drot_y = std::move(val);
     }
@@ -1311,7 +1261,6 @@ struct Data :
 
     void set_drot_z(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::drot_z, _drot_z, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::drot_z, _drot_z, val);
         _drot_z = std::move(val);
     }
@@ -1376,7 +1325,6 @@ struct Data :
 
     void set_pressure(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::pressure, _pressure, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::pressure, _pressure, val);
         _pressure = std::move(val);
     }
@@ -1394,7 +1342,6 @@ struct Data :
 
     void set_temperature(double&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::temperature, _temperature, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::temperature, _temperature, val);
         _temperature = std::move(val);
     }
@@ -1744,82 +1691,192 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     using TData = T;
 
     // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
+    TData* const _ptr;
     // TODO : Better way to unify creation interface
-    bool _changed = false;
 
+    std::bitset<TData::FieldCount() + 1> _fieldtracker;
+    DeltaTracker<int32_t> _subtracker_heading;
+    DeltaTracker<double> _subtracker_lat;
+    DeltaTracker<double> _subtracker_lon;
+    DeltaTracker<double> _subtracker_speed;
+    DeltaTracker<timestamp> _subtracker_utc;
+    DeltaTracker<double> _subtracker_galt;
+    DeltaTracker<double> _subtracker_climb;
+    DeltaTracker<double> _subtracker_epx;
+    DeltaTracker<double> _subtracker_epy;
+    DeltaTracker<double> _subtracker_epv;
+    DeltaTracker<double> _subtracker_ept;
+    DeltaTracker<double> _subtracker_eps;
+    DeltaTracker<double> _subtracker_epc;
+    DeltaTracker<double> _subtracker_eph;
+    DeltaTracker<double> _subtracker_sep;
     DELETE_COPY_AND_MOVE(DeltaTracker);
 
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    DeltaTracker(TData* ptr) :
+        _ptr(ptr)
+        ,
+        _subtracker_heading(&_ptr->heading())
+        ,
+        _subtracker_lat(&_ptr->lat())
+        ,
+        _subtracker_lon(&_ptr->lon())
+        ,
+        _subtracker_speed(&_ptr->speed())
+        ,
+        _subtracker_utc(&_ptr->utc())
+        ,
+        _subtracker_galt(&_ptr->galt())
+        ,
+        _subtracker_climb(&_ptr->climb())
+        ,
+        _subtracker_epx(&_ptr->epx())
+        ,
+        _subtracker_epy(&_ptr->epy())
+        ,
+        _subtracker_epv(&_ptr->epv())
+        ,
+        _subtracker_ept(&_ptr->ept())
+        ,
+        _subtracker_eps(&_ptr->eps())
+        ,
+        _subtracker_epc(&_ptr->epc())
+        ,
+        _subtracker_eph(&_ptr->eph())
+        ,
+        _subtracker_sep(&_ptr->sep())
     {
         // TODO: Tentative
         static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
 
+    TData& Obj() { return *_ptr; }
+
     static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
 
     size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+    bool   IsChanged() const { return _fieldtracker.any(); }
 
     uint8_t MutatorIndex() const;
     bool    OnlyHasDefaultMutator() const;
 
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
 
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::heading:
-            lambda(DeltaTracker<int32_t>(&_ptr->heading(), IsFieldChanged(TData::FieldIndex::heading)));
-            return;
-        case TData::FieldIndex::lat:
-            lambda(DeltaTracker<double>(&_ptr->lat(), IsFieldChanged(TData::FieldIndex::lat)));
-            return;
-        case TData::FieldIndex::lon:
-            lambda(DeltaTracker<double>(&_ptr->lon(), IsFieldChanged(TData::FieldIndex::lon)));
-            return;
-        case TData::FieldIndex::speed:
-            lambda(DeltaTracker<double>(&_ptr->speed(), IsFieldChanged(TData::FieldIndex::speed)));
-            return;
-        case TData::FieldIndex::utc:
-            lambda(DeltaTracker<timestamp>(&_ptr->utc(), IsFieldChanged(TData::FieldIndex::utc)));
-            return;
-        case TData::FieldIndex::galt:
-            lambda(DeltaTracker<double>(&_ptr->galt(), IsFieldChanged(TData::FieldIndex::galt)));
-            return;
-        case TData::FieldIndex::climb:
-            lambda(DeltaTracker<double>(&_ptr->climb(), IsFieldChanged(TData::FieldIndex::climb)));
-            return;
-        case TData::FieldIndex::epx:
-            lambda(DeltaTracker<double>(&_ptr->epx(), IsFieldChanged(TData::FieldIndex::epx)));
-            return;
-        case TData::FieldIndex::epy:
-            lambda(DeltaTracker<double>(&_ptr->epy(), IsFieldChanged(TData::FieldIndex::epy)));
-            return;
-        case TData::FieldIndex::epv:
-            lambda(DeltaTracker<double>(&_ptr->epv(), IsFieldChanged(TData::FieldIndex::epv)));
-            return;
-        case TData::FieldIndex::ept:
-            lambda(DeltaTracker<double>(&_ptr->ept(), IsFieldChanged(TData::FieldIndex::ept)));
-            return;
-        case TData::FieldIndex::eps:
-            lambda(DeltaTracker<double>(&_ptr->eps(), IsFieldChanged(TData::FieldIndex::eps)));
-            return;
-        case TData::FieldIndex::epc:
-            lambda(DeltaTracker<double>(&_ptr->epc(), IsFieldChanged(TData::FieldIndex::epc)));
-            return;
-        case TData::FieldIndex::eph:
-            lambda(DeltaTracker<double>(&_ptr->eph(), IsFieldChanged(TData::FieldIndex::eph)));
-            return;
-        case TData::FieldIndex::sep:
-            lambda(DeltaTracker<double>(&_ptr->sep(), IsFieldChanged(TData::FieldIndex::sep)));
-            return;
+        case TData::FieldIndex::heading: lambda(_subtracker_heading); return;
+        case TData::FieldIndex::lat: lambda(_subtracker_lat); return;
+        case TData::FieldIndex::lon: lambda(_subtracker_lon); return;
+        case TData::FieldIndex::speed: lambda(_subtracker_speed); return;
+        case TData::FieldIndex::utc: lambda(_subtracker_utc); return;
+        case TData::FieldIndex::galt: lambda(_subtracker_galt); return;
+        case TData::FieldIndex::climb: lambda(_subtracker_climb); return;
+        case TData::FieldIndex::epx: lambda(_subtracker_epx); return;
+        case TData::FieldIndex::epy: lambda(_subtracker_epy); return;
+        case TData::FieldIndex::epv: lambda(_subtracker_epv); return;
+        case TData::FieldIndex::ept: lambda(_subtracker_ept); return;
+        case TData::FieldIndex::eps: lambda(_subtracker_eps); return;
+        case TData::FieldIndex::epc: lambda(_subtracker_epc); return;
+        case TData::FieldIndex::eph: lambda(_subtracker_eph); return;
+        case TData::FieldIndex::sep: lambda(_subtracker_sep); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    void set_heading(int32_t&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::heading, _ptr->heading(), val);
+        _ptr->set_heading(std::move(val));
+    }
+
+    void set_lat(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::lat, _ptr->lat(), val);
+        _ptr->set_lat(std::move(val));
+    }
+
+    void set_lon(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::lon, _ptr->lon(), val);
+        _ptr->set_lon(std::move(val));
+    }
+
+    void set_speed(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::speed, _ptr->speed(), val);
+        _ptr->set_speed(std::move(val));
+    }
+
+    void set_utc(timestamp&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::utc, _ptr->utc(), val);
+        _ptr->set_utc(std::move(val));
+    }
+
+    void set_galt(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::galt, _ptr->galt(), val);
+        _ptr->set_galt(std::move(val));
+    }
+
+    void set_climb(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::climb, _ptr->climb(), val);
+        _ptr->set_climb(std::move(val));
+    }
+
+    void set_epx(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::epx, _ptr->epx(), val);
+        _ptr->set_epx(std::move(val));
+    }
+
+    void set_epy(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::epy, _ptr->epy(), val);
+        _ptr->set_epy(std::move(val));
+    }
+
+    void set_epv(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::epv, _ptr->epv(), val);
+        _ptr->set_epv(std::move(val));
+    }
+
+    void set_ept(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::ept, _ptr->ept(), val);
+        _ptr->set_ept(std::move(val));
+    }
+
+    void set_eps(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::eps, _ptr->eps(), val);
+        _ptr->set_eps(std::move(val));
+    }
+
+    void set_epc(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::epc, _ptr->epc(), val);
+        _ptr->set_epc(std::move(val));
+    }
+
+    void set_eph(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::eph, _ptr->eph(), val);
+        _ptr->set_eph(std::move(val));
+    }
+
+    void set_sep(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::sep, _ptr->sep(), val);
+        _ptr->set_sep(std::move(val));
+    }
+
 };
 
 template <> struct ReflectionBase::TypeTraits<Avid::Aircraft::Data&>
@@ -2204,88 +2261,222 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     using TData = T;
 
     // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
+    TData* const _ptr;
     // TODO : Better way to unify creation interface
-    bool _changed = false;
 
+    std::bitset<TData::FieldCount() + 1> _fieldtracker;
+    DeltaTracker<timestamp> _subtracker_seen;
+    DeltaTracker<uint32_t> _subtracker_addr;
+    DeltaTracker<std::array<char, 7>> _subtracker_hexaddr;
+    DeltaTracker<std::array<char, 9>> _subtracker_flight;
+    DeltaTracker<int32_t> _subtracker_altitude;
+    DeltaTracker<int32_t> _subtracker_groundSpeed;
+    DeltaTracker<int32_t> _subtracker_track;
+    DeltaTracker<double> _subtracker_lat;
+    DeltaTracker<double> _subtracker_lon;
+    DeltaTracker<int32_t> _subtracker_verticalRate;
+    DeltaTracker<int32_t> _subtracker_messageCount;
+    DeltaTracker<int32_t> _subtracker_odd_cprlat;
+    DeltaTracker<int32_t> _subtracker_odd_cprlon;
+    DeltaTracker<timestamp> _subtracker_odd_cprtime;
+    DeltaTracker<int32_t> _subtracker_even_cprlat;
+    DeltaTracker<int32_t> _subtracker_even_cprlon;
+    DeltaTracker<timestamp> _subtracker_even_cprtime;
     DELETE_COPY_AND_MOVE(DeltaTracker);
 
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    DeltaTracker(TData* ptr) :
+        _ptr(ptr)
+        ,
+        _subtracker_seen(&_ptr->seen())
+        ,
+        _subtracker_addr(&_ptr->addr())
+        ,
+        _subtracker_hexaddr(&_ptr->hexaddr())
+        ,
+        _subtracker_flight(&_ptr->flight())
+        ,
+        _subtracker_altitude(&_ptr->altitude())
+        ,
+        _subtracker_groundSpeed(&_ptr->groundSpeed())
+        ,
+        _subtracker_track(&_ptr->track())
+        ,
+        _subtracker_lat(&_ptr->lat())
+        ,
+        _subtracker_lon(&_ptr->lon())
+        ,
+        _subtracker_verticalRate(&_ptr->verticalRate())
+        ,
+        _subtracker_messageCount(&_ptr->messageCount())
+        ,
+        _subtracker_odd_cprlat(&_ptr->odd_cprlat())
+        ,
+        _subtracker_odd_cprlon(&_ptr->odd_cprlon())
+        ,
+        _subtracker_odd_cprtime(&_ptr->odd_cprtime())
+        ,
+        _subtracker_even_cprlat(&_ptr->even_cprlat())
+        ,
+        _subtracker_even_cprlon(&_ptr->even_cprlon())
+        ,
+        _subtracker_even_cprtime(&_ptr->even_cprtime())
     {
         // TODO: Tentative
         static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
 
+    TData& Obj() { return *_ptr; }
+
     static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
 
     size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+    bool   IsChanged() const { return _fieldtracker.any(); }
 
     uint8_t MutatorIndex() const;
     bool    OnlyHasDefaultMutator() const;
 
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
 
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::seen:
-            lambda(DeltaTracker<timestamp>(&_ptr->seen(), IsFieldChanged(TData::FieldIndex::seen)));
-            return;
-        case TData::FieldIndex::addr:
-            lambda(DeltaTracker<uint32_t>(&_ptr->addr(), IsFieldChanged(TData::FieldIndex::addr)));
-            return;
-        case TData::FieldIndex::hexaddr:
-            lambda(DeltaTracker<std::array<char, 7>>(&_ptr->hexaddr(), IsFieldChanged(TData::FieldIndex::hexaddr)));
-            return;
-        case TData::FieldIndex::flight:
-            lambda(DeltaTracker<std::array<char, 9>>(&_ptr->flight(), IsFieldChanged(TData::FieldIndex::flight)));
-            return;
-        case TData::FieldIndex::altitude:
-            lambda(DeltaTracker<int32_t>(&_ptr->altitude(), IsFieldChanged(TData::FieldIndex::altitude)));
-            return;
-        case TData::FieldIndex::groundSpeed:
-            lambda(DeltaTracker<int32_t>(&_ptr->groundSpeed(), IsFieldChanged(TData::FieldIndex::groundSpeed)));
-            return;
-        case TData::FieldIndex::track:
-            lambda(DeltaTracker<int32_t>(&_ptr->track(), IsFieldChanged(TData::FieldIndex::track)));
-            return;
-        case TData::FieldIndex::lat:
-            lambda(DeltaTracker<double>(&_ptr->lat(), IsFieldChanged(TData::FieldIndex::lat)));
-            return;
-        case TData::FieldIndex::lon:
-            lambda(DeltaTracker<double>(&_ptr->lon(), IsFieldChanged(TData::FieldIndex::lon)));
-            return;
-        case TData::FieldIndex::verticalRate:
-            lambda(DeltaTracker<int32_t>(&_ptr->verticalRate(), IsFieldChanged(TData::FieldIndex::verticalRate)));
-            return;
-        case TData::FieldIndex::messageCount:
-            lambda(DeltaTracker<int32_t>(&_ptr->messageCount(), IsFieldChanged(TData::FieldIndex::messageCount)));
-            return;
-        case TData::FieldIndex::odd_cprlat:
-            lambda(DeltaTracker<int32_t>(&_ptr->odd_cprlat(), IsFieldChanged(TData::FieldIndex::odd_cprlat)));
-            return;
-        case TData::FieldIndex::odd_cprlon:
-            lambda(DeltaTracker<int32_t>(&_ptr->odd_cprlon(), IsFieldChanged(TData::FieldIndex::odd_cprlon)));
-            return;
-        case TData::FieldIndex::odd_cprtime:
-            lambda(DeltaTracker<timestamp>(&_ptr->odd_cprtime(), IsFieldChanged(TData::FieldIndex::odd_cprtime)));
-            return;
-        case TData::FieldIndex::even_cprlat:
-            lambda(DeltaTracker<int32_t>(&_ptr->even_cprlat(), IsFieldChanged(TData::FieldIndex::even_cprlat)));
-            return;
-        case TData::FieldIndex::even_cprlon:
-            lambda(DeltaTracker<int32_t>(&_ptr->even_cprlon(), IsFieldChanged(TData::FieldIndex::even_cprlon)));
-            return;
-        case TData::FieldIndex::even_cprtime:
-            lambda(DeltaTracker<timestamp>(&_ptr->even_cprtime(), IsFieldChanged(TData::FieldIndex::even_cprtime)));
-            return;
+        case TData::FieldIndex::seen: lambda(_subtracker_seen); return;
+        case TData::FieldIndex::addr: lambda(_subtracker_addr); return;
+        case TData::FieldIndex::hexaddr: lambda(_subtracker_hexaddr); return;
+        case TData::FieldIndex::flight: lambda(_subtracker_flight); return;
+        case TData::FieldIndex::altitude: lambda(_subtracker_altitude); return;
+        case TData::FieldIndex::groundSpeed: lambda(_subtracker_groundSpeed); return;
+        case TData::FieldIndex::track: lambda(_subtracker_track); return;
+        case TData::FieldIndex::lat: lambda(_subtracker_lat); return;
+        case TData::FieldIndex::lon: lambda(_subtracker_lon); return;
+        case TData::FieldIndex::verticalRate: lambda(_subtracker_verticalRate); return;
+        case TData::FieldIndex::messageCount: lambda(_subtracker_messageCount); return;
+        case TData::FieldIndex::odd_cprlat: lambda(_subtracker_odd_cprlat); return;
+        case TData::FieldIndex::odd_cprlon: lambda(_subtracker_odd_cprlon); return;
+        case TData::FieldIndex::odd_cprtime: lambda(_subtracker_odd_cprtime); return;
+        case TData::FieldIndex::even_cprlat: lambda(_subtracker_even_cprlat); return;
+        case TData::FieldIndex::even_cprlon: lambda(_subtracker_even_cprlon); return;
+        case TData::FieldIndex::even_cprtime: lambda(_subtracker_even_cprtime); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    void set_seen(timestamp&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::seen, _ptr->seen(), val);
+        _ptr->set_seen(std::move(val));
+    }
+
+    void set_addr(uint32_t&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::addr, _ptr->addr(), val);
+        _ptr->set_addr(std::move(val));
+    }
+
+    void set_hexaddr(std::array<char, 7>&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::hexaddr, _ptr->hexaddr(), val);
+        _ptr->set_hexaddr(std::move(val));
+    }
+
+    char at_hexaddr(size_t const& args) const
+    {
+        //        return Stencil::Accessors<std::array<char, 7>>::at(_hexaddr, args);
+        return _ptr->at_hexaddr(args);
+    }
+    void set_flight(std::array<char, 9>&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::flight, _ptr->flight(), val);
+        _ptr->set_flight(std::move(val));
+    }
+
+    char at_flight(size_t const& args) const
+    {
+        //        return Stencil::Accessors<std::array<char, 9>>::at(_flight, args);
+        return _ptr->at_flight(args);
+    }
+    void set_altitude(int32_t&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::altitude, _ptr->altitude(), val);
+        _ptr->set_altitude(std::move(val));
+    }
+
+    void set_groundSpeed(int32_t&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::groundSpeed, _ptr->groundSpeed(), val);
+        _ptr->set_groundSpeed(std::move(val));
+    }
+
+    void set_track(int32_t&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::track, _ptr->track(), val);
+        _ptr->set_track(std::move(val));
+    }
+
+    void set_lat(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::lat, _ptr->lat(), val);
+        _ptr->set_lat(std::move(val));
+    }
+
+    void set_lon(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::lon, _ptr->lon(), val);
+        _ptr->set_lon(std::move(val));
+    }
+
+    void set_verticalRate(int32_t&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::verticalRate, _ptr->verticalRate(), val);
+        _ptr->set_verticalRate(std::move(val));
+    }
+
+    void set_messageCount(int32_t&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::messageCount, _ptr->messageCount(), val);
+        _ptr->set_messageCount(std::move(val));
+    }
+
+    void set_odd_cprlat(int32_t&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::odd_cprlat, _ptr->odd_cprlat(), val);
+        _ptr->set_odd_cprlat(std::move(val));
+    }
+
+    void set_odd_cprlon(int32_t&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::odd_cprlon, _ptr->odd_cprlon(), val);
+        _ptr->set_odd_cprlon(std::move(val));
+    }
+
+    void set_odd_cprtime(timestamp&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::odd_cprtime, _ptr->odd_cprtime(), val);
+        _ptr->set_odd_cprtime(std::move(val));
+    }
+
+    void set_even_cprlat(int32_t&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::even_cprlat, _ptr->even_cprlat(), val);
+        _ptr->set_even_cprlat(std::move(val));
+    }
+
+    void set_even_cprlon(int32_t&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::even_cprlon, _ptr->even_cprlon(), val);
+        _ptr->set_even_cprlon(std::move(val));
+    }
+
+    void set_even_cprtime(timestamp&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::even_cprtime, _ptr->even_cprtime(), val);
+        _ptr->set_even_cprtime(std::move(val));
+    }
+
 };
 
 template <> struct ReflectionBase::TypeTraits<Avid::Traffic::Data&>
@@ -2334,39 +2525,72 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     using TData = T;
 
     // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
+    TData* const _ptr;
     // TODO : Better way to unify creation interface
-    bool _changed = false;
 
+    std::bitset<TData::FieldCount() + 1> _fieldtracker;
+    DeltaTracker<std::vector<::Avid::Aircraft::Data>> _subtracker_aircrafts;
     DELETE_COPY_AND_MOVE(DeltaTracker);
 
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    DeltaTracker(TData* ptr) :
+        _ptr(ptr)
+        ,
+        _subtracker_aircrafts(&_ptr->aircrafts())
     {
         // TODO: Tentative
         static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
 
+    TData& Obj() { return *_ptr; }
+
     static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
 
     size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+    bool   IsChanged() const { return _fieldtracker.any(); }
 
     uint8_t MutatorIndex() const;
     bool    OnlyHasDefaultMutator() const;
 
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
 
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::aircrafts:
-            lambda(DeltaTracker<std::vector<::Avid::Aircraft::Data>>(&_ptr->aircrafts(), IsFieldChanged(TData::FieldIndex::aircrafts)));
-            return;
+        case TData::FieldIndex::aircrafts: lambda(_subtracker_aircrafts); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
+    }
+
+    void set_aircrafts(std::vector<::Avid::Aircraft::Data>&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::aircrafts, _ptr->aircrafts(), val);
+        _ptr->set_aircrafts(std::move(val));
+    }
+
+    void add_aircrafts(::Avid::Aircraft::Data&& args)
+    {
+        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::aircrafts, uint8_t{1}, _aircrafts,
+        //        args);
+        return _ptr->add_aircrafts(std::move(args));
+
+        //        return Stencil::Mutators<std::vector<::Avid::Aircraft::Data>>::add(_aircrafts, std::move(args));
+    }
+    void remove_aircrafts(size_t&& args)
+    {
+        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::aircrafts, uint8_t{2}, _aircrafts,
+        //        args);
+        return _ptr->remove_aircrafts(std::move(args));
+
+        //        return Stencil::Mutators<std::vector<::Avid::Aircraft::Data>>::remove(_aircrafts, std::move(args));
+    }
+    ::Avid::Aircraft::Data at_aircrafts(size_t const& args) const
+    {
+        //        return Stencil::Accessors<std::vector<::Avid::Aircraft::Data>>::at(_aircrafts, args);
+        return _ptr->at_aircrafts(args);
     }
 };
 
@@ -2773,91 +2997,222 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     using TData = T;
 
     // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
+    TData* const _ptr;
     // TODO : Better way to unify creation interface
-    bool _changed = false;
 
+    std::bitset<TData::FieldCount() + 1> _fieldtracker;
+    DeltaTracker<int64_t> _subtracker_mag_x;
+    DeltaTracker<int64_t> _subtracker_mag_y;
+    DeltaTracker<int64_t> _subtracker_mag_z;
+    DeltaTracker<int64_t> _subtracker_acc_x;
+    DeltaTracker<int64_t> _subtracker_acc_y;
+    DeltaTracker<int64_t> _subtracker_acc_z;
+    DeltaTracker<int64_t> _subtracker_rot_x;
+    DeltaTracker<int64_t> _subtracker_rot_y;
+    DeltaTracker<int64_t> _subtracker_rot_z;
+    DeltaTracker<double> _subtracker_dmag_x;
+    DeltaTracker<double> _subtracker_dmag_y;
+    DeltaTracker<double> _subtracker_dmag_z;
+    DeltaTracker<double> _subtracker_dacc_x;
+    DeltaTracker<double> _subtracker_dacc_y;
+    DeltaTracker<double> _subtracker_dacc_z;
+    DeltaTracker<double> _subtracker_drot_x;
+    DeltaTracker<double> _subtracker_drot_y;
+    DeltaTracker<double> _subtracker_drot_z;
     DELETE_COPY_AND_MOVE(DeltaTracker);
 
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    DeltaTracker(TData* ptr) :
+        _ptr(ptr)
+        ,
+        _subtracker_mag_x(&_ptr->mag_x())
+        ,
+        _subtracker_mag_y(&_ptr->mag_y())
+        ,
+        _subtracker_mag_z(&_ptr->mag_z())
+        ,
+        _subtracker_acc_x(&_ptr->acc_x())
+        ,
+        _subtracker_acc_y(&_ptr->acc_y())
+        ,
+        _subtracker_acc_z(&_ptr->acc_z())
+        ,
+        _subtracker_rot_x(&_ptr->rot_x())
+        ,
+        _subtracker_rot_y(&_ptr->rot_y())
+        ,
+        _subtracker_rot_z(&_ptr->rot_z())
+        ,
+        _subtracker_dmag_x(&_ptr->dmag_x())
+        ,
+        _subtracker_dmag_y(&_ptr->dmag_y())
+        ,
+        _subtracker_dmag_z(&_ptr->dmag_z())
+        ,
+        _subtracker_dacc_x(&_ptr->dacc_x())
+        ,
+        _subtracker_dacc_y(&_ptr->dacc_y())
+        ,
+        _subtracker_dacc_z(&_ptr->dacc_z())
+        ,
+        _subtracker_drot_x(&_ptr->drot_x())
+        ,
+        _subtracker_drot_y(&_ptr->drot_y())
+        ,
+        _subtracker_drot_z(&_ptr->drot_z())
     {
         // TODO: Tentative
         static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
 
+    TData& Obj() { return *_ptr; }
+
     static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
 
     size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+    bool   IsChanged() const { return _fieldtracker.any(); }
 
     uint8_t MutatorIndex() const;
     bool    OnlyHasDefaultMutator() const;
 
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
 
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::mag_x:
-            lambda(DeltaTracker<int64_t>(&_ptr->mag_x(), IsFieldChanged(TData::FieldIndex::mag_x)));
-            return;
-        case TData::FieldIndex::mag_y:
-            lambda(DeltaTracker<int64_t>(&_ptr->mag_y(), IsFieldChanged(TData::FieldIndex::mag_y)));
-            return;
-        case TData::FieldIndex::mag_z:
-            lambda(DeltaTracker<int64_t>(&_ptr->mag_z(), IsFieldChanged(TData::FieldIndex::mag_z)));
-            return;
-        case TData::FieldIndex::acc_x:
-            lambda(DeltaTracker<int64_t>(&_ptr->acc_x(), IsFieldChanged(TData::FieldIndex::acc_x)));
-            return;
-        case TData::FieldIndex::acc_y:
-            lambda(DeltaTracker<int64_t>(&_ptr->acc_y(), IsFieldChanged(TData::FieldIndex::acc_y)));
-            return;
-        case TData::FieldIndex::acc_z:
-            lambda(DeltaTracker<int64_t>(&_ptr->acc_z(), IsFieldChanged(TData::FieldIndex::acc_z)));
-            return;
-        case TData::FieldIndex::rot_x:
-            lambda(DeltaTracker<int64_t>(&_ptr->rot_x(), IsFieldChanged(TData::FieldIndex::rot_x)));
-            return;
-        case TData::FieldIndex::rot_y:
-            lambda(DeltaTracker<int64_t>(&_ptr->rot_y(), IsFieldChanged(TData::FieldIndex::rot_y)));
-            return;
-        case TData::FieldIndex::rot_z:
-            lambda(DeltaTracker<int64_t>(&_ptr->rot_z(), IsFieldChanged(TData::FieldIndex::rot_z)));
-            return;
-        case TData::FieldIndex::dmag_x:
-            lambda(DeltaTracker<double>(&_ptr->dmag_x(), IsFieldChanged(TData::FieldIndex::dmag_x)));
-            return;
-        case TData::FieldIndex::dmag_y:
-            lambda(DeltaTracker<double>(&_ptr->dmag_y(), IsFieldChanged(TData::FieldIndex::dmag_y)));
-            return;
-        case TData::FieldIndex::dmag_z:
-            lambda(DeltaTracker<double>(&_ptr->dmag_z(), IsFieldChanged(TData::FieldIndex::dmag_z)));
-            return;
-        case TData::FieldIndex::dacc_x:
-            lambda(DeltaTracker<double>(&_ptr->dacc_x(), IsFieldChanged(TData::FieldIndex::dacc_x)));
-            return;
-        case TData::FieldIndex::dacc_y:
-            lambda(DeltaTracker<double>(&_ptr->dacc_y(), IsFieldChanged(TData::FieldIndex::dacc_y)));
-            return;
-        case TData::FieldIndex::dacc_z:
-            lambda(DeltaTracker<double>(&_ptr->dacc_z(), IsFieldChanged(TData::FieldIndex::dacc_z)));
-            return;
-        case TData::FieldIndex::drot_x:
-            lambda(DeltaTracker<double>(&_ptr->drot_x(), IsFieldChanged(TData::FieldIndex::drot_x)));
-            return;
-        case TData::FieldIndex::drot_y:
-            lambda(DeltaTracker<double>(&_ptr->drot_y(), IsFieldChanged(TData::FieldIndex::drot_y)));
-            return;
-        case TData::FieldIndex::drot_z:
-            lambda(DeltaTracker<double>(&_ptr->drot_z(), IsFieldChanged(TData::FieldIndex::drot_z)));
-            return;
+        case TData::FieldIndex::mag_x: lambda(_subtracker_mag_x); return;
+        case TData::FieldIndex::mag_y: lambda(_subtracker_mag_y); return;
+        case TData::FieldIndex::mag_z: lambda(_subtracker_mag_z); return;
+        case TData::FieldIndex::acc_x: lambda(_subtracker_acc_x); return;
+        case TData::FieldIndex::acc_y: lambda(_subtracker_acc_y); return;
+        case TData::FieldIndex::acc_z: lambda(_subtracker_acc_z); return;
+        case TData::FieldIndex::rot_x: lambda(_subtracker_rot_x); return;
+        case TData::FieldIndex::rot_y: lambda(_subtracker_rot_y); return;
+        case TData::FieldIndex::rot_z: lambda(_subtracker_rot_z); return;
+        case TData::FieldIndex::dmag_x: lambda(_subtracker_dmag_x); return;
+        case TData::FieldIndex::dmag_y: lambda(_subtracker_dmag_y); return;
+        case TData::FieldIndex::dmag_z: lambda(_subtracker_dmag_z); return;
+        case TData::FieldIndex::dacc_x: lambda(_subtracker_dacc_x); return;
+        case TData::FieldIndex::dacc_y: lambda(_subtracker_dacc_y); return;
+        case TData::FieldIndex::dacc_z: lambda(_subtracker_dacc_z); return;
+        case TData::FieldIndex::drot_x: lambda(_subtracker_drot_x); return;
+        case TData::FieldIndex::drot_y: lambda(_subtracker_drot_y); return;
+        case TData::FieldIndex::drot_z: lambda(_subtracker_drot_z); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    void set_mag_x(int64_t&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::mag_x, _ptr->mag_x(), val);
+        _ptr->set_mag_x(std::move(val));
+    }
+
+    void set_mag_y(int64_t&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::mag_y, _ptr->mag_y(), val);
+        _ptr->set_mag_y(std::move(val));
+    }
+
+    void set_mag_z(int64_t&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::mag_z, _ptr->mag_z(), val);
+        _ptr->set_mag_z(std::move(val));
+    }
+
+    void set_acc_x(int64_t&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::acc_x, _ptr->acc_x(), val);
+        _ptr->set_acc_x(std::move(val));
+    }
+
+    void set_acc_y(int64_t&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::acc_y, _ptr->acc_y(), val);
+        _ptr->set_acc_y(std::move(val));
+    }
+
+    void set_acc_z(int64_t&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::acc_z, _ptr->acc_z(), val);
+        _ptr->set_acc_z(std::move(val));
+    }
+
+    void set_rot_x(int64_t&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::rot_x, _ptr->rot_x(), val);
+        _ptr->set_rot_x(std::move(val));
+    }
+
+    void set_rot_y(int64_t&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::rot_y, _ptr->rot_y(), val);
+        _ptr->set_rot_y(std::move(val));
+    }
+
+    void set_rot_z(int64_t&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::rot_z, _ptr->rot_z(), val);
+        _ptr->set_rot_z(std::move(val));
+    }
+
+    void set_dmag_x(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::dmag_x, _ptr->dmag_x(), val);
+        _ptr->set_dmag_x(std::move(val));
+    }
+
+    void set_dmag_y(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::dmag_y, _ptr->dmag_y(), val);
+        _ptr->set_dmag_y(std::move(val));
+    }
+
+    void set_dmag_z(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::dmag_z, _ptr->dmag_z(), val);
+        _ptr->set_dmag_z(std::move(val));
+    }
+
+    void set_dacc_x(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::dacc_x, _ptr->dacc_x(), val);
+        _ptr->set_dacc_x(std::move(val));
+    }
+
+    void set_dacc_y(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::dacc_y, _ptr->dacc_y(), val);
+        _ptr->set_dacc_y(std::move(val));
+    }
+
+    void set_dacc_z(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::dacc_z, _ptr->dacc_z(), val);
+        _ptr->set_dacc_z(std::move(val));
+    }
+
+    void set_drot_x(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::drot_x, _ptr->drot_x(), val);
+        _ptr->set_drot_x(std::move(val));
+    }
+
+    void set_drot_y(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::drot_y, _ptr->drot_y(), val);
+        _ptr->set_drot_y(std::move(val));
+    }
+
+    void set_drot_z(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::drot_z, _ptr->drot_z(), val);
+        _ptr->set_drot_z(std::move(val));
+    }
+
 };
 
 template <> struct ReflectionBase::TypeTraits<Avid::Pressure::Data&>
@@ -2927,42 +3282,61 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     using TData = T;
 
     // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
+    TData* const _ptr;
     // TODO : Better way to unify creation interface
-    bool _changed = false;
 
+    std::bitset<TData::FieldCount() + 1> _fieldtracker;
+    DeltaTracker<double> _subtracker_pressure;
+    DeltaTracker<double> _subtracker_temperature;
     DELETE_COPY_AND_MOVE(DeltaTracker);
 
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    DeltaTracker(TData* ptr) :
+        _ptr(ptr)
+        ,
+        _subtracker_pressure(&_ptr->pressure())
+        ,
+        _subtracker_temperature(&_ptr->temperature())
     {
         // TODO: Tentative
         static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
 
+    TData& Obj() { return *_ptr; }
+
     static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
 
     size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+    bool   IsChanged() const { return _fieldtracker.any(); }
 
     uint8_t MutatorIndex() const;
     bool    OnlyHasDefaultMutator() const;
 
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
 
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::pressure:
-            lambda(DeltaTracker<double>(&_ptr->pressure(), IsFieldChanged(TData::FieldIndex::pressure)));
-            return;
-        case TData::FieldIndex::temperature:
-            lambda(DeltaTracker<double>(&_ptr->temperature(), IsFieldChanged(TData::FieldIndex::temperature)));
-            return;
+        case TData::FieldIndex::pressure: lambda(_subtracker_pressure); return;
+        case TData::FieldIndex::temperature: lambda(_subtracker_temperature); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    void set_pressure(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::pressure, _ptr->pressure(), val);
+        _ptr->set_pressure(std::move(val));
+    }
+
+    void set_temperature(double&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::temperature, _ptr->temperature(), val);
+        _ptr->set_temperature(std::move(val));
+    }
+
 };
 
