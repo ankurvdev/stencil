@@ -124,7 +124,7 @@ struct BinarySerDes
             }
             break;
 
-            case Value::Type::Empty: break;
+            case Value::Type::Empty: TODO(); break;
             case Value::Type::Signed:
             {
                 writer << val.template convert<int64_t>();
@@ -177,7 +177,7 @@ struct BinarySerDes
             switch (valType)
             {
             case Value::Type::Double: visitor.SetValue(Value{reader.read<double>()}); break;
-            case Value::Type::Empty: break;
+            case Value::Type::Empty: TODO(); break;
             case Value::Type::Signed: visitor.SetValue(Value{reader.read<int64_t>()}); break;
             case Value::Type::String:
                 // TODO : See if this can be removed and renamed Value to Value64Bit
@@ -189,9 +189,18 @@ struct BinarySerDes
             }
         }
         break;
-        case ReflectionBase::DataType::Object: TODO();
+        case ReflectionBase::DataType::List:
+        case ReflectionBase::DataType::Object:
+        {
+
+            for (size_t i = 0; visitor.TrySelect(i); i++)
+            {
+                Deserialize(visitor, reader);
+                visitor.GoBackUp();
+            }
+        }
+        break;
         case ReflectionBase::DataType::Enum: TODO();
-        case ReflectionBase::DataType::List: TODO();
         case ReflectionBase::DataType::Union: TODO();
         case ReflectionBase::DataType::Invalid: [[fallthrough]];
         case ReflectionBase::DataType::Unknown: throw std::runtime_error("Unsupported Data Type");

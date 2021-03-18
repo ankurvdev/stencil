@@ -25,6 +25,14 @@ template <typename T> struct PatchHandler
         return writer.Reset();
     }
 
+    static ByteIt Apply(DeltaTracker<T>& ctx, ByteIt const& itbeg)
+    {
+        Reader     reader(itbeg);
+        Visitor<T> visitor(ctx.Obj());
+        _Apply(reader, visitor, ctx);
+        return reader.GetIterator();
+    }
+
     template <typename TObj, typename TVisitor> static void _Write(Writer& writer, TVisitor& visitor, DeltaTracker<TObj> const& ctx)
     {
 
@@ -47,25 +55,32 @@ template <typename T> struct PatchHandler
         }
         else if constexpr (DeltaTracker<TObj>::Type() == ReflectionBase::DataType::List)
         {
-            writer << ctx.MutatorIndex();
-            if (ctx.MutatorIndex() == 0)    // Set
+            writer << static_cast<uint8_t>(ctx.MutationCount());
+            for (auto& mutation : ctx.Mutations())
             {
-                BinarySerDes::Serialize(visitor, writer);
-            }
-            else if (ctx.MutatorIndex() == 1)    // List Add
-            {
-                writer << ctx.ListIndex();
-                visitor.Select(ctx.ListIndex());
-                _Write(writer, visitor, ctx.GetSubObjectTracker(ctx.ListIndex()));
-                visitor.GoBackUp();
-            }
-            else if (ctx.MutatorIndex() == 2)    // List remove
-            {
-                writer << ctx.ListIndex();
-            }
-            else
-            {
-                throw std::logic_error("Unknown Mutator");
+                auto mutationIndex = mutation.mutationIndex;
+                auto listIndex     = mutation.listIndex;
+                writer << static_cast<uint8_t>(mutationIndex);
+                if (mutationIndex == 0)    // Set
+                {
+                    BinarySerDes::Serialize(visitor, writer);
+                }
+                else if (mutationIndex == 1)    // List Add
+                {
+                    writer << static_cast<uint32_t>(listIndex);
+                    visitor.Select(listIndex);
+                    BinarySerDes::Serialize(visitor, writer);
+                    //_Write(writer, visitor, ctx.GetSubObjectTracker(ctx.ListIndex()));
+                    visitor.GoBackUp();
+                }
+                else if (mutationIndex == 2)    // List remove
+                {
+                    writer << static_cast<uint32_t>(listIndex);
+                }
+                else
+                {
+                    throw std::logic_error("Unknown Mutator");
+                }
             }
         }
         else if constexpr (DeltaTracker<TObj>::Type() == ReflectionBase::DataType::Object)
@@ -120,71 +135,73 @@ template <typename T> struct PatchHandler
         }
     }
 
-    static ByteIt Apply(DeltaTracker<T>& obj, ByteIt const& itbeg)
+    template <typename TObj, typename TVisitor> static void _Apply(Reader& reader, TVisitor& visitor, DeltaTracker<TObj>& ctx)
     {
-        Reader     reader(itbeg);
-        Visitor<T> visitor(obj.Obj());
-
         // TODO: TypeTraits should not have reference type
-        static_assert(ReflectionBase::TypeTraits<T&>::Type() != ReflectionBase::DataType::Invalid,
+        static_assert(ReflectionBase::TypeTraits<TObj&>::Type() != ReflectionBase::DataType::Invalid,
                       "Cannot Create Patch for Invalid DataType");
 
-        if constexpr (ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Enum
-                      || ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Value)
+        if constexpr (ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::Enum
+                      || ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::Value)
         {
             BinarySerDes::Deserialize(visitor, reader);
         }
 
-        else if constexpr (ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::List)
+        else if constexpr (ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::List)
         {
-            throw std::logic_error("lists not supported for patch yet");
-#if 0
-            auto mutatorIndex = reader.read<uint8_t>();
+            auto mutationCount = reader.read<uint8_t>();
+            for (size_t i = 0; i < mutationCount; i++)
+            {
+                auto mutatorIndex = reader.read<uint8_t>();
+                if (mutatorIndex == 0)    // Set
+                {
+                    BinarySerDes::Deserialize(visitor, reader);
+                }
+                else if (mutatorIndex == 1)    // List Add
+                {
+                    auto listIndex = reader.read<uint32_t>();
+                    visitor.Select(listIndex);
+                    BinarySerDes::Deserialize(visitor, reader);
 
-            if (mutatorIndex == 0)    // Set
-            {
-                visitor.Deserialize(reader);
+                    // auto subctx = ctx.GetSubObjectTracker(listIndex);
+                    //_Apply(reader, visitor, subctx);
+                    visitor.GoBackUp();
+                }
+                else if (mutatorIndex == 2)    // List remove
+                {
+                    auto listIndex = reader.read<uint8_t>();
+                    Stencil::Mutators<TObj>::remove(ctx.Obj(), listIndex);
+                }
+                else
+                {
+                    throw std::logic_error("Unknown Mutator");
+                }
             }
-            else if (mutatorIndex == 1)    // List Add
-            {
-                auto listIndex = reader.read<uint8_t>();
-                visitor.Select(listIndex);
-                visitor.Deserialize(reader);
-                visitor.GoBackUp();
-            }
-            else if (mutatorIndex == 2)    // List remove
-            {
-                auto listIndex = reader.read<uint8_t>();
-                throw std::logic_error("Dont know how to remove using visitor");
-            }
-            else
-            {
-                throw std::logic_error("Unknown Mutator");
-            }
-#endif
         }
-        else if constexpr (ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Object)
+        else if constexpr (ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::Object)
         {
-            auto fieldCount = reader.read<uint8_t>();
-            for (uint8_t i = 0; i < fieldCount; i++)
+            auto fieldsChanged = reader.read<uint8_t>();
+            assert(fieldsChanged <= ctx.NumFields());
+            for (uint8_t i = 0; i < fieldsChanged; i++)
             {
-                visitor.Select(reader.read<uint8_t>());
-                BinarySerDes::Deserialize(visitor, reader);
+                auto changedFieldIndex = reader.read<uint8_t>();
+                assert(changedFieldIndex < ctx.NumFields());
+                auto changedFieldType = static_cast<typename TObj::FieldIndex>(changedFieldIndex + 1);
+                visitor.Select(changedFieldIndex);
+                ctx.Visit(changedFieldType, [&](auto& subctx) { _Apply(reader, visitor, subctx); });
                 visitor.GoBackUp();
             }
         }
-        else if constexpr (ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Union)
+        else if constexpr (ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::Union)
         {
             throw std::logic_error("unions not supported for patch yet");
         }
         else
         {
-            static_assert(ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Unknown);
-            static_assert(ReflectionBase::TypeTraits<T&>::Type() != ReflectionBase::DataType::Unknown,
+            static_assert(ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::Unknown);
+            static_assert(ReflectionBase::TypeTraits<TObj&>::Type() != ReflectionBase::DataType::Unknown,
                           "Cannot Create Patch for Unknown DataType");
         }
-
-        return reader.GetIterator();
     }
 };
 

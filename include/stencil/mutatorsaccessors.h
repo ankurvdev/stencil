@@ -34,7 +34,7 @@ template <typename T> struct Mutators<std::vector<T>>
         if (mutationIndex == 1)    // add
         {
             Visitor<T const> visitor(val);
-            Writer     writer;
+            Writer           writer;
             TSerDes::Serialize(visitor, writer);
             return writer.Reset();
         }
@@ -56,6 +56,27 @@ template <typename T> struct Mutators<std::vector<T>>
 
         TODO("Whats a mutation");
         return {};
+    }
+};
+
+template <typename T, size_t N> struct Mutators<std::array<T, N>>
+{
+    using TData = std::array<T, N>;
+
+    static void                             add(TData& /*arr*/, T&& /*obj*/) { throw std::logic_error("Invalid"); }
+    static void                             remove(TData& /*arr*/, size_t /*index*/) { throw std::logic_error("Invalid"); }
+    template <typename TLambda> static void remove_matching(TData& /*arr*/, TLambda&& /*lambda*/) { throw std::logic_error("Invalid"); }
+
+    template <typename TSerDes = BinarySerDes>
+    static std::vector<uint8_t> GenerateMutationData(uint8_t /*mutationIndex*/, TData const& /*fieldVal*/, T const& /*val*/)
+    {
+        throw std::logic_error("Invalid");
+    }
+
+    template <typename TSerDes = BinarySerDes>
+    static std::vector<uint8_t> GenerateMutationData(uint8_t /*mutationIndex*/, TData const& /*fieldVal*/, size_t const& /*val*/)
+    {
+        throw std::logic_error("Invalid");
     }
 };
 

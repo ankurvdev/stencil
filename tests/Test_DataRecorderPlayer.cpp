@@ -6,9 +6,8 @@
 
 #include <cstdint>
 
-void RecordTrafficAdd(std::filesystem::path const& recordlog, char hexaddr)
+void RecordTrafficAdd(Avid::Traffic::Data& data, std::filesystem::path const& recordlog, char hexaddr)
 {
-    Avid::Traffic::Data                        data;
     Stencil::DataRecorder<Avid::Traffic::Data> recorder(recordlog);
     Avid::Aircraft::Data                       aircraft;
     aircraft.set_hexaddr({hexaddr, hexaddr, hexaddr, hexaddr, hexaddr, hexaddr, hexaddr});
@@ -17,9 +16,8 @@ void RecordTrafficAdd(std::filesystem::path const& recordlog, char hexaddr)
     recorder.Record(data, ctx);
 }
 
-void RecordTrafficRemoveIndex(std::filesystem::path const& recordlog, size_t index)
+void RecordTrafficRemoveIndex(Avid::Traffic::Data& data, std::filesystem::path const& recordlog, size_t index)
 {
-    Avid::Traffic::Data                        data;
     Stencil::DataRecorder<Avid::Traffic::Data> recorder(recordlog);
     auto                                       ctx = data.Edit();
     ctx.remove_aircrafts(size_t{index});
@@ -66,7 +64,7 @@ void RecordChangeGPSClimbAndSpeed(std::filesystem::path const& recordlog, double
     recorder.Record(data, ctx);
 }
 
-TEST_CASE("DataRecorder - Properties", "[DataRecorder]")
+TEST_CASE("DataRecorder", "[DataRecorder]")
 {
     auto recordlog = std::filesystem::path("record.bin");
     if (std::filesystem::exists(recordlog))
@@ -74,7 +72,7 @@ TEST_CASE("DataRecorder - Properties", "[DataRecorder]")
         std::filesystem::remove(recordlog);
     }
 
-    SECTION("one property change value")
+    SECTION("value1")
     {
         RecordChangeGPSClimb(recordlog, 1.0);
         {
@@ -86,7 +84,7 @@ TEST_CASE("DataRecorder - Properties", "[DataRecorder]")
         }
     }
 
-    SECTION("two properties one change")
+    SECTION("value2")
     {
         RecordChangeGPSClimbAndSpeed(recordlog, 1.0, 1.0);
         {
@@ -101,7 +99,7 @@ TEST_CASE("DataRecorder - Properties", "[DataRecorder]")
         }
     }
 
-    SECTION("two properties appends to existing")
+    SECTION("logappend")
     {
         RecordChangeGPSClimbAndSpeed(recordlog, 1.0, 2.0);
         RecordChangeGPSClimbAndSpeed(recordlog, 3.0, 4.0);
@@ -115,10 +113,12 @@ TEST_CASE("DataRecorder - Properties", "[DataRecorder]")
             REQUIRE(replay.Get<Avid::GPS::Data>().speed() == 4.0);
         }
     }
-#if 0
+
     SECTION("list-add")
     {
-        RecordTrafficAdd(recordlog, 1);
+        Avid::Traffic::Data data;
+
+        RecordTrafficAdd(data, recordlog, 1);
         {
             Stencil::DataPlayerT<Avid::Traffic::Data> replay(recordlog);
             REQUIRE(replay.Get<Avid::Traffic::Data>().aircrafts().size() == 0);
@@ -129,10 +129,11 @@ TEST_CASE("DataRecorder - Properties", "[DataRecorder]")
         }
     }
 
-    SECTION("one property list-remove")
+    SECTION("list-remove")
     {
-        RecordTrafficAdd(recordlog, 1);
-        RecordTrafficAdd(recordlog, 2);
+        Avid::Traffic::Data data;
+        RecordTrafficAdd(data, recordlog, 1);
+        RecordTrafficAdd(data, recordlog, 2);
         {
             Stencil::DataPlayerT<Avid::Traffic::Data> replay(recordlog);
             REQUIRE(replay.Get<Avid::Traffic::Data>().aircrafts().size() == 0);
@@ -143,7 +144,7 @@ TEST_CASE("DataRecorder - Properties", "[DataRecorder]")
             REQUIRE(replay.Get<Avid::Traffic::Data>().aircrafts().at(1).hexaddr().at(0) == 2);
         }
 
-        RecordTrafficRemoveIndex(recordlog, 0);
+        RecordTrafficRemoveIndex(data, recordlog, 0);
         {
             {
                 Stencil::DataPlayerT<Avid::Traffic::Data> replay(recordlog);
@@ -158,7 +159,6 @@ TEST_CASE("DataRecorder - Properties", "[DataRecorder]")
 
     SECTION("one property list-edit") {}
     SECTION("one property list-set") {}
-#endif
     SECTION("one property struct-edit") {}
     SECTION("one property struct-set") {}
 
