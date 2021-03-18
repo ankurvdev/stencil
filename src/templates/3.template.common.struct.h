@@ -434,42 +434,78 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     using TData = T;
 
     // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
+    TData* const _ptr;
     // TODO : Better way to unify creation interface
-    bool _changed = false;
+
+    std::bitset<TData::FieldCount()> _fieldtracker;
+    //<Field>
+    DeltaTracker<zzFieldType_NativeTypezz> _subtracker_zzNamezz;
+    //</Field>
 
     DELETE_COPY_AND_MOVE(DeltaTracker);
 
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    DeltaTracker(TData* ptr) :
+        _ptr(ptr)
+        //<Field>
+        ,
+        _subtracker_zzNamezz(&_ptr->zzNamezz())
+    //</Field>
     {
         // TODO: Tentative
         static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
 
+    TData& Obj() { return *_ptr; }
+
     static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
 
     size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+    bool   IsChanged() const { return _fieldtracker.any(); }
 
     uint8_t MutatorIndex() const;
     bool    OnlyHasDefaultMutator() const;
 
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
 
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
         //<Field>
-        case TData::FieldIndex::zzNamezz:
-            lambda(DeltaTracker<zzFieldType_NativeTypezz>(&_ptr->zzNamezz(), IsFieldChanged(TData::FieldIndex::zzNamezz)));
-            return;
+        case TData::FieldIndex::zzNamezz: lambda(_subtracker_zzNamezz); return;
         //</Field>
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    //<Field>
+
+    void set_zzNamezz(zzFieldType_NativeTypezz&& val)
+    {
+        // Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::zzField_Namezz, _zzNamezz, val);
+        _ptr->set_zzNamezz(std::move(val));
+    }
+
+    //<FieldType_Mutator>
+    zzReturnType_NativeTypezz zzNamezz_zzField_Namezz(zzArg_NativeTypezz&& args)
+    {
+        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::zzField_Namezz, uint8_t{zzIdzz}, _zzField_Namezz,
+        //        args);
+        return _ptr->zzNamezz_zzField_Namezz(std::move(args));
+
+        //        return Stencil::Mutators<zzField_FieldType_NativeTypezz>::zzNamezz(_zzField_Namezz, std::move(args));
+    }
+    //</FieldType_Mutator>
+    //<FieldType_Accessor>
+    zzReturnType_NativeTypezz zzNamezz_zzField_Namezz(zzArg_NativeTypezz const& args) const
+    {
+        //        return Stencil::Accessors<zzField_FieldType_NativeTypezz>::zzNamezz(_zzField_Namezz, args);
+        return _ptr->zzNamezz_zzField_Namezz(args);
+    }
+    //</FieldType_Accessor>
+    //</Field>
 };
 
 //</Struct>

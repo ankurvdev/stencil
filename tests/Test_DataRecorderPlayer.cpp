@@ -13,7 +13,7 @@ void RecordTrafficAdd(std::filesystem::path const& recordlog, char hexaddr)
     Avid::Aircraft::Data                       aircraft;
     aircraft.set_hexaddr({hexaddr, hexaddr, hexaddr, hexaddr, hexaddr, hexaddr, hexaddr});
     auto ctx = data.Edit();
-    data.add_aircrafts(std::move(aircraft));
+    ctx.add_aircrafts(std::move(aircraft));
     recorder.Record(data, ctx);
 }
 
@@ -22,7 +22,7 @@ void RecordTrafficRemoveIndex(std::filesystem::path const& recordlog, size_t ind
     Avid::Traffic::Data                        data;
     Stencil::DataRecorder<Avid::Traffic::Data> recorder(recordlog);
     auto                                       ctx = data.Edit();
-    data.remove_aircrafts(size_t{index});
+    ctx.remove_aircrafts(size_t{index});
     recorder.Record(data, ctx);
 }
 
@@ -116,7 +116,7 @@ TEST_CASE("DataRecorder - Properties", "[DataRecorder]")
         }
     }
 
-    SECTION("one property list-add")
+    SECTION("list-add")
     {
         RecordTrafficAdd(recordlog, 1);
         {

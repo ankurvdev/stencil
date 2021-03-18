@@ -15,7 +15,6 @@
 namespace Stencil
 {
 
-
 template <typename T> struct PatchHandler
 {
     static std::vector<uint8_t> Create(T const& obj, DeltaTracker<T> const& ctx)
@@ -120,10 +119,10 @@ template <typename T> struct PatchHandler
         }
     }
 
-    static ByteIt Apply(T& obj, ByteIt const& itbeg)
+    static ByteIt Apply(DeltaTracker<T>& obj, ByteIt const& itbeg)
     {
         Reader     reader(itbeg);
-        Visitor<T> visitor(obj);
+        Visitor<T> visitor(obj.Obj());
 
         // TODO: TypeTraits should not have reference type
         static_assert(ReflectionBase::TypeTraits<T&>::Type() != ReflectionBase::DataType::Invalid,
@@ -251,8 +250,8 @@ template <typename... Ts> struct DataPlayerT : std::enable_shared_from_this<Data
 
     template <typename T> auto ReadChangeDescAndNotify(T& obj, std::span<const uint8_t>::iterator const& dataIt)
     {
-        [[maybe_unused]] auto ctx = obj.Edit();
-        return PatchHandler<T>::Apply(obj, dataIt);
+        auto ctx = obj.Edit();
+        return PatchHandler<T>::Apply(ctx, dataIt);
     }
 
     void _ThreadFunc()

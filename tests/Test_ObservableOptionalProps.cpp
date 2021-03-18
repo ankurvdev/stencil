@@ -23,7 +23,7 @@ TEST_CASE("CodeGen::ObservableProps", "[ObservableProps]")
         {
             auto ctx = data.Edit();
             REQUIRE_FALSE(data.IsValid(Avid::GPS::Data::FieldIndex::climb));
-            data.set_climb(0.0);
+            ctx.set_climb(0.0);
             REQUIRE(data.IsValid(Avid::GPS::Data::FieldIndex::climb));
             REQUIRE(ctx.IsFieldChanged(Avid::GPS::Data::FieldIndex::climb));
             REQUIRE(ctx.CountFieldsChanged() == 1);
@@ -42,7 +42,7 @@ TEST_CASE("CodeGen::ObservableProps", "[ObservableProps]")
         {
             auto ctx = data.Edit();
             REQUIRE(data.IsValid(Avid::GPS::Data::FieldIndex::climb));
-            data.set_climb(0.0);
+            ctx.set_climb(0.0);
             REQUIRE(data.IsValid(Avid::GPS::Data::FieldIndex::climb));
             REQUIRE_FALSE(ctx.IsFieldChanged(Avid::GPS::Data::FieldIndex::climb));
             REQUIRE(ctx.CountFieldsChanged() == 0);
