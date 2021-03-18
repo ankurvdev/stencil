@@ -122,7 +122,6 @@ struct Data :
 
     void set_zzNamezz(zzFieldType_NativeTypezz&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::zzField_Namezz, _zzNamezz, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::zzField_Namezz, _zzNamezz, val);
         _zzNamezz = std::move(val);
     }
@@ -437,7 +436,7 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     TData* const _ptr;
     // TODO : Better way to unify creation interface
 
-    std::bitset<TData::FieldCount()> _fieldtracker;
+    std::bitset<TData::FieldCount() + 1> _fieldtracker;
     //<Field>
     DeltaTracker<zzFieldType_NativeTypezz> _subtracker_zzNamezz;
     //</Field>
@@ -465,6 +464,7 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     uint8_t MutatorIndex() const;
     bool    OnlyHasDefaultMutator() const;
 
+    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
     bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
 
     size_t CountFieldsChanged() const { return _fieldtracker.count(); }
@@ -484,7 +484,7 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
 
     void set_zzNamezz(zzFieldType_NativeTypezz&& val)
     {
-        // Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::zzField_Namezz, _zzNamezz, val);
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::zzField_Namezz, _ptr->zzNamezz(), val);
         _ptr->set_zzNamezz(std::move(val));
     }
 

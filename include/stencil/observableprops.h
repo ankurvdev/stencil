@@ -147,7 +147,7 @@ template <typename T> struct ObservablePropsT : Observable
 
     void NotifyMutation(TFieldEnum fieldIndex, uint8_t mutationIndex, TFieldType const& fieldType, TValueType const& val)
     {
-        //NotifyChanged(fieldIndex);
+        // NotifyChanged(fieldIndex);
         MutationInfo info{
             static_cast<uint8_t>(fieldIndex), mutationIndex, Mutators<TFieldType>::GenerateMutationData(mutationIndex, fieldType, val)};
         mutations.push_back(std::move(info));
@@ -156,21 +156,22 @@ template <typename T> struct ObservablePropsT : Observable
     DeltaTracker<T> Edit() { return DeltaTracker<T>(static_cast<T*>(this)); }
 
     template <typename TFieldEnum, typename TField>
-    static void OnChangeRequested(T& obj, TFieldEnum fieldType, TField const& currentVal, TField const& requestedVal)
+    static void OnChangeRequested(DeltaTracker<T>& obj, TFieldEnum fieldType, TField const& currentVal, TField const& requestedVal)
     {
         if constexpr (std::is_base_of_v<ObservablePropsT<T>, T>)
         {
             if constexpr (std::is_base_of_v<Stencil::OptionalPropsT<T>, T>)
             {
-                if (!obj.IsValid(fieldType))
+                if (!obj.Obj().IsValid(fieldType))
                 {
-                    //                    obj.NotifyChanged(fieldType);
+                    obj.MarkFieldChanged(fieldType);
                     return;
                 }
             }
             if (!ReflectionBase::AreEqual(currentVal, requestedVal))
             {
-                //              obj.NotifyChanged(fieldType);
+
+                obj.MarkFieldChanged(fieldType);
             }
         }
     }

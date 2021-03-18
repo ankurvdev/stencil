@@ -27,7 +27,7 @@ TEST_CASE("CodeGen::ObservableProps", "[ObservableProps]")
             REQUIRE(data.IsValid(Avid::GPS::Data::FieldIndex::climb));
             REQUIRE(ctx.IsFieldChanged(Avid::GPS::Data::FieldIndex::climb));
             REQUIRE(ctx.CountFieldsChanged() == 1);
-            for (unsigned i = 0; i < 32; i++)
+            for (unsigned i = 1; i <= Avid::GPS::Data::FieldCount(); i++)
             {
                 if (ctx.IsFieldChanged(static_cast<Avid::GPS::Data::FieldIndex>(i)))
                 {
