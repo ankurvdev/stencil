@@ -79,8 +79,12 @@ template <typename T> struct PatchHandler
             writer << static_cast<uint8_t>(fieldsChanged);
             for (size_t i = 0u; i < ctx.NumFields(); i++)
             {
-                ctx.Visit(static_cast<typename TObj::FieldIndex>(i + 1), [&](auto const& subctx) {
-                    if (!subctx.IsChanged()) return;
+                auto fieldIndex = static_cast<typename TObj::FieldIndex>(i + 1);
+                ctx.Visit(fieldIndex, [&](auto const& subctx) {
+                    if (!ctx.IsFieldChanged(fieldIndex)) return;
+                    /// TODO: this is the bug
+                    // throw std::logic_error("Fix me. Subctx is not changed when the topbool has");
+
                     if (fieldsChanged == 0)
                     {
                         throw std::logic_error("Something doesnt add up. Too many changed fields visited");

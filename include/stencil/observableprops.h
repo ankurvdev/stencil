@@ -11,9 +11,27 @@ struct Observable
 {
 };
 
-template <typename T, typename _Ts = void> struct DeltaTracker;
+template <typename T, typename _Ts = void> struct DeltaTracker
+{
+    using TData = T;
 
-template <typename T> struct GenericDeltaTracker
+    DeltaTracker(T* /*ptr*/){};
+
+    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
+
+    bool    IsChanged() const { return true; }
+    size_t  NumFields() const { return 0; }
+    bool    OnlyHasDefaultMutator() const { return true; }
+    size_t  CountFieldsChanged() const { return 0; }
+    uint8_t MutatorIndex() const;
+
+    template <typename TLambda, typename TFieldIndex> void Visit(TFieldIndex /*index*/, TLambda&& /*lambda*/) const
+    {
+        throw std::logic_error("Illegal Visit");
+    }
+};
+#if 0
+template < typename T> struct GenericDeltaTracker
 {
     T* const   _ptr;
     bool const _changed{false};
@@ -54,7 +72,7 @@ template <typename TClock> struct DeltaTracker<std::chrono::time_point<TClock>> 
     {
     }
 };
-
+#endif
 template <typename T, size_t N> struct DeltaTracker<std::array<T, N>>
 {
     using TData = std::array<T, N>;

@@ -115,7 +115,7 @@ TEST_CASE("DataRecorder - Properties", "[DataRecorder]")
             REQUIRE(replay.Get<Avid::GPS::Data>().speed() == 4.0);
         }
     }
-
+#if 0
     SECTION("list-add")
     {
         RecordTrafficAdd(recordlog, 1);
@@ -158,7 +158,7 @@ TEST_CASE("DataRecorder - Properties", "[DataRecorder]")
 
     SECTION("one property list-edit") {}
     SECTION("one property list-set") {}
-
+#endif
     SECTION("one property struct-edit") {}
     SECTION("one property struct-set") {}
 
