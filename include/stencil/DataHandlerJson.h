@@ -1,5 +1,6 @@
 #pragma once
 #include "base.h"
+#include "visitor.h"
 
 #include <deque>
 class JsonDataModel;
@@ -115,6 +116,7 @@ struct Json
 };
 #endif
 
+// TODO : Fork it out into cliserdes
 #include "CommandLineArgsReader.h"
 
 enum HelpFormats
@@ -293,32 +295,48 @@ template <typename TStruct> struct CommandLineArgs
 
     struct ReaderHandler : public CommandLineArgsReader::Handler
     {
-        ReaderHandler(TStruct* obj) : _tracker(obj, nullptr) {}
-        virtual void HandleValue(bool value) override { _tracker.HandleValue(Value(value), nullptr); }
+        ReaderHandler(TStruct& obj) : _visitor(obj) {}
 
-        virtual void HandleValue(std::string_view const& str) override { _tracker.HandleValue(Value(str), nullptr); }
-
-        virtual void HandleEnum(std::string_view const& str) override { _tracker.HandleEnum(Value(str), nullptr); }
-
-        virtual void UnionType(std::string_view const& str) override { _tracker.UnionType(Value(str), nullptr); }
-
-        virtual void ListStart() override
+        virtual void HandleValue(bool value) override
         {
-            // auto sub = FindComponent(0);
-            // assert(sub != nullptr);
-            _tracker.ListStart(nullptr);
+            _visitor.SetValue(value);
+            _visitor.GoBackUp();
         }
-        virtual void ListEnd() override { _tracker.ListEnd(); }
 
-        virtual void ObjStart() override { _tracker.ObjStart(nullptr); }
-        virtual void ObjEnd() override { _tracker.ObjEnd(); }
-        virtual void ObjKey(std::string_view const& key) override { _tracker.ObjKey(Value{key}, nullptr); }
-        virtual void ObjKey(size_t index) override { _tracker.ObjKey(Value{index}, nullptr); }
+        virtual void HandleValue(std::string_view const& str) override
+        {
+            _visitor.SetValue(str);
+            _visitor.GoBackUp();
+        }
+
+        virtual void HandleEnum(std::string_view const& str) override
+        {
+            _visitor.SetValue(str);
+            _visitor.GoBackUp();
+        }
+
+        virtual void UnionType(std::string_view const& str) override { _visitor.SetValue(str); }
+
+        virtual void ListStart() override {}
+        virtual void ListEnd() override { _visitor.GoBackUp(); }
+        virtual void ObjStart() override {}
+        virtual void ObjEnd() override { _visitor.GoBackUp(); }
+
+        virtual void ObjKey(std::string_view const& key) override
+        {
+            while (!_visitor.TrySelect(Value{key}))
+            {
+                _visitor.GoBackUp();
+            }
+        }
+
+        virtual void ObjKey(size_t index) override { _visitor.Select(Value{index}); }
+        virtual void AddKey(size_t index) override { _visitor.Select(Value{index}); }
 
         virtual std::shared_ptr<CommandLineArgsReader::Definition> GetCurrentContext() override
         {
             CommandLineArgsReader::Definition::Type type;
-            switch (_tracker.GetDataTypeHint())
+            switch (_visitor.GetDataTypeHint())
             {
             case ReflectionBase::DataType::List: type = CommandLineArgsReader::Definition::Type::List; break;
             case ReflectionBase::DataType::Object: type = CommandLineArgsReader::Definition::Type::Object; break;
@@ -431,7 +449,7 @@ template <typename TStruct> struct CommandLineArgs
         {
             std::vector<std::string>                                lines;
             std::deque<std::shared_ptr<::ReflectionBase::DataInfo>> pending;
-            pending.push_back(std::move(_tracker.GetHandler()->GetDataInfo()));
+            pending.push_back(_visitor.GetDataInfo());
             for (int i = 0; pending.size() > 0; i++)
             {
                 _RecursivelyAddHelp(lines, pending, i);
@@ -458,13 +476,13 @@ template <typename TStruct> struct CommandLineArgs
             // throw HelpException(std::move());
         }
 
-        ReflectionServices::StateTraker<TStruct, void*> _tracker;
+        Stencil::Visitor<TStruct> _visitor;
 
         std::vector<std::string> _helpInfo;
     };
 
     // TODO: Get rid of pointers
-    template <typename TStr> void Load(TStruct* obj, std::span<TStr> const& args)
+    template <typename TStr> void Load(TStruct& obj, std::span<TStr> const& args)
     {
         ReaderHandler handler(obj);
         CommandLineArgsReader(&handler).Parse(args);

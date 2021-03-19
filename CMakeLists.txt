@@ -72,7 +72,7 @@ if (BUILD_TEST)
     target_link_libraries(codegen_tests PRIVATE libstencil)
     target_add_resource(codegen_tests testdata ${resfiles} ${pidlfiles})
 
-    add_executable(tests
+    add_executable(runtime_tests
         tests/Test_CLOpts.cpp
         tests/Test_CommandLineArgsReaderHandler.cpp
         tests/Test_Database2.cpp
@@ -84,10 +84,10 @@ if (BUILD_TEST)
         tests/Test_DataRecorderPlayer.cpp
     )
 
-    target_add_resource(tests testdata ${resfiles} ${pidlfiles})
-    target_include_directories(tests PRIVATE src external/catch2)
-    target_include_directories(tests PRIVATE src external)
-    target_include_directories(tests PRIVATE include)
+    target_add_resource(runtime_tests testdata ${resfiles} ${pidlfiles})
+    target_include_directories(runtime_tests PRIVATE src external/catch2)
+    target_include_directories(runtime_tests PRIVATE src external)
+    target_include_directories(runtime_tests PRIVATE include)
 
 
     foreach(f ${pidlfiles})
@@ -99,14 +99,14 @@ if (BUILD_TEST)
                 COMMAND stencil --outdir=${CMAKE_CURRENT_BINARY_DIR} ${inputs}
                 DEPENDS stencil ${inputs})
     add_custom_target(codegen DEPENDS ${outputs})
-    add_dependencies(tests codegen)
-    target_include_directories(tests PRIVATE ${CMAKE_CURRENT_BINARY_DIR} include)
-    target_compile_definitions(tests PRIVATE USE_NLOHMANN_JSON)
-    target_compile_definitions(tests PRIVATE USE_CPP_HTTPLIB)
-    target_link_libraries(tests PRIVATE libstencil)
+    add_dependencies(runtime_tests codegen)
+    target_include_directories(runtime_tests PRIVATE ${CMAKE_CURRENT_BINARY_DIR} include)
+    target_compile_definitions(runtime_tests PRIVATE USE_NLOHMANN_JSON)
+    target_compile_definitions(runtime_tests PRIVATE USE_CPP_HTTPLIB)
+    target_link_libraries(runtime_tests PRIVATE libstencil)
     find_package (Threads REQUIRED)
-    target_link_libraries (tests PRIVATE Threads::Threads)
-    add_test(NAME tests COMMAND tests)
+    target_link_libraries (runtime_tests PRIVATE Threads::Threads)
+    add_test(NAME runtime_tests COMMAND runtime_tests)
 endif()
 
 configure_package_config_file(cmake/stencilConfig.cmake.in

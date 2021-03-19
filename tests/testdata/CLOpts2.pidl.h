@@ -101,7 +101,6 @@ struct Data :
 
     void set_ProductId(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
@@ -119,7 +118,6 @@ struct Data :
 
     void set_Repair(bool&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::Repair, _Repair, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::Repair, _Repair, val);
         _Repair = std::move(val);
     }
@@ -137,7 +135,6 @@ struct Data :
 
     void set_ForceNonSD(bool&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ForceNonSD, _ForceNonSD, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ForceNonSD, _ForceNonSD, val);
         _ForceNonSD = std::move(val);
     }
@@ -155,7 +152,6 @@ struct Data :
 
     void set_TargetVolume(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::TargetVolume, _TargetVolume, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::TargetVolume, _TargetVolume, val);
         _TargetVolume = std::move(val);
     }
@@ -173,7 +169,6 @@ struct Data :
 
     void set_User(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::User, _User, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::User, _User, val);
         _User = std::move(val);
     }
@@ -232,7 +227,6 @@ struct Data :
 
     void set_ProductId(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
@@ -291,7 +285,6 @@ struct Data :
 
     void set_ProductId(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
@@ -350,7 +343,6 @@ struct Data :
 
     void set_ProductId(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
@@ -409,7 +401,6 @@ struct Data :
 
     void set_ProductId(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
@@ -468,7 +459,6 @@ struct Data :
 
     void set_ProductId(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
@@ -527,7 +517,6 @@ struct Data :
 
     void set_ProductId(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
@@ -868,52 +857,105 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     using TData = T;
 
     // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
+    TData* const _ptr;
     // TODO : Better way to unify creation interface
-    bool _changed = false;
 
+    std::bitset<TData::FieldCount() + 1> _fieldtracker;
+    DeltaTracker<shared_string> _subtracker_ProductId;
+    DeltaTracker<bool> _subtracker_Repair;
+    DeltaTracker<bool> _subtracker_ForceNonSD;
+    DeltaTracker<shared_string> _subtracker_TargetVolume;
+    DeltaTracker<shared_string> _subtracker_User;
     DELETE_COPY_AND_MOVE(DeltaTracker);
 
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    DeltaTracker(TData* ptr) :
+        _ptr(ptr)
+        ,
+        _subtracker_ProductId(&_ptr->ProductId())
+        ,
+        _subtracker_Repair(&_ptr->Repair())
+        ,
+        _subtracker_ForceNonSD(&_ptr->ForceNonSD())
+        ,
+        _subtracker_TargetVolume(&_ptr->TargetVolume())
+        ,
+        _subtracker_User(&_ptr->User())
     {
         // TODO: Tentative
         static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
 
+    TData& Obj() { return *_ptr; }
+
     static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
 
     size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+    bool   IsChanged() const { return _fieldtracker.any(); }
 
     uint8_t MutatorIndex() const;
     bool    OnlyHasDefaultMutator() const;
 
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
 
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::ProductId:
-            lambda(DeltaTracker<shared_string>(&_ptr->ProductId(), IsFieldChanged(TData::FieldIndex::ProductId)));
-            return;
-        case TData::FieldIndex::Repair:
-            lambda(DeltaTracker<bool>(&_ptr->Repair(), IsFieldChanged(TData::FieldIndex::Repair)));
-            return;
-        case TData::FieldIndex::ForceNonSD:
-            lambda(DeltaTracker<bool>(&_ptr->ForceNonSD(), IsFieldChanged(TData::FieldIndex::ForceNonSD)));
-            return;
-        case TData::FieldIndex::TargetVolume:
-            lambda(DeltaTracker<shared_string>(&_ptr->TargetVolume(), IsFieldChanged(TData::FieldIndex::TargetVolume)));
-            return;
-        case TData::FieldIndex::User:
-            lambda(DeltaTracker<shared_string>(&_ptr->User(), IsFieldChanged(TData::FieldIndex::User)));
-            return;
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
+        case TData::FieldIndex::Repair: lambda(_subtracker_Repair); return;
+        case TData::FieldIndex::ForceNonSD: lambda(_subtracker_ForceNonSD); return;
+        case TData::FieldIndex::TargetVolume: lambda(_subtracker_TargetVolume); return;
+        case TData::FieldIndex::User: lambda(_subtracker_User); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
+        case TData::FieldIndex::Repair: lambda(_subtracker_Repair); return;
+        case TData::FieldIndex::ForceNonSD: lambda(_subtracker_ForceNonSD); return;
+        case TData::FieldIndex::TargetVolume: lambda(_subtracker_TargetVolume); return;
+        case TData::FieldIndex::User: lambda(_subtracker_User); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    void set_ProductId(shared_string&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::ProductId, _ptr->ProductId(), val);
+        _ptr->set_ProductId(std::move(val));
+    }
+
+    void set_Repair(bool&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::Repair, _ptr->Repair(), val);
+        _ptr->set_Repair(std::move(val));
+    }
+
+    void set_ForceNonSD(bool&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::ForceNonSD, _ptr->ForceNonSD(), val);
+        _ptr->set_ForceNonSD(std::move(val));
+    }
+
+    void set_TargetVolume(shared_string&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::TargetVolume, _ptr->TargetVolume(), val);
+        _ptr->set_TargetVolume(std::move(val));
+    }
+
+    void set_User(shared_string&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::User, _ptr->User(), val);
+        _ptr->set_User(std::move(val));
+    }
+
 };
 
 template <> struct ReflectionBase::TypeTraits<CLOpts2::QueueOptions::Data&>
@@ -964,40 +1006,61 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     using TData = T;
 
     // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
+    TData* const _ptr;
     // TODO : Better way to unify creation interface
-    bool _changed = false;
 
+    std::bitset<TData::FieldCount() + 1> _fieldtracker;
+    DeltaTracker<shared_string> _subtracker_ProductId;
     DELETE_COPY_AND_MOVE(DeltaTracker);
 
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    DeltaTracker(TData* ptr) :
+        _ptr(ptr)
+        ,
+        _subtracker_ProductId(&_ptr->ProductId())
     {
         // TODO: Tentative
         static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
 
+    TData& Obj() { return *_ptr; }
+
     static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
 
     size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+    bool   IsChanged() const { return _fieldtracker.any(); }
 
     uint8_t MutatorIndex() const;
     bool    OnlyHasDefaultMutator() const;
 
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
 
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::ProductId:
-            lambda(DeltaTracker<shared_string>(&_ptr->ProductId(), IsFieldChanged(TData::FieldIndex::ProductId)));
-            return;
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    void set_ProductId(shared_string&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::ProductId, _ptr->ProductId(), val);
+        _ptr->set_ProductId(std::move(val));
+    }
+
 };
 
 template <> struct ReflectionBase::TypeTraits<CLOpts2::PauseOptions::Data&>
@@ -1047,40 +1110,61 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     using TData = T;
 
     // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
+    TData* const _ptr;
     // TODO : Better way to unify creation interface
-    bool _changed = false;
 
+    std::bitset<TData::FieldCount() + 1> _fieldtracker;
+    DeltaTracker<shared_string> _subtracker_ProductId;
     DELETE_COPY_AND_MOVE(DeltaTracker);
 
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    DeltaTracker(TData* ptr) :
+        _ptr(ptr)
+        ,
+        _subtracker_ProductId(&_ptr->ProductId())
     {
         // TODO: Tentative
         static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
 
+    TData& Obj() { return *_ptr; }
+
     static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
 
     size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+    bool   IsChanged() const { return _fieldtracker.any(); }
 
     uint8_t MutatorIndex() const;
     bool    OnlyHasDefaultMutator() const;
 
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
 
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::ProductId:
-            lambda(DeltaTracker<shared_string>(&_ptr->ProductId(), IsFieldChanged(TData::FieldIndex::ProductId)));
-            return;
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    void set_ProductId(shared_string&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::ProductId, _ptr->ProductId(), val);
+        _ptr->set_ProductId(std::move(val));
+    }
+
 };
 
 template <> struct ReflectionBase::TypeTraits<CLOpts2::CancelOptions::Data&>
@@ -1130,40 +1214,61 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     using TData = T;
 
     // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
+    TData* const _ptr;
     // TODO : Better way to unify creation interface
-    bool _changed = false;
 
+    std::bitset<TData::FieldCount() + 1> _fieldtracker;
+    DeltaTracker<shared_string> _subtracker_ProductId;
     DELETE_COPY_AND_MOVE(DeltaTracker);
 
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    DeltaTracker(TData* ptr) :
+        _ptr(ptr)
+        ,
+        _subtracker_ProductId(&_ptr->ProductId())
     {
         // TODO: Tentative
         static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
 
+    TData& Obj() { return *_ptr; }
+
     static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
 
     size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+    bool   IsChanged() const { return _fieldtracker.any(); }
 
     uint8_t MutatorIndex() const;
     bool    OnlyHasDefaultMutator() const;
 
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
 
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::ProductId:
-            lambda(DeltaTracker<shared_string>(&_ptr->ProductId(), IsFieldChanged(TData::FieldIndex::ProductId)));
-            return;
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    void set_ProductId(shared_string&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::ProductId, _ptr->ProductId(), val);
+        _ptr->set_ProductId(std::move(val));
+    }
+
 };
 
 template <> struct ReflectionBase::TypeTraits<CLOpts2::ResumeOptions::Data&>
@@ -1213,40 +1318,61 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     using TData = T;
 
     // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
+    TData* const _ptr;
     // TODO : Better way to unify creation interface
-    bool _changed = false;
 
+    std::bitset<TData::FieldCount() + 1> _fieldtracker;
+    DeltaTracker<shared_string> _subtracker_ProductId;
     DELETE_COPY_AND_MOVE(DeltaTracker);
 
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    DeltaTracker(TData* ptr) :
+        _ptr(ptr)
+        ,
+        _subtracker_ProductId(&_ptr->ProductId())
     {
         // TODO: Tentative
         static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
 
+    TData& Obj() { return *_ptr; }
+
     static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
 
     size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+    bool   IsChanged() const { return _fieldtracker.any(); }
 
     uint8_t MutatorIndex() const;
     bool    OnlyHasDefaultMutator() const;
 
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
 
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::ProductId:
-            lambda(DeltaTracker<shared_string>(&_ptr->ProductId(), IsFieldChanged(TData::FieldIndex::ProductId)));
-            return;
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    void set_ProductId(shared_string&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::ProductId, _ptr->ProductId(), val);
+        _ptr->set_ProductId(std::move(val));
+    }
+
 };
 
 template <> struct ReflectionBase::TypeTraits<CLOpts2::UpdateOptions::Data&>
@@ -1297,40 +1423,61 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     using TData = T;
 
     // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
+    TData* const _ptr;
     // TODO : Better way to unify creation interface
-    bool _changed = false;
 
+    std::bitset<TData::FieldCount() + 1> _fieldtracker;
+    DeltaTracker<shared_string> _subtracker_ProductId;
     DELETE_COPY_AND_MOVE(DeltaTracker);
 
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    DeltaTracker(TData* ptr) :
+        _ptr(ptr)
+        ,
+        _subtracker_ProductId(&_ptr->ProductId())
     {
         // TODO: Tentative
         static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
 
+    TData& Obj() { return *_ptr; }
+
     static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
 
     size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+    bool   IsChanged() const { return _fieldtracker.any(); }
 
     uint8_t MutatorIndex() const;
     bool    OnlyHasDefaultMutator() const;
 
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
 
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::ProductId:
-            lambda(DeltaTracker<shared_string>(&_ptr->ProductId(), IsFieldChanged(TData::FieldIndex::ProductId)));
-            return;
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    void set_ProductId(shared_string&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::ProductId, _ptr->ProductId(), val);
+        _ptr->set_ProductId(std::move(val));
+    }
+
 };
 
 template <> struct ReflectionBase::TypeTraits<CLOpts2::HydrateOptions::Data&>
@@ -1380,40 +1527,61 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     using TData = T;
 
     // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
+    TData* const _ptr;
     // TODO : Better way to unify creation interface
-    bool _changed = false;
 
+    std::bitset<TData::FieldCount() + 1> _fieldtracker;
+    DeltaTracker<shared_string> _subtracker_ProductId;
     DELETE_COPY_AND_MOVE(DeltaTracker);
 
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    DeltaTracker(TData* ptr) :
+        _ptr(ptr)
+        ,
+        _subtracker_ProductId(&_ptr->ProductId())
     {
         // TODO: Tentative
         static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
 
+    TData& Obj() { return *_ptr; }
+
     static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
 
     size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
+    bool   IsChanged() const { return _fieldtracker.any(); }
 
     uint8_t MutatorIndex() const;
     bool    OnlyHasDefaultMutator() const;
 
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
+    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
+    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
 
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
+    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::ProductId:
-            lambda(DeltaTracker<shared_string>(&_ptr->ProductId(), IsFieldChanged(TData::FieldIndex::ProductId)));
-            return;
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    void set_ProductId(shared_string&& val)
+    {
+        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::ProductId, _ptr->ProductId(), val);
+        _ptr->set_ProductId(std::move(val));
+    }
+
 };
 
 template <> struct ReflectionServices::EnumTraits<CLOpts2::CommandLineOptions::UnionType>

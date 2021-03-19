@@ -59,18 +59,20 @@ struct CommandLineArgsReader
     {
         virtual ~Handler() = default;
 
-        virtual void                        HandleValue(bool value)                  = 0;
-        virtual void                        HandleValue(std::string_view const& str) = 0;
-        virtual void                        ListStart()                              = 0;
-        virtual void                        ListEnd()                                = 0;
-        virtual void                        ObjStart()                               = 0;
-        virtual void                        ObjEnd()                                 = 0;
-        virtual void                        ObjKey(std::string_view const& key)      = 0;
-        virtual void                        ObjKey(size_t index)                     = 0;
-        virtual void                        HandleEnum(std::string_view const& str)  = 0;
-        virtual void                        UnionType(std::string_view const& str)   = 0;
-        virtual std::shared_ptr<Definition> GetCurrentContext()                      = 0;
-        virtual std::string                 GenerateHelp()                           = 0;
+        virtual void HandleValue(bool value)                  = 0;
+        virtual void HandleValue(std::string_view const& str) = 0;
+        virtual void ListStart()                              = 0;
+        virtual void ListEnd()                                = 0;
+        virtual void ObjStart()                               = 0;
+        virtual void ObjEnd()                                 = 0;
+        virtual void ObjKey(std::string_view const& key)      = 0;
+        virtual void ObjKey(size_t index)                     = 0;
+        virtual void AddKey(size_t index)                     = 0;
+        virtual void HandleEnum(std::string_view const& str)  = 0;
+        virtual void UnionType(std::string_view const& str)   = 0;
+
+        virtual std::shared_ptr<Definition> GetCurrentContext() = 0;
+        virtual std::string                 GenerateHelp()      = 0;
     } * _handler;
 
     CommandLineArgsReader(Handler* handler) : _handler(handler) {}
@@ -231,11 +233,12 @@ struct CommandLineArgsReader
     void _ProcessList(std::string_view const& val)
     {
         _handler->ListStart();
+        size_t index = 0;
         for (auto const& subval : _ValueTokens(val))
         {
+            _handler->AddKey(index++);
             _ProcessValue(subval);
         }
-
         _handler->ListEnd();
     }
 
