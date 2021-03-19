@@ -24,18 +24,6 @@ void RecordTrafficRemoveIndex(Avid::Traffic::Data& data, std::filesystem::path c
     recorder.Record(data, ctx);
 }
 
-//
-// void RecordTrafficRemoveMatching(std::filesystem::path const& recordlog, char hexaddr)
-//{
-//    Avid::Traffic::Data                        data;
-//    Stencil::DataRecorder<Avid::Traffic::Data> recorder(recordlog);
-//    Avid::Aircraft::Data                       aircraft;
-//    aircraft.set_hexaddr({hexaddr, hexaddr, hexaddr, hexaddr, hexaddr, hexaddr, hexaddr});
-//    auto ctx = data.Edit();
-//    data.remove_matching_aircrafts([&](const auto& obj) { return obj.hexaddr == aircraft.hexaddr; });
-//    recorder.Record(data, ctx);
-//}
-
 void RecordChangeGPSClimb(std::filesystem::path const& recordlog, double value)
 {
     Avid::GPS::Data                        data;
@@ -156,11 +144,6 @@ TEST_CASE("DataRecorder", "[DataRecorder]")
             }
         }
     }
-
-    SECTION("one property list-edit") {}
-    SECTION("one property list-set") {}
-    SECTION("one property struct-edit") {}
-    SECTION("one property struct-set") {}
 
     std::filesystem::remove(recordlog);
 }
