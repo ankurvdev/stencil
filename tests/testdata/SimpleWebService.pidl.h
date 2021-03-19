@@ -313,6 +313,16 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
         }
     }
 
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::randomInteger: lambda(_subtracker_randomInteger); return;
+        case TData::FieldIndex::randomString: lambda(_subtracker_randomString); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
     void set_randomInteger(int32_t&& val)
     {
         Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::randomInteger, _ptr->randomInteger(), val);

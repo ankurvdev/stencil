@@ -478,6 +478,16 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
         }
     }
 
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::latitude: lambda(_subtracker_latitude); return;
+        case TData::FieldIndex::longitude: lambda(_subtracker_longitude); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
     void set_latitude(int64_t&& val)
     {
         Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::latitude, _ptr->latitude(), val);
@@ -618,6 +628,17 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::type: lambda(_subtracker_type); return;
+        case TData::FieldIndex::name: lambda(_subtracker_name); return;
+        case TData::FieldIndex::areaPolygon: lambda(_subtracker_areaPolygon); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
     {
         switch (index)
         {
@@ -846,6 +867,20 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::id: lambda(_subtracker_id); return;
+        case TData::FieldIndex::keywords: lambda(_subtracker_keywords); return;
+        case TData::FieldIndex::location: lambda(_subtracker_location); return;
+        case TData::FieldIndex::md5sum: lambda(_subtracker_md5sum); return;
+        case TData::FieldIndex::thumbnailBlob: lambda(_subtracker_thumbnailBlob); return;
+        case TData::FieldIndex::fileUrl: lambda(_subtracker_fileUrl); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
     {
         switch (index)
         {

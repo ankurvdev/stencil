@@ -117,12 +117,10 @@ struct Data :
 
     void add_libraries(shared_string&& args)
     {
-        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::libraries, uint8_t{1}, _libraries, args);
         return Stencil::Mutators<std::vector<shared_string>>::add(_libraries, std::move(args));
     }
     void remove_libraries(size_t&& args)
     {
-        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::libraries, uint8_t{2}, _libraries, args);
         return Stencil::Mutators<std::vector<shared_string>>::remove(_libraries, std::move(args));
     }
     shared_string at_libraries(size_t const& args) const
@@ -148,12 +146,10 @@ struct Data :
 
     void add_scan(shared_string&& args)
     {
-        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::scan, uint8_t{1}, _scan, args);
         return Stencil::Mutators<std::vector<shared_string>>::add(_scan, std::move(args));
     }
     void remove_scan(size_t&& args)
     {
-        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::scan, uint8_t{2}, _scan, args);
         return Stencil::Mutators<std::vector<shared_string>>::remove(_scan, std::move(args));
     }
     shared_string at_scan(size_t const& args) const
@@ -331,12 +327,10 @@ struct Data :
 
     void add_field1(shared_string&& args)
     {
-        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::field1, uint8_t{1}, _field1, args);
         return Stencil::Mutators<std::vector<shared_string>>::add(_field1, std::move(args));
     }
     void remove_field1(size_t&& args)
     {
-        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::field1, uint8_t{2}, _field1, args);
         return Stencil::Mutators<std::vector<shared_string>>::remove(_field1, std::move(args));
     }
     shared_string at_field1(size_t const& args) const
@@ -439,12 +433,10 @@ struct Data :
 
     void add_listofint(int32_t&& args)
     {
-        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::listofint, uint8_t{1}, _listofint, args);
         return Stencil::Mutators<std::vector<int32_t>>::add(_listofint, std::move(args));
     }
     void remove_listofint(size_t&& args)
     {
-        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::listofint, uint8_t{2}, _listofint, args);
         return Stencil::Mutators<std::vector<int32_t>>::remove(_listofint, std::move(args));
     }
     int32_t at_listofint(size_t const& args) const
@@ -470,12 +462,10 @@ struct Data :
 
     void add_listoflist(std::vector<int32_t>&& args)
     {
-        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::listoflist, uint8_t{1}, _listoflist, args);
         return Stencil::Mutators<std::vector<std::vector<int32_t>>>::add(_listoflist, std::move(args));
     }
     void remove_listoflist(size_t&& args)
     {
-        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::listoflist, uint8_t{2}, _listoflist, args);
         return Stencil::Mutators<std::vector<std::vector<int32_t>>>::remove(_listoflist, std::move(args));
     }
     std::vector<int32_t> at_listoflist(size_t const& args) const
@@ -501,12 +491,10 @@ struct Data :
 
     void add_listofobj(::CLOpts1::SimpleObj::Data&& args)
     {
-        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::listofobj, uint8_t{1}, _listofobj, args);
         return Stencil::Mutators<std::vector<::CLOpts1::SimpleObj::Data>>::add(_listofobj, std::move(args));
     }
     void remove_listofobj(size_t&& args)
     {
-        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::listofobj, uint8_t{2}, _listofobj, args);
         return Stencil::Mutators<std::vector<::CLOpts1::SimpleObj::Data>>::remove(_listofobj, std::move(args));
     }
     ::CLOpts1::SimpleObj::Data at_listofobj(size_t const& args) const
@@ -740,6 +728,19 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
         }
     }
 
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::workingDirectory: lambda(_subtracker_workingDirectory); return;
+        case TData::FieldIndex::libraries: lambda(_subtracker_libraries); return;
+        case TData::FieldIndex::scan: lambda(_subtracker_scan); return;
+        case TData::FieldIndex::httpsPort: lambda(_subtracker_httpsPort); return;
+        case TData::FieldIndex::daemon: lambda(_subtracker_daemon); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
     void set_workingDirectory(shared_string&& val)
     {
         Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::workingDirectory, _ptr->workingDirectory(), val);
@@ -754,25 +755,19 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
 
     void add_libraries(shared_string&& args)
     {
-        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::libraries, uint8_t{1}, _libraries,
-        //        args);
-        return _ptr->add_libraries(std::move(args));
+        Stencil::ObservablePropsT<TData>::OnMutationRequested(
+            *this, TData::FieldIndex::libraries, uint8_t{1}, _ptr->libraries(), args);
 
-        //        return Stencil::Mutators<std::vector<shared_string>>::add(_libraries, std::move(args));
+        return _ptr->add_libraries(std::move(args));
     }
     void remove_libraries(size_t&& args)
     {
-        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::libraries, uint8_t{2}, _libraries,
-        //        args);
-        return _ptr->remove_libraries(std::move(args));
+        Stencil::ObservablePropsT<TData>::OnMutationRequested(
+            *this, TData::FieldIndex::libraries, uint8_t{2}, _ptr->libraries(), args);
 
-        //        return Stencil::Mutators<std::vector<shared_string>>::remove(_libraries, std::move(args));
+        return _ptr->remove_libraries(std::move(args));
     }
-    shared_string at_libraries(size_t const& args) const
-    {
-        //        return Stencil::Accessors<std::vector<shared_string>>::at(_libraries, args);
-        return _ptr->at_libraries(args);
-    }
+    shared_string at_libraries(size_t const& args) const { return _ptr->at_libraries(args); }
     void set_scan(std::vector<shared_string>&& val)
     {
         Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::scan, _ptr->scan(), val);
@@ -781,25 +776,19 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
 
     void add_scan(shared_string&& args)
     {
-        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::scan, uint8_t{1}, _scan,
-        //        args);
-        return _ptr->add_scan(std::move(args));
+        Stencil::ObservablePropsT<TData>::OnMutationRequested(
+            *this, TData::FieldIndex::scan, uint8_t{1}, _ptr->scan(), args);
 
-        //        return Stencil::Mutators<std::vector<shared_string>>::add(_scan, std::move(args));
+        return _ptr->add_scan(std::move(args));
     }
     void remove_scan(size_t&& args)
     {
-        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::scan, uint8_t{2}, _scan,
-        //        args);
-        return _ptr->remove_scan(std::move(args));
+        Stencil::ObservablePropsT<TData>::OnMutationRequested(
+            *this, TData::FieldIndex::scan, uint8_t{2}, _ptr->scan(), args);
 
-        //        return Stencil::Mutators<std::vector<shared_string>>::remove(_scan, std::move(args));
+        return _ptr->remove_scan(std::move(args));
     }
-    shared_string at_scan(size_t const& args) const
-    {
-        //        return Stencil::Accessors<std::vector<shared_string>>::at(_scan, args);
-        return _ptr->at_scan(args);
-    }
+    shared_string at_scan(size_t const& args) const { return _ptr->at_scan(args); }
     void set_httpsPort(int32_t&& val)
     {
         Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::httpsPort, _ptr->httpsPort(), val);
@@ -925,6 +914,16 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
         }
     }
 
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::field1: lambda(_subtracker_field1); return;
+        case TData::FieldIndex::field2: lambda(_subtracker_field2); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
     void set_field1(shared_string&& val)
     {
         Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::field1, _ptr->field1(), val);
@@ -1025,6 +1024,15 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
         }
     }
 
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::field1: lambda(_subtracker_field1); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
     void set_field1(std::vector<shared_string>&& val)
     {
         Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::field1, _ptr->field1(), val);
@@ -1033,25 +1041,19 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
 
     void add_field1(shared_string&& args)
     {
-        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::field1, uint8_t{1}, _field1,
-        //        args);
-        return _ptr->add_field1(std::move(args));
+        Stencil::ObservablePropsT<TData>::OnMutationRequested(
+            *this, TData::FieldIndex::field1, uint8_t{1}, _ptr->field1(), args);
 
-        //        return Stencil::Mutators<std::vector<shared_string>>::add(_field1, std::move(args));
+        return _ptr->add_field1(std::move(args));
     }
     void remove_field1(size_t&& args)
     {
-        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::field1, uint8_t{2}, _field1,
-        //        args);
-        return _ptr->remove_field1(std::move(args));
+        Stencil::ObservablePropsT<TData>::OnMutationRequested(
+            *this, TData::FieldIndex::field1, uint8_t{2}, _ptr->field1(), args);
 
-        //        return Stencil::Mutators<std::vector<shared_string>>::remove(_field1, std::move(args));
+        return _ptr->remove_field1(std::move(args));
     }
-    shared_string at_field1(size_t const& args) const
-    {
-        //        return Stencil::Accessors<std::vector<shared_string>>::at(_field1, args);
-        return _ptr->at_field1(args);
-    }
+    shared_string at_field1(size_t const& args) const { return _ptr->at_field1(args); }
 };
 
 template <> struct ReflectionBase::TypeTraits<CLOpts1::CLOptsTest::Data&>
@@ -1265,6 +1267,20 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
         }
     }
 
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::key1: lambda(_subtracker_key1); return;
+        case TData::FieldIndex::listofint: lambda(_subtracker_listofint); return;
+        case TData::FieldIndex::listoflist: lambda(_subtracker_listoflist); return;
+        case TData::FieldIndex::listofobj: lambda(_subtracker_listofobj); return;
+        case TData::FieldIndex::objoflist: lambda(_subtracker_objoflist); return;
+        case TData::FieldIndex::key2: lambda(_subtracker_key2); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
     void set_key1(shared_string&& val)
     {
         Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::key1, _ptr->key1(), val);
@@ -1279,25 +1295,19 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
 
     void add_listofint(int32_t&& args)
     {
-        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::listofint, uint8_t{1}, _listofint,
-        //        args);
-        return _ptr->add_listofint(std::move(args));
+        Stencil::ObservablePropsT<TData>::OnMutationRequested(
+            *this, TData::FieldIndex::listofint, uint8_t{1}, _ptr->listofint(), args);
 
-        //        return Stencil::Mutators<std::vector<int32_t>>::add(_listofint, std::move(args));
+        return _ptr->add_listofint(std::move(args));
     }
     void remove_listofint(size_t&& args)
     {
-        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::listofint, uint8_t{2}, _listofint,
-        //        args);
-        return _ptr->remove_listofint(std::move(args));
+        Stencil::ObservablePropsT<TData>::OnMutationRequested(
+            *this, TData::FieldIndex::listofint, uint8_t{2}, _ptr->listofint(), args);
 
-        //        return Stencil::Mutators<std::vector<int32_t>>::remove(_listofint, std::move(args));
+        return _ptr->remove_listofint(std::move(args));
     }
-    int32_t at_listofint(size_t const& args) const
-    {
-        //        return Stencil::Accessors<std::vector<int32_t>>::at(_listofint, args);
-        return _ptr->at_listofint(args);
-    }
+    int32_t at_listofint(size_t const& args) const { return _ptr->at_listofint(args); }
     void set_listoflist(std::vector<std::vector<int32_t>>&& val)
     {
         Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::listoflist, _ptr->listoflist(), val);
@@ -1306,25 +1316,19 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
 
     void add_listoflist(std::vector<int32_t>&& args)
     {
-        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::listoflist, uint8_t{1}, _listoflist,
-        //        args);
-        return _ptr->add_listoflist(std::move(args));
+        Stencil::ObservablePropsT<TData>::OnMutationRequested(
+            *this, TData::FieldIndex::listoflist, uint8_t{1}, _ptr->listoflist(), args);
 
-        //        return Stencil::Mutators<std::vector<std::vector<int32_t>>>::add(_listoflist, std::move(args));
+        return _ptr->add_listoflist(std::move(args));
     }
     void remove_listoflist(size_t&& args)
     {
-        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::listoflist, uint8_t{2}, _listoflist,
-        //        args);
-        return _ptr->remove_listoflist(std::move(args));
+        Stencil::ObservablePropsT<TData>::OnMutationRequested(
+            *this, TData::FieldIndex::listoflist, uint8_t{2}, _ptr->listoflist(), args);
 
-        //        return Stencil::Mutators<std::vector<std::vector<int32_t>>>::remove(_listoflist, std::move(args));
+        return _ptr->remove_listoflist(std::move(args));
     }
-    std::vector<int32_t> at_listoflist(size_t const& args) const
-    {
-        //        return Stencil::Accessors<std::vector<std::vector<int32_t>>>::at(_listoflist, args);
-        return _ptr->at_listoflist(args);
-    }
+    std::vector<int32_t> at_listoflist(size_t const& args) const { return _ptr->at_listoflist(args); }
     void set_listofobj(std::vector<::CLOpts1::SimpleObj::Data>&& val)
     {
         Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::listofobj, _ptr->listofobj(), val);
@@ -1333,25 +1337,19 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
 
     void add_listofobj(::CLOpts1::SimpleObj::Data&& args)
     {
-        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::listofobj, uint8_t{1}, _listofobj,
-        //        args);
-        return _ptr->add_listofobj(std::move(args));
+        Stencil::ObservablePropsT<TData>::OnMutationRequested(
+            *this, TData::FieldIndex::listofobj, uint8_t{1}, _ptr->listofobj(), args);
 
-        //        return Stencil::Mutators<std::vector<::CLOpts1::SimpleObj::Data>>::add(_listofobj, std::move(args));
+        return _ptr->add_listofobj(std::move(args));
     }
     void remove_listofobj(size_t&& args)
     {
-        //        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::listofobj, uint8_t{2}, _listofobj,
-        //        args);
-        return _ptr->remove_listofobj(std::move(args));
+        Stencil::ObservablePropsT<TData>::OnMutationRequested(
+            *this, TData::FieldIndex::listofobj, uint8_t{2}, _ptr->listofobj(), args);
 
-        //        return Stencil::Mutators<std::vector<::CLOpts1::SimpleObj::Data>>::remove(_listofobj, std::move(args));
+        return _ptr->remove_listofobj(std::move(args));
     }
-    ::CLOpts1::SimpleObj::Data at_listofobj(size_t const& args) const
-    {
-        //        return Stencil::Accessors<std::vector<::CLOpts1::SimpleObj::Data>>::at(_listofobj, args);
-        return _ptr->at_listofobj(args);
-    }
+    ::CLOpts1::SimpleObj::Data at_listofobj(size_t const& args) const { return _ptr->at_listofobj(args); }
     void set_objoflist(::CLOpts1::ObjWithList::Data&& val)
     {
         Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::objoflist, _ptr->objoflist(), val);

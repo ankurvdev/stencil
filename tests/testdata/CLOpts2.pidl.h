@@ -913,6 +913,19 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
         }
     }
 
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
+        case TData::FieldIndex::Repair: lambda(_subtracker_Repair); return;
+        case TData::FieldIndex::ForceNonSD: lambda(_subtracker_ForceNonSD); return;
+        case TData::FieldIndex::TargetVolume: lambda(_subtracker_TargetVolume); return;
+        case TData::FieldIndex::User: lambda(_subtracker_User); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
     void set_ProductId(shared_string&& val)
     {
         Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::ProductId, _ptr->ProductId(), val);
@@ -1033,6 +1046,15 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
         }
     }
 
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
     void set_ProductId(shared_string&& val)
     {
         Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::ProductId, _ptr->ProductId(), val);
@@ -1120,6 +1142,15 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
     {
         switch (index)
         {
@@ -1223,6 +1254,15 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
         }
     }
 
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
     void set_ProductId(shared_string&& val)
     {
         Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::ProductId, _ptr->ProductId(), val);
@@ -1310,6 +1350,15 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
     {
         switch (index)
         {
@@ -1414,6 +1463,15 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
         }
     }
 
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
     void set_ProductId(shared_string&& val)
     {
         Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::ProductId, _ptr->ProductId(), val);
@@ -1501,6 +1559,15 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
     {
         switch (index)
         {
