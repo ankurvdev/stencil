@@ -315,9 +315,9 @@ struct SerDes
     }
 
     private:
-    static const std::streamoff PageStreamOffset(size_t page) { return std::streamoff(page * Page::PageSizeInBytes + sizeof(Header)); }
+    static std::streamoff PageStreamOffset(size_t page) { return std::streamoff(page * Page::PageSizeInBytes + sizeof(Header)); }
 
-    static const uint32_t GetPageIndexFromOffset(std::streamoff offset)
+    static uint32_t GetPageIndexFromOffset(std::streamoff offset)
     {
         assert((offset - sizeof(Header)) % Page::PageSizeInBytes == 0);
         return static_cast<uint32_t>((offset - sizeof(Header)) / Page::PageSizeInBytes);
@@ -1289,7 +1289,7 @@ template <typename TDb> struct DatabaseT
         }
     }
 
-    template <typename TObj> SnapT<TObj> Get(RefT<TObj> const& id) { return Get(LockForRead(), id); };
+    template <typename TObj> SnapT<TObj> Get(RefT<TObj> const& id) { return Get(LockForRead(), id); }
 
     template <typename TObj> ViewT<TObj> Get(rlock const& lock, RefT<TObj> const& id)
     {

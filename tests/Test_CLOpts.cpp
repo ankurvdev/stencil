@@ -38,7 +38,7 @@ template <typename TStruct, typename... TArgs> std::vector<std::string> RequireG
     CommandLineArgs<TStruct> cli;
     cli.template Load<std::string_view>(data, testargv);
     return cli.HelpInfo();
-};
+}
 
 TEST_CASE("CodeGen::CommandLineArgs::Simplecase", "[CommandLineArgs]")
 {

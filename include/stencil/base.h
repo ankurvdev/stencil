@@ -37,7 +37,7 @@ struct Generic
 struct UnknownDataTypeHandler
 {
 };
-};    // namespace ExceptionTraits
+}    // namespace ExceptionTraits
 
 namespace Exception
 {
@@ -508,7 +508,7 @@ template <typename TValue> struct StdVectorListHandler : public IDataTypeHandler
     }
     virtual shared_string AttributeValue(const std::string_view& /*key*/) const override { throw std::logic_error("TODO"); }
     virtual shared_string Name() const override { return shared_string::make("[" + _handler.Name().str() + " ...]"); }
-    virtual SubComponent  GetListItemHandler() const override { return {&_handler}; }
+    virtual SubComponent  GetListItemHandler() const override { throw std::logic_error("TODO"); /*return {&_handler, };*/ }
 
     virtual std::shared_ptr<DataInfo> GetDataInfo() const override
     {
@@ -547,7 +547,7 @@ template <typename TValue, size_t N> struct StdArrayListHandler : public IDataTy
 
     virtual shared_string AttributeValue(const std::string_view& /*key*/) const override { throw std::logic_error("TODO"); }
     virtual shared_string Name() const override { return shared_string::make("[" + _handler.Name().str() + " ...]"); }
-    virtual SubComponent  GetListItemHandler() const override { return {&_handler}; }
+    virtual SubComponent  GetListItemHandler() const override { throw std::logic_error("TODO"); /* return {&_handler};  */}
 
     virtual std::shared_ptr<DataInfo> GetDataInfo() const override
     {

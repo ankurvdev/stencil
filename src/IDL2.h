@@ -89,8 +89,9 @@ struct Container : public std::enable_shared_from_this<Container>,
     void AddMutator(MutatorAccessorDefinition&& def) { _mutators.push_back(std::move(def)); }
     void AddAccessor(MutatorAccessorDefinition&& def) { _accessors.push_back(std::move(def)); }
 
-    const size_t                      ComponentSize() { return m_Components.size(); }
-    Str::Type&                        Component(size_t index) { return m_Components[index]; }
+    size_t     ComponentSize() const { return m_Components.size(); }
+    Str::Type& Component(size_t index) { return m_Components[index]; }
+
     static std::shared_ptr<Container> FindOrCreate(std::shared_ptr<Program>               program,
                                                    Str::Type&&                            name,
                                                    std::vector<Str::Type>&                components,
@@ -216,7 +217,8 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
         }
         for (auto const& m : container._accessors)
         {
-            this->CreateAccessor(Str::Copy(m.name), m.id, ResolveExpression(m.returnType, _typemap), ResolveExpression(m.args[0], _typemap));
+            this->CreateAccessor(
+                Str::Copy(m.name), m.id, ResolveExpression(m.returnType, _typemap), ResolveExpression(m.args[0], _typemap));
         }
     }
 
@@ -289,7 +291,7 @@ struct RelationshipDefinition : public std::enable_shared_from_this<Relationship
 
     RelationshipDefinition(std::shared_ptr<Program>               program,
                            Str::Type&&                            name,
-                           std::shared_ptr<Binding::AttributeMap> attributes,
+                           std::shared_ptr<Binding::AttributeMap> /* attributes */,
                            RelationshipComponentMap&&             unordered_map) :
         IDLGenerics::NamedIndexT<Program, RelationshipDefinition>::NamedObject(program, std::move(name)),
         m_ComponentMap(std::move(unordered_map))
@@ -399,8 +401,7 @@ struct RelationshipTag : public std::enable_shared_from_this<RelationshipTag>,
 
     IBindable& GetRelationshipDefinitionBindable() const { return _fieldType->GetBindable(); }
 
-
-    std::shared_ptr<Binding::BindableBase> _fieldType;
+    std::shared_ptr<Binding::BindableBase>   _fieldType;
     std::unordered_map<Str::Type, Str::Type> _defmap;
     std::shared_ptr<Binding::AttributeMap>   _map;
 };

@@ -21,47 +21,48 @@ template <size_t N, typename T> constexpr Uuid TestUuid();
 template <> constexpr Uuid TestUuid<0, TestData::Simple>()
 {
     return Uuid("{00000000-0000-0000-0000-000000000001}");
-};
+}
 template <> constexpr Uuid TestUuid<1, TestData::Simple>()
 {
     return Uuid("{00000000-0000-0000-0000-000000000002}");
-};
+}
 
 template <> constexpr Uuid TestUuid<0, TestData::Shared>()
 {
     return Uuid("{00000001-0001-0001-0001-000000000000}");
-};
+}
 template <> constexpr Uuid TestUuid<1, TestData::Shared>()
 {
     return Uuid("{00000001-0001-0001-0001-000000000001}");
-};
+}
 
 template <> constexpr Uuid TestUuid<0, TestData::Encrypted>()
 {
     return Uuid("{00000002-0002-0002-0002-000000000000}");
-};
+}
 template <> constexpr Uuid TestUuid<1, TestData::Encrypted>()
 {
     return Uuid("{00000002-0002-0002-0002-000000000001}");
-};
+}
 
 template <> constexpr Uuid TestUuid<0, TestData::EncryptedAndShared>()
 {
     return Uuid("{00000003-0003-0003-0003-000000000000}");
-};
+}
+
 template <> constexpr Uuid TestUuid<1, TestData::EncryptedAndShared>()
 {
     return Uuid("{00000003-0003-0003-0003-000000000001}");
-};
+}
 
 template <> constexpr Uuid TestUuid<0, TestData::WithSimpleRef>()
 {
     return Uuid("{00000004-0004-0004-0004-000000000000}");
-};
+}
 template <> constexpr Uuid TestUuid<1, TestData::WithSimpleRef>()
 {
     return Uuid("{00000004-0004-0004-0004-000000000001}");
-};
+}
 
 #if TODO_OBJREF
 template <> constexpr Uuid TestUuid<TestData::WithString>()
@@ -91,56 +92,56 @@ template <size_t N, typename T> constexpr std::string_view TestValue();
 template <> constexpr std::string_view TestValue<0, TestData::Simple>()
 {
     return "Simple_0";
-};
+}
 template <> constexpr std::string_view TestValue<1, TestData::Simple>()
 {
     return "Simple_1";
-};
+}
 
 template <> constexpr std::string_view TestValue<0, TestData::Shared>()
 {
     return "Shared_0";
-};
+}
 
 template <> constexpr std::string_view TestValue<1, TestData::Shared>()
 {
     return "Shared_1";
-};
+}
 
 template <> constexpr std::string_view TestValue<0, TestData::Encrypted>()
 {
     return "Encrypted_0";
-};
+}
 
 template <> constexpr std::string_view TestValue<1, TestData::Encrypted>()
 {
     return "Encrypted_1";
-};
+}
 template <> constexpr std::string_view TestValue<0, TestData::EncryptedAndShared>()
 {
     return "EncryptedAndShared_0";
-};
+}
 template <> constexpr std::string_view TestValue<1, TestData::EncryptedAndShared>()
 {
     return "EncryptedAndShared_1";
-};
+}
 template <> constexpr std::string_view TestValue<0, TestData::WithSimpleRef>()
 {
     return "WithSimpleRef_0";
-};
+}
 template <> constexpr std::string_view TestValue<1, TestData::WithSimpleRef>()
 {
     return "WithSimpleRef_1";
-};
+}
 template <> constexpr std::string_view TestValue<0, Database2::ByteString>()
 {
     return "Database2::ByteString_0";
-};
+}
 
 template <> constexpr std::string_view TestValue<1, Database2::ByteString>()
 {
     return "Database2::ByteString_1";
-};
+}
 
 #if TODO_OBJREF
 template <> constexpr std::string_view TestValue<TestData::WithString>()
@@ -176,7 +177,7 @@ template <size_t N, typename... TObjs> auto CreateObjects(DB& db)
     std::vector<std::unique_ptr<Tuple>> arrayoftuples(1000);
     for (size_t i = 0; i < 1000; i++)
     {
-        arrayoftuples[i].reset(new Tuple(ObjTester<N, TObjs>{i}...));
+        arrayoftuples[i].reset(new Tuple(ObjTester<N, TObjs>{i, {}}...));
         std::apply([&](auto&... x) { [[maybe_unused]] auto tmp = std::make_tuple(x.CreateObj(lock, db)...); }, *arrayoftuples[i].get());
     }
     return arrayoftuples;
