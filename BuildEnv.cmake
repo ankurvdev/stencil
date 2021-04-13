@@ -64,7 +64,7 @@ macro(EnableStrictCompilation)
             -g
             -Wall   # Enable all errors
             -Werror     # All warnings as errors
-	    -Wextra
+            -Wextra
             -pedantic
             -pedantic-errors
             -pthread
@@ -82,8 +82,8 @@ macro(EnableStrictCompilation)
             -Wno-padded # Dont care about auto padding
         )
         if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL Clang)
-	    list(APPEND extraflags -Weverything)
-	endif()
+            list(APPEND extraflags -Weverything)
+        endif()
         set(exclusions "[-/]W[a-zA-Z1-9]+")
         _FixFlags(CMAKE_C_FLAGS     EXCLUDE ${exclusions} APPEND ${extraflags})
         _FixFlags(CMAKE_CXX_FLAGS   EXCLUDE ${exclusions} APPEND ${extraflags})
@@ -133,4 +133,3 @@ macro (SupressWarningForTarget targetName)
         message(FATAL_ERROR "Unknown compiler : ${CMAKE_CXX_COMPILER_ID}")
     endif()
 endmacro()
-
