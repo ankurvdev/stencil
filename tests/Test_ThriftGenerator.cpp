@@ -4,7 +4,7 @@
 DECLARE_RESOURCE_COLLECTION(testdata);
 #include "Generator.h"
 
-void RunTest(std::initializer_list<std::string_view const> const& pidlfiles)
+static void RunTest(std::initializer_list<std::string_view const> const& pidlfiles)
 {
     ResourceFileManager resfiles;
 

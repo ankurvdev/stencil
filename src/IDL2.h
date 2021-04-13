@@ -232,10 +232,10 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
     static std::shared_ptr<Binding::Expression> ResolveExpression(std::shared_ptr<Binding::Expression> expr,
                                                                   const ContainerFieldTypeMap&         typemap)
     {
-        return expr->Evaluate([&](const Binding::BindingExpr& expr) {
-            assert(expr.binding.size() == 1);
+        return expr->Evaluate([&](const Binding::BindingExpr& expr1) {
+            assert(expr1.binding.size() == 1);
             auto  rslt = std::make_shared<Binding::Expression>();
-            auto& val  = typemap.at(expr.binding[0]);
+            auto& val  = typemap.at(expr1.binding[0]);
             ACTION_CONTEXT([&]() { return L"Evaluating Expression :" + rslt->Stringify() + L" On Value: " + val->Stringify(); });
             if (val->GetType() == Binding::Type::String)
             {

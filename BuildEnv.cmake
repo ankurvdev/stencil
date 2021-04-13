@@ -68,6 +68,11 @@ macro(EnableStrictCompilation)
             -pedantic
             -pedantic-errors
             -pthread
+        )
+        if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL Clang)
+            list(APPEND extraflags -Weverything)
+        endif()
+        list(APPEND extraflags
             #suppression list
             -Wno-unknown-argument
             -Wno-unknown-pragmas
@@ -80,10 +85,10 @@ macro(EnableStrictCompilation)
             -Wno-c++98-compat-pedantic
             -Wno-c++98-c++11-c++14-compat
             -Wno-padded # Dont care about auto padding
+            -Wno-return-std-move-in-c++11 # Rely on guaranteed copy ellisioning
+            -Wno-weak-vtables # Virtual Classes will actually be virtual
         )
-        if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL Clang)
-            list(APPEND extraflags -Weverything)
-        endif()
+
         set(exclusions "[-/]W[a-zA-Z1-9]+")
         _FixFlags(CMAKE_C_FLAGS     EXCLUDE ${exclusions} APPEND ${extraflags})
         _FixFlags(CMAKE_CXX_FLAGS   EXCLUDE ${exclusions} APPEND ${extraflags})
@@ -114,9 +119,9 @@ endmacro()
 macro (SupressWarningForFile f)
     message(STATUS "Suppressing Warnings for ${f}")
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-        set_source_files_properties("${f}" PROPERTIES COMPILE_FLAGS -WX-)
+        set_source_files_properties("${f}" PROPERTIES COMPILE_FLAGS "-WX-")
     elseif((${CMAKE_CXX_COMPILER_ID} STREQUAL Clang) OR (${CMAKE_CXX_COMPILER_ID} STREQUAL GNU))
-        set_source_files_properties("${f}" PROPERTIES COMPILE_FLAGS -Wno-error -w)
+        set_source_files_properties("${f}" PROPERTIES COMPILE_FLAGS "-Wno-error -w")
     else()
         message(FATAL_ERROR "Unknown compiler : ${CMAKE_CXX_COMPILER_ID}")
     endif()

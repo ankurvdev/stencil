@@ -114,6 +114,11 @@ try
 
     for (const auto& ressym : symbols)
     {
+        ofs << "DECLARE_RESOURCE(" << colsym << "," << ressym << ");" << std::endl;
+    }
+
+    for (const auto& ressym : symbols)
+    {
         ofs << "DECLARE_RESOURCE(" << colsym << "," << ressym << ")" << std::endl;
         ofs << "{" << std::endl;
         ofs << "  auto nameptr = EmbeddedResource::Data::" << colsym << "::Resources::" << ressym << "::_ResourceName.data();" << std::endl;
@@ -126,7 +131,7 @@ try
     }
 
     ofs << "namespace EmbeddedResource::Data::" << colsym << " {" << std::endl;
-    ofs << "static constexpr EmbeddedResource::ABI::GetCollectionResourceInfo const * const _ResourceTable[] = {" << std::endl;
+    ofs << "static constexpr EmbeddedResource::ABI::GetCollectionResourceInfo * const _ResourceTable[] = {" << std::endl;
     bool first = true;
     for (const auto& ressym : symbols)
     {
@@ -142,6 +147,7 @@ try
     }
     ofs << "};" << std::endl;
     ofs << "}" << std::endl;
+    ofs << "DECLARE_RESOURCE_COLLECTION(" << colsym << ");" << std::endl;
 
     ofs << "DECLARE_RESOURCE_COLLECTION(" << colsym << ")" << std::endl;
     ofs << "{" << std::endl;

@@ -4,8 +4,14 @@
 #pragma warning(push, 0)
 #pragma warning(disable : 4868)
 #pragma warning(disable : 4738)
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
+
 #include <catch2/catch.hpp>
 #include <dtl/dtl.hpp>
+
+#pragma clang diagnostic pop
 #pragma warning(pop
 
 #include <filesystem>
@@ -61,7 +67,7 @@ struct ResourceFileManager
             return it->second;
         }
         auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
-        for (auto const& r : resourceCollection)
+        for (auto const r : resourceCollection)
         {
             if (wstring_to_string(r.name()) == name)
             {
@@ -104,7 +110,7 @@ inline void CompareLines(std::vector<std::string> const& actualstring,
             f.flush();
             f.close();
         }
-        REQUIRE_FALSE("Comparison Failed: Output: failure.txt");
+        FAIL("Comparison Failed: Output: failure.txt");
     }
 }
 
