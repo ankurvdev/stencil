@@ -180,7 +180,7 @@ struct Table
         AddColumn(col, span, text);
     }
 
-    size_t _FindColumnWidth(const ColumnSpan& col) const { return (size_t)col.text.length() + 4; }
+    size_t _FindColumnWidth(const ColumnSpan& col) const { return static_cast<size_t>(col.text.length() + 4u); }
 
     void _PrintColumnTextToBuffer(char* buffer, size_t /*available*/, const ColumnSpan& col) const
     {
@@ -221,7 +221,7 @@ struct Table
         {
             for (auto& col : row.columns)
             {
-                auto farright    = std::min((size_t)(col.colspan) + col.column, columnwidths.size() - 1);
+                auto farright    = std::min(static_cast<size_t>(col.colspan) + col.column, columnwidths.size() - 1);
                 auto neededwidth = _FindColumnWidth(col);
                 auto remaining   = neededwidth;
                 for (size_t i = col.column; i < farright && remaining > columnwidths[i]; i++)
@@ -365,7 +365,7 @@ template <typename TStruct> struct CommandLineArgs
             assert(info.acceptablevalues.size() == info.children.size());
             for (size_t i = 0; i < info.acceptablevalues.size(); i++)
             {
-                table->AddRowColumn(0, 0, ((shared_string)info.acceptablevalues[i]).str());
+                table->AddRowColumn(0, 0, (static_cast<shared_string>(info.acceptablevalues[i])).str());
                 table->AddColumn(1, 0, info.children[i]->description);
             }
             return table;

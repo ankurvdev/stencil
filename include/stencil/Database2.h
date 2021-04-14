@@ -19,9 +19,9 @@ namespace Database2
 
 struct BlobDataSizeOutofRange : std::exception
 {
-    BlobDataSizeOutofRange(uint32_t typeId, uint64_t recordSize)
+    BlobDataSizeOutofRange(uint32_t typeIdIn, uint64_t recordSizeIn) : typeId(typeIdIn), recordSize(recordSizeIn)
     {
-        _buffer << "Database Error: Blob size out of range. TypeId = " << typeId << " RecordSize = " << recordSize;
+        _buffer << "Database Error: Blob size out of range. TypeId = " << typeId << " RecordSize = " << recordSizeIn;
     }
 
     DEFAULT_COPY_AND_MOVE(BlobDataSizeOutofRange);
@@ -211,8 +211,8 @@ struct SerDes
     {
         assert(!stream.fail());
         _iostream = std::move(stream);
-        _AttachStream((std::istream*)&_iostream);
-        _AttachStream((std::ostream*)&_iostream);
+        _AttachStream(static_cast<std::istream*>(&_iostream));
+        _AttachStream(static_cast<std::ostream*>(&_iostream));
     }
 
     void AttachStream(std::ifstream&& stream)
@@ -310,7 +310,7 @@ struct SerDes
         else
         {
             if (_readFrom != nullptr) throw ::Logging::TODOCreateException("Invalid State");
-            return (uint32_t)_loadedPages.size();
+            return static_cast<uint32_t>(_loadedPages.size());
         }
     }
 
@@ -319,8 +319,8 @@ struct SerDes
 
     static uint32_t GetPageIndexFromOffset(std::streamoff offset)
     {
-        assert((offset - sizeof(Header)) % Page::PageSizeInBytes == 0);
-        return static_cast<uint32_t>((offset - sizeof(Header)) / Page::PageSizeInBytes);
+        assert((static_cast<uint32_t>(offset) - sizeof(Header)) % Page::PageSizeInBytes == 0);
+        return static_cast<uint32_t>((static_cast<uint32_t>(offset) - sizeof(Header)) / Page::PageSizeInBytes);
     }
 
     static void _EnsureHeader(Header const& header, std::ostream& stream)
@@ -343,7 +343,7 @@ struct SerDes
     {
         assert(!stream.fail());
         stream.seekp(0, std::ios_base::beg);
-        stream.write((const char*)&header, sizeof(header));
+        stream.write(reinterpret_cast<const char*>(&header), sizeof(header));
         assert(!stream.fail());
     }
 
@@ -351,7 +351,7 @@ struct SerDes
     {
         assert(!stream.fail());
         stream.seekg(0, std::ios_base::beg);
-        stream.read((char*)&header, sizeof(header));
+        stream.read(reinterpret_cast<char*>(&header), sizeof(header));
         assert(!stream.fail());
     }
 
@@ -359,9 +359,9 @@ struct SerDes
     {
         assert(!stream.fail());
         std::streamoff offsetreq{PageStreamOffset(index)};
-        stream.seekg(offsetreq + (std::streampos)Page::PageSizeInBytes, std::ios_base::beg);
+        stream.seekg(offsetreq + static_cast<std::streampos>(Page::PageSizeInBytes), std::ios_base::beg);
         auto offsetcur = stream.tellg();
-        if (offsetcur != (offsetreq + (std::streampos)Page::PageSizeInBytes))
+        if (offsetcur != (offsetreq + static_cast<std::streampos>(Page::PageSizeInBytes)))
         {
             throw ::Logging::TODOCreateException("Invalid Page Ref");
         }
@@ -382,15 +382,15 @@ struct SerDes
         stream.seekp(offsetreq, std::ios_base::beg);
         auto offsetcur = stream.tellp();
         assert(offsetcur >= 0);
-        assert((offsetcur <= offsetreq) && (((offsetreq - offsetcur)) % Page::PageSizeInBytes == 0));
+        assert((offsetcur <= offsetreq) && ((static_cast<size_t>(offsetreq - offsetcur) % Page::PageSizeInBytes) == 0));
         uint8_t zerobuffer[Page::PageSizeInBytes] = {};
         assert(zerobuffer[0] == 0 && zerobuffer[Page::PageSizeInBytes - 1] == 0);
         while (offsetcur < offsetreq)
         {
-            stream.write((const char*)zerobuffer, Page::PageSizeInBytes);
+            stream.write(reinterpret_cast<const char*>(zerobuffer), Page::PageSizeInBytes);
             offsetcur = stream.tellp();
         }
-        stream.write((const char*)&page, sizeof(Page));
+        stream.write(reinterpret_cast<const char*>(&page), sizeof(Page));
         assert(!stream.fail());
     }
 
