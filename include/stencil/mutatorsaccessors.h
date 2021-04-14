@@ -39,8 +39,7 @@ template <typename T> struct Mutators<std::vector<T>>
             return writer.Reset();
         }
 
-        TODO("Whats a mutation");
-        return {};
+        throw std::logic_error("Whats a mutation");
     }
 
     template <typename TSerDes = BinarySerDes>
@@ -53,9 +52,7 @@ template <typename T> struct Mutators<std::vector<T>>
             TSerDes::Serialize(visitor, writer);
             return writer.Reset();
         }
-
-        TODO("Whats a mutation");
-        return {};
+        throw std::logic_error("Whats a mutation");
     }
 };
 
