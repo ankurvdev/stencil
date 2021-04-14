@@ -147,7 +147,7 @@ template <typename TOwner, typename TObject> struct NamedIndexT
 struct IFieldType : public virtual Binding::BindableBase
 {
     public:
-    IFieldType()  = default;
+    IFieldType()           = default;
     ~IFieldType() override = default;
     DELETE_COPY_AND_MOVE(IFieldType);
 

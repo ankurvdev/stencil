@@ -40,7 +40,7 @@ struct Value
     {
         static constexpr auto ValueType() { return Type::Unknown; }
         static void           Get(Value& /* obj */) { throw std::logic_error("Unknown Value Type"); }
-        static void           Get(const Value& /* obj */) { throw std::logic_error("Unknown Value Type");  }
+        static void           Get(const Value& /* obj */) { throw std::logic_error("Unknown Value Type"); }
         static void           Check() { throw std::logic_error("Unknown Value Type"); }
     };
 

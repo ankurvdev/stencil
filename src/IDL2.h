@@ -289,10 +289,10 @@ struct RelationshipDefinition : public std::enable_shared_from_this<Relationship
     OBJECTNAME(RelationshipDefinition);
     DELETE_COPY_AND_MOVE(RelationshipDefinition);
 
-    RelationshipDefinition(std::shared_ptr<Program>               program,
-                           Str::Type&&                            name,
+    RelationshipDefinition(std::shared_ptr<Program> program,
+                           Str::Type&&              name,
                            std::shared_ptr<Binding::AttributeMap> /* attributes */,
-                           RelationshipComponentMap&&             unordered_map) :
+                           RelationshipComponentMap&& unordered_map) :
         IDLGenerics::NamedIndexT<Program, RelationshipDefinition>::NamedObject(program, std::move(name)),
         m_ComponentMap(std::move(unordered_map))
     {

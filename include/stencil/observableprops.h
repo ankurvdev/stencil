@@ -15,7 +15,7 @@ template <typename T, typename _Ts = void> struct DeltaTracker
 {
     using TData = T;
 
-    DeltaTracker(T* /*ptr*/){}
+    DeltaTracker(T* /*ptr*/) {}
 
     static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
 

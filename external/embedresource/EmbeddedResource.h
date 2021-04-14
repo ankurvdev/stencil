@@ -46,29 +46,28 @@ typedef Data<GetCollectionResourceInfo> GetCollectionResourceInfoTable();
 
 }    // namespace EmbeddedResource::ABI
 
-#define DECLARE_IMPORTED_RESOURCE_COLLECTION(collection)                                                                   \
+#define DECLARE_IMPORTED_RESOURCE_COLLECTION(collection)                                                          \
     EMBEDDED_RESOURCE_EXPORTED_API EmbeddedResource::ABI::Data<EmbeddedResource::ABI::GetCollectionResourceInfo*> \
                                    EmbeddedResource_ABI_##collection##_##GetCollectionResourceInfoTable()
 
-#define DECLARE_IMPORTED_RESOURCE(collection, resource)                         \
+#define DECLARE_IMPORTED_RESOURCE(collection, resource)                \
     EMBEDDED_RESOURCE_EXPORTED_API EmbeddedResource::ABI::ResourceInfo \
                                    EmbeddedResource_ABI_##collection##_Resource_##resource##_##GetCollectionResourceInfo()
 
-#define DECLARE_RESOURCE_COLLECTION(collection)                                                                   \
+#define DECLARE_RESOURCE_COLLECTION(collection)                                    \
     EmbeddedResource::ABI::Data<EmbeddedResource::ABI::GetCollectionResourceInfo*> \
-                                   EmbeddedResource_ABI_##collection##_##GetCollectionResourceInfoTable()
+        EmbeddedResource_ABI_##collection##_##GetCollectionResourceInfoTable()
 
-#define DECLARE_RESOURCE(collection, resource)                         \
-    EmbeddedResource::ABI::ResourceInfo \
-                                   EmbeddedResource_ABI_##collection##_Resource_##resource##_##GetCollectionResourceInfo()
+#define DECLARE_RESOURCE(collection, resource) \
+    EmbeddedResource::ABI::ResourceInfo EmbeddedResource_ABI_##collection##_Resource_##resource##_##GetCollectionResourceInfo()
 
 struct ResourceLoader
 {
     ResourceLoader(EmbeddedResource::ABI::ResourceInfo info) : _info(info) {}
-    ~ResourceLoader() = default;
-    ResourceLoader() = delete;
+    ~ResourceLoader()                     = default;
+    ResourceLoader()                      = delete;
     ResourceLoader(ResourceLoader const&) = delete;
-    ResourceLoader(ResourceLoader&&) = delete;
+    ResourceLoader(ResourceLoader&&)      = delete;
     ResourceLoader& operator=(ResourceLoader const&) = delete;
     ResourceLoader& operator=(ResourceLoader&&) = delete;
 
@@ -103,13 +102,13 @@ struct CollectionLoader
     };
 
     CollectionLoader(EmbeddedResource::ABI::Data<EmbeddedResource::ABI::GetCollectionResourceInfo*> collection) : _collection(collection) {}
-    ~CollectionLoader() = default;
-    CollectionLoader() = delete;
+    ~CollectionLoader()                       = default;
+    CollectionLoader()                        = delete;
     CollectionLoader(CollectionLoader const&) = delete;
-    CollectionLoader(CollectionLoader&&) = delete;
+    CollectionLoader(CollectionLoader&&)      = delete;
     CollectionLoader& operator=(CollectionLoader const&) = delete;
     CollectionLoader& operator=(CollectionLoader&&) = delete;
-    
+
     Iterator begin() { return Iterator{this, 0}; }
     Iterator end() { return Iterator{this, _collection.len}; }
 
