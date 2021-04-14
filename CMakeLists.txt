@@ -23,7 +23,7 @@ SupressWarningForTarget(yaml-cpp)
 set(LexYacc_DIR          ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc)
 set(EmbedResource_DIR    ${CMAKE_CURRENT_LIST_DIR}/external/embedresource)
 
-add_library(libstencil STATIC src/ModelGenerator.cpp src/Thrift.cpp)
+add_library(libstencil OBJECT src/ModelGenerator.cpp src/Thrift.cpp)
 find_package(LexYacc)
 find_package(EmbedResource)
 

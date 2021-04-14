@@ -207,7 +207,7 @@ inline constexpr Uuid::Uuid(UuidStr const& str)
 {
     struct tobyte
     {
-        static constexpr uint8_t convert(char c) { return static_cast<uint8_t>(c < 'a' ? (c - '0') : (c - 'a' + 10) & 0xfu); }
+        static constexpr uint8_t convert(char c) { return static_cast<uint8_t>(static_cast<uint8_t>((c < 'a' ? (c - '0') : (c - 'a' + 10))) & 0xfu); }
         static constexpr uint8_t join(char h, char l) { return static_cast<uint8_t>(convert(h) << 4u | convert(l)); }
     };
 
