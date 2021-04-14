@@ -1,7 +1,7 @@
 #pragma once
+#include <cassert>
 #include <functional>
 #include <sstream>
-#include <cassert>
 namespace IDLDebug
 {
 using Str = Binding::Str;

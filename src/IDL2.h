@@ -216,7 +216,8 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
         }
         for (auto const& m : container._accessors)
         {
-            this->CreateAccessor(Str::Copy(m.name), m.id, ResolveExpression(m.returnType, _typemap), ResolveExpression(m.args[0], _typemap));
+            this->CreateAccessor(
+                Str::Copy(m.name), m.id, ResolveExpression(m.returnType, _typemap), ResolveExpression(m.args[0], _typemap));
         }
     }
 
@@ -399,8 +400,7 @@ struct RelationshipTag : public std::enable_shared_from_this<RelationshipTag>,
 
     IBindable& GetRelationshipDefinitionBindable() const { return _fieldType->GetBindable(); }
 
-
-    std::shared_ptr<Binding::BindableBase> _fieldType;
+    std::shared_ptr<Binding::BindableBase>   _fieldType;
     std::unordered_map<Str::Type, Str::Type> _defmap;
     std::shared_ptr<Binding::AttributeMap>   _map;
 };
