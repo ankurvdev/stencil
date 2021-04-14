@@ -64,6 +64,7 @@ try
     create_directories(dst.parent_path());
 
     std::ofstream ofs{dst.string()};
+    ofs << "#define EMBEDDED_RESOURCE_EXPORTED_API_IMPL 1" << std::endl;
     ofs << "#include <EmbeddedResource.h>" << std::endl;
 
     auto                     colsym = FilePathToSym(dst.stem());

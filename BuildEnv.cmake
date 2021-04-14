@@ -42,6 +42,8 @@ macro(EnableStrictCompilation)
             -Wall   # Enable all errors
             -WX     # All warnings as errors
             /permissive- # strict compilation
+            /bigobj
+            /guard:cf
             #suppression list
             /wd4068  # unknown pragma
             /wd4514  # unreferenced inline function has been removed
