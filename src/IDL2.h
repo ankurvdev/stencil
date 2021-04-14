@@ -531,18 +531,17 @@ inline void Program::InitializeModelDataSources(const std::wstring_view& datasou
 }
 
 inline std::shared_ptr<IDLGenerics::IFieldType>
-ContainerFieldType::FindOrCreate(std::shared_ptr<Program>                                program,
-                                 Container&                                              container,
-                                 ContainerFieldTypeMap&&                                 typemap,
-                                 std::optional<std::shared_ptr<IDLGenerics::IFieldType>> base,
-                                 std::shared_ptr<Binding::AttributeMap>                  unordered_map)
+ContainerFieldType::FindOrCreate(std::shared_ptr<Program> program,
+                                 Container&               container,
+                                 ContainerFieldTypeMap&&  typemap,
+                                 std::optional<std::shared_ptr<IDLGenerics::IFieldType>> /*base*/,
+                                 std::shared_ptr<Binding::AttributeMap> unordered_map)
 {
     auto ctName    = ContainerFieldType::GenerateFieldName(container, typemap);
     auto fieldType = program->TryGetFieldTypeName(ctName);
     if (fieldType.has_value())
     {
         assert(Str::Equal(fieldType.value()->GetFieldCategory(), Str::Create(L"containerfieldtype")));
-        assert(!base.has_value());
         assert(unordered_map == nullptr);
         fieldType.value()->AddAttributes(unordered_map);
         return fieldType.value();
