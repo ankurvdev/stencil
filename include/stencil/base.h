@@ -134,7 +134,7 @@ template <> struct IDataTypeHandler<DataType::Unknown>
 
 template <> struct IDataTypeHandler<DataType::Value> : public IDataTypeHandler<DataType::Unknown>
 {
-    virtual ~IDataTypeHandler<DataType::Value>() = default;
+    virtual ~IDataTypeHandler<DataType::Value>() override = default;
     DataType                                 GetDataType() const override { return DataType::Value; }
     const IDataTypeHandler<DataType::Value>* ValueHandler() const override { return this; }
 
@@ -153,7 +153,7 @@ template <> struct IDataTypeHandler<DataType::Value> : public IDataTypeHandler<D
 
 template <> struct IDataTypeHandler<DataType::List> : public IDataTypeHandler<DataType::Unknown>
 {
-    virtual ~IDataTypeHandler<DataType::List>() = default;
+    virtual ~IDataTypeHandler<DataType::List>() override = default;
     DataType                                GetDataType() const override { return DataType::List; }
     const IDataTypeHandler<DataType::List>* ListHandler() const override { return this; }
 
@@ -182,7 +182,7 @@ template <> struct IDataTypeHandler<DataType::List> : public IDataTypeHandler<Da
 
 template <> struct IDataTypeHandler<DataType::Object> : IDataTypeHandler<DataType::Unknown>
 {
-    virtual ~IDataTypeHandler<DataType::Object>() = default;
+    virtual ~IDataTypeHandler<DataType::Object>() override = default;
     DataType                                  GetDataType() const override { return DataType::Object; }
     const IDataTypeHandler<DataType::Object>* ObjectHandler() const override { return this; }
 
@@ -224,7 +224,7 @@ template <> struct IDataTypeHandler<DataType::Object> : IDataTypeHandler<DataTyp
 
 template <> struct IDataTypeHandler<DataType::Enum> : IDataTypeHandler<DataType::Unknown>
 {
-    virtual ~IDataTypeHandler<DataType::Enum>() = default;
+    virtual ~IDataTypeHandler<DataType::Enum>() override = default;
     DataType                                GetDataType() const override { return DataType::Enum; }
     const IDataTypeHandler<DataType::Enum>* EnumHandler() const override { return this; }
 
@@ -248,7 +248,7 @@ template <> struct IDataTypeHandler<DataType::Enum> : IDataTypeHandler<DataType:
 
 template <> struct IDataTypeHandler<DataType::Union> : IDataTypeHandler<DataType::Unknown>
 {
-    virtual ~IDataTypeHandler<DataType::Union>() = default;
+    virtual ~IDataTypeHandler<DataType::Union>() override = default;
     DataType                                 GetDataType() const override { return DataType::Union; }
     const IDataTypeHandler<DataType::Union>* UnionHandler() const override { return this; }
 
@@ -328,7 +328,10 @@ template <typename TInterface> struct Interface : public InterfaceMarker
 
     static std::unordered_map<Id, Interface<TInterface>*>& _GetRegistry()
     {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wexit-time-destructors"
         static std::unordered_map<Id, Interface<TInterface>*> registry;
+#pragma clang diagnostic pop
         return registry;
     }
 
@@ -446,7 +449,7 @@ template <typename TEnum> struct EnumHandler : public IDataTypeHandler<DataType:
     {
         if (value.GetType() == Value::Type::Unsigned)
         {
-            *(static_cast<TEnum*>(ptr)) = (TEnum)((uint32_t)value);
+            *(static_cast<TEnum*>(ptr)) = static_cast<TEnum>(static_cast<uint32_t>(value));
             return;
         }
         if (value.GetType() == Value::Type::String)
@@ -454,7 +457,7 @@ template <typename TEnum> struct EnumHandler : public IDataTypeHandler<DataType:
             auto const& enumnames = EnumTraits<TEnum>::EnumStrings;
             for (size_t i = 1; i < std::size(enumnames); i++)    // 0 is always invalid
             {
-                if ((shared_string)value == enumnames[i])
+                if (static_cast<shared_string>(value) == enumnames[i])
                 {
                     *(static_cast<TEnum*>(ptr)) = static_cast<TEnum>(i);
                     return;
@@ -501,11 +504,7 @@ template <typename TValue> struct StdVectorListHandler : public IDataTypeHandler
         subcomponent = {&_handler, &((*vecptr)[index])};
         return true;
     }
-    virtual shared_string Description() const override
-    {
-        return shared_string::make("[" + _handler.Description().str() + " ...]");
-        ;
-    }
+    virtual shared_string Description() const override { return shared_string::make("[" + _handler.Description().str() + " ...]"); }
     virtual shared_string AttributeValue(const std::string_view& /*key*/) const override { throw std::logic_error("TODO"); }
     virtual shared_string Name() const override { return shared_string::make("[" + _handler.Name().str() + " ...]"); }
     virtual SubComponent  GetListItemHandler() const override { throw std::logic_error("TODO"); /*return {&_handler, };*/ }
@@ -539,15 +538,11 @@ template <typename TValue, size_t N> struct StdArrayListHandler : public IDataTy
         return true;
     }
 
-    virtual shared_string Description() const override
-    {
-        return shared_string::make("[" + _handler.Description().str() + " ...]");
-        ;
-    }
+    virtual shared_string Description() const override { return shared_string::make("[" + _handler.Description().str() + " ...]"); }
 
     virtual shared_string AttributeValue(const std::string_view& /*key*/) const override { throw std::logic_error("TODO"); }
     virtual shared_string Name() const override { return shared_string::make("[" + _handler.Name().str() + " ...]"); }
-    virtual SubComponent  GetListItemHandler() const override { throw std::logic_error("TODO"); /* return {&_handler};  */}
+    virtual SubComponent  GetListItemHandler() const override { throw std::logic_error("TODO"); /* return {&_handler};  */ }
 
     virtual std::shared_ptr<DataInfo> GetDataInfo() const override
     {
@@ -628,14 +623,14 @@ template <typename TFieldTraits> struct ObjectDataTypeHandler<DataType::List, TF
     using TFieldType      = std::invoke_result_t<decltype(TFieldTraits::TPropertyGetter()), std::unique_ptr<TOwner>>;
     using FieldTypeTraits = TypeTraits<TFieldType&>;
 
-    virtual void Start() const override{};
+    virtual void Start() const override {}
     virtual void End() const override {}
 
     virtual SubComponent MoveNext(void* rawptr) const override
     {
         auto  structptr = static_cast<TOwner*>(rawptr);
         auto& obj       = (structptr->*(TFieldTraits::TPropertyGetter()))();
-        return _handler.MoveNext((void*)&obj);
+        return _handler.MoveNext(reinterpret_cast<void*>(&obj));
     }
 
     virtual bool TryGetSubComponent(void* rawptr, size_t index, SubComponent& subcomponent) const override
@@ -672,7 +667,7 @@ template <typename TFieldTraits> struct ObjectDataTypeHandler<DataType::Object, 
     using TFieldType      = std::invoke_result_t<decltype(TFieldTraits::TPropertyGetter()), std::unique_ptr<TOwner>>;
     using FieldTypeTraits = TypeTraits<TFieldType&>;
 
-    virtual void Start() const override{};
+    virtual void Start() const override {}
     virtual void End() const override {}
     virtual bool TryGetSubComponent(void* rawptr, Value const& key, SubComponent& subcomponent) const override
     {
@@ -872,7 +867,10 @@ template <typename T, typename TStackData> struct StateTraker
         ObjKeyValue,
         ListValue
     };
-    StateTraker(T* ptr, TStackData&& data) { _stack.push_back(StateStack{&_rootHandler, (void*)ptr, Mode::Obj, std::move(data)}); }
+    StateTraker(T* ptr, TStackData&& data)
+    {
+        _stack.push_back(StateStack{&_rootHandler, reinterpret_cast<void*>(ptr), Mode::Obj, std::move(data)});
+    }
 
     DataType GetDataTypeHint() const { return _stack.back().Handler->GetDataType(); }
 
@@ -1102,7 +1100,7 @@ template <typename T, size_t N> struct ReflectionBase::TypeTraits<std::array<T, 
     {
         return "array<" + std::string(::ReflectionBase::TypeTraits<T&>::AttributeValue("Description")) + ">";
     }
-    static std::string_view AttributeValue(const std::string_view& key) { return ""; }
+    static std::string_view AttributeValue(const std::string_view& /* key */) { return ""; }
 
     bool AreEqual(std::array<T, N>& obj1, std::array<T, N>& obj2)
     {

@@ -39,9 +39,9 @@ struct Value
     template <typename T> struct UnknownTraits
     {
         static constexpr auto ValueType() { return Type::Unknown; }
-        static void           Get(Value& obj) { throw 1; }
-        static void           Get(const Value& obj) { throw 1; }
-        static void           Check() { throw 1; }
+        static void           Get(Value& /* obj */) { throw std::logic_error("Unknown Value Type"); }
+        static void           Get(const Value& /* obj */) { throw std::logic_error("Unknown Value Type");  }
+        static void           Check() { throw std::logic_error("Unknown Value Type"); }
     };
 
     template <typename T> struct SignedTraits
@@ -134,7 +134,7 @@ struct Value
     static shared_string _inttostr(uint64_t val) { return shared_string::make(std::to_string(val)); }
     static shared_string _doubletostr(double val) { return shared_string::make(std::to_string(val)); }
 
-    static int _doubletoint(double val) { return (int)std::round(val); }
+    static int _doubletoint(double val) { return static_cast<int>(std::round(val)); }
 
     Value cast_signed() const
     {

@@ -7,9 +7,25 @@ class JsonDataModel;
 
 #ifdef USE_NLOHMANN_JSON
 #pragma warning(push, 0)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
 #include <nlohmann/json.hpp>
+#pragma clang diagnostic
 #pragma warning(pop)
 
+#define SAFEEXEC(stmt)    \
+    do                    \
+    {                     \
+        try               \
+        {                 \
+            stmt;         \
+            return true;  \
+        }                 \
+        catch (...)       \
+        {                 \
+            return false; \
+        }                 \
+    } while (false)
 struct Json
 {
     using number_float_t    = double;
@@ -23,17 +39,6 @@ struct Json
         using sax = typename nlohmann::json_sax<nlohmann::json>;
 
         Reader(TStruct* ptr) : _tracker(ptr, nullptr) {}
-
-#define SAFEEXEC(stmt) \
-    try                \
-    {                  \
-        stmt;          \
-        return true;   \
-    }                  \
-    catch (...)        \
-    {                  \
-        return false;  \
-    }
 
         bool Default()
         {
