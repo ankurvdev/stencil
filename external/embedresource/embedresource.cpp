@@ -1,4 +1,5 @@
-//#include "EmbeddedResource.h"
+#include "EmbeddedResource.h"
+
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
@@ -18,6 +19,7 @@ static std::string FilePathToSym(std::filesystem::path filepath)
     return sym;
 }
 
+#define NL "\n"
 static auto ParseArg(std::string_view arg)
 {
     // If name is resname:filepath use resname or else convert filename into a symbol
@@ -51,10 +53,10 @@ try
             std::cerr << " " << argv[i];
         }
 
-        std::cerr << std::endl
-                  << std::endl
-                  << "USAGE: %s {sym} {rsrc}..." << std::endl
-                  << std::endl
+        std::cerr << NL
+                  << NL
+                  << "USAGE: %s {sym} {rsrc}..." << NL
+                  << NL
                   << "  Creates {sym}.c from the contents of each {rsrc}\n"
                   << "  Each resource {rsrc} can be specified in the format [name:]filepath" << argv[0];
         return EXIT_FAILURE;
@@ -64,8 +66,10 @@ try
     create_directories(dst.parent_path());
 
     std::ofstream ofs{dst.string()};
-    ofs << "#define EMBEDDED_RESOURCE_EXPORTED_API_IMPL 1" << std::endl;
-    ofs << "#include <EmbeddedResource.h>" << std::endl;
+    ofs << "#pragma clang diagnostic push" << NL << "#pragma clang diagnostic ignored \"-Wunused-macros\"" << NL;
+    ofs << "#define EMBEDDED_RESOURCE_EXPORTED_API_IMPL 1" << NL;
+    ofs << "#pragma clang diagnostic pop" << NL;
+    ofs << "#include <EmbeddedResource.h>" << NL;
 
     auto                     colsym = FilePathToSym(dst.stem());
     std::vector<std::string> symbols;
@@ -90,8 +94,8 @@ try
             continue;
         }
         symbols.push_back(FilePathToSym(src));
-        ofs << "namespace EmbeddedResource::Data::" << colsym << "::Resources::" << sym << " {" << std::endl;
-        ofs << "static constexpr uint8_t _ResourceData[] = {" << std::endl;
+        ofs << "namespace EmbeddedResource::Data::" << colsym << "::Resources::" << sym << " {" << NL;
+        ofs << "static constexpr uint8_t _ResourceData[] = {" << NL;
 
         for (size_t j = 0; !ifs.eof() && !ifs.fail(); j++, ifs.read(reinterpret_cast<char*>(&c), sizeof(c)))
         {
@@ -102,37 +106,37 @@ try
             ofs << "0x" << std::hex << static_cast<uint32_t>(c) << "u";
             if ((j + 1) % 10 == 0)
             {
-                ofs << std::endl;
+                ofs << NL;
             }
         }
 
-        ofs << "};" << std::endl;
+        ofs << "};" << NL;
 
-        ofs << "static constexpr std::wstring_view _ResourceName = L\"" << resname << "\";" << std::endl;
+        ofs << "static constexpr std::wstring_view _ResourceName = L\"" << resname << "\";" << NL;
 
-        ofs << "}" << std::endl << std::endl;
+        ofs << "}" << NL << NL;
     }
 
     for (const auto& ressym : symbols)
     {
-        ofs << "DECLARE_RESOURCE(" << colsym << "," << ressym << ");" << std::endl;
+        ofs << "DECLARE_RESOURCE(" << colsym << "," << ressym << ");" << NL;
     }
 
     for (const auto& ressym : symbols)
     {
-        ofs << "DECLARE_RESOURCE(" << colsym << "," << ressym << ")" << std::endl;
-        ofs << "{" << std::endl;
-        ofs << "  auto nameptr = EmbeddedResource::Data::" << colsym << "::Resources::" << ressym << "::_ResourceName.data();" << std::endl;
-        ofs << "  auto namelen = EmbeddedResource::Data::" << colsym << "::Resources::" << ressym << "::_ResourceName.size();" << std::endl;
-        ofs << "  auto dataptr = EmbeddedResource::Data::" << colsym << "::Resources::" << ressym << "::_ResourceData;" << std::endl;
+        ofs << "DECLARE_RESOURCE(" << colsym << "," << ressym << ")" << NL;
+        ofs << "{" << NL;
+        ofs << "  auto nameptr = EmbeddedResource::Data::" << colsym << "::Resources::" << ressym << "::_ResourceName.data();" << NL;
+        ofs << "  auto namelen = EmbeddedResource::Data::" << colsym << "::Resources::" << ressym << "::_ResourceName.size();" << NL;
+        ofs << "  auto dataptr = EmbeddedResource::Data::" << colsym << "::Resources::" << ressym << "::_ResourceData;" << NL;
         ofs << "  auto datalen = std::size(EmbeddedResource::Data::" << colsym << "::Resources::" << ressym << "::_ResourceData);"
-            << std::endl;
-        ofs << "    return EmbeddedResource::ABI::ResourceInfo { { nameptr, namelen }, { dataptr, datalen } };" << std::endl;
-        ofs << "}" << std::endl;
+            << NL;
+        ofs << "    return EmbeddedResource::ABI::ResourceInfo { { nameptr, namelen }, { dataptr, datalen } };" << NL;
+        ofs << "}" << NL;
     }
 
-    ofs << "namespace EmbeddedResource::Data::" << colsym << " {" << std::endl;
-    ofs << "static constexpr EmbeddedResource::ABI::GetCollectionResourceInfo * const _ResourceTable[] = {" << std::endl;
+    ofs << "namespace EmbeddedResource::Data::" << colsym << " {" << NL;
+    ofs << "static constexpr EmbeddedResource::ABI::GetCollectionResourceInfo * const _ResourceTable[] = {" << NL;
     bool first = true;
     for (const auto& ressym : symbols)
     {
@@ -144,24 +148,24 @@ try
         {
             first = false;
         }
-        ofs << "EMBEDDEDRESOURCE_ABI_RESOURCE_FUNCNAME(" << colsym << "," << ressym << ", GetCollectionResourceInfo)" << std::endl;
+        ofs << "EMBEDDEDRESOURCE_ABI_RESOURCE_FUNCNAME(" << colsym << "," << ressym << ", GetCollectionResourceInfo)" << NL;
     }
-    ofs << "};" << std::endl;
-    ofs << "}" << std::endl;
-    ofs << "DECLARE_RESOURCE_COLLECTION(" << colsym << ");" << std::endl;
+    ofs << "};" << NL;
+    ofs << "}" << NL;
+    ofs << "DECLARE_RESOURCE_COLLECTION(" << colsym << ");" << NL;
 
-    ofs << "DECLARE_RESOURCE_COLLECTION(" << colsym << ")" << std::endl;
-    ofs << "{" << std::endl;
-    ofs << "    auto tableptr = EmbeddedResource::Data::" << colsym << "::_ResourceTable;" << std::endl;
-    ofs << "    auto tablelen = std::size(EmbeddedResource::Data::" << colsym << "::_ResourceTable);" << std::endl;
-    ofs << "    return EmbeddedResource::ABI::Data<EmbeddedResource::ABI::GetCollectionResourceInfo*> {tableptr, tablelen };" << std::endl;
-    ofs << "}" << std::endl;
+    ofs << "DECLARE_RESOURCE_COLLECTION(" << colsym << ")" << NL;
+    ofs << "{" << NL;
+    ofs << "    auto tableptr = EmbeddedResource::Data::" << colsym << "::_ResourceTable;" << NL;
+    ofs << "    auto tablelen = std::size(EmbeddedResource::Data::" << colsym << "::_ResourceTable);" << NL;
+    ofs << "    return EmbeddedResource::ABI::Data<EmbeddedResource::ABI::GetCollectionResourceInfo*> {tableptr, tablelen };" << NL;
+    ofs << "}" << NL;
 
     ofs.close();
     return EXIT_SUCCESS;
 }
 catch (std::exception const& ex)
 {
-    std::cerr << ex.what() << std::endl;
+    std::cerr << ex.what() << NL;
     return -1;
 }
