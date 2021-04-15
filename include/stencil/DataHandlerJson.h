@@ -9,7 +9,10 @@ class JsonDataModel;
 #pragma warning(push, 0)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough" // Wall doesnt work
 #include <nlohmann/json.hpp>
+#pragma GCC diagnostic pop
 #pragma clang diagnostic pop
 #pragma warning(pop)
 
