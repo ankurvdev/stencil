@@ -225,7 +225,6 @@ struct Data : public ReflectionBase::ObjMarker
     zzFieldType_NativeTypezz& get_zzNamezz()
     {
         return _zzNamezz;
-        ;
     }
     void set_zzNamezz(zzFieldType_NativeTypezz&& val) { _zzNamezz = std::move(val); }
 

@@ -2,9 +2,12 @@
 
 #pragma warning(push, 0)
 #pragma warning(disable : 4365)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
 #include <limits.h>
 
 #include <httplib.h>
+#pragma clang diagnostic pop
 #pragma warning(pop)
 
 #define STENCIL_USING_WEBSERVICE 1
@@ -214,7 +217,7 @@ struct WebServiceImpl
 
 template <typename T1, typename T2> inline bool iequal(T1 const& a, T2 const& b)
 {
-    return std::equal(a.begin(), a.end(), b.begin(), b.end(), [](auto a, auto b) { return tolower(a) == tolower(b); });
+    return std::equal(a.begin(), a.end(), b.begin(), b.end(), [](auto a1, auto b1) { return tolower(a1) == tolower(b1); });
 }
 
 template <typename TInterface, typename TInterfaceApi, typename... TInterfaceApis>

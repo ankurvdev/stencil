@@ -89,6 +89,7 @@ macro(EnableStrictCompilation)
             -Wno-padded # Dont care about auto padding
             -Wno-return-std-move-in-c++11 # Rely on guaranteed copy ellisioning
             -Wno-weak-vtables # Virtual Classes will actually be virtual
+            -Wunused-macros # Allow for unused macros to be there
         )
 
         set(exclusions "[-/]W[a-zA-Z1-9]+")

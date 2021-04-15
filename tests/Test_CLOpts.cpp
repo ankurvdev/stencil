@@ -217,7 +217,7 @@ TEST_CASE("CodeGen::CommandLineArgs::CLOptsTest")
 
     SECTION("Negative: Extrabracket")
     {
-#if _WIN32
+#if defined _WIN32
         if (IsDebuggerPresent())
         {
             return;

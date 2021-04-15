@@ -10,7 +10,7 @@ class JsonDataModel;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
 #include <nlohmann/json.hpp>
-#pragma clang diagnostic
+#pragma clang diagnostic pop
 #pragma warning(pop)
 
 #define SAFEEXEC(stmt)    \
@@ -73,7 +73,7 @@ struct Json
 
     template <typename T, typename = void> struct Writer
     {
-        static std::string Stringify(const T& obj)
+        static std::string Stringify(const T& /* obj */)
         {
             static_assert(std::is_same<T, T>::value, "Dont know how to stringify");
             throw std::logic_error("");
@@ -82,7 +82,7 @@ struct Json
 
     template <typename T> struct Writer<T, std::enable_if_t<std::is_base_of<::ReflectionBase::ObjMarker, T>::value>>
     {
-        static std::string Stringify(const T& obj)
+        static std::string Stringify(const T& /* obj */)
         {
             static_assert(std::is_same<T, T>::value, "Dont know how to stringify");
             throw std::logic_error("");
