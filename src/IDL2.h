@@ -89,8 +89,9 @@ struct Container : public std::enable_shared_from_this<Container>,
     void AddMutator(MutatorAccessorDefinition&& def) { _mutators.push_back(std::move(def)); }
     void AddAccessor(MutatorAccessorDefinition&& def) { _accessors.push_back(std::move(def)); }
 
-    const size_t                      ComponentSize() { return m_Components.size(); }
-    Str::Type&                        Component(size_t index) { return m_Components[index]; }
+    size_t     ComponentSize() const { return m_Components.size(); }
+    Str::Type& Component(size_t index) { return m_Components[index]; }
+
     static std::shared_ptr<Container> FindOrCreate(std::shared_ptr<Program>               program,
                                                    Str::Type&&                            name,
                                                    std::vector<Str::Type>&                components,
@@ -231,10 +232,10 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
     static std::shared_ptr<Binding::Expression> ResolveExpression(std::shared_ptr<Binding::Expression> expr,
                                                                   const ContainerFieldTypeMap&         typemap)
     {
-        return expr->Evaluate([&](const Binding::BindingExpr& expr) {
-            assert(expr.binding.size() == 1);
+        return expr->Evaluate([&](const Binding::BindingExpr& expr1) {
+            assert(expr1.binding.size() == 1);
             auto  rslt = std::make_shared<Binding::Expression>();
-            auto& val  = typemap.at(expr.binding[0]);
+            auto& val  = typemap.at(expr1.binding[0]);
             ACTION_CONTEXT([&]() { return L"Evaluating Expression :" + rslt->Stringify() + L" On Value: " + val->Stringify(); });
             if (val->GetType() == Binding::Type::String)
             {
@@ -288,10 +289,10 @@ struct RelationshipDefinition : public std::enable_shared_from_this<Relationship
     OBJECTNAME(RelationshipDefinition);
     DELETE_COPY_AND_MOVE(RelationshipDefinition);
 
-    RelationshipDefinition(std::shared_ptr<Program>               program,
-                           Str::Type&&                            name,
-                           std::shared_ptr<Binding::AttributeMap> attributes,
-                           RelationshipComponentMap&&             unordered_map) :
+    RelationshipDefinition(std::shared_ptr<Program> program,
+                           Str::Type&&              name,
+                           std::shared_ptr<Binding::AttributeMap> /* attributes */,
+                           RelationshipComponentMap&& unordered_map) :
         IDLGenerics::NamedIndexT<Program, RelationshipDefinition>::NamedObject(program, std::move(name)),
         m_ComponentMap(std::move(unordered_map))
     {
@@ -530,18 +531,17 @@ inline void Program::InitializeModelDataSources(const std::wstring_view& datasou
 }
 
 inline std::shared_ptr<IDLGenerics::IFieldType>
-ContainerFieldType::FindOrCreate(std::shared_ptr<Program>                                program,
-                                 Container&                                              container,
-                                 ContainerFieldTypeMap&&                                 typemap,
-                                 std::optional<std::shared_ptr<IDLGenerics::IFieldType>> base,
-                                 std::shared_ptr<Binding::AttributeMap>                  unordered_map)
+ContainerFieldType::FindOrCreate(std::shared_ptr<Program> program,
+                                 Container&               container,
+                                 ContainerFieldTypeMap&&  typemap,
+                                 std::optional<std::shared_ptr<IDLGenerics::IFieldType>> /*base*/,
+                                 std::shared_ptr<Binding::AttributeMap> unordered_map)
 {
     auto ctName    = ContainerFieldType::GenerateFieldName(container, typemap);
     auto fieldType = program->TryGetFieldTypeName(ctName);
     if (fieldType.has_value())
     {
         assert(Str::Equal(fieldType.value()->GetFieldCategory(), Str::Create(L"containerfieldtype")));
-        assert(!base.has_value());
         assert(unordered_map == nullptr);
         fieldType.value()->AddAttributes(unordered_map);
         return fieldType.value();

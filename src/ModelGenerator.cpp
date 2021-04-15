@@ -4,8 +4,11 @@
 #include "TemplateFragment.h"
 
 #pragma warning(push, 0)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
 #include "yaml-cpp/yaml.h"
 #include <tinyxml2.h>
+#pragma clang diagnostic pop
 #pragma warning(pop)
 
 #include <EmbeddedResource.h>
@@ -39,13 +42,13 @@ inline std::string readfile(std::filesystem::path const& filepath)
     if (file.fail()) throw std::runtime_error("Cannot Load File : " + filepath.string());
     std::string contents;
     file.seekg(0, std::ios::end);
-    contents.reserve((unsigned int)file.tellg());
+    contents.reserve(static_cast<unsigned>(file.tellg()));
     file.seekg(0, std::ios::beg);
     contents.assign((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     return contents;
 }
 
-std::ostream& operator<<(std::ostream& strm, std::wstring_view wstr)
+static std::ostream& operator<<(std::ostream& strm, std::wstring_view wstr)
 {
     for (auto& c : wstr)
     {
@@ -237,7 +240,8 @@ template <> struct convert<Generator::ContainerTypeDecl>
 
 }    // namespace YAML
 
-void debug(YAML::Node const& node)
+#if 0
+static void debug(YAML::Node const& node)
 {
     std::stringstream ss;
     ss << node;
@@ -253,6 +257,7 @@ void debug(YAML::Node const& node)
         std::cout << st;
     }
 }
+#endif
 
 void Generator::_AddTypeDefinitions(std::string_view const& /*name*/, std::string_view const& text)
 {
@@ -318,7 +323,7 @@ void Generator::_AddTypeDefinitions(std::string_view const& /*name*/, std::strin
     }
 }
 
-void CreateTemplateFromNode(tree<TemplateFragment>&          tmpl,
+static void CreateTemplateFromNode(tree<TemplateFragment>&          tmpl,
                             tree<TemplateFragment>::iterator parent,
                             std::string_view const&          name,
                             XMLNode const&                   xml)
@@ -363,7 +368,7 @@ template <typename TMap, typename TKey> auto FindInMapOrDefault(TMap const& map,
     return it->second;
 }
 
-void ExpandTemplate(tree<Str::Type>&                 codetree,
+static void ExpandTemplate(tree<Str::Type>&                 codetree,
                     tree<Str::Type>::iterator        root,
                     tree<TemplateFragment> const&    tmpl,
                     tree<TemplateFragment>::iterator tmplrootit,
@@ -382,9 +387,9 @@ void ExpandTemplate(tree<Str::Type>&                 codetree,
     auto filterExpr = FindInMapOrDefault(tmplrootit->attributes, "Filter");
     if (!filterExpr.empty())
     {
-        auto pos    = ((std::wstring_view)filterExpr).find(L':');
-        auto prefix = ((std::wstring_view)filterExpr).substr(0, pos);
-        auto suffix = ((std::wstring_view)filterExpr).substr(pos);
+        auto pos    = filterExpr.find(L':');
+        auto prefix = filterExpr.substr(0, pos);
+        auto suffix = filterExpr.substr(pos);
 
         //        auto                   paramName = splitintotwo(filterExpr, ":");
         Binding::Expression expr;
@@ -457,7 +462,7 @@ void ExpandTemplate(tree<Str::Type>&                 codetree,
     }
 }
 
-tree<Str::Type> ExpandTemplate(tree<TemplateFragment> const& tmpl, Binding::BindingContext& context, Binding::IBindable& data)
+static tree<Str::Type> ExpandTemplate(tree<TemplateFragment> const& tmpl, Binding::BindingContext& context, Binding::IBindable& data)
 {
     tree<Str::Type> codetree;
     for (auto it = tmpl.rootbegin(); it != tmpl.rootend(); ++it)
@@ -468,7 +473,7 @@ tree<Str::Type> ExpandTemplate(tree<TemplateFragment> const& tmpl, Binding::Bind
     return codetree;
 }
 
-Template CreateTemplate(XMLElement const& element, std::string_view const& name)
+static Template CreateTemplate(XMLElement const& element, std::string_view const& name)
 {
     Template templ;
     CreateTemplateFromNode(templ.root, templ.root.rootbegin(), name, element);
@@ -657,7 +662,7 @@ void Generator::FinalizeTypeDefinitions()
 
 void Generator::LoadBuilltinTemplates()
 {
-    for (const auto& res : LOAD_RESOURCE_COLLECTION(templates))
+    for (const auto res : LOAD_RESOURCE_COLLECTION(templates))
     {
         _AddContent(wstring_to_string(res.name()), res.string());
     }

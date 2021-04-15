@@ -41,11 +41,9 @@
     name& operator=(name const&) = delete; \
     name& operator=(name&&) = delete
 
-inline void TodoFunc([[maybe_unused]] std::string const& msg)
+[[noreturn]] inline void TodoFunc([[maybe_unused]] std::string const& msg)
 {
-#ifdef _DEBUG
     throw std::logic_error("Not Implemented:" + msg);
-#endif
 }
 
 #if !defined TODO

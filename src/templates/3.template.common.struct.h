@@ -173,7 +173,7 @@ struct Data : public ReflectionBase::ObjMarker
     UnionType Type() const { return _type; }
 
     UnionType& get_Type() { return _type; }
-    void       set_Type(UnionType&& val) { _type = (UnionType)std::move(val); }
+    void       set_Type(UnionType&& val) { _type = std::move(val); }
 
     Data() : _type(UnionType::Invalid) {}
 
@@ -222,12 +222,8 @@ struct Data : public ReflectionBase::ObjMarker
     void                            zzNamezz(const zzFieldType_NativeTypezz& val) { _zzNamezz = val; }
     void                            zzNamezz(zzFieldType_NativeTypezz&& val) { _zzNamezz = std::move(val); }
 
-    zzFieldType_NativeTypezz& get_zzNamezz()
-    {
-        return _zzNamezz;
-        ;
-    }
-    void set_zzNamezz(zzFieldType_NativeTypezz&& val) { _zzNamezz = std::move(val); }
+    zzFieldType_NativeTypezz& get_zzNamezz() { return _zzNamezz; }
+    void                      set_zzNamezz(zzFieldType_NativeTypezz&& val) { _zzNamezz = std::move(val); }
 
     //</Field>
 };
@@ -516,7 +512,6 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
 };
 
 //</Struct>
-
 //<Union>
 
 template <> struct ReflectionServices::EnumTraits<zzUnion_Program_Namezz::zzUnion_Namezz::UnionType>
@@ -526,17 +521,17 @@ template <> struct ReflectionServices::EnumTraits<zzUnion_Program_Namezz::zzUnio
                                                   "zzField_Namezz",
                                                   //</Field>
 
-                                                  0};
+                                                  nullptr};
 
     using ValueType = uint32_t;
 };
 
 template <> struct ValueTraits<zzUnion_Program_Namezz::zzUnion_Namezz::UnionType>
 {
-    static constexpr auto ValueType() { return Value::Type::Unsigned; }
-    static void           Get(Value& /*obj*/) { throw 1; }
-    static void           Get(const Value& /*obj*/) { throw 1; }
-    static void           Check() { throw 1; }
+    static constexpr auto    ValueType() { return Value::Type::Unsigned; }
+    [[noreturn]] static void Get(Value& /*obj*/) { throw std::logic_error("Not Implemented"); }
+    [[noreturn]] static void Get(const Value& /*obj*/) { throw std::logic_error("Not Implemented"); }
+    [[noreturn]] static void Check() { throw std::logic_error("Not Implemented"); }
 };
 
 template <> struct ReflectionBase::TypeTraits<zzUnion_Program_Namezz::zzUnion_Namezz::UnionType&>

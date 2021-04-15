@@ -1,7 +1,8 @@
 #include "Generator.h"
 #include "Thrift.h"
+
 #pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-source-encoding"
+#pragma clang diagnostic ignored "-Weverything"
 #pragma warning(push, 0)
 #include <cxxopts.hpp>
 #pragma warning(pop)
@@ -11,7 +12,7 @@
 
 namespace stdfs = std::filesystem;
 
-std::vector<stdfs::path> Execute(bool                            dryrun,
+static std::vector<stdfs::path> Execute(bool                            dryrun,
                                  bool                            loadBuiltIn,
                                  std::string const&              format,
                                  std::vector<stdfs::path> const& templates,

@@ -38,7 +38,7 @@ template <typename TStruct, typename... TArgs> std::vector<std::string> RequireG
     CommandLineArgs<TStruct> cli;
     cli.template Load<std::string_view>(data, testargv);
     return cli.HelpInfo();
-};
+}
 
 TEST_CASE("CodeGen::CommandLineArgs::Simplecase", "[CommandLineArgs]")
 {
@@ -217,7 +217,7 @@ TEST_CASE("CodeGen::CommandLineArgs::CLOptsTest")
 
     SECTION("Negative: Extrabracket")
     {
-#if _WIN32
+#if defined _WIN32
         if (IsDebuggerPresent())
         {
             return;

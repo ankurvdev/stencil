@@ -6,7 +6,7 @@
 
 #include <cstdint>
 
-void RecordTrafficAdd(Avid::Traffic::Data& data, std::filesystem::path const& recordlog, char hexaddr)
+static void RecordTrafficAdd(Avid::Traffic::Data& data, std::filesystem::path const& recordlog, char hexaddr)
 {
     Stencil::DataRecorder<Avid::Traffic::Data> recorder(recordlog);
     Avid::Aircraft::Data                       aircraft;
@@ -16,7 +16,7 @@ void RecordTrafficAdd(Avid::Traffic::Data& data, std::filesystem::path const& re
     recorder.Record(data, ctx);
 }
 
-void RecordTrafficRemoveIndex(Avid::Traffic::Data& data, std::filesystem::path const& recordlog, size_t index)
+static void RecordTrafficRemoveIndex(Avid::Traffic::Data& data, std::filesystem::path const& recordlog, size_t index)
 {
     Stencil::DataRecorder<Avid::Traffic::Data> recorder(recordlog);
     auto                                       ctx = data.Edit();
@@ -24,7 +24,7 @@ void RecordTrafficRemoveIndex(Avid::Traffic::Data& data, std::filesystem::path c
     recorder.Record(data, ctx);
 }
 
-void RecordChangeGPSClimb(std::filesystem::path const& recordlog, double value)
+static void RecordChangeGPSClimb(std::filesystem::path const& recordlog, double value)
 {
     Avid::GPS::Data                        data;
     Stencil::DataRecorder<Avid::GPS::Data> recorder(recordlog);
@@ -33,7 +33,8 @@ void RecordChangeGPSClimb(std::filesystem::path const& recordlog, double value)
     recorder.Record(data, ctx);
 }
 
-void RecordChangeGPSSpeed(std::filesystem::path const& recordlog, double value)
+#if 0
+static void RecordChangeGPSSpeed(std::filesystem::path const& recordlog, double value)
 {
     Avid::GPS::Data                        data;
     Stencil::DataRecorder<Avid::GPS::Data> recorder(recordlog);
@@ -41,8 +42,8 @@ void RecordChangeGPSSpeed(std::filesystem::path const& recordlog, double value)
     ctx.set_speed(double{value});
     recorder.Record(data, ctx);
 }
-
-void RecordChangeGPSClimbAndSpeed(std::filesystem::path const& recordlog, double climb, double speed)
+#endif
+static void RecordChangeGPSClimbAndSpeed(std::filesystem::path const& recordlog, double climb, double speed)
 {
     Avid::GPS::Data                        data;
     Stencil::DataRecorder<Avid::GPS::Data> recorder(recordlog);

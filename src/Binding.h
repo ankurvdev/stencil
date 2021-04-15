@@ -152,7 +152,7 @@ struct Expression
     Expression()  = default;
 
     Expression(Expression const&) = delete;
-    Expression(Expression&& obj) { *this = std::move(obj); };
+    Expression(Expression&& obj) { *this = std::move(obj); }
 
     Expression& operator=(Expression const&) = delete;
 
@@ -161,7 +161,7 @@ struct Expression
         assert(obj._pieces.size() > 0);
         std::swap(_pieces, obj._pieces);
         return *this;
-    };
+    }
 
     template <typename TFunc> std::shared_ptr<Expression> Evaluate(TFunc func) const
     {
@@ -563,7 +563,7 @@ struct BindingContext
     {
         _previousContext      = _currentThreadContext;
         _currentThreadContext = this;
-    };
+    }
 
     ~BindingContext() { _currentThreadContext = _previousContext; }
 
@@ -641,8 +641,8 @@ struct BindingContext
 
     std::shared_ptr<Expression> _EvaluateExpression(Expression const& expr)
     {
-        auto result = expr.Evaluate([this](BindingExpr const& expr) -> std::shared_ptr<Expression> {
-            auto value = _TryEvaluateBindingExprOrNull(expr);
+        auto result = expr.Evaluate([this](BindingExpr const& expr1) -> std::shared_ptr<Expression> {
+            auto value = _TryEvaluateBindingExprOrNull(expr1);
             if (value == nullptr)
             {
                 return {};
@@ -714,8 +714,8 @@ struct BindingContext
 
 struct BindableBase : public IBindable, public ValueT<Type::Object>
 {
-    BindableBase()  = default;
-    ~BindableBase() = default;
+    BindableBase()           = default;
+    ~BindableBase() override = default;
     DELETE_COPY_AND_MOVE(BindableBase);
 
     void AddBaseObject(std::shared_ptr<BindableBase> const& basePtr)
@@ -837,7 +837,7 @@ template <typename TParent, typename TObject> struct BindableParent : public vir
                                public ValueT<Type::Object>,
                                public std::enable_shared_from_this<BindableComponent>
     {
-        BindableComponent(BindableParent<TParent, TObject>& owner) : _owner(owner){};
+        BindableComponent(BindableParent<TParent, TObject>& owner) : _owner(owner) {}
         virtual size_t    GetKeyCount() override { return 3; }
         virtual Str::Type GetKeyAt(size_t index) override
         {
@@ -888,7 +888,7 @@ template <typename TParent, typename TObject> struct BindableParent : public vir
 template <typename TOwner, typename TObject> struct BindableObjectArray : public virtual BindableBase
 {
     BindableObjectArray() { Register(_bindableComponent); }
-    ~BindableObjectArray() = default;
+    ~BindableObjectArray() override = default;
     DELETE_COPY_AND_MOVE(BindableObjectArray);
 
     void AddToArray(std::shared_ptr<BindableBase> obj) { _bindableComponent->_array.push_back(obj); }
@@ -1055,7 +1055,7 @@ template <typename TOwner, typename TParent = TOwner> struct BindableT : public 
         _AddBindableComponents(SUPER(TOwner), std::forward<TArgs>(args)...);
         for (auto& c : _bindableComponent) Register(c);
     }
-    ~BindableT() = default;
+    ~BindableT() override = default;
     DELETE_COPY_AND_MOVE(BindableT);
 
     std::vector<std::shared_ptr<BindableComponent>> _bindableComponent;

@@ -7,7 +7,7 @@
 
 namespace stdfs = std::filesystem;
 
-void find_and_replace(std::string& source, std::string const& find, std::string const& replace)
+static void find_and_replace(std::string& source, std::string const& find, std::string const& replace)
 {
     for (std::string::size_type i = 0; (i = source.find(find, i)) != std::string::npos;)
     {
@@ -16,7 +16,7 @@ void find_and_replace(std::string& source, std::string const& find, std::string 
     }
 }
 
-std::string tryreadfile(stdfs::path fname)
+static std::string tryreadfile(stdfs::path fname)
 {
     if (!stdfs::exists(fname))
     {
@@ -32,7 +32,7 @@ std::string tryreadfile(stdfs::path fname)
     return std::string((std::istreambuf_iterator<char>(ly)), (std::istreambuf_iterator<char>()));
 }
 
-void generate(stdfs::path fname, std::string tmpl, std::unordered_map<std::string, std::string> const& params)
+static void generate(stdfs::path fname, std::string tmpl, std::unordered_map<std::string, std::string> const& params)
 {
     for (auto const& [k, v] : params)
     {
@@ -146,9 +146,9 @@ namespace zzNAMESPACEzz::impl
 class Scanner : public zzPREFIXzzFlexLexer
 {
 public:
-    Scanner(std::istream* in) : zzPREFIXzzFlexLexer(in){};
+    Scanner(std::istream* in) : zzPREFIXzzFlexLexer(in){}
     Scanner() = delete;
-    ~Scanner() = default;
+    ~Scanner() override = default;
     Scanner(Scanner const&) = delete;
     Scanner(Scanner&&) = delete;
 

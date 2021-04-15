@@ -97,8 +97,7 @@ template <typename T> struct Visitor
             return true;
         }
 
-        case ReflectionBase::DataType::Union: TODO(); throw std::runtime_error("Not yet supported. Get to work");
-
+        case ReflectionBase::DataType::Union: throw std::runtime_error("Not yet supported. Get to work");
         case ReflectionBase::DataType::Value: [[fallthrough]];
         case ReflectionBase::DataType::Enum: throw std::runtime_error("Unsupported Data Type");
 

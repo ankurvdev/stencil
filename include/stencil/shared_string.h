@@ -8,20 +8,22 @@ namespace std
 inline std::string to_string(std::wstring_view str)
 {
     std::string s(str.size(), 0);
-    std::transform(str.begin(), str.end(), s.begin(), [](wchar_t c) { return (char)c; });
+    std::transform(str.begin(), str.end(), s.begin(), [](wchar_t c) { return static_cast<char>(c); });
     return s;
 }
 }    // namespace std
 
 template <typename T> struct shared_stringT : private std::shared_ptr<std::basic_string<T>>
 {
+    using BaseT = std::shared_ptr<std::basic_string<T>>;
+
     using TString     = typename std::basic_string<T>;
     using TStringView = typename std::basic_string_view<T>;
 
     using const_pointer = typename TString::const_pointer;
     using value_type    = typename TString::value_type;
 
-    shared_stringT() : std::shared_ptr<std::basic_string<T>>(nullptr) {}
+    shared_stringT() : BaseT(nullptr) {}
 
     template <size_t N> shared_stringT(T const (&str)[N]) { *this = make(str); }
 
@@ -31,14 +33,14 @@ template <typename T> struct shared_stringT : private std::shared_ptr<std::basic
         *this = make(str);
     }
 
-    shared_stringT(std::nullptr_t) : std::shared_ptr<std::basic_string<T>>(nullptr) {}
+    shared_stringT(std::nullptr_t) : BaseT(nullptr) {}
 
     shared_stringT(std::shared_ptr<TString>& str) : std::shared_ptr<TString>(str) {}
     shared_stringT(const shared_stringT& str) : std::shared_ptr<TString>(str) {}
     shared_stringT(shared_stringT&& str) noexcept : std::shared_ptr<TString>(std::move(str)) {}
 
     private:
-    shared_stringT(std::shared_ptr<std::basic_string<T>>&& str) : std::shared_ptr<std::basic_string<T>>(std::move(str)) {}
+    shared_stringT(BaseT&& str) : BaseT(std::move(str)) {}
 
     public:
     static shared_stringT make(const T* str) { return {std::make_shared<TString>(str)}; }
@@ -101,11 +103,13 @@ template <typename T> struct shared_stringT : private std::shared_ptr<std::basic
 
     shared_stringT& operator=(const shared_stringT& str)
     {
-        copy(str);
+        *static_cast<BaseT*>(this) = *(static_cast<BaseT const*>(&str));
         return *this;
     }
-                  operator const TString&() const { return *this->get(); }
-                  operator std::basic_string_view<T>() const { return std::basic_string_view<T>(data(), size()); }
+
+    operator const TString&() const { return *this->get(); }
+    operator std::basic_string_view<T>() const { return std::basic_string_view<T>(data(), size()); }
+
     value_type    at(size_t index) const { return this->get()->at(index); }
     const_pointer c_str() const { return this->get() == nullptr ? nullptr : this->get()->c_str(); }
     const_pointer data() const { return this->get() == nullptr ? nullptr : this->get()->c_str(); }
@@ -114,7 +118,7 @@ template <typename T> struct shared_stringT : private std::shared_ptr<std::basic
     bool          empty() const { return this->get() == nullptr || this->get()->c_str() == nullptr || this->get()->length() == 0; }
 
     private:
-    void copy(const std::shared_ptr<TString>& str) { *((std::shared_ptr<TString>*)this) = str; }
+    // void copy(const std::shared_ptr<TString>& str) { *this = str; }
 };
 
 using shared_string  = shared_stringT<char>;
@@ -137,5 +141,5 @@ inline shared_wstring shared_string_to_wstring(const shared_string& str)
 
 inline shared_string operator+(const std::string& str1, const shared_string& str2)
 {
-    return shared_string::make(str1 + (const std::string&)str2);
+    return shared_string::make(str1 + str2.str());
 }

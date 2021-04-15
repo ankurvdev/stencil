@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <chrono>
+#include <compare>
 
 struct UuidStr
 {
@@ -12,16 +13,16 @@ struct UuidStr
     {
         for (size_t i = 0; i < Size; i++)
         {
-            str[i]  = (char)strin[i];
-            wstr[i] = (wchar_t)strin[i];
+            str[i]  = static_cast<char>(strin[i]);
+            wstr[i] = static_cast<wchar_t>(strin[i]);
         }
     }
     constexpr UuidStr(const wchar_t strin[Size])
     {
         for (size_t i = 0; i < Size; i++)
         {
-            str[i]  = (char)strin[i];
-            wstr[i] = (wchar_t)strin[i];
+            str[i]  = static_cast<char>(strin[i]);
+            wstr[i] = static_cast<wchar_t>(strin[i]);
         }
     }
 
@@ -29,16 +30,16 @@ struct UuidStr
     {
         for (size_t i = 0; i < Size; i++)
         {
-            str[i]  = (char)strin[i];
-            wstr[i] = (wchar_t)strin[i];
+            str[i]  = static_cast<char>(strin[i]);
+            wstr[i] = static_cast<wchar_t>(strin[i]);
         }
     }
     constexpr UuidStr(const std::wstring_view strin)
     {
         for (size_t i = 0; i < Size; i++)
         {
-            str[i]  = (char)strin[i];
-            wstr[i] = (wchar_t)strin[i];
+            str[i]  = static_cast<char>(strin[i]);
+            wstr[i] = static_cast<wchar_t>(strin[i]);
         }
     }
 
@@ -60,14 +61,8 @@ struct Uuid
         data = uuid.data;
         return *this;
     }
-#define COMPARISONOP(op) \
-    inline bool operator op(Uuid const& r) const { return data op r.data; }
-    COMPARISONOP(==)
-    COMPARISONOP(!=)
-    COMPARISONOP(<=)
-    COMPARISONOP(>=)
-    COMPARISONOP(<)
-    COMPARISONOP(>)
+
+    auto operator<=>(Uuid const& r) const = default;
 
     UuidStr constexpr ToString() const;
     static Uuid constexpr FromString(UuidStr const& str) { return Uuid(str); }
@@ -83,14 +78,9 @@ template <typename T> struct UuidBasedId
     static UuidBasedId<T>           Create() { return UuidBasedId<T>(Uuid::Create()); }
     static constexpr UuidBasedId<T> FromString(UuidStr str) { return UuidBasedId<T>(Uuid::FromString(str)); }
 
-    inline bool operator==(const UuidBasedId<T>& r) const { return (const Uuid&)(*this) == (const Uuid&)r; }
-    inline bool operator!=(const UuidBasedId<T>& r) const { return (const Uuid&)(*this) != (const Uuid&)r; }
-    inline bool operator<=(const UuidBasedId<T>& r) const { return (const Uuid&)(*this) <= (const Uuid&)r; }
-    inline bool operator>=(const UuidBasedId<T>& r) const { return (const Uuid&)(*this) >= (const Uuid&)r; }
-    inline bool operator<(const UuidBasedId<T>& r) const { return (const Uuid&)(*this) < (const Uuid&)r; }
-    inline bool operator>(const UuidBasedId<T>& r) const { return (const Uuid&)(*this) > (const Uuid&)r; }
+    inline auto operator<=>(const UuidBasedId<T>& r) const = default;
 
-    bool Empty() const { return _guid == Uuid(); }
+    bool Empty() const { return Uuid{} == _guid; }
     bool Valid() const { return !Empty(); }
     void Validate()
     {
@@ -114,7 +104,8 @@ template <typename T> struct UuidBasedId
     UuidBasedId(Uuid guid) : _guid(guid) {}
     constexpr UuidBasedId() {}
     Uuid _guid;
-         operator const Uuid&() const { return _guid; }
+
+    operator const Uuid&() const { return _guid; }
 
     public:
     static constexpr UuidBasedId<T> Invalid() { return UuidBasedId<T>(); }
@@ -149,7 +140,7 @@ inline Uuid Uuid::Create()
 
     for (size_t i = 0; i < uuid.data.size(); i++)
     {
-        uuid.data[i] = (uint8_t)dist(e1);
+        uuid.data[i] = static_cast<uint8_t>(dist(e1));
     }
 
     return uuid;
@@ -159,7 +150,7 @@ inline UuidStr constexpr UuidToString(Uuid const& uuid)
 {
     struct tohex
     {
-        static constexpr char convert(uint8_t c) { return c < 10 ? ('0' + c) : ('a' + (c - 10)); }
+        static constexpr char convert(uint8_t c) { return static_cast<char>(c < 10 ? ('0' + c) : ('a' + (c - 10))); }
         static constexpr char l(uint8_t c) { return convert(c & 0xfu); }
         static constexpr char h(uint8_t c) { return convert(static_cast<uint8_t>(c >> 4u)); }
     };
@@ -216,7 +207,10 @@ inline constexpr Uuid::Uuid(UuidStr const& str)
 {
     struct tobyte
     {
-        static constexpr uint8_t convert(char c) { return (c < 'a' ? (c - '0') : (c - 'a' + 10)) & 0xfu; }
+        static constexpr uint8_t convert(char c)
+        {
+            return static_cast<uint8_t>(static_cast<uint8_t>((c < 'a' ? (c - '0') : (c - 'a' + 10))) & 0xfu);
+        }
         static constexpr uint8_t join(char h, char l) { return static_cast<uint8_t>(convert(h) << 4u | convert(l)); }
     };
 
