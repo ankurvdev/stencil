@@ -14,8 +14,8 @@ elseif (EXISTS ${CMAKE_CURRENT_LIST_DIR}/use_git)
         REF ${commitId}
     )
 else()
-    set(commitId 7cd3e15b10773cd60b6f28ccc6f1389d4141f64e)
-    set(sha512 252528cf1b165d39dc1f77d7d289bdb394697ad5f485adf4755fbd8e0fa5a0467423a8a1e072185b067b86e856024bac1472ffca2ba4764abdea200d3d78b38d)
+    set(commitId 8aee47a4d445bf4e5dba4f3bda5ab880b406b693)
+    set(sha512 2aba39ad8e667a6373449a951c16fc042ef475cc969f43ccc676bdc6436eb11e0d71d2d8f6b32d4588a168a0b8cbed5733da1e90d740338234eb17050ee83057)
     vcpkg_from_github(
         OUT_SOURCE_PATH SOURCE_PATH
         REPO ankurverma85/stencil
@@ -27,7 +27,9 @@ endif()
 vcpkg_configure_cmake(
     SOURCE_PATH ${SOURCE_PATH}
     PREFER_NINJA
-    OPTIONS -DSTENCIL_INSTALL_BUILDTOOLS=ON
+    OPTIONS
+        -DSTENCIL_INSTALL_BUILDTOOLS=ON
+        -DBUILD_TESTING=OFF
 )
 
 vcpkg_install_cmake()

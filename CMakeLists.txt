@@ -6,7 +6,7 @@ project(stencil VERSION 0.0.1)
 
 include(CMakePackageConfigHelpers)
 
-option(BUILD_TEST "Build Test" ON)
+option(BUILD_TESTING "Build Test" ON)
 option(STENCIL_INSTALL_BUILDTOOLS "Install Extra Build Tools with install" ON)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -34,7 +34,7 @@ file(GLOB resfiles src/templates/*)
 target_add_resource(libstencil templates ${resfiles})
 
 file(GLOB resfiles include/stencil/*)
-if (NOT BUILD_TEST)
+if (NOT BUILD_TESTING)
 target_add_resource(libstencil commonheaders ${resfiles})
 endif()
 
@@ -52,7 +52,7 @@ set_target_properties(stencil PROPERTIES PUBLIC_HEADER "${public_headers}")
 
 target_link_libraries(stencil PRIVATE libstencil)
 
-if (BUILD_TEST)
+if (BUILD_TESTING)
     enable_testing()
 
     file(GLOB resfiles tests/testdata/*)
