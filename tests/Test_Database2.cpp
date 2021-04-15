@@ -368,9 +368,9 @@ TEST_CASE("CodeGen::Database2::SaveAndLoadObjects", "[Database2]")
             editObj.ref1.Release(lock, datastore);
             REQUIRE(!editObj.ref1.ref.Valid());
         }
-        if (std::filesystem::last_write_time(dbFileName).time_since_epoch().count() > time.time_since_epoch().count())
+        if (std::filesystem::last_write_time(dbFileName).time_since_epoch().count() < time.time_since_epoch().count())
         {
-            FAIL("Database changed");
+            FAIL("Database not changed");
         }
         {
             DB    datastore{dbFileName};
