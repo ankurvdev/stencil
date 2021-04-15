@@ -105,7 +105,7 @@ struct Data : public ReflectionBase::ObjMarker
     UnionType Type() const { return _type; }
 
     UnionType& get_Type() { return _type; }
-    void       set_Type(UnionType&& val) { _type = (UnionType)std::move(val); }
+    void       set_Type(UnionType&& val) { _type = std::move(val); }
 
     Data() : _type(UnionType::Invalid) {}
 
@@ -145,12 +145,8 @@ struct Data : public ReflectionBase::ObjMarker
     void                            field1(const int32_t& val) { _field1 = val; }
     void                            field1(int32_t&& val) { _field1 = std::move(val); }
 
-    int32_t& get_field1()
-    {
-        return _field1;
-        ;
-    }
-    void set_field1(int32_t&& val) { _field1 = std::move(val); }
+    int32_t& get_field1() { return _field1; }
+    void                      set_field1(int32_t&& val) { _field1 = std::move(val); }
 
     private:
     int32_t _field2;
@@ -161,12 +157,8 @@ struct Data : public ReflectionBase::ObjMarker
     void                            field2(const int32_t& val) { _field2 = val; }
     void                            field2(int32_t&& val) { _field2 = std::move(val); }
 
-    int32_t& get_field2()
-    {
-        return _field2;
-        ;
-    }
-    void set_field2(int32_t&& val) { _field2 = std::move(val); }
+    int32_t& get_field2() { return _field2; }
+    void                      set_field2(int32_t&& val) { _field2 = std::move(val); }
 
 };
 }    // namespace Union1
@@ -312,17 +304,17 @@ template <> struct ReflectionServices::EnumTraits<UnionTest::Union1::UnionType>
     static constexpr const char* EnumStrings[] = {"Invalid",
                                                   "field1",
                                                   "field2",
-                                                  0};
+                                                  nullptr};
 
     using ValueType = uint32_t;
 };
 
 template <> struct ValueTraits<UnionTest::Union1::UnionType>
 {
-    static constexpr auto ValueType() { return Value::Type::Unsigned; }
-    static void           Get(Value& /*obj*/) { throw 1; }
-    static void           Get(const Value& /*obj*/) { throw 1; }
-    static void           Check() { throw 1; }
+    static constexpr auto    ValueType() { return Value::Type::Unsigned; }
+    [[noreturn]] static void Get(Value& /*obj*/) { throw std::logic_error("Not Implemented"); }
+    [[noreturn]] static void Get(const Value& /*obj*/) { throw std::logic_error("Not Implemented"); }
+    [[noreturn]] static void Check() { throw std::logic_error("Not Implemented"); }
 };
 
 template <> struct ReflectionBase::TypeTraits<UnionTest::Union1::UnionType&>

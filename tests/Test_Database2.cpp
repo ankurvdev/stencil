@@ -262,9 +262,9 @@ template <typename TObj> void TestCaseForObj()
 #define TEST_CASE_FOR_OBJTYPE(type) \
     TEST_CASE("CodeGen::Database2::" #type, "[Unit]") { TestCaseForObj<type>(); }
 
-#define TEST_CASE_FOR_(type, ...) TEST_CASE_FOR_OBJTYPE(type) TEST_CASE_FOR_(__VA_ARGS__)
-#define TEST_CASE_FOR__(arg) TEST_CASE_FOR_ arg
-#define TEST_CASE_FOR(args) TEST_CASE_FOR__((args))
+//#define TEST_CASE_FOR_(type, ...) TEST_CASE_FOR_OBJTYPE(type) TEST_CASE_FOR_(__VA_ARGS__)
+//#define TEST_CASE_FOR__(arg) TEST_CASE_FOR_ arg
+//#define TEST_CASE_FOR(args) TEST_CASE_FOR__((args))
 
 #define ALL_TESTED_TYPES Database2::ByteString, TestData::WithSimpleRef
 TEST_CASE_FOR_OBJTYPE(Database2::ByteString)
@@ -292,7 +292,10 @@ TEST_CASE("CodeGen::Database2::SaveAndLoadFile", "[Database2]")
         {
             DB datastore{dbFileName};
         }
-        REQUIRE(std::filesystem::last_write_time(dbFileName) < time);
+        if (std::filesystem::last_write_time(dbFileName).time_since_epoch().count() > time.time_since_epoch().count())
+        {
+            FAIL("Failed. Database was modified");
+        }
     }
 
     // Constructor With IStream reads file
@@ -303,7 +306,10 @@ TEST_CASE("CodeGen::Database2::SaveAndLoadFile", "[Database2]")
             CreateObjects<0, ALL_TESTED_TYPES>(datastore);
         }
 
-        REQUIRE(std::filesystem::last_write_time(dbFileName) < time);
+        if (std::filesystem::last_write_time(dbFileName).time_since_epoch().count() > time.time_since_epoch().count())
+        {
+            FAIL("Database changed");
+        }
     }
 
     // Empty Constructor for in-memory datastore
@@ -362,7 +368,10 @@ TEST_CASE("CodeGen::Database2::SaveAndLoadObjects", "[Database2]")
             editObj.ref1.Release(lock, datastore);
             REQUIRE(!editObj.ref1.ref.Valid());
         }
-        REQUIRE(std::filesystem::last_write_time(dbFileName) > time);
+        if (std::filesystem::last_write_time(dbFileName).time_since_epoch().count() > time.time_since_epoch().count())
+        {
+            FAIL("Database changed");
+        }
         {
             DB    datastore{dbFileName};
             auto  lock    = datastore.LockForRead();

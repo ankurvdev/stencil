@@ -550,7 +550,7 @@ struct Data : public ReflectionBase::ObjMarker
     UnionType Type() const { return _type; }
 
     UnionType& get_Type() { return _type; }
-    void       set_Type(UnionType&& val) { _type = (UnionType)std::move(val); }
+    void       set_Type(UnionType&& val) { _type = std::move(val); }
 
     Data() : _type(UnionType::Invalid) {}
 
@@ -615,12 +615,8 @@ struct Data : public ReflectionBase::ObjMarker
     void                            install(const ::CLOpts2::InstallOptions::Data& val) { _install = val; }
     void                            install(::CLOpts2::InstallOptions::Data&& val) { _install = std::move(val); }
 
-    ::CLOpts2::InstallOptions::Data& get_install()
-    {
-        return _install;
-        ;
-    }
-    void set_install(::CLOpts2::InstallOptions::Data&& val) { _install = std::move(val); }
+    ::CLOpts2::InstallOptions::Data& get_install() { return _install; }
+    void                      set_install(::CLOpts2::InstallOptions::Data&& val) { _install = std::move(val); }
 
     private:
     ::CLOpts2::QueueOptions::Data _queue;
@@ -631,12 +627,8 @@ struct Data : public ReflectionBase::ObjMarker
     void                            queue(const ::CLOpts2::QueueOptions::Data& val) { _queue = val; }
     void                            queue(::CLOpts2::QueueOptions::Data&& val) { _queue = std::move(val); }
 
-    ::CLOpts2::QueueOptions::Data& get_queue()
-    {
-        return _queue;
-        ;
-    }
-    void set_queue(::CLOpts2::QueueOptions::Data&& val) { _queue = std::move(val); }
+    ::CLOpts2::QueueOptions::Data& get_queue() { return _queue; }
+    void                      set_queue(::CLOpts2::QueueOptions::Data&& val) { _queue = std::move(val); }
 
     private:
     ::CLOpts2::PauseOptions::Data _pause;
@@ -647,12 +639,8 @@ struct Data : public ReflectionBase::ObjMarker
     void                            pause(const ::CLOpts2::PauseOptions::Data& val) { _pause = val; }
     void                            pause(::CLOpts2::PauseOptions::Data&& val) { _pause = std::move(val); }
 
-    ::CLOpts2::PauseOptions::Data& get_pause()
-    {
-        return _pause;
-        ;
-    }
-    void set_pause(::CLOpts2::PauseOptions::Data&& val) { _pause = std::move(val); }
+    ::CLOpts2::PauseOptions::Data& get_pause() { return _pause; }
+    void                      set_pause(::CLOpts2::PauseOptions::Data&& val) { _pause = std::move(val); }
 
     private:
     ::CLOpts2::CancelOptions::Data _cancel;
@@ -663,12 +651,8 @@ struct Data : public ReflectionBase::ObjMarker
     void                            cancel(const ::CLOpts2::CancelOptions::Data& val) { _cancel = val; }
     void                            cancel(::CLOpts2::CancelOptions::Data&& val) { _cancel = std::move(val); }
 
-    ::CLOpts2::CancelOptions::Data& get_cancel()
-    {
-        return _cancel;
-        ;
-    }
-    void set_cancel(::CLOpts2::CancelOptions::Data&& val) { _cancel = std::move(val); }
+    ::CLOpts2::CancelOptions::Data& get_cancel() { return _cancel; }
+    void                      set_cancel(::CLOpts2::CancelOptions::Data&& val) { _cancel = std::move(val); }
 
     private:
     ::CLOpts2::ResumeOptions::Data _resume;
@@ -679,12 +663,8 @@ struct Data : public ReflectionBase::ObjMarker
     void                            resume(const ::CLOpts2::ResumeOptions::Data& val) { _resume = val; }
     void                            resume(::CLOpts2::ResumeOptions::Data&& val) { _resume = std::move(val); }
 
-    ::CLOpts2::ResumeOptions::Data& get_resume()
-    {
-        return _resume;
-        ;
-    }
-    void set_resume(::CLOpts2::ResumeOptions::Data&& val) { _resume = std::move(val); }
+    ::CLOpts2::ResumeOptions::Data& get_resume() { return _resume; }
+    void                      set_resume(::CLOpts2::ResumeOptions::Data&& val) { _resume = std::move(val); }
 
     private:
     ::CLOpts2::UpdateOptions::Data _update;
@@ -695,12 +675,8 @@ struct Data : public ReflectionBase::ObjMarker
     void                            update(const ::CLOpts2::UpdateOptions::Data& val) { _update = val; }
     void                            update(::CLOpts2::UpdateOptions::Data&& val) { _update = std::move(val); }
 
-    ::CLOpts2::UpdateOptions::Data& get_update()
-    {
-        return _update;
-        ;
-    }
-    void set_update(::CLOpts2::UpdateOptions::Data&& val) { _update = std::move(val); }
+    ::CLOpts2::UpdateOptions::Data& get_update() { return _update; }
+    void                      set_update(::CLOpts2::UpdateOptions::Data&& val) { _update = std::move(val); }
 
     private:
     ::CLOpts2::HydrateOptions::Data _hydrate;
@@ -711,12 +687,8 @@ struct Data : public ReflectionBase::ObjMarker
     void                            hydrate(const ::CLOpts2::HydrateOptions::Data& val) { _hydrate = val; }
     void                            hydrate(::CLOpts2::HydrateOptions::Data&& val) { _hydrate = std::move(val); }
 
-    ::CLOpts2::HydrateOptions::Data& get_hydrate()
-    {
-        return _hydrate;
-        ;
-    }
-    void set_hydrate(::CLOpts2::HydrateOptions::Data&& val) { _hydrate = std::move(val); }
+    ::CLOpts2::HydrateOptions::Data& get_hydrate() { return _hydrate; }
+    void                      set_hydrate(::CLOpts2::HydrateOptions::Data&& val) { _hydrate = std::move(val); }
 
 };
 }    // namespace CommandLineOptions
@@ -1594,17 +1566,17 @@ template <> struct ReflectionServices::EnumTraits<CLOpts2::CommandLineOptions::U
                                                   "resume",
                                                   "update",
                                                   "hydrate",
-                                                  0};
+                                                  nullptr};
 
     using ValueType = uint32_t;
 };
 
 template <> struct ValueTraits<CLOpts2::CommandLineOptions::UnionType>
 {
-    static constexpr auto ValueType() { return Value::Type::Unsigned; }
-    static void           Get(Value& /*obj*/) { throw 1; }
-    static void           Get(const Value& /*obj*/) { throw 1; }
-    static void           Check() { throw 1; }
+    static constexpr auto    ValueType() { return Value::Type::Unsigned; }
+    [[noreturn]] static void Get(Value& /*obj*/) { throw std::logic_error("Not Implemented"); }
+    [[noreturn]] static void Get(const Value& /*obj*/) { throw std::logic_error("Not Implemented"); }
+    [[noreturn]] static void Check() { throw std::logic_error("Not Implemented"); }
 };
 
 template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::UnionType&>

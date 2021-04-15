@@ -969,7 +969,7 @@ template <typename TDb, typename TObj, typename TLock> struct Iterator
             if (pagemgr->GetPageObjTypeId(pi) == 0) continue;
             if constexpr (Traits::RecordSize() == 0)
             {
-                if ((pagemgr->GetPageObjTypeId(pi) & ~(0xff)) != Traits::TypeId())
+                if ((pagemgr->GetPageObjTypeId(pi) & ~(0xffu)) != Traits::TypeId())
                 {
                     continue;
                 }
@@ -1397,12 +1397,18 @@ template <ObjTypeId TId, Ownership TOwnership, Encryption TEncrypted, typename T
         }
 
         operator EditType() { return std::basic_string_view<TChar>(reinterpret_cast<TChar*>(ptr), size / sizeof(TChar)); }
-        operator ViewType() const { return std::basic_string_view<TChar>(reinterpret_cast<TChar*>(ptr), size / sizeof(TChar)); }
+        operator ViewType() const { return std::basic_string_view<TChar>(reinterpret_cast<TChar const*>(ptr), size / sizeof(TChar)); }
     };
 
-    static ViewType View(WireType const& obj) { return std::basic_string_view<TChar>(reinterpret_cast<TChar*>(obj.ptr), obj.size / sizeof(TChar)); }
+    static ViewType View(WireType const& obj)
+    {
+        return std::basic_string_view<TChar>(reinterpret_cast<TChar*>(obj.ptr), obj.size / sizeof(TChar));
+    }
 
-    static EditType Edit(WireType const& obj) { return std::basic_string_view<TChar>(reinterpret_cast<TChar*>(obj.ptr), obj.size / sizeof(TChar)); }
+    static EditType Edit(WireType const& obj)
+    {
+        return std::basic_string_view<TChar>(reinterpret_cast<TChar*>(obj.ptr), obj.size / sizeof(TChar));
+    }
 
     static size_t           GetDataSize(ViewType const& str) { return str.empty() ? 0 : (str.size() * sizeof(TChar) + sizeof(uint16_t)); }
     constexpr static size_t StructMemberCount() { return 0; }    // Unavailable / not-needed
@@ -1423,10 +1429,10 @@ using WideEncryptedStringTraits       = TStringTraits<0xB00, Ownership::Self, En
 using WideEncryptedSharedStringTraits = TStringTraits<0xC00, Ownership::Shared, Encryption::Yes, wchar_t>;
 using WideEncryptedUniqueStringTraits = TStringTraits<0xD00, Ownership::Unique, Encryption::Yes, wchar_t>;
 
-#define DEFINESTRING(str)                                                                                        \
-    using str = str##Traits::WireType;                                                                           \
-    template <typename TDb> struct ObjTraits<TDb, str> : str##Traits                                             \
-    {                                                                                                            \
+#define DEFINESTRING(str)                                                                                                    \
+    using str = str##Traits::WireType;                                                                                       \
+    template <typename TDb> struct ObjTraits<TDb, str> : str##Traits                                                         \
+    {                                                                                                                        \
         static WireType Create(TDb& /* db */, exclusive_lock const& /* lock */, ViewType const& str) { return Create(str); } \
     };
 DEFINESTRING(ByteString)
