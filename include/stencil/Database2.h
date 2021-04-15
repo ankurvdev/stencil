@@ -600,7 +600,7 @@ template <size_t RecordSize> struct PageForSharedRecord : public PageForRecordIn
     uint8_t GetRefCount(Ref::SlotIndex slot) const { return _refCounts->at(slot); }
     bool    Full(shared_lock const& /* guardscope */) { return _page._availableSlot >= _refCounts->size(); }
 
-    SlotObj Allocate(exclusive_lock const& guardscope)
+    SlotObj Allocate([[maybe_unused]] exclusive_lock const& guardscope)
     {
         assert(!Full(guardscope));
         assert(_refCounts[_page._availableSlot] == 0u);
