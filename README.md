@@ -35,6 +35,8 @@ The code generation tool in its bare-form tries to stick to the follow design pr
 * Cross platform C++
 * Easy build system integration. (CMake included)
 
+# Built-In Template and Out-of-box supported scenarios
+
 THe built-in templates generate compile time reflection of structs and interface that along with a header-only runtime make possible the following core usage scenarios 
 
 * JSON Data-Serialization/Deserialization
@@ -58,7 +60,7 @@ The built-in functionalities follow the listed design principles:
 * Cross platform Runtime header generation: Tested for Windows, Linux, RaspberryPi's, Android, with Clang, GCC, MSVC
 * No compiler warnings with Wall, WEverything, Wextra pedantic pedantic-errors etc on either 32 bit or 64 bit platforms.
 
-# Using Built-in templates
+# Examples (Built-in templates)
 
 The following code usage examples demonstrate how to use the builtin templates for each use-case
 
