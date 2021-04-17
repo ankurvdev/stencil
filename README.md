@@ -16,7 +16,7 @@ To allow for a more practical usage a set of built-in templates are provided alo
 # Philosophy and design principles
 
 The code generation tool in its bare-form tries to stick to the follow design principles
-* Language independence to allow for potentially generating other languages
+* Language independent codegen, to allow for potentially generating other languages
   - Currently C++ support only 
 * Modular parsing of Input Formats into their in-memory representation 
   - IDL : Support format : Custom [Thrift](https://en.wikipedia.org/wiki/Apache_Thrift)-like IDL 
