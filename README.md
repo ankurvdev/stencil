@@ -66,8 +66,8 @@ The following code usage examples demonstrate how to use the builtin templates f
 
 ## Serialization / Deserialization
 
-JSON Input and Output
-Command Line Arg parsing and help generation
+* JSON Input and Output
+* Command Line Arg parsing and help generation
 
 Consider a simple IDL (foo.pidl)
 
