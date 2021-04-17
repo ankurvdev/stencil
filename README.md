@@ -12,23 +12,58 @@
 
 ![Build status](https://dev.azure.com/ankurverma0037/ankurverma/_apis/build/status/ankurverma85.stencil)
 
-A code generation tool that is inspired by [MVVM](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93viewmodel) Data-Binding techniques often utilized in GUI programming for binding IDL representations of structs and interfaces to built-in or easy to write custom templates for boiler plate code generation providing lighting fast implementations without subjecting the developers to [RSI Injuries](https://en.wikipedia.org/wiki/Repetitive_strain_injury)
+A code generation tool that is inspired by [MVVM](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93viewmodel) Data-Binding techniques.
+The tool in its bare-bones form can take as input: 
+1. An IDL representation of interfaces and structs 
+2. Native Type and container mappings
+3. Templates for binding the Data-Structs and API-Interfaces
 
-Currently support IDL representations 
+And generate code thats based on replication and substitution of bindable expression in the templates by data-binding
 
-* Custom [Thrift](https://en.wikipedia.org/wiki/Apache_Thrift)-like IDL 
+To allow for a more practical usage a set of built-in templates are provided along with a runtime (C++20 header-only) that relies on code-generated compile time reflection to enable certain practical real-world usages.
 
-Built-in templates for
+The code generation tool in its bare-form tries to stick to the follow design principles
+* Language independence to allow for potentially generating other languages
+  - Currently C++ support only 
+* Modular parsing of Input Formats into their in-memory representation 
+  - IDL : Support format : Custom [Thrift](https://en.wikipedia.org/wiki/Apache_Thrift)-like IDL 
+  - Templates : Supported formats: C++ code (Intellisense compatible) with HTML-Markup in line-comments and distinct variables naming schema for binding declarations
+  - Type-Mappings : YAML
+* MVVM 
+  - Model : IDL 
+  - View-Model : IDL + Type-Mappin
+  - View : Generated Code based on Templates
+* Binding-only templates, no loops or algorithmic generation codification in templates
+* Allow for complete discard of all Built-in Tempaltes and mapping with full-barebone usage of the code engine
+  - Templates and Mappings can be loaded from user specified directories at runtime
+  - No loadings of builtin templates and mappings
+* Provide Built-in template + mapping support for most common scenarios for easier out-of-box experience
+* Cross platform C++
+
+Built-in Templates and Native-Type mappings are 
+
+THe built-in templates generate compile time reflection of structs and interface that along with a header-only runtime make possible the following core usage scenarios 
 
 * JSON Data-Serialization/Deserialization
-* Command line Args parsing 
-* Data Storage : MySQL
-* Data Storage : Custom (Pagified) storage of records
+* Command Line Args parsing for CLI Tools with auto help generation
+* Data Storage : MySQL (Broken currently)
+* Data Storage : Records + PageTables (FixedSize, Blobs)
 * Web-Service : C++ based REST HTTP Web-service (JSON) based on IDL interface definition. 
 
-It also supports writing your own custom templates that can be binded with the IDL representation to generate any kind of custom code (not limited to c++). Combined with custom native-types specifications this can be used to generate code in any language with only configuration and templates and without the need for changing the utility. 
-For more details see Custom Templates below
+Along with certain supplemental functionalities
+* Data Recording and replay along with delta-binary patching of objects.
+* 
 
+The built-in functionalities follow the listed design principles: 
+
+* Pay for what you use. So if you want simply JSON Parsing functionality to simply populate your struct members based on inputs json string. That is as lean as it can be, with no hit from other core or supplemental features
+* Dont care about compile-times. 
+* Header only to
+* The templates generate highly reusable compile-time reflection metadata that the header-only runtime uses for providing the requested functionality by integration with the popular corresponding framework (JSON -> nlohmann-json, Web-Service -> cpp-httplib) 
+* One liner integrations for most common scenarios.
+* C++20 . Dont care about older compilers or platforms where C++20 isnt available
+* Cross platform Runtime header generation: Tested for Windows, Linux, RaspberryPi's, Android, with Clang, GCC, MSVC
+* No compiler warnings with Wall, WEverything, Wextra pedantic pedantic-errors etc on either 32 bit or 64 bit platforms.
 
 # Using Built-in templates
 
