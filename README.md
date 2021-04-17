@@ -28,11 +28,12 @@ The code generation tool in its bare-form tries to stick to the follow design pr
   - Template : Code-Template + Type-Mapping
   - View : Generated Code
 * Declarative (Binding-only) templates, no loops or algorithmic generation codification in templates
-* Allow for complete bypass of all Built-in Tempaltes and mapping with full-barebone usage of the code engine
+* Allow for complete bypass of all Built-in layers (Templates and Type-mapping) with full-barebone usage of the core engine
   - Templates and Mappings can be loaded from user specified directories at runtime
   - No loadings of builtin templates and mappings
 * Provide Built-in template + mapping support for most common scenarios for easier out-of-box experience
 * Cross platform C++
+* Easy build system integration. (CMake included)
 
 THe built-in templates generate compile time reflection of structs and interface that along with a header-only runtime make possible the following core usage scenarios 
 
