@@ -10,9 +10,10 @@ The tool in its bare-bones form can take as input:
 
 And generate code (View) thats based on replication and substitution of bindable expression in the templates (data-binding)
 
-# Philosophy and design principles
 
 To allow for a more practical usage a set of built-in templates are provided along with a runtime (C++20 header-only) that relies on code-generated compile time reflection to enable certain practical real-world usages.
+
+# Philosophy and design principles
 
 The code generation tool in its bare-form tries to stick to the follow design principles
 * Language independence to allow for potentially generating other languages
