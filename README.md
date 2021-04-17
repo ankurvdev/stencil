@@ -12,7 +12,7 @@
 
 ![Build status](https://dev.azure.com/ankurverma0037/ankurverma/_apis/build/status/ankurverma85.stencil)
 
-A code generation tool that is inspired by [Model-Template-View](https://en.wikipedia.org/wiki/Model%E2%80%93view%EModel-Template-View%93viewmodel) architectural patterns that involve Data-Binding.
+A code generation tool that is inspired by [Model-Template-View](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93viewmodel) architectural patterns that involve Data-Binding.
 The tool in its bare-bones form can take as input: 
 1. An IDL representation of interfaces and structs (Model)
 2. Native Type and container mappings (Template)
