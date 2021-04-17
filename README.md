@@ -8,7 +8,9 @@ The tool in its bare-bones form can take as input:
 2. Native Type and container mappings (Template)
 3. Templates for binding the Data-Structs and API-Interfaces (Template)
 
-And generate code (View) thats based on replication and substitution of bindable expression in the templates by data-binding
+And generate code (View) thats based on replication and substitution of bindable expression in the templates (data-binding)
+
+# Philosophy and design principles
 
 To allow for a more practical usage a set of built-in templates are provided along with a runtime (C++20 header-only) that relies on code-generated compile time reflection to enable certain practical real-world usages.
 
