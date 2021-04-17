@@ -88,10 +88,24 @@ C++ Code
 int main(int arg, char* argv[])
 {
   // Command line: foo -s "some-string" -l val1,val2, -i 3444
-  std::unique_ptr<Foo> foocliobj = CommandLineArgsReader::Parse<Foo>(argc, argv);
+  
+  // Command Line args parsing
+  std::unique_ptr<Foo> obj = CommandLineArgsReader::Parse<Foo>(argc, argv);
+  // Struct object foocliobj now has the following data
+  assert(obj.s == "some-string")
+  assert(obj.l[0] == "val1")
+  assert(obj.i == 3444)
+  assert(obj.b == false)
+  
+  // Json representation of the data
   // {"s": "some-string", "l": ["val1", "val2"], "i": 3444 }
+  
+  // JSON Serialization
   std::string foojsonstr = Json::Stringify(foo);
+  
+  // JSON Deserialization
   auto foojsonobj = Json::Parse<Foo>(foojsonstr);
+  
   return 0;
 }
 
