@@ -18,10 +18,11 @@ To allow for a more practical usage a set of built-in templates are provided alo
 The code generation tool in its bare-form tries to stick to the follow design principles
 * Language independent codegen, to allow for potentially generating other languages
   - Currently C++ support only (Builtin)
-* Modular parsing of Input Formats into their in-memory representation 
-  - IDL : Support format : Custom [Thrift](https://en.wikipedia.org/wiki/Apache_Thrift)-like IDL 
-  - Templates : Supported formats: C++ code (Intellisense compatible) with HTML-Markup in line-comments and distinct variables naming schema for binding declarations
-  - Type-Mappings : YAML
+* Modular parsing of input formats into their in-memory representation to allow extensible and varied input format for each input category
+  - Currently supported formats and parsers
+    - IDL : Custom [Thrift](https://en.wikipedia.org/wiki/Apache_Thrift)-like IDL 
+    - Templates : C++ code (Intellisense available) with HTML-Markup in line-comments and distinct variables naming schema for binding declarations. XML as the parsing engine
+    - Type-Mappings : YAML
 * Model-Template-View 
   - Model : IDL 
   - Template : Code-Template + Type-Mapping
