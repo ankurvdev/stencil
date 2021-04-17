@@ -1,13 +1,3 @@
-- [Overview](#overview)
-- [Using Built-in Templates](#using-built-in-templates)
-	- [JSON](#json-cli-args-parsing)
-	- [Command Line Args Parsing](#json-cli-args-parsing)
-	- [Data Storage : MySQL](#data-storage)
-	- [JSON Web-Service](#rest-based-web-servicejson)
-- [Writing Custom Templates](#writing-custom-templates)
-	- [Code Templates](#code-templates)
-	- [Native Types](#native-types)
-
 # Overview
 
 ![Build status](https://dev.azure.com/ankurverma0037/ankurverma/_apis/build/status/ankurverma85.stencil)
