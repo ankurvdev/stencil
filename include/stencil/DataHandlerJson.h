@@ -6,7 +6,7 @@
 class JsonDataModel;
 
 #ifdef USE_NLOHMANN_JSON
-#pragma warning(push, 0)
+#pragma warning(push, 3)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
 #pragma GCC diagnostic push

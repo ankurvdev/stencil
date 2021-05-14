@@ -1,10 +1,12 @@
 #pragma once
 #include <EmbeddedResource.h>
 
-#pragma warning(push, 0)
+#pragma warning(push, 3)
 #pragma warning(disable : 4868)
 #pragma warning(disable : 4738)
-
+#pragma warning(disable : 4365)    // signed unsigned mismatch
+#pragma warning(disable : 5219)    // implicit conversion from 'uint64_t' to 'double', possible loss of data
+#pragma warning(disable : 5204)    // class has virtual functions, but its trivial destructor is not virtual
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
 
@@ -12,7 +14,7 @@
 #include <dtl/dtl.hpp>
 
 #pragma clang diagnostic pop
-#pragma warning(pop
+#pragma warning(pop)
 
 #include <filesystem>
 #include <fstream>

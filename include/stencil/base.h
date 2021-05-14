@@ -3,7 +3,6 @@
 #include "Value.h"
 #include "shared_string.h"
 #include "uuidobject.h"
-
 #include <algorithm>
 #include <bitset>
 #include <cassert>
@@ -104,7 +103,7 @@ template <DataType TDataType> struct IDataTypeHandler;
 
 template <> struct IDataTypeHandler<DataType::Unknown>
 {
-    virtual ~IDataTypeHandler<DataType::Unknown>() = default;
+    virtual ~IDataTypeHandler() = default;
 
     virtual shared_string Name() const                                      = 0;
     virtual shared_string Description() const                               = 0;
@@ -134,7 +133,7 @@ template <> struct IDataTypeHandler<DataType::Unknown>
 
 template <> struct IDataTypeHandler<DataType::Value> : public IDataTypeHandler<DataType::Unknown>
 {
-    virtual ~IDataTypeHandler<DataType::Value>() override = default;
+    virtual ~IDataTypeHandler() override = default;
     DataType                                 GetDataType() const override { return DataType::Value; }
     const IDataTypeHandler<DataType::Value>* ValueHandler() const override { return this; }
 
@@ -153,7 +152,7 @@ template <> struct IDataTypeHandler<DataType::Value> : public IDataTypeHandler<D
 
 template <> struct IDataTypeHandler<DataType::List> : public IDataTypeHandler<DataType::Unknown>
 {
-    virtual ~IDataTypeHandler<DataType::List>() override = default;
+    virtual ~IDataTypeHandler() override = default;
     DataType                                GetDataType() const override { return DataType::List; }
     const IDataTypeHandler<DataType::List>* ListHandler() const override { return this; }
 
@@ -182,7 +181,7 @@ template <> struct IDataTypeHandler<DataType::List> : public IDataTypeHandler<Da
 
 template <> struct IDataTypeHandler<DataType::Object> : IDataTypeHandler<DataType::Unknown>
 {
-    virtual ~IDataTypeHandler<DataType::Object>() override = default;
+    virtual ~IDataTypeHandler() override = default;
     DataType                                  GetDataType() const override { return DataType::Object; }
     const IDataTypeHandler<DataType::Object>* ObjectHandler() const override { return this; }
 
@@ -224,7 +223,7 @@ template <> struct IDataTypeHandler<DataType::Object> : IDataTypeHandler<DataTyp
 
 template <> struct IDataTypeHandler<DataType::Enum> : IDataTypeHandler<DataType::Unknown>
 {
-    virtual ~IDataTypeHandler<DataType::Enum>() override = default;
+    virtual ~IDataTypeHandler() override = default;
     DataType                                GetDataType() const override { return DataType::Enum; }
     const IDataTypeHandler<DataType::Enum>* EnumHandler() const override { return this; }
 
@@ -248,7 +247,7 @@ template <> struct IDataTypeHandler<DataType::Enum> : IDataTypeHandler<DataType:
 
 template <> struct IDataTypeHandler<DataType::Union> : IDataTypeHandler<DataType::Unknown>
 {
-    virtual ~IDataTypeHandler<DataType::Union>() override = default;
+    virtual ~IDataTypeHandler() override = default;
     DataType                                 GetDataType() const override { return DataType::Union; }
     const IDataTypeHandler<DataType::Union>* UnionHandler() const override { return this; }
 

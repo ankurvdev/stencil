@@ -1,4 +1,9 @@
 set(CMAKE_CXX_STANDARD 20)
+set(BuildEnvCMAKE_LOCATION "${CMAKE_CURRENT_LIST_DIR}")
+if (UNIX AND NOT ANDROID)
+    set(LINUX 1)
+endif()
+
 
 macro(_FixFlags name)
     cmake_parse_arguments("" "" "" "VALUE;EXCLUDE;APPEND" ${ARGN})
@@ -33,10 +38,6 @@ macro(EnableStrictCompilation)
     find_package(Threads)
     file(TIMESTAMP ${CMAKE_CURRENT_LIST_FILE} filetime)
 
-    if (STRICT_COMPILATION_MODE AND STRICT_COMPILATION_MODE STREQUAL ${filetime})
-        return()
-    endif()
-
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
         set(extraflags
             -Wall   # Enable all errors
@@ -44,6 +45,7 @@ macro(EnableStrictCompilation)
             /permissive- # strict compilation
             /bigobj
             /guard:cf
+            /Zc:__cplusplus
             #suppression list
             /wd4068  # unknown pragma
             /wd4514  # unreferenced inline function has been removed
@@ -121,7 +123,7 @@ endmacro()
 macro (SupressWarningForFile f)
     message(STATUS "Suppressing Warnings for ${f}")
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-        set_source_files_properties("${f}" PROPERTIES COMPILE_FLAGS "-WX-")
+        set_source_files_properties("${f}" PROPERTIES COMPILE_FLAGS "/W3")
     elseif((${CMAKE_CXX_COMPILER_ID} STREQUAL Clang) OR (${CMAKE_CXX_COMPILER_ID} STREQUAL GNU))
         set_source_files_properties("${f}" PROPERTIES COMPILE_FLAGS "-Wno-error -w")
     else()
@@ -133,10 +135,22 @@ endmacro()
 macro (SupressWarningForTarget targetName)
     message(STATUS "Suppressing Warnings for ${targetName}")
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-        target_compile_options(${targetName} PRIVATE "-WX-")
+        target_compile_options(${targetName} PRIVATE "/W3")
     elseif((${CMAKE_CXX_COMPILER_ID} STREQUAL Clang) OR (${CMAKE_CXX_COMPILER_ID} STREQUAL GNU))
         target_compile_options(${targetName} PRIVATE -Wno-error -w)
     else()
         message(FATAL_ERROR "Unknown compiler : ${CMAKE_CXX_COMPILER_ID}")
     endif()
 endmacro()
+
+function(init_submodule path)
+    if (EXISTS  "${path}/.git")
+        return()
+    endif()
+    find_package(Git QUIET REQUIRED)
+    execute_process(
+        COMMAND "${GIT_EXECUTABLE}" submodule update --init --recursive --single-branch "${path}"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        COMMAND_ERROR_IS_FATAL ANY
+    )
+endfunction()

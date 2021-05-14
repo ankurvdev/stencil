@@ -1,12 +1,19 @@
 #include "DataHandlerJson.h"
 
-#pragma warning(push, 0)
-#pragma warning(disable : 4365)
+#pragma warning(push, 3)
+#pragma warning(disable : 4365)    // conversion from 'const char' to 'unsigned char', signed/unsigned mismatch
+#pragma warning(disable : 4355)    //'this' : used in base member initializer list
+#pragma warning(disable : 4855)    // implicit capture of 'this' via '[=]' is deprecated
+#pragma warning(disable : 4548)    // expression before comma has no effect; expected expression with side - effect
+#pragma warning(disable : 4702)    // Unreachable code
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
+#pragma GCC diagnostics push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #include <limits.h>
 
 #include <httplib.h>
+#pragma GCC diagnostic pop
 #pragma clang diagnostic pop
 #pragma warning(pop)
 

@@ -3,7 +3,7 @@
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
-#pragma warning(push, 0)
+#pragma warning(push, 3)
 #include <cxxopts.hpp>
 #pragma warning(pop)
 #pragma clang diagnostic pop

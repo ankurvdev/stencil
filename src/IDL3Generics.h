@@ -237,16 +237,16 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
         auto                GetId() const { return Str::Create(std::to_wstring(_id)); }
         Binding::IBindable& GetFieldTypeBindable() const { return *_fieldType; }
 
-        Binding::IBindable& GetReturnTypeBindable() const
+        Binding::Expression const& GetReturnTypeBindable() const
         {
             ACTION_CONTEXT([&]() { return L"Mutator ReturnType: " + _returnType->Stringify(); });
-            return *_owner->GetFieldTypeName(Binding::BindingContext::EvaluateExpression(*_returnType)->String());
+            return *_returnType;
         }
 
-        Binding::IBindable& GetArgTypeBindable() const
+        Binding::Expression const& GetArgTypeBindable() const
         {
             ACTION_CONTEXT([&]() { return L"Mutator ArgType: " + _argType->Stringify(); });
-            return *_owner->GetFieldTypeName(Binding::BindingContext::EvaluateExpression(*_argType)->String());
+            return *_argType;
         }
         uint8_t                                    _id;
         std::shared_ptr<const Binding::Expression> _argType;
@@ -290,16 +290,16 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
 
         Binding::IBindable& GetFieldTypeBindable() const { return *_fieldType; }
 
-        Binding::IBindable& GetReturnTypeBindable() const
+        Binding::Expression const& GetReturnTypeBindable() const
         {
             ACTION_CONTEXT([&]() { return L"Mutator ReturnType: " + _returnType->Stringify(); });
-            return *_owner->GetFieldTypeName(Binding::BindingContext::EvaluateExpression(*_returnType)->String());
+            return *_returnType;
         }
 
-        Binding::IBindable& GetArgTypeBindable() const
+        Binding::Expression const& GetArgTypeBindable() const
         {
             ACTION_CONTEXT([&]() { return L"Mutator ArgType: " + _argType->Stringify(); });
-            return *_owner->GetFieldTypeName(Binding::BindingContext::EvaluateExpression(*_argType)->String());
+            return *_argType;
         }
 
         uint8_t                                    _id;
