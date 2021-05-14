@@ -233,19 +233,39 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
                                                                   const ContainerFieldTypeMap&         typemap)
     {
         return expr->Evaluate([&](const Binding::BindingExpr& expr1) {
-            assert(expr1.binding.size() == 1);
             auto  rslt = std::make_shared<Binding::Expression>();
             auto& val  = typemap.at(expr1.binding[0]);
             ACTION_CONTEXT([&]() { return L"Evaluating Expression :" + rslt->Stringify() + L" On Value: " + val->Stringify(); });
             if (val->GetType() == Binding::Type::String)
             {
+                assert(expr1.binding.size() == 1);
                 rslt->AddString(Str::Copy(val->GetString()));
             }
             else
             {
-                Binding::BindingContext context{};
-                rslt->AddString(
-                    Str::Copy(val->GetBindable().TryLookupOrNull(context, L"Name")->GetString()));    // TODO IFieldType::GetFieldName
+                if (expr1.binding.size() == 1)
+                {
+                    Binding::BindingContext context{};
+                    rslt->AddString(
+                        Str::Copy(val->GetBindable().TryLookupOrNull(context, L"Name")->GetString()));    // TODO IFieldType::GetFieldName
+                }
+                else
+                {
+                    Binding::BindingContext          context{};
+                    std::shared_ptr<Binding::IValue> recrval = val;
+                    for (size_t i = 1; i < expr1.binding.size(); i++)
+                    {
+                        recrval = recrval->GetBindable().TryLookupOrNull(context, expr1.binding[i]);
+                    }
+                    if (val->GetType() == Binding::Type::String)
+                    {
+                        rslt->AddString(Str::Copy(recrval->GetString()));    // TODO IFieldType::GetFieldName
+                    }
+                    else
+                    {
+                        return Binding::Expression::Clone(recrval->GetExpr());
+                    }
+                }
             }
             return rslt;
         });

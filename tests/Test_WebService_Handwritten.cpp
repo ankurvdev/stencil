@@ -218,7 +218,7 @@ template <> struct WebServiceHandlerTraits<TestInterface>
 {
     static constexpr const std::string_view Url() { return std::string_view("TestInterface"); }
 };
-#pragma warning(push, 0)
+#pragma warning(push, 3)
 #include <httplib.h>
 #pragma warning(pop)
 

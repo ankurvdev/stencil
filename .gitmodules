@@ -1,0 +1,21 @@
+[submodule "external/tinyxml2"]
+	path = external/tinyxml2
+	url = https://github.com/leethomason/tinyxml2
+[submodule "external/cpp-httplib"]
+	path = external/cpp-httplib
+	url = https://github.com/yhirose/cpp-httplib
+[submodule "external/json"]
+	path = external/json
+	url = https://github.com/nlohmann/json
+[submodule "external/cxxopts"]
+	path = external/cxxopts
+	url = https://github.com/jarro2783/cxxopts
+[submodule "external/Catch2"]
+	path = external/Catch2
+	url = https://github.com/catchorg/Catch2
+[submodule "external/dtl"]
+	path = external/dtl
+	url = https://github.com/cubicdaiya/dtl
+[submodule "external/toml11"]
+	path = external/toml11
+	url = https://github.com/ToruNiina/toml11

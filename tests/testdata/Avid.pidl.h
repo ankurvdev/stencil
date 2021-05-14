@@ -530,7 +530,7 @@ struct Data :
         _hexaddr = std::move(val);
     }
 
-    char at_hexaddr(size_t const& args) const
+    char at_hexaddr(size_t&& args)
     {
         return Stencil::Accessors<std::array<char, 7>>::at(_hexaddr, args);
     }
@@ -551,7 +551,7 @@ struct Data :
         _flight = std::move(val);
     }
 
-    char at_flight(size_t const& args) const
+    char at_flight(size_t&& args)
     {
         return Stencil::Accessors<std::array<char, 9>>::at(_flight, args);
     }
@@ -843,7 +843,7 @@ struct Data :
     {
         return Stencil::Mutators<std::vector<::Avid::Aircraft::Data>>::remove(_aircrafts, std::move(args));
     }
-    ::Avid::Aircraft::Data at_aircrafts(size_t const& args) const
+    ::Avid::Aircraft::Data at_aircrafts(size_t&& args)
     {
         return Stencil::Accessors<std::vector<::Avid::Aircraft::Data>>::at(_aircrafts, args);
     }
@@ -2429,14 +2429,14 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
         _ptr->set_hexaddr(std::move(val));
     }
 
-    char at_hexaddr(size_t const& args) const { return _ptr->at_hexaddr(args); }
+    char at_hexaddr(size_t&& args) const { return _ptr->at_hexaddr(args); }
     void set_flight(std::array<char, 9>&& val)
     {
         Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::flight, _ptr->flight(), val);
         _ptr->set_flight(std::move(val));
     }
 
-    char at_flight(size_t const& args) const { return _ptr->at_flight(args); }
+    char at_flight(size_t&& args) const { return _ptr->at_flight(args); }
     void set_altitude(int32_t&& val)
     {
         Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::altitude, _ptr->altitude(), val);
@@ -2632,7 +2632,7 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
 
         return _ptr->remove_aircrafts(std::move(args));
     }
-    ::Avid::Aircraft::Data at_aircrafts(size_t const& args) const { return _ptr->at_aircrafts(args); }
+    ::Avid::Aircraft::Data at_aircrafts(size_t&& args) const { return _ptr->at_aircrafts(args); }
 };
 
 template <> struct ReflectionBase::TypeTraits<Avid::Motion::Data&>

@@ -33,11 +33,11 @@ jobs:
 - job: VCPKG_Workflow
   strategy:
     matrix:
-      x86_windows:
-        Triplet: x86-windows
+      x86_windows_static:
+        Triplet: x86-windows-static
         VMImage: 'windows-2019'
-      x64_windows:
-        Triplet: x64-windows
+      x64_windows_static_md:
+        Triplet: x64-windows-static-md
         VMImage: 'windows-2019'
       x64_linux:
         Triplet: x64-linux

@@ -127,14 +127,14 @@ struct Data :
     }
 
     //<FieldType_Mutator>
-    zzReturnType_NativeTypezz zzNamezz_zzField_Namezz(zzArg_NativeTypezz&& args)
+    zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz&& args)
     {
         return Stencil::Mutators<zzField_FieldType_NativeTypezz>::zzNamezz(_zzField_Namezz, std::move(args));
     }
     //</FieldType_Mutator>
 
     //<FieldType_Accessor>
-    zzReturnType_NativeTypezz zzNamezz_zzField_Namezz(zzArg_NativeTypezz const& args) const
+    zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz&& args)
     {
         return Stencil::Accessors<zzField_FieldType_NativeTypezz>::zzNamezz(_zzField_Namezz, args);
     }
@@ -496,7 +496,7 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     }
 
     //<FieldType_Mutator>
-    zzReturnType_NativeTypezz zzNamezz_zzField_Namezz(zzArg_NativeTypezz&& args)
+    zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz&& args)
     {
         Stencil::ObservablePropsT<TData>::OnMutationRequested(
             *this, TData::FieldIndex::zzField_Namezz, uint8_t{zzIdzz}, _ptr->zzField_Namezz(), args);
@@ -506,7 +506,7 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
     //</FieldType_Mutator>
 
     //<FieldType_Accessor>
-    zzReturnType_NativeTypezz zzNamezz_zzField_Namezz(zzArg_NativeTypezz const& args) const { return _ptr->zzNamezz_zzField_Namezz(args); }
+    zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz&& args) const { return _ptr->zzNamezz_zzField_Namezz(args); }
     //</FieldType_Accessor>
     //</Field>
 };

@@ -7,11 +7,14 @@
 #include <filesystem>
 #include <fstream>
 #include <map>
+#include <memory>
+#include <mutex>
 #include <shared_mutex>
 #include <span>
 #include <string>
 #include <unordered_map>
 #include <vector>
+
 #define TODO_OBJREF 0
 
 namespace Database2

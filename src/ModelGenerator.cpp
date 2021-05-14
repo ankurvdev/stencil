@@ -3,11 +3,11 @@
 #include "IDL2.h"
 #include "TemplateFragment.h"
 
-#pragma warning(push, 0)
+#pragma warning(push, 3)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
-#include "yaml-cpp/yaml.h"
 #include <tinyxml2.h>
+#include <toml.hpp>
 #pragma clang diagnostic pop
 #pragma warning(pop)
 
@@ -110,6 +110,7 @@ void Generator::FieldTypeDecl::Merge(FieldTypeDecl&& decl)
     }
 }
 
+#if defined USING_YAML_CPP
 namespace YAML
 {
 template <> struct convert<std::wstring>
@@ -240,7 +241,6 @@ template <> struct convert<Generator::ContainerTypeDecl>
 
 }    // namespace YAML
 
-#if 0
 static void debug(YAML::Node const& node)
 {
     std::stringstream ss;
@@ -259,60 +259,177 @@ static void debug(YAML::Node const& node)
 }
 #endif
 
+static Generator::MutatorAccessorDefinition ParseMutatorAccessorDefinitionFromTomlNode(toml::value const& node, std::wstring&& key)
+{
+    auto& valtbl = (node.as_table());
+
+    Generator::MutatorAccessorDefinition val;
+    val.name = std::move(key);
+    val.id   = static_cast<uint8_t>(valtbl.at("Id").as_integer());
+    val.returnType
+        = Binding::Expression::Create(Str::Convert(valtbl.at("ReturnType").as_string().str), Str::Create(L"%"), Str::Create(L"%"), L':');
+    auto args = valtbl.at("Args");
+
+    if (args.is_string())
+    {
+        auto str = Str::Convert(args.as_string().str);
+        val.args = {Binding::Expression::Create(str, Str::Create(L"%"), Str::Create(L"%"), L':')};
+    }
+    else
+    {
+        for (auto const& sub : args.as_array())
+        {
+            val.args.push_back(Binding::Expression::Create(Str::Convert(sub.as_string().str), Str::Create(L"%"), Str::Create(L"%"), L':'));
+        }
+    }
+    return val;
+}
+
+static std::vector<Generator::MutatorAccessorDefinition> ParseMutatorAccessorDefinitionArrFromTomlNode(toml::value const& node)
+{
+    std::vector<Generator::MutatorAccessorDefinition> valarr;
+    for (auto [key, value] : node.as_table())
+    {
+        valarr.push_back(ParseMutatorAccessorDefinitionFromTomlNode(value, Str::Convert(key)));
+    }
+
+    return valarr;
+}
+
+static Generator::ContainerTypeDecl ContainerTypeDeclFromTomlNode(toml::value const& node)
+{
+    Generator::ContainerTypeDecl val;
+    if (node.is_string())
+    {
+        val.baseField = Str::Convert(node.as_string().str);
+        return val;
+    }
+    for (auto [key, value] : node.as_table())
+    {
+        auto propname = Str::Convert(key);
+        if (propname == L"Mutators")
+        {
+            val.mutators = ParseMutatorAccessorDefinitionArrFromTomlNode(value);
+        }
+        else if (propname == L"Accessors")
+        {
+            val.accessors = ParseMutatorAccessorDefinitionArrFromTomlNode(value);
+        }
+        else if (propname == L"Inherits")
+        {
+            val.baseField = Str::Convert(value.as_string().str);
+        }
+        else if (propname == L"Params")
+        {
+            for (auto const& sub : (value.as_array()))
+            {
+                val.args.push_back(Str::Convert(sub.as_string().str));
+            }
+        }
+        else
+        {
+            auto annotationMap
+                = val.annotationMap == nullptr ? (val.annotationMap = std::make_shared<Binding::AttributeMap>()) : val.annotationMap;
+            auto propval = Str::Convert(value.as_string().str);
+            auto expr    = Binding::Expression::Create(propval, Str::Create(L"%"), Str::Create(L"%"), L':');
+            (*annotationMap).AddEntry(propname, std::move(expr));
+        }
+    }
+    return val;
+}
+
+static Generator::FieldTypeDecl FieldTypeDeclFromTomlNode(toml::value const& node)
+{
+    Generator::FieldTypeDecl val;
+
+    if (node.is_string())
+    {
+        val.baseField = Str::Convert(node.as_string().str);
+        return val;
+    }
+    for (auto [key, value] : node.as_table())
+    {
+        auto propname = Str::Convert(key);
+        if (propname == L"Mutators")
+        {
+            val.mutators = ParseMutatorAccessorDefinitionArrFromTomlNode(value);
+        }
+        else if (propname == L"Accessors")
+        {
+            val.accessors = ParseMutatorAccessorDefinitionArrFromTomlNode(value);
+        }
+        else if (propname == L"Inherits")
+        {
+            val.baseField = Str::Convert(value.as_string().str);
+        }
+        else
+        {
+            auto annotationMap
+                = val.annotationMap == nullptr ? (val.annotationMap = std::make_shared<Binding::AttributeMap>()) : val.annotationMap;
+            auto propval = Str::Convert(value.as_string().str);
+            auto expr    = Binding::Expression::Create(propval, Str::Create(L"%"), Str::Create(L"%"), L':');
+            (*annotationMap).AddEntry(propname, std::move(expr));
+        }
+    }
+    return val;
+}
+
 void Generator::_AddTypeDefinitions(std::string_view const& /*name*/, std::string_view const& text)
 {
-    YAML::Node config = YAML::Load(std::string(text));
-    for (auto it = config.begin(); it != config.end(); it++)
+    std::string       tomltext(text);
+    std::stringstream tomlstrm(tomltext);
+
+    auto config = toml::parse(tomlstrm);
+    for (auto [propname, node] : config.as_table())
     {
-        auto propname = it->first.as<std::string>();
         if (propname == "FieldTypes")
         {
-            for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+            for (auto [key, node1] : node.as_table())
             {
-                auto fieldTypeDecl = it1->second.as<FieldTypeDecl>();
-                fieldTypeDecl.name = it1->first.as<std::wstring>();
+                auto fieldTypeDecl = FieldTypeDeclFromTomlNode(node1);
+                fieldTypeDecl.name = Str::Convert(key);
                 _FindOrInsertFieldTypeDecl(fieldTypeDecl.name).Merge(std::move(fieldTypeDecl));
             }
         }
         else if (propname == "Struct")
         {
-            _structDefault.Merge(it->second.as<FieldTypeDecl>());
+            _structDefault.Merge(FieldTypeDeclFromTomlNode(node));
         }
 
         else if (propname == "Union")
         {
-            _unionDefault.Merge(it->second.as<FieldTypeDecl>());
+            _unionDefault.Merge(FieldTypeDeclFromTomlNode(node));
         }
 
         else if (propname == "Interface")
         {
-            _interfaceDefault.Merge(it->second.as<FieldTypeDecl>());
+            _interfaceDefault.Merge(FieldTypeDeclFromTomlNode(node));
         }
         else if (propname == "FunctionArgs")
         {
-            _fnargsDefault.Merge(it->second.as<FieldTypeDecl>());
+            _fnargsDefault.Merge(FieldTypeDeclFromTomlNode(node));
         }
         else if (propname == "Typedef")
         {
-            _typedefDefault.Merge(it->second.as<FieldTypeDecl>());
+            _typedefDefault.Merge(FieldTypeDeclFromTomlNode(node));
         }
         else if (propname == "Containers")
         {
-            for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+            for (auto [key, node1] : node.as_table())
             {
-                auto typedecl = it1->second.as<ContainerTypeDecl>();
-                typedecl.name = it1->first.as<std::wstring>();
+                auto typedecl = ContainerTypeDeclFromTomlNode(node1);
+                typedecl.name = Str::Convert(key);
                 _FindOrInsertContainerDecls(typedecl.name).Merge(std::move(typedecl));
             }
         }
         else if (propname == "Relationships")
         {
-            for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+            for (auto [key, node1] : node.as_table())
             {
-                auto& objmap = _relationshipDefs[it1->first.as<StrType>()];
-                for (auto it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+                auto& objmap = _relationshipDefs[Str::Convert(key)];
+                for (auto const& [key1, node2] : node1.as_table())
                 {
-                    objmap[it2->first.as<StrType>()] = it2->second.as<StrType>();
+                    objmap[Str::Convert(key1)] = Str::Convert(node2.as_string().str);
                 }
             }
         }
@@ -324,9 +441,9 @@ void Generator::_AddTypeDefinitions(std::string_view const& /*name*/, std::strin
 }
 
 static void CreateTemplateFromNode(tree<TemplateFragment>&          tmpl,
-                            tree<TemplateFragment>::iterator parent,
-                            std::string_view const&          name,
-                            XMLNode const&                   xml)
+                                   tree<TemplateFragment>::iterator parent,
+                                   std::string_view const&          name,
+                                   XMLNode const&                   xml)
 {
     auto textNode = xml.ToText();
     auto elemNode = xml.ToElement();
@@ -369,11 +486,11 @@ template <typename TMap, typename TKey> auto FindInMapOrDefault(TMap const& map,
 }
 
 static void ExpandTemplate(tree<Str::Type>&                 codetree,
-                    tree<Str::Type>::iterator        root,
-                    tree<TemplateFragment> const&    tmpl,
-                    tree<TemplateFragment>::iterator tmplrootit,
-                    Binding::BindingContext&         context,
-                    Binding::IBindable&              data)
+                           tree<Str::Type>::iterator        root,
+                           tree<TemplateFragment> const&    tmpl,
+                           tree<TemplateFragment>::iterator tmplrootit,
+                           Binding::BindingContext&         context,
+                           Binding::IBindable&              data)
 {
 
     auto it = codetree.addchild(root, [&]() {
@@ -564,6 +681,40 @@ void Generator::_AddContent(std::string_view const& name, std::string_view const
     }
 }
 
+void Generator::_RegisterFieldDefForProgram(Generator::FieldTypeDecl& v)
+{
+    if (!v.baseField.empty())
+    {
+        _RegisterFieldDefForProgram(_fieldTypeDecls[_fieldTypeDeclMap[v.baseField]]);
+    }
+
+    if (_program->TryGetFieldTypeName(v.name).has_value())
+    {
+        return;
+    }
+
+    auto fieldtype = _program->CreateFieldTypeObject<IDL::NativeFieldType>(
+        std::move(v.name), _program->TryGetFieldTypeName(v.baseField), v.annotationMap);
+    for (auto& m : v.mutators)
+    {
+        if (m.args.size() > 1)
+        {
+            throw std::logic_error("Multiple args not yet supported");
+        }
+
+        fieldtype->CreateMutator(std::move(m.name), m.id, m.returnType, m.args[0]);
+    }
+    for (auto& m : v.accessors)
+    {
+        if (m.args.size() > 1)
+        {
+            throw std::logic_error("Multiple args not yet supported");
+        }
+
+        fieldtype->CreateAccessor(std::move(m.name), m.id, m.returnType, m.args[0]);
+    }
+};
+
 void Generator::FinalizeTypeDefinitions()
 {
     if (_finalized)
@@ -609,26 +760,7 @@ void Generator::FinalizeTypeDefinitions()
 
     for (auto& v : _fieldTypeDecls)
     {
-        auto fieldtype = _program->CreateFieldTypeObject<IDL::NativeFieldType>(
-            std::move(v.name), _program->TryGetFieldTypeName(v.baseField), v.annotationMap);
-        for (auto& m : v.mutators)
-        {
-            if (m.args.size() > 1)
-            {
-                throw std::logic_error("Multiple args not yet supported");
-            }
-
-            fieldtype->CreateMutator(std::move(m.name), m.id, m.returnType, m.args[0]);
-        }
-        for (auto& m : v.accessors)
-        {
-            if (m.args.size() > 1)
-            {
-                throw std::logic_error("Multiple args not yet supported");
-            }
-
-            fieldtype->CreateAccessor(std::move(m.name), m.id, m.returnType, m.args[0]);
-        }
+        _RegisterFieldDefForProgram(v);
     }
 
     for (auto& v : _containerDecls)
