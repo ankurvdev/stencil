@@ -641,27 +641,29 @@ struct BindingContext
 
     std::shared_ptr<Expression> _EvaluateExpression(Expression const& expr)
     {
-        auto result = expr.Evaluate([this](BindingExpr const& expr1) -> std::shared_ptr<Expression> {
-            auto value = _TryEvaluateBindingExprOrNull(expr1);
-            if (value == nullptr)
+        auto result = expr.Evaluate(
+            [this](BindingExpr const& expr1) -> std::shared_ptr<Expression>
             {
+                auto value = _TryEvaluateBindingExprOrNull(expr1);
+                if (value == nullptr)
+                {
+                    return {};
+                }
+                switch (value->GetType())
+                {
+                case Type::String:
+                {
+                    auto newexpr = std::make_shared<Expression>();
+                    newexpr->AddString(Str::Copy(value->GetString()));
+                    return newexpr;
+                }
+                case Type::Expr: return Expression::Clone(value->GetExpr());
+                case Type::Object:
+                case Type::Array: throw std::logic_error("Expected either string or another expression");
+                default: break;
+                }
                 return {};
-            }
-            switch (value->GetType())
-            {
-            case Type::String:
-            {
-                auto newexpr = std::make_shared<Expression>();
-                newexpr->AddString(Str::Copy(value->GetString()));
-                return newexpr;
-            }
-            case Type::Expr: return Expression::Clone(value->GetExpr());
-            case Type::Object:
-            case Type::Array: throw std::logic_error("Expected either string or another expression");
-            default: break;
-            }
-            return {};
-        });
+            });
         return result;
     }
 
