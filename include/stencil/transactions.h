@@ -1,4 +1,5 @@
 #pragma once
+#include "optionalprops.h"
 #include "serdes.h"
 #include "visitor.h"
 
@@ -99,11 +100,11 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
     TransactionT(TObj& obj, TransactionRecorder& rec) : _ref(std::ref(obj)), _recorder(rec) {}
     ~TransactionT()
     {
-        if (_fieldtracker.any())
+        if (_settracker.any())
         {
-            for (size_t i = 0; i < _fieldtracker.size(); i++)
+            for (size_t i = 0; i < _settracker.size(); i++)
             {
-                if (!_fieldtracker.test(i)) continue;
+                if (!_settracker.test(i)) continue;
                 Visitor<TObj> visitor(_ref);
                 visitor.Select(Value{i - 1});
                 _recorder << static_cast<uint8_t>(i);
@@ -121,16 +122,32 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
 
     TObj& Obj() { return _ref; }
 
-    template <typename TEnum> bool IsFieldChanged(TEnum field) const { return _fieldtracker.test(static_cast<uint8_t>(field)); }
-    size_t                         CountFieldsChanged() const { return _fieldtracker.count(); }
-
-    template <typename TEnum, typename TVal> void OnStructFieldChangeRequested(TEnum field, TVal const& /*curval*/, TVal const& /*newval*/)
+    template <typename TEnum> bool IsFieldChanged(TEnum field) const
     {
-        _fieldtracker.set(static_cast<uint8_t>(field));
+        return _settracker.test(static_cast<uint8_t>(field)) || _edittracker.test(static_cast<uint8_t>(field));
+    }
+
+    size_t CountFieldsChanged() const { return (_settracker | _edittracker).count(); }
+
+    template <typename TEnum, typename TVal> void OnStructFieldChangeRequested(TEnum field, TVal const& curval, TVal const& newval)
+    {
+        if constexpr (std::is_base_of_v<Stencil::OptionalPropsT<TObj>, TObj>)
+        {
+            if (!Obj().IsValid(field))
+            {
+                _settracker.set(static_cast<uint8_t>(field));
+                return;
+            }
+        }
+        if (!ReflectionBase::AreEqual(curval, newval))
+        {
+            _settracker.set(static_cast<uint8_t>(field));
+        }
     }
 
     template <typename TEnum, typename TFieldType, typename TVal> void OnMutation_add(TEnum field, TFieldType const& obj, TVal const& val)
     {
+        _edittracker.set(static_cast<uint8_t>(field));
         _recorder << static_cast<uint8_t>(field);
         _recorder << uint8_t{1};    // edit
         _recorder << uint8_t{1};    // mutation add
@@ -145,6 +162,8 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
     template <typename TEnum, typename TFieldType, typename TVal>
     void OnMutation_remove(TEnum field, TFieldType const& /*obj*/, TVal const& val)
     {
+        _edittracker.set(static_cast<uint8_t>(field));
+
         _recorder << static_cast<uint8_t>(field);
         _recorder << uint8_t{1};    // edit
         _recorder << uint8_t{2};    // mutation remove
@@ -154,6 +173,8 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
     template <typename TEnum, typename TFieldType, typename TVal>
     void OnMutation_edit(TEnum field, TFieldType const& /*obj*/, TVal const& index)
     {
+        _edittracker.set(static_cast<uint8_t>(field));
+
         _recorder << static_cast<uint8_t>(field);
         _recorder << uint8_t{1};    // edit
         _recorder << uint8_t{3};    // mutation edit
@@ -162,7 +183,8 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
 
     std::reference_wrapper<TObj>        _ref;
     TransactionRecorder&                _recorder;
-    std::bitset<TObj::FieldCount() + 1> _fieldtracker;
+    std::bitset<TObj::FieldCount() + 1> _settracker;
+    std::bitset<TObj::FieldCount() + 1> _edittracker;
 };
 
 template <typename TObj>
