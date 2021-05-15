@@ -131,7 +131,6 @@ macro (SupressWarningForFile f)
     endif()
 endmacro()
 
-
 macro (SupressWarningForTarget targetName)
     message(STATUS "Suppressing Warnings for ${targetName}")
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")

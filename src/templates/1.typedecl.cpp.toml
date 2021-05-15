@@ -138,10 +138,6 @@ NativeType = "std::unordered_map<%key:NativeType%, %value:NativeType%>"
 Params = [ "object" ]
 NativeType = "::Stencil::OptionalPropsT<%object:NativeType%>"
 
-[Containers.observableprops]
-Params = [ "object" ]
-NativeType = "::Stencil::ObservablePropsT<%object:NativeType%>"
-
 [Containers.timestamped]
 Params = [ "object" ]
 NativeType = "::Stencil::TimestampedT<%object:NativeType%>"

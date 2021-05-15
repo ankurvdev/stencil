@@ -14,6 +14,7 @@ template <typename T> struct Mutators<std::vector<T>>
     {
         arr.push_back(std::move(obj));
     }
+
     template <typename TTransaction> static void remove(TTransaction const& /*transaction*/, std::vector<T>& arr, size_t index)
     {
         arr.erase(arr.begin() + static_cast<typename std::vector<T>::difference_type>(index));
@@ -72,10 +73,12 @@ template <typename T, size_t N> struct Mutators<std::array<T, N>>
     {
         throw std::logic_error("Invalid");
     }
+
     template <typename TTransaction> static void remove(TTransaction const& /*transaction*/, TData& /*arr*/, size_t /*index*/)
     {
         throw std::logic_error("Invalid");
     }
+
     template <typename TTransaction> static void edit(TTransaction const& /*transaction*/, TData& /*arr*/, size_t /*index*/)
     {
         throw std::logic_error("Invalid");

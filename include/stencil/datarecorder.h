@@ -1,5 +1,4 @@
 #pragma once
-#include "observableprops.h"
 #include "visitor.h"
 
 #include <chrono>
