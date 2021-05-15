@@ -100,9 +100,10 @@ template <typename T> struct UuidBasedId
     }
     constexpr UuidBasedId(UuidStr str) : _guid(str) {}
 
-    private:
     UuidBasedId(Uuid guid) : _guid(guid) {}
     constexpr UuidBasedId() {}
+
+    private:
     Uuid _guid;
 
     operator const Uuid&() const { return _guid; }

@@ -1,5 +1,6 @@
 #pragma once
 #include "base.h"
+#include "deltatracker.h"
 #include "mutatorsaccessors.h"
 #include "observableprops.h"
 #include "optionalprops.h"

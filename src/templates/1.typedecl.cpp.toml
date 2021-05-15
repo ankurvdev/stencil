@@ -116,6 +116,11 @@ ReturnType = "void"
 Args = "size_t"
 Id = 2
 
+[Containers.list.Mutators.edit]
+ReturnType = "Stencil::Transaction<%type:NativeType%>"
+Args = "size_t"
+Id = 3
+
 [Containers.tree]
 Inherit = "list"
 Params = [ "type" ]
