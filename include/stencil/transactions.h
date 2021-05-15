@@ -1,3 +1,14 @@
+#pragma once
+#include "serdes.h"
+#include "visitor.h"
+
+#include <algorithm>
+#include <array>
+#include <bitset>
+#include <chrono>
+#include <filesystem>
+#include <fstream>
+#include <span>
 
 namespace Stencil
 {
@@ -71,6 +82,12 @@ template <typename TObj> struct FileTransactionRecorder : TransactionRecorder
     std::chrono::system_clock::time_point _lastnotif = _init_time;
 };
 
+template <typename TObj = void> struct NullTransactionRecorder : TransactionRecorder
+{
+    NullTransactionRecorder() = default;
+    virtual void Write_(std::span<uint8_t const> /*buffer*/) override {}
+};
+
 template <typename TObj, typename _Ts = void> struct TransactionT
 {
     TransactionT(TObj& /*obj*/, TransactionRecorder& /*rec*/) {}
@@ -90,6 +107,7 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
                 Visitor<TObj> visitor(_ref);
                 visitor.Select(Value{i - 1});
                 _recorder << static_cast<uint8_t>(i);
+                _recorder << uint8_t{0};    // set
                 Writer writer;
                 BinarySerDes::Serialize(visitor, writer);
                 _recorder << writer.Reset();
@@ -103,23 +121,69 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
 
     TObj& Obj() { return _ref; }
 
+    template <typename TEnum> bool IsFieldChanged(TEnum field) const { return _fieldtracker.test(static_cast<uint8_t>(field)); }
+    size_t                         CountFieldsChanged() const { return _fieldtracker.count(); }
+
     template <typename TEnum, typename TVal> void OnStructFieldChangeRequested(TEnum field, TVal const& /*curval*/, TVal const& /*newval*/)
     {
         _fieldtracker.set(static_cast<uint8_t>(field));
     }
 
-    template <typename TEnum, typename TVal> void OnListMutation_add(TEnum /*field*/, TVal const& /*val*/) { TODO(); }
-    template <typename TEnum, typename TVal> void OnListMutation_remove(TEnum /*field*/, TVal const& /*val*/) { TODO(); }
-
-    template <typename TEnum, typename TNestedType> Stencil::Transaction<TNestedType> CreateNestedTransaction(TEnum field, TNestedType& obj)
+    template <typename TEnum, typename TFieldType, typename TVal> void OnMutation_add(TEnum field, TFieldType const& obj, TVal const& val)
     {
         _recorder << static_cast<uint8_t>(field);
-        return Stencil::Transaction<TNestedType>(obj, _recorder);
+        _recorder << uint8_t{1};    // edit
+        _recorder << uint8_t{1};    // mutation add
+        _recorder << static_cast<uint32_t>(obj.size());
+
+        Writer              writer;
+        Visitor<TVal const> visitor(val);
+        BinarySerDes::Serialize(visitor, writer);
+        _recorder << writer.Reset();
+    }
+
+    template <typename TEnum, typename TFieldType, typename TVal>
+    void OnMutation_remove(TEnum field, TFieldType const& /*obj*/, TVal const& val)
+    {
+        _recorder << static_cast<uint8_t>(field);
+        _recorder << uint8_t{1};    // edit
+        _recorder << uint8_t{2};    // mutation remove
+        _recorder << static_cast<uint32_t>(val);
+    }
+
+    template <typename TEnum, typename TFieldType, typename TVal>
+    void OnMutation_edit(TEnum field, TFieldType const& /*obj*/, TVal const& index)
+    {
+        _recorder << static_cast<uint8_t>(field);
+        _recorder << uint8_t{1};    // edit
+        _recorder << uint8_t{3};    // mutation edit
+        _recorder << static_cast<uint32_t>(index);
     }
 
     std::reference_wrapper<TObj>        _ref;
     TransactionRecorder&                _recorder;
     std::bitset<TObj::FieldCount() + 1> _fieldtracker;
+};
+
+template <typename TObj>
+struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::List>>
+{
+    TransactionT(TObj& obj, TransactionRecorder& rec) : _ref(std::ref(obj)), _recorder(rec) {}
+    ~TransactionT() {}
+
+    DELETE_COPY_AND_MOVE(TransactionT);
+
+    TObj& Obj() { return _ref; }
+
+    auto GetSubObjectTracker(TObj& obj, size_t index)
+    {
+        auto& subobj = obj[index];
+        //_recorder << static_cast<uint32_t>(index);
+        return Stencil::Transaction<std::remove_reference_t<decltype(subobj)>>(subobj, _recorder);
+    }
+
+    std::reference_wrapper<TObj> _ref;
+    TransactionRecorder&         _recorder;
 };
 
 }    // namespace Stencil

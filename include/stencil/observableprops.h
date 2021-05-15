@@ -33,10 +33,10 @@ template <typename T> struct ObservablePropsT : Observable
             }
         }
     }
-#endif
+
 
     template <typename TFieldEnum, typename TField, typename TArgs>
-    static void OnMutationRequested(DeltaTracker<T>& obj, TFieldEnum fieldType, uint8_t fieldId, TField const& fieldVal, TArgs const& args)
+    static void OnMutationRequested(Transaction<T>& obj, TFieldEnum fieldType, uint8_t fieldId, TField const& fieldVal, TArgs const& args)
     {
         if constexpr (std::is_base_of_v<ObservablePropsT<T>, T>)
         {
@@ -44,5 +44,6 @@ template <typename T> struct ObservablePropsT : Observable
             obj.Visit(fieldType, [&](auto& subctx) { subctx.NotifyMutation(fieldType, fieldId, fieldVal, args); });
         }
     }
+#endif
 };
 }    // namespace Stencil
