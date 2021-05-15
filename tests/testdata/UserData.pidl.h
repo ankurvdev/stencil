@@ -1,5 +1,28 @@
 #pragma once
 #include <stencil/stencil.h>
+
+// SECTION START: DECLARATIONS
+#if true
+namespace UserData::UserData
+{
+struct Data;
+}
+template <> struct ReflectionBase::TypeTraits<UserData::UserData::Data&>;
+namespace UserData::Identity
+{
+struct Data;
+}
+template <> struct ReflectionBase::TypeTraits<UserData::Identity::Data&>;
+namespace UserData::RemoteHost
+{
+struct Data;
+}
+template <> struct ReflectionBase::TypeTraits<UserData::RemoteHost::Data&>;
+#endif
+// SECTION END: DECLARATIONS
+
+// SECTION START: Definitions
+#if true
 namespace UserData
 {
 namespace UserData
@@ -75,6 +98,8 @@ struct Data :
         _modified = std::move(val);
     }
 
+#if 0
+#endif
     private:
     timestamp _creation = {};
 
@@ -92,6 +117,8 @@ struct Data :
         _creation = std::move(val);
     }
 
+#if 0
+#endif
 };
 
 }    // namespace UserData
@@ -169,6 +196,8 @@ struct Data :
         _username = std::move(val);
     }
 
+#if 0
+#endif
     private:
     ::Database2::ChildRef<Database2::WideString> _password = {};
 
@@ -186,6 +215,8 @@ struct Data :
         _password = std::move(val);
     }
 
+#if 0
+#endif
     private:
     ::Database2::ChildRef<Database2::WideString> _privatekey = {};
 
@@ -203,6 +234,8 @@ struct Data :
         _privatekey = std::move(val);
     }
 
+#if 0
+#endif
     private:
     ::Database2::ChildRef<Database2::WideString> _clientcert = {};
 
@@ -220,6 +253,8 @@ struct Data :
         _clientcert = std::move(val);
     }
 
+#if 0
+#endif
     private:
     ::Database2::ChildRef<Database2::WideString> _secretcode = {};
 
@@ -237,6 +272,8 @@ struct Data :
         _secretcode = std::move(val);
     }
 
+#if 0
+#endif
 };
 
 }    // namespace Identity
@@ -305,6 +342,8 @@ struct Data :
         _name = std::move(val);
     }
 
+#if 0
+#endif
     private:
     ::Database2::ChildRef<Database2::WideString> _uri = {};
 
@@ -322,6 +361,8 @@ struct Data :
         _uri = std::move(val);
     }
 
+#if 0
+#endif
     private:
     ::UuidBasedId<::UserData::Identity::Data> _identity = ::UuidBasedId<::UserData::Identity::Data>::Create();
 
@@ -339,11 +380,19 @@ struct Data :
         _identity = std::move(val);
     }
 
+#if 0
+#endif
 };
 
 }    // namespace RemoteHost
 }    // namespace UserData
+#endif
+// SECTION END: Definitions
 
+// SECTION START: Template specializations
+#if true
+
+// SECTION:
 template <> struct ReflectionBase::TypeTraits<UserData::UserData::Data&>
 {
     struct Traits_modified
@@ -406,44 +455,23 @@ template <> struct ReflectionBase::TypeTraits<UserData::UserData::Data&>
                                                                  >;
 };
 
-template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, UserData::UserData::Data>>>
+template <>
+struct Stencil::Transaction<UserData::UserData::Data> : Stencil::TransactionT<UserData::UserData::Data>
 {
-    using TData = T;
+    using TData = UserData::UserData::Data;
 
-    // TODO : Tentative: We hate pointers
-    TData* const _ptr;
-    // TODO : Better way to unify creation interface
+    Transaction<timestamp> _subtracker_modified;
+    Transaction<timestamp> _subtracker_creation;
+    DELETE_COPY_AND_MOVE(Transaction);
 
-    std::bitset<TData::FieldCount() + 1> _fieldtracker;
-    DeltaTracker<timestamp> _subtracker_modified;
-    DeltaTracker<timestamp> _subtracker_creation;
-    DELETE_COPY_AND_MOVE(DeltaTracker);
-
-    DeltaTracker(TData* ptr) :
-        _ptr(ptr)
+    Transaction(TData& ptr, TransactionRecorder& rec) :
+        Stencil::TransactionT<UserData::UserData::Data>(ptr, rec)
         ,
-        _subtracker_modified(&_ptr->modified())
+        _subtracker_modified(Obj().modified(), rec)
         ,
-        _subtracker_creation(&_ptr->creation())
+        _subtracker_creation(Obj().creation(), rec)
     {
-        // TODO: Tentative
-        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
-
-    TData& Obj() { return *_ptr; }
-
-    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
-
-    size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _fieldtracker.any(); }
-
-    uint8_t MutatorIndex() const;
-    bool    OnlyHasDefaultMutator() const;
-
-    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
-
-    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -467,14 +495,14 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
 
     void set_modified(timestamp&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::modified, _ptr->modified(), val);
-        _ptr->set_modified(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::modified, Obj().modified(), val);
+        Obj().set_modified(std::move(val));
     }
 
     void set_creation(timestamp&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::creation, _ptr->creation(), val);
-        _ptr->set_creation(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::creation, Obj().creation(), val);
+        Obj().set_creation(std::move(val));
     }
 
 };
@@ -604,53 +632,32 @@ template <> struct ReflectionBase::TypeTraits<UserData::Identity::Data&>
                                                                  >;
 };
 
-template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, UserData::Identity::Data>>>
+template <>
+struct Stencil::Transaction<UserData::Identity::Data> : Stencil::TransactionT<UserData::Identity::Data>
 {
-    using TData = T;
+    using TData = UserData::Identity::Data;
 
-    // TODO : Tentative: We hate pointers
-    TData* const _ptr;
-    // TODO : Better way to unify creation interface
+    Transaction<::Database2::ChildRef<Database2::WideString>> _subtracker_username;
+    Transaction<::Database2::ChildRef<Database2::WideString>> _subtracker_password;
+    Transaction<::Database2::ChildRef<Database2::WideString>> _subtracker_privatekey;
+    Transaction<::Database2::ChildRef<Database2::WideString>> _subtracker_clientcert;
+    Transaction<::Database2::ChildRef<Database2::WideString>> _subtracker_secretcode;
+    DELETE_COPY_AND_MOVE(Transaction);
 
-    std::bitset<TData::FieldCount() + 1> _fieldtracker;
-    DeltaTracker<::Database2::ChildRef<Database2::WideString>> _subtracker_username;
-    DeltaTracker<::Database2::ChildRef<Database2::WideString>> _subtracker_password;
-    DeltaTracker<::Database2::ChildRef<Database2::WideString>> _subtracker_privatekey;
-    DeltaTracker<::Database2::ChildRef<Database2::WideString>> _subtracker_clientcert;
-    DeltaTracker<::Database2::ChildRef<Database2::WideString>> _subtracker_secretcode;
-    DELETE_COPY_AND_MOVE(DeltaTracker);
-
-    DeltaTracker(TData* ptr) :
-        _ptr(ptr)
+    Transaction(TData& ptr, TransactionRecorder& rec) :
+        Stencil::TransactionT<UserData::Identity::Data>(ptr, rec)
         ,
-        _subtracker_username(&_ptr->username())
+        _subtracker_username(Obj().username(), rec)
         ,
-        _subtracker_password(&_ptr->password())
+        _subtracker_password(Obj().password(), rec)
         ,
-        _subtracker_privatekey(&_ptr->privatekey())
+        _subtracker_privatekey(Obj().privatekey(), rec)
         ,
-        _subtracker_clientcert(&_ptr->clientcert())
+        _subtracker_clientcert(Obj().clientcert(), rec)
         ,
-        _subtracker_secretcode(&_ptr->secretcode())
+        _subtracker_secretcode(Obj().secretcode(), rec)
     {
-        // TODO: Tentative
-        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
-
-    TData& Obj() { return *_ptr; }
-
-    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
-
-    size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _fieldtracker.any(); }
-
-    uint8_t MutatorIndex() const;
-    bool    OnlyHasDefaultMutator() const;
-
-    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
-
-    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -680,32 +687,32 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
 
     void set_username(::Database2::ChildRef<Database2::WideString>&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::username, _ptr->username(), val);
-        _ptr->set_username(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::username, Obj().username(), val);
+        Obj().set_username(std::move(val));
     }
 
     void set_password(::Database2::ChildRef<Database2::WideString>&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::password, _ptr->password(), val);
-        _ptr->set_password(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::password, Obj().password(), val);
+        Obj().set_password(std::move(val));
     }
 
     void set_privatekey(::Database2::ChildRef<Database2::WideString>&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::privatekey, _ptr->privatekey(), val);
-        _ptr->set_privatekey(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::privatekey, Obj().privatekey(), val);
+        Obj().set_privatekey(std::move(val));
     }
 
     void set_clientcert(::Database2::ChildRef<Database2::WideString>&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::clientcert, _ptr->clientcert(), val);
-        _ptr->set_clientcert(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::clientcert, Obj().clientcert(), val);
+        Obj().set_clientcert(std::move(val));
     }
 
     void set_secretcode(::Database2::ChildRef<Database2::WideString>&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::secretcode, _ptr->secretcode(), val);
-        _ptr->set_secretcode(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::secretcode, Obj().secretcode(), val);
+        Obj().set_secretcode(std::move(val));
     }
 
 };
@@ -793,47 +800,26 @@ template <> struct ReflectionBase::TypeTraits<UserData::RemoteHost::Data&>
                                                                  >;
 };
 
-template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, UserData::RemoteHost::Data>>>
+template <>
+struct Stencil::Transaction<UserData::RemoteHost::Data> : Stencil::TransactionT<UserData::RemoteHost::Data>
 {
-    using TData = T;
+    using TData = UserData::RemoteHost::Data;
 
-    // TODO : Tentative: We hate pointers
-    TData* const _ptr;
-    // TODO : Better way to unify creation interface
+    Transaction<::Database2::ChildRef<Database2::WideString>> _subtracker_name;
+    Transaction<::Database2::ChildRef<Database2::WideString>> _subtracker_uri;
+    Transaction<::UuidBasedId<::UserData::Identity::Data>> _subtracker_identity;
+    DELETE_COPY_AND_MOVE(Transaction);
 
-    std::bitset<TData::FieldCount() + 1> _fieldtracker;
-    DeltaTracker<::Database2::ChildRef<Database2::WideString>> _subtracker_name;
-    DeltaTracker<::Database2::ChildRef<Database2::WideString>> _subtracker_uri;
-    DeltaTracker<::UuidBasedId<::UserData::Identity::Data>> _subtracker_identity;
-    DELETE_COPY_AND_MOVE(DeltaTracker);
-
-    DeltaTracker(TData* ptr) :
-        _ptr(ptr)
+    Transaction(TData& ptr, TransactionRecorder& rec) :
+        Stencil::TransactionT<UserData::RemoteHost::Data>(ptr, rec)
         ,
-        _subtracker_name(&_ptr->name())
+        _subtracker_name(Obj().name(), rec)
         ,
-        _subtracker_uri(&_ptr->uri())
+        _subtracker_uri(Obj().uri(), rec)
         ,
-        _subtracker_identity(&_ptr->identity())
+        _subtracker_identity(Obj().identity(), rec)
     {
-        // TODO: Tentative
-        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
-
-    TData& Obj() { return *_ptr; }
-
-    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
-
-    size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _fieldtracker.any(); }
-
-    uint8_t MutatorIndex() const;
-    bool    OnlyHasDefaultMutator() const;
-
-    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
-
-    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -859,21 +845,29 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
 
     void set_name(::Database2::ChildRef<Database2::WideString>&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::name, _ptr->name(), val);
-        _ptr->set_name(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::name, Obj().name(), val);
+        Obj().set_name(std::move(val));
     }
 
     void set_uri(::Database2::ChildRef<Database2::WideString>&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::uri, _ptr->uri(), val);
-        _ptr->set_uri(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::uri, Obj().uri(), val);
+        Obj().set_uri(std::move(val));
     }
 
     void set_identity(::UuidBasedId<::UserData::Identity::Data>&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::identity, _ptr->identity(), val);
-        _ptr->set_identity(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::identity, Obj().identity(), val);
+        Obj().set_identity(std::move(val));
     }
 
 };
 
+#endif
+// SECTION END: Template specializations
+
+// SECTION START: Inline Function Definitions
+#if true
+
+#endif
+// SECTION END: Inline Function Definitions
