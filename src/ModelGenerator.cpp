@@ -8,6 +8,7 @@
 #pragma clang diagnostic ignored "-Weverything"
 #include <tinyxml2.h>
 #include <toml.hpp>
+#include <tsl/ordered_map.h>
 #pragma clang diagnostic pop
 #pragma warning(pop)
 
@@ -379,7 +380,7 @@ void Generator::_AddTypeDefinitions(std::string_view const& /*name*/, std::strin
     std::string       tomltext(text);
     std::stringstream tomlstrm(tomltext);
 
-    auto config = toml::parse(tomlstrm);
+    auto config = toml::parse<toml::preserve_comments, tsl::ordered_map>(tomlstrm);
     for (auto [propname, node] : config.as_table())
     {
         if (propname == "FieldTypes")

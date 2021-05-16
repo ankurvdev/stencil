@@ -924,9 +924,9 @@ struct Data :
     }
 
 #if 0
-    void add_aircrafts(::Avid::Aircraft::Data&& args);
-    void remove_aircrafts(size_t&& args);
     Stencil::Transaction<::Avid::Aircraft::Data> edit_aircrafts(size_t&& args);
+    void remove_aircrafts(size_t&& args);
+    void add_aircrafts(::Avid::Aircraft::Data&& args);
     ::Avid::Aircraft::Data at_aircrafts(size_t const& args) const;
 #endif
 };
@@ -2679,10 +2679,10 @@ struct Stencil::Transaction<Avid::Traffic::Data> : Stencil::TransactionT<Avid::T
         Obj().set_aircrafts(std::move(val));
     }
 
-    void add_aircrafts(::Avid::Aircraft::Data&& args)
+    Stencil::Transaction<::Avid::Aircraft::Data> edit_aircrafts(size_t&& args)
     {
-        OnMutation_add(TData::FieldIndex::aircrafts, Obj().aircrafts(), args);
-        return Stencil::Mutators<std::vector<::Avid::Aircraft::Data>>::add(
+        OnMutation_edit(TData::FieldIndex::aircrafts, Obj().aircrafts(), args);
+        return Stencil::Mutators<std::vector<::Avid::Aircraft::Data>>::edit(
             _subtracker_aircrafts, Obj().aircrafts(), std::move(args));
     }
     void remove_aircrafts(size_t&& args)
@@ -2691,10 +2691,10 @@ struct Stencil::Transaction<Avid::Traffic::Data> : Stencil::TransactionT<Avid::T
         return Stencil::Mutators<std::vector<::Avid::Aircraft::Data>>::remove(
             _subtracker_aircrafts, Obj().aircrafts(), std::move(args));
     }
-    Stencil::Transaction<::Avid::Aircraft::Data> edit_aircrafts(size_t&& args)
+    void add_aircrafts(::Avid::Aircraft::Data&& args)
     {
-        OnMutation_edit(TData::FieldIndex::aircrafts, Obj().aircrafts(), args);
-        return Stencil::Mutators<std::vector<::Avid::Aircraft::Data>>::edit(
+        OnMutation_add(TData::FieldIndex::aircrafts, Obj().aircrafts(), args);
+        return Stencil::Mutators<std::vector<::Avid::Aircraft::Data>>::add(
             _subtracker_aircrafts, Obj().aircrafts(), std::move(args));
     }
 };
