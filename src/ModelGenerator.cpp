@@ -260,10 +260,10 @@ static void debug(YAML::Node const& node)
 }
 #endif
 
-template<typename TTableNode>
+template <typename TTableNode>
 static Generator::MutatorAccessorDefinition ParseMutatorAccessorDefinitionFromTomlNode(TTableNode const& node, std::wstring&& key)
 {
-    auto& valtbl = (node.as_table());
+    auto&                                valtbl = (node.as_table());
     Generator::MutatorAccessorDefinition val;
     val.name = std::move(key);
     val.id   = static_cast<uint8_t>(valtbl.at("Id").as_integer());
@@ -286,7 +286,7 @@ static Generator::MutatorAccessorDefinition ParseMutatorAccessorDefinitionFromTo
     return val;
 }
 
-template<typename TTableNode>
+template <typename TTableNode>
 static std::vector<Generator::MutatorAccessorDefinition> ParseMutatorAccessorDefinitionArrFromTomlNode(TTableNode const& node)
 {
     std::vector<Generator::MutatorAccessorDefinition> valarr;
@@ -298,8 +298,7 @@ static std::vector<Generator::MutatorAccessorDefinition> ParseMutatorAccessorDef
     return valarr;
 }
 
-template<typename TTableNode>
-static Generator::ContainerTypeDecl ContainerTypeDeclFromTomlNode(TTableNode const& node)
+template <typename TTableNode> static Generator::ContainerTypeDecl ContainerTypeDeclFromTomlNode(TTableNode const& node)
 {
     Generator::ContainerTypeDecl val;
     if (node.is_string())
@@ -341,8 +340,7 @@ static Generator::ContainerTypeDecl ContainerTypeDeclFromTomlNode(TTableNode con
     return val;
 }
 
-template<typename TTableNode>
-static Generator::FieldTypeDecl FieldTypeDeclFromTomlNode(TTableNode const& node)
+template <typename TTableNode> static Generator::FieldTypeDecl FieldTypeDeclFromTomlNode(TTableNode const& node)
 {
     Generator::FieldTypeDecl val;
 
