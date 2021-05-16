@@ -1,5 +1,4 @@
 #pragma once
-#include "observableprops.h"
 #include "visitor.h"
 
 #include <chrono>
@@ -17,7 +16,7 @@ namespace Stencil
 
 template <typename T> struct PatchHandler
 {
-    static std::vector<uint8_t> Create(T const& obj, DeltaTracker<T> const& ctx)
+    static std::vector<uint8_t> Create(T const& obj, Transaction<T> const& ctx)
     {
         Writer           writer;
         Visitor<T const> visitor(obj);
@@ -25,7 +24,7 @@ template <typename T> struct PatchHandler
         return writer.Reset();
     }
 
-    static ByteIt Apply(DeltaTracker<T>& ctx, ByteIt const& itbeg)
+    static ByteIt Apply(Transaction<T>& ctx, ByteIt const& itbeg)
     {
         Reader     reader(itbeg);
         Visitor<T> visitor(ctx.Obj());
@@ -33,7 +32,7 @@ template <typename T> struct PatchHandler
         return reader.GetIterator();
     }
 
-    template <typename TObj, typename TVisitor> static void _Write(Writer& writer, TVisitor& visitor, DeltaTracker<TObj> const& ctx)
+    template <typename TObj, typename TVisitor> static void _Write(Writer& writer, TVisitor& visitor, Transaction<TObj> const& ctx)
     {
 
         // Create(int, ctx) = nochange=>{}  change=>{0,0,0,1}
@@ -45,15 +44,15 @@ template <typename T> struct PatchHandler
         {
             return;
         }
-        static_assert(DeltaTracker<TObj>::Type() != ReflectionBase::DataType::Invalid, "Cannot Create Patch for Invalid DataType");
+        static_assert(Transaction<TObj>::Type() != ReflectionBase::DataType::Invalid, "Cannot Create Patch for Invalid DataType");
 
-        if constexpr (DeltaTracker<TObj>::Type() == ReflectionBase::DataType::Enum
-                      || DeltaTracker<TObj>::Type() == ReflectionBase::DataType::Value)
+        if constexpr (Transaction<TObj>::Type() == ReflectionBase::DataType::Enum
+                      || Transaction<TObj>::Type() == ReflectionBase::DataType::Value)
         {
             // Dump the entire value
             BinarySerDes::Serialize(visitor, writer);
         }
-        else if constexpr (DeltaTracker<TObj>::Type() == ReflectionBase::DataType::List)
+        else if constexpr (Transaction<TObj>::Type() == ReflectionBase::DataType::List)
         {
             writer << static_cast<uint8_t>(ctx.MutationCount());
             for (auto& mutation : ctx.Mutations())
@@ -77,13 +76,18 @@ template <typename T> struct PatchHandler
                 {
                     writer << static_cast<uint32_t>(listIndex);
                 }
+                else if (mutationIndex == 3)    // List edit
+                {
+                    writer << static_cast<uint32_t>(listIndex);
+                    visitor.Select(listIndex);
+                }
                 else
                 {
                     throw std::logic_error("Unknown Mutator");
                 }
             }
         }
-        else if constexpr (DeltaTracker<TObj>::Type() == ReflectionBase::DataType::Object)
+        else if constexpr (Transaction<TObj>::Type() == ReflectionBase::DataType::Object)
         {
             // 0 is always invalid field
             auto fieldsChanged = ctx.CountFieldsChanged();
@@ -111,7 +115,7 @@ template <typename T> struct PatchHandler
                 });
             }
         }
-        else if constexpr (DeltaTracker<TObj>::Type() == ReflectionBase::DataType::Union)
+        else if constexpr (Transaction<TObj>::Type() == ReflectionBase::DataType::Union)
         {
             throw std::logic_error("unions not supported for patch yet");
             /*
@@ -130,12 +134,12 @@ template <typename T> struct PatchHandler
         }
         else
         {
-            static_assert(DeltaTracker<TObj>::Type() == ReflectionBase::DataType::Unknown);
-            static_assert(DeltaTracker<TObj>::Type() != ReflectionBase::DataType::Unknown, "Cannot Create Patch for Unknown DataType");
+            static_assert(Transaction<TObj>::Type() == ReflectionBase::DataType::Unknown);
+            static_assert(Transaction<TObj>::Type() != ReflectionBase::DataType::Unknown, "Cannot Create Patch for Unknown DataType");
         }
     }
 
-    template <typename TObj, typename TVisitor> static void _Apply(Reader& reader, TVisitor& visitor, DeltaTracker<TObj>& ctx)
+    template <typename TObj, typename TVisitor> static void _Apply(Reader& reader, TVisitor& visitor, Transaction<TObj>& ctx)
     {
         // TODO: TypeTraits should not have reference type
         static_assert(ReflectionBase::TypeTraits<TObj&>::Type() != ReflectionBase::DataType::Invalid,
@@ -149,46 +153,59 @@ template <typename T> struct PatchHandler
 
         else if constexpr (ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::List)
         {
-            auto mutationCount = reader.read<uint8_t>();
-            for (size_t i = 0; i < mutationCount; i++)
+            auto mutatorIndex = reader.read<uint8_t>();
+            if (mutatorIndex == 0)    // Set
             {
-                auto mutatorIndex = reader.read<uint8_t>();
-                if (mutatorIndex == 0)    // Set
-                {
-                    BinarySerDes::Deserialize(visitor, reader);
-                }
-                else if (mutatorIndex == 1)    // List Add
-                {
-                    auto listIndex = reader.read<uint32_t>();
-                    visitor.Select(listIndex);
-                    BinarySerDes::Deserialize(visitor, reader);
+                BinarySerDes::Deserialize(visitor, reader);
+            }
+            else if (mutatorIndex == 1)    // List Add
+            {
+                auto listIndex = reader.read<uint32_t>();
+                visitor.Select(listIndex);
+                BinarySerDes::Deserialize(visitor, reader);
 
-                    // auto subctx = ctx.GetSubObjectTracker(listIndex);
-                    //_Apply(reader, visitor, subctx);
-                    visitor.GoBackUp();
-                }
-                else if (mutatorIndex == 2)    // List remove
-                {
-                    auto listIndex = reader.read<uint8_t>();
-                    Stencil::Mutators<TObj>::remove(ctx.Obj(), listIndex);
-                }
-                else
-                {
-                    throw std::logic_error("Unknown Mutator");
-                }
+                // auto subctx = ctx.GetSubObjectTracker(listIndex);
+                //_Apply(reader, visitor, subctx);
+                visitor.GoBackUp();
+            }
+            else if (mutatorIndex == 2)    // List remove
+            {
+                auto listIndex = reader.read<uint32_t>();
+                Stencil::Mutators<TObj>::remove(ctx, ctx.Obj(), listIndex);
+            }
+            else if (mutatorIndex == 3)    // List edit
+            {
+                auto listIndex = reader.read<uint32_t>();
+                visitor.Select(listIndex);
+                auto subctx = ctx.GetSubObjectTracker(ctx.Obj() ,listIndex);
+                _Apply(reader, visitor, subctx);
+                visitor.GoBackUp();
+            }
+            else
+            {
+                throw std::logic_error("Unknown Mutator");
             }
         }
         else if constexpr (ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::Object)
         {
-            auto fieldsChanged = reader.read<uint8_t>();
-            assert(fieldsChanged <= ctx.NumFields());
-            for (uint8_t i = 0; i < fieldsChanged; i++)
+            for (auto changedFieldIndex = reader.read<uint8_t>(); changedFieldIndex != 0; changedFieldIndex = reader.read<uint8_t>())
             {
-                auto changedFieldIndex = reader.read<uint8_t>();
-                assert(changedFieldIndex < ctx.NumFields());
-                auto changedFieldType = static_cast<typename TObj::FieldIndex>(changedFieldIndex + 1);
-                visitor.Select(changedFieldIndex);
-                ctx.Visit(changedFieldType, [&](auto& subctx) { _Apply(reader, visitor, subctx); });
+                auto action = reader.read<uint8_t>();
+                //assert(changedFieldIndex <= ctx.NumFields());
+                auto changedFieldType = static_cast<typename TObj::FieldIndex>(changedFieldIndex);
+                visitor.Select(static_cast<uint8_t>(changedFieldIndex - 1));
+                if (action == 0)    // Set
+                {
+                    BinarySerDes::Deserialize(visitor, reader);
+                }
+                else if (action == 1)    // Edit
+                {
+                    ctx.Visit(changedFieldType, [&](auto& subctx) { _Apply(reader, visitor, subctx); });
+                }
+                else
+                {
+                    throw std::logic_error("Unknown action");
+                }
                 visitor.GoBackUp();
             }
         }
@@ -268,7 +285,8 @@ template <typename... Ts> struct DataPlayerT : std::enable_shared_from_this<Data
 
     template <typename T> auto ReadChangeDescAndNotify(T& obj, std::span<const uint8_t>::iterator const& dataIt)
     {
-        auto ctx = obj.Edit();
+        Stencil::NullTransactionRecorder recorder;
+        auto                                ctx = recorder.Start(obj);
         return PatchHandler<T>::Apply(ctx, dataIt);
     }
 
@@ -285,7 +303,7 @@ template <typename... Ts> struct DataPlayerT : std::enable_shared_from_this<Data
             {
                 return;
             }
-            std::this_thread::sleep_for(std::chrono::milliseconds{read<std::chrono::milliseconds::rep>(_file)});
+            std::this_thread::sleep_for(std::chrono::microseconds{read<std::chrono::microseconds::rep>(_file)});
             {
                 size_t               index = read<uint8_t>(_file);
                 auto                 bytes = read<uint16_t>(_file);
@@ -342,8 +360,8 @@ template <typename... Ts> struct DataRecorder
         _ost  = &_ofst;
     }
 
-    // void OnChanged(LockT const& /*lock*/, DeltaTrackerT const& /*ctx*/, T const& /*data*/) override { TODO(); }
-    template <typename T> void Record(T const& data, DeltaTracker<T> const& ctx)
+    // void OnChanged(LockT const& /*lock*/, TransactionT const& /*ctx*/, T const& /*data*/) override { TODO(); }
+    template <typename T> void Record(Transaction<T> const& ctx)
     {
         if (!ctx.IsChanged())
         {
@@ -356,7 +374,7 @@ template <typename... Ts> struct DataRecorder
         auto deltaus = std::chrono::duration_cast<std::chrono::microseconds>(delta).count();
 
         _lastnotif           = now;
-        auto serializedPatch = PatchHandler<T>::Create(data, ctx);
+        auto serializedPatch = PatchHandler<T>::Create(ctx.Obj(), ctx);
         (*this) << deltaus << static_cast<uint8_t>(IndexOf<T, Ts...>()) << static_cast<uint16_t>(serializedPatch.size()) << serializedPatch;
     }
 

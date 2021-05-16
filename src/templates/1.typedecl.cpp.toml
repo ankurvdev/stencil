@@ -116,6 +116,11 @@ ReturnType = "void"
 Args = "size_t"
 Id = 2
 
+[Containers.list.Mutators.edit]
+ReturnType = "Stencil::Transaction<%type:NativeType%>"
+Args = "size_t"
+Id = 3
+
 [Containers.tree]
 Inherit = "list"
 Params = [ "type" ]
@@ -132,10 +137,6 @@ NativeType = "std::unordered_map<%key:NativeType%, %value:NativeType%>"
 [Containers.optionalprops]
 Params = [ "object" ]
 NativeType = "::Stencil::OptionalPropsT<%object:NativeType%>"
-
-[Containers.observableprops]
-Params = [ "object" ]
-NativeType = "::Stencil::ObservablePropsT<%object:NativeType%>"
 
 [Containers.timestamped]
 Params = [ "object" ]

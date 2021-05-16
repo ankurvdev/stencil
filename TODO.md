@@ -1,16 +1,17 @@
 # Build System
 
 # Codegen
-* TypeDecl
+* Rename
     - relationship, relationshipdef => linkedattribute attributelink
-    - 
+    - Stencil namespace
+    - DataBase -> Repository / Journal
+* TypeDecl
 	• Reflection.Base - OnChanged Event Handling
 	• Reflection.Database - Encryption for Identity and unittests
 Reflection.Database - Database Merging with OnChanged event handling with more Unittests
 
 # Runtime
 
-* Use Stencil Namespace
 * SerDes + Writer Reader
     - JsonSerDes
     - CLISerDes
@@ -26,9 +27,6 @@ Reflection.Database - Database Merging with OnChanged event handling with more U
     - Fork out of json
 * [json]
     - Rename to JsonSerDes
-* [observable]
-    - Observable should be used for events
-    - Fork delta-tracker out into its own class
 * [serdes]
     - Should we fork out reader.h , writer.h and serdes.h
 * [database]

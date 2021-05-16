@@ -1,5 +1,28 @@
 #pragma once
 #include <stencil/stencil.h>
+
+// SECTION START: DECLARATIONS
+#if true
+namespace Service::MapPoint
+{
+struct Data;
+}
+template <> struct ReflectionBase::TypeTraits<Service::MapPoint::Data&>;
+namespace Service::GeographicalArea
+{
+struct Data;
+}
+template <> struct ReflectionBase::TypeTraits<Service::GeographicalArea::Data&>;
+namespace Service::DigitalAssetInfo
+{
+struct Data;
+}
+template <> struct ReflectionBase::TypeTraits<Service::DigitalAssetInfo::Data&>;
+#endif
+// SECTION END: DECLARATIONS
+
+// SECTION START: Definitions
+#if true
 namespace Service
 {
 namespace MapPoint
@@ -78,6 +101,8 @@ struct Data :
         _latitude = std::move(val);
     }
 
+#if 0
+#endif
     private:
     int64_t _longitude = {};
 
@@ -95,6 +120,8 @@ struct Data :
         _longitude = std::move(val);
     }
 
+#if 0
+#endif
 };
 
 }    // namespace MapPoint
@@ -160,6 +187,8 @@ struct Data :
         _type = std::move(val);
     }
 
+#if 0
+#endif
     private:
     shared_string _name = {};
 
@@ -177,6 +206,8 @@ struct Data :
         _name = std::move(val);
     }
 
+#if 0
+#endif
     private:
     std::vector<::Service::MapPoint::Data> _areaPolygon = {};
 
@@ -194,6 +225,8 @@ struct Data :
         _areaPolygon = std::move(val);
     }
 
+#if 0
+#endif
 };
 
 }    // namespace GeographicalArea
@@ -271,6 +304,8 @@ struct Data :
         _id = std::move(val);
     }
 
+#if 0
+#endif
     private:
     std::vector<shared_tree<shared_string>> _keywords = {};
 
@@ -288,6 +323,8 @@ struct Data :
         _keywords = std::move(val);
     }
 
+#if 0
+#endif
     private:
     shared_tree<::Service::GeographicalArea::Data> _location = {};
 
@@ -305,6 +342,8 @@ struct Data :
         _location = std::move(val);
     }
 
+#if 0
+#endif
     private:
     int64_t _md5sum = {};
 
@@ -322,6 +361,8 @@ struct Data :
         _md5sum = std::move(val);
     }
 
+#if 0
+#endif
     private:
     shared_string _thumbnailBlob = {};
 
@@ -339,6 +380,8 @@ struct Data :
         _thumbnailBlob = std::move(val);
     }
 
+#if 0
+#endif
     private:
     shared_string _fileUrl = {};
 
@@ -356,6 +399,8 @@ struct Data :
         _fileUrl = std::move(val);
     }
 
+#if 0
+#endif
 };
 
 }    // namespace DigitalAssetInfo
@@ -599,7 +644,13 @@ struct Store_Download_Args
 };
 
 }    // namespace Service
+#endif
+// SECTION END: Definitions
 
+// SECTION START: Template specializations
+#if true
+
+// SECTION:
 template <> struct ReflectionBase::TypeTraits<Service::KeywordS_Find_Args&>
 {
     struct Traits_arg_root
@@ -1342,44 +1393,23 @@ template <> struct ReflectionBase::TypeTraits<Service::MapPoint::Data&>
                                                                  >;
 };
 
-template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, Service::MapPoint::Data>>>
+template <>
+struct Stencil::Transaction<Service::MapPoint::Data> : Stencil::TransactionT<Service::MapPoint::Data>
 {
-    using TData = T;
+    using TData = Service::MapPoint::Data;
 
-    // TODO : Tentative: We hate pointers
-    TData* const _ptr;
-    // TODO : Better way to unify creation interface
+    Transaction<int64_t> _subtracker_latitude;
+    Transaction<int64_t> _subtracker_longitude;
+    DELETE_COPY_AND_MOVE(Transaction);
 
-    std::bitset<TData::FieldCount() + 1> _fieldtracker;
-    DeltaTracker<int64_t> _subtracker_latitude;
-    DeltaTracker<int64_t> _subtracker_longitude;
-    DELETE_COPY_AND_MOVE(DeltaTracker);
-
-    DeltaTracker(TData* ptr) :
-        _ptr(ptr)
+    Transaction(TData& ptr, TransactionRecorder& rec) :
+        Stencil::TransactionT<Service::MapPoint::Data>(ptr, rec)
         ,
-        _subtracker_latitude(&_ptr->latitude())
+        _subtracker_latitude(Obj().latitude(), rec)
         ,
-        _subtracker_longitude(&_ptr->longitude())
+        _subtracker_longitude(Obj().longitude(), rec)
     {
-        // TODO: Tentative
-        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
-
-    TData& Obj() { return *_ptr; }
-
-    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
-
-    size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _fieldtracker.any(); }
-
-    uint8_t MutatorIndex() const;
-    bool    OnlyHasDefaultMutator() const;
-
-    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
-
-    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -1403,14 +1433,14 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
 
     void set_latitude(int64_t&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::latitude, _ptr->latitude(), val);
-        _ptr->set_latitude(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::latitude, Obj().latitude(), val);
+        Obj().set_latitude(std::move(val));
     }
 
     void set_longitude(int64_t&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::longitude, _ptr->longitude(), val);
-        _ptr->set_longitude(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::longitude, Obj().longitude(), val);
+        Obj().set_longitude(std::move(val));
     }
 
 };
@@ -1498,47 +1528,26 @@ template <> struct ReflectionBase::TypeTraits<Service::GeographicalArea::Data&>
                                                                  >;
 };
 
-template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, Service::GeographicalArea::Data>>>
+template <>
+struct Stencil::Transaction<Service::GeographicalArea::Data> : Stencil::TransactionT<Service::GeographicalArea::Data>
 {
-    using TData = T;
+    using TData = Service::GeographicalArea::Data;
 
-    // TODO : Tentative: We hate pointers
-    TData* const _ptr;
-    // TODO : Better way to unify creation interface
+    Transaction<shared_string> _subtracker_type;
+    Transaction<shared_string> _subtracker_name;
+    Transaction<std::vector<::Service::MapPoint::Data>> _subtracker_areaPolygon;
+    DELETE_COPY_AND_MOVE(Transaction);
 
-    std::bitset<TData::FieldCount() + 1> _fieldtracker;
-    DeltaTracker<shared_string> _subtracker_type;
-    DeltaTracker<shared_string> _subtracker_name;
-    DeltaTracker<std::vector<::Service::MapPoint::Data>> _subtracker_areaPolygon;
-    DELETE_COPY_AND_MOVE(DeltaTracker);
-
-    DeltaTracker(TData* ptr) :
-        _ptr(ptr)
+    Transaction(TData& ptr, TransactionRecorder& rec) :
+        Stencil::TransactionT<Service::GeographicalArea::Data>(ptr, rec)
         ,
-        _subtracker_type(&_ptr->type())
+        _subtracker_type(Obj().type(), rec)
         ,
-        _subtracker_name(&_ptr->name())
+        _subtracker_name(Obj().name(), rec)
         ,
-        _subtracker_areaPolygon(&_ptr->areaPolygon())
+        _subtracker_areaPolygon(Obj().areaPolygon(), rec)
     {
-        // TODO: Tentative
-        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
-
-    TData& Obj() { return *_ptr; }
-
-    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
-
-    size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _fieldtracker.any(); }
-
-    uint8_t MutatorIndex() const;
-    bool    OnlyHasDefaultMutator() const;
-
-    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
-
-    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -1564,20 +1573,20 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
 
     void set_type(shared_string&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::type, _ptr->type(), val);
-        _ptr->set_type(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::type, Obj().type(), val);
+        Obj().set_type(std::move(val));
     }
 
     void set_name(shared_string&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::name, _ptr->name(), val);
-        _ptr->set_name(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::name, Obj().name(), val);
+        Obj().set_name(std::move(val));
     }
 
     void set_areaPolygon(std::vector<::Service::MapPoint::Data>&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::areaPolygon, _ptr->areaPolygon(), val);
-        _ptr->set_areaPolygon(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::areaPolygon, Obj().areaPolygon(), val);
+        Obj().set_areaPolygon(std::move(val));
     }
 
 };
@@ -1728,56 +1737,35 @@ template <> struct ReflectionBase::TypeTraits<Service::DigitalAssetInfo::Data&>
                                                                  >;
 };
 
-template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, Service::DigitalAssetInfo::Data>>>
+template <>
+struct Stencil::Transaction<Service::DigitalAssetInfo::Data> : Stencil::TransactionT<Service::DigitalAssetInfo::Data>
 {
-    using TData = T;
+    using TData = Service::DigitalAssetInfo::Data;
 
-    // TODO : Tentative: We hate pointers
-    TData* const _ptr;
-    // TODO : Better way to unify creation interface
+    Transaction<int32_t> _subtracker_id;
+    Transaction<std::vector<shared_tree<shared_string>>> _subtracker_keywords;
+    Transaction<shared_tree<::Service::GeographicalArea::Data>> _subtracker_location;
+    Transaction<int64_t> _subtracker_md5sum;
+    Transaction<shared_string> _subtracker_thumbnailBlob;
+    Transaction<shared_string> _subtracker_fileUrl;
+    DELETE_COPY_AND_MOVE(Transaction);
 
-    std::bitset<TData::FieldCount() + 1> _fieldtracker;
-    DeltaTracker<int32_t> _subtracker_id;
-    DeltaTracker<std::vector<shared_tree<shared_string>>> _subtracker_keywords;
-    DeltaTracker<shared_tree<::Service::GeographicalArea::Data>> _subtracker_location;
-    DeltaTracker<int64_t> _subtracker_md5sum;
-    DeltaTracker<shared_string> _subtracker_thumbnailBlob;
-    DeltaTracker<shared_string> _subtracker_fileUrl;
-    DELETE_COPY_AND_MOVE(DeltaTracker);
-
-    DeltaTracker(TData* ptr) :
-        _ptr(ptr)
+    Transaction(TData& ptr, TransactionRecorder& rec) :
+        Stencil::TransactionT<Service::DigitalAssetInfo::Data>(ptr, rec)
         ,
-        _subtracker_id(&_ptr->id())
+        _subtracker_id(Obj().id(), rec)
         ,
-        _subtracker_keywords(&_ptr->keywords())
+        _subtracker_keywords(Obj().keywords(), rec)
         ,
-        _subtracker_location(&_ptr->location())
+        _subtracker_location(Obj().location(), rec)
         ,
-        _subtracker_md5sum(&_ptr->md5sum())
+        _subtracker_md5sum(Obj().md5sum(), rec)
         ,
-        _subtracker_thumbnailBlob(&_ptr->thumbnailBlob())
+        _subtracker_thumbnailBlob(Obj().thumbnailBlob(), rec)
         ,
-        _subtracker_fileUrl(&_ptr->fileUrl())
+        _subtracker_fileUrl(Obj().fileUrl(), rec)
     {
-        // TODO: Tentative
-        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
-
-    TData& Obj() { return *_ptr; }
-
-    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
-
-    size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _fieldtracker.any(); }
-
-    uint8_t MutatorIndex() const;
-    bool    OnlyHasDefaultMutator() const;
-
-    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
-
-    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -1809,39 +1797,47 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
 
     void set_id(int32_t&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::id, _ptr->id(), val);
-        _ptr->set_id(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::id, Obj().id(), val);
+        Obj().set_id(std::move(val));
     }
 
     void set_keywords(std::vector<shared_tree<shared_string>>&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::keywords, _ptr->keywords(), val);
-        _ptr->set_keywords(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::keywords, Obj().keywords(), val);
+        Obj().set_keywords(std::move(val));
     }
 
     void set_location(shared_tree<::Service::GeographicalArea::Data>&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::location, _ptr->location(), val);
-        _ptr->set_location(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::location, Obj().location(), val);
+        Obj().set_location(std::move(val));
     }
 
     void set_md5sum(int64_t&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::md5sum, _ptr->md5sum(), val);
-        _ptr->set_md5sum(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::md5sum, Obj().md5sum(), val);
+        Obj().set_md5sum(std::move(val));
     }
 
     void set_thumbnailBlob(shared_string&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::thumbnailBlob, _ptr->thumbnailBlob(), val);
-        _ptr->set_thumbnailBlob(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::thumbnailBlob, Obj().thumbnailBlob(), val);
+        Obj().set_thumbnailBlob(std::move(val));
     }
 
     void set_fileUrl(shared_string&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::fileUrl, _ptr->fileUrl(), val);
-        _ptr->set_fileUrl(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::fileUrl, Obj().fileUrl(), val);
+        Obj().set_fileUrl(std::move(val));
     }
 
 };
 
+#endif
+// SECTION END: Template specializations
+
+// SECTION START: Inline Function Definitions
+#if true
+
+#endif
+// SECTION END: Inline Function Definitions

@@ -19,3 +19,6 @@
 [submodule "external/toml11"]
 	path = external/toml11
 	url = https://github.com/ToruNiina/toml11
+[submodule "external/ordered-map"]
+	path = external/ordered-map
+	url = https://github.com/Tessil/ordered-map

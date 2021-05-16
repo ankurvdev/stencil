@@ -1,5 +1,18 @@
 #pragma once
 #include <stencil/stencil.h>
+
+// SECTION START: DECLARATIONS
+#if true
+namespace SimpleWebService::Data
+{
+struct Data;
+}
+template <> struct ReflectionBase::TypeTraits<SimpleWebService::Data::Data&>;
+#endif
+// SECTION END: DECLARATIONS
+
+// SECTION START: Definitions
+#if true
 namespace SimpleWebService
 {
 namespace Data
@@ -64,6 +77,8 @@ struct Data :
         _randomInteger = std::move(val);
     }
 
+#if 0
+#endif
     private:
     shared_string _randomString = {};
 
@@ -81,6 +96,8 @@ struct Data :
         _randomString = std::move(val);
     }
 
+#if 0
+#endif
 };
 
 }    // namespace Data
@@ -120,7 +137,13 @@ struct TestInterface_Create_Args
 };
 
 }    // namespace SimpleWebService
+#endif
+// SECTION END: Definitions
 
+// SECTION START: Template specializations
+#if true
+
+// SECTION:
 template <> struct ReflectionBase::TypeTraits<SimpleWebService::TestInterface_Create_Args&>
 {
     struct Traits_arg_randomInteger
@@ -264,44 +287,23 @@ template <> struct ReflectionBase::TypeTraits<SimpleWebService::Data::Data&>
                                                                  >;
 };
 
-template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, SimpleWebService::Data::Data>>>
+template <>
+struct Stencil::Transaction<SimpleWebService::Data::Data> : Stencil::TransactionT<SimpleWebService::Data::Data>
 {
-    using TData = T;
+    using TData = SimpleWebService::Data::Data;
 
-    // TODO : Tentative: We hate pointers
-    TData* const _ptr;
-    // TODO : Better way to unify creation interface
+    Transaction<int32_t> _subtracker_randomInteger;
+    Transaction<shared_string> _subtracker_randomString;
+    DELETE_COPY_AND_MOVE(Transaction);
 
-    std::bitset<TData::FieldCount() + 1> _fieldtracker;
-    DeltaTracker<int32_t> _subtracker_randomInteger;
-    DeltaTracker<shared_string> _subtracker_randomString;
-    DELETE_COPY_AND_MOVE(DeltaTracker);
-
-    DeltaTracker(TData* ptr) :
-        _ptr(ptr)
+    Transaction(TData& ptr, TransactionRecorder& rec) :
+        Stencil::TransactionT<SimpleWebService::Data::Data>(ptr, rec)
         ,
-        _subtracker_randomInteger(&_ptr->randomInteger())
+        _subtracker_randomInteger(Obj().randomInteger(), rec)
         ,
-        _subtracker_randomString(&_ptr->randomString())
+        _subtracker_randomString(Obj().randomString(), rec)
     {
-        // TODO: Tentative
-        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
-
-    TData& Obj() { return *_ptr; }
-
-    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
-
-    size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _fieldtracker.any(); }
-
-    uint8_t MutatorIndex() const;
-    bool    OnlyHasDefaultMutator() const;
-
-    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
-
-    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -325,15 +327,23 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
 
     void set_randomInteger(int32_t&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::randomInteger, _ptr->randomInteger(), val);
-        _ptr->set_randomInteger(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::randomInteger, Obj().randomInteger(), val);
+        Obj().set_randomInteger(std::move(val));
     }
 
     void set_randomString(shared_string&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::randomString, _ptr->randomString(), val);
-        _ptr->set_randomString(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::randomString, Obj().randomString(), val);
+        Obj().set_randomString(std::move(val));
     }
 
 };
 
+#endif
+// SECTION END: Template specializations
+
+// SECTION START: Inline Function Definitions
+#if true
+
+#endif
+// SECTION END: Inline Function Definitions

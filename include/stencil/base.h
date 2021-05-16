@@ -2,6 +2,7 @@
 #include "Logging.h"
 #include "Value.h"
 #include "shared_string.h"
+#include "shared_tree.h"
 #include "uuidobject.h"
 #include <algorithm>
 #include <bitset>
@@ -499,7 +500,10 @@ template <typename TValue> struct StdVectorListHandler : public IDataTypeHandler
     bool TryGetSubComponent(void* ptr, size_t index, SubComponent& subcomponent) const override
     {
         auto vecptr = static_cast<std::vector<TValue>*>(ptr);
-        vecptr->resize(index + 1);
+        if (index >= vecptr->size())
+        {
+            vecptr->resize(index + 1);
+        }
         subcomponent = {&_handler, &((*vecptr)[index])};
         return true;
     }
@@ -1182,6 +1186,63 @@ struct ReflectionBase::TypeTraits<std::shared_ptr<T>&, std::enable_if_t<std::is_
         {
             return _handler.GetSubComponentAt(rawptr, index);
         }
+
+        typename ::ReflectionBase::TypeTraits<T&>::Handler _handler;
+    };
+};
+
+template <typename T> struct ReflectionBase::TypeTraits<shared_tree<T>&>
+{
+    static constexpr DataType         Type() { return DataType::List; }
+    static constexpr std::string_view Name() { return ::ReflectionBase::TypeTraits<T&>::Name(); }
+    static std::string                Description()
+    {
+        return "shared_tree<" + std::string(::ReflectionBase::TypeTraits<T&>::AttributeValue("Description")) + ">";
+    }
+
+    static std::string_view AttributeValue(const std::string_view& /*key*/) { throw std::logic_error("TODO"); }
+
+    template <typename T1, typename T2> static bool AreEqual(T1 const& obj1, T2 const& obj2) { return obj1 == obj2; }
+
+    struct Handler : public ::ReflectionBase::IDataTypeHandler<DataType::List>
+    {
+        virtual void Start() const override {}
+
+        SubComponent MoveNext(void* /*ptr*/) const override { throw std::logic_error("TODO"); }
+
+        bool TryGetSubComponent(void* /*ptr*/, size_t /*index*/, SubComponent& /*subcomponent*/) const override
+        {
+            throw std::logic_error("TODO");
+        }
+        virtual void End() const override {}
+
+        virtual shared_string Description() const override { throw std::logic_error("TODO"); }
+        virtual shared_string AttributeValue(const std::string_view& /*key*/) const override { throw std::logic_error("TODO"); }
+        virtual shared_string Name() const override { throw std::logic_error("TODO"); }
+
+        virtual SubComponent GetListItemHandler() const override { return {&_handler, nullptr}; }
+
+        typename ::ReflectionBase::TypeTraits<T&>::Handler _handler;
+    };
+};
+
+template <typename T> struct ReflectionBase::TypeTraits<UuidBasedId<T>&>
+{
+    static constexpr DataType         Type() { return DataType::Value; }
+    static constexpr std::string_view Name() { return ::ReflectionBase::TypeTraits<T&>::Name(); }
+    static std::string_view           AttributeValue(const std::string_view& /*key*/) { throw std::logic_error("TODO"); }
+    static std::string                Description() { throw std::logic_error("TODO"); }
+
+    template <typename T1, typename T2> static bool AreEqual(T1 const& obj1, T2 const& obj2) { return obj1 == obj2; }
+
+    struct Handler : public ::ReflectionBase::IDataTypeHandler<DataType::Value>
+    {
+        virtual shared_string Description() const override { throw std::logic_error("TODO"); }
+        virtual shared_string AttributeValue(const std::string_view& /*key*/) const override { throw std::logic_error("TODO"); }
+        virtual shared_string Name() const override { return shared_string::make(::ReflectionBase::TypeTraits<T&>::Name()); }
+
+        virtual void  Write(void* /*ptr*/, Value const& /*value*/) const override { throw std::logic_error("TODO"); }
+        virtual Value Read(void* /*ptr*/) const override { throw std::logic_error("TODO"); }
 
         typename ::ReflectionBase::TypeTraits<T&>::Handler _handler;
     };

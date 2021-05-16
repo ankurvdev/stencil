@@ -8,6 +8,7 @@
 #pragma clang diagnostic ignored "-Weverything"
 #include <tinyxml2.h>
 #include <toml.hpp>
+#include <tsl/ordered_map.h>
 #pragma clang diagnostic pop
 #pragma warning(pop)
 
@@ -259,10 +260,10 @@ static void debug(YAML::Node const& node)
 }
 #endif
 
-static Generator::MutatorAccessorDefinition ParseMutatorAccessorDefinitionFromTomlNode(toml::value const& node, std::wstring&& key)
+template <typename TTableNode>
+static Generator::MutatorAccessorDefinition ParseMutatorAccessorDefinitionFromTomlNode(TTableNode const& node, std::wstring&& key)
 {
-    auto& valtbl = (node.as_table());
-
+    auto&                                valtbl = (node.as_table());
     Generator::MutatorAccessorDefinition val;
     val.name = std::move(key);
     val.id   = static_cast<uint8_t>(valtbl.at("Id").as_integer());
@@ -285,7 +286,8 @@ static Generator::MutatorAccessorDefinition ParseMutatorAccessorDefinitionFromTo
     return val;
 }
 
-static std::vector<Generator::MutatorAccessorDefinition> ParseMutatorAccessorDefinitionArrFromTomlNode(toml::value const& node)
+template <typename TTableNode>
+static std::vector<Generator::MutatorAccessorDefinition> ParseMutatorAccessorDefinitionArrFromTomlNode(TTableNode const& node)
 {
     std::vector<Generator::MutatorAccessorDefinition> valarr;
     for (auto [key, value] : node.as_table())
@@ -296,7 +298,7 @@ static std::vector<Generator::MutatorAccessorDefinition> ParseMutatorAccessorDef
     return valarr;
 }
 
-static Generator::ContainerTypeDecl ContainerTypeDeclFromTomlNode(toml::value const& node)
+template <typename TTableNode> static Generator::ContainerTypeDecl ContainerTypeDeclFromTomlNode(TTableNode const& node)
 {
     Generator::ContainerTypeDecl val;
     if (node.is_string())
@@ -338,7 +340,7 @@ static Generator::ContainerTypeDecl ContainerTypeDeclFromTomlNode(toml::value co
     return val;
 }
 
-static Generator::FieldTypeDecl FieldTypeDeclFromTomlNode(toml::value const& node)
+template <typename TTableNode> static Generator::FieldTypeDecl FieldTypeDeclFromTomlNode(TTableNode const& node)
 {
     Generator::FieldTypeDecl val;
 
@@ -379,7 +381,7 @@ void Generator::_AddTypeDefinitions(std::string_view const& /*name*/, std::strin
     std::string       tomltext(text);
     std::stringstream tomlstrm(tomltext);
 
-    auto config = toml::parse(tomlstrm);
+    auto config = toml::parse<toml::preserve_comments, tsl::ordered_map>(tomlstrm);
     for (auto [propname, node] : config.as_table())
     {
         if (propname == "FieldTypes")

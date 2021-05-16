@@ -46,6 +46,22 @@ void* GetExtensionData()
 //<Template file="zzFileNamezz.h">
 #pragma once
 #include <stencil/stencil.h>
+
+// SECTION START: DECLARATIONS
+#if true
+//<Struct>
+namespace zzProgram_Namezz::zzStruct_Namezz
+{
+struct Data;
+}
+template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzStruct_Namezz::Data&>;
+//</Struct>
+
+#endif
+// SECTION END: DECLARATIONS
+
+// SECTION START: Definitions
+#if true
 namespace zzProgram_Namezz
 {
 //<Struct>
@@ -126,19 +142,15 @@ struct Data :
         _zzNamezz = std::move(val);
     }
 
+#if 0
     //<FieldType_Mutator>
-    zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz&& args)
-    {
-        return Stencil::Mutators<zzField_FieldType_NativeTypezz>::zzNamezz(_zzField_Namezz, std::move(args));
-    }
+    zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz&& args);
     //</FieldType_Mutator>
 
     //<FieldType_Accessor>
-    zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz&& args)
-    {
-        return Stencil::Accessors<zzField_FieldType_NativeTypezz>::zzNamezz(_zzField_Namezz, args);
-    }
+    zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz const& args) const;
     //</FieldType_Accessor>
+#endif
     //</Field>
 };
 
@@ -273,7 +285,13 @@ struct zzInterface_Namezz_zzFunction_Namezz_Args
 
 //</Interface>
 }    // namespace zzProgram_Namezz
+#endif
+// SECTION END: Definitions
 
+// SECTION START: Template specializations
+#if true
+
+// SECTION:
 //<Interface>
 //<Function>
 template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzInterface_Namezz_zzFunction_Namezz_Args&>
@@ -424,46 +442,25 @@ template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzStruct_Namezz:
                                                                  >;
 };
 
-template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, zzProgram_Namezz::zzStruct_Namezz::Data>>>
+template <>
+struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz::Data> : Stencil::TransactionT<zzProgram_Namezz::zzStruct_Namezz::Data>
 {
-    using TData = T;
+    using TData = zzProgram_Namezz::zzStruct_Namezz::Data;
 
-    // TODO : Tentative: We hate pointers
-    TData* const _ptr;
-    // TODO : Better way to unify creation interface
-
-    std::bitset<TData::FieldCount() + 1> _fieldtracker;
     //<Field>
-    DeltaTracker<zzFieldType_NativeTypezz> _subtracker_zzNamezz;
+    Transaction<zzFieldType_NativeTypezz> _subtracker_zzNamezz;
     //</Field>
 
-    DELETE_COPY_AND_MOVE(DeltaTracker);
+    DELETE_COPY_AND_MOVE(Transaction);
 
-    DeltaTracker(TData* ptr) :
-        _ptr(ptr)
+    Transaction(TData& ptr, TransactionRecorder& rec) :
+        Stencil::TransactionT<zzProgram_Namezz::zzStruct_Namezz::Data>(ptr, rec)
         //<Field>
         ,
-        _subtracker_zzNamezz(&_ptr->zzNamezz())
+        _subtracker_zzNamezz(Obj().zzNamezz(), rec)
     //</Field>
     {
-        // TODO: Tentative
-        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
-
-    TData& Obj() { return *_ptr; }
-
-    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
-
-    size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _fieldtracker.any(); }
-
-    uint8_t MutatorIndex() const;
-    bool    OnlyHasDefaultMutator() const;
-
-    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
-
-    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -491,23 +488,18 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
 
     void set_zzNamezz(zzFieldType_NativeTypezz&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::zzField_Namezz, _ptr->zzNamezz(), val);
-        _ptr->set_zzNamezz(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::zzNamezz, Obj().zzNamezz(), val);
+        Obj().set_zzNamezz(std::move(val));
     }
 
     //<FieldType_Mutator>
     zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz&& args)
     {
-        Stencil::ObservablePropsT<TData>::OnMutationRequested(
-            *this, TData::FieldIndex::zzField_Namezz, uint8_t{zzIdzz}, _ptr->zzField_Namezz(), args);
-
-        return _ptr->zzNamezz_zzField_Namezz(std::move(args));
+        OnMutation_zzNamezz(TData::FieldIndex::zzField_Namezz, Obj().zzField_Namezz(), args);
+        return Stencil::Mutators<zzField_FieldType_NativeTypezz>::zzNamezz(
+            _subtracker_zzField_Namezz, Obj().zzField_Namezz(), std::move(args));
     }
     //</FieldType_Mutator>
-
-    //<FieldType_Accessor>
-    zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz&& args) const { return _ptr->zzNamezz_zzField_Namezz(args); }
-    //</FieldType_Accessor>
     //</Field>
 };
 
@@ -601,4 +593,12 @@ template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzUnion_Namezz::
                                                                 >;
 };
 //</Union>
+#endif
+// SECTION END: Template specializations
+
+// SECTION START: Inline Function Definitions
+#if true
+
+#endif
+// SECTION END: Inline Function Definitions
 //</Template>

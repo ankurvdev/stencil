@@ -1,5 +1,18 @@
 #pragma once
 #include <stencil/stencil.h>
+
+// SECTION START: DECLARATIONS
+#if true
+namespace UnionTest::Struct1
+{
+struct Data;
+}
+template <> struct ReflectionBase::TypeTraits<UnionTest::Struct1::Data&>;
+#endif
+// SECTION END: DECLARATIONS
+
+// SECTION START: Definitions
+#if true
 namespace UnionTest
 {
 namespace Struct1
@@ -64,6 +77,8 @@ struct Data :
         _field1 = std::move(val);
     }
 
+#if 0
+#endif
     private:
     shared_string _field2 = {};
 
@@ -81,6 +96,8 @@ struct Data :
         _field2 = std::move(val);
     }
 
+#if 0
+#endif
 };
 
 }    // namespace Struct1
@@ -163,7 +180,13 @@ struct Data : public ReflectionBase::ObjMarker
 };
 }    // namespace Union1
 }    // namespace UnionTest
+#endif
+// SECTION END: Definitions
 
+// SECTION START: Template specializations
+#if true
+
+// SECTION:
 template <> struct ReflectionBase::TypeTraits<UnionTest::Struct1::Data&>
 {
     struct Traits_field1
@@ -226,44 +249,23 @@ template <> struct ReflectionBase::TypeTraits<UnionTest::Struct1::Data&>
                                                                  >;
 };
 
-template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, UnionTest::Struct1::Data>>>
+template <>
+struct Stencil::Transaction<UnionTest::Struct1::Data> : Stencil::TransactionT<UnionTest::Struct1::Data>
 {
-    using TData = T;
+    using TData = UnionTest::Struct1::Data;
 
-    // TODO : Tentative: We hate pointers
-    TData* const _ptr;
-    // TODO : Better way to unify creation interface
+    Transaction<shared_string> _subtracker_field1;
+    Transaction<shared_string> _subtracker_field2;
+    DELETE_COPY_AND_MOVE(Transaction);
 
-    std::bitset<TData::FieldCount() + 1> _fieldtracker;
-    DeltaTracker<shared_string> _subtracker_field1;
-    DeltaTracker<shared_string> _subtracker_field2;
-    DELETE_COPY_AND_MOVE(DeltaTracker);
-
-    DeltaTracker(TData* ptr) :
-        _ptr(ptr)
+    Transaction(TData& ptr, TransactionRecorder& rec) :
+        Stencil::TransactionT<UnionTest::Struct1::Data>(ptr, rec)
         ,
-        _subtracker_field1(&_ptr->field1())
+        _subtracker_field1(Obj().field1(), rec)
         ,
-        _subtracker_field2(&_ptr->field2())
+        _subtracker_field2(Obj().field2(), rec)
     {
-        // TODO: Tentative
-        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
-
-    TData& Obj() { return *_ptr; }
-
-    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
-
-    size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _fieldtracker.any(); }
-
-    uint8_t MutatorIndex() const;
-    bool    OnlyHasDefaultMutator() const;
-
-    void MarkFieldChanged(typename TData::FieldIndex index) { _fieldtracker.set(static_cast<size_t>(index)); }
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _fieldtracker.test(static_cast<size_t>(index)); }
-
-    size_t CountFieldsChanged() const { return _fieldtracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -287,14 +289,14 @@ template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_s
 
     void set_field1(shared_string&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::field1, _ptr->field1(), val);
-        _ptr->set_field1(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::field1, Obj().field1(), val);
+        Obj().set_field1(std::move(val));
     }
 
     void set_field2(shared_string&& val)
     {
-        Stencil::ObservablePropsT<TData>::OnChangeRequested(*this, TData::FieldIndex::field2, _ptr->field2(), val);
-        _ptr->set_field2(std::move(val));
+        OnStructFieldChangeRequested(TData::FieldIndex::field2, Obj().field2(), val);
+        Obj().set_field2(std::move(val));
     }
 
 };
@@ -387,3 +389,11 @@ template <> struct ReflectionBase::TypeTraits<UnionTest::Union1::Data&>
 ,                                                                Traits_field2
                                                                 >;
 };
+#endif
+// SECTION END: Template specializations
+
+// SECTION START: Inline Function Definitions
+#if true
+
+#endif
+// SECTION END: Inline Function Definitions

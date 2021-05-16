@@ -131,7 +131,6 @@ macro (SupressWarningForFile f)
     endif()
 endmacro()
 
-
 macro (SupressWarningForTarget targetName)
     message(STATUS "Suppressing Warnings for ${targetName}")
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
@@ -150,7 +149,7 @@ function(init_submodule path)
     find_package(Git QUIET REQUIRED)
     execute_process(
         COMMAND "${GIT_EXECUTABLE}" submodule update --init --recursive --single-branch "${path}"
-        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
         COMMAND_ERROR_IS_FATAL ANY
     )
 endfunction()
