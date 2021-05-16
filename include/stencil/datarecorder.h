@@ -285,7 +285,7 @@ template <typename... Ts> struct DataPlayerT : std::enable_shared_from_this<Data
 
     template <typename T> auto ReadChangeDescAndNotify(T& obj, std::span<const uint8_t>::iterator const& dataIt)
     {
-        Stencil::NullTransactionRecorder<T> recorder;
+        Stencil::NullTransactionRecorder recorder;
         auto                                ctx = recorder.Start(obj);
         return PatchHandler<T>::Apply(ctx, dataIt);
     }

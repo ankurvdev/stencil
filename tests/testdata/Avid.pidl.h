@@ -59,7 +59,6 @@ namespace GPS
 {
 
 struct Data :
-    public ::Stencil::ObservablePropsT<::Avid::GPS::Data>,
     public ::Stencil::OptionalPropsT<::Avid::GPS::Data>,
     public ::Stencil::TimestampedT<::Avid::GPS::Data>,
     public ReflectionBase::ObjMarker
@@ -443,7 +442,6 @@ namespace Aircraft
 {
 
 struct Data :
-    public ::Stencil::ObservablePropsT<::Avid::Aircraft::Data>,
     public ::Stencil::TimestampedT<::Avid::Aircraft::Data>,
     public ReflectionBase::ObjMarker
 {
@@ -874,7 +872,6 @@ namespace Traffic
 {
 
 struct Data :
-    public ::Stencil::ObservablePropsT<::Avid::Traffic::Data>,
     public ::Stencil::TimestampedT<::Avid::Traffic::Data>,
     public ReflectionBase::ObjMarker
 {
@@ -939,7 +936,6 @@ namespace Motion
 {
 
 struct Data :
-    public ::Stencil::ObservablePropsT<::Avid::Motion::Data>,
     public ::Stencil::TimestampedT<::Avid::Motion::Data>,
     public ReflectionBase::ObjMarker
 {
@@ -1391,7 +1387,6 @@ namespace Pressure
 {
 
 struct Data :
-    public ::Stencil::ObservablePropsT<::Avid::Pressure::Data>,
     public ::Stencil::OptionalPropsT<::Avid::Pressure::Data>,
     public ::Stencil::TimestampedT<::Avid::Pressure::Data>,
     public ReflectionBase::ObjMarker

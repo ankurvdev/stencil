@@ -83,7 +83,7 @@ template <typename TObj> struct FileTransactionRecorder : TransactionRecorder
     std::chrono::system_clock::time_point _lastnotif = _init_time;
 };
 
-template <typename TObj = void> struct NullTransactionRecorder : TransactionRecorder
+struct NullTransactionRecorder : TransactionRecorder
 {
     NullTransactionRecorder() = default;
     virtual void Write_(std::span<uint8_t const> /*buffer*/) override {}
