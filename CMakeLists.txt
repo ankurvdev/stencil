@@ -29,7 +29,7 @@ if (NOT toml11_FOUND)
 endif()
 
 find_package(tsl-ordered-map QUIET)
-if (NOT tsl_ordered_map_FOUND)
+if (NOT tsl-ordered-map_FOUND)
     init_submodule(external/ordered-map)
     add_library(tsl_ordered_map INTERFACE)
     add_library(tsl::ordered_map ALIAS tsl_ordered_map)
