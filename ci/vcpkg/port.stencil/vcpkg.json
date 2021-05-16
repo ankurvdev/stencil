@@ -4,6 +4,7 @@
     "description": "Stencil",
     "dependencies": [
         "toml11",
+        "tsl-ordered-map",
         "tinyxml2",
         "cxxopts",
         "cpp-httplib",
