@@ -1,8 +1,9 @@
 #pragma once
 #include "base.h"
+
 namespace Stencil
 {
-template <typename T> struct Visitor
+template <typename T> struct VisitorT
 {
     static constexpr auto GetPtrType()
     {
@@ -63,7 +64,7 @@ template <typename T> struct Visitor
         Mode                                                                       mode;
     };
 
-    Visitor(T& obj) { _stack.push_back(StateStack{&_rootHandler, static_cast<decltype(GetPtrType())>(&obj), Mode::Obj}); }
+    VisitorT(T& obj) { _stack.push_back(StateStack{&_rootHandler, static_cast<decltype(GetPtrType())>(&obj), Mode::Obj}); }
 
     bool TrySelect(Value const& val)
     {
@@ -107,7 +108,7 @@ template <typename T> struct Visitor
         throw std::runtime_error("Unsupported Data Type");
     }
 
-    Visitor& Select(Value const& val)
+    VisitorT& Select(Value const& val)
     {
         if (!TrySelect(val))
         {
@@ -116,7 +117,7 @@ template <typename T> struct Visitor
         return *this;
     }
 
-    template <typename TKey, typename TSerDes> Visitor& Select(TKey const& key)
+    template <typename TKey, typename TSerDes> VisitorT& Select(TKey const& key)
     {
         if constexpr (Value::Supported<TKey>::value)
         {
@@ -129,7 +130,7 @@ template <typename T> struct Visitor
         }
     }
 
-    Visitor& GoBackUp()
+    VisitorT& GoBackUp()
     {
         _stack.pop_back();
         return *this;
@@ -197,4 +198,47 @@ template <typename T> struct Visitor
     typename ReflectionBase::TypeTraits<std::remove_const_t<T>&>::Handler _rootHandler;
     std::vector<StateStack>                                               _stack;
 };
+template <typename T, typename = void> struct Visitor;
+
+template <typename T> struct Visitor<T, std::enable_if_t<Value::Supported<T>::value>> : VisitorT<T>
+{
+    Visitor(T& obj) : VisitorT<T>(obj) {}
+};
+
+template <typename T> struct Visitor<T const, std::enable_if_t<Value::Supported<T>::value>> : VisitorT<T const>
+{
+    Visitor(T const& obj) : VisitorT<T const>(obj) {}
+};
+
+template <typename T> struct Visitor<std::vector<T> const> : VisitorT<std::vector<T> const>
+{
+    Visitor(std::vector<T> const& obj) : VisitorT<std::vector<T> const>(obj), _ref(obj) {}
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        for (size_t i = 0; i < _ref.get().size(); i++)
+        {
+            lambda(i, _ref.get().at(i));
+        }
+    }
+
+    std::reference_wrapper<std::vector<T> const> _ref;
+};
+
+template <typename T, size_t N> struct Visitor<std::array<T, N> const> : VisitorT<std::array<T, N> const>
+{
+    using TData = std::array<T, N>;
+
+    Visitor(TData const& obj) : VisitorT<TData const>(obj), _ref(obj) {}
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        for (size_t i = 0; i < _ref.get().size(); i++)
+        {
+            lambda(i, _ref.get().at(i));
+        }
+    }
+    std::reference_wrapper<TData> _ref;
+};
+
 }    // namespace Stencil
