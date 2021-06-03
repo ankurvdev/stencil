@@ -532,6 +532,68 @@ struct Stencil::Transaction<Metadata::MapPoint::Data> : Stencil::TransactionT<Me
 
 };
 
+template <>
+struct Stencil::Visitor<Metadata::MapPoint::Data, void> : Stencil::VisitorT<Metadata::MapPoint::Data>
+{
+    using TData = Metadata::MapPoint::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::latitude: lambda("latitude", _ref.get().latitude()); return;
+        case TData::FieldIndex::longitude: lambda("longitude", _ref.get().longitude()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::latitude: lambda("latitude", _ref.get().latitude()); return;
+        case TData::FieldIndex::longitude: lambda("longitude", _ref.get().longitude()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("latitude", _ref.get().latitude());
+        lambda("longitude", _ref.get().longitude());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const Metadata::MapPoint::Data, void> : Stencil::VisitorT<const Metadata::MapPoint::Data>
+{
+    using TData = Metadata::MapPoint::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::latitude: lambda("latitude", _ref.get().latitude()); return;
+        case TData::FieldIndex::longitude: lambda("longitude", _ref.get().longitude()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("latitude", _ref.get().latitude());
+        lambda("longitude", _ref.get().longitude());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
 template <> struct ReflectionBase::TypeTraits<Metadata::GeographicalArea::Data&>
 {
     struct Traits_type
@@ -676,6 +738,73 @@ struct Stencil::Transaction<Metadata::GeographicalArea::Data> : Stencil::Transac
         Obj().set_areaPolygon(std::move(val));
     }
 
+};
+
+template <>
+struct Stencil::Visitor<Metadata::GeographicalArea::Data, void> : Stencil::VisitorT<Metadata::GeographicalArea::Data>
+{
+    using TData = Metadata::GeographicalArea::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::type: lambda("type", _ref.get().type()); return;
+        case TData::FieldIndex::name: lambda("name", _ref.get().name()); return;
+        case TData::FieldIndex::areaPolygon: lambda("areaPolygon", _ref.get().areaPolygon()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::type: lambda("type", _ref.get().type()); return;
+        case TData::FieldIndex::name: lambda("name", _ref.get().name()); return;
+        case TData::FieldIndex::areaPolygon: lambda("areaPolygon", _ref.get().areaPolygon()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("type", _ref.get().type());
+        lambda("name", _ref.get().name());
+        lambda("areaPolygon", _ref.get().areaPolygon());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const Metadata::GeographicalArea::Data, void> : Stencil::VisitorT<const Metadata::GeographicalArea::Data>
+{
+    using TData = Metadata::GeographicalArea::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::type: lambda("type", _ref.get().type()); return;
+        case TData::FieldIndex::name: lambda("name", _ref.get().name()); return;
+        case TData::FieldIndex::areaPolygon: lambda("areaPolygon", _ref.get().areaPolygon()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("type", _ref.get().type());
+        lambda("name", _ref.get().name());
+        lambda("areaPolygon", _ref.get().areaPolygon());
+    }
+
+    std::reference_wrapper<TData> _ref;
 };
 
 template <> struct ReflectionBase::TypeTraits<Metadata::DigitalAssetInfo::Data&>
@@ -918,6 +1047,88 @@ struct Stencil::Transaction<Metadata::DigitalAssetInfo::Data> : Stencil::Transac
         Obj().set_fileUrl(std::move(val));
     }
 
+};
+
+template <>
+struct Stencil::Visitor<Metadata::DigitalAssetInfo::Data, void> : Stencil::VisitorT<Metadata::DigitalAssetInfo::Data>
+{
+    using TData = Metadata::DigitalAssetInfo::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::id: lambda("id", _ref.get().id()); return;
+        case TData::FieldIndex::keywords: lambda("keywords", _ref.get().keywords()); return;
+        case TData::FieldIndex::location: lambda("location", _ref.get().location()); return;
+        case TData::FieldIndex::md5sum: lambda("md5sum", _ref.get().md5sum()); return;
+        case TData::FieldIndex::thumbnailBlob: lambda("thumbnailBlob", _ref.get().thumbnailBlob()); return;
+        case TData::FieldIndex::fileUrl: lambda("fileUrl", _ref.get().fileUrl()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::id: lambda("id", _ref.get().id()); return;
+        case TData::FieldIndex::keywords: lambda("keywords", _ref.get().keywords()); return;
+        case TData::FieldIndex::location: lambda("location", _ref.get().location()); return;
+        case TData::FieldIndex::md5sum: lambda("md5sum", _ref.get().md5sum()); return;
+        case TData::FieldIndex::thumbnailBlob: lambda("thumbnailBlob", _ref.get().thumbnailBlob()); return;
+        case TData::FieldIndex::fileUrl: lambda("fileUrl", _ref.get().fileUrl()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("id", _ref.get().id());
+        lambda("keywords", _ref.get().keywords());
+        lambda("location", _ref.get().location());
+        lambda("md5sum", _ref.get().md5sum());
+        lambda("thumbnailBlob", _ref.get().thumbnailBlob());
+        lambda("fileUrl", _ref.get().fileUrl());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const Metadata::DigitalAssetInfo::Data, void> : Stencil::VisitorT<const Metadata::DigitalAssetInfo::Data>
+{
+    using TData = Metadata::DigitalAssetInfo::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::id: lambda("id", _ref.get().id()); return;
+        case TData::FieldIndex::keywords: lambda("keywords", _ref.get().keywords()); return;
+        case TData::FieldIndex::location: lambda("location", _ref.get().location()); return;
+        case TData::FieldIndex::md5sum: lambda("md5sum", _ref.get().md5sum()); return;
+        case TData::FieldIndex::thumbnailBlob: lambda("thumbnailBlob", _ref.get().thumbnailBlob()); return;
+        case TData::FieldIndex::fileUrl: lambda("fileUrl", _ref.get().fileUrl()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("id", _ref.get().id());
+        lambda("keywords", _ref.get().keywords());
+        lambda("location", _ref.get().location());
+        lambda("md5sum", _ref.get().md5sum());
+        lambda("thumbnailBlob", _ref.get().thumbnailBlob());
+        lambda("fileUrl", _ref.get().fileUrl());
+    }
+
+    std::reference_wrapper<TData> _ref;
 };
 
 #endif

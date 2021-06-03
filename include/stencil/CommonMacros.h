@@ -39,3 +39,4 @@
     name(name&&)      = default;           \
     name& operator=(name const&) = delete; \
     name& operator=(name&&) = delete
+

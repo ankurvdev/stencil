@@ -802,6 +802,83 @@ struct Stencil::Transaction<CLOpts1::CommandLineOptions::Data> : Stencil::Transa
 
 };
 
+template <>
+struct Stencil::Visitor<CLOpts1::CommandLineOptions::Data, void> : Stencil::VisitorT<CLOpts1::CommandLineOptions::Data>
+{
+    using TData = CLOpts1::CommandLineOptions::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::workingDirectory: lambda("workingDirectory", _ref.get().workingDirectory()); return;
+        case TData::FieldIndex::libraries: lambda("libraries", _ref.get().libraries()); return;
+        case TData::FieldIndex::scan: lambda("scan", _ref.get().scan()); return;
+        case TData::FieldIndex::httpsPort: lambda("httpsPort", _ref.get().httpsPort()); return;
+        case TData::FieldIndex::daemon: lambda("daemon", _ref.get().daemon()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::workingDirectory: lambda("workingDirectory", _ref.get().workingDirectory()); return;
+        case TData::FieldIndex::libraries: lambda("libraries", _ref.get().libraries()); return;
+        case TData::FieldIndex::scan: lambda("scan", _ref.get().scan()); return;
+        case TData::FieldIndex::httpsPort: lambda("httpsPort", _ref.get().httpsPort()); return;
+        case TData::FieldIndex::daemon: lambda("daemon", _ref.get().daemon()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("workingDirectory", _ref.get().workingDirectory());
+        lambda("libraries", _ref.get().libraries());
+        lambda("scan", _ref.get().scan());
+        lambda("httpsPort", _ref.get().httpsPort());
+        lambda("daemon", _ref.get().daemon());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const CLOpts1::CommandLineOptions::Data, void> : Stencil::VisitorT<const CLOpts1::CommandLineOptions::Data>
+{
+    using TData = CLOpts1::CommandLineOptions::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::workingDirectory: lambda("workingDirectory", _ref.get().workingDirectory()); return;
+        case TData::FieldIndex::libraries: lambda("libraries", _ref.get().libraries()); return;
+        case TData::FieldIndex::scan: lambda("scan", _ref.get().scan()); return;
+        case TData::FieldIndex::httpsPort: lambda("httpsPort", _ref.get().httpsPort()); return;
+        case TData::FieldIndex::daemon: lambda("daemon", _ref.get().daemon()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("workingDirectory", _ref.get().workingDirectory());
+        lambda("libraries", _ref.get().libraries());
+        lambda("scan", _ref.get().scan());
+        lambda("httpsPort", _ref.get().httpsPort());
+        lambda("daemon", _ref.get().daemon());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
 template <> struct ReflectionBase::TypeTraits<CLOpts1::SimpleObj::Data&>
 {
     struct Traits_field1
@@ -916,6 +993,68 @@ struct Stencil::Transaction<CLOpts1::SimpleObj::Data> : Stencil::TransactionT<CL
 
 };
 
+template <>
+struct Stencil::Visitor<CLOpts1::SimpleObj::Data, void> : Stencil::VisitorT<CLOpts1::SimpleObj::Data>
+{
+    using TData = CLOpts1::SimpleObj::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::field1: lambda("field1", _ref.get().field1()); return;
+        case TData::FieldIndex::field2: lambda("field2", _ref.get().field2()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::field1: lambda("field1", _ref.get().field1()); return;
+        case TData::FieldIndex::field2: lambda("field2", _ref.get().field2()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("field1", _ref.get().field1());
+        lambda("field2", _ref.get().field2());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const CLOpts1::SimpleObj::Data, void> : Stencil::VisitorT<const CLOpts1::SimpleObj::Data>
+{
+    using TData = CLOpts1::SimpleObj::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::field1: lambda("field1", _ref.get().field1()); return;
+        case TData::FieldIndex::field2: lambda("field2", _ref.get().field2()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("field1", _ref.get().field1());
+        lambda("field2", _ref.get().field2());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
 template <> struct ReflectionBase::TypeTraits<CLOpts1::ObjWithList::Data&>
 {
     struct Traits_field1
@@ -1014,6 +1153,63 @@ struct Stencil::Transaction<CLOpts1::ObjWithList::Data> : Stencil::TransactionT<
         return Stencil::Mutators<std::vector<shared_string>>::edit(
             _subtracker_field1, Obj().field1(), std::move(args));
     }
+};
+
+template <>
+struct Stencil::Visitor<CLOpts1::ObjWithList::Data, void> : Stencil::VisitorT<CLOpts1::ObjWithList::Data>
+{
+    using TData = CLOpts1::ObjWithList::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::field1: lambda("field1", _ref.get().field1()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::field1: lambda("field1", _ref.get().field1()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("field1", _ref.get().field1());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const CLOpts1::ObjWithList::Data, void> : Stencil::VisitorT<const CLOpts1::ObjWithList::Data>
+{
+    using TData = CLOpts1::ObjWithList::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::field1: lambda("field1", _ref.get().field1()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("field1", _ref.get().field1());
+    }
+
+    std::reference_wrapper<TData> _ref;
 };
 
 template <> struct ReflectionBase::TypeTraits<CLOpts1::CLOptsTest::Data&>
@@ -1310,6 +1506,88 @@ struct Stencil::Transaction<CLOpts1::CLOptsTest::Data> : Stencil::TransactionT<C
         Obj().set_key2(std::move(val));
     }
 
+};
+
+template <>
+struct Stencil::Visitor<CLOpts1::CLOptsTest::Data, void> : Stencil::VisitorT<CLOpts1::CLOptsTest::Data>
+{
+    using TData = CLOpts1::CLOptsTest::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::key1: lambda("key1", _ref.get().key1()); return;
+        case TData::FieldIndex::listofint: lambda("listofint", _ref.get().listofint()); return;
+        case TData::FieldIndex::listoflist: lambda("listoflist", _ref.get().listoflist()); return;
+        case TData::FieldIndex::listofobj: lambda("listofobj", _ref.get().listofobj()); return;
+        case TData::FieldIndex::objoflist: lambda("objoflist", _ref.get().objoflist()); return;
+        case TData::FieldIndex::key2: lambda("key2", _ref.get().key2()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::key1: lambda("key1", _ref.get().key1()); return;
+        case TData::FieldIndex::listofint: lambda("listofint", _ref.get().listofint()); return;
+        case TData::FieldIndex::listoflist: lambda("listoflist", _ref.get().listoflist()); return;
+        case TData::FieldIndex::listofobj: lambda("listofobj", _ref.get().listofobj()); return;
+        case TData::FieldIndex::objoflist: lambda("objoflist", _ref.get().objoflist()); return;
+        case TData::FieldIndex::key2: lambda("key2", _ref.get().key2()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("key1", _ref.get().key1());
+        lambda("listofint", _ref.get().listofint());
+        lambda("listoflist", _ref.get().listoflist());
+        lambda("listofobj", _ref.get().listofobj());
+        lambda("objoflist", _ref.get().objoflist());
+        lambda("key2", _ref.get().key2());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const CLOpts1::CLOptsTest::Data, void> : Stencil::VisitorT<const CLOpts1::CLOptsTest::Data>
+{
+    using TData = CLOpts1::CLOptsTest::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::key1: lambda("key1", _ref.get().key1()); return;
+        case TData::FieldIndex::listofint: lambda("listofint", _ref.get().listofint()); return;
+        case TData::FieldIndex::listoflist: lambda("listoflist", _ref.get().listoflist()); return;
+        case TData::FieldIndex::listofobj: lambda("listofobj", _ref.get().listofobj()); return;
+        case TData::FieldIndex::objoflist: lambda("objoflist", _ref.get().objoflist()); return;
+        case TData::FieldIndex::key2: lambda("key2", _ref.get().key2()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("key1", _ref.get().key1());
+        lambda("listofint", _ref.get().listofint());
+        lambda("listoflist", _ref.get().listoflist());
+        lambda("listofobj", _ref.get().listofobj());
+        lambda("objoflist", _ref.get().objoflist());
+        lambda("key2", _ref.get().key2());
+    }
+
+    std::reference_wrapper<TData> _ref;
 };
 
 #endif

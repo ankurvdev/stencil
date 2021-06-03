@@ -980,6 +980,83 @@ struct Stencil::Transaction<CLOpts2::InstallOptions::Data> : Stencil::Transactio
 
 };
 
+template <>
+struct Stencil::Visitor<CLOpts2::InstallOptions::Data, void> : Stencil::VisitorT<CLOpts2::InstallOptions::Data>
+{
+    using TData = CLOpts2::InstallOptions::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Repair: lambda("Repair", _ref.get().Repair()); return;
+        case TData::FieldIndex::ForceNonSD: lambda("ForceNonSD", _ref.get().ForceNonSD()); return;
+        case TData::FieldIndex::TargetVolume: lambda("TargetVolume", _ref.get().TargetVolume()); return;
+        case TData::FieldIndex::User: lambda("User", _ref.get().User()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Repair: lambda("Repair", _ref.get().Repair()); return;
+        case TData::FieldIndex::ForceNonSD: lambda("ForceNonSD", _ref.get().ForceNonSD()); return;
+        case TData::FieldIndex::TargetVolume: lambda("TargetVolume", _ref.get().TargetVolume()); return;
+        case TData::FieldIndex::User: lambda("User", _ref.get().User()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+        lambda("Repair", _ref.get().Repair());
+        lambda("ForceNonSD", _ref.get().ForceNonSD());
+        lambda("TargetVolume", _ref.get().TargetVolume());
+        lambda("User", _ref.get().User());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const CLOpts2::InstallOptions::Data, void> : Stencil::VisitorT<const CLOpts2::InstallOptions::Data>
+{
+    using TData = CLOpts2::InstallOptions::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Repair: lambda("Repair", _ref.get().Repair()); return;
+        case TData::FieldIndex::ForceNonSD: lambda("ForceNonSD", _ref.get().ForceNonSD()); return;
+        case TData::FieldIndex::TargetVolume: lambda("TargetVolume", _ref.get().TargetVolume()); return;
+        case TData::FieldIndex::User: lambda("User", _ref.get().User()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+        lambda("Repair", _ref.get().Repair());
+        lambda("ForceNonSD", _ref.get().ForceNonSD());
+        lambda("TargetVolume", _ref.get().TargetVolume());
+        lambda("User", _ref.get().User());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
 template <> struct ReflectionBase::TypeTraits<CLOpts2::QueueOptions::Data&>
 {
     struct Traits_ProductId
@@ -1062,6 +1139,63 @@ struct Stencil::Transaction<CLOpts2::QueueOptions::Data> : Stencil::TransactionT
         Obj().set_ProductId(std::move(val));
     }
 
+};
+
+template <>
+struct Stencil::Visitor<CLOpts2::QueueOptions::Data, void> : Stencil::VisitorT<CLOpts2::QueueOptions::Data>
+{
+    using TData = CLOpts2::QueueOptions::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const CLOpts2::QueueOptions::Data, void> : Stencil::VisitorT<const CLOpts2::QueueOptions::Data>
+{
+    using TData = CLOpts2::QueueOptions::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+    }
+
+    std::reference_wrapper<TData> _ref;
 };
 
 template <> struct ReflectionBase::TypeTraits<CLOpts2::PauseOptions::Data&>
@@ -1147,6 +1281,63 @@ struct Stencil::Transaction<CLOpts2::PauseOptions::Data> : Stencil::TransactionT
 
 };
 
+template <>
+struct Stencil::Visitor<CLOpts2::PauseOptions::Data, void> : Stencil::VisitorT<CLOpts2::PauseOptions::Data>
+{
+    using TData = CLOpts2::PauseOptions::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const CLOpts2::PauseOptions::Data, void> : Stencil::VisitorT<const CLOpts2::PauseOptions::Data>
+{
+    using TData = CLOpts2::PauseOptions::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
 template <> struct ReflectionBase::TypeTraits<CLOpts2::CancelOptions::Data&>
 {
     struct Traits_ProductId
@@ -1230,6 +1421,63 @@ struct Stencil::Transaction<CLOpts2::CancelOptions::Data> : Stencil::Transaction
 
 };
 
+template <>
+struct Stencil::Visitor<CLOpts2::CancelOptions::Data, void> : Stencil::VisitorT<CLOpts2::CancelOptions::Data>
+{
+    using TData = CLOpts2::CancelOptions::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const CLOpts2::CancelOptions::Data, void> : Stencil::VisitorT<const CLOpts2::CancelOptions::Data>
+{
+    using TData = CLOpts2::CancelOptions::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
 template <> struct ReflectionBase::TypeTraits<CLOpts2::ResumeOptions::Data&>
 {
     struct Traits_ProductId
@@ -1311,6 +1559,63 @@ struct Stencil::Transaction<CLOpts2::ResumeOptions::Data> : Stencil::Transaction
         Obj().set_ProductId(std::move(val));
     }
 
+};
+
+template <>
+struct Stencil::Visitor<CLOpts2::ResumeOptions::Data, void> : Stencil::VisitorT<CLOpts2::ResumeOptions::Data>
+{
+    using TData = CLOpts2::ResumeOptions::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const CLOpts2::ResumeOptions::Data, void> : Stencil::VisitorT<const CLOpts2::ResumeOptions::Data>
+{
+    using TData = CLOpts2::ResumeOptions::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+    }
+
+    std::reference_wrapper<TData> _ref;
 };
 
 template <> struct ReflectionBase::TypeTraits<CLOpts2::UpdateOptions::Data&>
@@ -1397,6 +1702,63 @@ struct Stencil::Transaction<CLOpts2::UpdateOptions::Data> : Stencil::Transaction
 
 };
 
+template <>
+struct Stencil::Visitor<CLOpts2::UpdateOptions::Data, void> : Stencil::VisitorT<CLOpts2::UpdateOptions::Data>
+{
+    using TData = CLOpts2::UpdateOptions::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const CLOpts2::UpdateOptions::Data, void> : Stencil::VisitorT<const CLOpts2::UpdateOptions::Data>
+{
+    using TData = CLOpts2::UpdateOptions::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
 template <> struct ReflectionBase::TypeTraits<CLOpts2::HydrateOptions::Data&>
 {
     struct Traits_ProductId
@@ -1478,6 +1840,63 @@ struct Stencil::Transaction<CLOpts2::HydrateOptions::Data> : Stencil::Transactio
         Obj().set_ProductId(std::move(val));
     }
 
+};
+
+template <>
+struct Stencil::Visitor<CLOpts2::HydrateOptions::Data, void> : Stencil::VisitorT<CLOpts2::HydrateOptions::Data>
+{
+    using TData = CLOpts2::HydrateOptions::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const CLOpts2::HydrateOptions::Data, void> : Stencil::VisitorT<const CLOpts2::HydrateOptions::Data>
+{
+    using TData = CLOpts2::HydrateOptions::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+    }
+
+    std::reference_wrapper<TData> _ref;
 };
 
 template <> struct ReflectionServices::EnumTraits<CLOpts2::CommandLineOptions::UnionType>
@@ -1679,6 +2098,95 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::Data&
 ,                                                                Traits_hydrate
                                                                 >;
 };
+
+template <>
+struct Stencil::Visitor<CLOpts2::CommandLineOptions::Data, void> : Stencil::VisitorT<CLOpts2::CommandLineOptions::Data>
+{
+    using TData = CLOpts2::CommandLineOptions::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::install: lambda("install", _ref.get().install()); return;
+        case TData::FieldIndex::queue: lambda("queue", _ref.get().queue()); return;
+        case TData::FieldIndex::pause: lambda("pause", _ref.get().pause()); return;
+        case TData::FieldIndex::cancel: lambda("cancel", _ref.get().cancel()); return;
+        case TData::FieldIndex::resume: lambda("resume", _ref.get().resume()); return;
+        case TData::FieldIndex::update: lambda("update", _ref.get().update()); return;
+        case TData::FieldIndex::hydrate: lambda("hydrate", _ref.get().hydrate()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::install: lambda("install", _ref.get().install()); return;
+        case TData::FieldIndex::queue: lambda("queue", _ref.get().queue()); return;
+        case TData::FieldIndex::pause: lambda("pause", _ref.get().pause()); return;
+        case TData::FieldIndex::cancel: lambda("cancel", _ref.get().cancel()); return;
+        case TData::FieldIndex::resume: lambda("resume", _ref.get().resume()); return;
+        case TData::FieldIndex::update: lambda("update", _ref.get().update()); return;
+        case TData::FieldIndex::hydrate: lambda("hydrate", _ref.get().hydrate()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("install", _ref.get().install());
+        lambda("queue", _ref.get().queue());
+        lambda("pause", _ref.get().pause());
+        lambda("cancel", _ref.get().cancel());
+        lambda("resume", _ref.get().resume());
+        lambda("update", _ref.get().update());
+        lambda("hydrate", _ref.get().hydrate());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const CLOpts2::CommandLineOptions::Data, void>
+    : Stencil::VisitorT<const CLOpts2::CommandLineOptions::Data>
+{
+    using TData = CLOpts2::CommandLineOptions::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::install: lambda("install", _ref.get().install()); return;
+        case TData::FieldIndex::queue: lambda("queue", _ref.get().queue()); return;
+        case TData::FieldIndex::pause: lambda("pause", _ref.get().pause()); return;
+        case TData::FieldIndex::cancel: lambda("cancel", _ref.get().cancel()); return;
+        case TData::FieldIndex::resume: lambda("resume", _ref.get().resume()); return;
+        case TData::FieldIndex::update: lambda("update", _ref.get().update()); return;
+        case TData::FieldIndex::hydrate: lambda("hydrate", _ref.get().hydrate()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("install", _ref.get().install());
+        lambda("queue", _ref.get().queue());
+        lambda("pause", _ref.get().pause());
+        lambda("cancel", _ref.get().cancel());
+        lambda("resume", _ref.get().resume());
+        lambda("update", _ref.get().update());
+        lambda("hydrate", _ref.get().hydrate());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
 #endif
 // SECTION END: Template specializations
 

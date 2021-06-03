@@ -3,7 +3,8 @@
 #include "visitor.h"
 
 #include <deque>
-#include <format>
+#include <sstream>
+
 class JsonDataModel;
 
 #ifdef USE_NLOHMANN_JSON
@@ -215,8 +216,9 @@ struct Json
     {
         static std::string Stringify(const std::chrono::time_point<TClk>& obj)
         {
-            // return std::format("\"{:%FT%TZ}\"", std::chrono::time_point_cast<std::chrono::milliseconds>(obj));
-            return std::format("\"{:%FT%TZ}\"", obj);
+            auto val = std::chrono::duration_cast<std::chrono::nanoseconds>(obj.time_since_epoch()).count();
+	    return std::to_string(val);
+            //return fmt::format("\"{:%FT%TZ}\"", obj);
         }
     };
 
