@@ -339,6 +339,68 @@ struct Stencil::Transaction<SimpleWebService::Data::Data> : Stencil::Transaction
 
 };
 
+template <>
+struct Stencil::Visitor<SimpleWebService::Data::Data, void> : Stencil::VisitorT<SimpleWebService::Data::Data>
+{
+    using TData = SimpleWebService::Data::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::randomInteger: lambda("randomInteger", _ref.get().randomInteger()); return;
+        case TData::FieldIndex::randomString: lambda("randomString", _ref.get().randomString()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::randomInteger: lambda("randomInteger", _ref.get().randomInteger()); return;
+        case TData::FieldIndex::randomString: lambda("randomString", _ref.get().randomString()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("randomInteger", _ref.get().randomInteger());
+        lambda("randomString", _ref.get().randomString());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const SimpleWebService::Data::Data, void> : Stencil::VisitorT<const SimpleWebService::Data::Data>
+{
+    using TData = SimpleWebService::Data::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::randomInteger: lambda("randomInteger", _ref.get().randomInteger()); return;
+        case TData::FieldIndex::randomString: lambda("randomString", _ref.get().randomString()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("randomInteger", _ref.get().randomInteger());
+        lambda("randomString", _ref.get().randomString());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
 #endif
 // SECTION END: Template specializations
 

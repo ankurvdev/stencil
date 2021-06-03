@@ -503,6 +503,73 @@ struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz::Data> : Stencil::
     //</Field>
 };
 
+template <>
+struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz::Data, void> : Stencil::VisitorT<zzProgram_Namezz::zzStruct_Namezz::Data>
+{
+    using TData = zzProgram_Namezz::zzStruct_Namezz::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        //<Field>
+        case TData::FieldIndex::zzNamezz: lambda("zzNamezz", _ref.get().zzNamezz()); return;
+        //</Field>
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        //<Field>
+        case TData::FieldIndex::zzNamezz: lambda("zzNamezz", _ref.get().zzNamezz()); return;
+        //</Field>
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        //<Field>
+        lambda("zzNamezz", _ref.get().zzNamezz());
+        //</Field>
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const zzProgram_Namezz::zzStruct_Namezz::Data, void> : Stencil::VisitorT<const zzProgram_Namezz::zzStruct_Namezz::Data>
+{
+    using TData = zzProgram_Namezz::zzStruct_Namezz::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        //<Field>
+        case TData::FieldIndex::zzNamezz: lambda("zzNamezz", _ref.get().zzNamezz()); return;
+        //</Field>
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        //<Field>
+        lambda("zzNamezz", _ref.get().zzNamezz());
+        //</Field>
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
 //</Struct>
 //<Union>
 
@@ -592,6 +659,75 @@ template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzUnion_Namezz::
                                                                 //</Field>
                                                                 >;
 };
+
+template <>
+struct Stencil::Visitor<zzProgram_Namezz::zzUnion_Namezz::Data, void> : Stencil::VisitorT<zzProgram_Namezz::zzUnion_Namezz::Data>
+{
+    using TData = zzProgram_Namezz::zzUnion_Namezz::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        //<Field>
+        case TData::FieldIndex::zzNamezz: lambda("zzNamezz", _ref.get().zzNamezz()); return;
+        //</Field>
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        //<Field>
+        case TData::FieldIndex::zzNamezz: lambda("zzNamezz", _ref.get().zzNamezz()); return;
+        //</Field>
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        //<Field>
+        lambda("zzNamezz", _ref.get().zzNamezz());
+        //</Field>
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const zzProgram_Namezz::zzUnion_Namezz::Data, void>
+    : Stencil::VisitorT<const zzProgram_Namezz::zzUnion_Namezz::Data>
+{
+    using TData = zzProgram_Namezz::zzUnion_Namezz::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        //<Field>
+        case TData::FieldIndex::zzNamezz: lambda("zzNamezz", _ref.get().zzNamezz()); return;
+        //</Field>
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        //<Field>
+        lambda("zzNamezz", _ref.get().zzNamezz());
+        //</Field>
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
 //</Union>
 #endif
 // SECTION END: Template specializations

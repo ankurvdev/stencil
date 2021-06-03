@@ -2005,6 +2005,133 @@ struct Stencil::Transaction<Avid::GPS::Data> : Stencil::TransactionT<Avid::GPS::
 
 };
 
+template <>
+struct Stencil::Visitor<Avid::GPS::Data, void> : Stencil::VisitorT<Avid::GPS::Data>
+{
+    using TData = Avid::GPS::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::heading: lambda("heading", _ref.get().heading()); return;
+        case TData::FieldIndex::lat: lambda("lat", _ref.get().lat()); return;
+        case TData::FieldIndex::lon: lambda("lon", _ref.get().lon()); return;
+        case TData::FieldIndex::speed: lambda("speed", _ref.get().speed()); return;
+        case TData::FieldIndex::utc: lambda("utc", _ref.get().utc()); return;
+        case TData::FieldIndex::galt: lambda("galt", _ref.get().galt()); return;
+        case TData::FieldIndex::climb: lambda("climb", _ref.get().climb()); return;
+        case TData::FieldIndex::epx: lambda("epx", _ref.get().epx()); return;
+        case TData::FieldIndex::epy: lambda("epy", _ref.get().epy()); return;
+        case TData::FieldIndex::epv: lambda("epv", _ref.get().epv()); return;
+        case TData::FieldIndex::ept: lambda("ept", _ref.get().ept()); return;
+        case TData::FieldIndex::eps: lambda("eps", _ref.get().eps()); return;
+        case TData::FieldIndex::epc: lambda("epc", _ref.get().epc()); return;
+        case TData::FieldIndex::eph: lambda("eph", _ref.get().eph()); return;
+        case TData::FieldIndex::sep: lambda("sep", _ref.get().sep()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::heading: lambda("heading", _ref.get().heading()); return;
+        case TData::FieldIndex::lat: lambda("lat", _ref.get().lat()); return;
+        case TData::FieldIndex::lon: lambda("lon", _ref.get().lon()); return;
+        case TData::FieldIndex::speed: lambda("speed", _ref.get().speed()); return;
+        case TData::FieldIndex::utc: lambda("utc", _ref.get().utc()); return;
+        case TData::FieldIndex::galt: lambda("galt", _ref.get().galt()); return;
+        case TData::FieldIndex::climb: lambda("climb", _ref.get().climb()); return;
+        case TData::FieldIndex::epx: lambda("epx", _ref.get().epx()); return;
+        case TData::FieldIndex::epy: lambda("epy", _ref.get().epy()); return;
+        case TData::FieldIndex::epv: lambda("epv", _ref.get().epv()); return;
+        case TData::FieldIndex::ept: lambda("ept", _ref.get().ept()); return;
+        case TData::FieldIndex::eps: lambda("eps", _ref.get().eps()); return;
+        case TData::FieldIndex::epc: lambda("epc", _ref.get().epc()); return;
+        case TData::FieldIndex::eph: lambda("eph", _ref.get().eph()); return;
+        case TData::FieldIndex::sep: lambda("sep", _ref.get().sep()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("heading", _ref.get().heading());
+        lambda("lat", _ref.get().lat());
+        lambda("lon", _ref.get().lon());
+        lambda("speed", _ref.get().speed());
+        lambda("utc", _ref.get().utc());
+        lambda("galt", _ref.get().galt());
+        lambda("climb", _ref.get().climb());
+        lambda("epx", _ref.get().epx());
+        lambda("epy", _ref.get().epy());
+        lambda("epv", _ref.get().epv());
+        lambda("ept", _ref.get().ept());
+        lambda("eps", _ref.get().eps());
+        lambda("epc", _ref.get().epc());
+        lambda("eph", _ref.get().eph());
+        lambda("sep", _ref.get().sep());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const Avid::GPS::Data, void> : Stencil::VisitorT<const Avid::GPS::Data>
+{
+    using TData = Avid::GPS::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::heading: lambda("heading", _ref.get().heading()); return;
+        case TData::FieldIndex::lat: lambda("lat", _ref.get().lat()); return;
+        case TData::FieldIndex::lon: lambda("lon", _ref.get().lon()); return;
+        case TData::FieldIndex::speed: lambda("speed", _ref.get().speed()); return;
+        case TData::FieldIndex::utc: lambda("utc", _ref.get().utc()); return;
+        case TData::FieldIndex::galt: lambda("galt", _ref.get().galt()); return;
+        case TData::FieldIndex::climb: lambda("climb", _ref.get().climb()); return;
+        case TData::FieldIndex::epx: lambda("epx", _ref.get().epx()); return;
+        case TData::FieldIndex::epy: lambda("epy", _ref.get().epy()); return;
+        case TData::FieldIndex::epv: lambda("epv", _ref.get().epv()); return;
+        case TData::FieldIndex::ept: lambda("ept", _ref.get().ept()); return;
+        case TData::FieldIndex::eps: lambda("eps", _ref.get().eps()); return;
+        case TData::FieldIndex::epc: lambda("epc", _ref.get().epc()); return;
+        case TData::FieldIndex::eph: lambda("eph", _ref.get().eph()); return;
+        case TData::FieldIndex::sep: lambda("sep", _ref.get().sep()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("heading", _ref.get().heading());
+        lambda("lat", _ref.get().lat());
+        lambda("lon", _ref.get().lon());
+        lambda("speed", _ref.get().speed());
+        lambda("utc", _ref.get().utc());
+        lambda("galt", _ref.get().galt());
+        lambda("climb", _ref.get().climb());
+        lambda("epx", _ref.get().epx());
+        lambda("epy", _ref.get().epy());
+        lambda("epv", _ref.get().epv());
+        lambda("ept", _ref.get().ept());
+        lambda("eps", _ref.get().eps());
+        lambda("epc", _ref.get().epc());
+        lambda("eph", _ref.get().eph());
+        lambda("sep", _ref.get().sep());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
 template <> struct ReflectionBase::TypeTraits<Avid::Aircraft::Data&>
 {
     struct Traits_seen
@@ -2599,6 +2726,143 @@ struct Stencil::Transaction<Avid::Aircraft::Data> : Stencil::TransactionT<Avid::
 
 };
 
+template <>
+struct Stencil::Visitor<Avid::Aircraft::Data, void> : Stencil::VisitorT<Avid::Aircraft::Data>
+{
+    using TData = Avid::Aircraft::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::seen: lambda("seen", _ref.get().seen()); return;
+        case TData::FieldIndex::addr: lambda("addr", _ref.get().addr()); return;
+        case TData::FieldIndex::hexaddr: lambda("hexaddr", _ref.get().hexaddr()); return;
+        case TData::FieldIndex::flight: lambda("flight", _ref.get().flight()); return;
+        case TData::FieldIndex::altitude: lambda("altitude", _ref.get().altitude()); return;
+        case TData::FieldIndex::groundSpeed: lambda("groundSpeed", _ref.get().groundSpeed()); return;
+        case TData::FieldIndex::track: lambda("track", _ref.get().track()); return;
+        case TData::FieldIndex::lat: lambda("lat", _ref.get().lat()); return;
+        case TData::FieldIndex::lon: lambda("lon", _ref.get().lon()); return;
+        case TData::FieldIndex::verticalRate: lambda("verticalRate", _ref.get().verticalRate()); return;
+        case TData::FieldIndex::messageCount: lambda("messageCount", _ref.get().messageCount()); return;
+        case TData::FieldIndex::odd_cprlat: lambda("odd_cprlat", _ref.get().odd_cprlat()); return;
+        case TData::FieldIndex::odd_cprlon: lambda("odd_cprlon", _ref.get().odd_cprlon()); return;
+        case TData::FieldIndex::odd_cprtime: lambda("odd_cprtime", _ref.get().odd_cprtime()); return;
+        case TData::FieldIndex::even_cprlat: lambda("even_cprlat", _ref.get().even_cprlat()); return;
+        case TData::FieldIndex::even_cprlon: lambda("even_cprlon", _ref.get().even_cprlon()); return;
+        case TData::FieldIndex::even_cprtime: lambda("even_cprtime", _ref.get().even_cprtime()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::seen: lambda("seen", _ref.get().seen()); return;
+        case TData::FieldIndex::addr: lambda("addr", _ref.get().addr()); return;
+        case TData::FieldIndex::hexaddr: lambda("hexaddr", _ref.get().hexaddr()); return;
+        case TData::FieldIndex::flight: lambda("flight", _ref.get().flight()); return;
+        case TData::FieldIndex::altitude: lambda("altitude", _ref.get().altitude()); return;
+        case TData::FieldIndex::groundSpeed: lambda("groundSpeed", _ref.get().groundSpeed()); return;
+        case TData::FieldIndex::track: lambda("track", _ref.get().track()); return;
+        case TData::FieldIndex::lat: lambda("lat", _ref.get().lat()); return;
+        case TData::FieldIndex::lon: lambda("lon", _ref.get().lon()); return;
+        case TData::FieldIndex::verticalRate: lambda("verticalRate", _ref.get().verticalRate()); return;
+        case TData::FieldIndex::messageCount: lambda("messageCount", _ref.get().messageCount()); return;
+        case TData::FieldIndex::odd_cprlat: lambda("odd_cprlat", _ref.get().odd_cprlat()); return;
+        case TData::FieldIndex::odd_cprlon: lambda("odd_cprlon", _ref.get().odd_cprlon()); return;
+        case TData::FieldIndex::odd_cprtime: lambda("odd_cprtime", _ref.get().odd_cprtime()); return;
+        case TData::FieldIndex::even_cprlat: lambda("even_cprlat", _ref.get().even_cprlat()); return;
+        case TData::FieldIndex::even_cprlon: lambda("even_cprlon", _ref.get().even_cprlon()); return;
+        case TData::FieldIndex::even_cprtime: lambda("even_cprtime", _ref.get().even_cprtime()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("seen", _ref.get().seen());
+        lambda("addr", _ref.get().addr());
+        lambda("hexaddr", _ref.get().hexaddr());
+        lambda("flight", _ref.get().flight());
+        lambda("altitude", _ref.get().altitude());
+        lambda("groundSpeed", _ref.get().groundSpeed());
+        lambda("track", _ref.get().track());
+        lambda("lat", _ref.get().lat());
+        lambda("lon", _ref.get().lon());
+        lambda("verticalRate", _ref.get().verticalRate());
+        lambda("messageCount", _ref.get().messageCount());
+        lambda("odd_cprlat", _ref.get().odd_cprlat());
+        lambda("odd_cprlon", _ref.get().odd_cprlon());
+        lambda("odd_cprtime", _ref.get().odd_cprtime());
+        lambda("even_cprlat", _ref.get().even_cprlat());
+        lambda("even_cprlon", _ref.get().even_cprlon());
+        lambda("even_cprtime", _ref.get().even_cprtime());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const Avid::Aircraft::Data, void> : Stencil::VisitorT<const Avid::Aircraft::Data>
+{
+    using TData = Avid::Aircraft::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::seen: lambda("seen", _ref.get().seen()); return;
+        case TData::FieldIndex::addr: lambda("addr", _ref.get().addr()); return;
+        case TData::FieldIndex::hexaddr: lambda("hexaddr", _ref.get().hexaddr()); return;
+        case TData::FieldIndex::flight: lambda("flight", _ref.get().flight()); return;
+        case TData::FieldIndex::altitude: lambda("altitude", _ref.get().altitude()); return;
+        case TData::FieldIndex::groundSpeed: lambda("groundSpeed", _ref.get().groundSpeed()); return;
+        case TData::FieldIndex::track: lambda("track", _ref.get().track()); return;
+        case TData::FieldIndex::lat: lambda("lat", _ref.get().lat()); return;
+        case TData::FieldIndex::lon: lambda("lon", _ref.get().lon()); return;
+        case TData::FieldIndex::verticalRate: lambda("verticalRate", _ref.get().verticalRate()); return;
+        case TData::FieldIndex::messageCount: lambda("messageCount", _ref.get().messageCount()); return;
+        case TData::FieldIndex::odd_cprlat: lambda("odd_cprlat", _ref.get().odd_cprlat()); return;
+        case TData::FieldIndex::odd_cprlon: lambda("odd_cprlon", _ref.get().odd_cprlon()); return;
+        case TData::FieldIndex::odd_cprtime: lambda("odd_cprtime", _ref.get().odd_cprtime()); return;
+        case TData::FieldIndex::even_cprlat: lambda("even_cprlat", _ref.get().even_cprlat()); return;
+        case TData::FieldIndex::even_cprlon: lambda("even_cprlon", _ref.get().even_cprlon()); return;
+        case TData::FieldIndex::even_cprtime: lambda("even_cprtime", _ref.get().even_cprtime()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("seen", _ref.get().seen());
+        lambda("addr", _ref.get().addr());
+        lambda("hexaddr", _ref.get().hexaddr());
+        lambda("flight", _ref.get().flight());
+        lambda("altitude", _ref.get().altitude());
+        lambda("groundSpeed", _ref.get().groundSpeed());
+        lambda("track", _ref.get().track());
+        lambda("lat", _ref.get().lat());
+        lambda("lon", _ref.get().lon());
+        lambda("verticalRate", _ref.get().verticalRate());
+        lambda("messageCount", _ref.get().messageCount());
+        lambda("odd_cprlat", _ref.get().odd_cprlat());
+        lambda("odd_cprlon", _ref.get().odd_cprlon());
+        lambda("odd_cprtime", _ref.get().odd_cprtime());
+        lambda("even_cprlat", _ref.get().even_cprlat());
+        lambda("even_cprlon", _ref.get().even_cprlon());
+        lambda("even_cprtime", _ref.get().even_cprtime());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
 template <> struct ReflectionBase::TypeTraits<Avid::Traffic::Data&>
 {
     struct Traits_aircrafts
@@ -2697,6 +2961,63 @@ struct Stencil::Transaction<Avid::Traffic::Data> : Stencil::TransactionT<Avid::T
         return Stencil::Mutators<std::vector<::Avid::Aircraft::Data>>::edit(
             _subtracker_aircrafts, Obj().aircrafts(), std::move(args));
     }
+};
+
+template <>
+struct Stencil::Visitor<Avid::Traffic::Data, void> : Stencil::VisitorT<Avid::Traffic::Data>
+{
+    using TData = Avid::Traffic::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::aircrafts: lambda("aircrafts", _ref.get().aircrafts()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::aircrafts: lambda("aircrafts", _ref.get().aircrafts()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("aircrafts", _ref.get().aircrafts());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const Avid::Traffic::Data, void> : Stencil::VisitorT<const Avid::Traffic::Data>
+{
+    using TData = Avid::Traffic::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::aircrafts: lambda("aircrafts", _ref.get().aircrafts()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("aircrafts", _ref.get().aircrafts());
+    }
+
+    std::reference_wrapper<TData> _ref;
 };
 
 template <> struct ReflectionBase::TypeTraits<Avid::Motion::Data&>
@@ -3325,6 +3646,148 @@ struct Stencil::Transaction<Avid::Motion::Data> : Stencil::TransactionT<Avid::Mo
 
 };
 
+template <>
+struct Stencil::Visitor<Avid::Motion::Data, void> : Stencil::VisitorT<Avid::Motion::Data>
+{
+    using TData = Avid::Motion::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::mag_x: lambda("mag_x", _ref.get().mag_x()); return;
+        case TData::FieldIndex::mag_y: lambda("mag_y", _ref.get().mag_y()); return;
+        case TData::FieldIndex::mag_z: lambda("mag_z", _ref.get().mag_z()); return;
+        case TData::FieldIndex::acc_x: lambda("acc_x", _ref.get().acc_x()); return;
+        case TData::FieldIndex::acc_y: lambda("acc_y", _ref.get().acc_y()); return;
+        case TData::FieldIndex::acc_z: lambda("acc_z", _ref.get().acc_z()); return;
+        case TData::FieldIndex::rot_x: lambda("rot_x", _ref.get().rot_x()); return;
+        case TData::FieldIndex::rot_y: lambda("rot_y", _ref.get().rot_y()); return;
+        case TData::FieldIndex::rot_z: lambda("rot_z", _ref.get().rot_z()); return;
+        case TData::FieldIndex::dmag_x: lambda("dmag_x", _ref.get().dmag_x()); return;
+        case TData::FieldIndex::dmag_y: lambda("dmag_y", _ref.get().dmag_y()); return;
+        case TData::FieldIndex::dmag_z: lambda("dmag_z", _ref.get().dmag_z()); return;
+        case TData::FieldIndex::dacc_x: lambda("dacc_x", _ref.get().dacc_x()); return;
+        case TData::FieldIndex::dacc_y: lambda("dacc_y", _ref.get().dacc_y()); return;
+        case TData::FieldIndex::dacc_z: lambda("dacc_z", _ref.get().dacc_z()); return;
+        case TData::FieldIndex::drot_x: lambda("drot_x", _ref.get().drot_x()); return;
+        case TData::FieldIndex::drot_y: lambda("drot_y", _ref.get().drot_y()); return;
+        case TData::FieldIndex::drot_z: lambda("drot_z", _ref.get().drot_z()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::mag_x: lambda("mag_x", _ref.get().mag_x()); return;
+        case TData::FieldIndex::mag_y: lambda("mag_y", _ref.get().mag_y()); return;
+        case TData::FieldIndex::mag_z: lambda("mag_z", _ref.get().mag_z()); return;
+        case TData::FieldIndex::acc_x: lambda("acc_x", _ref.get().acc_x()); return;
+        case TData::FieldIndex::acc_y: lambda("acc_y", _ref.get().acc_y()); return;
+        case TData::FieldIndex::acc_z: lambda("acc_z", _ref.get().acc_z()); return;
+        case TData::FieldIndex::rot_x: lambda("rot_x", _ref.get().rot_x()); return;
+        case TData::FieldIndex::rot_y: lambda("rot_y", _ref.get().rot_y()); return;
+        case TData::FieldIndex::rot_z: lambda("rot_z", _ref.get().rot_z()); return;
+        case TData::FieldIndex::dmag_x: lambda("dmag_x", _ref.get().dmag_x()); return;
+        case TData::FieldIndex::dmag_y: lambda("dmag_y", _ref.get().dmag_y()); return;
+        case TData::FieldIndex::dmag_z: lambda("dmag_z", _ref.get().dmag_z()); return;
+        case TData::FieldIndex::dacc_x: lambda("dacc_x", _ref.get().dacc_x()); return;
+        case TData::FieldIndex::dacc_y: lambda("dacc_y", _ref.get().dacc_y()); return;
+        case TData::FieldIndex::dacc_z: lambda("dacc_z", _ref.get().dacc_z()); return;
+        case TData::FieldIndex::drot_x: lambda("drot_x", _ref.get().drot_x()); return;
+        case TData::FieldIndex::drot_y: lambda("drot_y", _ref.get().drot_y()); return;
+        case TData::FieldIndex::drot_z: lambda("drot_z", _ref.get().drot_z()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("mag_x", _ref.get().mag_x());
+        lambda("mag_y", _ref.get().mag_y());
+        lambda("mag_z", _ref.get().mag_z());
+        lambda("acc_x", _ref.get().acc_x());
+        lambda("acc_y", _ref.get().acc_y());
+        lambda("acc_z", _ref.get().acc_z());
+        lambda("rot_x", _ref.get().rot_x());
+        lambda("rot_y", _ref.get().rot_y());
+        lambda("rot_z", _ref.get().rot_z());
+        lambda("dmag_x", _ref.get().dmag_x());
+        lambda("dmag_y", _ref.get().dmag_y());
+        lambda("dmag_z", _ref.get().dmag_z());
+        lambda("dacc_x", _ref.get().dacc_x());
+        lambda("dacc_y", _ref.get().dacc_y());
+        lambda("dacc_z", _ref.get().dacc_z());
+        lambda("drot_x", _ref.get().drot_x());
+        lambda("drot_y", _ref.get().drot_y());
+        lambda("drot_z", _ref.get().drot_z());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const Avid::Motion::Data, void> : Stencil::VisitorT<const Avid::Motion::Data>
+{
+    using TData = Avid::Motion::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::mag_x: lambda("mag_x", _ref.get().mag_x()); return;
+        case TData::FieldIndex::mag_y: lambda("mag_y", _ref.get().mag_y()); return;
+        case TData::FieldIndex::mag_z: lambda("mag_z", _ref.get().mag_z()); return;
+        case TData::FieldIndex::acc_x: lambda("acc_x", _ref.get().acc_x()); return;
+        case TData::FieldIndex::acc_y: lambda("acc_y", _ref.get().acc_y()); return;
+        case TData::FieldIndex::acc_z: lambda("acc_z", _ref.get().acc_z()); return;
+        case TData::FieldIndex::rot_x: lambda("rot_x", _ref.get().rot_x()); return;
+        case TData::FieldIndex::rot_y: lambda("rot_y", _ref.get().rot_y()); return;
+        case TData::FieldIndex::rot_z: lambda("rot_z", _ref.get().rot_z()); return;
+        case TData::FieldIndex::dmag_x: lambda("dmag_x", _ref.get().dmag_x()); return;
+        case TData::FieldIndex::dmag_y: lambda("dmag_y", _ref.get().dmag_y()); return;
+        case TData::FieldIndex::dmag_z: lambda("dmag_z", _ref.get().dmag_z()); return;
+        case TData::FieldIndex::dacc_x: lambda("dacc_x", _ref.get().dacc_x()); return;
+        case TData::FieldIndex::dacc_y: lambda("dacc_y", _ref.get().dacc_y()); return;
+        case TData::FieldIndex::dacc_z: lambda("dacc_z", _ref.get().dacc_z()); return;
+        case TData::FieldIndex::drot_x: lambda("drot_x", _ref.get().drot_x()); return;
+        case TData::FieldIndex::drot_y: lambda("drot_y", _ref.get().drot_y()); return;
+        case TData::FieldIndex::drot_z: lambda("drot_z", _ref.get().drot_z()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("mag_x", _ref.get().mag_x());
+        lambda("mag_y", _ref.get().mag_y());
+        lambda("mag_z", _ref.get().mag_z());
+        lambda("acc_x", _ref.get().acc_x());
+        lambda("acc_y", _ref.get().acc_y());
+        lambda("acc_z", _ref.get().acc_z());
+        lambda("rot_x", _ref.get().rot_x());
+        lambda("rot_y", _ref.get().rot_y());
+        lambda("rot_z", _ref.get().rot_z());
+        lambda("dmag_x", _ref.get().dmag_x());
+        lambda("dmag_y", _ref.get().dmag_y());
+        lambda("dmag_z", _ref.get().dmag_z());
+        lambda("dacc_x", _ref.get().dacc_x());
+        lambda("dacc_y", _ref.get().dacc_y());
+        lambda("dacc_z", _ref.get().dacc_z());
+        lambda("drot_x", _ref.get().drot_x());
+        lambda("drot_y", _ref.get().drot_y());
+        lambda("drot_z", _ref.get().drot_z());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
 template <> struct ReflectionBase::TypeTraits<Avid::Pressure::Data&>
 {
     struct Traits_pressure
@@ -3437,6 +3900,68 @@ struct Stencil::Transaction<Avid::Pressure::Data> : Stencil::TransactionT<Avid::
         Obj().set_temperature(std::move(val));
     }
 
+};
+
+template <>
+struct Stencil::Visitor<Avid::Pressure::Data, void> : Stencil::VisitorT<Avid::Pressure::Data>
+{
+    using TData = Avid::Pressure::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::pressure: lambda("pressure", _ref.get().pressure()); return;
+        case TData::FieldIndex::temperature: lambda("temperature", _ref.get().temperature()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::pressure: lambda("pressure", _ref.get().pressure()); return;
+        case TData::FieldIndex::temperature: lambda("temperature", _ref.get().temperature()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("pressure", _ref.get().pressure());
+        lambda("temperature", _ref.get().temperature());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const Avid::Pressure::Data, void> : Stencil::VisitorT<const Avid::Pressure::Data>
+{
+    using TData = Avid::Pressure::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::pressure: lambda("pressure", _ref.get().pressure()); return;
+        case TData::FieldIndex::temperature: lambda("temperature", _ref.get().temperature()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("pressure", _ref.get().pressure());
+        lambda("temperature", _ref.get().temperature());
+    }
+
+    std::reference_wrapper<TData> _ref;
 };
 
 #endif

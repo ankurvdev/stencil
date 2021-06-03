@@ -507,6 +507,68 @@ struct Stencil::Transaction<UserData::UserData::Data> : Stencil::TransactionT<Us
 
 };
 
+template <>
+struct Stencil::Visitor<UserData::UserData::Data, void> : Stencil::VisitorT<UserData::UserData::Data>
+{
+    using TData = UserData::UserData::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::modified: lambda("modified", _ref.get().modified()); return;
+        case TData::FieldIndex::creation: lambda("creation", _ref.get().creation()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::modified: lambda("modified", _ref.get().modified()); return;
+        case TData::FieldIndex::creation: lambda("creation", _ref.get().creation()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("modified", _ref.get().modified());
+        lambda("creation", _ref.get().creation());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const UserData::UserData::Data, void> : Stencil::VisitorT<const UserData::UserData::Data>
+{
+    using TData = UserData::UserData::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::modified: lambda("modified", _ref.get().modified()); return;
+        case TData::FieldIndex::creation: lambda("creation", _ref.get().creation()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("modified", _ref.get().modified());
+        lambda("creation", _ref.get().creation());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
 template <> struct ReflectionBase::TypeTraits<UserData::Identity::Data&>
 {
     struct Traits_username
@@ -717,6 +779,83 @@ struct Stencil::Transaction<UserData::Identity::Data> : Stencil::TransactionT<Us
 
 };
 
+template <>
+struct Stencil::Visitor<UserData::Identity::Data, void> : Stencil::VisitorT<UserData::Identity::Data>
+{
+    using TData = UserData::Identity::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::username: lambda("username", _ref.get().username()); return;
+        case TData::FieldIndex::password: lambda("password", _ref.get().password()); return;
+        case TData::FieldIndex::privatekey: lambda("privatekey", _ref.get().privatekey()); return;
+        case TData::FieldIndex::clientcert: lambda("clientcert", _ref.get().clientcert()); return;
+        case TData::FieldIndex::secretcode: lambda("secretcode", _ref.get().secretcode()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::username: lambda("username", _ref.get().username()); return;
+        case TData::FieldIndex::password: lambda("password", _ref.get().password()); return;
+        case TData::FieldIndex::privatekey: lambda("privatekey", _ref.get().privatekey()); return;
+        case TData::FieldIndex::clientcert: lambda("clientcert", _ref.get().clientcert()); return;
+        case TData::FieldIndex::secretcode: lambda("secretcode", _ref.get().secretcode()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("username", _ref.get().username());
+        lambda("password", _ref.get().password());
+        lambda("privatekey", _ref.get().privatekey());
+        lambda("clientcert", _ref.get().clientcert());
+        lambda("secretcode", _ref.get().secretcode());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const UserData::Identity::Data, void> : Stencil::VisitorT<const UserData::Identity::Data>
+{
+    using TData = UserData::Identity::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::username: lambda("username", _ref.get().username()); return;
+        case TData::FieldIndex::password: lambda("password", _ref.get().password()); return;
+        case TData::FieldIndex::privatekey: lambda("privatekey", _ref.get().privatekey()); return;
+        case TData::FieldIndex::clientcert: lambda("clientcert", _ref.get().clientcert()); return;
+        case TData::FieldIndex::secretcode: lambda("secretcode", _ref.get().secretcode()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("username", _ref.get().username());
+        lambda("password", _ref.get().password());
+        lambda("privatekey", _ref.get().privatekey());
+        lambda("clientcert", _ref.get().clientcert());
+        lambda("secretcode", _ref.get().secretcode());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
 template <> struct ReflectionBase::TypeTraits<UserData::RemoteHost::Data&>
 {
     struct Traits_name
@@ -861,6 +1000,73 @@ struct Stencil::Transaction<UserData::RemoteHost::Data> : Stencil::TransactionT<
         Obj().set_identity(std::move(val));
     }
 
+};
+
+template <>
+struct Stencil::Visitor<UserData::RemoteHost::Data, void> : Stencil::VisitorT<UserData::RemoteHost::Data>
+{
+    using TData = UserData::RemoteHost::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::name: lambda("name", _ref.get().name()); return;
+        case TData::FieldIndex::uri: lambda("uri", _ref.get().uri()); return;
+        case TData::FieldIndex::identity: lambda("identity", _ref.get().identity()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::name: lambda("name", _ref.get().name()); return;
+        case TData::FieldIndex::uri: lambda("uri", _ref.get().uri()); return;
+        case TData::FieldIndex::identity: lambda("identity", _ref.get().identity()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("name", _ref.get().name());
+        lambda("uri", _ref.get().uri());
+        lambda("identity", _ref.get().identity());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const UserData::RemoteHost::Data, void> : Stencil::VisitorT<const UserData::RemoteHost::Data>
+{
+    using TData = UserData::RemoteHost::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::name: lambda("name", _ref.get().name()); return;
+        case TData::FieldIndex::uri: lambda("uri", _ref.get().uri()); return;
+        case TData::FieldIndex::identity: lambda("identity", _ref.get().identity()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("name", _ref.get().name());
+        lambda("uri", _ref.get().uri());
+        lambda("identity", _ref.get().identity());
+    }
+
+    std::reference_wrapper<TData> _ref;
 };
 
 #endif

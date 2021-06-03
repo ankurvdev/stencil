@@ -1,4 +1,5 @@
 #pragma once
+#include "CommonMacros.h"
 #include "shared_string.h"
 
 #include <array>

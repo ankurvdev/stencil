@@ -1,6 +1,9 @@
 #pragma once
 #include "shared_string.h"
+SUPPRESS_WARNINGS_START
+#pragma warning(disable : 4866)    // left to right evaluation not guaranteed
 #include <chrono>
+SUPPRESS_WARNINGS_END
 #include <cmath>
 #include <cstdint>
 

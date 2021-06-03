@@ -301,6 +301,68 @@ struct Stencil::Transaction<UnionTest::Struct1::Data> : Stencil::TransactionT<Un
 
 };
 
+template <>
+struct Stencil::Visitor<UnionTest::Struct1::Data, void> : Stencil::VisitorT<UnionTest::Struct1::Data>
+{
+    using TData = UnionTest::Struct1::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::field1: lambda("field1", _ref.get().field1()); return;
+        case TData::FieldIndex::field2: lambda("field2", _ref.get().field2()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::field1: lambda("field1", _ref.get().field1()); return;
+        case TData::FieldIndex::field2: lambda("field2", _ref.get().field2()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("field1", _ref.get().field1());
+        lambda("field2", _ref.get().field2());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const UnionTest::Struct1::Data, void> : Stencil::VisitorT<const UnionTest::Struct1::Data>
+{
+    using TData = UnionTest::Struct1::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::field1: lambda("field1", _ref.get().field1()); return;
+        case TData::FieldIndex::field2: lambda("field2", _ref.get().field2()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("field1", _ref.get().field1());
+        lambda("field2", _ref.get().field2());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
 template <> struct ReflectionServices::EnumTraits<UnionTest::Union1::UnionType>
 {
     static constexpr const char* EnumStrings[] = {"Invalid",
@@ -389,6 +451,70 @@ template <> struct ReflectionBase::TypeTraits<UnionTest::Union1::Data&>
 ,                                                                Traits_field2
                                                                 >;
 };
+
+template <>
+struct Stencil::Visitor<UnionTest::Union1::Data, void> : Stencil::VisitorT<UnionTest::Union1::Data>
+{
+    using TData = UnionTest::Union1::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::field1: lambda("field1", _ref.get().field1()); return;
+        case TData::FieldIndex::field2: lambda("field2", _ref.get().field2()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::field1: lambda("field1", _ref.get().field1()); return;
+        case TData::FieldIndex::field2: lambda("field2", _ref.get().field2()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("field1", _ref.get().field1());
+        lambda("field2", _ref.get().field2());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const UnionTest::Union1::Data, void>
+    : Stencil::VisitorT<const UnionTest::Union1::Data>
+{
+    using TData = UnionTest::Union1::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::field1: lambda("field1", _ref.get().field1()); return;
+        case TData::FieldIndex::field2: lambda("field2", _ref.get().field2()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("field1", _ref.get().field1());
+        lambda("field2", _ref.get().field2());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
 #endif
 // SECTION END: Template specializations
 
