@@ -217,8 +217,8 @@ struct Json
         static std::string Stringify(const std::chrono::time_point<TClk>& obj)
         {
             auto val = std::chrono::duration_cast<std::chrono::nanoseconds>(obj.time_since_epoch()).count();
-	    return std::to_string(val);
-            //return fmt::format("\"{:%FT%TZ}\"", obj);
+            return std::to_string(val);
+            // return fmt::format("\"{:%FT%TZ}\"", obj);
         }
     };
 

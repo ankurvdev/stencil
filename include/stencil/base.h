@@ -1057,12 +1057,12 @@ template <typename TClock, typename TDur> struct ReflectionBase::TypeTraits<std:
         {
             if (value.GetType() == Value::Type::String)
             {
-		throw std::logic_error("String time format not supported yet");
-                //auto str = value.convert<shared_string>().str();
+                throw std::logic_error("String time format not supported yet");
+                // auto str = value.convert<shared_string>().str();
 
-                //std::istringstream iss(str);
-                //std::chrono::from_stream(iss, "%FT%T", obj);
-                //iss >> std::chrono::parse("%FT%TZ", obj);
+                // std::istringstream iss(str);
+                // std::chrono::from_stream(iss, "%FT%T", obj);
+                // iss >> std::chrono::parse("%FT%TZ", obj);
             }
             else
             {

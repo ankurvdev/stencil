@@ -6,6 +6,9 @@
 #pragma warning(disable : 4855)    // implicit capture of 'this' via '[=]' is deprecated
 #pragma warning(disable : 4548)    // expression before comma has no effect; expected expression with side - effect
 #pragma warning(disable : 4702)    // Unreachable code
+#pragma warning(disable : 4668)    // not defined as a preprocessor macro
+#pragma warning(disable : 5039)    // pointer or reference to potentially throwing function passed to 'extern)
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
 #pragma GCC diagnostics push
