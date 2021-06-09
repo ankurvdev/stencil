@@ -3,6 +3,8 @@
 #include "visitor.h"
 
 #include <deque>
+#include <sstream>
+
 class JsonDataModel;
 
 #ifdef USE_NLOHMANN_JSON
@@ -10,7 +12,7 @@ class JsonDataModel;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough" // Wall doesnt work
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"    // Wall doesnt work
 #include <nlohmann/json.hpp>
 #pragma GCC diagnostic pop
 #pragma clang diagnostic pop
@@ -41,14 +43,73 @@ struct Json
     {
         using sax = typename nlohmann::json_sax<nlohmann::json>;
 
-        Reader(TStruct* ptr) : _tracker(ptr, nullptr) {}
+        Reader(TStruct& obj) : _visitor(obj) { _stack.push_back(std::numeric_limits<size_t>::max()); }
 
-        bool Default()
+        bool IsArray() { return _stack.back() != std::numeric_limits<size_t>::max(); }
+
+        template <typename TArg> bool _HandleValue(TArg const& arg)
+        try
         {
-            throw std::logic_error("TODO");
+            if (IsArray())
+            {
+                _visitor.Select(Value(_stack.back()++));
+            }
+            _visitor.SetValue(Value(arg));
+            _visitor.GoBackUp();
+            return true;
+        }
+        catch (std::exception const& /*ex*/)
+        {
             return false;
         }
 
+        bool null() override { return _HandleValue(Value()); }
+        bool boolean(bool val) override { return _HandleValue(val); }
+        bool number_integer(sax::number_integer_t val) override { return _HandleValue(val); }
+        bool number_unsigned(sax::number_unsigned_t val) override { return _HandleValue(val); }
+        bool number_float(sax::number_float_t val, const string_t& /*s*/) override { return _HandleValue(val); }
+        bool string(sax::string_t& val) override { return _HandleValue(val); }
+        bool binary(sax::binary_t& /*val*/) override { throw std::logic_error("TODO"); }
+
+        bool start_object(std::size_t /*elements*/) override
+        {
+            if (IsArray())
+            {
+                _visitor.Select(Value(_stack.back()++));
+            }
+            _stack.push_back(std::numeric_limits<size_t>::max());
+            return true;
+        }
+        bool end_object() override
+        {
+            _stack.pop_back();
+            _visitor.GoBackUp();
+            return true;
+        }
+        bool start_array(std::size_t /*elements*/) override
+        {
+            if (IsArray())
+            {
+                _visitor.Select(Value(_stack.back()++));
+            }
+            _stack.push_back(0);
+            return true;
+        }
+        bool end_array() override
+        {
+            _stack.pop_back();
+            _visitor.GoBackUp();
+            return true;
+        }
+        // called when an object key is parsed; value is passed and can be safely moved away
+        bool key(string_t& val) override { SAFEEXEC(_visitor.Select(Value(shared_string::make(val)))); }
+
+        // called when a parse error occurs; byte position, the last token, and an exception is passed
+        bool parse_error(std::size_t /*position*/, const std::string& /*last_token*/, const nlohmann::json::exception& ex) override
+        {
+            throw ex;
+        }
+#if 0
         bool null() override { SAFEEXEC(_tracker.HandleValue(Value(nullptr), nullptr)); }
         bool boolean(bool val) override { SAFEEXEC(_tracker.HandleValue(Value(val), nullptr)); }
         bool number_integer(sax::number_integer_t val) override { SAFEEXEC(_tracker.HandleValue(Value(val), nullptr)); }
@@ -70,26 +131,110 @@ struct Json
         {
             throw ex;
         }
-
-        ReflectionServices::StateTraker<TStruct, void*> _tracker;
+#endif
+        Stencil::Visitor<TStruct> _visitor;
+        std::vector<size_t>       _stack;
+        // ReflectionServices::StateTraker<TStruct, void*> _tracker;
     };
 
-    template <typename T, typename = void> struct Writer
+    template <typename T, typename = void> struct Writer;
+
+    template <typename TStruct> static void StringifyStruct(TStruct& obj, std::stringstream& ss)
     {
-        static std::string Stringify(const T& /* obj */)
+        Stencil::Visitor<TStruct> visitor(obj);
+        ss << "{";
+        bool first = true;
+        visitor.VisitAll([&](auto& key, auto& value) {
+            if (!first)
+                ss << ",";
+            else
+                first = false;
+
+            ss << "\"" << Writer<decltype(key)>::Stringify(key) << "\":";
+            ss << Writer<std::remove_cvref_t<decltype(value)>>::Stringify(value);
+        });
+
+        ss << "}";
+    }
+
+    template <typename TArr> static void StringifyArray(TArr& obj, std::stringstream& ss)
+    {
+        ss << "[";
+        bool first = true;
+        for (auto it = std::begin(obj); it != std::end(obj); ++it)
         {
-            static_assert(std::is_same<T, T>::value, "Dont know how to stringify");
-            throw std::logic_error("");
+            if (!first)
+                ss << ",";
+            else
+                first = false;
+            ss << Writer<std::remove_cvref_t<decltype(*it)>>::Stringify(*it);
         }
-    };
+        ss << "]";
+    }
 
     template <typename T> struct Writer<T, std::enable_if_t<std::is_base_of<::ReflectionBase::ObjMarker, T>::value>>
     {
-        static std::string Stringify(const T& /* obj */)
+        static std::string Stringify(const T& obj)
         {
-            static_assert(std::is_same<T, T>::value, "Dont know how to stringify");
-            throw std::logic_error("");
+            std::stringstream ss;
+            StringifyStruct<T const>(obj, ss);
+            return ss.str();
         }
+    };
+
+    template <typename T> struct Writer<std::unique_ptr<T>, std::enable_if_t<std::is_base_of<::ReflectionBase::ObjMarker, T>::value>>
+    {
+        static std::string Stringify(const std::unique_ptr<T>& obj)
+        {
+            std::stringstream ss;
+            StringifyStruct<T>(*obj.get(), ss);
+            return ss.str();
+        }
+    };
+
+    template <typename T> struct Writer<std::shared_ptr<T>, std::enable_if_t<std::is_base_of<::ReflectionBase::ObjMarker, T>::value>>
+    {
+        static std::string Stringify(const std::shared_ptr<T>& obj)
+        {
+            std::stringstream ss;
+            StringifyStruct<T>(*obj.get(), ss);
+            return ss.str();
+        }
+    };
+
+    template <typename T> struct Writer<std::vector<T>>
+    {
+        static std::string Stringify(const std::vector<T>& obj)
+        {
+            std::stringstream ss;
+            StringifyArray(obj, ss);
+            return ss.str();
+        }
+    };
+
+    template <typename TClk> struct Writer<std::chrono::time_point<TClk>>
+    {
+        static std::string Stringify(const std::chrono::time_point<TClk>& obj)
+        {
+            auto val = std::chrono::duration_cast<std::chrono::nanoseconds>(obj.time_since_epoch()).count();
+            return std::to_string(val);
+            // return fmt::format("\"{:%FT%TZ}\"", obj);
+        }
+    };
+
+    template <typename T, size_t N> struct Writer<std::array<T, N>>
+    {
+        static std::string Stringify(const std::array<T, N>& obj)
+        {
+            std::stringstream ss;
+            StringifyArray(obj, ss);
+            return ss.str();
+        }
+    };
+
+    template <size_t N> struct Writer<char const (&)[N]>
+    {
+        static std::string Stringify(char const (&obj)[N]) { return std::string(obj); }
     };
 
     template <typename T> struct Writer<T, std::enable_if_t<Value::Supported<T>::value>>
@@ -107,13 +252,13 @@ struct Json
         static std::string Stringify(const std::unique_ptr<T>& obj) { return std::string(obj->GetObjectUuid().ToString()); }
     };
 
-    template <typename TStruct> static void Load(TStruct& obj, const std::string& str)
+    template <typename TStruct> static void Load(TStruct& obj, const std::string_view& str)
     {
-        Reader<TStruct> handler(&obj);
+        Reader<TStruct> handler(obj);
         nlohmann::json::sax_parse(str, &handler);
     }
 
-    template <typename TStruct> static std::unique_ptr<TStruct> Parse(const std::string& str)
+    template <typename TStruct> static std::unique_ptr<TStruct> Parse(const std::string_view& str)
     {
         std::unique_ptr<TStruct> ptr(new TStruct());
         Load(*ptr.get(), str);

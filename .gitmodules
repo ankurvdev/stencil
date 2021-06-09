@@ -22,3 +22,6 @@
 [submodule "external/ordered-map"]
 	path = external/ordered-map
 	url = https://github.com/Tessil/ordered-map
+[submodule "external/fmt"]
+	path = external/fmt
+	url = https://github.com/fmtlib/fmt

@@ -1,6 +1,6 @@
 {
     "name": "stencil",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "description": "Stencil",
     "dependencies": [
         "toml11",
@@ -8,7 +8,8 @@
         "tinyxml2",
         "cxxopts",
         "cpp-httplib",
-        "nlohmann-json"
+        "nlohmann-json",
+        "fmt"
     ],
     "features": {
         "tests": {

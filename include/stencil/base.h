@@ -1,13 +1,11 @@
 #pragma once
 #include "Logging.h"
 #include "Value.h"
-#include "shared_string.h"
 #include "shared_tree.h"
 #include "uuidobject.h"
 #include <algorithm>
 #include <bitset>
 #include <cassert>
-#include <chrono>
 #include <climits>
 #include <ctype.h>
 #include <list>
@@ -529,8 +527,7 @@ template <typename TValue, size_t N> struct StdArrayListHandler : public IDataTy
     SubComponent MoveNext(void* ptr) const override
     {
         auto vecptr = static_cast<std::array<TValue, N>*>(ptr);
-        auto index  = vecptr->size();
-        return {&_handler, &((*vecptr)[index])};
+        return {&_handler, &((*vecptr)[_index++])};
     }
 
     bool TryGetSubComponent(void* ptr, size_t index, SubComponent& subcomponent) const override
@@ -554,6 +551,7 @@ template <typename TValue, size_t N> struct StdArrayListHandler : public IDataTy
     }
 
     typename TypeTraits<TValue&>::Handler _handler;
+    mutable size_t                        _index = 0;
 };
 
 static inline constexpr std::string_view EmptyAttributeValue(const std::string_view& /*name*/)
@@ -1057,9 +1055,21 @@ template <typename TClock, typename TDur> struct ReflectionBase::TypeTraits<std:
     {
         virtual void Write(void* ptr, Value const& value) const override
         {
-            using tpinttype = decltype(std::chrono::nanoseconds{}.count());
-            *(static_cast<time_point*>(ptr))
-                = time_point(std::chrono::duration_cast<TDur>(std::chrono::nanoseconds(value.convert<tpinttype>())));
+            if (value.GetType() == Value::Type::String)
+            {
+                throw std::logic_error("String time format not supported yet");
+                // auto str = value.convert<shared_string>().str();
+
+                // std::istringstream iss(str);
+                // std::chrono::from_stream(iss, "%FT%T", obj);
+                // iss >> std::chrono::parse("%FT%TZ", obj);
+            }
+            else
+            {
+                using tpinttype = decltype(std::chrono::nanoseconds{}.count());
+                *(static_cast<time_point*>(ptr))
+                    = time_point(std::chrono::duration_cast<TDur>(std::chrono::nanoseconds(value.convert<tpinttype>())));
+            }
         }
 
         virtual Value Read(void* ptr) const override
