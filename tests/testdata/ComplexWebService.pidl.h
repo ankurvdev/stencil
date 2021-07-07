@@ -1,5 +1,28 @@
 #pragma once
 #include <stencil/stencil.h>
+
+// SECTION START: DECLARATIONS
+#if true
+namespace ComplexWebService::MapPoint
+{
+struct Data;
+}
+template <> struct ReflectionBase::TypeTraits<ComplexWebService::MapPoint::Data&>;
+namespace ComplexWebService::GeographicalArea
+{
+struct Data;
+}
+template <> struct ReflectionBase::TypeTraits<ComplexWebService::GeographicalArea::Data&>;
+namespace ComplexWebService::DigitalAssetInfo
+{
+struct Data;
+}
+template <> struct ReflectionBase::TypeTraits<ComplexWebService::DigitalAssetInfo::Data&>;
+#endif
+// SECTION END: DECLARATIONS
+
+// SECTION START: Definitions
+#if true
 namespace ComplexWebService
 {
 namespace MapPoint
@@ -74,11 +97,12 @@ struct Data :
 
     void set_latitude(int64_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::latitude, _latitude, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::latitude, _latitude, val);
         _latitude = std::move(val);
     }
 
+#if 0
+#endif
     private:
     int64_t _longitude = {};
 
@@ -92,11 +116,12 @@ struct Data :
 
     void set_longitude(int64_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::longitude, _longitude, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::longitude, _longitude, val);
         _longitude = std::move(val);
     }
 
+#if 0
+#endif
 };
 
 }    // namespace MapPoint
@@ -158,11 +183,12 @@ struct Data :
 
     void set_type(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::type, _type, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::type, _type, val);
         _type = std::move(val);
     }
 
+#if 0
+#endif
     private:
     shared_string _name = {};
 
@@ -176,11 +202,12 @@ struct Data :
 
     void set_name(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::name, _name, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::name, _name, val);
         _name = std::move(val);
     }
 
+#if 0
+#endif
     private:
     std::vector<::ComplexWebService::MapPoint::Data> _areaPolygon = {};
 
@@ -194,11 +221,12 @@ struct Data :
 
     void set_areaPolygon(std::vector<::ComplexWebService::MapPoint::Data>&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::areaPolygon, _areaPolygon, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::areaPolygon, _areaPolygon, val);
         _areaPolygon = std::move(val);
     }
 
+#if 0
+#endif
 };
 
 }    // namespace GeographicalArea
@@ -272,11 +300,12 @@ struct Data :
 
     void set_id(int32_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::id, _id, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::id, _id, val);
         _id = std::move(val);
     }
 
+#if 0
+#endif
     private:
     std::vector<shared_tree<shared_string>> _keywords = {};
 
@@ -290,11 +319,12 @@ struct Data :
 
     void set_keywords(std::vector<shared_tree<shared_string>>&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::keywords, _keywords, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::keywords, _keywords, val);
         _keywords = std::move(val);
     }
 
+#if 0
+#endif
     private:
     shared_tree<::ComplexWebService::GeographicalArea::Data> _location = {};
 
@@ -308,11 +338,12 @@ struct Data :
 
     void set_location(shared_tree<::ComplexWebService::GeographicalArea::Data>&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::location, _location, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::location, _location, val);
         _location = std::move(val);
     }
 
+#if 0
+#endif
     private:
     int64_t _md5sum = {};
 
@@ -326,11 +357,12 @@ struct Data :
 
     void set_md5sum(int64_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::md5sum, _md5sum, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::md5sum, _md5sum, val);
         _md5sum = std::move(val);
     }
 
+#if 0
+#endif
     private:
     shared_string _thumbnailBlob = {};
 
@@ -344,11 +376,12 @@ struct Data :
 
     void set_thumbnailBlob(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::thumbnailBlob, _thumbnailBlob, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::thumbnailBlob, _thumbnailBlob, val);
         _thumbnailBlob = std::move(val);
     }
 
+#if 0
+#endif
     private:
     shared_string _fileUrl = {};
 
@@ -362,11 +395,12 @@ struct Data :
 
     void set_fileUrl(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::fileUrl, _fileUrl, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::fileUrl, _fileUrl, val);
         _fileUrl = std::move(val);
     }
 
+#if 0
+#endif
 };
 
 }    // namespace DigitalAssetInfo
@@ -610,7 +644,13 @@ struct Store_Download_Args
 };
 
 }    // namespace ComplexWebService
+#endif
+// SECTION END: Definitions
 
+// SECTION START: Template specializations
+#if true
+
+// SECTION:
 template <> struct ReflectionBase::TypeTraits<ComplexWebService::KeywordS_Find_Args&>
 {
     struct Traits_arg_root
@@ -1353,48 +1393,118 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::MapPoint::Data&
                                                                  >;
 };
 
-template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, ComplexWebService::MapPoint::Data>>>
+template <>
+struct Stencil::Transaction<ComplexWebService::MapPoint::Data> : Stencil::TransactionT<ComplexWebService::MapPoint::Data>
 {
-    using TData = T;
+    using TData = ComplexWebService::MapPoint::Data;
 
-    // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
-    // TODO : Better way to unify creation interface
-    bool _changed = false;
+    Transaction<int64_t> _subtracker_latitude;
+    Transaction<int64_t> _subtracker_longitude;
+    DELETE_COPY_AND_MOVE(Transaction);
 
-    DELETE_COPY_AND_MOVE(DeltaTracker);
-
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    Transaction(TData& ptr, TransactionRecorder& rec) :
+        Stencil::TransactionT<ComplexWebService::MapPoint::Data>(ptr, rec)
+        ,
+        _subtracker_latitude(Obj().latitude(), rec)
+        ,
+        _subtracker_longitude(Obj().longitude(), rec)
     {
-        // TODO: Tentative
-        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
-
-    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
-
-    size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
-
-    uint8_t MutatorIndex() const;
-    bool    OnlyHasDefaultMutator() const;
-
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
-
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::latitude:
-            lambda(DeltaTracker<int64_t>(&_ptr->latitude(), IsFieldChanged(TData::FieldIndex::latitude)));
-            return;
-        case TData::FieldIndex::longitude:
-            lambda(DeltaTracker<int64_t>(&_ptr->longitude(), IsFieldChanged(TData::FieldIndex::longitude)));
-            return;
+        case TData::FieldIndex::latitude: lambda(_subtracker_latitude); return;
+        case TData::FieldIndex::longitude: lambda(_subtracker_longitude); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::latitude: lambda(_subtracker_latitude); return;
+        case TData::FieldIndex::longitude: lambda(_subtracker_longitude); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    void set_latitude(int64_t&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::latitude, Obj().latitude(), val);
+        Obj().set_latitude(std::move(val));
+    }
+
+    void set_longitude(int64_t&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::longitude, Obj().longitude(), val);
+        Obj().set_longitude(std::move(val));
+    }
+
+};
+
+template <>
+struct Stencil::Visitor<ComplexWebService::MapPoint::Data, void> : Stencil::VisitorT<ComplexWebService::MapPoint::Data>
+{
+    using TData = ComplexWebService::MapPoint::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::latitude: lambda("latitude", _ref.get().latitude()); return;
+        case TData::FieldIndex::longitude: lambda("longitude", _ref.get().longitude()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::latitude: lambda("latitude", _ref.get().latitude()); return;
+        case TData::FieldIndex::longitude: lambda("longitude", _ref.get().longitude()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("latitude", _ref.get().latitude());
+        lambda("longitude", _ref.get().longitude());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const ComplexWebService::MapPoint::Data, void> : Stencil::VisitorT<const ComplexWebService::MapPoint::Data>
+{
+    using TData = ComplexWebService::MapPoint::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::latitude: lambda("latitude", _ref.get().latitude()); return;
+        case TData::FieldIndex::longitude: lambda("longitude", _ref.get().longitude()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("latitude", _ref.get().latitude());
+        lambda("longitude", _ref.get().longitude());
+    }
+
+    std::reference_wrapper<TData> _ref;
 };
 
 template <> struct ReflectionBase::TypeTraits<ComplexWebService::GeographicalArea::Data&>
@@ -1480,51 +1590,134 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::GeographicalAre
                                                                  >;
 };
 
-template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, ComplexWebService::GeographicalArea::Data>>>
+template <>
+struct Stencil::Transaction<ComplexWebService::GeographicalArea::Data> : Stencil::TransactionT<ComplexWebService::GeographicalArea::Data>
 {
-    using TData = T;
+    using TData = ComplexWebService::GeographicalArea::Data;
 
-    // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
-    // TODO : Better way to unify creation interface
-    bool _changed = false;
+    Transaction<shared_string> _subtracker_type;
+    Transaction<shared_string> _subtracker_name;
+    Transaction<std::vector<::ComplexWebService::MapPoint::Data>> _subtracker_areaPolygon;
+    DELETE_COPY_AND_MOVE(Transaction);
 
-    DELETE_COPY_AND_MOVE(DeltaTracker);
-
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    Transaction(TData& ptr, TransactionRecorder& rec) :
+        Stencil::TransactionT<ComplexWebService::GeographicalArea::Data>(ptr, rec)
+        ,
+        _subtracker_type(Obj().type(), rec)
+        ,
+        _subtracker_name(Obj().name(), rec)
+        ,
+        _subtracker_areaPolygon(Obj().areaPolygon(), rec)
     {
-        // TODO: Tentative
-        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
-
-    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
-
-    size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
-
-    uint8_t MutatorIndex() const;
-    bool    OnlyHasDefaultMutator() const;
-
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
-
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::type:
-            lambda(DeltaTracker<shared_string>(&_ptr->type(), IsFieldChanged(TData::FieldIndex::type)));
-            return;
-        case TData::FieldIndex::name:
-            lambda(DeltaTracker<shared_string>(&_ptr->name(), IsFieldChanged(TData::FieldIndex::name)));
-            return;
-        case TData::FieldIndex::areaPolygon:
-            lambda(DeltaTracker<std::vector<::ComplexWebService::MapPoint::Data>>(&_ptr->areaPolygon(), IsFieldChanged(TData::FieldIndex::areaPolygon)));
-            return;
+        case TData::FieldIndex::type: lambda(_subtracker_type); return;
+        case TData::FieldIndex::name: lambda(_subtracker_name); return;
+        case TData::FieldIndex::areaPolygon: lambda(_subtracker_areaPolygon); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::type: lambda(_subtracker_type); return;
+        case TData::FieldIndex::name: lambda(_subtracker_name); return;
+        case TData::FieldIndex::areaPolygon: lambda(_subtracker_areaPolygon); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    void set_type(shared_string&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::type, Obj().type(), val);
+        Obj().set_type(std::move(val));
+    }
+
+    void set_name(shared_string&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::name, Obj().name(), val);
+        Obj().set_name(std::move(val));
+    }
+
+    void set_areaPolygon(std::vector<::ComplexWebService::MapPoint::Data>&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::areaPolygon, Obj().areaPolygon(), val);
+        Obj().set_areaPolygon(std::move(val));
+    }
+
+};
+
+template <>
+struct Stencil::Visitor<ComplexWebService::GeographicalArea::Data, void> : Stencil::VisitorT<ComplexWebService::GeographicalArea::Data>
+{
+    using TData = ComplexWebService::GeographicalArea::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::type: lambda("type", _ref.get().type()); return;
+        case TData::FieldIndex::name: lambda("name", _ref.get().name()); return;
+        case TData::FieldIndex::areaPolygon: lambda("areaPolygon", _ref.get().areaPolygon()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::type: lambda("type", _ref.get().type()); return;
+        case TData::FieldIndex::name: lambda("name", _ref.get().name()); return;
+        case TData::FieldIndex::areaPolygon: lambda("areaPolygon", _ref.get().areaPolygon()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("type", _ref.get().type());
+        lambda("name", _ref.get().name());
+        lambda("areaPolygon", _ref.get().areaPolygon());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const ComplexWebService::GeographicalArea::Data, void> : Stencil::VisitorT<const ComplexWebService::GeographicalArea::Data>
+{
+    using TData = ComplexWebService::GeographicalArea::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::type: lambda("type", _ref.get().type()); return;
+        case TData::FieldIndex::name: lambda("name", _ref.get().name()); return;
+        case TData::FieldIndex::areaPolygon: lambda("areaPolygon", _ref.get().areaPolygon()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("type", _ref.get().type());
+        lambda("name", _ref.get().name());
+        lambda("areaPolygon", _ref.get().areaPolygon());
+    }
+
+    std::reference_wrapper<TData> _ref;
 };
 
 template <> struct ReflectionBase::TypeTraits<ComplexWebService::DigitalAssetInfo::Data&>
@@ -1673,59 +1866,189 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::DigitalAssetInf
                                                                  >;
 };
 
-template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, ComplexWebService::DigitalAssetInfo::Data>>>
+template <>
+struct Stencil::Transaction<ComplexWebService::DigitalAssetInfo::Data> : Stencil::TransactionT<ComplexWebService::DigitalAssetInfo::Data>
 {
-    using TData = T;
+    using TData = ComplexWebService::DigitalAssetInfo::Data;
 
-    // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
-    // TODO : Better way to unify creation interface
-    bool _changed = false;
+    Transaction<int32_t> _subtracker_id;
+    Transaction<std::vector<shared_tree<shared_string>>> _subtracker_keywords;
+    Transaction<shared_tree<::ComplexWebService::GeographicalArea::Data>> _subtracker_location;
+    Transaction<int64_t> _subtracker_md5sum;
+    Transaction<shared_string> _subtracker_thumbnailBlob;
+    Transaction<shared_string> _subtracker_fileUrl;
+    DELETE_COPY_AND_MOVE(Transaction);
 
-    DELETE_COPY_AND_MOVE(DeltaTracker);
-
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    Transaction(TData& ptr, TransactionRecorder& rec) :
+        Stencil::TransactionT<ComplexWebService::DigitalAssetInfo::Data>(ptr, rec)
+        ,
+        _subtracker_id(Obj().id(), rec)
+        ,
+        _subtracker_keywords(Obj().keywords(), rec)
+        ,
+        _subtracker_location(Obj().location(), rec)
+        ,
+        _subtracker_md5sum(Obj().md5sum(), rec)
+        ,
+        _subtracker_thumbnailBlob(Obj().thumbnailBlob(), rec)
+        ,
+        _subtracker_fileUrl(Obj().fileUrl(), rec)
     {
-        // TODO: Tentative
-        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
-
-    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
-
-    size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
-
-    uint8_t MutatorIndex() const;
-    bool    OnlyHasDefaultMutator() const;
-
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
-
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::id:
-            lambda(DeltaTracker<int32_t>(&_ptr->id(), IsFieldChanged(TData::FieldIndex::id)));
-            return;
-        case TData::FieldIndex::keywords:
-            lambda(DeltaTracker<std::vector<shared_tree<shared_string>>>(&_ptr->keywords(), IsFieldChanged(TData::FieldIndex::keywords)));
-            return;
-        case TData::FieldIndex::location:
-            lambda(DeltaTracker<shared_tree<::ComplexWebService::GeographicalArea::Data>>(&_ptr->location(), IsFieldChanged(TData::FieldIndex::location)));
-            return;
-        case TData::FieldIndex::md5sum:
-            lambda(DeltaTracker<int64_t>(&_ptr->md5sum(), IsFieldChanged(TData::FieldIndex::md5sum)));
-            return;
-        case TData::FieldIndex::thumbnailBlob:
-            lambda(DeltaTracker<shared_string>(&_ptr->thumbnailBlob(), IsFieldChanged(TData::FieldIndex::thumbnailBlob)));
-            return;
-        case TData::FieldIndex::fileUrl:
-            lambda(DeltaTracker<shared_string>(&_ptr->fileUrl(), IsFieldChanged(TData::FieldIndex::fileUrl)));
-            return;
+        case TData::FieldIndex::id: lambda(_subtracker_id); return;
+        case TData::FieldIndex::keywords: lambda(_subtracker_keywords); return;
+        case TData::FieldIndex::location: lambda(_subtracker_location); return;
+        case TData::FieldIndex::md5sum: lambda(_subtracker_md5sum); return;
+        case TData::FieldIndex::thumbnailBlob: lambda(_subtracker_thumbnailBlob); return;
+        case TData::FieldIndex::fileUrl: lambda(_subtracker_fileUrl); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::id: lambda(_subtracker_id); return;
+        case TData::FieldIndex::keywords: lambda(_subtracker_keywords); return;
+        case TData::FieldIndex::location: lambda(_subtracker_location); return;
+        case TData::FieldIndex::md5sum: lambda(_subtracker_md5sum); return;
+        case TData::FieldIndex::thumbnailBlob: lambda(_subtracker_thumbnailBlob); return;
+        case TData::FieldIndex::fileUrl: lambda(_subtracker_fileUrl); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    void set_id(int32_t&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::id, Obj().id(), val);
+        Obj().set_id(std::move(val));
+    }
+
+    void set_keywords(std::vector<shared_tree<shared_string>>&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::keywords, Obj().keywords(), val);
+        Obj().set_keywords(std::move(val));
+    }
+
+    void set_location(shared_tree<::ComplexWebService::GeographicalArea::Data>&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::location, Obj().location(), val);
+        Obj().set_location(std::move(val));
+    }
+
+    void set_md5sum(int64_t&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::md5sum, Obj().md5sum(), val);
+        Obj().set_md5sum(std::move(val));
+    }
+
+    void set_thumbnailBlob(shared_string&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::thumbnailBlob, Obj().thumbnailBlob(), val);
+        Obj().set_thumbnailBlob(std::move(val));
+    }
+
+    void set_fileUrl(shared_string&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::fileUrl, Obj().fileUrl(), val);
+        Obj().set_fileUrl(std::move(val));
+    }
+
 };
 
+template <>
+struct Stencil::Visitor<ComplexWebService::DigitalAssetInfo::Data, void> : Stencil::VisitorT<ComplexWebService::DigitalAssetInfo::Data>
+{
+    using TData = ComplexWebService::DigitalAssetInfo::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::id: lambda("id", _ref.get().id()); return;
+        case TData::FieldIndex::keywords: lambda("keywords", _ref.get().keywords()); return;
+        case TData::FieldIndex::location: lambda("location", _ref.get().location()); return;
+        case TData::FieldIndex::md5sum: lambda("md5sum", _ref.get().md5sum()); return;
+        case TData::FieldIndex::thumbnailBlob: lambda("thumbnailBlob", _ref.get().thumbnailBlob()); return;
+        case TData::FieldIndex::fileUrl: lambda("fileUrl", _ref.get().fileUrl()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::id: lambda("id", _ref.get().id()); return;
+        case TData::FieldIndex::keywords: lambda("keywords", _ref.get().keywords()); return;
+        case TData::FieldIndex::location: lambda("location", _ref.get().location()); return;
+        case TData::FieldIndex::md5sum: lambda("md5sum", _ref.get().md5sum()); return;
+        case TData::FieldIndex::thumbnailBlob: lambda("thumbnailBlob", _ref.get().thumbnailBlob()); return;
+        case TData::FieldIndex::fileUrl: lambda("fileUrl", _ref.get().fileUrl()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("id", _ref.get().id());
+        lambda("keywords", _ref.get().keywords());
+        lambda("location", _ref.get().location());
+        lambda("md5sum", _ref.get().md5sum());
+        lambda("thumbnailBlob", _ref.get().thumbnailBlob());
+        lambda("fileUrl", _ref.get().fileUrl());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const ComplexWebService::DigitalAssetInfo::Data, void> : Stencil::VisitorT<const ComplexWebService::DigitalAssetInfo::Data>
+{
+    using TData = ComplexWebService::DigitalAssetInfo::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::id: lambda("id", _ref.get().id()); return;
+        case TData::FieldIndex::keywords: lambda("keywords", _ref.get().keywords()); return;
+        case TData::FieldIndex::location: lambda("location", _ref.get().location()); return;
+        case TData::FieldIndex::md5sum: lambda("md5sum", _ref.get().md5sum()); return;
+        case TData::FieldIndex::thumbnailBlob: lambda("thumbnailBlob", _ref.get().thumbnailBlob()); return;
+        case TData::FieldIndex::fileUrl: lambda("fileUrl", _ref.get().fileUrl()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("id", _ref.get().id());
+        lambda("keywords", _ref.get().keywords());
+        lambda("location", _ref.get().location());
+        lambda("md5sum", _ref.get().md5sum());
+        lambda("thumbnailBlob", _ref.get().thumbnailBlob());
+        lambda("fileUrl", _ref.get().fileUrl());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+#endif
+// SECTION END: Template specializations
+
+// SECTION START: Inline Function Definitions
+#if true
+
+#endif
+// SECTION END: Inline Function Definitions

@@ -1,5 +1,48 @@
 #pragma once
 #include <stencil/stencil.h>
+
+// SECTION START: DECLARATIONS
+#if true
+namespace CLOpts2::InstallOptions
+{
+struct Data;
+}
+template <> struct ReflectionBase::TypeTraits<CLOpts2::InstallOptions::Data&>;
+namespace CLOpts2::QueueOptions
+{
+struct Data;
+}
+template <> struct ReflectionBase::TypeTraits<CLOpts2::QueueOptions::Data&>;
+namespace CLOpts2::PauseOptions
+{
+struct Data;
+}
+template <> struct ReflectionBase::TypeTraits<CLOpts2::PauseOptions::Data&>;
+namespace CLOpts2::CancelOptions
+{
+struct Data;
+}
+template <> struct ReflectionBase::TypeTraits<CLOpts2::CancelOptions::Data&>;
+namespace CLOpts2::ResumeOptions
+{
+struct Data;
+}
+template <> struct ReflectionBase::TypeTraits<CLOpts2::ResumeOptions::Data&>;
+namespace CLOpts2::UpdateOptions
+{
+struct Data;
+}
+template <> struct ReflectionBase::TypeTraits<CLOpts2::UpdateOptions::Data&>;
+namespace CLOpts2::HydrateOptions
+{
+struct Data;
+}
+template <> struct ReflectionBase::TypeTraits<CLOpts2::HydrateOptions::Data&>;
+#endif
+// SECTION END: DECLARATIONS
+
+// SECTION START: Definitions
+#if true
 namespace CLOpts2
 {
 namespace InstallOptions
@@ -101,11 +144,12 @@ struct Data :
 
     void set_ProductId(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
 
+#if 0
+#endif
     private:
     bool _Repair = 0;
 
@@ -119,11 +163,12 @@ struct Data :
 
     void set_Repair(bool&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::Repair, _Repair, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::Repair, _Repair, val);
         _Repair = std::move(val);
     }
 
+#if 0
+#endif
     private:
     bool _ForceNonSD = 0;
 
@@ -137,11 +182,12 @@ struct Data :
 
     void set_ForceNonSD(bool&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ForceNonSD, _ForceNonSD, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ForceNonSD, _ForceNonSD, val);
         _ForceNonSD = std::move(val);
     }
 
+#if 0
+#endif
     private:
     shared_string _TargetVolume = "";
 
@@ -155,11 +201,12 @@ struct Data :
 
     void set_TargetVolume(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::TargetVolume, _TargetVolume, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::TargetVolume, _TargetVolume, val);
         _TargetVolume = std::move(val);
     }
 
+#if 0
+#endif
     private:
     shared_string _User = "";
 
@@ -173,11 +220,12 @@ struct Data :
 
     void set_User(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::User, _User, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::User, _User, val);
         _User = std::move(val);
     }
 
+#if 0
+#endif
 };
 
 }    // namespace InstallOptions
@@ -232,11 +280,12 @@ struct Data :
 
     void set_ProductId(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
 
+#if 0
+#endif
 };
 
 }    // namespace QueueOptions
@@ -291,11 +340,12 @@ struct Data :
 
     void set_ProductId(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
 
+#if 0
+#endif
 };
 
 }    // namespace PauseOptions
@@ -350,11 +400,12 @@ struct Data :
 
     void set_ProductId(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
 
+#if 0
+#endif
 };
 
 }    // namespace CancelOptions
@@ -409,11 +460,12 @@ struct Data :
 
     void set_ProductId(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
 
+#if 0
+#endif
 };
 
 }    // namespace ResumeOptions
@@ -468,11 +520,12 @@ struct Data :
 
     void set_ProductId(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
 
+#if 0
+#endif
 };
 
 }    // namespace UpdateOptions
@@ -527,11 +580,12 @@ struct Data :
 
     void set_ProductId(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
 
+#if 0
+#endif
 };
 
 }    // namespace HydrateOptions
@@ -561,7 +615,7 @@ struct Data : public ReflectionBase::ObjMarker
     UnionType Type() const { return _type; }
 
     UnionType& get_Type() { return _type; }
-    void       set_Type(UnionType&& val) { _type = (UnionType)std::move(val); }
+    void       set_Type(UnionType&& val) { _type = std::move(val); }
 
     Data() : _type(UnionType::Invalid) {}
 
@@ -626,12 +680,8 @@ struct Data : public ReflectionBase::ObjMarker
     void                            install(const ::CLOpts2::InstallOptions::Data& val) { _install = val; }
     void                            install(::CLOpts2::InstallOptions::Data&& val) { _install = std::move(val); }
 
-    ::CLOpts2::InstallOptions::Data& get_install()
-    {
-        return _install;
-        ;
-    }
-    void set_install(::CLOpts2::InstallOptions::Data&& val) { _install = std::move(val); }
+    ::CLOpts2::InstallOptions::Data& get_install() { return _install; }
+    void                      set_install(::CLOpts2::InstallOptions::Data&& val) { _install = std::move(val); }
 
     private:
     ::CLOpts2::QueueOptions::Data _queue;
@@ -642,12 +692,8 @@ struct Data : public ReflectionBase::ObjMarker
     void                            queue(const ::CLOpts2::QueueOptions::Data& val) { _queue = val; }
     void                            queue(::CLOpts2::QueueOptions::Data&& val) { _queue = std::move(val); }
 
-    ::CLOpts2::QueueOptions::Data& get_queue()
-    {
-        return _queue;
-        ;
-    }
-    void set_queue(::CLOpts2::QueueOptions::Data&& val) { _queue = std::move(val); }
+    ::CLOpts2::QueueOptions::Data& get_queue() { return _queue; }
+    void                      set_queue(::CLOpts2::QueueOptions::Data&& val) { _queue = std::move(val); }
 
     private:
     ::CLOpts2::PauseOptions::Data _pause;
@@ -658,12 +704,8 @@ struct Data : public ReflectionBase::ObjMarker
     void                            pause(const ::CLOpts2::PauseOptions::Data& val) { _pause = val; }
     void                            pause(::CLOpts2::PauseOptions::Data&& val) { _pause = std::move(val); }
 
-    ::CLOpts2::PauseOptions::Data& get_pause()
-    {
-        return _pause;
-        ;
-    }
-    void set_pause(::CLOpts2::PauseOptions::Data&& val) { _pause = std::move(val); }
+    ::CLOpts2::PauseOptions::Data& get_pause() { return _pause; }
+    void                      set_pause(::CLOpts2::PauseOptions::Data&& val) { _pause = std::move(val); }
 
     private:
     ::CLOpts2::CancelOptions::Data _cancel;
@@ -674,12 +716,8 @@ struct Data : public ReflectionBase::ObjMarker
     void                            cancel(const ::CLOpts2::CancelOptions::Data& val) { _cancel = val; }
     void                            cancel(::CLOpts2::CancelOptions::Data&& val) { _cancel = std::move(val); }
 
-    ::CLOpts2::CancelOptions::Data& get_cancel()
-    {
-        return _cancel;
-        ;
-    }
-    void set_cancel(::CLOpts2::CancelOptions::Data&& val) { _cancel = std::move(val); }
+    ::CLOpts2::CancelOptions::Data& get_cancel() { return _cancel; }
+    void                      set_cancel(::CLOpts2::CancelOptions::Data&& val) { _cancel = std::move(val); }
 
     private:
     ::CLOpts2::ResumeOptions::Data _resume;
@@ -690,12 +728,8 @@ struct Data : public ReflectionBase::ObjMarker
     void                            resume(const ::CLOpts2::ResumeOptions::Data& val) { _resume = val; }
     void                            resume(::CLOpts2::ResumeOptions::Data&& val) { _resume = std::move(val); }
 
-    ::CLOpts2::ResumeOptions::Data& get_resume()
-    {
-        return _resume;
-        ;
-    }
-    void set_resume(::CLOpts2::ResumeOptions::Data&& val) { _resume = std::move(val); }
+    ::CLOpts2::ResumeOptions::Data& get_resume() { return _resume; }
+    void                      set_resume(::CLOpts2::ResumeOptions::Data&& val) { _resume = std::move(val); }
 
     private:
     ::CLOpts2::UpdateOptions::Data _update;
@@ -706,12 +740,8 @@ struct Data : public ReflectionBase::ObjMarker
     void                            update(const ::CLOpts2::UpdateOptions::Data& val) { _update = val; }
     void                            update(::CLOpts2::UpdateOptions::Data&& val) { _update = std::move(val); }
 
-    ::CLOpts2::UpdateOptions::Data& get_update()
-    {
-        return _update;
-        ;
-    }
-    void set_update(::CLOpts2::UpdateOptions::Data&& val) { _update = std::move(val); }
+    ::CLOpts2::UpdateOptions::Data& get_update() { return _update; }
+    void                      set_update(::CLOpts2::UpdateOptions::Data&& val) { _update = std::move(val); }
 
     private:
     ::CLOpts2::HydrateOptions::Data _hydrate;
@@ -722,17 +752,19 @@ struct Data : public ReflectionBase::ObjMarker
     void                            hydrate(const ::CLOpts2::HydrateOptions::Data& val) { _hydrate = val; }
     void                            hydrate(::CLOpts2::HydrateOptions::Data&& val) { _hydrate = std::move(val); }
 
-    ::CLOpts2::HydrateOptions::Data& get_hydrate()
-    {
-        return _hydrate;
-        ;
-    }
-    void set_hydrate(::CLOpts2::HydrateOptions::Data&& val) { _hydrate = std::move(val); }
+    ::CLOpts2::HydrateOptions::Data& get_hydrate() { return _hydrate; }
+    void                      set_hydrate(::CLOpts2::HydrateOptions::Data&& val) { _hydrate = std::move(val); }
 
 };
 }    // namespace CommandLineOptions
 }    // namespace CLOpts2
+#endif
+// SECTION END: Definitions
 
+// SECTION START: Template specializations
+#if true
+
+// SECTION:
 template <> struct ReflectionBase::TypeTraits<CLOpts2::InstallOptions::Data&>
 {
     struct Traits_ProductId
@@ -863,57 +895,166 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::InstallOptions::Data&>
                                                                  >;
 };
 
-template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, CLOpts2::InstallOptions::Data>>>
+template <>
+struct Stencil::Transaction<CLOpts2::InstallOptions::Data> : Stencil::TransactionT<CLOpts2::InstallOptions::Data>
 {
-    using TData = T;
+    using TData = CLOpts2::InstallOptions::Data;
 
-    // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
-    // TODO : Better way to unify creation interface
-    bool _changed = false;
+    Transaction<shared_string> _subtracker_ProductId;
+    Transaction<bool> _subtracker_Repair;
+    Transaction<bool> _subtracker_ForceNonSD;
+    Transaction<shared_string> _subtracker_TargetVolume;
+    Transaction<shared_string> _subtracker_User;
+    DELETE_COPY_AND_MOVE(Transaction);
 
-    DELETE_COPY_AND_MOVE(DeltaTracker);
-
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    Transaction(TData& ptr, TransactionRecorder& rec) :
+        Stencil::TransactionT<CLOpts2::InstallOptions::Data>(ptr, rec)
+        ,
+        _subtracker_ProductId(Obj().ProductId(), rec)
+        ,
+        _subtracker_Repair(Obj().Repair(), rec)
+        ,
+        _subtracker_ForceNonSD(Obj().ForceNonSD(), rec)
+        ,
+        _subtracker_TargetVolume(Obj().TargetVolume(), rec)
+        ,
+        _subtracker_User(Obj().User(), rec)
     {
-        // TODO: Tentative
-        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
-
-    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
-
-    size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
-
-    uint8_t MutatorIndex() const;
-    bool    OnlyHasDefaultMutator() const;
-
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
-
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::ProductId:
-            lambda(DeltaTracker<shared_string>(&_ptr->ProductId(), IsFieldChanged(TData::FieldIndex::ProductId)));
-            return;
-        case TData::FieldIndex::Repair:
-            lambda(DeltaTracker<bool>(&_ptr->Repair(), IsFieldChanged(TData::FieldIndex::Repair)));
-            return;
-        case TData::FieldIndex::ForceNonSD:
-            lambda(DeltaTracker<bool>(&_ptr->ForceNonSD(), IsFieldChanged(TData::FieldIndex::ForceNonSD)));
-            return;
-        case TData::FieldIndex::TargetVolume:
-            lambda(DeltaTracker<shared_string>(&_ptr->TargetVolume(), IsFieldChanged(TData::FieldIndex::TargetVolume)));
-            return;
-        case TData::FieldIndex::User:
-            lambda(DeltaTracker<shared_string>(&_ptr->User(), IsFieldChanged(TData::FieldIndex::User)));
-            return;
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
+        case TData::FieldIndex::Repair: lambda(_subtracker_Repair); return;
+        case TData::FieldIndex::ForceNonSD: lambda(_subtracker_ForceNonSD); return;
+        case TData::FieldIndex::TargetVolume: lambda(_subtracker_TargetVolume); return;
+        case TData::FieldIndex::User: lambda(_subtracker_User); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
+        case TData::FieldIndex::Repair: lambda(_subtracker_Repair); return;
+        case TData::FieldIndex::ForceNonSD: lambda(_subtracker_ForceNonSD); return;
+        case TData::FieldIndex::TargetVolume: lambda(_subtracker_TargetVolume); return;
+        case TData::FieldIndex::User: lambda(_subtracker_User); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    void set_ProductId(shared_string&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::ProductId, Obj().ProductId(), val);
+        Obj().set_ProductId(std::move(val));
+    }
+
+    void set_Repair(bool&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::Repair, Obj().Repair(), val);
+        Obj().set_Repair(std::move(val));
+    }
+
+    void set_ForceNonSD(bool&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::ForceNonSD, Obj().ForceNonSD(), val);
+        Obj().set_ForceNonSD(std::move(val));
+    }
+
+    void set_TargetVolume(shared_string&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::TargetVolume, Obj().TargetVolume(), val);
+        Obj().set_TargetVolume(std::move(val));
+    }
+
+    void set_User(shared_string&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::User, Obj().User(), val);
+        Obj().set_User(std::move(val));
+    }
+
+};
+
+template <>
+struct Stencil::Visitor<CLOpts2::InstallOptions::Data, void> : Stencil::VisitorT<CLOpts2::InstallOptions::Data>
+{
+    using TData = CLOpts2::InstallOptions::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Repair: lambda("Repair", _ref.get().Repair()); return;
+        case TData::FieldIndex::ForceNonSD: lambda("ForceNonSD", _ref.get().ForceNonSD()); return;
+        case TData::FieldIndex::TargetVolume: lambda("TargetVolume", _ref.get().TargetVolume()); return;
+        case TData::FieldIndex::User: lambda("User", _ref.get().User()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Repair: lambda("Repair", _ref.get().Repair()); return;
+        case TData::FieldIndex::ForceNonSD: lambda("ForceNonSD", _ref.get().ForceNonSD()); return;
+        case TData::FieldIndex::TargetVolume: lambda("TargetVolume", _ref.get().TargetVolume()); return;
+        case TData::FieldIndex::User: lambda("User", _ref.get().User()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+        lambda("Repair", _ref.get().Repair());
+        lambda("ForceNonSD", _ref.get().ForceNonSD());
+        lambda("TargetVolume", _ref.get().TargetVolume());
+        lambda("User", _ref.get().User());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const CLOpts2::InstallOptions::Data, void> : Stencil::VisitorT<const CLOpts2::InstallOptions::Data>
+{
+    using TData = CLOpts2::InstallOptions::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Repair: lambda("Repair", _ref.get().Repair()); return;
+        case TData::FieldIndex::ForceNonSD: lambda("ForceNonSD", _ref.get().ForceNonSD()); return;
+        case TData::FieldIndex::TargetVolume: lambda("TargetVolume", _ref.get().TargetVolume()); return;
+        case TData::FieldIndex::User: lambda("User", _ref.get().User()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+        lambda("Repair", _ref.get().Repair());
+        lambda("ForceNonSD", _ref.get().ForceNonSD());
+        lambda("TargetVolume", _ref.get().TargetVolume());
+        lambda("User", _ref.get().User());
+    }
+
+    std::reference_wrapper<TData> _ref;
 };
 
 template <> struct ReflectionBase::TypeTraits<CLOpts2::QueueOptions::Data&>
@@ -959,45 +1100,102 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::QueueOptions::Data&>
                                                                  >;
 };
 
-template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, CLOpts2::QueueOptions::Data>>>
+template <>
+struct Stencil::Transaction<CLOpts2::QueueOptions::Data> : Stencil::TransactionT<CLOpts2::QueueOptions::Data>
 {
-    using TData = T;
+    using TData = CLOpts2::QueueOptions::Data;
 
-    // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
-    // TODO : Better way to unify creation interface
-    bool _changed = false;
+    Transaction<shared_string> _subtracker_ProductId;
+    DELETE_COPY_AND_MOVE(Transaction);
 
-    DELETE_COPY_AND_MOVE(DeltaTracker);
-
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    Transaction(TData& ptr, TransactionRecorder& rec) :
+        Stencil::TransactionT<CLOpts2::QueueOptions::Data>(ptr, rec)
+        ,
+        _subtracker_ProductId(Obj().ProductId(), rec)
     {
-        // TODO: Tentative
-        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
-
-    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
-
-    size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
-
-    uint8_t MutatorIndex() const;
-    bool    OnlyHasDefaultMutator() const;
-
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
-
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::ProductId:
-            lambda(DeltaTracker<shared_string>(&_ptr->ProductId(), IsFieldChanged(TData::FieldIndex::ProductId)));
-            return;
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    void set_ProductId(shared_string&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::ProductId, Obj().ProductId(), val);
+        Obj().set_ProductId(std::move(val));
+    }
+
+};
+
+template <>
+struct Stencil::Visitor<CLOpts2::QueueOptions::Data, void> : Stencil::VisitorT<CLOpts2::QueueOptions::Data>
+{
+    using TData = CLOpts2::QueueOptions::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const CLOpts2::QueueOptions::Data, void> : Stencil::VisitorT<const CLOpts2::QueueOptions::Data>
+{
+    using TData = CLOpts2::QueueOptions::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+    }
+
+    std::reference_wrapper<TData> _ref;
 };
 
 template <> struct ReflectionBase::TypeTraits<CLOpts2::PauseOptions::Data&>
@@ -1042,45 +1240,102 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::PauseOptions::Data&>
                                                                  >;
 };
 
-template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, CLOpts2::PauseOptions::Data>>>
+template <>
+struct Stencil::Transaction<CLOpts2::PauseOptions::Data> : Stencil::TransactionT<CLOpts2::PauseOptions::Data>
 {
-    using TData = T;
+    using TData = CLOpts2::PauseOptions::Data;
 
-    // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
-    // TODO : Better way to unify creation interface
-    bool _changed = false;
+    Transaction<shared_string> _subtracker_ProductId;
+    DELETE_COPY_AND_MOVE(Transaction);
 
-    DELETE_COPY_AND_MOVE(DeltaTracker);
-
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    Transaction(TData& ptr, TransactionRecorder& rec) :
+        Stencil::TransactionT<CLOpts2::PauseOptions::Data>(ptr, rec)
+        ,
+        _subtracker_ProductId(Obj().ProductId(), rec)
     {
-        // TODO: Tentative
-        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
-
-    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
-
-    size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
-
-    uint8_t MutatorIndex() const;
-    bool    OnlyHasDefaultMutator() const;
-
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
-
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::ProductId:
-            lambda(DeltaTracker<shared_string>(&_ptr->ProductId(), IsFieldChanged(TData::FieldIndex::ProductId)));
-            return;
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    void set_ProductId(shared_string&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::ProductId, Obj().ProductId(), val);
+        Obj().set_ProductId(std::move(val));
+    }
+
+};
+
+template <>
+struct Stencil::Visitor<CLOpts2::PauseOptions::Data, void> : Stencil::VisitorT<CLOpts2::PauseOptions::Data>
+{
+    using TData = CLOpts2::PauseOptions::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const CLOpts2::PauseOptions::Data, void> : Stencil::VisitorT<const CLOpts2::PauseOptions::Data>
+{
+    using TData = CLOpts2::PauseOptions::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+    }
+
+    std::reference_wrapper<TData> _ref;
 };
 
 template <> struct ReflectionBase::TypeTraits<CLOpts2::CancelOptions::Data&>
@@ -1125,45 +1380,102 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CancelOptions::Data&>
                                                                  >;
 };
 
-template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, CLOpts2::CancelOptions::Data>>>
+template <>
+struct Stencil::Transaction<CLOpts2::CancelOptions::Data> : Stencil::TransactionT<CLOpts2::CancelOptions::Data>
 {
-    using TData = T;
+    using TData = CLOpts2::CancelOptions::Data;
 
-    // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
-    // TODO : Better way to unify creation interface
-    bool _changed = false;
+    Transaction<shared_string> _subtracker_ProductId;
+    DELETE_COPY_AND_MOVE(Transaction);
 
-    DELETE_COPY_AND_MOVE(DeltaTracker);
-
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    Transaction(TData& ptr, TransactionRecorder& rec) :
+        Stencil::TransactionT<CLOpts2::CancelOptions::Data>(ptr, rec)
+        ,
+        _subtracker_ProductId(Obj().ProductId(), rec)
     {
-        // TODO: Tentative
-        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
-
-    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
-
-    size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
-
-    uint8_t MutatorIndex() const;
-    bool    OnlyHasDefaultMutator() const;
-
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
-
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::ProductId:
-            lambda(DeltaTracker<shared_string>(&_ptr->ProductId(), IsFieldChanged(TData::FieldIndex::ProductId)));
-            return;
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    void set_ProductId(shared_string&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::ProductId, Obj().ProductId(), val);
+        Obj().set_ProductId(std::move(val));
+    }
+
+};
+
+template <>
+struct Stencil::Visitor<CLOpts2::CancelOptions::Data, void> : Stencil::VisitorT<CLOpts2::CancelOptions::Data>
+{
+    using TData = CLOpts2::CancelOptions::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const CLOpts2::CancelOptions::Data, void> : Stencil::VisitorT<const CLOpts2::CancelOptions::Data>
+{
+    using TData = CLOpts2::CancelOptions::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+    }
+
+    std::reference_wrapper<TData> _ref;
 };
 
 template <> struct ReflectionBase::TypeTraits<CLOpts2::ResumeOptions::Data&>
@@ -1208,45 +1520,102 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::ResumeOptions::Data&>
                                                                  >;
 };
 
-template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, CLOpts2::ResumeOptions::Data>>>
+template <>
+struct Stencil::Transaction<CLOpts2::ResumeOptions::Data> : Stencil::TransactionT<CLOpts2::ResumeOptions::Data>
 {
-    using TData = T;
+    using TData = CLOpts2::ResumeOptions::Data;
 
-    // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
-    // TODO : Better way to unify creation interface
-    bool _changed = false;
+    Transaction<shared_string> _subtracker_ProductId;
+    DELETE_COPY_AND_MOVE(Transaction);
 
-    DELETE_COPY_AND_MOVE(DeltaTracker);
-
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    Transaction(TData& ptr, TransactionRecorder& rec) :
+        Stencil::TransactionT<CLOpts2::ResumeOptions::Data>(ptr, rec)
+        ,
+        _subtracker_ProductId(Obj().ProductId(), rec)
     {
-        // TODO: Tentative
-        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
-
-    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
-
-    size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
-
-    uint8_t MutatorIndex() const;
-    bool    OnlyHasDefaultMutator() const;
-
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
-
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::ProductId:
-            lambda(DeltaTracker<shared_string>(&_ptr->ProductId(), IsFieldChanged(TData::FieldIndex::ProductId)));
-            return;
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    void set_ProductId(shared_string&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::ProductId, Obj().ProductId(), val);
+        Obj().set_ProductId(std::move(val));
+    }
+
+};
+
+template <>
+struct Stencil::Visitor<CLOpts2::ResumeOptions::Data, void> : Stencil::VisitorT<CLOpts2::ResumeOptions::Data>
+{
+    using TData = CLOpts2::ResumeOptions::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const CLOpts2::ResumeOptions::Data, void> : Stencil::VisitorT<const CLOpts2::ResumeOptions::Data>
+{
+    using TData = CLOpts2::ResumeOptions::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+    }
+
+    std::reference_wrapper<TData> _ref;
 };
 
 template <> struct ReflectionBase::TypeTraits<CLOpts2::UpdateOptions::Data&>
@@ -1292,45 +1661,102 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::UpdateOptions::Data&>
                                                                  >;
 };
 
-template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, CLOpts2::UpdateOptions::Data>>>
+template <>
+struct Stencil::Transaction<CLOpts2::UpdateOptions::Data> : Stencil::TransactionT<CLOpts2::UpdateOptions::Data>
 {
-    using TData = T;
+    using TData = CLOpts2::UpdateOptions::Data;
 
-    // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
-    // TODO : Better way to unify creation interface
-    bool _changed = false;
+    Transaction<shared_string> _subtracker_ProductId;
+    DELETE_COPY_AND_MOVE(Transaction);
 
-    DELETE_COPY_AND_MOVE(DeltaTracker);
-
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    Transaction(TData& ptr, TransactionRecorder& rec) :
+        Stencil::TransactionT<CLOpts2::UpdateOptions::Data>(ptr, rec)
+        ,
+        _subtracker_ProductId(Obj().ProductId(), rec)
     {
-        // TODO: Tentative
-        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
-
-    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
-
-    size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
-
-    uint8_t MutatorIndex() const;
-    bool    OnlyHasDefaultMutator() const;
-
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
-
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::ProductId:
-            lambda(DeltaTracker<shared_string>(&_ptr->ProductId(), IsFieldChanged(TData::FieldIndex::ProductId)));
-            return;
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    void set_ProductId(shared_string&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::ProductId, Obj().ProductId(), val);
+        Obj().set_ProductId(std::move(val));
+    }
+
+};
+
+template <>
+struct Stencil::Visitor<CLOpts2::UpdateOptions::Data, void> : Stencil::VisitorT<CLOpts2::UpdateOptions::Data>
+{
+    using TData = CLOpts2::UpdateOptions::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const CLOpts2::UpdateOptions::Data, void> : Stencil::VisitorT<const CLOpts2::UpdateOptions::Data>
+{
+    using TData = CLOpts2::UpdateOptions::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+    }
+
+    std::reference_wrapper<TData> _ref;
 };
 
 template <> struct ReflectionBase::TypeTraits<CLOpts2::HydrateOptions::Data&>
@@ -1375,45 +1801,102 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::HydrateOptions::Data&>
                                                                  >;
 };
 
-template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, CLOpts2::HydrateOptions::Data>>>
+template <>
+struct Stencil::Transaction<CLOpts2::HydrateOptions::Data> : Stencil::TransactionT<CLOpts2::HydrateOptions::Data>
 {
-    using TData = T;
+    using TData = CLOpts2::HydrateOptions::Data;
 
-    // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
-    // TODO : Better way to unify creation interface
-    bool _changed = false;
+    Transaction<shared_string> _subtracker_ProductId;
+    DELETE_COPY_AND_MOVE(Transaction);
 
-    DELETE_COPY_AND_MOVE(DeltaTracker);
-
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    Transaction(TData& ptr, TransactionRecorder& rec) :
+        Stencil::TransactionT<CLOpts2::HydrateOptions::Data>(ptr, rec)
+        ,
+        _subtracker_ProductId(Obj().ProductId(), rec)
     {
-        // TODO: Tentative
-        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
-
-    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
-
-    size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
-
-    uint8_t MutatorIndex() const;
-    bool    OnlyHasDefaultMutator() const;
-
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
-
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::ProductId:
-            lambda(DeltaTracker<shared_string>(&_ptr->ProductId(), IsFieldChanged(TData::FieldIndex::ProductId)));
-            return;
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    void set_ProductId(shared_string&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::ProductId, Obj().ProductId(), val);
+        Obj().set_ProductId(std::move(val));
+    }
+
+};
+
+template <>
+struct Stencil::Visitor<CLOpts2::HydrateOptions::Data, void> : Stencil::VisitorT<CLOpts2::HydrateOptions::Data>
+{
+    using TData = CLOpts2::HydrateOptions::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const CLOpts2::HydrateOptions::Data, void> : Stencil::VisitorT<const CLOpts2::HydrateOptions::Data>
+{
+    using TData = CLOpts2::HydrateOptions::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: lambda("ProductId", _ref.get().ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("ProductId", _ref.get().ProductId());
+    }
+
+    std::reference_wrapper<TData> _ref;
 };
 
 template <> struct ReflectionServices::EnumTraits<CLOpts2::CommandLineOptions::UnionType>
@@ -1426,17 +1909,17 @@ template <> struct ReflectionServices::EnumTraits<CLOpts2::CommandLineOptions::U
                                                   "resume",
                                                   "update",
                                                   "hydrate",
-                                                  0};
+                                                  nullptr};
 
     using ValueType = uint32_t;
 };
 
 template <> struct ValueTraits<CLOpts2::CommandLineOptions::UnionType>
 {
-    static constexpr auto ValueType() { return Value::Type::Unsigned; }
-    static void           Get(Value& /*obj*/) { throw 1; }
-    static void           Get(const Value& /*obj*/) { throw 1; }
-    static void           Check() { throw 1; }
+    static constexpr auto    ValueType() { return Value::Type::Unsigned; }
+    [[noreturn]] static void Get(Value& /*obj*/) { throw std::logic_error("Not Implemented"); }
+    [[noreturn]] static void Get(const Value& /*obj*/) { throw std::logic_error("Not Implemented"); }
+    [[noreturn]] static void Check() { throw std::logic_error("Not Implemented"); }
 };
 
 template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::UnionType&>
@@ -1615,3 +2098,100 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::Data&
 ,                                                                Traits_hydrate
                                                                 >;
 };
+
+template <>
+struct Stencil::Visitor<CLOpts2::CommandLineOptions::Data, void> : Stencil::VisitorT<CLOpts2::CommandLineOptions::Data>
+{
+    using TData = CLOpts2::CommandLineOptions::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::install: lambda("install", _ref.get().install()); return;
+        case TData::FieldIndex::queue: lambda("queue", _ref.get().queue()); return;
+        case TData::FieldIndex::pause: lambda("pause", _ref.get().pause()); return;
+        case TData::FieldIndex::cancel: lambda("cancel", _ref.get().cancel()); return;
+        case TData::FieldIndex::resume: lambda("resume", _ref.get().resume()); return;
+        case TData::FieldIndex::update: lambda("update", _ref.get().update()); return;
+        case TData::FieldIndex::hydrate: lambda("hydrate", _ref.get().hydrate()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::install: lambda("install", _ref.get().install()); return;
+        case TData::FieldIndex::queue: lambda("queue", _ref.get().queue()); return;
+        case TData::FieldIndex::pause: lambda("pause", _ref.get().pause()); return;
+        case TData::FieldIndex::cancel: lambda("cancel", _ref.get().cancel()); return;
+        case TData::FieldIndex::resume: lambda("resume", _ref.get().resume()); return;
+        case TData::FieldIndex::update: lambda("update", _ref.get().update()); return;
+        case TData::FieldIndex::hydrate: lambda("hydrate", _ref.get().hydrate()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("install", _ref.get().install());
+        lambda("queue", _ref.get().queue());
+        lambda("pause", _ref.get().pause());
+        lambda("cancel", _ref.get().cancel());
+        lambda("resume", _ref.get().resume());
+        lambda("update", _ref.get().update());
+        lambda("hydrate", _ref.get().hydrate());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const CLOpts2::CommandLineOptions::Data, void>
+    : Stencil::VisitorT<const CLOpts2::CommandLineOptions::Data>
+{
+    using TData = CLOpts2::CommandLineOptions::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::install: lambda("install", _ref.get().install()); return;
+        case TData::FieldIndex::queue: lambda("queue", _ref.get().queue()); return;
+        case TData::FieldIndex::pause: lambda("pause", _ref.get().pause()); return;
+        case TData::FieldIndex::cancel: lambda("cancel", _ref.get().cancel()); return;
+        case TData::FieldIndex::resume: lambda("resume", _ref.get().resume()); return;
+        case TData::FieldIndex::update: lambda("update", _ref.get().update()); return;
+        case TData::FieldIndex::hydrate: lambda("hydrate", _ref.get().hydrate()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("install", _ref.get().install());
+        lambda("queue", _ref.get().queue());
+        lambda("pause", _ref.get().pause());
+        lambda("cancel", _ref.get().cancel());
+        lambda("resume", _ref.get().resume());
+        lambda("update", _ref.get().update());
+        lambda("hydrate", _ref.get().hydrate());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+#endif
+// SECTION END: Template specializations
+
+// SECTION START: Inline Function Definitions
+#if true
+
+#endif
+// SECTION END: Inline Function Definitions

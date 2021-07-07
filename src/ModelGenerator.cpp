@@ -3,9 +3,13 @@
 #include "IDL2.h"
 #include "TemplateFragment.h"
 
-#pragma warning(push, 0)
-#include "yaml-cpp/yaml.h"
+#pragma warning(push, 3)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
 #include <tinyxml2.h>
+#include <toml.hpp>
+#include <tsl/ordered_map.h>
+#pragma clang diagnostic pop
 #pragma warning(pop)
 
 #include <EmbeddedResource.h>
@@ -39,13 +43,13 @@ inline std::string readfile(std::filesystem::path const& filepath)
     if (file.fail()) throw std::runtime_error("Cannot Load File : " + filepath.string());
     std::string contents;
     file.seekg(0, std::ios::end);
-    contents.reserve((unsigned int)file.tellg());
+    contents.reserve(static_cast<unsigned>(file.tellg()));
     file.seekg(0, std::ios::beg);
     contents.assign((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     return contents;
 }
 
-std::ostream& operator<<(std::ostream& strm, std::wstring_view wstr)
+static std::ostream& operator<<(std::ostream& strm, std::wstring_view wstr)
 {
     for (auto& c : wstr)
     {
@@ -107,6 +111,7 @@ void Generator::FieldTypeDecl::Merge(FieldTypeDecl&& decl)
     }
 }
 
+#if defined USING_YAML_CPP
 namespace YAML
 {
 template <> struct convert<std::wstring>
@@ -237,7 +242,7 @@ template <> struct convert<Generator::ContainerTypeDecl>
 
 }    // namespace YAML
 
-void debug(YAML::Node const& node)
+static void debug(YAML::Node const& node)
 {
     std::stringstream ss;
     ss << node;
@@ -253,61 +258,180 @@ void debug(YAML::Node const& node)
         std::cout << st;
     }
 }
+#endif
+
+template <typename TTableNode>
+static Generator::MutatorAccessorDefinition ParseMutatorAccessorDefinitionFromTomlNode(TTableNode const& node, std::wstring&& key)
+{
+    auto&                                valtbl = (node.as_table());
+    Generator::MutatorAccessorDefinition val;
+    val.name = std::move(key);
+    val.id   = static_cast<uint8_t>(valtbl.at("Id").as_integer());
+    val.returnType
+        = Binding::Expression::Create(Str::Convert(valtbl.at("ReturnType").as_string().str), Str::Create(L"%"), Str::Create(L"%"), L':');
+    auto args = valtbl.at("Args");
+
+    if (args.is_string())
+    {
+        auto str = Str::Convert(args.as_string().str);
+        val.args = {Binding::Expression::Create(str, Str::Create(L"%"), Str::Create(L"%"), L':')};
+    }
+    else
+    {
+        for (auto const& sub : args.as_array())
+        {
+            val.args.push_back(Binding::Expression::Create(Str::Convert(sub.as_string().str), Str::Create(L"%"), Str::Create(L"%"), L':'));
+        }
+    }
+    return val;
+}
+
+template <typename TTableNode>
+static std::vector<Generator::MutatorAccessorDefinition> ParseMutatorAccessorDefinitionArrFromTomlNode(TTableNode const& node)
+{
+    std::vector<Generator::MutatorAccessorDefinition> valarr;
+    for (auto [key, value] : node.as_table())
+    {
+        valarr.push_back(ParseMutatorAccessorDefinitionFromTomlNode(value, Str::Convert(key)));
+    }
+
+    return valarr;
+}
+
+template <typename TTableNode> static Generator::ContainerTypeDecl ContainerTypeDeclFromTomlNode(TTableNode const& node)
+{
+    Generator::ContainerTypeDecl val;
+    if (node.is_string())
+    {
+        val.baseField = Str::Convert(node.as_string().str);
+        return val;
+    }
+    for (auto [key, value] : node.as_table())
+    {
+        auto propname = Str::Convert(key);
+        if (propname == L"Mutators")
+        {
+            val.mutators = ParseMutatorAccessorDefinitionArrFromTomlNode(value);
+        }
+        else if (propname == L"Accessors")
+        {
+            val.accessors = ParseMutatorAccessorDefinitionArrFromTomlNode(value);
+        }
+        else if (propname == L"Inherits")
+        {
+            val.baseField = Str::Convert(value.as_string().str);
+        }
+        else if (propname == L"Params")
+        {
+            for (auto const& sub : (value.as_array()))
+            {
+                val.args.push_back(Str::Convert(sub.as_string().str));
+            }
+        }
+        else
+        {
+            auto annotationMap
+                = val.annotationMap == nullptr ? (val.annotationMap = std::make_shared<Binding::AttributeMap>()) : val.annotationMap;
+            auto propval = Str::Convert(value.as_string().str);
+            auto expr    = Binding::Expression::Create(propval, Str::Create(L"%"), Str::Create(L"%"), L':');
+            (*annotationMap).AddEntry(propname, std::move(expr));
+        }
+    }
+    return val;
+}
+
+template <typename TTableNode> static Generator::FieldTypeDecl FieldTypeDeclFromTomlNode(TTableNode const& node)
+{
+    Generator::FieldTypeDecl val;
+
+    if (node.is_string())
+    {
+        val.baseField = Str::Convert(node.as_string().str);
+        return val;
+    }
+    for (auto [key, value] : node.as_table())
+    {
+        auto propname = Str::Convert(key);
+        if (propname == L"Mutators")
+        {
+            val.mutators = ParseMutatorAccessorDefinitionArrFromTomlNode(value);
+        }
+        else if (propname == L"Accessors")
+        {
+            val.accessors = ParseMutatorAccessorDefinitionArrFromTomlNode(value);
+        }
+        else if (propname == L"Inherits")
+        {
+            val.baseField = Str::Convert(value.as_string().str);
+        }
+        else
+        {
+            auto annotationMap
+                = val.annotationMap == nullptr ? (val.annotationMap = std::make_shared<Binding::AttributeMap>()) : val.annotationMap;
+            auto propval = Str::Convert(value.as_string().str);
+            auto expr    = Binding::Expression::Create(propval, Str::Create(L"%"), Str::Create(L"%"), L':');
+            (*annotationMap).AddEntry(propname, std::move(expr));
+        }
+    }
+    return val;
+}
 
 void Generator::_AddTypeDefinitions(std::string_view const& /*name*/, std::string_view const& text)
 {
-    YAML::Node config = YAML::Load(std::string(text));
-    for (auto it = config.begin(); it != config.end(); it++)
+    std::string       tomltext(text);
+    std::stringstream tomlstrm(tomltext);
+
+    auto config = toml::parse<toml::preserve_comments, tsl::ordered_map>(tomlstrm);
+    for (auto [propname, node] : config.as_table())
     {
-        auto propname = it->first.as<std::string>();
         if (propname == "FieldTypes")
         {
-            for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+            for (auto [key, node1] : node.as_table())
             {
-                auto fieldTypeDecl = it1->second.as<FieldTypeDecl>();
-                fieldTypeDecl.name = it1->first.as<std::wstring>();
+                auto fieldTypeDecl = FieldTypeDeclFromTomlNode(node1);
+                fieldTypeDecl.name = Str::Convert(key);
                 _FindOrInsertFieldTypeDecl(fieldTypeDecl.name).Merge(std::move(fieldTypeDecl));
             }
         }
         else if (propname == "Struct")
         {
-            _structDefault.Merge(it->second.as<FieldTypeDecl>());
+            _structDefault.Merge(FieldTypeDeclFromTomlNode(node));
         }
 
         else if (propname == "Union")
         {
-            _unionDefault.Merge(it->second.as<FieldTypeDecl>());
+            _unionDefault.Merge(FieldTypeDeclFromTomlNode(node));
         }
 
         else if (propname == "Interface")
         {
-            _interfaceDefault.Merge(it->second.as<FieldTypeDecl>());
+            _interfaceDefault.Merge(FieldTypeDeclFromTomlNode(node));
         }
         else if (propname == "FunctionArgs")
         {
-            _fnargsDefault.Merge(it->second.as<FieldTypeDecl>());
+            _fnargsDefault.Merge(FieldTypeDeclFromTomlNode(node));
         }
         else if (propname == "Typedef")
         {
-            _typedefDefault.Merge(it->second.as<FieldTypeDecl>());
+            _typedefDefault.Merge(FieldTypeDeclFromTomlNode(node));
         }
         else if (propname == "Containers")
         {
-            for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+            for (auto [key, node1] : node.as_table())
             {
-                auto typedecl = it1->second.as<ContainerTypeDecl>();
-                typedecl.name = it1->first.as<std::wstring>();
+                auto typedecl = ContainerTypeDeclFromTomlNode(node1);
+                typedecl.name = Str::Convert(key);
                 _FindOrInsertContainerDecls(typedecl.name).Merge(std::move(typedecl));
             }
         }
         else if (propname == "Relationships")
         {
-            for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+            for (auto [key, node1] : node.as_table())
             {
-                auto& objmap = _relationshipDefs[it1->first.as<StrType>()];
-                for (auto it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+                auto& objmap = _relationshipDefs[Str::Convert(key)];
+                for (auto const& [key1, node2] : node1.as_table())
                 {
-                    objmap[it2->first.as<StrType>()] = it2->second.as<StrType>();
+                    objmap[Str::Convert(key1)] = Str::Convert(node2.as_string().str);
                 }
             }
         }
@@ -318,10 +442,10 @@ void Generator::_AddTypeDefinitions(std::string_view const& /*name*/, std::strin
     }
 }
 
-void CreateTemplateFromNode(tree<TemplateFragment>&          tmpl,
-                            tree<TemplateFragment>::iterator parent,
-                            std::string_view const&          name,
-                            XMLNode const&                   xml)
+static void CreateTemplateFromNode(tree<TemplateFragment>&          tmpl,
+                                   tree<TemplateFragment>::iterator parent,
+                                   std::string_view const&          name,
+                                   XMLNode const&                   xml)
 {
     auto textNode = xml.ToText();
     auto elemNode = xml.ToElement();
@@ -363,12 +487,12 @@ template <typename TMap, typename TKey> auto FindInMapOrDefault(TMap const& map,
     return it->second;
 }
 
-void ExpandTemplate(tree<Str::Type>&                 codetree,
-                    tree<Str::Type>::iterator        root,
-                    tree<TemplateFragment> const&    tmpl,
-                    tree<TemplateFragment>::iterator tmplrootit,
-                    Binding::BindingContext&         context,
-                    Binding::IBindable&              data)
+static void ExpandTemplate(tree<Str::Type>&                 codetree,
+                           tree<Str::Type>::iterator        root,
+                           tree<TemplateFragment> const&    tmpl,
+                           tree<TemplateFragment>::iterator tmplrootit,
+                           Binding::BindingContext&         context,
+                           Binding::IBindable&              data)
 {
 
     auto it = codetree.addchild(root, [&]() {
@@ -382,9 +506,9 @@ void ExpandTemplate(tree<Str::Type>&                 codetree,
     auto filterExpr = FindInMapOrDefault(tmplrootit->attributes, "Filter");
     if (!filterExpr.empty())
     {
-        auto pos    = ((std::wstring_view)filterExpr).find(L':');
-        auto prefix = ((std::wstring_view)filterExpr).substr(0, pos);
-        auto suffix = ((std::wstring_view)filterExpr).substr(pos);
+        auto pos    = filterExpr.find(L':');
+        auto prefix = filterExpr.substr(0, pos);
+        auto suffix = filterExpr.substr(pos);
 
         //        auto                   paramName = splitintotwo(filterExpr, ":");
         Binding::Expression expr;
@@ -457,7 +581,7 @@ void ExpandTemplate(tree<Str::Type>&                 codetree,
     }
 }
 
-tree<Str::Type> ExpandTemplate(tree<TemplateFragment> const& tmpl, Binding::BindingContext& context, Binding::IBindable& data)
+static tree<Str::Type> ExpandTemplate(tree<TemplateFragment> const& tmpl, Binding::BindingContext& context, Binding::IBindable& data)
 {
     tree<Str::Type> codetree;
     for (auto it = tmpl.rootbegin(); it != tmpl.rootend(); ++it)
@@ -468,7 +592,7 @@ tree<Str::Type> ExpandTemplate(tree<TemplateFragment> const& tmpl, Binding::Bind
     return codetree;
 }
 
-Template CreateTemplate(XMLElement const& element, std::string_view const& name)
+static Template CreateTemplate(XMLElement const& element, std::string_view const& name)
 {
     Template templ;
     CreateTemplateFromNode(templ.root, templ.root.rootbegin(), name, element);
@@ -559,6 +683,40 @@ void Generator::_AddContent(std::string_view const& name, std::string_view const
     }
 }
 
+void Generator::_RegisterFieldDefForProgram(Generator::FieldTypeDecl& v)
+{
+    if (!v.baseField.empty())
+    {
+        _RegisterFieldDefForProgram(_fieldTypeDecls[_fieldTypeDeclMap[v.baseField]]);
+    }
+
+    if (_program->TryGetFieldTypeName(v.name).has_value())
+    {
+        return;
+    }
+
+    auto fieldtype = _program->CreateFieldTypeObject<IDL::NativeFieldType>(
+        std::move(v.name), _program->TryGetFieldTypeName(v.baseField), v.annotationMap);
+    for (auto& m : v.mutators)
+    {
+        if (m.args.size() > 1)
+        {
+            throw std::logic_error("Multiple args not yet supported");
+        }
+
+        fieldtype->CreateMutator(std::move(m.name), m.id, m.returnType, m.args[0]);
+    }
+    for (auto& m : v.accessors)
+    {
+        if (m.args.size() > 1)
+        {
+            throw std::logic_error("Multiple args not yet supported");
+        }
+
+        fieldtype->CreateAccessor(std::move(m.name), m.id, m.returnType, m.args[0]);
+    }
+};
+
 void Generator::FinalizeTypeDefinitions()
 {
     if (_finalized)
@@ -604,26 +762,7 @@ void Generator::FinalizeTypeDefinitions()
 
     for (auto& v : _fieldTypeDecls)
     {
-        auto fieldtype = _program->CreateFieldTypeObject<IDL::NativeFieldType>(
-            std::move(v.name), _program->TryGetFieldTypeName(v.baseField), v.annotationMap);
-        for (auto& m : v.mutators)
-        {
-            if (m.args.size() > 1)
-            {
-                throw std::logic_error("Multiple args not yet supported");
-            }
-
-            fieldtype->CreateMutator(std::move(m.name), m.id, m.returnType, m.args[0]);
-        }
-        for (auto& m : v.accessors)
-        {
-            if (m.args.size() > 1)
-            {
-                throw std::logic_error("Multiple args not yet supported");
-            }
-
-            fieldtype->CreateAccessor(std::move(m.name), m.id, m.returnType, m.args[0]);
-        }
+        _RegisterFieldDefForProgram(v);
     }
 
     for (auto& v : _containerDecls)
@@ -657,7 +796,7 @@ void Generator::FinalizeTypeDefinitions()
 
 void Generator::LoadBuilltinTemplates()
 {
-    for (const auto& res : LOAD_RESOURCE_COLLECTION(templates))
+    for (const auto res : LOAD_RESOURCE_COLLECTION(templates))
     {
         _AddContent(wstring_to_string(res.name()), res.string());
     }

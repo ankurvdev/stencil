@@ -7,11 +7,14 @@
 #include <filesystem>
 #include <fstream>
 #include <map>
+#include <memory>
+#include <mutex>
 #include <shared_mutex>
 #include <span>
 #include <string>
 #include <unordered_map>
 #include <vector>
+
 #define TODO_OBJREF 0
 
 namespace Database2
@@ -28,8 +31,6 @@ struct BlobDataSizeOutofRange : std::exception
 
     const char* what() const noexcept(true) override { return _buffer.data(); }
 
-    uint32_t                     typeId;
-    uint64_t                     recordSize;
     ::Logging::PrettyPrintStream _buffer;
 };
 
@@ -211,8 +212,8 @@ struct SerDes
     {
         assert(!stream.fail());
         _iostream = std::move(stream);
-        _AttachStream((std::istream*)&_iostream);
-        _AttachStream((std::ostream*)&_iostream);
+        _AttachStream(static_cast<std::istream*>(&_iostream));
+        _AttachStream(static_cast<std::ostream*>(&_iostream));
     }
 
     void AttachStream(std::ifstream&& stream)
@@ -310,17 +311,17 @@ struct SerDes
         else
         {
             if (_readFrom != nullptr) throw ::Logging::TODOCreateException("Invalid State");
-            return (uint32_t)_loadedPages.size();
+            return static_cast<uint32_t>(_loadedPages.size());
         }
     }
 
     private:
-    static const std::streamoff PageStreamOffset(size_t page) { return std::streamoff(page * Page::PageSizeInBytes + sizeof(Header)); }
+    static std::streamoff PageStreamOffset(size_t page) { return std::streamoff(page * Page::PageSizeInBytes + sizeof(Header)); }
 
-    static const uint32_t GetPageIndexFromOffset(std::streamoff offset)
+    static uint32_t GetPageIndexFromOffset(std::streamoff offset)
     {
-        assert((offset - sizeof(Header)) % Page::PageSizeInBytes == 0);
-        return static_cast<uint32_t>((offset - sizeof(Header)) / Page::PageSizeInBytes);
+        assert((static_cast<uint32_t>(offset) - sizeof(Header)) % Page::PageSizeInBytes == 0);
+        return static_cast<uint32_t>((static_cast<uint32_t>(offset) - sizeof(Header)) / Page::PageSizeInBytes);
     }
 
     static void _EnsureHeader(Header const& header, std::ostream& stream)
@@ -343,7 +344,7 @@ struct SerDes
     {
         assert(!stream.fail());
         stream.seekp(0, std::ios_base::beg);
-        stream.write((const char*)&header, sizeof(header));
+        stream.write(reinterpret_cast<const char*>(&header), sizeof(header));
         assert(!stream.fail());
     }
 
@@ -351,7 +352,7 @@ struct SerDes
     {
         assert(!stream.fail());
         stream.seekg(0, std::ios_base::beg);
-        stream.read((char*)&header, sizeof(header));
+        stream.read(reinterpret_cast<char*>(&header), sizeof(header));
         assert(!stream.fail());
     }
 
@@ -359,9 +360,9 @@ struct SerDes
     {
         assert(!stream.fail());
         std::streamoff offsetreq{PageStreamOffset(index)};
-        stream.seekg(offsetreq + (std::streampos)Page::PageSizeInBytes, std::ios_base::beg);
+        stream.seekg(offsetreq + static_cast<std::streampos>(Page::PageSizeInBytes), std::ios_base::beg);
         auto offsetcur = stream.tellg();
-        if (offsetcur != (offsetreq + (std::streampos)Page::PageSizeInBytes))
+        if (offsetcur != (offsetreq + static_cast<std::streampos>(Page::PageSizeInBytes)))
         {
             throw ::Logging::TODOCreateException("Invalid Page Ref");
         }
@@ -369,9 +370,9 @@ struct SerDes
         assert(!stream.fail());
         offsetcur = stream.tellg();
         assert(!stream.fail());
-        if (offsetcur != (std::streampos)offsetreq) throw ::Logging::TODOCreateException("Invalid Page Ref");
+        if (offsetcur != static_cast<std::streampos>(offsetreq)) throw ::Logging::TODOCreateException("Invalid Page Ref");
 
-        stream.read((char*)&page, Page::PageSizeInBytes);
+        stream.read(reinterpret_cast<char*>(&page), Page::PageSizeInBytes);
         assert(!stream.fail());
     }
 
@@ -382,15 +383,15 @@ struct SerDes
         stream.seekp(offsetreq, std::ios_base::beg);
         auto offsetcur = stream.tellp();
         assert(offsetcur >= 0);
-        assert((offsetcur <= offsetreq) && (((offsetreq - offsetcur)) % Page::PageSizeInBytes == 0));
+        assert((offsetcur <= offsetreq) && ((static_cast<size_t>(offsetreq - offsetcur) % Page::PageSizeInBytes) == 0));
         uint8_t zerobuffer[Page::PageSizeInBytes] = {};
         assert(zerobuffer[0] == 0 && zerobuffer[Page::PageSizeInBytes - 1] == 0);
         while (offsetcur < offsetreq)
         {
-            stream.write((const char*)zerobuffer, Page::PageSizeInBytes);
+            stream.write(reinterpret_cast<const char*>(zerobuffer), Page::PageSizeInBytes);
             offsetcur = stream.tellp();
         }
-        stream.write((const char*)&page, sizeof(Page));
+        stream.write(reinterpret_cast<const char*>(&page), sizeof(Page));
         assert(!stream.fail());
     }
 
@@ -417,12 +418,12 @@ struct PageRuntime
         MarkDirty();
     }
 
-    void MarkDirty() { _flags.set((size_t)Flag::Dirty); }
+    void MarkDirty() { _flags.set(static_cast<size_t>(Flag::Dirty)); }
     void Flush(SerDes& serdes)
     {
-        if (!_flags.test((size_t)Flag::Dirty)) return;
+        if (!_flags.test(static_cast<size_t>(Flag::Dirty))) return;
         serdes.WritePage(_page, _pageIndex);
-        _flags.reset((size_t)Flag::Dirty);
+        _flags.reset(static_cast<size_t>(Flag::Dirty));
     }
 
     PageRuntime(ObjTypeId id, Ref::PageIndex pageIndex)
@@ -449,13 +450,14 @@ struct PageRuntime
     template <typename TPage> TPage As() { return TPage(*this); }
 
     // private:
-    enum class Flag
+
+    enum class Flag : size_t
     {
-        Dirty,
-        COUNT
+        Dirty = 0,
+        COUNT = 1
     };
 
-    using Flags = std::bitset<(size_t)Flag::COUNT>;
+    using Flags = std::bitset<1>;
 
     Ref::SlotIndex _availableSlot = 0;
     Ref::PageIndex _pageIndex     = 0;
@@ -491,19 +493,19 @@ template <size_t RecordSize> struct PageForRecord : public PageForRecordInterfac
         // s = 1024 : 8192 = 7 * 1024 + 1 + 4   (1019 uint8_ts wasted)
         constexpr size_t ApproxSlotCount = ((Page::PageSizeInBytes - sizeof(Page::Header)) * 8) / (8 * RecordSize + 1);
         constexpr size_t AlignmentCost   = sizeof(std::bitset<ApproxSlotCount>) - ((ApproxSlotCount) / 8);
-        constexpr size_t SlotCount       = ((Page::PageSizeInBytes - sizeof(Page::Header) - AlignmentCost) * 8) / (8 * RecordSize + 1);
-        constexpr size_t SlotMapSize     = sizeof(std::bitset<SlotCount>);
+        constexpr size_t SlotCount1      = ((Page::PageSizeInBytes - sizeof(Page::Header) - AlignmentCost) * 8) / (8 * RecordSize + 1);
+        constexpr size_t SlotMapSize     = sizeof(std::bitset<SlotCount1>);
         static_assert(sizeof(Page) == Page::PageSizeInBytes);
-        static_assert(((SlotCount * RecordSize) + SlotMapSize + sizeof(Page::Header)) < Page::PageSizeInBytes);
-        return SlotCount;
+        static_assert(((SlotCount1 * RecordSize) + SlotMapSize + sizeof(Page::Header)) < Page::PageSizeInBytes);
+        return SlotCount1;
     }
 
     static constexpr size_t SlotCount = GetSlotCapacity();
 
     PageForRecord(PageRuntime& page) : _page(page)
     {
-        _slots   = (decltype(_slots))(page._page.buffer);
-        _records = (decltype(_records))(page._page.buffer + sizeof(*_slots));
+        _slots   = reinterpret_cast<decltype(_slots)>(page._page.buffer);
+        _records = reinterpret_cast<decltype(_records)>(page._page.buffer + sizeof(*_slots));
 
         static_assert(sizeof(*_records) == SlotCount * RecordSize);
         static_assert(sizeof(*_records) + sizeof(*_slots) < Page::PageSizeInBytes);
@@ -530,7 +532,7 @@ template <size_t RecordSize> struct PageForRecord : public PageForRecordInterfac
         ++_page._availableSlot;
         _slots->set(slot);
         auto& rec = _records->at(slot);
-        std::fill(rec.begin(), rec.end(), (uint8_t)0);
+        std::fill(rec.begin(), rec.end(), uint8_t{0});
         _page.MarkDirty();
         return SlotObj{slot, rec};
     }
@@ -538,7 +540,7 @@ template <size_t RecordSize> struct PageForRecord : public PageForRecordInterfac
     uint8_t Release(exclusive_lock const& /*guardscope*/, Ref::SlotIndex slot) override
     {
         auto& rec = _records->at(slot);
-        std::fill(rec.begin(), rec.end(), (uint8_t)0);
+        std::fill(rec.begin(), rec.end(), uint8_t{0});
         _page.MarkSlotFree(slot);
         return 0;
     }
@@ -588,8 +590,8 @@ template <size_t RecordSize> struct PageForSharedRecord : public PageForRecordIn
     {
         _pageIndex = page._pageIndex;
         // auto& buffer = page->_page.buffer;
-        _refCounts = (decltype(_refCounts))(page._page.buffer);
-        _records   = (decltype(_records))(page._page.buffer + sizeof(*_refCounts));
+        _refCounts = reinterpret_cast<decltype(_refCounts)>(page._page.buffer);
+        _records   = reinterpret_cast<decltype(_records)>(page._page.buffer + sizeof(*_refCounts));
         static_assert(sizeof(*_records) == SlotCount * RecordSize);
         static_assert(sizeof(*_records) + sizeof(*_refCounts) < Page::PageSizeInBytes);
     }
@@ -599,9 +601,9 @@ template <size_t RecordSize> struct PageForSharedRecord : public PageForRecordIn
     size_t  GetSlotCount() const override { return SlotCount; }
     bool    ValidSlot(size_t slot) const override { return _refCounts->at(slot) > 0; }
     uint8_t GetRefCount(Ref::SlotIndex slot) const { return _refCounts->at(slot); }
-    bool    Full(shared_lock const& guardscope) { return _page._availableSlot >= _refCounts->size(); }
+    bool    Full(shared_lock const& /* guardscope */) { return _page._availableSlot >= _refCounts->size(); }
 
-    SlotObj Allocate(exclusive_lock const& guardscope)
+    SlotObj Allocate([[maybe_unused]] exclusive_lock const& guardscope)
     {
         assert(!Full(guardscope));
         assert(_refCounts[_page._availableSlot] == 0u);
@@ -662,7 +664,7 @@ template <> struct PageForRecord<0> : public PageForRecordInterface
         assert(typeId > 0xff);
         auto logRecordSize = typeId & 0xff;
         assert(logRecordSize < 12);
-        _recordSize = (uint64_t)1 << logRecordSize;
+        _recordSize = uint64_t{1} << logRecordSize;
         switch (logRecordSize)
         {
         default:
@@ -811,7 +813,7 @@ struct PageManager
     auto LockForEdit() { return exclusive_lock(_mutex); }
 
     public:    // Methods
-    Ref::PageIndex GetPageCount() const { return (Ref::PageIndex)_pages.size(); }
+    Ref::PageIndex GetPageCount() const { return static_cast<Ref::PageIndex>(_pages.size()); }
     ObjTypeId      GetPageObjTypeId(Ref::PageIndex pageIndex) const { return _pageTypes[pageIndex]; }
 
     impl::PageRuntime& LoadPage(ObjTypeId id, Ref::PageIndex pageIndex)
@@ -970,7 +972,7 @@ template <typename TDb, typename TObj, typename TLock> struct Iterator
             if (pagemgr->GetPageObjTypeId(pi) == 0) continue;
             if constexpr (Traits::RecordSize() == 0)
             {
-                if ((pagemgr->GetPageObjTypeId(pi) & ~(0xff)) != Traits::TypeId())
+                if ((pagemgr->GetPageObjTypeId(pi) & ~(0xffu)) != Traits::TypeId())
                 {
                     continue;
                 }
@@ -1058,7 +1060,7 @@ template <typename TObj> struct ChildRef : ChildRefMarker
     {
         if (ref == impl::Ref::Invalid())
         {
-            decltype(db.Get(lock, (Ref<TDb, TObj>)ref)) obj;
+            decltype(db.Get(lock, static_cast<Ref<TDb, TObj>>(ref))) obj;
             return obj;
         }
         return db.Get(lock, Ref<TDb, TObj>{ref});
@@ -1145,10 +1147,10 @@ template <typename TDb> struct DatabaseT
     DatabaseT()  = default;
     ~DatabaseT() = default;
     DEFAULT_COPY_AND_MOVE(DatabaseT);
-    DatabaseT(InMemoryType) { Init(); };
-    DatabaseT(std::filesystem::path const& path) : _pagemgr(std::make_shared<impl::PageManager>(path)){};
-    DatabaseT(std::ofstream&& stream) : _pagemgr(std::make_shared<impl::PageManager>(stream)){};
-    DatabaseT(std::ifstream&& stream) : _pagemgr(std::make_shared<impl::PageManager>(stream)){};
+    DatabaseT(InMemoryType) { Init(); }
+    DatabaseT(std::filesystem::path const& path) : _pagemgr(std::make_shared<impl::PageManager>(path)) {}
+    DatabaseT(std::ofstream&& stream) : _pagemgr(std::make_shared<impl::PageManager>(stream)) {}
+    DatabaseT(std::ifstream&& stream) : _pagemgr(std::make_shared<impl::PageManager>(stream)) {}
 
     public:    // Methods
     auto LockForRead() { return _pagemgr->LockForRead(); }
@@ -1182,7 +1184,7 @@ template <typename TDb> struct DatabaseT
 
     template <size_t LogN> auto _AllocateForDataSize(size_t dataSize, wlock const& lock, ObjTypeId typeId)
     {
-        constexpr size_t RecordSize = (((size_t)2u) << (LogN - 1));
+        constexpr size_t RecordSize = ((size_t{2u}) << (LogN - 1));
         if (dataSize > RecordSize)
         {
             assert(dataSize <= RecordSize * 2);
@@ -1289,7 +1291,7 @@ template <typename TDb> struct DatabaseT
         }
     }
 
-    template <typename TObj> SnapT<TObj> Get(RefT<TObj> const& id) { return Get(LockForRead(), id); };
+    template <typename TObj> SnapT<TObj> Get(RefT<TObj> const& id) { return Get(LockForRead(), id); }
 
     template <typename TObj> ViewT<TObj> Get(rlock const& lock, RefT<TObj> const& id)
     {
@@ -1394,20 +1396,26 @@ template <ObjTypeId TId, Ownership TOwnership, Encryption TEncrypted, typename T
         WireType(size_t /*bufsize*/, std::basic_string_view<TChar> const& str)
         {
             size = static_cast<uint16_t>(str.size() * sizeof(TChar));
-            std::copy(str.begin(), str.end(), (TChar*)ptr);
+            std::copy(str.begin(), str.end(), reinterpret_cast<TChar*>(ptr));
         }
 
-        operator EditType() { return std::basic_string_view<TChar>((TChar*)ptr, size / sizeof(TChar)); }
-        operator ViewType() const { return std::basic_string_view<TChar>((TChar*)ptr, size / sizeof(TChar)); }
+        operator EditType() { return std::basic_string_view<TChar>(reinterpret_cast<TChar*>(ptr), size / sizeof(TChar)); }
+        operator ViewType() const { return std::basic_string_view<TChar>(reinterpret_cast<TChar const*>(ptr), size / sizeof(TChar)); }
     };
 
-    static ViewType View(WireType const& obj) { return std::basic_string_view<TChar>((TChar*)obj.ptr, obj.size / sizeof(TChar)); }
+    static ViewType View(WireType const& obj)
+    {
+        return std::basic_string_view<TChar>(reinterpret_cast<TChar*>(obj.ptr), obj.size / sizeof(TChar));
+    }
 
-    static EditType Edit(WireType const& obj) { return std::basic_string_view<TChar>((TChar*)obj.ptr, obj.size / sizeof(TChar)); }
+    static EditType Edit(WireType const& obj)
+    {
+        return std::basic_string_view<TChar>(reinterpret_cast<TChar*>(obj.ptr), obj.size / sizeof(TChar));
+    }
 
     static size_t           GetDataSize(ViewType const& str) { return str.empty() ? 0 : (str.size() * sizeof(TChar) + sizeof(uint16_t)); }
     constexpr static size_t StructMemberCount() { return 0; }    // Unavailable / not-needed
-    static WireType         Create(WireType const& str) { return {}; }
+    static WireType         Create(WireType const& /* str */) { return {}; }
 };
 
 using ByteStringTraits                = TStringTraits<0x200, Ownership::Self, Encryption::No, char>;
@@ -1424,11 +1432,11 @@ using WideEncryptedStringTraits       = TStringTraits<0xB00, Ownership::Self, En
 using WideEncryptedSharedStringTraits = TStringTraits<0xC00, Ownership::Shared, Encryption::Yes, wchar_t>;
 using WideEncryptedUniqueStringTraits = TStringTraits<0xD00, Ownership::Unique, Encryption::Yes, wchar_t>;
 
-#define DEFINESTRING(str)                                                                                        \
-    using str = str##Traits::WireType;                                                                           \
-    template <typename TDb> struct ObjTraits<TDb, str> : str##Traits                                             \
-    {                                                                                                            \
-        static WireType Create(TDb& db, exclusive_lock const& lock, ViewType const& str) { return Create(str); } \
+#define DEFINESTRING(str)                                                                                                    \
+    using str = str##Traits::WireType;                                                                                       \
+    template <typename TDb> struct ObjTraits<TDb, str> : str##Traits                                                         \
+    {                                                                                                                        \
+        static WireType Create(TDb& /* db */, exclusive_lock const& /* lock */, ViewType const& str) { return Create(str); } \
     };
 DEFINESTRING(ByteString)
 DEFINESTRING(ByteSharedString)
@@ -1466,3 +1474,23 @@ template <typename TObj> struct EncryptedT
 {
 };
 }    // namespace Database2
+
+template <typename T> struct ReflectionBase::TypeTraits<Database2::ChildRef<T>&>
+{
+    static constexpr DataType         Type() { return DataType::Value; }
+    static constexpr std::string_view Name() { return "Database2::ChildRef"; }
+    static std::string                Description() { return "Database2::ChildRef"; }
+    static std::string_view           AttributeValue(const std::string_view& /*key*/) { throw std::logic_error("TODO"); }
+
+    template <typename T1, typename T2> static bool AreEqual(T1 const& obj1, T2 const& obj2) { return obj1 == obj2; }
+
+    struct Handler : public ::ReflectionBase::IDataTypeHandler<DataType::Value>
+    {
+        virtual shared_string Description() const override { return AttributeValue("Description"); }
+        virtual shared_string AttributeValue(const std::string_view& /*key*/) const override { throw std::logic_error("TODO"); }
+        virtual shared_string Name() const override { return "Database2::ChildRef"; }
+
+        virtual void  Write(void* /*ptr*/, Value const& /*value*/) const override { throw std::logic_error("TODO"); }
+        virtual Value Read(void* /*ptr*/) const override { throw std::logic_error("TODO"); }
+    };
+};

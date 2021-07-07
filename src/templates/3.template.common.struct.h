@@ -46,6 +46,22 @@ void* GetExtensionData()
 //<Template file="zzFileNamezz.h">
 #pragma once
 #include <stencil/stencil.h>
+
+// SECTION START: DECLARATIONS
+#if true
+//<Struct>
+namespace zzProgram_Namezz::zzStruct_Namezz
+{
+struct Data;
+}
+template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzStruct_Namezz::Data&>;
+//</Struct>
+
+#endif
+// SECTION END: DECLARATIONS
+
+// SECTION START: Definitions
+#if true
 namespace zzProgram_Namezz
 {
 //<Struct>
@@ -122,24 +138,19 @@ struct Data :
 
     void set_zzNamezz(zzFieldType_NativeTypezz&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::zzField_Namezz, _zzNamezz, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::zzField_Namezz, _zzNamezz, val);
         _zzNamezz = std::move(val);
     }
 
+#if 0
     //<FieldType_Mutator>
-    zzReturnType_NativeTypezz zzNamezz_zzField_Namezz(zzArg_NativeTypezz&& args)
-    {
-        Stencil::ObservablePropsT<Data>::OnMutationRequested(*this, FieldIndex::zzField_Namezz, uint8_t{zzIdzz}, _zzField_Namezz, args);
-        return Stencil::Mutators<zzField_FieldType_NativeTypezz>::zzNamezz(_zzField_Namezz, std::move(args));
-    }
+    zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz&& args);
     //</FieldType_Mutator>
+
     //<FieldType_Accessor>
-    zzReturnType_NativeTypezz zzNamezz_zzField_Namezz(zzArg_NativeTypezz const& args) const
-    {
-        return Stencil::Accessors<zzField_FieldType_NativeTypezz>::zzNamezz(_zzField_Namezz, args);
-    }
+    zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz const& args) const;
     //</FieldType_Accessor>
+#endif
     //</Field>
 };
 
@@ -174,7 +185,7 @@ struct Data : public ReflectionBase::ObjMarker
     UnionType Type() const { return _type; }
 
     UnionType& get_Type() { return _type; }
-    void       set_Type(UnionType&& val) { _type = (UnionType)std::move(val); }
+    void       set_Type(UnionType&& val) { _type = std::move(val); }
 
     Data() : _type(UnionType::Invalid) {}
 
@@ -223,12 +234,8 @@ struct Data : public ReflectionBase::ObjMarker
     void                            zzNamezz(const zzFieldType_NativeTypezz& val) { _zzNamezz = val; }
     void                            zzNamezz(zzFieldType_NativeTypezz&& val) { _zzNamezz = std::move(val); }
 
-    zzFieldType_NativeTypezz& get_zzNamezz()
-    {
-        return _zzNamezz;
-        ;
-    }
-    void set_zzNamezz(zzFieldType_NativeTypezz&& val) { _zzNamezz = std::move(val); }
+    zzFieldType_NativeTypezz& get_zzNamezz() { return _zzNamezz; }
+    void                      set_zzNamezz(zzFieldType_NativeTypezz&& val) { _zzNamezz = std::move(val); }
 
     //</Field>
 };
@@ -278,7 +285,13 @@ struct zzInterface_Namezz_zzFunction_Namezz_Args
 
 //</Interface>
 }    // namespace zzProgram_Namezz
+#endif
+// SECTION END: Definitions
 
+// SECTION START: Template specializations
+#if true
+
+// SECTION:
 //<Interface>
 //<Function>
 template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzInterface_Namezz_zzFunction_Namezz_Args&>
@@ -429,51 +442,135 @@ template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzStruct_Namezz:
                                                                  >;
 };
 
-template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, zzProgram_Namezz::zzStruct_Namezz::Data>>>
+template <>
+struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz::Data> : Stencil::TransactionT<zzProgram_Namezz::zzStruct_Namezz::Data>
 {
-    using TData = T;
+    using TData = zzProgram_Namezz::zzStruct_Namezz::Data;
 
-    // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
-    // TODO : Better way to unify creation interface
-    bool _changed = false;
+    //<Field>
+    Transaction<zzFieldType_NativeTypezz> _subtracker_zzNamezz;
+    //</Field>
 
-    DELETE_COPY_AND_MOVE(DeltaTracker);
+    DELETE_COPY_AND_MOVE(Transaction);
 
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    Transaction(TData& ptr, TransactionRecorder& rec) :
+        Stencil::TransactionT<zzProgram_Namezz::zzStruct_Namezz::Data>(ptr, rec)
+        //<Field>
+        ,
+        _subtracker_zzNamezz(Obj().zzNamezz(), rec)
+    //</Field>
     {
-        // TODO: Tentative
-        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
-
-    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
-
-    size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
-
-    uint8_t MutatorIndex() const;
-    bool    OnlyHasDefaultMutator() const;
-
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
-
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
         //<Field>
-        case TData::FieldIndex::zzNamezz:
-            lambda(DeltaTracker<zzFieldType_NativeTypezz>(&_ptr->zzNamezz(), IsFieldChanged(TData::FieldIndex::zzNamezz)));
-            return;
+        case TData::FieldIndex::zzNamezz: lambda(_subtracker_zzNamezz); return;
         //</Field>
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        //<Field>
+        case TData::FieldIndex::zzNamezz: lambda(_subtracker_zzNamezz); return;
+        //</Field>
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    //<Field>
+
+    void set_zzNamezz(zzFieldType_NativeTypezz&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::zzNamezz, Obj().zzNamezz(), val);
+        Obj().set_zzNamezz(std::move(val));
+    }
+
+    //<FieldType_Mutator>
+    zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz&& args)
+    {
+        OnMutation_zzNamezz(TData::FieldIndex::zzField_Namezz, Obj().zzField_Namezz(), args);
+        return Stencil::Mutators<zzField_FieldType_NativeTypezz>::zzNamezz(
+            _subtracker_zzField_Namezz, Obj().zzField_Namezz(), std::move(args));
+    }
+    //</FieldType_Mutator>
+    //</Field>
+};
+
+template <>
+struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz::Data, void> : Stencil::VisitorT<zzProgram_Namezz::zzStruct_Namezz::Data>
+{
+    using TData = zzProgram_Namezz::zzStruct_Namezz::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        //<Field>
+        case TData::FieldIndex::zzNamezz: lambda("zzNamezz", _ref.get().zzNamezz()); return;
+        //</Field>
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        //<Field>
+        case TData::FieldIndex::zzNamezz: lambda("zzNamezz", _ref.get().zzNamezz()); return;
+        //</Field>
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        //<Field>
+        lambda("zzNamezz", _ref.get().zzNamezz());
+        //</Field>
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const zzProgram_Namezz::zzStruct_Namezz::Data, void> : Stencil::VisitorT<const zzProgram_Namezz::zzStruct_Namezz::Data>
+{
+    using TData = zzProgram_Namezz::zzStruct_Namezz::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        //<Field>
+        case TData::FieldIndex::zzNamezz: lambda("zzNamezz", _ref.get().zzNamezz()); return;
+        //</Field>
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        //<Field>
+        lambda("zzNamezz", _ref.get().zzNamezz());
+        //</Field>
+    }
+
+    std::reference_wrapper<TData> _ref;
 };
 
 //</Struct>
-
 //<Union>
 
 template <> struct ReflectionServices::EnumTraits<zzUnion_Program_Namezz::zzUnion_Namezz::UnionType>
@@ -483,17 +580,17 @@ template <> struct ReflectionServices::EnumTraits<zzUnion_Program_Namezz::zzUnio
                                                   "zzField_Namezz",
                                                   //</Field>
 
-                                                  0};
+                                                  nullptr};
 
     using ValueType = uint32_t;
 };
 
 template <> struct ValueTraits<zzUnion_Program_Namezz::zzUnion_Namezz::UnionType>
 {
-    static constexpr auto ValueType() { return Value::Type::Unsigned; }
-    static void           Get(Value& /*obj*/) { throw 1; }
-    static void           Get(const Value& /*obj*/) { throw 1; }
-    static void           Check() { throw 1; }
+    static constexpr auto    ValueType() { return Value::Type::Unsigned; }
+    [[noreturn]] static void Get(Value& /*obj*/) { throw std::logic_error("Not Implemented"); }
+    [[noreturn]] static void Get(const Value& /*obj*/) { throw std::logic_error("Not Implemented"); }
+    [[noreturn]] static void Check() { throw std::logic_error("Not Implemented"); }
 };
 
 template <> struct ReflectionBase::TypeTraits<zzUnion_Program_Namezz::zzUnion_Namezz::UnionType&>
@@ -562,5 +659,82 @@ template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzUnion_Namezz::
                                                                 //</Field>
                                                                 >;
 };
+
+template <>
+struct Stencil::Visitor<zzProgram_Namezz::zzUnion_Namezz::Data, void> : Stencil::VisitorT<zzProgram_Namezz::zzUnion_Namezz::Data>
+{
+    using TData = zzProgram_Namezz::zzUnion_Namezz::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        //<Field>
+        case TData::FieldIndex::zzNamezz: lambda("zzNamezz", _ref.get().zzNamezz()); return;
+        //</Field>
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        //<Field>
+        case TData::FieldIndex::zzNamezz: lambda("zzNamezz", _ref.get().zzNamezz()); return;
+        //</Field>
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        //<Field>
+        lambda("zzNamezz", _ref.get().zzNamezz());
+        //</Field>
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const zzProgram_Namezz::zzUnion_Namezz::Data, void>
+    : Stencil::VisitorT<const zzProgram_Namezz::zzUnion_Namezz::Data>
+{
+    using TData = zzProgram_Namezz::zzUnion_Namezz::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        //<Field>
+        case TData::FieldIndex::zzNamezz: lambda("zzNamezz", _ref.get().zzNamezz()); return;
+        //</Field>
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        //<Field>
+        lambda("zzNamezz", _ref.get().zzNamezz());
+        //</Field>
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
 //</Union>
+#endif
+// SECTION END: Template specializations
+
+// SECTION START: Inline Function Definitions
+#if true
+
+#endif
+// SECTION END: Inline Function Definitions
 //</Template>

@@ -1,0 +1,158 @@
+[FieldTypes]
+ui8 = "uint8"
+ui16 = "uint16"
+ui32 = "uint32"
+ui64 = "uint64"
+i8 = "int8"
+i16 = "int16"
+i32 = "int32"
+i64 = "int64"
+short = "int16"
+ushort = "uint16"
+int = "int32"
+uint = "uint32"
+boolean = "bool"
+
+  [FieldTypes.default]
+  NativeType = "void"
+  NativeHandler = "VoidHandler"
+  NativeHandlerData = "nullptr"
+  DefaultValue = "{}"
+
+  [FieldTypes.auto]
+  NativeType = "auto"
+
+  [FieldTypes.void]
+  NativeType = "void"
+
+  [FieldTypes.char]
+  NativeType = "char"
+
+  [FieldTypes.size]
+  NativeType = "size_t"
+
+  [FieldTypes.uint8]
+  NativeType = "uint8_t"
+
+  [FieldTypes.uint16]
+  NativeType = "uint16_t"
+
+  [FieldTypes.uint32]
+  NativeType = "uint32_t"
+
+  [FieldTypes.uint64]
+  NativeType = "uint64_t"
+
+  [FieldTypes.int8]
+  NativeType = "int8_t"
+
+  [FieldTypes.int16]
+  NativeType = "int16_t"
+
+  [FieldTypes.int32]
+  NativeType = "int32_t"
+
+  [FieldTypes.int64]
+  NativeType = "int64_t"
+
+  [FieldTypes.double]
+  NativeType = "double"
+
+  [FieldTypes.float]
+  NativeType = "float"
+
+  [FieldTypes.bool]
+  NativeType = "bool"
+
+  [FieldTypes.string]
+  NativeType = "shared_string"
+
+  [FieldTypes.wstring]
+  NativeType = "shared_wstring"
+
+  [FieldTypes.timestamp]
+  NativeType = "timestamp"
+
+[Struct]
+NativeType = "::%Program:Name%::%Struct:Name%::Data"
+
+[Interface]
+NativeType = "long"
+
+[FunctionArgs]
+NativeType = "::%Program:Name%::%Struct:Name%::Data"
+
+[Typedef]
+NativeType = "%Name%"
+
+[Union]
+NativeType = "::%Program:Name%::Union  "
+
+[Containers.array]
+Params = [ "type", "size" ]
+NativeType = "std::array<%type:NativeType%, %size%>"
+
+[Containers.array.Accessors.at]
+ReturnType = "%type:NativeType%"
+Args = "size_t"
+Id = 1
+
+[Containers.list]
+Params = [ "type" ]
+NativeType = "std::vector<%type:NativeType%>"
+
+[Containers.list.Accessors.at]
+ReturnType = "%type:NativeType%"
+Args = "size_t"
+Id = 1
+
+[Containers.list.Mutators.add]
+ReturnType = "void"
+Args = "%type:NativeType%"
+Id = 1
+
+[Containers.list.Mutators.remove]
+ReturnType = "void"
+Args = "size_t"
+Id = 2
+
+[Containers.list.Mutators.edit]
+ReturnType = "Stencil::Transaction<%type:NativeType%>"
+Args = "size_t"
+Id = 3
+
+[Containers.tree]
+Inherit = "list"
+Params = [ "type" ]
+NativeType = "shared_tree<%type:NativeType%>"
+
+[Containers.map]
+Params = [ "key", "value" ]
+NativeType = "std::map<%key:NativeType%, %value:NativeType%>"
+
+[Containers.hashtable]
+Params = [ "key", "value" ]
+NativeType = "std::unordered_map<%key:NativeType%, %value:NativeType%>"
+
+[Containers.optionalprops]
+Params = [ "object" ]
+NativeType = "::Stencil::OptionalPropsT<%object:NativeType%>"
+
+[Containers.timestamped]
+Params = [ "object" ]
+NativeType = "::Stencil::TimestampedT<%object:NativeType%>"
+
+[Containers.uuidbasedobject]
+Params = [ "object" ]
+NativeType = "::UuidObjectT<%object:NativeType%>"
+
+[Containers.uuidref]
+Params = [ "type" ]
+NativeType = "::UuidBasedId<%type:NativeType%>"
+DefaultValue = "::UuidBasedId<%type:NativeType%>::Create()"
+
+[Relationships.optionalprops]
+object = "optionalprops"
+
+[Relationships.observableprops]
+object = "observableprops"

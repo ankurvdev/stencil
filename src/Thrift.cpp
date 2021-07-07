@@ -38,7 +38,7 @@ std::shared_ptr<IDL::Union> CreateUnion(Context& context, Str::Type& id, FieldLi
     return strct;
 }
 
-void CreateRelectionshipDefinitionRecursively(Context&                            context,
+static void CreateRelectionshipDefinitionRecursively(Context&                            context,
                                               Str::Type&&                         name,
                                               RelationshipComponentList&          map,
                                               ComponentList&                      componentmap,

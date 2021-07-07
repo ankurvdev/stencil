@@ -56,7 +56,7 @@ struct AnnotatedObjectT : public Binding::BindableObjectArray<AnnotatedObjectT<T
 {
     using Self = AnnotatedObjectT<TOwner, TParent>;
     AnnotatedObjectT(std::shared_ptr<Binding::AttributeMap> map) : Binding::BindableDictionaryT<Self>(map) { AddAttributes(map); }
-    ~AnnotatedObjectT() = default;
+    ~AnnotatedObjectT() override = default;
     DELETE_COPY_AND_MOVE(AnnotatedObjectT);
 
     void AddAttributes(std::shared_ptr<Binding::AttributeMap> map)
@@ -147,8 +147,8 @@ template <typename TOwner, typename TObject> struct NamedIndexT
 struct IFieldType : public virtual Binding::BindableBase
 {
     public:
-    IFieldType()  = default;
-    ~IFieldType() = default;
+    IFieldType()           = default;
+    ~IFieldType() override = default;
     DELETE_COPY_AND_MOVE(IFieldType);
 
     // virtual Binding::IBindable& GetBindable() const = 0;
@@ -237,16 +237,16 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
         auto                GetId() const { return Str::Create(std::to_wstring(_id)); }
         Binding::IBindable& GetFieldTypeBindable() const { return *_fieldType; }
 
-        Binding::IBindable& GetReturnTypeBindable() const
+        Binding::Expression const& GetReturnTypeBindable() const
         {
             ACTION_CONTEXT([&]() { return L"Mutator ReturnType: " + _returnType->Stringify(); });
-            return *_owner->GetFieldTypeName(Binding::BindingContext::EvaluateExpression(*_returnType)->String());
+            return *_returnType;
         }
 
-        Binding::IBindable& GetArgTypeBindable() const
+        Binding::Expression const& GetArgTypeBindable() const
         {
             ACTION_CONTEXT([&]() { return L"Mutator ArgType: " + _argType->Stringify(); });
-            return *_owner->GetFieldTypeName(Binding::BindingContext::EvaluateExpression(*_argType)->String());
+            return *_argType;
         }
         uint8_t                                    _id;
         std::shared_ptr<const Binding::Expression> _argType;
@@ -290,16 +290,16 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
 
         Binding::IBindable& GetFieldTypeBindable() const { return *_fieldType; }
 
-        Binding::IBindable& GetReturnTypeBindable() const
+        Binding::Expression const& GetReturnTypeBindable() const
         {
             ACTION_CONTEXT([&]() { return L"Mutator ReturnType: " + _returnType->Stringify(); });
-            return *_owner->GetFieldTypeName(Binding::BindingContext::EvaluateExpression(*_returnType)->String());
+            return *_returnType;
         }
 
-        Binding::IBindable& GetArgTypeBindable() const
+        Binding::Expression const& GetArgTypeBindable() const
         {
             ACTION_CONTEXT([&]() { return L"Mutator ArgType: " + _argType->Stringify(); });
-            return *_owner->GetFieldTypeName(Binding::BindingContext::EvaluateExpression(*_argType)->String());
+            return *_argType;
         }
 
         uint8_t                                    _id;
@@ -362,7 +362,7 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
         }
 
         //  virtual Str::Type GetFieldName() override;
-        virtual void AddAttributes(std::shared_ptr<Binding::AttributeMap> map) {}
+        virtual void AddAttributes(std::shared_ptr<Binding::AttributeMap> /* map */) override {}
         void         SetFieldId(size_t id) { _fieldId = id; }
         Str::Type    GetFieldId() const { return Str::Create(std::to_wstring(_fieldId)); }
         size_t       _fieldId{};

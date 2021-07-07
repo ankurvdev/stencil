@@ -1,5 +1,18 @@
 #pragma once
 #include <stencil/stencil.h>
+
+// SECTION START: DECLARATIONS
+#if true
+namespace SimpleWebService::Data
+{
+struct Data;
+}
+template <> struct ReflectionBase::TypeTraits<SimpleWebService::Data::Data&>;
+#endif
+// SECTION END: DECLARATIONS
+
+// SECTION START: Definitions
+#if true
 namespace SimpleWebService
 {
 namespace Data
@@ -60,11 +73,12 @@ struct Data :
 
     void set_randomInteger(int32_t&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::randomInteger, _randomInteger, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::randomInteger, _randomInteger, val);
         _randomInteger = std::move(val);
     }
 
+#if 0
+#endif
     private:
     shared_string _randomString = {};
 
@@ -78,11 +92,12 @@ struct Data :
 
     void set_randomString(shared_string&& val)
     {
-        Stencil::ObservablePropsT<Data>::OnChangeRequested(*this, FieldIndex::randomString, _randomString, val);
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::randomString, _randomString, val);
         _randomString = std::move(val);
     }
 
+#if 0
+#endif
 };
 
 }    // namespace Data
@@ -122,7 +137,13 @@ struct TestInterface_Create_Args
 };
 
 }    // namespace SimpleWebService
+#endif
+// SECTION END: Definitions
 
+// SECTION START: Template specializations
+#if true
+
+// SECTION:
 template <> struct ReflectionBase::TypeTraits<SimpleWebService::TestInterface_Create_Args&>
 {
     struct Traits_arg_randomInteger
@@ -266,47 +287,125 @@ template <> struct ReflectionBase::TypeTraits<SimpleWebService::Data::Data&>
                                                                  >;
 };
 
-template <typename T> struct Stencil::DeltaTracker<T, std::enable_if_t<std::is_same_v<T, SimpleWebService::Data::Data>>>
+template <>
+struct Stencil::Transaction<SimpleWebService::Data::Data> : Stencil::TransactionT<SimpleWebService::Data::Data>
 {
-    using TData = T;
+    using TData = SimpleWebService::Data::Data;
 
-    // TODO : Tentative: We hate pointers
-    TData const* const _ptr;
-    // TODO : Better way to unify creation interface
-    bool _changed = false;
+    Transaction<int32_t> _subtracker_randomInteger;
+    Transaction<shared_string> _subtracker_randomString;
+    DELETE_COPY_AND_MOVE(Transaction);
 
-    DELETE_COPY_AND_MOVE(DeltaTracker);
-
-    DeltaTracker(TData const* ptr, bool changed) : _ptr(ptr), _changed(changed)
+    Transaction(TData& ptr, TransactionRecorder& rec) :
+        Stencil::TransactionT<SimpleWebService::Data::Data>(ptr, rec)
+        ,
+        _subtracker_randomInteger(Obj().randomInteger(), rec)
+        ,
+        _subtracker_randomString(Obj().randomString(), rec)
     {
-        // TODO: Tentative
-        static_assert(std::is_base_of<Stencil::ObservablePropsT<TData>, TData>::value);
     }
-
-    static constexpr auto Type() { return ReflectionBase::TypeTraits<TData&>::Type(); }
-
-    size_t NumFields() const { return TData::FieldCount(); }
-    bool   IsChanged() const { return _ptr->_changetracker.any(); }
-
-    uint8_t MutatorIndex() const;
-    bool    OnlyHasDefaultMutator() const;
-
-    bool IsFieldChanged(typename TData::FieldIndex index) const { return _ptr->_changetracker.test(static_cast<size_t>(index)); }
-
-    size_t CountFieldsChanged() const { return _ptr->_changetracker.count(); }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
         switch (index)
         {
-        case TData::FieldIndex::randomInteger:
-            lambda(DeltaTracker<int32_t>(&_ptr->randomInteger(), IsFieldChanged(TData::FieldIndex::randomInteger)));
-            return;
-        case TData::FieldIndex::randomString:
-            lambda(DeltaTracker<shared_string>(&_ptr->randomString(), IsFieldChanged(TData::FieldIndex::randomString)));
-            return;
+        case TData::FieldIndex::randomInteger: lambda(_subtracker_randomInteger); return;
+        case TData::FieldIndex::randomString: lambda(_subtracker_randomString); return;
         case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::randomInteger: lambda(_subtracker_randomInteger); return;
+        case TData::FieldIndex::randomString: lambda(_subtracker_randomString); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    void set_randomInteger(int32_t&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::randomInteger, Obj().randomInteger(), val);
+        Obj().set_randomInteger(std::move(val));
+    }
+
+    void set_randomString(shared_string&& val)
+    {
+        OnStructFieldChangeRequested(TData::FieldIndex::randomString, Obj().randomString(), val);
+        Obj().set_randomString(std::move(val));
+    }
+
 };
 
+template <>
+struct Stencil::Visitor<SimpleWebService::Data::Data, void> : Stencil::VisitorT<SimpleWebService::Data::Data>
+{
+    using TData = SimpleWebService::Data::Data;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::randomInteger: lambda("randomInteger", _ref.get().randomInteger()); return;
+        case TData::FieldIndex::randomString: lambda("randomString", _ref.get().randomString()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::randomInteger: lambda("randomInteger", _ref.get().randomInteger()); return;
+        case TData::FieldIndex::randomString: lambda("randomString", _ref.get().randomString()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("randomInteger", _ref.get().randomInteger());
+        lambda("randomString", _ref.get().randomString());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+template <>
+struct Stencil::Visitor<const SimpleWebService::Data::Data, void> : Stencil::VisitorT<const SimpleWebService::Data::Data>
+{
+    using TData = SimpleWebService::Data::Data const;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::randomInteger: lambda("randomInteger", _ref.get().randomInteger()); return;
+        case TData::FieldIndex::randomString: lambda("randomString", _ref.get().randomString()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        lambda("randomInteger", _ref.get().randomInteger());
+        lambda("randomString", _ref.get().randomString());
+    }
+
+    std::reference_wrapper<TData> _ref;
+};
+
+#endif
+// SECTION END: Template specializations
+
+// SECTION START: Inline Function Definitions
+#if true
+
+#endif
+// SECTION END: Inline Function Definitions

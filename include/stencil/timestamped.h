@@ -10,7 +10,7 @@ template <typename T> struct TimestampedT
     {
     };
 
-    TimestampedT<T>()
+    TimestampedT()
     {
         created      = std::chrono::system_clock::now();
         lastmodified = created;

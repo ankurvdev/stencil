@@ -1,11 +1,26 @@
 #include "DataHandlerJson.h"
 
-#pragma warning(push, 0)
-#pragma warning(disable : 4365)
+#pragma warning(push, 3)
+#pragma warning(disable : 4365)    // conversion from 'const char' to 'unsigned char', signed/unsigned mismatch
+#pragma warning(disable : 4355)    //'this' : used in base member initializer list
+#pragma warning(disable : 4855)    // implicit capture of 'this' via '[=]' is deprecated
+#pragma warning(disable : 4548)    // expression before comma has no effect; expected expression with side - effect
+#pragma warning(disable : 4702)    // Unreachable code
+#pragma warning(disable : 4668)    // not defined as a preprocessor macro
+#pragma warning(disable : 5039)    // pointer or reference to potentially throwing function passed to 'extern)
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
+#pragma GCC diagnostics push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #include <limits.h>
 
 #include <httplib.h>
+#pragma GCC diagnostic pop
+#pragma clang diagnostic pop
 #pragma warning(pop)
+
+#include <algorithm>
 
 #define STENCIL_USING_WEBSERVICE 1
 
@@ -55,7 +70,7 @@ inline auto tokenizer(std::string_view view, char sep)
             auto curptr    = &_view.at(_index);
             auto nextptr   = strchr(curptr, _sep);
             _current.index = _index;
-            _current.size  = nextptr == nullptr ? (_view.size() - _index) : (nextptr - curptr);
+            _current.size  = nextptr == nullptr ? (_view.size() - _index) : static_cast<size_t>(nextptr - curptr);
             _current.view  = _view;
             _index         = _current.index + _current.size;
         }
@@ -214,11 +229,11 @@ struct WebServiceImpl
 
 template <typename T1, typename T2> inline bool iequal(T1 const& a, T2 const& b)
 {
-    return std::equal(a.begin(), a.end(), b.begin(), b.end(), [](auto a, auto b) { return tolower(a) == tolower(b); });
+    return std::equal(a.begin(), a.end(), b.begin(), b.end(), [](auto a1, auto b1) { return tolower(a1) == tolower(b1); });
 }
 
 template <typename TInterface, typename TInterfaceApi, typename... TInterfaceApis>
-static auto WebServiceRequestExecuteApis(httplib::Request const& request, const std::string_view& apiname, const std::string_view& moreurl)
+inline auto WebServiceRequestExecuteApis(httplib::Request const& request, const std::string_view& apiname, const std::string_view& moreurl)
 {
     constexpr const std::string_view name = ::ReflectionBase::InterfaceApiTraits<TInterfaceApi>::Name();
     if (!iequal(name, apiname))
@@ -263,7 +278,7 @@ static auto WebServiceRequestExecuteApis(httplib::Request const& request, const 
 }
 
 template <typename TInterface, typename... TApis>
-static auto ProcessWebServiceRequestForInterface(httplib::Request const& request,
+inline auto ProcessWebServiceRequestForInterface(httplib::Request const& request,
                                                  const std::string_view& apiname,
                                                  const std::string_view& moreurl,
                                                  ::ReflectionBase::InterfaceApiPack<TApis...>)
@@ -272,7 +287,7 @@ static auto ProcessWebServiceRequestForInterface(httplib::Request const& request
 }
 
 template <typename TInterface, typename... TInterfaces>
-static auto WebServiceRequest(httplib::Request const& request, const std::string_view& url)
+inline auto WebServiceRequest(httplib::Request const& request, const std::string_view& url)
 {
     using Apis                      = typename ::ReflectionBase::InterfaceTraits<TInterface>::Apis;
     constexpr std::string_view name = WebServiceHandlerTraits<TInterface>::Url();

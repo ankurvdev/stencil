@@ -218,5 +218,8 @@ function(target_add_lexyacc target lyfile)
         # 4668 is not defined as a preprocessor macro, replacing with '0' for '#if/#elif'
         set_source_files_properties(${lc} PROPERTIES COMPILE_FLAGS "-wd4005 -wd4065 -wd4244 -wd4365 -wd4626 -wd4625 -wd4668 -wd5027")
         set_source_files_properties(${yc} PROPERTIES COMPILE_FLAGS "-wd4065 -wd4127 -wd4244 -wd4365 -wd4626 -wd4625 -wd4668 -wd5027")
+    elseif((${CMAKE_CXX_COMPILER_ID} STREQUAL GNU) OR (${CMAKE_CXX_COMPILER_ID} STREQUAL Clang))
+        set_source_files_properties(${lc} PROPERTIES COMPILE_FLAGS "-Wno-everything")
+        set_source_files_properties(${yc} PROPERTIES COMPILE_FLAGS "-Wno-everything")
     endif()
 endfunction()

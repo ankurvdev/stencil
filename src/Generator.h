@@ -69,6 +69,8 @@ struct Generator
     IDL::Program& Program_() { return *_program; }
 
     private:
+    void _RegisterFieldDefForProgram(FieldTypeDecl& v);
+
     using StrType = Binding::Str::Type;
 
     bool _finalized{false};

@@ -1,12 +1,22 @@
 #pragma once
 #include <EmbeddedResource.h>
 
-#pragma warning(push, 0)
+#pragma warning(push, 3)
 #pragma warning(disable : 4868)
 #pragma warning(disable : 4738)
+#pragma warning(disable : 4365)    // signed unsigned mismatch
+#pragma warning(disable : 5219)    // implicit conversion from 'uint64_t' to 'double', possible loss of data
+#pragma warning(disable : 5204)    // class has virtual functions, but its trivial destructor is not virtual
+#pragma warning(disable : 4668)    //not defined as a preprocessor macro
+#pragma warning(disable : 5039)    // pointer or reference to potentially throwing function passed to 'extern)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
+
 #include <catch2/catch.hpp>
 #include <dtl/dtl.hpp>
-#pragma warning(pop
+
+#pragma clang diagnostic pop
+#pragma warning(pop)
 
 #include <filesystem>
 #include <fstream>
@@ -61,7 +71,7 @@ struct ResourceFileManager
             return it->second;
         }
         auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
-        for (auto const& r : resourceCollection)
+        for (auto const r : resourceCollection)
         {
             if (wstring_to_string(r.name()) == name)
             {
@@ -104,7 +114,7 @@ inline void CompareLines(std::vector<std::string> const& actualstring,
             f.flush();
             f.close();
         }
-        REQUIRE_FALSE("Comparison Failed: Output: failure.txt");
+        FAIL("Comparison Failed: Output: failure.txt");
     }
 }
 

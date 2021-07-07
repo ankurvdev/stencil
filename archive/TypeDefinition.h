@@ -38,7 +38,6 @@ class Context
         {
             auto base = program.TryLookup<IDL::Container>(basename.first);
             program.CreateNamedObject<IDL::Container>(std::move(name.first), std::move(name.second), base, map);
-
         }
         else
         {

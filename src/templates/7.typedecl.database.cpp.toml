@@ -1,0 +1,26 @@
+[FieldTypes.db_encrypted_unique_wstring]
+NativeType = "::Database2::ChildRef<Database2::WideString>"
+
+[Containers.databaseowner]
+Params = [ "owner", "object" ]
+NativeType = "::Database2::OwnerT<%owner:NativeType%,%object:NativeType%>"
+
+[Containers.databaseobject]
+Params = [ "owner", "object" ]
+NativeType = "::Database2::ObjectT<%owner:NativeType%,%object:NativeType%>"
+
+[Containers.databasetype]
+Params = [ "object" ]
+NativeType = "::Database2::DatabaseT<%object:NativeType%>"
+
+[Containers.databaseref]
+Params = [ "object" ]
+NativeType = "::Database2::ObjectRefT<%object:NativeType%>"
+
+[Containers.encryptedobject]
+Params = [ "object" ]
+NativeType = "::Database2::EncryptedT<%object:NativeType%>"
+
+[Relationships.database]
+owner = "databaseowner"
+object = "databaseobject"

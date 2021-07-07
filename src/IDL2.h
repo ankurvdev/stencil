@@ -89,8 +89,9 @@ struct Container : public std::enable_shared_from_this<Container>,
     void AddMutator(MutatorAccessorDefinition&& def) { _mutators.push_back(std::move(def)); }
     void AddAccessor(MutatorAccessorDefinition&& def) { _accessors.push_back(std::move(def)); }
 
-    const size_t                      ComponentSize() { return m_Components.size(); }
-    Str::Type&                        Component(size_t index) { return m_Components[index]; }
+    size_t     ComponentSize() const { return m_Components.size(); }
+    Str::Type& Component(size_t index) { return m_Components[index]; }
+
     static std::shared_ptr<Container> FindOrCreate(std::shared_ptr<Program>               program,
                                                    Str::Type&&                            name,
                                                    std::vector<Str::Type>&                components,
@@ -216,7 +217,8 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
         }
         for (auto const& m : container._accessors)
         {
-            this->CreateAccessor(Str::Copy(m.name), m.id, ResolveExpression(m.returnType, _typemap), ResolveExpression(m.args[0], _typemap));
+            this->CreateAccessor(
+                Str::Copy(m.name), m.id, ResolveExpression(m.returnType, _typemap), ResolveExpression(m.args[0], _typemap));
         }
     }
 
@@ -230,23 +232,45 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
     static std::shared_ptr<Binding::Expression> ResolveExpression(std::shared_ptr<Binding::Expression> expr,
                                                                   const ContainerFieldTypeMap&         typemap)
     {
-        return expr->Evaluate([&](const Binding::BindingExpr& expr) {
-            assert(expr.binding.size() == 1);
-            auto  rslt = std::make_shared<Binding::Expression>();
-            auto& val  = typemap.at(expr.binding[0]);
-            ACTION_CONTEXT([&]() { return L"Evaluating Expression :" + rslt->Stringify() + L" On Value: " + val->Stringify(); });
-            if (val->GetType() == Binding::Type::String)
+        return expr->Evaluate(
+            [&](const Binding::BindingExpr& expr1)
             {
-                rslt->AddString(Str::Copy(val->GetString()));
-            }
-            else
-            {
-                Binding::BindingContext context{};
-                rslt->AddString(
-                    Str::Copy(val->GetBindable().TryLookupOrNull(context, L"Name")->GetString()));    // TODO IFieldType::GetFieldName
-            }
-            return rslt;
-        });
+                auto  rslt = std::make_shared<Binding::Expression>();
+                auto& val  = typemap.at(expr1.binding[0]);
+                ACTION_CONTEXT([&]() { return L"Evaluating Expression :" + rslt->Stringify() + L" On Value: " + val->Stringify(); });
+                if (val->GetType() == Binding::Type::String)
+                {
+                    assert(expr1.binding.size() == 1);
+                    rslt->AddString(Str::Copy(val->GetString()));
+                }
+                else
+                {
+                    if (expr1.binding.size() == 1)
+                    {
+                        Binding::BindingContext context{};
+                        rslt->AddString(Str::Copy(
+                            val->GetBindable().TryLookupOrNull(context, L"Name")->GetString()));    // TODO IFieldType::GetFieldName
+                    }
+                    else
+                    {
+                        Binding::BindingContext          context{};
+                        std::shared_ptr<Binding::IValue> recrval = val;
+                        for (size_t i = 1; i < expr1.binding.size(); i++)
+                        {
+                            recrval = recrval->GetBindable().TryLookupOrNull(context, expr1.binding[i]);
+                        }
+                        if (val->GetType() == Binding::Type::String)
+                        {
+                            rslt->AddString(Str::Copy(recrval->GetString()));    // TODO IFieldType::GetFieldName
+                        }
+                        else
+                        {
+                            return Binding::Expression::Clone(recrval->GetExpr());
+                        }
+                    }
+                }
+                return rslt;
+            });
     }
 
     static Str::Type GenerateFieldName(const Container& container, const ContainerFieldTypeMap& typemap)
@@ -287,10 +311,10 @@ struct RelationshipDefinition : public std::enable_shared_from_this<Relationship
     OBJECTNAME(RelationshipDefinition);
     DELETE_COPY_AND_MOVE(RelationshipDefinition);
 
-    RelationshipDefinition(std::shared_ptr<Program>               program,
-                           Str::Type&&                            name,
-                           std::shared_ptr<Binding::AttributeMap> attributes,
-                           RelationshipComponentMap&&             unordered_map) :
+    RelationshipDefinition(std::shared_ptr<Program> program,
+                           Str::Type&&              name,
+                           std::shared_ptr<Binding::AttributeMap> /* attributes */,
+                           RelationshipComponentMap&& unordered_map) :
         IDLGenerics::NamedIndexT<Program, RelationshipDefinition>::NamedObject(program, std::move(name)),
         m_ComponentMap(std::move(unordered_map))
     {
@@ -399,8 +423,7 @@ struct RelationshipTag : public std::enable_shared_from_this<RelationshipTag>,
 
     IBindable& GetRelationshipDefinitionBindable() const { return _fieldType->GetBindable(); }
 
-
-    std::shared_ptr<Binding::BindableBase> _fieldType;
+    std::shared_ptr<Binding::BindableBase>   _fieldType;
     std::unordered_map<Str::Type, Str::Type> _defmap;
     std::shared_ptr<Binding::AttributeMap>   _map;
 };
@@ -530,18 +553,17 @@ inline void Program::InitializeModelDataSources(const std::wstring_view& datasou
 }
 
 inline std::shared_ptr<IDLGenerics::IFieldType>
-ContainerFieldType::FindOrCreate(std::shared_ptr<Program>                                program,
-                                 Container&                                              container,
-                                 ContainerFieldTypeMap&&                                 typemap,
-                                 std::optional<std::shared_ptr<IDLGenerics::IFieldType>> base,
-                                 std::shared_ptr<Binding::AttributeMap>                  unordered_map)
+ContainerFieldType::FindOrCreate(std::shared_ptr<Program> program,
+                                 Container&               container,
+                                 ContainerFieldTypeMap&&  typemap,
+                                 std::optional<std::shared_ptr<IDLGenerics::IFieldType>> /*base*/,
+                                 std::shared_ptr<Binding::AttributeMap> unordered_map)
 {
     auto ctName    = ContainerFieldType::GenerateFieldName(container, typemap);
     auto fieldType = program->TryGetFieldTypeName(ctName);
     if (fieldType.has_value())
     {
         assert(Str::Equal(fieldType.value()->GetFieldCategory(), Str::Create(L"containerfieldtype")));
-        assert(!base.has_value());
         assert(unordered_map == nullptr);
         fieldType.value()->AddAttributes(unordered_map);
         return fieldType.value();

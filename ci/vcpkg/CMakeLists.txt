@@ -54,12 +54,13 @@ file(APPEND ${srcfile} "
 DECLARE_RESOURCE_COLLECTION(testdata);
 int main() { 
     auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
-    for (auto const& r : resourceCollection)
+    for (auto const r : resourceCollection)
     {
         std::cout << r.string();
     }
     return 0;
-}"
+}
+"
 )
 
 enable_testing()
