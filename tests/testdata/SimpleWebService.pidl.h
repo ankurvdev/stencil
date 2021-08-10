@@ -302,8 +302,7 @@ struct Stencil::Transaction<SimpleWebService::Data::Data> : Stencil::Transaction
         _subtracker_randomInteger(Obj().randomInteger(), rec)
         ,
         _subtracker_randomString(Obj().randomString(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -376,7 +375,8 @@ struct Stencil::Visitor<SimpleWebService::Data::Data, void> : Stencil::VisitorT<
 };
 
 template <>
-struct Stencil::Visitor<const SimpleWebService::Data::Data, void> : Stencil::VisitorT<const SimpleWebService::Data::Data>
+struct Stencil::Visitor<const SimpleWebService::Data::Data, void>
+    : Stencil::VisitorT<const SimpleWebService::Data::Data>
 {
     using TData = SimpleWebService::Data::Data const;
 

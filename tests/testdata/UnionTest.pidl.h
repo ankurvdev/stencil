@@ -264,8 +264,7 @@ struct Stencil::Transaction<UnionTest::Struct1::Data> : Stencil::TransactionT<Un
         _subtracker_field1(Obj().field1(), rec)
         ,
         _subtracker_field2(Obj().field2(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -338,7 +337,8 @@ struct Stencil::Visitor<UnionTest::Struct1::Data, void> : Stencil::VisitorT<Unio
 };
 
 template <>
-struct Stencil::Visitor<const UnionTest::Struct1::Data, void> : Stencil::VisitorT<const UnionTest::Struct1::Data>
+struct Stencil::Visitor<const UnionTest::Struct1::Data, void>
+    : Stencil::VisitorT<const UnionTest::Struct1::Data>
 {
     using TData = UnionTest::Struct1::Data const;
 

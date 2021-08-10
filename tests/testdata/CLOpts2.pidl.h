@@ -919,8 +919,7 @@ struct Stencil::Transaction<CLOpts2::InstallOptions::Data> : Stencil::Transactio
         _subtracker_TargetVolume(Obj().TargetVolume(), rec)
         ,
         _subtracker_User(Obj().User(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -1026,7 +1025,8 @@ struct Stencil::Visitor<CLOpts2::InstallOptions::Data, void> : Stencil::VisitorT
 };
 
 template <>
-struct Stencil::Visitor<const CLOpts2::InstallOptions::Data, void> : Stencil::VisitorT<const CLOpts2::InstallOptions::Data>
+struct Stencil::Visitor<const CLOpts2::InstallOptions::Data, void>
+    : Stencil::VisitorT<const CLOpts2::InstallOptions::Data>
 {
     using TData = CLOpts2::InstallOptions::Data const;
 
@@ -1112,8 +1112,7 @@ struct Stencil::Transaction<CLOpts2::QueueOptions::Data> : Stencil::TransactionT
         Stencil::TransactionT<CLOpts2::QueueOptions::Data>(ptr, rec)
         ,
         _subtracker_ProductId(Obj().ProductId(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -1175,7 +1174,8 @@ struct Stencil::Visitor<CLOpts2::QueueOptions::Data, void> : Stencil::VisitorT<C
 };
 
 template <>
-struct Stencil::Visitor<const CLOpts2::QueueOptions::Data, void> : Stencil::VisitorT<const CLOpts2::QueueOptions::Data>
+struct Stencil::Visitor<const CLOpts2::QueueOptions::Data, void>
+    : Stencil::VisitorT<const CLOpts2::QueueOptions::Data>
 {
     using TData = CLOpts2::QueueOptions::Data const;
 
@@ -1252,8 +1252,7 @@ struct Stencil::Transaction<CLOpts2::PauseOptions::Data> : Stencil::TransactionT
         Stencil::TransactionT<CLOpts2::PauseOptions::Data>(ptr, rec)
         ,
         _subtracker_ProductId(Obj().ProductId(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -1315,7 +1314,8 @@ struct Stencil::Visitor<CLOpts2::PauseOptions::Data, void> : Stencil::VisitorT<C
 };
 
 template <>
-struct Stencil::Visitor<const CLOpts2::PauseOptions::Data, void> : Stencil::VisitorT<const CLOpts2::PauseOptions::Data>
+struct Stencil::Visitor<const CLOpts2::PauseOptions::Data, void>
+    : Stencil::VisitorT<const CLOpts2::PauseOptions::Data>
 {
     using TData = CLOpts2::PauseOptions::Data const;
 
@@ -1392,8 +1392,7 @@ struct Stencil::Transaction<CLOpts2::CancelOptions::Data> : Stencil::Transaction
         Stencil::TransactionT<CLOpts2::CancelOptions::Data>(ptr, rec)
         ,
         _subtracker_ProductId(Obj().ProductId(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -1455,7 +1454,8 @@ struct Stencil::Visitor<CLOpts2::CancelOptions::Data, void> : Stencil::VisitorT<
 };
 
 template <>
-struct Stencil::Visitor<const CLOpts2::CancelOptions::Data, void> : Stencil::VisitorT<const CLOpts2::CancelOptions::Data>
+struct Stencil::Visitor<const CLOpts2::CancelOptions::Data, void>
+    : Stencil::VisitorT<const CLOpts2::CancelOptions::Data>
 {
     using TData = CLOpts2::CancelOptions::Data const;
 
@@ -1532,8 +1532,7 @@ struct Stencil::Transaction<CLOpts2::ResumeOptions::Data> : Stencil::Transaction
         Stencil::TransactionT<CLOpts2::ResumeOptions::Data>(ptr, rec)
         ,
         _subtracker_ProductId(Obj().ProductId(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -1595,7 +1594,8 @@ struct Stencil::Visitor<CLOpts2::ResumeOptions::Data, void> : Stencil::VisitorT<
 };
 
 template <>
-struct Stencil::Visitor<const CLOpts2::ResumeOptions::Data, void> : Stencil::VisitorT<const CLOpts2::ResumeOptions::Data>
+struct Stencil::Visitor<const CLOpts2::ResumeOptions::Data, void>
+    : Stencil::VisitorT<const CLOpts2::ResumeOptions::Data>
 {
     using TData = CLOpts2::ResumeOptions::Data const;
 
@@ -1673,8 +1673,7 @@ struct Stencil::Transaction<CLOpts2::UpdateOptions::Data> : Stencil::Transaction
         Stencil::TransactionT<CLOpts2::UpdateOptions::Data>(ptr, rec)
         ,
         _subtracker_ProductId(Obj().ProductId(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -1736,7 +1735,8 @@ struct Stencil::Visitor<CLOpts2::UpdateOptions::Data, void> : Stencil::VisitorT<
 };
 
 template <>
-struct Stencil::Visitor<const CLOpts2::UpdateOptions::Data, void> : Stencil::VisitorT<const CLOpts2::UpdateOptions::Data>
+struct Stencil::Visitor<const CLOpts2::UpdateOptions::Data, void>
+    : Stencil::VisitorT<const CLOpts2::UpdateOptions::Data>
 {
     using TData = CLOpts2::UpdateOptions::Data const;
 
@@ -1813,8 +1813,7 @@ struct Stencil::Transaction<CLOpts2::HydrateOptions::Data> : Stencil::Transactio
         Stencil::TransactionT<CLOpts2::HydrateOptions::Data>(ptr, rec)
         ,
         _subtracker_ProductId(Obj().ProductId(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -1876,7 +1875,8 @@ struct Stencil::Visitor<CLOpts2::HydrateOptions::Data, void> : Stencil::VisitorT
 };
 
 template <>
-struct Stencil::Visitor<const CLOpts2::HydrateOptions::Data, void> : Stencil::VisitorT<const CLOpts2::HydrateOptions::Data>
+struct Stencil::Visitor<const CLOpts2::HydrateOptions::Data, void>
+    : Stencil::VisitorT<const CLOpts2::HydrateOptions::Data>
 {
     using TData = CLOpts2::HydrateOptions::Data const;
 
