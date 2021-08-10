@@ -6,6 +6,7 @@
 #include "shared_tree.h"
 #include "timestamped.h"
 #include "uuidobject.h"
+#include "visitor.h"
 
 #include "CommandLineArgsReader.h"
 #include "DataHandlerJson.h"

@@ -1037,7 +1037,7 @@ template <typename T> struct ReflectionBase::TypeTraits<T&, std::enable_if_t<Val
     using ValueType = T;
     using Handler   = typename ::ReflectionServices::CommonValueHandler<T>;
 };
-
+#if 0
 template <typename TClock, typename TDur> struct ReflectionBase::TypeTraits<std::chrono::time_point<TClock, TDur>&>
 {
     using time_point = std::chrono::time_point<TClock, TDur>;
@@ -1083,7 +1083,7 @@ template <typename TClock, typename TDur> struct ReflectionBase::TypeTraits<std:
         virtual shared_string AttributeValue(const std::string_view& /*key*/) const override { throw std::logic_error("TODO"); }
     };
 };
-
+#endif
 template <typename T> struct ReflectionBase::TypeTraits<std::vector<T>&>
 {
     static constexpr DataType Type() { return DataType::List; }

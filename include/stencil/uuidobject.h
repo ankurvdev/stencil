@@ -62,7 +62,8 @@ struct Uuid
         return *this;
     }
 
-    auto operator<=>(Uuid const& r) const = default;
+    auto operator==(Uuid const& r) const { return r.data == data; }
+    auto operator!=(Uuid const& r) const { return r.data != data; }
 
     UuidStr constexpr ToString() const;
     static Uuid constexpr FromString(UuidStr const& str) { return Uuid(str); }

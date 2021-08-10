@@ -212,16 +212,6 @@ struct Json
         }
     };
 
-    template <typename TClk> struct Writer<std::chrono::time_point<TClk>>
-    {
-        static std::string Stringify(const std::chrono::time_point<TClk>& obj)
-        {
-            auto val = std::chrono::duration_cast<std::chrono::nanoseconds>(obj.time_since_epoch()).count();
-            return std::to_string(val);
-            // return fmt::format("\"{:%FT%TZ}\"", obj);
-        }
-    };
-
     template <typename T, size_t N> struct Writer<std::array<T, N>>
     {
         static std::string Stringify(const std::array<T, N>& obj)
