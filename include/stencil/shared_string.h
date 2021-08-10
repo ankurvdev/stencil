@@ -71,10 +71,7 @@ template <typename T> struct shared_stringT : private std::shared_ptr<std::basic
     {
         if (this->get() == nullptr || str.get() == nullptr)
         {
-            if (this->get() == nullptr)
-            {
-                *this = str;
-            }
+            if (this->get() == nullptr) { *this = str; }
         }
         else
         {

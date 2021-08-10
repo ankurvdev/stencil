@@ -233,10 +233,7 @@ class CppHttpLib
     {
         httplib::Client cli(host.data(), port);
         auto            res = cli.Get(get.data());
-        if (res && res->status == 200)
-        {
-            _response = res->body;
-        }
+        if (res && res->status == 200) { _response = res->body; }
         else
         {
             throw std::runtime_error("Unable to get");
@@ -261,8 +258,7 @@ TEST_CASE("CodeGen::WebService::HandWritten", "[WebService]")
             REQUIRE(str.size() == 38);
             REQUIRE(str[0] == '{');
             REQUIRE(str[37] == '}');
-        }
-        catch (std::exception const& ex)
+        } catch (std::exception const& ex)
         {
             FAIL(ex.what());
         }

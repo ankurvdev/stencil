@@ -5,12 +5,10 @@
 using namespace std::string_literals;
 
 TEST_CASE("CodeGen::Database2::Encryption")
-{
-}
+{}
 
 TEST_CASE("CodeGen::Database2::MergeDatabase")
-{
-}
+{}
 
 TEST_CASE("CodeGen::Database2::SaveAndLoad")
 {

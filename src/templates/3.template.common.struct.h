@@ -1,7 +1,6 @@
 // Anything here is not part of the generated code
 struct ModelDefinition
-{
-};
+{};
 const int         EnumKeyCount     = 0;
 const int         EnumCount        = 0;
 const int         zzFieldType_Idzz = 0;
@@ -21,8 +20,7 @@ struct zzChildFieldType_NativeTypezz
     int a;
 };
 struct zzReturnType_NativeTypezz
-{
-};
+{};
 typedef void* Target;
 class NativeHandler
 {
@@ -459,8 +457,7 @@ struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz::Data> : Stencil::
         ,
         _subtracker_zzNamezz(Obj().zzNamezz(), rec)
     //</Field>
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -543,7 +540,8 @@ struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz::Data, void> : Stencil
 };
 
 template <>
-struct Stencil::Visitor<const zzProgram_Namezz::zzStruct_Namezz::Data, void> : Stencil::VisitorT<const zzProgram_Namezz::zzStruct_Namezz::Data>
+struct Stencil::Visitor<const zzProgram_Namezz::zzStruct_Namezz::Data, void>
+    : Stencil::VisitorT<const zzProgram_Namezz::zzStruct_Namezz::Data>
 {
     using TData = zzProgram_Namezz::zzStruct_Namezz::Data const;
 

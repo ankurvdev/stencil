@@ -18,26 +18,17 @@ static void find_and_replace(std::string& source, std::string const& find, std::
 
 static std::string tryreadfile(stdfs::path fname)
 {
-    if (!stdfs::exists(fname))
-    {
-        return "";
-    }
+    if (!stdfs::exists(fname)) { return ""; }
 
     std::ifstream ly(fname);
-    if (!ly.is_open())
-    {
-        throw std::invalid_argument("cannot open file : " + fname.string());
-    }
+    if (!ly.is_open()) { throw std::invalid_argument("cannot open file : " + fname.string()); }
 
     return std::string((std::istreambuf_iterator<char>(ly)), (std::istreambuf_iterator<char>()));
 }
 
 static void generate(stdfs::path fname, std::string tmpl, std::unordered_map<std::string, std::string> const& params)
 {
-    for (auto const& [k, v] : params)
-    {
-        find_and_replace(tmpl, "zz" + std::string(k) + "zz", v);
-    }
+    for (auto const& [k, v] : params) { find_and_replace(tmpl, "zz" + std::string(k) + "zz", v); }
     if (tmpl == tryreadfile(fname)) return;
     std::ofstream of(fname);
     of.write(tmpl.data(), static_cast<std::streamsize>(tmpl.size()));
@@ -67,27 +58,18 @@ try
             i++;
             continue;
         }
-        if (req == 0)
-        {
-            lyfile = argv[i];
-        }
+        if (req == 0) { lyfile = argv[i]; }
         else
         {
             throw std::invalid_argument("unexpected");
         }
     }
 
-    if (prefix.empty())
-    {
-        prefix = stdfs::path(lyfile).stem().string();
-    }
+    if (prefix.empty()) { prefix = stdfs::path(lyfile).stem().string(); }
 
     stdfs::path   path(lyfile);
     std::ifstream ly(lyfile);
-    if (!ly.is_open())
-    {
-        throw std::invalid_argument("cannot open file : " + lyfile);
-    }
+    if (!ly.is_open()) { throw std::invalid_argument("cannot open file : " + lyfile); }
     std::string content((std::istreambuf_iterator<char>(ly)), (std::istreambuf_iterator<char>()));
 
     auto findstart
@@ -272,12 +254,8 @@ zzFLEXzz
     std::unordered_map<std::string, std::string> files
         = {{"y", template_y}, {"l", template_l}, {"ly.impl.h", template_impl_hh}, {"ly.h", template_lyh}};
 
-    for (auto const& [ext, tmpl] : files)
-    {
-        generate(stdfs::path(outdir) / stdfs::path(prefix + "." + ext), tmpl, params);
-    }
-}
-catch (std::exception const& ex)
+    for (auto const& [ext, tmpl] : files) { generate(stdfs::path(outdir) / stdfs::path(prefix + "." + ext), tmpl, params); }
+} catch (std::exception const& ex)
 {
     std::cerr << ex.what();
     return -1;

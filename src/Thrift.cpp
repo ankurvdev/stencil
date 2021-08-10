@@ -28,10 +28,7 @@ std::shared_ptr<IDL::Struct> CreateStruct(Context& context, Str::Type& id, Field
 std::shared_ptr<IDL::Union> CreateUnion(Context& context, Str::Type& id, FieldList& fields, TypeAttributeList& map)
 {
     auto strct = context.program.CreateStorageObject<IDL::Union>(std::move(id), map);
-    for (auto& f : fields)
-    {
-        strct->CreateField(f.m_FieldType.value(), std::move(f.m_Id), f.m_FieldValue, std::move(f.m_AttributeMap));
-    }
+    for (auto& f : fields) { strct->CreateField(f.m_FieldType.value(), std::move(f.m_Id), f.m_FieldValue, std::move(f.m_AttributeMap)); }
 
     fields.clear();
     map.reset();
@@ -39,18 +36,15 @@ std::shared_ptr<IDL::Union> CreateUnion(Context& context, Str::Type& id, FieldLi
 }
 
 static void CreateRelectionshipDefinitionRecursively(Context&                            context,
-                                              Str::Type&&                         name,
-                                              RelationshipComponentList&          map,
-                                              ComponentList&                      componentmap,
-                                              RelationshipComponentList::iterator atit)
+                                                     Str::Type&&                         name,
+                                                     RelationshipComponentList&          map,
+                                                     ComponentList&                      componentmap,
+                                                     RelationshipComponentList::iterator atit)
 {
     TypeAttributeList attributemap;
     for (auto it = atit; it != map.end(); ++it)
     {
-        if (it->second.size() == 1)
-        {
-            componentmap[Str::Copy(it->first)] = Str::Copy(it->second[0]);
-        }
+        if (it->second.size() == 1) { componentmap[Str::Copy(it->first)] = Str::Copy(it->second[0]); }
         else
         {
             for (auto vit = it->second.begin(); vit != it->second.end(); ++vit)
@@ -126,8 +120,7 @@ struct ThriftGenerator : Generator
         try
         {
             IDL::Lang::Thrift::LoadFile(context, inputFile);
-        }
-        catch (std::exception const& ex)
+        } catch (std::exception const& ex)
         {
             for (auto& err : context.errors)
             {

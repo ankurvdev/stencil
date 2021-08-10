@@ -403,23 +403,14 @@ TEST_CASE("CodeGen::Database2::UniqueSharedAndSelf", "[Database2]")
         {
             auto   lock  = store.LockForRead();
             size_t count = 0;
-            for ([[maybe_unused]] auto const [ref, obj] : store.Objects<Database2::ByteString>(lock))
-            {
-                count++;
-            }
+            for ([[maybe_unused]] auto const [ref, obj] : store.Objects<Database2::ByteString>(lock)) { count++; }
             REQUIRE(count == 1);
         }
         {
             auto lock = store.LockForEdit();
-            for (auto const [ref, obj] : store.Objects<Database2::ByteString>(lock))
-            {
-                store.Delete(lock, ref);
-            }
+            for (auto const [ref, obj] : store.Objects<Database2::ByteString>(lock)) { store.Delete(lock, ref); }
             size_t count = 0;
-            for ([[maybe_unused]] auto const [ref, obj] : store.Objects<Database2::ByteString>(lock))
-            {
-                count++;
-            }
+            for ([[maybe_unused]] auto const [ref, obj] : store.Objects<Database2::ByteString>(lock)) { count++; }
             // TODO : REQUIRE(count == 0);
 
             // TODO : TEst case for verifying that editlock causes a page dirty

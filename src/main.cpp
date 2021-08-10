@@ -13,39 +13,24 @@
 namespace stdfs = std::filesystem;
 
 static std::vector<stdfs::path> Execute(bool                            dryrun,
-                                 bool                            loadBuiltIn,
-                                 std::string const&              format,
-                                 std::vector<stdfs::path> const& templates,
-                                 stdfs::path const&              outdir,
-                                 std::vector<stdfs::path> const& input)
+                                        bool                            loadBuiltIn,
+                                        std::string const&              format,
+                                        std::vector<stdfs::path> const& templates,
+                                        stdfs::path const&              outdir,
+                                        std::vector<stdfs::path> const& input)
 {
     auto generator = Generator::Get(format);
-    for (auto const& tp : templates)
-    {
-        generator->LoadTemplate(tp);
-    }
+    for (auto const& tp : templates) { generator->LoadTemplate(tp); }
 
-    if (loadBuiltIn)
-    {
-        generator->LoadBuilltinTemplates();
-    }
+    if (loadBuiltIn) { generator->LoadBuilltinTemplates(); }
 
-    if (!stdfs::is_directory(outdir))
-    {
-        throw std::invalid_argument("Output directory does not exist : " + outdir.string());
-    }
+    if (!stdfs::is_directory(outdir)) { throw std::invalid_argument("Output directory does not exist : " + outdir.string()); }
 
-    for (auto const& f : input)
-    {
-        generator->LoadFile(f);
-    }
+    for (auto const& f : input) { generator->LoadFile(f); }
 
     auto outfiles = generator->Generate(dryrun, outdir);
 
-    if (outfiles.size() == 0)
-    {
-        throw std::runtime_error("No output files generated");
-    }
+    if (outfiles.size() == 0) { throw std::runtime_error("No output files generated"); }
 
     return outfiles;
 }
@@ -73,13 +58,9 @@ try
     for (auto const& i : inputs)
     {
         auto outfiles = Execute(dryrun, true, format, templates, outdir, {i});
-        for (auto const& o : outfiles)
-        {
-            std::cout << o.string() << std::endl;
-        }
+        for (auto const& o : outfiles) { std::cout << o.string() << std::endl; }
     }
-}
-catch (const std::exception& ex)
+} catch (const std::exception& ex)
 {
     std::cerr << ex.what() << std::endl;
     // std::cerr << IDLDebug::ErrorAggregator::Get().GetErrors() << std::endl;

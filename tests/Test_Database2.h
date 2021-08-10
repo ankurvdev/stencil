@@ -60,8 +60,7 @@ struct WithString : Database2::DatabaseObjRef<DataStore, WithString, Database::B
 {
     WithString(Uuid const& uuid1, Uuid const& uuid2) :
         Database2::DatabaseObjRef<DataStore, WithString, Database::ByteString>(uuid2), uuid(uuid1)
-    {
-    }
+    {}
     Uuid uuid;
 };
 
@@ -69,16 +68,14 @@ struct WithSharedString : Database::DatabaseObjRef<DataStore, WithSharedString, 
 {
     WithSharedString(Uuid const& uuid1, Uuid const& uuid2) :
         Database2::DatabaseObjRef<DataStore, WithSharedString, Database::ByteSharedString>(uuid2), uuid(uuid1)
-    {
-    }
+    {}
     Uuid uuid;
 };
 
 struct WithSharedData : Database::DatabaseObjRef<DataStore, WithSharedData, Shared>
 {
     WithSharedData(Uuid const& uuid1, Uuid const& uuid2) : Database2::DatabaseObjRef<DataStore, WithSharedData, Shared>(uuid2), uuid(uuid1)
-    {
-    }
+    {}
     Uuid uuid;
 };
 
@@ -86,8 +83,7 @@ struct WithEncryptedString : Database::DatabaseObjRef<DataStore, WithEncryptedSt
 {
     WithEncryptedString(Uuid const& uuid1, Uuid const& uuid2) :
         Database2::DatabaseObjRef<DataStore, WithEncryptedString, Database::ByteEncryptedString>(uuid2), uuid(uuid1)
-    {
-    }
+    {}
     Uuid uuid;
 };
 
@@ -95,8 +91,7 @@ struct WithEncryptedSharedString : Database::DatabaseObjRef<DataStore, WithEncry
 {
     WithEncryptedSharedString(Uuid const& uuid1, Uuid const& uuid2) :
         Database2::DatabaseObjRef<DataStore, WithEncryptedSharedString, Database::ByteEncryptedSharedString>(uuid2), uuid(uuid1)
-    {
-    }
+    {}
     Uuid uuid;
 };
 #endif

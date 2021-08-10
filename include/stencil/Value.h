@@ -88,8 +88,7 @@ struct Value
 
     public:
     struct UnsupportedCast
-    {
-    };
+    {};
     void _check(Type type) const
     {
         if (_type != type) throw 1;
@@ -222,47 +221,34 @@ struct Value
 };
 
 template <typename T> struct ValueTraits : public Value::UnknownTraits<T>
-{
-};
+{};
 
 template <> struct ValueTraits<uint64_t> : public Value::UnsignedTraits<uint64_t>
-{
-};
+{};
 template <> struct ValueTraits<uint32_t> : public Value::UnsignedTraits<uint64_t>
-{
-};
+{};
 template <> struct ValueTraits<uint16_t> : public Value::UnsignedTraits<uint64_t>
-{
-};
+{};
 template <> struct ValueTraits<uint8_t> : public Value::UnsignedTraits<uint64_t>
-{
-};
+{};
 template <> struct ValueTraits<int64_t> : public Value::SignedTraits<int64_t>
-{
-};
+{};
 template <> struct ValueTraits<int32_t> : public Value::SignedTraits<int64_t>
-{
-};
+{};
 template <> struct ValueTraits<int16_t> : public Value::SignedTraits<int64_t>
-{
-};
+{};
 template <> struct ValueTraits<int8_t> : public Value::SignedTraits<int64_t>
-{
-};
+{};
 
 template <> struct ValueTraits<char> : public Value::SignedTraits<int64_t>
-{
-};
+{};
 
 template <> struct ValueTraits<bool> : public Value::UnsignedTraits<bool>
-{
-};
+{};
 template <> struct ValueTraits<double> : public Value::DoubleTraits<double>
-{
-};
+{};
 template <> struct ValueTraits<shared_string> : public Value::StringTraits<shared_string>
-{
-};
+{};
 
 inline Value::operator ::size_t() const
 {
