@@ -76,10 +76,7 @@ template <typename T> struct VisitorT
             auto  cptr  = const_cast<void*>(state.Ptr);    // Shhh... Thats ok.
             ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::Object>::SubComponent sub;
 
-            if (!state.Handler->ObjectHandler()->TryGetSubComponent(cptr, val, sub))
-            {
-                return false;
-            }
+            if (!state.Handler->ObjectHandler()->TryGetSubComponent(cptr, val, sub)) { return false; }
             _stack.push_back(StateStack{sub.handler, sub.ptr, Mode::Obj});
             return true;
         }
@@ -90,10 +87,7 @@ template <typename T> struct VisitorT
             auto  cptr  = const_cast<void*>(state.Ptr);    // Shhh... Thats ok.
             ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::List>::SubComponent sub;
 
-            if (!state.Handler->ListHandler()->TryGetSubComponent(cptr, val, sub))
-            {
-                return false;
-            }
+            if (!state.Handler->ListHandler()->TryGetSubComponent(cptr, val, sub)) { return false; }
             _stack.push_back(StateStack{sub.handler, sub.ptr, Mode::List});
             return true;
         }
@@ -110,19 +104,13 @@ template <typename T> struct VisitorT
 
     VisitorT& Select(Value const& val)
     {
-        if (!TrySelect(val))
-        {
-            throw std::runtime_error("Cannot select into the Visitor Object");
-        }
+        if (!TrySelect(val)) { throw std::runtime_error("Cannot select into the Visitor Object"); }
         return *this;
     }
 
     template <typename TKey, typename TSerDes> VisitorT& Select(TKey const& key)
     {
-        if constexpr (Value::Supported<TKey>::value)
-        {
-            return Select(Value{key});
-        }
+        if constexpr (Value::Supported<TKey>::value) { return Select(Value{key}); }
         else
         {
             TODO();
@@ -216,10 +204,7 @@ template <typename T> struct Visitor<std::vector<T> const> : VisitorT<std::vecto
 
     template <typename TLambda> void VisitAll(TLambda&& lambda) const
     {
-        for (size_t i = 0; i < _ref.get().size(); i++)
-        {
-            lambda(i, _ref.get().at(i));
-        }
+        for (size_t i = 0; i < _ref.get().size(); i++) { lambda(i, _ref.get().at(i)); }
     }
 
     std::reference_wrapper<std::vector<T> const> _ref;
@@ -233,10 +218,7 @@ template <typename T, size_t N> struct Visitor<std::array<T, N> const> : Visitor
 
     template <typename TLambda> void VisitAll(TLambda&& lambda) const
     {
-        for (size_t i = 0; i < _ref.get().size(); i++)
-        {
-            lambda(i, _ref.get().at(i));
-        }
+        for (size_t i = 0; i < _ref.get().size(); i++) { lambda(i, _ref.get().at(i)); }
     }
     std::reference_wrapper<TData> _ref;
 };

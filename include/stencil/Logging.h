@@ -175,10 +175,7 @@ template <typename TraceTraits, typename... TArgs> void Log(const CorrelationVec
 {
     auto& logger = GetLogger();
 
-    if (TraceTraits::VerbosityLevel > logger.verbosityLevel || logger.callback == nullptr)
-    {
-        return;
-    }
+    if (TraceTraits::VerbosityLevel > logger.verbosityLevel || logger.callback == nullptr) { return; }
 
     Logging::PrettyPrintStream buffer;
     TraceTraits::ConstructMessage(buffer, std::forward<TArgs>(args)...);

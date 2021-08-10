@@ -14,16 +14,10 @@ struct CommandLineArgsReader
             std::stringstream ss;
             ss << "Error processing args : " << msg << std::endl;
 
-            for (size_t i = std::max(size_t{3u}, index) - 3; i < index && i < args.size(); i++)
-            {
-                ss << args[i] << " ";
-            }
+            for (size_t i = std::max(size_t{3u}, index) - 3; i < index && i < args.size(); i++) { ss << args[i] << " "; }
 
             ss << std::endl << " ==> " << args[index] << " <== " << std::endl;
-            for (size_t i = index; i < 3 && i < args.size(); i++)
-            {
-                ss << args[i] << " ";
-            }
+            for (size_t i = index; i < 3 && i < args.size(); i++) { ss << args[i] << " "; }
             _message = ss.str();
         }
 
@@ -97,10 +91,7 @@ struct CommandLineArgsReader
         {
             // Either its a boolean value or a Object and we'd like to switch context
             _handler->ObjKey(argv);
-            if (_handler->GetCurrentContext()->GetType() == Definition::Type::Value)
-            {
-                _handler->HandleValue(true);
-            }
+            if (_handler->GetCurrentContext()->GetType() == Definition::Type::Value) { _handler->HandleValue(true); }
         }
         else
         {
@@ -186,10 +177,7 @@ struct CommandLineArgsReader
                         if (*ite == grpstart) count++;
                         if (*ite == grpend) count--;
                     }
-                    if (count != 0)
-                    {
-                        throw std::logic_error("Unclosed parenthesis");
-                    }
+                    if (count != 0) { throw std::logic_error("Unclosed parenthesis"); }
                     _token  = _substr(its, ite - 1);
                     _offset = static_cast<size_t>(ite - _str.begin());
                 }
@@ -295,16 +283,10 @@ struct CommandLineArgsReader
         for (std::string_view arg : args.subspan(1))
         {
             ++index;
-            if (arg.size() == 0)
-            {
-                continue;
-            }
+            if (arg.size() == 0) { continue; }
             bool useAccumulated = bracketCount != 0;
             bracketCount += _CountBrackets(arg);
-            if (bracketCount < 0)
-            {
-                throw Exception("Illegal Bracket usage", args, index);
-            }
+            if (bracketCount < 0) { throw Exception("Illegal Bracket usage", args, index); }
 
             if (bracketCount > 0)
             {
@@ -328,10 +310,7 @@ struct CommandLineArgsReader
                 auto it = arg.begin();
                 if (*it == '-')
                 {
-                    if ((++it) == arg.end())
-                    {
-                        throw Exception("Empty Switch", args, index);
-                    }
+                    if ((++it) == arg.end()) { throw Exception("Empty Switch", args, index); }
 
                     if (*it == '-')
                     {
@@ -356,10 +335,7 @@ struct CommandLineArgsReader
                             // End any current contexts that need values
                             // TODO : Should this be list / something other than invalid
                             // Why would this be invalid
-                            while (_handler->GetCurrentContext()->GetType() == Definition::Type::Invalid)
-                            {
-                                _handler->ObjEnd();
-                            }
+                            while (_handler->GetCurrentContext()->GetType() == Definition::Type::Invalid) { _handler->ObjEnd(); }
 
                             _handler->ObjKey(std::string_view(&shortName, 1));
 
@@ -404,8 +380,7 @@ struct CommandLineArgsReader
         try
         {
             _Deserialize(def, pData, args);
-        }
-        catch (CommandLineArgsReader::Exception const& ex)
+        } catch (CommandLineArgsReader::Exception const& ex)
         {
             std::cerr << ex.what() << std::endl;
             Help(def, args[0]);

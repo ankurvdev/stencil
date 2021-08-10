@@ -20,8 +20,7 @@ struct FaceElem
 };
 
 inline void debugnewline()
-{
-}
+{}
 
 inline FaceElem CreateFaceElem(int v, int t, int n)
 {
@@ -49,14 +48,8 @@ template <typename T> inline std::vector<T> ListAdd(std::vector<T>& l, T& obj)
 inline FaceElems ListAdd(FaceElems& elems, FaceElem& e)
 {
     elems.vertices.push_back(static_cast<uint16_t>(e.vertex - 1u));
-    if (e.texel != InvalidTexel)
-    {
-        elems.texels.push_back(static_cast<uint16_t>(e.texel - 1u));
-    }
-    if (e.normal != InvalidNormal)
-    {
-        elems.normals.push_back(static_cast<uint16_t>(e.normal - 1u));
-    }
+    if (e.texel != InvalidTexel) { elems.texels.push_back(static_cast<uint16_t>(e.texel - 1u)); }
+    if (e.normal != InvalidNormal) { elems.normals.push_back(static_cast<uint16_t>(e.normal - 1u)); }
     return std::move(elems);
 }
 
@@ -95,10 +88,7 @@ struct Context
     {
         FaceElems elems;
         std::swap(elems, elemsIn);
-        if (elems.vertices.size() != 3)
-        {
-            throw std::invalid_argument("Polygon faces unsupported");
-        }
+        if (elems.vertices.size() != 3) { throw std::invalid_argument("Polygon faces unsupported"); }
         triangles.emplace_back(Triangle{elems.vertices[0], elems.vertices[1], elems.vertices[2]});
     }
 

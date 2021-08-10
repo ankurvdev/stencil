@@ -11,12 +11,12 @@
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
-#pragma GCC diagnostics push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#pragma GCC diagnostics  push
+#pragma GCC diagnostic   ignored "-Wmaybe-uninitialized"
 #include <limits.h>
 
 #include <httplib.h>
-#pragma GCC diagnostic pop
+#pragma GCC diagnostic   pop
 #pragma clang diagnostic pop
 #pragma warning(pop)
 
@@ -102,17 +102,13 @@ struct WebServiceImpl
 {
     public:
     struct UnableToStartDaemonException
-    {
-    };
+    {};
     struct InvalidUrlException
-    {
-    };
+    {};
     struct EmptyUrlException
-    {
-    };
+    {};
     struct HandlerNotFound
-    {
-    };
+    {};
     WebServiceImpl() = default;
     DELETE_COPY_AND_MOVE(WebServiceImpl);
 
@@ -134,8 +130,7 @@ struct WebServiceImpl
                 auto response = ServiceRequest(req, req.path.c_str() + 1);
                 res.body      = response;
                 res.status    = 200;
-            }
-            catch (std::exception const& ex)
+            } catch (std::exception const& ex)
             {
                 res.status = 500;
                 res.body   = ex.what();
@@ -254,10 +249,7 @@ inline auto WebServiceRequestExecuteApis(httplib::Request const& request, const 
 
     if constexpr (!::ReflectionBase::InterfaceApiTraits<TInterfaceApi>::IsStatic())
     {
-        if (!moreurl.empty())
-        {
-            args.instance = TInterface::FindObjectById(moreurl);
-        }
+        if (!moreurl.empty()) { args.instance = TInterface::FindObjectById(moreurl); }
     }
 
     StateTracker tracker(&args, nullptr);
@@ -293,10 +285,7 @@ inline auto WebServiceRequest(httplib::Request const& request, const std::string
     constexpr std::string_view name = WebServiceHandlerTraits<TInterface>::Url();
     if (!iequal(url.substr(0u, name.length()), name) || url[name.length()] != '/')
     {
-        if constexpr (sizeof...(TInterfaces) != 0)
-        {
-            return WebServiceRequest<TInterfaces...>(request, url);
-        }
+        if constexpr (sizeof...(TInterfaces) != 0) { return WebServiceRequest<TInterfaces...>(request, url); }
 
         throw std::runtime_error("Invalid Service Request");
     }

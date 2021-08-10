@@ -24,8 +24,7 @@ struct DataSource : public std::enable_shared_from_this<DataSource>, public IDLG
 
     DataSource(std::shared_ptr<Program> owner, Str::Type&& name) :
         IDLGenerics::NamedIndexT<Program, DataSource>::NamedObject(owner, std::move(name))
-    {
-    }
+    {}
 };
 
 struct Container : public std::enable_shared_from_this<Container>,
@@ -54,10 +53,7 @@ struct Container : public std::enable_shared_from_this<Container>,
         IDLGenerics::NamedIndexT<Program, Container>::NamedObject(program, std::move(name)),
         m_Components(std::move(components))
     {
-        if (base.has_value())
-        {
-            AddBaseObject(base.value()->shared_from_this());
-        }
+        if (base.has_value()) { AddBaseObject(base.value()->shared_from_this()); }
         else
         {
             //            AddBaseObject(program.GetFieldTypeName(L"default"));
@@ -72,10 +68,7 @@ struct Container : public std::enable_shared_from_this<Container>,
         bool first = true;
         for (auto& cname : m_Components)
         {
-            if (!first)
-            {
-                expr->AddString(Str::Create(L","));
-            }
+            if (!first) { expr->AddString(Str::Create(L",")); }
             first = false;
 
             std::unique_ptr<Binding::BindingExpr> bexpr(new Binding::BindingExpr());
@@ -120,8 +113,7 @@ struct NativeFieldType : public std::enable_shared_from_this<NativeFieldType>,
                     std::shared_ptr<Binding::AttributeMap>     unordered_map) :
         std::enable_shared_from_this<NativeFieldType>(),
         IDLGenerics::FieldTypeIndex<Program, NativeFieldType>::FieldType(program, std::move(name), basetype, unordered_map)
-    {
-    }
+    {}
 
     static std::shared_ptr<IDLGenerics::IFieldType> FindOrCreate(std::shared_ptr<Program>               program,
                                                                  Str::Type&&                            name,
@@ -232,45 +224,43 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
     static std::shared_ptr<Binding::Expression> ResolveExpression(std::shared_ptr<Binding::Expression> expr,
                                                                   const ContainerFieldTypeMap&         typemap)
     {
-        return expr->Evaluate(
-            [&](const Binding::BindingExpr& expr1)
+        return expr->Evaluate([&](const Binding::BindingExpr& expr1) {
+            auto  rslt = std::make_shared<Binding::Expression>();
+            auto& val  = typemap.at(expr1.binding[0]);
+            ACTION_CONTEXT([&]() { return L"Evaluating Expression :" + rslt->Stringify() + L" On Value: " + val->Stringify(); });
+            if (val->GetType() == Binding::Type::String)
             {
-                auto  rslt = std::make_shared<Binding::Expression>();
-                auto& val  = typemap.at(expr1.binding[0]);
-                ACTION_CONTEXT([&]() { return L"Evaluating Expression :" + rslt->Stringify() + L" On Value: " + val->Stringify(); });
-                if (val->GetType() == Binding::Type::String)
+                assert(expr1.binding.size() == 1);
+                rslt->AddString(Str::Copy(val->GetString()));
+            }
+            else
+            {
+                if (expr1.binding.size() == 1)
                 {
-                    assert(expr1.binding.size() == 1);
-                    rslt->AddString(Str::Copy(val->GetString()));
+                    Binding::BindingContext context{};
+                    rslt->AddString(
+                        Str::Copy(val->GetBindable().TryLookupOrNull(context, L"Name")->GetString()));    // TODO IFieldType::GetFieldName
                 }
                 else
                 {
-                    if (expr1.binding.size() == 1)
+                    Binding::BindingContext          context{};
+                    std::shared_ptr<Binding::IValue> recrval = val;
+                    for (size_t i = 1; i < expr1.binding.size(); i++)
                     {
-                        Binding::BindingContext context{};
-                        rslt->AddString(Str::Copy(
-                            val->GetBindable().TryLookupOrNull(context, L"Name")->GetString()));    // TODO IFieldType::GetFieldName
+                        recrval = recrval->GetBindable().TryLookupOrNull(context, expr1.binding[i]);
+                    }
+                    if (val->GetType() == Binding::Type::String)
+                    {
+                        rslt->AddString(Str::Copy(recrval->GetString()));    // TODO IFieldType::GetFieldName
                     }
                     else
                     {
-                        Binding::BindingContext          context{};
-                        std::shared_ptr<Binding::IValue> recrval = val;
-                        for (size_t i = 1; i < expr1.binding.size(); i++)
-                        {
-                            recrval = recrval->GetBindable().TryLookupOrNull(context, expr1.binding[i]);
-                        }
-                        if (val->GetType() == Binding::Type::String)
-                        {
-                            rslt->AddString(Str::Copy(recrval->GetString()));    // TODO IFieldType::GetFieldName
-                        }
-                        else
-                        {
-                            return Binding::Expression::Clone(recrval->GetExpr());
-                        }
+                        return Binding::Expression::Clone(recrval->GetExpr());
                     }
                 }
-                return rslt;
-            });
+            }
+            return rslt;
+        });
     }
 
     static Str::Type GenerateFieldName(const Container& container, const ContainerFieldTypeMap& typemap)
@@ -278,10 +268,7 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
         auto expr = container.getNameExpression();
 
         ACTION_CONTEXT([&]() { return L"Container Field Expression :" + expr->Stringify(); });
-        while (!expr->FullyEvaluated())
-        {
-            expr = ResolveExpression(expr, typemap);
-        }
+        while (!expr->FullyEvaluated()) { expr = ResolveExpression(expr, typemap); }
         return expr->String();
     }
 
@@ -360,8 +347,7 @@ struct Program : public std::enable_shared_from_this<Program>,
     Program() :
         std::enable_shared_from_this<Program>(),
         Binding::BindableT<Program>(Str::Create(L"Name"), &Program::Name, Str::Create(L"FileName"), &Program::FileName)
-    {
-    }
+    {}
 
     void SetFileName(std::filesystem::path const& file)
     {
@@ -418,8 +404,7 @@ struct RelationshipTag : public std::enable_shared_from_this<RelationshipTag>,
         Binding::BindableT<RelationshipTag>(Str::Create(L"TagType"), &RelationshipTag::GetRelationshipDefinitionBindable),
         IDLGenerics::NamedIndexT<Struct, RelationshipTag>::NamedObject(owner, std::move(name)),
         _fieldType(fieldType)
-    {
-    }
+    {}
 
     IBindable& GetRelationshipDefinitionBindable() const { return _fieldType->GetBindable(); }
 
@@ -438,8 +423,7 @@ struct Struct : public std::enable_shared_from_this<Struct>,
 
     Struct(std::shared_ptr<Program> program, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> unordered_map) :
         IDLGenerics::StorageIndexT<Program, Struct>::StorageType(program, std::move(name), {}, unordered_map)
-    {
-    }
+    {}
 
     template <typename TObject, typename... TArgs> auto CreateNamedObject(TArgs&&... args)
     {
@@ -454,8 +438,7 @@ struct Union : public std::enable_shared_from_this<Union>, public IDLGenerics::S
 
     Union(std::shared_ptr<Program> program, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> unordered_map) :
         IDLGenerics::StorageIndexT<Program, Union>::StorageType(program, std::move(name), {}, unordered_map)
-    {
-    }
+    {}
 };
 
 struct FunctionArgs;
@@ -475,8 +458,7 @@ struct Interface : public std::enable_shared_from_this<Interface>,
 
     Interface(std::shared_ptr<Program> program, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> unordered_map) :
         IDLGenerics::StorageIndexT<Program, Interface>::StorageType(program, std::move(name), {}, unordered_map)
-    {
-    }
+    {}
 
     template <typename TObject, typename... TArgs> auto CreateNamedObject(TArgs&&... args)
     {
@@ -505,8 +487,7 @@ struct FunctionArgs : public std::enable_shared_from_this<FunctionArgs>,
 
     FunctionArgs(std::shared_ptr<Interface> iface, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> unordered_map) :
         IDLGenerics::StorageIndexT<Interface, FunctionArgs>::StorageType(iface, std::move(name), {}, unordered_map)
-    {
-    }
+    {}
 };
 
 struct Function : public std::enable_shared_from_this<Function>,
@@ -531,8 +512,7 @@ struct Function : public std::enable_shared_from_this<Function>,
         IDLGenerics::NamedIndexT<Interface, Function>::NamedObject(iface, std::move(name)),
         m_ReturnType(returnType),
         m_Args(args)
-    {
-    }
+    {}
 
     Binding::IBindable& GetBindableReturnType() const { return m_ReturnType->GetBindable(); }
     Binding::IBindable& GetBindableArgs() const { return *m_Args; }
@@ -583,10 +563,7 @@ ContainerFieldType::FindOrCreate(std::shared_ptr<Program>                       
     auto&                                     typeNames = container.m_Components;
     ContainerFieldType::ContainerFieldTypeMap fieldMap;
     size_t                                    i = 0;
-    for (auto it = typeNames.begin(); it != typeNames.end(); ++it, ++i)
-    {
-        fieldMap[Str::Copy(*it)] = containerFields.at(i);
-    }
+    for (auto it = typeNames.begin(); it != typeNames.end(); ++it, ++i) { fieldMap[Str::Copy(*it)] = containerFields.at(i); }
     return FindOrCreate(program, container, std::move(fieldMap), base, unordered_map);
 }
 

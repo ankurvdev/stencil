@@ -11,10 +11,7 @@ struct ErrorAggregator
     void AddContextInfo(size_t indent, Str::View const& what, Str::View const& str)
     {
         std::wstringstream stream;
-        for (size_t i = 0; i < indent; i++)
-        {
-            stream << '\t';
-        }
+        for (size_t i = 0; i < indent; i++) { stream << '\t'; }
         stream << '[' << what << ']' << '\t' << str.data();
         _lines.push_back(stream.str());
     }
@@ -23,10 +20,7 @@ struct ErrorAggregator
     Str::Type GetErrors()
     {
         std::wstringstream str;
-        for (auto& err : _lines)
-        {
-            str << err << std::endl;
-        }
+        for (auto& err : _lines) { str << err << std::endl; }
         return str.str();
     }
 
@@ -46,10 +40,7 @@ struct ErrorAggregator
     ~ErrorAggregator()
     {
         GetPtr() = nullptr;
-        if (std::uncaught_exceptions() > 0)
-        {
-            std::wcerr << GetErrors();
-        }
+        if (std::uncaught_exceptions() > 0) { std::wcerr << GetErrors(); }
     }
 
     private:
@@ -71,10 +62,7 @@ struct ThreadActionContextImpl
     ThreadActionContextImpl(Str::View const& what, std::function<Str::Type()>&& func) : _what(what), _func(std::move(func)) {}
     ~ThreadActionContextImpl()
     {
-        if (std::uncaught_exceptions() > 0)
-        {
-            ErrorAggregator::Get().AddContextInfo(_indent, _what, _func());
-        }
+        if (std::uncaught_exceptions() > 0) { ErrorAggregator::Get().AddContextInfo(_indent, _what, _func()); }
         ErrorAggregator::Get().Decr();
     }
 
