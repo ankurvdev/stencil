@@ -6,6 +6,7 @@
 #include "timestamped.h"
 #include "transactions.h"
 #include "uuidobject.h"
+#include "visitor.h"
 
 #include "CommandLineArgsReader.h"
 #include "DataHandlerJson.h"
