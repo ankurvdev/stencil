@@ -495,8 +495,7 @@ struct Stencil::Transaction<Metadata::MapPoint::Data> : Stencil::TransactionT<Me
         _subtracker_latitude(Obj().latitude(), rec)
         ,
         _subtracker_longitude(Obj().longitude(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -569,7 +568,8 @@ struct Stencil::Visitor<Metadata::MapPoint::Data, void> : Stencil::VisitorT<Meta
 };
 
 template <>
-struct Stencil::Visitor<const Metadata::MapPoint::Data, void> : Stencil::VisitorT<const Metadata::MapPoint::Data>
+struct Stencil::Visitor<const Metadata::MapPoint::Data, void>
+    : Stencil::VisitorT<const Metadata::MapPoint::Data>
 {
     using TData = Metadata::MapPoint::Data const;
 
@@ -695,8 +695,7 @@ struct Stencil::Transaction<Metadata::GeographicalArea::Data> : Stencil::Transac
         _subtracker_name(Obj().name(), rec)
         ,
         _subtracker_areaPolygon(Obj().areaPolygon(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -780,7 +779,8 @@ struct Stencil::Visitor<Metadata::GeographicalArea::Data, void> : Stencil::Visit
 };
 
 template <>
-struct Stencil::Visitor<const Metadata::GeographicalArea::Data, void> : Stencil::VisitorT<const Metadata::GeographicalArea::Data>
+struct Stencil::Visitor<const Metadata::GeographicalArea::Data, void>
+    : Stencil::VisitorT<const Metadata::GeographicalArea::Data>
 {
     using TData = Metadata::GeographicalArea::Data const;
 
@@ -980,8 +980,7 @@ struct Stencil::Transaction<Metadata::DigitalAssetInfo::Data> : Stencil::Transac
         _subtracker_thumbnailBlob(Obj().thumbnailBlob(), rec)
         ,
         _subtracker_fileUrl(Obj().fileUrl(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -1098,7 +1097,8 @@ struct Stencil::Visitor<Metadata::DigitalAssetInfo::Data, void> : Stencil::Visit
 };
 
 template <>
-struct Stencil::Visitor<const Metadata::DigitalAssetInfo::Data, void> : Stencil::VisitorT<const Metadata::DigitalAssetInfo::Data>
+struct Stencil::Visitor<const Metadata::DigitalAssetInfo::Data, void>
+    : Stencil::VisitorT<const Metadata::DigitalAssetInfo::Data>
 {
     using TData = Metadata::DigitalAssetInfo::Data const;
 

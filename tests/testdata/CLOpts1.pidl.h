@@ -705,8 +705,7 @@ struct Stencil::Transaction<CLOpts1::CommandLineOptions::Data> : Stencil::Transa
         _subtracker_httpsPort(Obj().httpsPort(), rec)
         ,
         _subtracker_daemon(Obj().daemon(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -848,7 +847,8 @@ struct Stencil::Visitor<CLOpts1::CommandLineOptions::Data, void> : Stencil::Visi
 };
 
 template <>
-struct Stencil::Visitor<const CLOpts1::CommandLineOptions::Data, void> : Stencil::VisitorT<const CLOpts1::CommandLineOptions::Data>
+struct Stencil::Visitor<const CLOpts1::CommandLineOptions::Data, void>
+    : Stencil::VisitorT<const CLOpts1::CommandLineOptions::Data>
 {
     using TData = CLOpts1::CommandLineOptions::Data const;
 
@@ -956,8 +956,7 @@ struct Stencil::Transaction<CLOpts1::SimpleObj::Data> : Stencil::TransactionT<CL
         _subtracker_field1(Obj().field1(), rec)
         ,
         _subtracker_field2(Obj().field2(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -1030,7 +1029,8 @@ struct Stencil::Visitor<CLOpts1::SimpleObj::Data, void> : Stencil::VisitorT<CLOp
 };
 
 template <>
-struct Stencil::Visitor<const CLOpts1::SimpleObj::Data, void> : Stencil::VisitorT<const CLOpts1::SimpleObj::Data>
+struct Stencil::Visitor<const CLOpts1::SimpleObj::Data, void>
+    : Stencil::VisitorT<const CLOpts1::SimpleObj::Data>
 {
     using TData = CLOpts1::SimpleObj::Data const;
 
@@ -1108,8 +1108,7 @@ struct Stencil::Transaction<CLOpts1::ObjWithList::Data> : Stencil::TransactionT<
         Stencil::TransactionT<CLOpts1::ObjWithList::Data>(ptr, rec)
         ,
         _subtracker_field1(Obj().field1(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -1189,7 +1188,8 @@ struct Stencil::Visitor<CLOpts1::ObjWithList::Data, void> : Stencil::VisitorT<CL
 };
 
 template <>
-struct Stencil::Visitor<const CLOpts1::ObjWithList::Data, void> : Stencil::VisitorT<const CLOpts1::ObjWithList::Data>
+struct Stencil::Visitor<const CLOpts1::ObjWithList::Data, void>
+    : Stencil::VisitorT<const CLOpts1::ObjWithList::Data>
 {
     using TData = CLOpts1::ObjWithList::Data const;
 
@@ -1385,8 +1385,7 @@ struct Stencil::Transaction<CLOpts1::CLOptsTest::Data> : Stencil::TransactionT<C
         _subtracker_objoflist(Obj().objoflist(), rec)
         ,
         _subtracker_key2(Obj().key2(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -1557,7 +1556,8 @@ struct Stencil::Visitor<CLOpts1::CLOptsTest::Data, void> : Stencil::VisitorT<CLO
 };
 
 template <>
-struct Stencil::Visitor<const CLOpts1::CLOptsTest::Data, void> : Stencil::VisitorT<const CLOpts1::CLOptsTest::Data>
+struct Stencil::Visitor<const CLOpts1::CLOptsTest::Data, void>
+    : Stencil::VisitorT<const CLOpts1::CLOptsTest::Data>
 {
     using TData = CLOpts1::CLOptsTest::Data const;
 

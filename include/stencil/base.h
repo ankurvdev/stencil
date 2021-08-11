@@ -30,11 +30,9 @@ namespace ReflectionBase
 namespace ExceptionTraits
 {
 struct Generic
-{
-};
+{};
 struct UnknownDataTypeHandler
-{
-};
+{};
 }    // namespace ExceptionTraits
 
 namespace Exception
@@ -44,13 +42,11 @@ struct Exception : ::Logging::Exception<::Logging::GenericException>
     Exception() : ::Logging::Exception<::Logging::GenericException>(CorrelationVector::Create()) {}
 };
 struct UnknownDataTypeHandler
-{
-};
+{};
 }    // namespace Exception
 
 struct ExceptionUnknownDataTypeHandlerTraits
-{
-};
+{};
 
 enum class DataType
 {
@@ -75,10 +71,7 @@ struct Flags : std::bitset<static_cast<size_t>(Flag::Max) + 1u>
 {
     Flags(std::initializer_list<Flag> flags)
     {
-        for (const auto f : flags)
-        {
-            set(static_cast<size_t>(f));
-        }
+        for (const auto f : flags) { set(static_cast<size_t>(f)); }
     }
 
     bool operator[](Flag f) const { return test(static_cast<size_t>(f)); }
@@ -297,18 +290,14 @@ template <> struct IDataTypeHandler<DataType::Union> : IDataTypeHandler<DataType
 template <typename T, typename = void> struct TypeTraits;
 
 struct ObjMarker
-{
-};
+{};
 struct InterfaceMarker
-{
-};
+{};
 struct InterfaceFactoryMarker
-{
-};
+{};
 
 struct InterfaceObjectTracker
-{
-};
+{};
 
 template <typename TInterface> struct Interface : public InterfaceMarker
 {
@@ -337,8 +326,7 @@ template <typename TInterface> struct Interface : public InterfaceMarker
 };
 
 template <typename TInterface> struct InterfaceFactory : public InterfaceFactoryMarker, public InterfaceMarker
-{
-};
+{};
 
 template <typename TInterface> struct InterfaceActivator
 {
@@ -370,8 +358,7 @@ template <typename TInterfaceApi> struct InterfaceApiTraits
     };
 
     struct ReturnStruct
-    {
-    };
+    {};
 
     static ReturnStruct Invoke(ArgsStruct& args);
 
@@ -391,8 +378,7 @@ template <typename TInterfaceApi> struct InterfaceApiTraits
 };
 
 template <typename... TInterfaceApis> struct InterfaceApiPack
-{
-};
+{};
 
 template <typename TInterface> struct InterfaceTraits
 {
@@ -400,8 +386,7 @@ template <typename TInterface> struct InterfaceTraits
 };
 
 template <typename TDataType, typename... TArgs> void Construct(TDataType* /*ptr*/, TArgs&&... /*args*/)
-{
-}
+{}
 
 template <typename T, typename = void> struct Functions
 {
@@ -470,10 +455,7 @@ template <typename TEnum> struct EnumHandler : public IDataTypeHandler<DataType:
     {
         std::vector<Value> values;
         auto               enumnames = EnumTraits<TEnum>::EnumStrings;
-        for (size_t i = 1; enumnames[i]; i++)
-        {
-            values.push_back(Value(shared_string::make(enumnames[i])));
-        }
+        for (size_t i = 1; enumnames[i]; i++) { values.push_back(Value(shared_string::make(enumnames[i]))); }
         return values;
     }
 
@@ -498,10 +480,7 @@ template <typename TValue> struct StdVectorListHandler : public IDataTypeHandler
     bool TryGetSubComponent(void* ptr, size_t index, SubComponent& subcomponent) const override
     {
         auto vecptr = static_cast<std::vector<TValue>*>(ptr);
-        if (index >= vecptr->size())
-        {
-            vecptr->resize(index + 1);
-        }
+        if (index >= vecptr->size()) { vecptr->resize(index + 1); }
         subcomponent = {&_handler, &((*vecptr)[index])};
         return true;
     }
@@ -706,8 +685,7 @@ template <typename TFieldTraits> struct ObjectDataTypeHandler<DataType::Object, 
 };
 
 struct ReflectedStruct
-{
-};
+{};
 
 template <typename TStruct, typename... TFieldTraits> struct ReflectedStructHandler : public IDataTypeHandler<DataType::Object>
 {
@@ -721,8 +699,7 @@ template <typename TStruct, typename... TFieldTraits> struct ReflectedStructHand
     };
 
     template <typename Trait> struct Handler : public ObjectDataTypeHandler<FieldTraitsHelper<Trait>::FieldTypeTraits::Type(), Trait>
-    {
-    };
+    {};
 
     template <typename Trait, typename... Traits> bool _FindMatch(size_t index, TStruct* ptr, SubComponent& s) const
     {
@@ -753,10 +730,7 @@ template <typename TStruct, typename... TFieldTraits> struct ReflectedStructHand
             return true;
         }
 
-        if constexpr (sizeof...(Traits) != 0)
-        {
-            return _FindMatch<Traits...>(key, ptr, s);
-        }
+        if constexpr (sizeof...(Traits) != 0) { return _FindMatch<Traits...>(key, ptr, s); }
         else
         {
             return false;
@@ -766,10 +740,7 @@ template <typename TStruct, typename... TFieldTraits> struct ReflectedStructHand
     bool TryGetSubComponent(void* rawptr, Value const& key, SubComponent& subcomponent) const override
     {
         auto ptr = static_cast<TStruct*>(rawptr);
-        if (key.GetType() == Value::Type::Unsigned)
-        {
-            return _FindMatch<TFieldTraits...>(key.convert<size_t>(), ptr, subcomponent);
-        }
+        if (key.GetType() == Value::Type::Unsigned) { return _FindMatch<TFieldTraits...>(key.convert<size_t>(), ptr, subcomponent); }
 
         return _FindMatch<TFieldTraits...>(key.convert<shared_string>().c_str(), ptr, subcomponent);
     }
@@ -781,10 +752,7 @@ template <typename TStruct, typename... TFieldTraits> struct ReflectedStructHand
     virtual SubComponent  GetSubComponentAt(void* rawptr, size_t index) const override
     {
         SubComponent sub;
-        if (!_FindMatch<TFieldTraits...>(index, nullptr, sub))
-        {
-            throw Exception::Exception();
-        }
+        if (!_FindMatch<TFieldTraits...>(index, nullptr, sub)) { throw Exception::Exception(); }
         sub.ptr = rawptr;
         return sub;
     }
@@ -800,8 +768,7 @@ struct ReflectedUnionHandler : public IDataTypeHandler<DataType::Union>
     void End() const override {}
 
     template <typename Trait> struct Handler : public ObjectDataTypeHandler<Trait::Type(), Trait>
-    {
-    };
+    {};
 
     virtual UnionTypeSubComponent GetUnionTypesHandler(void* rawptr) const override
     {
@@ -945,10 +912,7 @@ template <typename T, typename TStackData> struct StateTraker
     void _End(Mode /*mode*/)
     {
         _stack.pop_back();
-        if (_stack.back().mode == Mode::ObjKeyValue)
-        {
-            _stack.pop_back();
-        }
+        if (_stack.back().mode == Mode::ObjKeyValue) { _stack.pop_back(); }
     }
 
     void ListStart(TStackData&& data)
@@ -985,19 +949,13 @@ template <typename T, typename TStackData> struct StateTraker
 
     void ObjKey(Value key, TStackData&& data)
     {
-        if (!TryObjKey(key, std::move(data)))
-        {
-            throw Exception::Exception();
-        }
+        if (!TryObjKey(key, std::move(data))) { throw Exception::Exception(); }
     }
 
     bool TryObjKey(Value key, TStackData&& data)
     {
         IDataTypeHandler<DataType::Object>::SubComponent subcomponent;
-        if (!_stack.back().Handler->CastToObject()->TryGetSubComponent(_stack.back().Ptr, key, subcomponent))
-        {
-            return false;
-        }
+        if (!_stack.back().Handler->CastToObject()->TryGetSubComponent(_stack.back().Ptr, key, subcomponent)) { return false; }
         _stack.push_back(StateStack{subcomponent.handler, subcomponent.ptr, Mode::ObjKeyValue, std::move(data)});
         return true;
     }
@@ -1021,8 +979,7 @@ namespace ReflectionServices
 using namespace ReflectionBase;
 
 template <typename... TApiTraits> struct InterfaceHandler
-{
-};
+{};
 
 }    // namespace ReflectionServices
 
@@ -1138,10 +1095,7 @@ struct ReflectionBase::TypeTraits<std::unique_ptr<T>&, std::enable_if_t<std::is_
         virtual bool TryGetSubComponent(void* rawptr, Value const& key, SubComponent& subcomponent) const override
         {
             auto& obj = *static_cast<std::unique_ptr<T>*>(rawptr);
-            if (obj == nullptr)
-            {
-                obj.reset(new T());
-            }
+            if (obj == nullptr) { obj.reset(new T()); }
             return _handler.TryGetSubComponent(obj.get(), key, subcomponent);
         }
         virtual void End() const override {}
@@ -1177,10 +1131,7 @@ struct ReflectionBase::TypeTraits<std::shared_ptr<T>&, std::enable_if_t<std::is_
         virtual bool TryGetSubComponent(void* rawptr, Value const& key, SubComponent& subcomponent) const override
         {
             auto& obj = *static_cast<std::shared_ptr<T>*>(rawptr);
-            if (obj == nullptr)
-            {
-                obj.reset(new T());
-            }
+            if (obj == nullptr) { obj.reset(new T()); }
             return _handler.TryGetSubComponent(obj.get(), key, subcomponent);
         }
         virtual void End() const override {}

@@ -51,10 +51,7 @@ inline std::string readfile(std::filesystem::path const& filepath)
 
 static std::ostream& operator<<(std::ostream& strm, std::wstring_view wstr)
 {
-    for (auto& c : wstr)
-    {
-        strm << static_cast<char>(c);
-    }
+    for (auto& c : wstr) { strm << static_cast<char>(c); }
     return strm;
 }
 
@@ -62,10 +59,7 @@ void Generator::FieldTypeDecl::Merge(FieldTypeDecl&& decl)
 {
     if (!decl.name.empty())
     {
-        if (name.empty())
-        {
-            name = std::move(decl.name);
-        }
+        if (name.empty()) { name = std::move(decl.name); }
         else if (name != decl.name)
         {
             throw std::logic_error("Cannot merge differently name FieldTypes");
@@ -74,10 +68,7 @@ void Generator::FieldTypeDecl::Merge(FieldTypeDecl&& decl)
 
     if (!decl.baseField.empty())
     {
-        if (baseField.empty())
-        {
-            baseField = std::move(decl.baseField);
-        }
+        if (baseField.empty()) { baseField = std::move(decl.baseField); }
         else if (baseField != decl.baseField)
         {
             throw std::logic_error("Can only have 1 base field");
@@ -86,10 +77,7 @@ void Generator::FieldTypeDecl::Merge(FieldTypeDecl&& decl)
 
     if (decl.annotationMap != nullptr)
     {
-        if (annotationMap == nullptr)
-        {
-            annotationMap = std::move(decl.annotationMap);
-        }
+        if (annotationMap == nullptr) { annotationMap = std::move(decl.annotationMap); }
         else
         {
             for (auto const& [k, v] : decl.annotationMap->GetAttributes())
@@ -100,15 +88,9 @@ void Generator::FieldTypeDecl::Merge(FieldTypeDecl&& decl)
         }
     }
 
-    for (auto& v : decl.mutators)
-    {
-        mutators.push_back(std::move(v));
-    }
+    for (auto& v : decl.mutators) { mutators.push_back(std::move(v)); }
 
-    for (auto& v : decl.accessors)
-    {
-        accessors.push_back(std::move(v));
-    }
+    for (auto& v : decl.accessors) { accessors.push_back(std::move(v)); }
 }
 
 #if defined USING_YAML_CPP
@@ -174,10 +156,7 @@ template <> struct convert<Generator::FieldTypeDecl>
         for (auto it1 = node.begin(); it1 != node.end(); ++it1)
         {
             auto propname = it1->first.as<std::wstring>();
-            if (propname == L"Mutators")
-            {
-                val.mutators = it1->second.as<std::vector<Generator::MutatorAccessorDefinition>>();
-            }
+            if (propname == L"Mutators") { val.mutators = it1->second.as<std::vector<Generator::MutatorAccessorDefinition>>(); }
             else if (propname == L"Accessors")
             {
                 val.accessors = it1->second.as<std::vector<Generator::MutatorAccessorDefinition>>();
@@ -211,10 +190,7 @@ template <> struct convert<Generator::ContainerTypeDecl>
         for (auto it1 = node.begin(); it1 != node.end(); ++it1)
         {
             auto propname = it1->first.as<std::wstring>();
-            if (propname == L"Mutators")
-            {
-                val.mutators = it1->second.as<std::vector<Generator::MutatorAccessorDefinition>>();
-            }
+            if (propname == L"Mutators") { val.mutators = it1->second.as<std::vector<Generator::MutatorAccessorDefinition>>(); }
             else if (propname == L"Accessors")
             {
                 val.accessors = it1->second.as<std::vector<Generator::MutatorAccessorDefinition>>();
@@ -290,10 +266,7 @@ template <typename TTableNode>
 static std::vector<Generator::MutatorAccessorDefinition> ParseMutatorAccessorDefinitionArrFromTomlNode(TTableNode const& node)
 {
     std::vector<Generator::MutatorAccessorDefinition> valarr;
-    for (auto [key, value] : node.as_table())
-    {
-        valarr.push_back(ParseMutatorAccessorDefinitionFromTomlNode(value, Str::Convert(key)));
-    }
+    for (auto [key, value] : node.as_table()) { valarr.push_back(ParseMutatorAccessorDefinitionFromTomlNode(value, Str::Convert(key))); }
 
     return valarr;
 }
@@ -309,10 +282,7 @@ template <typename TTableNode> static Generator::ContainerTypeDecl ContainerType
     for (auto [key, value] : node.as_table())
     {
         auto propname = Str::Convert(key);
-        if (propname == L"Mutators")
-        {
-            val.mutators = ParseMutatorAccessorDefinitionArrFromTomlNode(value);
-        }
+        if (propname == L"Mutators") { val.mutators = ParseMutatorAccessorDefinitionArrFromTomlNode(value); }
         else if (propname == L"Accessors")
         {
             val.accessors = ParseMutatorAccessorDefinitionArrFromTomlNode(value);
@@ -323,10 +293,7 @@ template <typename TTableNode> static Generator::ContainerTypeDecl ContainerType
         }
         else if (propname == L"Params")
         {
-            for (auto const& sub : (value.as_array()))
-            {
-                val.args.push_back(Str::Convert(sub.as_string().str));
-            }
+            for (auto const& sub : (value.as_array())) { val.args.push_back(Str::Convert(sub.as_string().str)); }
         }
         else
         {
@@ -352,10 +319,7 @@ template <typename TTableNode> static Generator::FieldTypeDecl FieldTypeDeclFrom
     for (auto [key, value] : node.as_table())
     {
         auto propname = Str::Convert(key);
-        if (propname == L"Mutators")
-        {
-            val.mutators = ParseMutatorAccessorDefinitionArrFromTomlNode(value);
-        }
+        if (propname == L"Mutators") { val.mutators = ParseMutatorAccessorDefinitionArrFromTomlNode(value); }
         else if (propname == L"Accessors")
         {
             val.accessors = ParseMutatorAccessorDefinitionArrFromTomlNode(value);
@@ -429,10 +393,7 @@ void Generator::_AddTypeDefinitions(std::string_view const& /*name*/, std::strin
             for (auto [key, node1] : node.as_table())
             {
                 auto& objmap = _relationshipDefs[Str::Convert(key)];
-                for (auto const& [key1, node2] : node1.as_table())
-                {
-                    objmap[Str::Convert(key1)] = Str::Convert(node2.as_string().str);
-                }
+                for (auto const& [key1, node2] : node1.as_table()) { objmap[Str::Convert(key1)] = Str::Convert(node2.as_string().str); }
             }
         }
         else
@@ -455,10 +416,7 @@ static void CreateTemplateFromNode(tree<TemplateFragment>&          tmpl,
         if (textNode != nullptr)
         {
             auto textval = Str::Convert(textNode->Value());
-            if (textval.length() > 0)
-            {
-                return Binding::Expression::Create(textval, Str::Create(L"zz"), Str::Create(L"zz"), L'_');
-            }
+            if (textval.length() > 0) { return Binding::Expression::Create(textval, Str::Create(L"zz"), Str::Create(L"zz"), L'_'); }
         }
         return {};
     }();
@@ -474,10 +432,7 @@ static void CreateTemplateFromNode(tree<TemplateFragment>&          tmpl,
 
     auto it = tmpl.addchild(parent, std::move(data));
 
-    for (auto node = xml.FirstChild(); node != nullptr; node = node->NextSibling())
-    {
-        CreateTemplateFromNode(tmpl, it, name, *node);
-    }
+    for (auto node = xml.FirstChild(); node != nullptr; node = node->NextSibling()) { CreateTemplateFromNode(tmpl, it, name, *node); }
 }
 
 template <typename TMap, typename TKey> auto FindInMapOrDefault(TMap const& map, TKey const& key)
@@ -496,10 +451,7 @@ static void ExpandTemplate(tree<Str::Type>&                 codetree,
 {
 
     auto it = codetree.addchild(root, [&]() {
-        if (tmplrootit->body != nullptr)
-        {
-            return context.EvaluateExpression(data, *tmplrootit->body)->String();
-        }
+        if (tmplrootit->body != nullptr) { return context.EvaluateExpression(data, *tmplrootit->body)->String(); }
         return std::wstring();
     }());
 
@@ -513,10 +465,7 @@ static void ExpandTemplate(tree<Str::Type>&                 codetree,
         //        auto                   paramName = splitintotwo(filterExpr, ":");
         Binding::Expression expr;
         expr.AddString(Str::Create(prefix));
-        if (suffix != Str::Value(context.EvaluateExpression(data, expr)->String()))
-        {
-            return;
-        }
+        if (suffix != Str::Value(context.EvaluateExpression(data, expr)->String())) { return; }
     }
     auto tmplrange = tmpl.children(tmplrootit);
     for (auto tmplit = tmplrange.begin(); tmplit != tmplrange.end(); ++tmplit)
@@ -550,10 +499,7 @@ static void ExpandTemplate(tree<Str::Type>&                 codetree,
         }
 
         it = codetree.addsibling(it, [&]() {
-            if (tmplrootit->body != nullptr)
-            {
-                return context.EvaluateExpression(data, *tmplit->body)->String();
-            }
+            if (tmplrootit->body != nullptr) { return context.EvaluateExpression(data, *tmplit->body)->String(); }
             return std::wstring();
         }());
 
@@ -571,10 +517,7 @@ static void ExpandTemplate(tree<Str::Type>&                 codetree,
         for (auto& cdata : context.GetRange(data, bexpr))
         {
             auto scope = context.ContextScope(cdata);
-            if (!first && !joinStr.empty())
-            {
-                codetree.addchild(it, Str::Create(joinStr));
-            }
+            if (!first && !joinStr.empty()) { codetree.addchild(it, Str::Create(joinStr)); }
             first = false;
             ExpandTemplate(codetree, it, tmpl, tmplit, context, cdata);
         }
@@ -645,19 +588,13 @@ static std::wstring AddCDataEnd(std::wstring const& tmplview)
 
 void Generator::_AddTemplate(std::string_view const& name, std::string_view const& text)
 {
-    if (text.length() == 0)
-    {
-        return;
-    }
+    if (text.length() == 0) { return; }
     auto fullTemplateContents = Str::Create(L"<ModelGenerator><![CDATA[" + Str::Value(Str::Convert(text)) + L"]]></ModelGenerator>");
     auto modified             = AddCDataEnd(AddCDataBegin(fullTemplateContents));
 
     tinyxml2::XMLDocument doc(false);
     auto                  rc = doc.Parse(wstring_to_string(modified).c_str());
-    if (rc != XMLError::XML_SUCCESS)
-    {
-        throw std::logic_error(("Error Loading Template: \n\t%s\n" + std::string(doc.ErrorStr())).c_str());
-    }
+    if (rc != XMLError::XML_SUCCESS) { throw std::logic_error(("Error Loading Template: \n\t%s\n" + std::string(doc.ErrorStr())).c_str()); }
 
     auto fullTemplateElem = doc.FirstChildElement();
 
@@ -673,10 +610,7 @@ void Generator::_AddTemplate(std::string_view const& name, std::string_view cons
 
 void Generator::_AddContent(std::string_view const& name, std::string_view const& text)
 {
-    if (name.find("typedecl") != std::string_view ::npos)
-    {
-        _AddTypeDefinitions(name, text);
-    }
+    if (name.find("typedecl") != std::string_view ::npos) { _AddTypeDefinitions(name, text); }
     else if (name.find("template") != std::string_view ::npos)
     {
         _AddTemplate(name, text);
@@ -685,33 +619,21 @@ void Generator::_AddContent(std::string_view const& name, std::string_view const
 
 void Generator::_RegisterFieldDefForProgram(Generator::FieldTypeDecl& v)
 {
-    if (!v.baseField.empty())
-    {
-        _RegisterFieldDefForProgram(_fieldTypeDecls[_fieldTypeDeclMap[v.baseField]]);
-    }
+    if (!v.baseField.empty()) { _RegisterFieldDefForProgram(_fieldTypeDecls[_fieldTypeDeclMap[v.baseField]]); }
 
-    if (_program->TryGetFieldTypeName(v.name).has_value())
-    {
-        return;
-    }
+    if (_program->TryGetFieldTypeName(v.name).has_value()) { return; }
 
     auto fieldtype = _program->CreateFieldTypeObject<IDL::NativeFieldType>(
         std::move(v.name), _program->TryGetFieldTypeName(v.baseField), v.annotationMap);
     for (auto& m : v.mutators)
     {
-        if (m.args.size() > 1)
-        {
-            throw std::logic_error("Multiple args not yet supported");
-        }
+        if (m.args.size() > 1) { throw std::logic_error("Multiple args not yet supported"); }
 
         fieldtype->CreateMutator(std::move(m.name), m.id, m.returnType, m.args[0]);
     }
     for (auto& m : v.accessors)
     {
-        if (m.args.size() > 1)
-        {
-            throw std::logic_error("Multiple args not yet supported");
-        }
+        if (m.args.size() > 1) { throw std::logic_error("Multiple args not yet supported"); }
 
         fieldtype->CreateAccessor(std::move(m.name), m.id, m.returnType, m.args[0]);
     }
@@ -719,10 +641,7 @@ void Generator::_RegisterFieldDefForProgram(Generator::FieldTypeDecl& v)
 
 void Generator::FinalizeTypeDefinitions()
 {
-    if (_finalized)
-    {
-        return;
-    }
+    if (_finalized) { return; }
     auto defaultFieldTypeDecl = &_fieldTypeDecls[_fieldTypeDeclMap[L"default"]];
 
     // Relay inheritance
@@ -730,53 +649,26 @@ void Generator::FinalizeTypeDefinitions()
     {
         if (v.name == L"default") continue;
         auto baseFieldType = defaultFieldTypeDecl;
-        if (!v.baseField.empty())
-        {
-            baseFieldType = &_fieldTypeDecls[_fieldTypeDeclMap[v.baseField]];
-        }
-        for (auto& m : baseFieldType->mutators)
-        {
-            v.mutators.push_back(m);
-        }
-        for (auto& a : baseFieldType->accessors)
-        {
-            v.accessors.push_back(a);
-        }
+        if (!v.baseField.empty()) { baseFieldType = &_fieldTypeDecls[_fieldTypeDeclMap[v.baseField]]; }
+        for (auto& m : baseFieldType->mutators) { v.mutators.push_back(m); }
+        for (auto& a : baseFieldType->accessors) { v.accessors.push_back(a); }
     }
     for (auto& v : _containerDecls)
     {
-        if (v.baseField.empty())
-        {
-            continue;
-        }
+        if (v.baseField.empty()) { continue; }
         auto baseFieldType = &_containerDecls[_containerDeclMap[v.baseField]];
-        for (auto& m : baseFieldType->mutators)
-        {
-            v.mutators.push_back(m);
-        }
-        for (auto& a : baseFieldType->accessors)
-        {
-            v.accessors.push_back(a);
-        }
+        for (auto& m : baseFieldType->mutators) { v.mutators.push_back(m); }
+        for (auto& a : baseFieldType->accessors) { v.accessors.push_back(a); }
     }
 
-    for (auto& v : _fieldTypeDecls)
-    {
-        _RegisterFieldDefForProgram(v);
-    }
+    for (auto& v : _fieldTypeDecls) { _RegisterFieldDefForProgram(v); }
 
     for (auto& v : _containerDecls)
     {
         auto base      = _program->TryLookup<IDL::Container>(v.baseField);
         auto container = _program->CreateNamedObject<IDL::Container>(std::move(v.name), std::move(v.args), base, v.annotationMap);
-        for (auto& m : v.mutators)
-        {
-            container->AddMutator(std::move(m));
-        }
-        for (auto& m : v.accessors)
-        {
-            container->AddAccessor(std::move(m));
-        }
+        for (auto& m : v.mutators) { container->AddMutator(std::move(m)); }
+        for (auto& m : v.accessors) { container->AddAccessor(std::move(m)); }
     }
 
     for (auto& [k, v] : _relationshipDefs)
@@ -796,20 +688,14 @@ void Generator::FinalizeTypeDefinitions()
 
 void Generator::LoadBuilltinTemplates()
 {
-    for (const auto res : LOAD_RESOURCE_COLLECTION(templates))
-    {
-        _AddContent(wstring_to_string(res.name()), res.string());
-    }
+    for (const auto res : LOAD_RESOURCE_COLLECTION(templates)) { _AddContent(wstring_to_string(res.name()), res.string()); }
 }
 
 void Generator::LoadTemplate(std::filesystem::path const& templateFilePath)
 {
     if (std::filesystem::is_directory(templateFilePath))
     {
-        for (auto const& f : std::filesystem::directory_iterator(templateFilePath))
-        {
-            LoadTemplate(f);
-        }
+        for (auto const& f : std::filesystem::directory_iterator(templateFilePath)) { LoadTemplate(f); }
         return;
     }
 
@@ -847,20 +733,14 @@ std::vector<std::filesystem::path> Generator::Generate(bool isDryRun, std::files
     IDLDebug::ErrorAggregator          errorAggregator;
     for (auto& tmpl : _templates)
     {
-        if (!Str::IsEmpty(tmpl.dataSource) && !_program->TryLookup<IDL::DataSource>(Str::Create(tmpl.dataSource)).has_value())
-        {
-            continue;
-        }
+        if (!Str::IsEmpty(tmpl.dataSource) && !_program->TryLookup<IDL::DataSource>(Str::Create(tmpl.dataSource)).has_value()) { continue; }
 
         auto code     = GenerateCode(tmpl, *_program);
         auto filepath = outDir / code.filename;
         if (!isDryRun)
         {
             std::ofstream file(filepath);
-            if (!file.is_open())
-            {
-                throw std::runtime_error("Cannot Write to file : " + filepath.string());
-            }
+            if (!file.is_open()) { throw std::runtime_error("Cannot Write to file : " + filepath.string()); }
             WriteCodeToStream(file, code.content, code.content.rootbegin(), code.content.rootend());
             file.close();
         }

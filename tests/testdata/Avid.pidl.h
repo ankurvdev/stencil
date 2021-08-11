@@ -1864,8 +1864,7 @@ struct Stencil::Transaction<Avid::GPS::Data> : Stencil::TransactionT<Avid::GPS::
         _subtracker_eph(Obj().eph(), rec)
         ,
         _subtracker_sep(Obj().sep(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -2081,7 +2080,8 @@ struct Stencil::Visitor<Avid::GPS::Data, void> : Stencil::VisitorT<Avid::GPS::Da
 };
 
 template <>
-struct Stencil::Visitor<const Avid::GPS::Data, void> : Stencil::VisitorT<const Avid::GPS::Data>
+struct Stencil::Visitor<const Avid::GPS::Data, void>
+    : Stencil::VisitorT<const Avid::GPS::Data>
 {
     using TData = Avid::GPS::Data const;
 
@@ -2569,8 +2569,7 @@ struct Stencil::Transaction<Avid::Aircraft::Data> : Stencil::TransactionT<Avid::
         _subtracker_even_cprlon(Obj().even_cprlon(), rec)
         ,
         _subtracker_even_cprtime(Obj().even_cprtime(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -2808,7 +2807,8 @@ struct Stencil::Visitor<Avid::Aircraft::Data, void> : Stencil::VisitorT<Avid::Ai
 };
 
 template <>
-struct Stencil::Visitor<const Avid::Aircraft::Data, void> : Stencil::VisitorT<const Avid::Aircraft::Data>
+struct Stencil::Visitor<const Avid::Aircraft::Data, void>
+    : Stencil::VisitorT<const Avid::Aircraft::Data>
 {
     using TData = Avid::Aircraft::Data const;
 
@@ -2916,8 +2916,7 @@ struct Stencil::Transaction<Avid::Traffic::Data> : Stencil::TransactionT<Avid::T
         Stencil::TransactionT<Avid::Traffic::Data>(ptr, rec)
         ,
         _subtracker_aircrafts(Obj().aircrafts(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -2997,7 +2996,8 @@ struct Stencil::Visitor<Avid::Traffic::Data, void> : Stencil::VisitorT<Avid::Tra
 };
 
 template <>
-struct Stencil::Visitor<const Avid::Traffic::Data, void> : Stencil::VisitorT<const Avid::Traffic::Data>
+struct Stencil::Visitor<const Avid::Traffic::Data, void>
+    : Stencil::VisitorT<const Avid::Traffic::Data>
 {
     using TData = Avid::Traffic::Data const;
 
@@ -3481,8 +3481,7 @@ struct Stencil::Transaction<Avid::Motion::Data> : Stencil::TransactionT<Avid::Mo
         _subtracker_drot_y(Obj().drot_y(), rec)
         ,
         _subtracker_drot_z(Obj().drot_z(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -3731,7 +3730,8 @@ struct Stencil::Visitor<Avid::Motion::Data, void> : Stencil::VisitorT<Avid::Moti
 };
 
 template <>
-struct Stencil::Visitor<const Avid::Motion::Data, void> : Stencil::VisitorT<const Avid::Motion::Data>
+struct Stencil::Visitor<const Avid::Motion::Data, void>
+    : Stencil::VisitorT<const Avid::Motion::Data>
 {
     using TData = Avid::Motion::Data const;
 
@@ -3865,8 +3865,7 @@ struct Stencil::Transaction<Avid::Pressure::Data> : Stencil::TransactionT<Avid::
         _subtracker_pressure(Obj().pressure(), rec)
         ,
         _subtracker_temperature(Obj().temperature(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -3939,7 +3938,8 @@ struct Stencil::Visitor<Avid::Pressure::Data, void> : Stencil::VisitorT<Avid::Pr
 };
 
 template <>
-struct Stencil::Visitor<const Avid::Pressure::Data, void> : Stencil::VisitorT<const Avid::Pressure::Data>
+struct Stencil::Visitor<const Avid::Pressure::Data, void>
+    : Stencil::VisitorT<const Avid::Pressure::Data>
 {
     using TData = Avid::Pressure::Data const;
 

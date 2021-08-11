@@ -12,10 +12,7 @@ static std::string FilePathToSym(std::filesystem::path filepath)
     auto sym = filepath.filename().string();
     replace(sym.begin(), sym.end(), '.', '_');
     replace(sym.begin(), sym.end(), '-', '_');
-    if (std::isdigit(sym[0]))
-    {
-        return "_" + sym;
-    }
+    if (std::isdigit(sym[0])) { return "_" + sym; }
     return sym;
 }
 
@@ -33,10 +30,7 @@ static auto ParseArg(std::string_view arg)
     }
     else
     {
-        if (idx == 0)
-        {
-            throw std::invalid_argument("Invalid name for resource: " + std::string(arg));
-        }
+        if (idx == 0) { throw std::invalid_argument("Invalid name for resource: " + std::string(arg)); }
         src     = std::filesystem::path(std::string(arg.begin() + static_cast<int>(idx + 1), arg.end()));
         resname = std::string_view(arg.data(), idx);
     }
@@ -48,16 +42,9 @@ try
 {
     if (argc < 3)
     {
-        for (int i = 0; i < argc; i++)
-        {
-            std::cerr << " " << argv[i];
-        }
+        for (int i = 0; i < argc; i++) { std::cerr << " " << argv[i]; }
 
-        std::cerr << NL
-                  << NL
-                  << "USAGE: %s {sym} {rsrc}..." << NL
-                  << NL
-                  << "  Creates {sym}.c from the contents of each {rsrc}\n"
+        std::cerr << NL << NL << "USAGE: %s {sym} {rsrc}..." << NL << NL << "  Creates {sym}.c from the contents of each {rsrc}\n"
                   << "  Each resource {rsrc} can be specified in the format [name:]filepath" << argv[0];
         return EXIT_FAILURE;
     }
@@ -78,36 +65,21 @@ try
     {
         auto [resname, src, sym] = ParseArg(std::string_view(argv[i]));
         std::ifstream ifs{src, std::ios::binary | std::ios::in};
-        if (!ifs.is_open())
-        {
-            throw std::invalid_argument("Cannot find file" + src.string());
-        }
-        if (ifs.fail())
-        {
-            throw std::logic_error("file corrupt: " + src.string());
-        }
+        if (!ifs.is_open()) { throw std::invalid_argument("Cannot find file" + src.string()); }
+        if (ifs.fail()) { throw std::logic_error("file corrupt: " + src.string()); }
 
         uint8_t c;
         ifs.read(reinterpret_cast<char*>(&c), sizeof(c));
-        if (ifs.fail())
-        {
-            continue;
-        }
+        if (ifs.fail()) { continue; }
         symbols.push_back(FilePathToSym(src));
         ofs << "namespace EmbeddedResource::Data::" << colsym << "::Resources::" << sym << " {" << NL;
         ofs << "static constexpr uint8_t _ResourceData[] = {" << NL;
 
         for (size_t j = 0; !ifs.eof() && !ifs.fail(); j++, ifs.read(reinterpret_cast<char*>(&c), sizeof(c)))
         {
-            if (j > 0)
-            {
-                ofs << ",";
-            }
+            if (j > 0) { ofs << ","; }
             ofs << "0x" << std::hex << static_cast<uint32_t>(c) << "u";
-            if ((j + 1) % 10 == 0)
-            {
-                ofs << NL;
-            }
+            if ((j + 1) % 10 == 0) { ofs << NL; }
         }
 
         ofs << "};" << NL;
@@ -117,10 +89,7 @@ try
         ofs << "}" << NL << NL;
     }
 
-    for (const auto& ressym : symbols)
-    {
-        ofs << "DECLARE_RESOURCE(" << colsym << "," << ressym << ");" << NL;
-    }
+    for (const auto& ressym : symbols) { ofs << "DECLARE_RESOURCE(" << colsym << "," << ressym << ");" << NL; }
 
     for (const auto& ressym : symbols)
     {
@@ -129,8 +98,7 @@ try
         ofs << "  auto nameptr = EmbeddedResource::Data::" << colsym << "::Resources::" << ressym << "::_ResourceName.data();" << NL;
         ofs << "  auto namelen = EmbeddedResource::Data::" << colsym << "::Resources::" << ressym << "::_ResourceName.size();" << NL;
         ofs << "  auto dataptr = EmbeddedResource::Data::" << colsym << "::Resources::" << ressym << "::_ResourceData;" << NL;
-        ofs << "  auto datalen = std::size(EmbeddedResource::Data::" << colsym << "::Resources::" << ressym << "::_ResourceData);"
-            << NL;
+        ofs << "  auto datalen = std::size(EmbeddedResource::Data::" << colsym << "::Resources::" << ressym << "::_ResourceData);" << NL;
         ofs << "    return EmbeddedResource::ABI::ResourceInfo { { nameptr, namelen }, { dataptr, datalen } };" << NL;
         ofs << "}" << NL;
     }
@@ -140,10 +108,7 @@ try
     bool first = true;
     for (const auto& ressym : symbols)
     {
-        if (!first)
-        {
-            ofs << ",";
-        }
+        if (!first) { ofs << ","; }
         else
         {
             first = false;
@@ -163,8 +128,7 @@ try
 
     ofs.close();
     return EXIT_SUCCESS;
-}
-catch (std::exception const& ex)
+} catch (std::exception const& ex)
 {
     std::cerr << ex.what() << NL;
     return -1;

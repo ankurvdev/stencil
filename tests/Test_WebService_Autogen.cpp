@@ -22,10 +22,7 @@ class CppHttpLib
     {
         httplib::Client cli(host.data(), port);
         auto            res = cli.Get(get.data());
-        if (res && res->status == 200)
-        {
-            _response = res->body;
-        }
+        if (res && res->status == 200) { _response = res->body; }
         else
         {
             throw std::runtime_error("Unable to get");

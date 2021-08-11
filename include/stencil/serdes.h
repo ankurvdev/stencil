@@ -6,10 +6,7 @@ namespace Stencil
 
 template <typename TTup, typename TLambda, size_t TIndex = 0> constexpr void VisitAt(TTup& tup, const size_t idx, TLambda&& lambda)
 {
-    if constexpr (TIndex == std::tuple_size<TTup>::value)
-    {
-        throw std::out_of_range("Exceeded maximum tuple range");
-    }
+    if constexpr (TIndex == std::tuple_size<TTup>::value) { throw std::out_of_range("Exceeded maximum tuple range"); }
     else
     {
         if (TIndex == idx)
@@ -23,16 +20,10 @@ template <typename TTup, typename TLambda, size_t TIndex = 0> constexpr void Vis
 
 template <typename TI, typename T, typename... Ts> constexpr size_t IndexOf(size_t index = 0)
 {
-    if constexpr (std::is_same<TI, T>::value)
-    {
-        return index;
-    }
+    if constexpr (std::is_same<TI, T>::value) { return index; }
     else
     {
-        if constexpr (sizeof...(Ts) == 0)
-        {
-            static_assert(sizeof...(Ts) != 0, "Cannot Match anything in tuple");
-        }
+        if constexpr (sizeof...(Ts) == 0) { static_assert(sizeof...(Ts) != 0, "Cannot Match anything in tuple"); }
         else
         {
             return IndexOf<TI, Ts...>(index + 1);

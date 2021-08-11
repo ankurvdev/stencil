@@ -71,10 +71,7 @@ static void RecordChangeGPSClimbAndSpeed(std::filesystem::path const& recordlog,
 TEST_CASE("DataRecorder", "[DataRecorder]")
 {
     auto recordlog = std::filesystem::path("record.bin");
-    if (std::filesystem::exists(recordlog))
-    {
-        std::filesystem::remove(recordlog);
-    }
+    if (std::filesystem::exists(recordlog)) { std::filesystem::remove(recordlog); }
 
     SECTION("value1")
     {
