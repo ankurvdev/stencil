@@ -82,9 +82,7 @@ def AcceptSDKLicenses(path):
     proc = subprocess.Popen([GetBinary('sdkmanager', path), f"--sdk_root={path}", '--licenses'], stdin=subprocess.PIPE)
     while proc.poll() is None:
         time.sleep(1)
-        #sys.stdin.write('y\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\n')
         proc.communicate(input=b'y\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\n')
-        print("Writing yes")
 
 def AddToPath(dir):
     dir = os.path.abspath(dir)

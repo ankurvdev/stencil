@@ -26,8 +26,8 @@ runtime_triplet = args.runtime_triplet or defaulttriplet
 
 myenv = os.environ.copy()
 myenv['VCPKG_OVERLAY_PORTS'] = os.path.join(scriptdir, 'vcpkg-additional-ports')
-myenv['VCPKG_KEEP_ENV_VARS'] = 'VCPKG_STENCIL_SOURCE_PATH;ANDROID_NDK_HOME'
-
+myenv['VCPKG_KEEP_ENV_VARS'] = 'VCPKG_USE_STENCIL_SRC_DIR;ANDROID_NDK_HOME'
+myenv['VCPKG_USE_STENCIL_SRC_DIR'] = os.path.dirname(os.path.dirname(__file__))
 if "android" in tool_triplet or "android" in runtime_triplet:
     import download_android_sdk
     paths = download_android_sdk.DownloadTo(os.path.join(workdir, "android"))
@@ -38,21 +38,30 @@ vcpkgexe = shutil.which("vcpkg", path=vcpkgroot)
 subprocess.check_call([vcpkgexe, "install", "stencil:" + tool_triplet], env=myenv)
 subprocess.check_call([vcpkgexe, "install", "stencil:" + runtime_triplet], env=myenv)
 
+
 def TestVcpkgBuild(config):
-    testdir =  os.path.join(workdir, "Test-" + config)
-    if os.path.exists(testdir): shutil.rmtree(testdir)
+    testdir = os.path.join(workdir, "Test-" + config)
+    if os.path.exists(testdir):
+        shutil.rmtree(testdir)
     os.makedirs(testdir)
-    cmakebuildextraargs =  (["--config", config] if sys.platform == "win32" else [])
-    ctestextraargs =  (["-C", config] if sys.platform == "win32" else [])
+    cmakebuildextraargs = (["--config", config] if sys.platform == "win32" else [])
+    cmakeconfigargs = []
+    if "android" in runtime_triplet:
+        cmakeconfigargs += [
+            "-DCMAKE_TOOLCHAIN_FILE:PATH=" + myenv['ANDROID_NDK_HOME'] + "/build/cmake/android.toolchain.cmake",
+            "-DANDROID=1",
+            "-DANDROID_NATIVE_API_LEVEL=21"
+        ]
+    ctestextraargs = (["-C", config] if sys.platform == "win32" else [])
     subprocess.check_call(["cmake",
-        "-DCMAKE_BUILD_TYPE=" + config, 
-        "-DVCPKG_ROOT:PATH=" + vcpkgroot, 
-        "-DVCPKG_TARGET_TRIPLET=" + runtime_triplet,
-        "-DVCPKG_VERBOSE:BOOL=ON", 
-        os.path.join(scriptdir, "vcpkg")], cwd=testdir)
-    subprocess.check_call(["cmake", "--build", ".", "-j"] +cmakebuildextraargs, cwd=testdir)
+                           "-DCMAKE_BUILD_TYPE=" + config,
+                           "-DVCPKG_ROOT:PATH=" + vcpkgroot,
+                           "-DVCPKG_TARGET_TRIPLET=" + runtime_triplet,
+                           "-DVCPKG_VERBOSE:BOOL=ON"] + cmakeconfigargs + [
+        os.path.join(scriptdir, "sample")], cwd=testdir)
+    subprocess.check_call(["cmake", "--build", ".", "-j"] + cmakebuildextraargs, cwd=testdir)
     subprocess.check_call(["ctest", "."] + ctestextraargs, cwd=testdir)
+
 
 TestVcpkgBuild("Debug")
 TestVcpkgBuild("Release")
-
