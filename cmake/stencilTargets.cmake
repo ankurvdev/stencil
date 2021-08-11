@@ -43,7 +43,7 @@ function(build_stencil workdir)
         message(FATAL_ERROR "Unable to find installed binary")
     endif()
 
-    set(STENCIL_EXECUTABLE ${binfile} CACHE PATH "Location of the stencil binary to use" FORCE)
+    set(STENCIL_EXECUTABLE ${binfile} CACHE PATH "Location of the stencil binary to use")
 endfunction()
 
 # IDL Compiler

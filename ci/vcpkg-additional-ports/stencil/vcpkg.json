@@ -3,6 +3,10 @@
     "version": "0.0.6",
     "description": "Stencil",
     "dependencies": [
+        {
+            "name": "stencil",
+            "host": true
+        },
         "toml11",
         "tsl-ordered-map",
         "tinyxml2",

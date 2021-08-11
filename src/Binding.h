@@ -100,7 +100,9 @@ template <> struct StrOps<std::wstring>
     }
     static bool IEqual(View const& l, View const& r)
     {
-        return std::equal(l.begin(), l.end(), r.begin(), r.end(), [](auto lc, auto rc) { return std::tolower(lc) == std::tolower(rc); });
+        return std::equal(l.begin(), l.end(), r.begin(), r.end(), [](auto lc, auto rc) {
+            return std::tolower(static_cast<int>(lc)) == std::tolower(static_cast<int>(rc));
+        });
     }
     static bool Equal(View const& l, View const& r) { return l == r; }
     static bool IsEmpty(View const& l) { return l.empty(); }

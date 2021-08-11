@@ -4,6 +4,7 @@ SUPPRESS_WARNINGS_START
 #pragma warning(disable : 4866)    // left to right evaluation not guaranteed
 #include <chrono>
 SUPPRESS_WARNINGS_END
+#include <chrono>
 #include <cmath>
 #include <cstdint>
 
@@ -21,6 +22,7 @@ template <> struct ValueTraits<int8_t>;
 template <> struct ValueTraits<bool>;
 template <> struct ValueTraits<double>;
 template <> struct ValueTraits<shared_string>;
+template <> struct ValueTraits<std::chrono::time_point<std::chrono::system_clock>>;
 
 struct Value
 {
@@ -42,15 +44,15 @@ struct Value
     template <typename T> struct UnknownTraits
     {
         static constexpr auto ValueType() { return Type::Unknown; }
-        static void           Get(Value& /* obj */) { throw std::logic_error("Unknown Value Type"); }
-        static void           Get(const Value& /* obj */) { throw std::logic_error("Unknown Value Type"); }
+        static void           Assign(Value& /* obj */, T const& /* val */) { throw std::logic_error("Unknown Value Type"); }
+        static void           Get(const Value& /* obj */) {}
         static void           Check() { throw std::logic_error("Unknown Value Type"); }
     };
 
     template <typename T> struct SignedTraits
     {
         static constexpr auto ValueType() { return Type::Signed; }
-        static auto&          Get(Value& obj) { return obj._iVal; }
+        static void           Assign(Value& obj, T const& val) { obj._iVal = val; }
         static const auto&    Get(const Value& obj) { return obj._iVal; }
         // static void Check() { if (obj._iVal < std::numeric_limits<T>::min() || obj.iVal >
         // std::numeric_limits<T>::max()); throw 1; }
@@ -59,7 +61,7 @@ struct Value
     template <typename T> struct UnsignedTraits
     {
         static constexpr auto ValueType() { return Type::Unsigned; }
-        static auto&          Get(Value& obj) { return obj._uVal; }
+        static void           Assign(Value& obj, T const& val) { obj._uVal = val; }
         static const auto&    Get(const Value& obj) { return obj._uVal; }
         // static void Check() { if (obj._iVal < std::numeric_limits<T>::min() || obj.iVal >
         // std::numeric_limits<T>::max()); throw 1; }
@@ -68,7 +70,7 @@ struct Value
     template <typename T> struct StringTraits
     {
         static constexpr auto ValueType() { return Type::String; }
-        static auto&          Get(Value& obj) { return obj._sVal; }
+        static void           Assign(Value& obj, T const& val) { obj._sVal = val; }
         static const auto&    Get(const Value& obj) { return obj._sVal; }
         static void           Check() {}
     };
@@ -76,7 +78,7 @@ struct Value
     template <typename T> struct DoubleTraits
     {
         static constexpr auto ValueType() { return Type::Double; }
-        static auto&          Get(Value& obj) { return obj._dVal; }
+        static void           Assign(Value& obj, T const& val) { obj._dVal = val; }
         static const auto&    Get(const Value& obj) { return obj._dVal; }
         static void           Check() {}
     };
@@ -109,7 +111,7 @@ struct Value
     operator size_t() const;
 
     Type GetType() const { return _type; }
-    template <typename T> Value(T val) : _type(ValueTraits<T>::ValueType()) { ValueTraits<T>::Get(*this) = val; }
+    template <typename T> Value(T val) : _type(ValueTraits<T>::ValueType()) { ValueTraits<T>::Assign(*this, val); }
     Value(std::string_view const& str) : _type(Type::String), _sVal(str) {}
     Value(std::string const& str) : _type(Type::String), _sVal(str) {}
 
@@ -249,6 +251,14 @@ template <> struct ValueTraits<double> : public Value::DoubleTraits<double>
 {};
 template <> struct ValueTraits<shared_string> : public Value::StringTraits<shared_string>
 {};
+
+template <> struct ValueTraits<std::chrono::time_point<std::chrono::system_clock>>
+{
+    using time_point = std::chrono::time_point<std::chrono::system_clock>;
+    static constexpr auto ValueType() { return Value::Type::Signed; }
+    static void           Assign(Value& obj, time_point& val) { obj._iVal = val.time_since_epoch().count(); }
+    static auto           Get(Value const& obj) { return time_point(time_point::duration(obj._iVal)); }
+};
 
 inline Value::operator ::size_t() const
 {

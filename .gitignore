@@ -7,3 +7,4 @@ devel.cmd
 devel.sh
 devel.py
 .config
+__pycache__

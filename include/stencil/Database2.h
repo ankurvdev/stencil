@@ -655,7 +655,7 @@ template <> struct PageForRecord<0> : public PageForRecordInterface
         assert(typeId > 0xff);
         auto logRecordSize = typeId & 0xff;
         assert(logRecordSize < 12);
-        _recordSize = uint64_t{1} << logRecordSize;
+        _recordSize = size_t{1} << logRecordSize;
         switch (logRecordSize)
         {
         default:
