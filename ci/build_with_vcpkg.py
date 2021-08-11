@@ -39,7 +39,7 @@ subprocess.check_call([vcpkgexe, "install", "stencil:" + host_triplet], env=myen
 subprocess.check_call([vcpkgexe, "install", "stencil:" + runtime_triplet], env=myenv)
 
 
-def TestVcpkgBuild(config, runtime_triplet):
+def TestVcpkgBuild(config, host_triplet, runtime_triplet):
     testdir = os.path.join(workdir, f"{runtime_triplet}_Test_{config}")
     if os.path.exists(testdir):
         shutil.rmtree(testdir)
@@ -62,8 +62,9 @@ def TestVcpkgBuild(config, runtime_triplet):
                            "-DVCPKG_VERBOSE:BOOL=ON"] + cmakeconfigargs + [
         os.path.join(scriptdir, "sample")], cwd=testdir)
     subprocess.check_call(["cmake", "--build", ".", "-j"] + cmakebuildextraargs, cwd=testdir)
-    subprocess.check_call(["ctest", "."] + ctestextraargs, cwd=testdir)
+    if runtime_triplet == host_triplet:
+        subprocess.check_call(["ctest", "."] + ctestextraargs, cwd=testdir)
 
 
-TestVcpkgBuild("Debug", runtime_triplet)
-TestVcpkgBuild("Release", runtime_triplet)
+TestVcpkgBuild("Debug", host_triplet, runtime_triplet, )
+TestVcpkgBuild("Release", host_triplet, runtime_triplet)
