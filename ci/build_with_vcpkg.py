@@ -5,6 +5,10 @@ import shutil
 import subprocess
 import sys
 
+if sys.platform == "win32" and not "VSINSTALLDIR" in os.environ.keys():
+    subprocess.check_call(['powershell', os.path.join(os.path.dirname(__file__), "run_in_devenv.ps1"), "x64", sys.executable, __file__] + sys.argv[1:])
+    sys.exit(0)
+
 parser = argparse.ArgumentParser(description="Test VCPKG Workflow")
 parser.add_argument("--workdir", type=str, default=".", help="Root")
 parser.add_argument("--host-triplet", type=str, default=None, help="Triplet")

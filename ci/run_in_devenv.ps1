@@ -1,7 +1,7 @@
 param (
     [ValidateSet("x86", "x64")] $arch
 )
-$vs2019_path = (@() + (&"C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -version 16.0 -property installationpath))[-1]
+$vs2019_path = (@() + (&"C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -version 16.0 -property installationpath -prerelease))[-1]
 Import-Module (Join-Path $vs2019_path "Common7\Tools\Microsoft.VisualStudio.DevShell.dll")
 
 if (($arch -eq "x86")) {
