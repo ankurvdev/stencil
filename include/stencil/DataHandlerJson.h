@@ -11,22 +11,20 @@ class JsonDataModel;
 #pragma warning(push, 3)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"    // Wall doesnt work
+#pragma GCC diagnostic   push
+#pragma GCC diagnostic   ignored "-Wimplicit-fallthrough"    // Wall doesnt work
 #include <nlohmann/json.hpp>
-#pragma GCC diagnostic pop
+#pragma GCC diagnostic   pop
 #pragma clang diagnostic pop
 #pragma warning(pop)
 
 #define SAFEEXEC(stmt)    \
-    do                    \
-    {                     \
+    do {                  \
         try               \
         {                 \
             stmt;         \
             return true;  \
-        }                 \
-        catch (...)       \
+        } catch (...)     \
         {                 \
             return false; \
         }                 \
@@ -50,15 +48,11 @@ struct Json
         template <typename TArg> bool _HandleValue(TArg const& arg)
         try
         {
-            if (IsArray())
-            {
-                _visitor.Select(Value(_stack.back()++));
-            }
+            if (IsArray()) { _visitor.Select(Value(_stack.back()++)); }
             _visitor.SetValue(Value(arg));
             _visitor.GoBackUp();
             return true;
-        }
-        catch (std::exception const& /*ex*/)
+        } catch (std::exception const& /*ex*/)
         {
             return false;
         }
@@ -73,10 +67,7 @@ struct Json
 
         bool start_object(std::size_t /*elements*/) override
         {
-            if (IsArray())
-            {
-                _visitor.Select(Value(_stack.back()++));
-            }
+            if (IsArray()) { _visitor.Select(Value(_stack.back()++)); }
             _stack.push_back(std::numeric_limits<size_t>::max());
             return true;
         }
@@ -88,10 +79,7 @@ struct Json
         }
         bool start_array(std::size_t /*elements*/) override
         {
-            if (IsArray())
-            {
-                _visitor.Select(Value(_stack.back()++));
-            }
+            if (IsArray()) { _visitor.Select(Value(_stack.back()++)); }
             _stack.push_back(0);
             return true;
         }
@@ -306,10 +294,7 @@ struct Table
     void AddTable(size_t colindx, size_t span, const Table& table)
     {
         auto lines = table.PrintAsLines();
-        for (auto& l : lines)
-        {
-            AddRowColumn(colindx, span, l);
-        }
+        for (auto& l : lines) { AddRowColumn(colindx, span, l); }
     }
 
     void AddRowColumn(size_t col, size_t span, std::string text)
@@ -329,10 +314,7 @@ struct Table
     size_t _FindTableWidth() const
     {
         size_t width = 0;
-        for (auto& colwidth : _FindColumnWidths())
-        {
-            width += colwidth;
-        }
+        for (auto& colwidth : _FindColumnWidths()) { width += colwidth; }
         return width;
     }
 
@@ -343,10 +325,7 @@ struct Table
         {
             for (const auto& col : row.columns)
             {
-                if (columnwidths.size() <= col.column)
-                {
-                    columnwidths.resize(col.column + 1, 0);
-                }
+                if (columnwidths.size() <= col.column) { columnwidths.resize(col.column + 1, 0); }
                 if (col.colspan == 0)
                 {
                     auto neededwidth         = _FindColumnWidth(col);
@@ -362,10 +341,7 @@ struct Table
                 auto farright    = std::min(static_cast<size_t>(col.colspan) + col.column, columnwidths.size() - 1);
                 auto neededwidth = _FindColumnWidth(col);
                 auto remaining   = neededwidth;
-                for (size_t i = col.column; i < farright && remaining > columnwidths[i]; i++)
-                {
-                    remaining -= columnwidths[i];
-                }
+                for (size_t i = col.column; i < farright && remaining > columnwidths[i]; i++) { remaining -= columnwidths[i]; }
                 columnwidths[farright] = std::max(columnwidths[farright], remaining);
             }
         }
@@ -406,8 +382,7 @@ struct Table
 template <typename TStruct> struct CommandLineArgs
 {
     struct Exception
-    {
-    };
+    {};
 
     struct HelpExceptionTraits
     {
@@ -429,8 +404,7 @@ template <typename TStruct> struct CommandLineArgs
     {
         HelpException(std::vector<std::string>&& str) :
             Logging::Exception<HelpExceptionTraits>(CorrelationVector::Create(), ""), helpinfolines(std::move(str))
-        {
-        }
+        {}
         std::vector<std::string> helpinfolines;
     };
 
@@ -467,10 +441,7 @@ template <typename TStruct> struct CommandLineArgs
 
         virtual void ObjKey(std::string_view const& key) override
         {
-            while (!_visitor.TrySelect(Value{key}))
-            {
-                _visitor.GoBackUp();
-            }
+            while (!_visitor.TrySelect(Value{key})) { _visitor.GoBackUp(); }
         }
 
         virtual void ObjKey(size_t index) override { _visitor.Select(Value{index}); }
@@ -581,10 +552,7 @@ template <typename TStruct> struct CommandLineArgs
         {
             auto& info      = pending.front();
             auto  infolines = _PrintUsage(*info)->PrintAsLines();
-            for (auto& l : infolines)
-            {
-                lines.push_back(l);
-            }
+            for (auto& l : infolines) { lines.push_back(l); }
             pending.pop_front();
         }
 
@@ -593,10 +561,7 @@ template <typename TStruct> struct CommandLineArgs
             std::vector<std::string>                                lines;
             std::deque<std::shared_ptr<::ReflectionBase::DataInfo>> pending;
             pending.push_back(_visitor.GetDataInfo());
-            for (int i = 0; pending.size() > 0; i++)
-            {
-                _RecursivelyAddHelp(lines, pending, i);
-            }
+            for (int i = 0; pending.size() > 0; i++) { _RecursivelyAddHelp(lines, pending, i); }
             return lines;
         }
 
@@ -604,10 +569,7 @@ template <typename TStruct> struct CommandLineArgs
         {
             std::stringstream ss;
             _helpInfo = _GenerateContextHelp();
-            for (auto& l : _helpInfo)
-            {
-                ss << std::move(l);
-            }
+            for (auto& l : _helpInfo) { ss << std::move(l); }
             return ss.str();
 
             // Print Current Context

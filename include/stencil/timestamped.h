@@ -7,8 +7,7 @@ template <typename T> struct TimestampedT
 {
     using time_point = decltype(std::chrono::system_clock::now());
     struct InitArgs
-    {
-    };
+    {};
 
     TimestampedT()
     {

@@ -7,7 +7,7 @@
 #pragma warning(disable : 4365)    // signed unsigned mismatch
 #pragma warning(disable : 5219)    // implicit conversion from 'uint64_t' to 'double', possible loss of data
 #pragma warning(disable : 5204)    // class has virtual functions, but its trivial destructor is not virtual
-#pragma warning(disable : 4668)    //not defined as a preprocessor macro
+#pragma warning(disable : 4668)    // not defined as a preprocessor macro
 #pragma warning(disable : 5039)    // pointer or reference to potentially throwing function passed to 'extern)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
@@ -43,10 +43,7 @@ inline std::vector<std::string> readlines(std::filesystem::path const& filepath)
 
     while (std::getline(file, line))
     {
-        if (line.length() > 0 && line[line.length() - 1] == '\r')
-        {
-            line.resize(line.length() - 1);
-        }
+        if (line.length() > 0 && line[line.length() - 1] == '\r') { line.resize(line.length() - 1); }
         lines.push_back(std::move(line));
     }
     return lines;
@@ -57,19 +54,13 @@ struct ResourceFileManager
     ResourceFileManager() = default;
     ~ResourceFileManager()
     {
-        for (auto const& [k, v] : _openedfiles)
-        {
-            std::filesystem::remove(v);
-        }
+        for (auto const& [k, v] : _openedfiles) { std::filesystem::remove(v); }
     }
 
     auto load(std::string const& name, std::string const& prefix)
     {
         auto it = _openedfiles.find(name);
-        if (it != _openedfiles.end())
-        {
-            return it->second;
-        }
+        if (it != _openedfiles.end()) { return it->second; }
         auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
         for (auto const r : resourceCollection)
         {
@@ -77,10 +68,7 @@ struct ResourceFileManager
             {
                 auto          path = std::filesystem::current_path() / (prefix + name);
                 std::ofstream f(path);
-                if (!f.is_open())
-                {
-                    throw std::runtime_error("Cannot write resource file : " + path.string());
-                }
+                if (!f.is_open()) { throw std::runtime_error("Cannot write resource file : " + path.string()); }
                 f << r.string();
                 f.close();
                 _openedfiles[name] = path;
@@ -107,10 +95,7 @@ inline void CompareLines(std::vector<std::string> const& actualstring,
         d.printUnifiedFormat();    // print a difference as Unified Format.
         {
             std::ofstream f(resname + "_failure.txt");
-            for (auto& l : actualstring)
-            {
-                f << l << std::endl;
-            }
+            for (auto& l : actualstring) { f << l << std::endl; }
             f.flush();
             f.close();
         }

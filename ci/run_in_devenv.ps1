@@ -10,4 +10,6 @@ if (($arch -eq "x86")) {
 elseif (($arch -eq "x64")) {
     Enter-VsDevShell -VsInstallPath $vs2019_path -SkipAutomaticLocation -DevCmdArguments "-host_arch=amd64 -arch=amd64"
 }
-Invoke-Expression "$args"
+if (!("$args" -eq "")) {
+    Invoke-Expression "$args"
+}

@@ -90,8 +90,7 @@ struct Value
 
     public:
     struct UnsupportedCast
-    {
-    };
+    {};
     void _check(Type type) const
     {
         if (_type != type) throw 1;
@@ -224,46 +223,41 @@ struct Value
 };
 
 template <typename T> struct ValueTraits : public Value::UnknownTraits<T>
-{
-};
+{};
 
 template <> struct ValueTraits<uint64_t> : public Value::UnsignedTraits<uint64_t>
-{
-};
+{};
 template <> struct ValueTraits<uint32_t> : public Value::UnsignedTraits<uint64_t>
-{
-};
+{};
 template <> struct ValueTraits<uint16_t> : public Value::UnsignedTraits<uint64_t>
-{
-};
+{};
 template <> struct ValueTraits<uint8_t> : public Value::UnsignedTraits<uint64_t>
-{
-};
+{};
 template <> struct ValueTraits<int64_t> : public Value::SignedTraits<int64_t>
-{
-};
+{};
 template <> struct ValueTraits<int32_t> : public Value::SignedTraits<int64_t>
-{
-};
+{};
 template <> struct ValueTraits<int16_t> : public Value::SignedTraits<int64_t>
-{
-};
+{};
 template <> struct ValueTraits<int8_t> : public Value::SignedTraits<int64_t>
-{
-};
+{};
 
 template <> struct ValueTraits<char> : public Value::SignedTraits<int64_t>
-{
-};
+{};
 
 template <> struct ValueTraits<bool> : public Value::UnsignedTraits<bool>
-{
-};
+{};
 template <> struct ValueTraits<double> : public Value::DoubleTraits<double>
-{
-};
+{};
 template <> struct ValueTraits<shared_string> : public Value::StringTraits<shared_string>
+{};
+
+template <> struct ValueTraits<std::chrono::time_point<std::chrono::system_clock>>
 {
+    using time_point = std::chrono::time_point<std::chrono::system_clock>;
+    static constexpr auto ValueType() { return Value::Type::Signed; }
+    static void           Assign(Value& obj, time_point& val) { obj._iVal = val.time_since_epoch().count(); }
+    static auto           Get(Value const& obj) { return time_point(time_point::duration(obj._iVal)); }
 };
 
 template <> struct ValueTraits<std::chrono::time_point<std::chrono::system_clock>>

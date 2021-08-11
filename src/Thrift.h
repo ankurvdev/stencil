@@ -90,8 +90,7 @@ struct Field
         m_Id(std::move(id)),
         m_FieldValue(std::move(fieldValue)),
         m_AttributeMap(map)
-    {
-    }
+    {}
 };
 
 struct Function
@@ -104,8 +103,7 @@ struct Function
     Function() = default;
     Function(Str::View const& isStatic, FieldType retType, Str::Type& name, FieldList& fields, TypeAttributeList& map) :
         m_Name(std::move(name)), m_isStatic(!Str::IsEmpty(isStatic)), m_ReturnType(retType), m_Fields(std::move(fields)), m_Attributes(map)
-    {
-    }
+    {}
 };
 
 inline std::shared_ptr<IDL::Typedef> CreateTypedef(Context& context, FieldType fieldType, Str::Type& name, TypeAttributeList map)
@@ -171,10 +169,7 @@ inline std::shared_ptr<IDLGenerics::IFieldType> CreateArrayType(Context& context
     containermap.insert(std::make_pair(Str::Create(L"size"), std::make_shared<StrValueType>(std::to_wstring(count))));
 
     auto existing = context.program.TryGetFieldTypeName(IDL::ContainerFieldType::GenerateFieldName(container, containermap));
-    if (existing.has_value())
-    {
-        return existing.value();
-    }
+    if (existing.has_value()) { return existing.value(); }
 
     return context.program.CreateFieldTypeObject<IDL::ContainerFieldType>(container, std::move(containermap), existing, std::move(map));
 }
@@ -186,16 +181,10 @@ CreateContainerType(Context& context, Str::Type& id, FieldTypeList& fields, Type
     assert(fields.size() == container.ComponentSize());
     IDL::ContainerFieldType::ContainerFieldTypeMap containermap;
     size_t                                         index = 0;
-    for (auto& f : fields)
-    {
-        containermap[Str::Copy(container.Component(index++))] = f.value();
-    }
+    for (auto& f : fields) { containermap[Str::Copy(container.Component(index++))] = f.value(); }
 
     auto existing = context.program.TryGetFieldTypeName(IDL::ContainerFieldType::GenerateFieldName(container, containermap));
-    if (existing.has_value())
-    {
-        return existing.value();
-    }
+    if (existing.has_value()) { return existing.value(); }
 
     return context.program.CreateFieldTypeObject<IDL::ContainerFieldType>(container, std::move(containermap), existing, std::move(map));
 }
@@ -207,10 +196,7 @@ inline std::shared_ptr<IDLGenerics::IFieldType> FindFieldType(Context& context, 
 
 inline TypeAttributeList CreateAttributeMapEntry(TypeAttributeList ptr, TypeAttribute& entry)
 {
-    if (ptr == nullptr)
-    {
-        ptr = std::make_shared<Binding::AttributeMap>();
-    }
+    if (ptr == nullptr) { ptr = std::make_shared<Binding::AttributeMap>(); }
 
     ptr->AddEntry(std::move(entry.first), Binding::Expression::Create(std::move(entry.second), Str::Create(L"%"), Str::Create(L"%"), L':'));
     return ptr;

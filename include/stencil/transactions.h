@@ -139,10 +139,7 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
                 return;
             }
         }
-        if (!ReflectionBase::AreEqual(curval, newval))
-        {
-            _settracker.set(static_cast<uint8_t>(field));
-        }
+        if (!ReflectionBase::AreEqual(curval, newval)) { _settracker.set(static_cast<uint8_t>(field)); }
     }
 
     template <typename TEnum, typename TFieldType, typename TVal> void OnMutation_add(TEnum field, TFieldType const& obj, TVal const& val)

@@ -85,10 +85,7 @@ template <typename T> struct UuidBasedId
     bool Valid() const { return !Empty(); }
     void Validate()
     {
-        if (!Valid())
-        {
-            _guid = Uuid::Create();
-        }
+        if (!Valid()) { _guid = Uuid::Create(); }
     }
     operator UuidStr() { return _guid.ToString(); }
 
@@ -140,10 +137,7 @@ inline Uuid Uuid::Create()
     std::default_random_engine              e1(r());
     std::uniform_int_distribution<uint16_t> dist(0, 255);
 
-    for (size_t i = 0; i < uuid.data.size(); i++)
-    {
-        uuid.data[i] = static_cast<uint8_t>(dist(e1));
-    }
+    for (size_t i = 0; i < uuid.data.size(); i++) { uuid.data[i] = static_cast<uint8_t>(dist(e1)); }
 
     return uuid;
 }

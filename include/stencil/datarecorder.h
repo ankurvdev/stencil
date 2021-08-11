@@ -40,10 +40,7 @@ template <typename T> struct PatchHandler
         // Create(list<int>, ctx) = nochange=>{} change=>{set/add/remove, serialized list / index {0, 0, 0, 1} / index }
         // Create(struct, ctx) = nochange=>{} change=>{fieldindex, Create<fieldIndex>(val, subctx)}
         // Create(list<struct>, ctx) = nochange=>{} change=>{set/add/remove, serialized value / index Create<struct>
-        if (!ctx.IsChanged())
-        {
-            return;
-        }
+        if (!ctx.IsChanged()) { return; }
         static_assert(Transaction<TObj>::Type() != ReflectionBase::DataType::Invalid, "Cannot Create Patch for Invalid DataType");
 
         if constexpr (Transaction<TObj>::Type() == ReflectionBase::DataType::Enum
@@ -91,20 +88,14 @@ template <typename T> struct PatchHandler
         {
             // 0 is always invalid field
             auto fieldsChanged = ctx.CountFieldsChanged();
-            if (ctx.NumFields() > 254)
-            {
-                throw std::logic_error("Too Many fields. Not supported yet");
-            }
+            if (ctx.NumFields() > 254) { throw std::logic_error("Too Many fields. Not supported yet"); }
             writer << static_cast<uint8_t>(fieldsChanged);
             for (size_t i = 0u; i < ctx.NumFields(); i++)
             {
                 auto fieldIndex = static_cast<typename TObj::FieldIndex>(i + 1);
                 ctx.Visit(fieldIndex, [&](auto const& subctx) {
                     if (!ctx.IsFieldChanged(fieldIndex)) return;
-                    if (fieldsChanged == 0)
-                    {
-                        throw std::logic_error("Something doesnt add up. Too many changed fields visited");
-                    }
+                    if (fieldsChanged == 0) { throw std::logic_error("Something doesnt add up. Too many changed fields visited"); }
 
                     fieldsChanged--;
 
@@ -177,7 +168,7 @@ template <typename T> struct PatchHandler
             {
                 auto listIndex = reader.read<uint32_t>();
                 visitor.Select(listIndex);
-                auto subctx = ctx.GetSubObjectTracker(ctx.Obj() ,listIndex);
+                auto subctx = ctx.GetSubObjectTracker(ctx.Obj(), listIndex);
                 _Apply(reader, visitor, subctx);
                 visitor.GoBackUp();
             }
@@ -191,7 +182,7 @@ template <typename T> struct PatchHandler
             for (auto changedFieldIndex = reader.read<uint8_t>(); changedFieldIndex != 0; changedFieldIndex = reader.read<uint8_t>())
             {
                 auto action = reader.read<uint8_t>();
-                //assert(changedFieldIndex <= ctx.NumFields());
+                // assert(changedFieldIndex <= ctx.NumFields());
                 auto changedFieldType = static_cast<typename TObj::FieldIndex>(changedFieldIndex);
                 visitor.Select(static_cast<uint8_t>(changedFieldIndex - 1));
                 if (action == 0)    // Set
@@ -265,28 +256,19 @@ template <typename... Ts> struct DataPlayerT : std::enable_shared_from_this<Data
 
     template <typename T> T read(std::ifstream& fs)
     {
-        if (!_file.good())
-        {
-            throw std::logic_error("File Error");
-        }
+        if (!_file.good()) { throw std::logic_error("File Error"); }
         T val;
         fs.read(reinterpret_cast<char*>(&val), std::streamsize{sizeof(T)});
         std::streamsize bytes = fs.gcount();
-        if (!_file.good())
-        {
-            throw std::logic_error("File Error");
-        }
-        if (bytes != sizeof(T))
-        {
-            throw std::logic_error("Not enough bytes read");
-        }
+        if (!_file.good()) { throw std::logic_error("File Error"); }
+        if (bytes != sizeof(T)) { throw std::logic_error("Not enough bytes read"); }
         return val;
     }
 
     template <typename T> auto ReadChangeDescAndNotify(T& obj, std::span<const uint8_t>::iterator const& dataIt)
     {
         Stencil::NullTransactionRecorder recorder;
-        auto                                ctx = recorder.Start(obj);
+        auto                             ctx = recorder.Start(obj);
         return PatchHandler<T>::Apply(ctx, dataIt);
     }
 
@@ -299,10 +281,7 @@ template <typename... Ts> struct DataPlayerT : std::enable_shared_from_this<Data
 
         while (_state != State::StopRequested)
         {
-            if (!_file.good() || _file.tellg() == length)
-            {
-                return;
-            }
+            if (!_file.good() || _file.tellg() == length) { return; }
             std::this_thread::sleep_for(std::chrono::microseconds{read<std::chrono::microseconds::rep>(_file)});
             {
                 size_t               index = read<uint8_t>(_file);
@@ -351,10 +330,7 @@ template <typename... Ts> struct DataRecorder
     DELETE_COPY_DEFAULT_MOVE(DataRecorder);
     DataRecorder(std::filesystem::path const& f)
     {
-        if (f.empty())
-        {
-            return;
-        }
+        if (f.empty()) { return; }
 
         _ofst = std::ofstream(f, std::fstream::out | std::fstream::app);
         _ost  = &_ofst;
@@ -363,10 +339,7 @@ template <typename... Ts> struct DataRecorder
     // void OnChanged(LockT const& /*lock*/, TransactionT const& /*ctx*/, T const& /*data*/) override { TODO(); }
     template <typename T> void Record(Transaction<T> const& ctx)
     {
-        if (!ctx.IsChanged())
-        {
-            return;
-        }
+        if (!ctx.IsChanged()) { return; }
 
         auto now = std::chrono::system_clock::now();
 

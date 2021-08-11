@@ -470,8 +470,7 @@ struct Stencil::Transaction<UserData::UserData::Data> : Stencil::TransactionT<Us
         _subtracker_modified(Obj().modified(), rec)
         ,
         _subtracker_creation(Obj().creation(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -544,7 +543,8 @@ struct Stencil::Visitor<UserData::UserData::Data, void> : Stencil::VisitorT<User
 };
 
 template <>
-struct Stencil::Visitor<const UserData::UserData::Data, void> : Stencil::VisitorT<const UserData::UserData::Data>
+struct Stencil::Visitor<const UserData::UserData::Data, void>
+    : Stencil::VisitorT<const UserData::UserData::Data>
 {
     using TData = UserData::UserData::Data const;
 
@@ -718,8 +718,7 @@ struct Stencil::Transaction<UserData::Identity::Data> : Stencil::TransactionT<Us
         _subtracker_clientcert(Obj().clientcert(), rec)
         ,
         _subtracker_secretcode(Obj().secretcode(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -825,7 +824,8 @@ struct Stencil::Visitor<UserData::Identity::Data, void> : Stencil::VisitorT<User
 };
 
 template <>
-struct Stencil::Visitor<const UserData::Identity::Data, void> : Stencil::VisitorT<const UserData::Identity::Data>
+struct Stencil::Visitor<const UserData::Identity::Data, void>
+    : Stencil::VisitorT<const UserData::Identity::Data>
 {
     using TData = UserData::Identity::Data const;
 
@@ -957,8 +957,7 @@ struct Stencil::Transaction<UserData::RemoteHost::Data> : Stencil::TransactionT<
         _subtracker_uri(Obj().uri(), rec)
         ,
         _subtracker_identity(Obj().identity(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -1042,7 +1041,8 @@ struct Stencil::Visitor<UserData::RemoteHost::Data, void> : Stencil::VisitorT<Us
 };
 
 template <>
-struct Stencil::Visitor<const UserData::RemoteHost::Data, void> : Stencil::VisitorT<const UserData::RemoteHost::Data>
+struct Stencil::Visitor<const UserData::RemoteHost::Data, void>
+    : Stencil::VisitorT<const UserData::RemoteHost::Data>
 {
     using TData = UserData::RemoteHost::Data const;
 

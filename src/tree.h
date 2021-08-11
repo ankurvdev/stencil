@@ -99,10 +99,7 @@ template <typename T> struct tree
         }
         else
         {
-            if (_nodes.size() != 0)
-            {
-                throw std::logic_error("Use add_sibling to add multiple roots");
-            }
+            if (_nodes.size() != 0) { throw std::logic_error("Use add_sibling to add multiple roots"); }
         }
 
         auto retit = iterator::create(item.get());
@@ -112,10 +109,7 @@ template <typename T> struct tree
 
     iterator addsibling(iterator it, T&& data)
     {
-        if (it == iterator::end())
-        {
-            throw std::logic_error("Add Sibling on last not allowed");
-        }
+        if (it == iterator::end()) { throw std::logic_error("Add Sibling on last not allowed"); }
 
         auto item = std::make_unique<_Node>(std::forward<T>(data));
 

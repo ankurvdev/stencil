@@ -1408,8 +1408,7 @@ struct Stencil::Transaction<ComplexWebService::MapPoint::Data> : Stencil::Transa
         _subtracker_latitude(Obj().latitude(), rec)
         ,
         _subtracker_longitude(Obj().longitude(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -1482,7 +1481,8 @@ struct Stencil::Visitor<ComplexWebService::MapPoint::Data, void> : Stencil::Visi
 };
 
 template <>
-struct Stencil::Visitor<const ComplexWebService::MapPoint::Data, void> : Stencil::VisitorT<const ComplexWebService::MapPoint::Data>
+struct Stencil::Visitor<const ComplexWebService::MapPoint::Data, void>
+    : Stencil::VisitorT<const ComplexWebService::MapPoint::Data>
 {
     using TData = ComplexWebService::MapPoint::Data const;
 
@@ -1608,8 +1608,7 @@ struct Stencil::Transaction<ComplexWebService::GeographicalArea::Data> : Stencil
         _subtracker_name(Obj().name(), rec)
         ,
         _subtracker_areaPolygon(Obj().areaPolygon(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -1693,7 +1692,8 @@ struct Stencil::Visitor<ComplexWebService::GeographicalArea::Data, void> : Stenc
 };
 
 template <>
-struct Stencil::Visitor<const ComplexWebService::GeographicalArea::Data, void> : Stencil::VisitorT<const ComplexWebService::GeographicalArea::Data>
+struct Stencil::Visitor<const ComplexWebService::GeographicalArea::Data, void>
+    : Stencil::VisitorT<const ComplexWebService::GeographicalArea::Data>
 {
     using TData = ComplexWebService::GeographicalArea::Data const;
 
@@ -1893,8 +1893,7 @@ struct Stencil::Transaction<ComplexWebService::DigitalAssetInfo::Data> : Stencil
         _subtracker_thumbnailBlob(Obj().thumbnailBlob(), rec)
         ,
         _subtracker_fileUrl(Obj().fileUrl(), rec)
-    {
-    }
+    {}
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {
@@ -2011,7 +2010,8 @@ struct Stencil::Visitor<ComplexWebService::DigitalAssetInfo::Data, void> : Stenc
 };
 
 template <>
-struct Stencil::Visitor<const ComplexWebService::DigitalAssetInfo::Data, void> : Stencil::VisitorT<const ComplexWebService::DigitalAssetInfo::Data>
+struct Stencil::Visitor<const ComplexWebService::DigitalAssetInfo::Data, void>
+    : Stencil::VisitorT<const ComplexWebService::DigitalAssetInfo::Data>
 {
     using TData = ComplexWebService::DigitalAssetInfo::Data const;
 

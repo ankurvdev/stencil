@@ -1,7 +1,6 @@
 // Anything here is not part of the generated code
 struct ModelDefinition
-{
-};
+{};
 const int EnumKeyCount = 0;
 const int EnumCount    = 0;
 struct zzFieldType_NativeTypezz

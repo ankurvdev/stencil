@@ -100,7 +100,9 @@ template <> struct StrOps<std::wstring>
     }
     static bool IEqual(View const& l, View const& r)
     {
-        return std::equal(l.begin(), l.end(), r.begin(), r.end(), [](auto lc, auto rc) { return std::tolower(lc) == std::tolower(rc); });
+        return std::equal(l.begin(), l.end(), r.begin(), r.end(), [](auto lc, auto rc) {
+            return std::tolower(static_cast<int>(lc)) == std::tolower(static_cast<int>(rc));
+        });
     }
     static bool Equal(View const& l, View const& r) { return l == r; }
     static bool IsEmpty(View const& l) { return l.empty(); }
@@ -137,10 +139,7 @@ struct BindingExpr
     {
         std::wstringstream ws;
         ws << "%";
-        for (auto const& b : binding)
-        {
-            ws << b << ".";
-        }
+        for (auto const& b : binding) { ws << b << "."; }
         ws << "%";
         return Str::Create(ws.str());
     }
@@ -179,10 +178,7 @@ struct Expression
                     continue;
                 }
 
-                if (result->FullyEvaluated())
-                {
-                    newexpr->AddString(result->String());
-                }
+                if (result->FullyEvaluated()) { newexpr->AddString(result->String()); }
                 else
                 {
                     for (auto& p1 : result->_pieces)
@@ -238,19 +234,13 @@ struct Expression
         std::shared_ptr<Expression> newexpr = std::make_shared<Expression>();
 
         newexpr->_pieces.reserve(obj._pieces.size());
-        for (auto& p : obj._pieces)
-        {
-            newexpr->_pieces.push_back(p.clone());
-        }
+        for (auto& p : obj._pieces) { newexpr->_pieces.push_back(p.clone()); }
         return newexpr;
     }
 
     static std::shared_ptr<Expression> Clone(std::shared_ptr<Expression const> const& obj)
     {
-        if (obj == nullptr)
-        {
-            return {};
-        }
+        if (obj == nullptr) { return {}; }
         return Clone(*obj);
     }
 
@@ -281,10 +271,7 @@ struct Expression
             if (expr != nullptr)
             {
                 std::vector<Str::Type> bindings;
-                for (auto& s : expr->binding)
-                {
-                    bindings.push_back(Str::Copy(s));
-                }
+                for (auto& s : expr->binding) { bindings.push_back(Str::Copy(s)); }
                 return Piece(std::unique_ptr<BindingExpr>(new BindingExpr{std::move(bindings)}));
             }
             return Piece(Str::Copy(text));
@@ -298,10 +285,7 @@ struct Expression
     {
         for (auto& p : _pieces)
         {
-            if (p.piecetype == Piece::PieceType::Expr)
-            {
-                return false;
-            }
+            if (p.piecetype == Piece::PieceType::Expr) { return false; }
         }
         return true;
     }
@@ -311,10 +295,7 @@ struct Expression
         std::wstringstream ss;
         for (auto& p : _pieces)
         {
-            if (p.piecetype == Piece::PieceType::String)
-            {
-                ss << p.text;
-            }
+            if (p.piecetype == Piece::PieceType::String) { ss << p.text; }
             else if (p.piecetype == Piece::PieceType::Expr)
             {
                 ss << p.expr->Stringify();
@@ -332,10 +313,7 @@ struct Expression
         std::wstringstream ss;
         for (auto& p : _pieces)
         {
-            if (p.piecetype != Piece::PieceType::String)
-            {
-                throw std::runtime_error("Expression Has unevaluated bits");
-            }
+            if (p.piecetype != Piece::PieceType::String) { throw std::runtime_error("Expression Has unevaluated bits"); }
             assert(!Str::IsEmpty(p.text));
             ss << p.text;
         }
@@ -345,10 +323,7 @@ struct Expression
     static auto Create(Str::View const& str, Str::View const& startMarker, Str::View const& endMarker, const wchar_t sep)
     {
         std::shared_ptr<Expression> expr;
-        if (Str::IsEmpty(str) || Str::Size(str) == 0)
-        {
-            return expr;
-        }
+        if (Str::IsEmpty(str) || Str::Size(str) == 0) { return expr; }
         size_t index = 0;
 
         expr = std::make_shared<Expression>();
@@ -364,10 +339,7 @@ struct Expression
             expr->AddExpressionString(Str::Create(Str::SubString(str, markerstart, markerend - markerstart)), sep);
             index = markerend + Str::Size(endMarker);
         }
-        if (index < Str::Size(str))
-        {
-            expr->AddString(Str::Create(Str::SubString(str, index)));
-        }
+        if (index < Str::Size(str)) { expr->AddString(Str::Create(Str::SubString(str, index))); }
         return expr;
     }
 
@@ -600,10 +572,7 @@ struct BindingContext
         if (expr.binding.size() == 1)
         {
             auto val = _stack.back().get().TryLookupOrNull(*this, expr.binding.back());
-            if (val == nullptr)
-            {
-                return val;
-            }
+            if (val == nullptr) { return val; }
             if (val->GetType() == Type::Object)
             {
                 throw std::logic_error("WTF");
@@ -630,10 +599,7 @@ struct BindingContext
                 scopes.emplace_back(new Scope(*this, ptr.get()));
             }
             val = ptr.get().TryLookupOrNull(*this, *bit);
-            if (val == nullptr)
-            {
-                return nullptr;
-            }
+            if (val == nullptr) { return nullptr; }
         }
 
         return val;
@@ -641,29 +607,24 @@ struct BindingContext
 
     std::shared_ptr<Expression> _EvaluateExpression(Expression const& expr)
     {
-        auto result = expr.Evaluate(
-            [this](BindingExpr const& expr1) -> std::shared_ptr<Expression>
+        auto result = expr.Evaluate([this](BindingExpr const& expr1) -> std::shared_ptr<Expression> {
+            auto value = _TryEvaluateBindingExprOrNull(expr1);
+            if (value == nullptr) { return {}; }
+            switch (value->GetType())
             {
-                auto value = _TryEvaluateBindingExprOrNull(expr1);
-                if (value == nullptr)
-                {
-                    return {};
-                }
-                switch (value->GetType())
-                {
-                case Type::String:
-                {
-                    auto newexpr = std::make_shared<Expression>();
-                    newexpr->AddString(Str::Copy(value->GetString()));
-                    return newexpr;
-                }
-                case Type::Expr: return Expression::Clone(value->GetExpr());
-                case Type::Object:
-                case Type::Array: throw std::logic_error("Expected either string or another expression");
-                default: break;
-                }
-                return {};
-            });
+            case Type::String:
+            {
+                auto newexpr = std::make_shared<Expression>();
+                newexpr->AddString(Str::Copy(value->GetString()));
+                return newexpr;
+            }
+            case Type::Expr: return Expression::Clone(value->GetExpr());
+            case Type::Object:
+            case Type::Array: throw std::logic_error("Expected either string or another expression");
+            default: break;
+            }
+            return {};
+        });
         return result;
     }
 
@@ -799,18 +760,14 @@ struct BindableBase : public IBindable, public ValueT<Type::Object>
         virtual std::shared_ptr<IValue> TryLookupValue(BindingContext& context, Str::View const& key) override
         {
             auto valout = _base->TryLookupOrNull(context, key);
-            if (valout == nullptr)
-            {
-                return valout;
-            }
+            if (valout == nullptr) { return valout; }
             assert(valout->GetType() == Type::Expr);
             auto newexpr = (_obj.*_func)(context, valout->GetExpr());
             return std::make_shared<Value>(std::move(newexpr));
         }
 
         TranformationBindableComponent(std::shared_ptr<BindableBase> base, TObject& obj, TFunc func) : _base(base), _obj(obj), _func(func)
-        {
-        }
+        {}
 
         std::shared_ptr<BindableBase> _base;
         TObject&                      _obj;
@@ -858,14 +815,8 @@ template <typename TParent, typename TObject> struct BindableParent : public vir
         }
         virtual std::shared_ptr<IValue> TryLookupValue(BindingContext& /*context */, Str::View const& key) override
         {
-            if (key == _parent || key == _ownerName)
-            {
-                return this->shared_from_this();
-            }
-            if (key == _objectName)
-            {
-                return this->shared_from_this();
-            }
+            if (key == _parent || key == _ownerName) { return this->shared_from_this(); }
+            if (key == _objectName) { return this->shared_from_this(); }
             return {};
         }
 
@@ -913,10 +864,7 @@ template <typename TOwner, typename TObject> struct BindableObjectArray : public
         virtual Str::Type               ComponentName() override { return Str::Copy(_key); }
         virtual std::shared_ptr<IValue> TryLookupValue(BindingContext& /*context */, Str::View const& key) override
         {
-            if (key == _key)
-            {
-                return this->shared_from_this();
-            }
+            if (key == _key) { return this->shared_from_this(); }
             return {};
         }
 
@@ -1020,8 +968,7 @@ template <typename TOwner, typename TParent = TOwner> struct BindableT : public 
     {
         BindableComponent(const TParent& ptr, Str::Type&& key, std::shared_ptr<IValue::Getter>&& getter) :
             _ptr(ptr), _key(std::move(key)), _getter(std::move(getter))
-        {
-        }
+        {}
         virtual size_t    GetKeyCount() override { return 1; }
         virtual Str::Type GetKeyAt([[maybe_unused]] size_t index) override
         {
@@ -1067,10 +1014,7 @@ template <typename TOwner, typename TParent = TOwner> struct BindableDictionaryT
 {
     BindableDictionaryT(std::shared_ptr<AttributeMap> map)
     {
-        if (map != nullptr)
-        {
-            AddAttributes(map);
-        }
+        if (map != nullptr) { AddAttributes(map); }
     }
     DELETE_COPY_AND_MOVE(BindableDictionaryT);
 
@@ -1080,8 +1024,7 @@ template <typename TOwner, typename TParent = TOwner> struct BindableDictionaryT
         {
             KeyValuePair(Str::Type&& keyIn, std::shared_ptr<Binding::Expression>&& valueIn) :
                 key(std::move(keyIn)), value(std::move(valueIn))
-            {
-            }
+            {}
             Str::Type                            key;
             std::shared_ptr<Binding::Expression> value;
             virtual const Binding::Expression&   GetExpr() override { return *value; }
@@ -1095,10 +1038,7 @@ template <typename TOwner, typename TParent = TOwner> struct BindableDictionaryT
                 assert(!it.second->empty());
                 _values.push_back(std::make_shared<KeyValuePair>(Str::Copy(it.first), Binding::Expression::Clone(it.second)));
             }
-            for (auto& it : _values)
-            {
-                _map[Str::Copy(it->key)] = it;
-            }
+            for (auto& it : _values) { _map[Str::Copy(it->key)] = it; }
         }
         virtual size_t                  GetKeyCount() override { return _values.size(); }
         virtual Str::Type               GetKeyAt(size_t index) override { return Str::Copy(_values[index]->key); }

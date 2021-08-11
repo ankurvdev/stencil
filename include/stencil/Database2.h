@@ -35,12 +35,10 @@ struct BlobDataSizeOutofRange : std::exception
 };
 
 template <typename> struct is_tuple : std::false_type
-{
-};
+{};
 
 template <typename... T> struct is_tuple<std::tuple<T...>> : std::true_type
-{
-};
+{};
 
 struct shared_lock : std::unique_lock<std::shared_mutex>
 {
@@ -102,8 +100,7 @@ template <typename TDb, typename TObj> struct FixedSizeObjTraits
 };
 
 template <typename TDb, typename TObj> struct ObjTraits : FixedSizeObjTraits<TDb, TObj>
-{
-};
+{};
 
 template <typename T> constexpr void VerifyTypeTraits()
 {
@@ -111,10 +108,7 @@ template <typename T> constexpr void VerifyTypeTraits()
     static_assert(T::IsEncrypted() || (!T::IsEncrypted()), "Should define whether the object is encrypted");
     constexpr auto ownership = T::Ownership();
 
-    if constexpr (T::RecordSize() == 0)
-    {
-        static_assert(T::ObjTypeId() > 0xff, "Blob Traits should have typeids > 255");
-    }
+    if constexpr (T::RecordSize() == 0) { static_assert(T::ObjTypeId() > 0xff, "Blob Traits should have typeids > 255"); }
     else
     {
         static_assert(T::RecordSize() < 0xff, "Record size should be less than 255 uint8_ts");
@@ -263,10 +257,7 @@ struct SerDes
         auto offset     = _readFrom->tellg();
         _loadedPages[0] = std::make_unique<Page>();
         _loadedPages[1] = std::make_unique<Page>();
-        if (offset == 0)
-        {
-            return;
-        }
+        if (offset == 0) { return; }
 
         _ReadHeader(_curheader, istream);
         _ReadPage(*_loadedPages[0], 0, istream);
@@ -664,7 +655,7 @@ template <> struct PageForRecord<0> : public PageForRecordInterface
         assert(typeId > 0xff);
         auto logRecordSize = typeId & 0xff;
         assert(logRecordSize < 12);
-        _recordSize = uint64_t{1} << logRecordSize;
+        _recordSize = size_t{1} << logRecordSize;
         switch (logRecordSize)
         {
         default:
@@ -819,10 +810,7 @@ struct PageManager
     impl::PageRuntime& LoadPage(ObjTypeId id, Ref::PageIndex pageIndex)
     {
         auto& page = _pages[pageIndex];
-        if (page != nullptr)
-        {
-            return *page.get();
-        }
+        if (page != nullptr) { return *page.get(); }
 
         page = std::make_unique<impl::PageRuntime>(id, pageIndex);
 
@@ -838,10 +826,7 @@ struct PageManager
         _pageTypes.push_back(objTypeId);
 
         _serdes.WritePage(ptr->_page, ptr->_pageIndex);
-        if (objTypeId != 0)
-        {
-            _RecordJournalEntry(ptr->_pageIndex, objTypeId);
-        }
+        if (objTypeId != 0) { _RecordJournalEntry(ptr->_pageIndex, objTypeId); }
         return *ptr;
     }
 
@@ -860,10 +845,7 @@ struct PageManager
             for (Ref::PageIndex j = 0; j < journal.GetEntryCount(); j++)
             {
                 auto entry = journal.GetJournalEntry(j);
-                if (entry.typeId == 0)
-                {
-                    continue;
-                }
+                if (entry.typeId == 0) { continue; }
                 assert(_pageTypes[entry.pageIndex] == 0);
                 _pageTypes[entry.pageIndex] = entry.typeId;
             }
@@ -949,19 +931,13 @@ template <typename TDb, typename TObj, typename TLock> struct Iterator
 
     auto Get()
     {
-        if (_db == nullptr)
-        {
-            throw Logging::TODOCreateException("Reached the end of iteration");
-        }
+        if (_db == nullptr) { throw Logging::TODOCreateException("Reached the end of iteration"); }
         return this->_db->Get(*this->_lock, this->_current);
     }
 
     void _MoveToValidSlot()
     {
-        if (_db == nullptr)
-        {
-            return;
-        }
+        if (_db == nullptr) { return; }
 
         auto& pi      = _current.page;
         auto& si      = _current.slot;
@@ -972,26 +948,17 @@ template <typename TDb, typename TObj, typename TLock> struct Iterator
             if (pagemgr->GetPageObjTypeId(pi) == 0) continue;
             if constexpr (Traits::RecordSize() == 0)
             {
-                if ((pagemgr->GetPageObjTypeId(pi) & ~(0xffu)) != Traits::TypeId())
-                {
-                    continue;
-                }
+                if ((pagemgr->GetPageObjTypeId(pi) & ~(0xffu)) != Traits::TypeId()) { continue; }
             }
             else
             {
-                if (pagemgr->GetPageObjTypeId(pi) != Traits::TypeId())
-                {
-                    continue;
-                }
+                if (pagemgr->GetPageObjTypeId(pi) != Traits::TypeId()) { continue; }
             }
 
             PageForRecord<Traits::RecordSize()> page = pagemgr->LoadPage(Traits::TypeId(), pi);
             for (; si != page.GetSlotCount(); ++si)
             {
-                if (page.ValidSlot(si))
-                {
-                    return;
-                }
+                if (page.ValidSlot(si)) { return; }
             }
         }
         *this = End();
@@ -1050,8 +1017,7 @@ template <typename TDb, typename TOwner, typename... TObjs> struct RefOwner : Re
 #endif
 
 struct ChildRefMarker
-{
-};
+{};
 
 template <typename TObj> struct ChildRef : ChildRefMarker
 {
@@ -1103,8 +1069,7 @@ template <typename TDb> struct DatabaseT
             _lock(lock),
             _begin{impl::RefAndObjIterator<TDb, TObj, rlock>::Begin(&lock, db)},
             _end{impl::RefAndObjIterator<TDb, TObj, rlock>::End()}
-        {
-        }
+        {}
 
         ONLY_MOVE_CONSTRUCT(RangeForViewT);
 
@@ -1123,8 +1088,7 @@ template <typename TDb> struct DatabaseT
             _lock(lock),
             _begin{impl::RefAndObjIterator<TDb, TObj, wlock>::Begin(&lock, db)},
             _end{impl::RefAndObjIterator<TDb, TObj, wlock>::End()}
-        {
-        }
+        {}
 
         ONLY_MOVE_CONSTRUCT(RangeForEditT);
 
@@ -1161,15 +1125,9 @@ template <typename TDb> struct DatabaseT
         assert(_pagemgr->GetPageCount() > 1);
         for (impl::Ref::PageIndex i = _pagemgr->GetPageCount() - 1u; i > 0; i--)
         {
-            if (_pagemgr->GetPageObjTypeId(i) != typeId)
-            {
-                continue;
-            }
+            if (_pagemgr->GetPageObjTypeId(i) != typeId) { continue; }
             auto& page = _pagemgr->LoadPage(typeId, i);
-            if (!page.As<impl::PageForRecord<TRecordSize>>().Full(lock))
-            {
-                return page;
-            }
+            if (!page.As<impl::PageForRecord<TRecordSize>>().Full(lock)) { return page; }
         }
 
         return _pagemgr->CreateNewPage(typeId);
@@ -1192,10 +1150,7 @@ template <typename TDb> struct DatabaseT
         }
         else
         {
-            if constexpr (LogN > 0x2)
-            {
-                return _AllocateForDataSize<LogN - 1>(dataSize, lock, typeId);
-            }
+            if constexpr (LogN > 0x2) { return _AllocateForDataSize<LogN - 1>(dataSize, lock, typeId); }
             else
             {
                 throw std::logic_error("Not Implemented");
@@ -1230,10 +1185,7 @@ template <typename TDb> struct DatabaseT
     void _FillParent(wlock const& lock, WireT<TObj>& obj, TArg&& arg, TArgs&&... args)
     {
         _FillParent_N<N, TObj>(lock, obj, std::forward<TArg>(arg));
-        if constexpr ((N + 1) < Count)
-        {
-            _FillParent<N + 1, Count, TObj>(lock, obj, std::forward<TArgs>(args)...);
-        }
+        if constexpr ((N + 1) < Count) { _FillParent<N + 1, Count, TObj>(lock, obj, std::forward<TArgs>(args)...); }
     }
 
     template <typename TObj, typename... TArgs> RefAndEditT<TObj> Create(wlock const& lock, TArgs&&... args)
@@ -1354,10 +1306,7 @@ template <typename TDb> struct DatabaseT
             impl::PageForSharedRecord<Traits<TObj>::RecordSize()> page(_pagemgr->LoadPage(TypeId<TObj>(), id.page));
 
             auto refcount = page.Release(lock, id.slot);
-            if (refcount == 0)
-            {
-                _ReleaseChildRefs<TObj>(lock, page.Get(lock, id.slot));
-            }
+            if (refcount == 0) { _ReleaseChildRefs<TObj>(lock, page.Get(lock, id.slot)); }
         }
         else
         {
@@ -1467,12 +1416,10 @@ template <typename TDb, typename TObj> struct OwnerT : public virtual DatabaseT<
 };
 
 template <typename TDb, typename TObj> struct ObjectT
-{
-};
+{};
 
 template <typename TObj> struct EncryptedT
-{
-};
+{};
 }    // namespace Database2
 
 template <typename T> struct ReflectionBase::TypeTraits<Database2::ChildRef<T>&>

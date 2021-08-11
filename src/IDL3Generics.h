@@ -38,8 +38,7 @@ struct AttributeT :    // public std::enable_shared_from_this<AttributeT<TOwner,
         //        _owner(owner),
         _key(std::move(keyIn)),
         _value(std::move(valueIn))
-    {
-    }
+    {}
 
     //    TOwner&                    Parent() const { return _owner; }
     Str::Type                  Key() const { return Str::Copy(_key); }
@@ -232,8 +231,7 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
             _returnType(returnType),
             _owner(owner),
             _fieldType(fieldType)
-        {
-        }
+        {}
         auto                GetId() const { return Str::Create(std::to_wstring(_id)); }
         Binding::IBindable& GetFieldTypeBindable() const { return *_fieldType; }
 
@@ -284,8 +282,7 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
             _owner(owner),
             _fieldType(fieldType)
 
-        {
-        }
+        {}
         auto GetId() const { return Str::Create(std::to_wstring(_id)); }
 
         Binding::IBindable& GetFieldTypeBindable() const { return *_fieldType; }
@@ -335,16 +332,10 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
                 auto category           = GetFieldCategoryStatic<TObject>();
                 auto defaultforcategory = L"default_" + Str::Value(category);
                 auto defbasetype        = owner->TryGetFieldTypeName(Str::Create(defaultforcategory));
-                if (!defbasetype.has_value())
-                {
-                    defbasetype = owner->TryGetFieldTypeName(Str::Create(L"default"));
-                }
+                if (!defbasetype.has_value()) { defbasetype = owner->TryGetFieldTypeName(Str::Create(L"default")); }
                 basetype = defbasetype;
             }
-            if (basetype.has_value())
-            {
-                AddBaseObject(basetype.value());
-            }
+            if (basetype.has_value()) { AddBaseObject(basetype.value()); }
         }
 
         DELETE_COPY_AND_MOVE(FieldType);
@@ -441,8 +432,7 @@ template <typename TOwner, typename TObject> struct StorageIndexT
             Binding::BindableT<StructAttributeFieldValue>(Str::Create(L"Value"), &StructAttributeFieldValue::Value),
             NamedIndexT<FieldAttribute, StructAttributeFieldValue>::NamedObject(owner, std::move(name)),
             _value(std::move(value))
-        {
-        }
+        {}
 
         DELETE_COPY_AND_MOVE(StructAttributeFieldValue);
 
@@ -462,8 +452,7 @@ template <typename TOwner, typename TObject> struct StorageIndexT
 
         FieldAttribute(std::shared_ptr<TObject> owner, Str::Type&& name) :
             NamedIndexT<TObject, FieldAttribute>::NamedObject(owner, std::move(name))
-        {
-        }
+        {}
 
         void AddAttributeForFieldName(Str::Type&& name, std::shared_ptr<Binding::Expression>&& value)
         {
@@ -498,24 +487,17 @@ template <typename TOwner, typename TObject> struct StorageIndexT
             _defaultValue(defaultValue),
             _fieldType(fieldType),
             _map(map)
-        {
-        }
+        {}
 
         Str::Type GetInitialValue() const
         {
-            if (_defaultValue != nullptr)
-            {
-                return _defaultValue->Stringify();
-            }
+            if (_defaultValue != nullptr) { return _defaultValue->Stringify(); }
             Binding::BindingContext context;
             auto                    defval = _fieldType->TryLookupOrNull(context, Str::Create(L"DefaultValue"));
             if (defval != nullptr)
             {
                 assert(defval->GetType() == Binding::Type::String || defval->GetType() == Binding::Type::Expr);
-                if (defval->GetType() == Binding::Type::String)
-                {
-                    return Str::Copy(defval->GetString());
-                }
+                if (defval->GetType() == Binding::Type::String) { return Str::Copy(defval->GetString()); }
                 else
                 {
                     return defval->GetExpr().String();

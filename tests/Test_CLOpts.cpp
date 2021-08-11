@@ -218,10 +218,7 @@ TEST_CASE("CodeGen::CommandLineArgs::CLOptsTest")
     SECTION("Negative: Extrabracket")
     {
 #if defined _WIN32
-        if (IsDebuggerPresent())
-        {
-            return;
-        }
+        if (IsDebuggerPresent()) { return; }
 #endif
 
         REQUIRE_THROWS_MATCHES(ParseArgs<::CLOpts1::CLOptsTest::Data>("test",

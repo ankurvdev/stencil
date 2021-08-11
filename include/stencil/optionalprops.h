@@ -4,8 +4,7 @@
 namespace Stencil
 {
 struct OptionalProps
-{
-};
+{};
 template <typename T> struct OptionalPropsT : OptionalProps
 {
     std::bitset<32> _fieldtracker;
@@ -20,18 +19,12 @@ template <typename T> struct OptionalPropsT : OptionalProps
     template <typename TFieldEnum, typename TField>
     static void OnChangeRequested(T& obj, TFieldEnum fieldType, TField const& /* currentVal */, TField const& /* requestedVal */)
     {
-        if constexpr (std::is_base_of_v<OptionalPropsT<T>, T>)
-        {
-            obj.MarkValid(fieldType);
-        }
+        if constexpr (std::is_base_of_v<OptionalPropsT<T>, T>) { obj.MarkValid(fieldType); }
     }
 
     template <typename TFieldEnum> static bool IsSet(T const& obj, TFieldEnum fieldType)
     {
-        if constexpr (std::is_base_of_v<OptionalPropsT<T>, T>)
-        {
-            return obj.IsValid(fieldType);
-        }
+        if constexpr (std::is_base_of_v<OptionalPropsT<T>, T>) { return obj.IsValid(fieldType); }
         return true;
     }
 };
