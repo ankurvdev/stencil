@@ -11,9 +11,9 @@
 #if defined(_MSC_VER)    // compiling with VisualStudio
 #if defined(EMBEDDED_RESOURCE_EXPORTED_API_IMPL)
 #define EMBEDDED_RESOURCE_EXPORTED_API extern "C" __declspec(dllexport)
-#else()
+#else
 #define EMBEDDED_RESOURCE_EXPORTED_API extern "C" __declspec(dllimport)
-#endif()
+#endif
 #elif defined(__GNUC__)    // compiling with GCC
 #define EMBEDDED_RESOURCE_EXPORTED_API extern "C" __attribute__((visibility("protected")))
 #else

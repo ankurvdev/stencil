@@ -34,13 +34,24 @@ jobs:
   strategy:
     matrix:
       x86_windows_static:
-        Triplet: x86-windows-static
+        ToolTriplet: x86-windows-static
+        RuntimeTriplet: x86-windows-static
         VMImage: 'windows-2019'
       x64_windows_static_md:
-        Triplet: x64-windows-static-md
+        ToolTriplet: x64-windows-static-md
+        RuntimeTriplet: x64-windows-static-md
         VMImage: 'windows-2019'
       x64_linux:
-        Triplet: x64-linux
+        ToolTriplet: x64-linux
+        RuntimeTriplet: x64-linux
+        VMImage: 'ubuntu-20.04'
+      arm64-android-on-windows:
+        ToolTriplet: x86-windows-static
+        RuntimeTriplet: arm64-android
+        VMImage: 'windows-2019'
+      arm-android-on-linux:
+        ToolTriplet: x64-linux
+        RuntimeTriplet: arm-android
         VMImage: 'ubuntu-20.04'
   pool:
     vmImage: $(VMImage)
@@ -56,7 +67,7 @@ jobs:
     - task: PythonScript@0
       inputs:
         scriptPath: $(Build.SourcesDirectory)/ci/build_with_vcpkg.py
-        arguments: --triplet $(Triplet) --workdir vcpkg-build
+        arguments: --tool-triplet $(ToolTriplet) --runtime-triplet $(RuntimeTriplet) --workdir vcpkg-build
 
 - job: Build_VS2019
   strategy:
