@@ -5,7 +5,9 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <string>
 #include <string_view>
+#include <vector>
 
 static std::string FilePathToSym(std::filesystem::path filepath)
 {

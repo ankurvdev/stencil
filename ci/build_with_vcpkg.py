@@ -7,7 +7,7 @@ import sys
 
 parser = argparse.ArgumentParser(description="Test VCPKG Workflow")
 parser.add_argument("--workdir", type=str, default=".", help="Root")
-parser.add_argument("--tool-triplet", type=str, default=None, help="Triplet")
+parser.add_argument("--host-triplet", type=str, default=None, help="Triplet")
 parser.add_argument("--runtime-triplet", type=str, default=None, help="Triplet")
 args = parser.parse_args()
 workdir = os.path.abspath(args.workdir)
@@ -21,26 +21,26 @@ if not os.path.exists(vcpkgroot):
 scriptdir = os.path.abspath(os.path.dirname(__file__))
 bootstrapscript = "bootstrap-vcpkg.bat" if sys.platform == "win32" else "bootstrap-vcpkg.sh"
 defaulttriplet = "x64-windows-static" if sys.platform == "win32" else "x64-linux"
-tool_triplet = args.tool_triplet or defaulttriplet
+host_triplet = args.host_triplet or defaulttriplet
 runtime_triplet = args.runtime_triplet or defaulttriplet
 
 myenv = os.environ.copy()
 myenv['VCPKG_OVERLAY_PORTS'] = os.path.join(scriptdir, 'vcpkg-additional-ports')
 myenv['VCPKG_KEEP_ENV_VARS'] = 'VCPKG_USE_STENCIL_SRC_DIR;ANDROID_NDK_HOME'
 myenv['VCPKG_USE_STENCIL_SRC_DIR'] = os.path.dirname(os.path.dirname(__file__))
-if "android" in tool_triplet or "android" in runtime_triplet:
+if "android" in host_triplet or "android" in runtime_triplet:
     import download_android_sdk
     paths = download_android_sdk.DownloadTo(os.path.join(workdir, "android"))
     myenv['ANDROID_NDK_HOME'] = paths['ndk']
 
 subprocess.check_call(os.path.join("vcpkg", bootstrapscript), shell=True, cwd=workdir, env=myenv)
 vcpkgexe = shutil.which("vcpkg", path=vcpkgroot)
-subprocess.check_call([vcpkgexe, "install", "stencil:" + tool_triplet], env=myenv)
+subprocess.check_call([vcpkgexe, "install", "stencil:" + host_triplet], env=myenv)
 subprocess.check_call([vcpkgexe, "install", "stencil:" + runtime_triplet], env=myenv)
 
 
-def TestVcpkgBuild(config):
-    testdir = os.path.join(workdir, "Test-" + config)
+def TestVcpkgBuild(config, runtime_triplet):
+    testdir = os.path.join(workdir, f"{runtime_triplet}_Test_{config}")
     if os.path.exists(testdir):
         shutil.rmtree(testdir)
     os.makedirs(testdir)
@@ -50,12 +50,14 @@ def TestVcpkgBuild(config):
         cmakeconfigargs += [
             "-DCMAKE_TOOLCHAIN_FILE:PATH=" + myenv['ANDROID_NDK_HOME'] + "/build/cmake/android.toolchain.cmake",
             "-DANDROID=1",
-            "-DANDROID_NATIVE_API_LEVEL=21"
+            "-DANDROID_NATIVE_API_LEVEL=21",
+            "-G", "Ninja"
         ]
     ctestextraargs = (["-C", config] if sys.platform == "win32" else [])
     subprocess.check_call(["cmake",
                            "-DCMAKE_BUILD_TYPE=" + config,
                            "-DVCPKG_ROOT:PATH=" + vcpkgroot,
+                           "-DVCPKG_HOST_TRIPLET=" + host_triplet,
                            "-DVCPKG_TARGET_TRIPLET=" + runtime_triplet,
                            "-DVCPKG_VERBOSE:BOOL=ON"] + cmakeconfigargs + [
         os.path.join(scriptdir, "sample")], cwd=testdir)
@@ -63,5 +65,5 @@ def TestVcpkgBuild(config):
     subprocess.check_call(["ctest", "."] + ctestextraargs, cwd=testdir)
 
 
-TestVcpkgBuild("Debug")
-TestVcpkgBuild("Release")
+TestVcpkgBuild("Debug", runtime_triplet)
+TestVcpkgBuild("Release", runtime_triplet)
