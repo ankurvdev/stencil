@@ -51,8 +51,10 @@ def TestVcpkgBuild(config, host_triplet, runtime_triplet):
             "-DCMAKE_TOOLCHAIN_FILE:PATH=" + myenv['ANDROID_NDK_HOME'] + "/build/cmake/android.toolchain.cmake",
             "-DANDROID=1",
             "-DANDROID_NATIVE_API_LEVEL=21",
-            "-G", "Ninja"
         ]
+        if sys.platform == "win32":
+            cmakeconfigargs += ["-G", "Ninja"]
+
     ctestextraargs = (["-C", config] if sys.platform == "win32" else [])
     subprocess.check_call(["cmake",
                            "-DCMAKE_BUILD_TYPE=" + config,
