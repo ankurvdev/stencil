@@ -260,14 +260,6 @@ template <> struct ValueTraits<std::chrono::time_point<std::chrono::system_clock
     static auto           Get(Value const& obj) { return time_point(time_point::duration(obj._iVal)); }
 };
 
-template <> struct ValueTraits<std::chrono::time_point<std::chrono::system_clock>>
-{
-    using time_point = std::chrono::time_point<std::chrono::system_clock>;
-    static constexpr auto ValueType() { return Value::Type::Signed; }
-    static void           Assign(Value& obj, time_point& val) { obj._iVal = val.time_since_epoch().count(); }
-    static auto           Get(Value const& obj) { return time_point(time_point::duration(obj._iVal)); }
-};
-
 inline Value::operator ::size_t() const
 {
     _check(ValueTraits<uint64_t>::ValueType());
