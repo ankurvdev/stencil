@@ -1,11 +1,8 @@
-if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/use_source_path)
-    file(READ ${CMAKE_CURRENT_LIST_DIR}/use_source_path srcpath)
-    string(STRIP ${srcpath} srcpath)
-    get_filename_component(VCPKG_USE_STENCIL_SRC_DIR ${srcpath} ABSOLUTE)
-    set(SOURCE_PATH ${srcpath})
-elseif (EXISTS ${CMAKE_CURRENT_LIST_DIR}/use_git)
-    file(READ ${CMAKE_CURRENT_LIST_DIR}/use_git gitinfo)
-    string(STRIP "${gitinfo}" gitinfo)
+if (DEFINED ENV{VCPKG_USE_STENCIL_SRC_DIR} AND EXISTS "$ENV{VCPKG_USE_STENCIL_SRC_DIR}")
+    get_filename_component(srcpath "$ENV{VCPKG_USE_STENCIL_SRC_DIR}" ABSOLUTE)
+    set(SOURCE_PATH "${srcpath}")
+elseif (DEFINED ENV{VCPKG_USE_STENCIL_GIT_REPO} AND NOT "$ENV{VCPKG_USE_STENCIL_GIT_REPO}" STREQUAL "")
+    set(gitinfo "$ENV{VCPKG_USE_STENCIL_GIT_REPO}")
     list(GET gitinfo 0 giturl)
     list(GET gitinfo 1 commitId)
     vcpkg_from_git(
@@ -22,6 +19,12 @@ else()
         REF ${commitId}
         SHA512 ${sha512}
         HEAD_REF master)
+endif()
+# Dont use these these are older version
+#vcpkg_find_acquire_program(FLEX)
+#vcpkg_find_acquire_program(BISON)
+if(NOT TARGET_TRIPLET STREQUAL HOST_TRIPLET)
+    vcpkg_add_to_path(PREPEND "${CURRENT_HOST_INSTALLED_DIR}/tools")
 endif()
 
 vcpkg_configure_cmake(
