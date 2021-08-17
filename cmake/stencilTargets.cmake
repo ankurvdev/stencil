@@ -100,7 +100,8 @@ function(target_add_stencil target)
                DEPENDS ${STENCIL_EXECUTABLE} ${inputs}
                COMMENT "Generating IDL code :  ${STENCIL_EXECUTABLE} --outdir=${outdir} ${ARGN}"
                VERBATIM)
-    find_path(stencil_INCLUDE_PATH "stencil/stencil.h" REQUIRED HINTS ${stencil_dir}/../include)
+    find_path(stencil_INCLUDE_PATH "stencil/stencil.h" REQUIRED)
+    set(stencil_INCLUDE_PATH "${stencil_INCLUDE_PATH}" CACHE PATH "Stencil include path")
     target_include_directories(${target} PUBLIC ${stencil_INCLUDE_PATH})
     target_include_directories(${target} PUBLIC ${outdir} )
     target_sources(${target} PRIVATE ${inputs} ${outputs})
