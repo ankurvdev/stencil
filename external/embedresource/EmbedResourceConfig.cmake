@@ -6,7 +6,7 @@ function(build_embedresource)
     endif()
     add_executable(embedresource ${EmbedResource_DIR}/embedresource.cpp)
     set_target_properties(embedresource PROPERTIES PUBLIC_HEADER "${EmbedResource_DIR}/EmbeddedResource.h")
-    set(EMBEDRESOURCE_INCLUDE_DIR ${EmbedResource_DIR} CACHE PATH "Embed Resource Include Dir" FORCE)
+    set(EMBEDRESOURCE_INCLUDE_DIR ${EmbedResource_DIR} CACHE PATH "Embed Resource Include Dir")
 endfunction()
 
 function(find_or_build)
@@ -23,7 +23,7 @@ function(find_or_build)
 
     if((EXISTS ${EMBEDRESOURCE_EXECUTABLE}) AND (EXISTS ${header}))
         get_filename_component(headerdir ${header} DIRECTORY)
-        set(EMBEDRESOURCE_INCLUDE_DIR ${headerdir} CACHE PATH "Embed Resource Include Dir" FORCE)
+        set(EMBEDRESOURCE_INCLUDE_DIR ${headerdir} CACHE PATH "Embed Resource Include Dir")
         return()
     endif()
 
@@ -35,7 +35,7 @@ function(find_or_build)
         message(FATAL_ERROR "Cannot find embedresource header at  ${EmbedResource_DIR}")
     endif()
 
-    set(EMBEDRESOURCE_INCLUDE_DIR ${EmbedResource_DIR} CACHE PATH "Embed Resource Include Dir" FORCE)
+    set(EMBEDRESOURCE_INCLUDE_DIR ${EmbedResource_DIR} CACHE PATH "Embed Resource Include Dir")
 
     build_embedresource()
 endfunction()
@@ -67,5 +67,5 @@ function(target_add_resource target name)
     endif()
 
     target_sources(${target} PRIVATE ${out_f})
-    target_include_directories(${target} PRIVATE ${EMBEDRESOURCE_INCLUDE_DIR})
+    target_include_directories(${target} PRIVATE "${EMBEDRESOURCE_INCLUDE_DIR}")
 endfunction()

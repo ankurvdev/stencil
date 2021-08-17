@@ -79,6 +79,7 @@ macro(EnableStrictCompilation)
             -g
             -fPIC
             -Wl,--exclude-libs,ALL
+            -Wno-unused-command-line-argument
             -fvisibility=hidden
             -Wall   # Enable all errors
             -Werror     # All warnings as errors
@@ -97,7 +98,6 @@ macro(EnableStrictCompilation)
         list(APPEND extracxxflags
             #suppression list
             -Wno-ctad-maybe-unsupported
-            -Wno-unused-command-line-argument
             -Wno-unknown-argument
             -Wno-unknown-pragmas
             -Wno-unknown-warning
