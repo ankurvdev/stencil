@@ -10,7 +10,7 @@
 #include <functional>
 #include <span>
 
-static void RecordTrafficAdd(Avid::Traffic::Data& data, std::filesystem::path const& recordlog, char hexaddr)
+static void RecordTrafficAdd(Avid::Traffic::Data& data, std::filesystem::path const& recordlog, uint8_t hexaddr)
 {
     Stencil::FileTransactionRecorder<Avid::Traffic::Data> recorder(recordlog);
 
@@ -29,7 +29,7 @@ static void RecordTrafficRemoveIndex(Avid::Traffic::Data& data, std::filesystem:
     recorder.Start(data).remove_aircrafts(size_t{index});
 }
 
-static void RecordTrafficEdit(Avid::Traffic::Data& data, std::filesystem::path const& recordlog, char hexaddr)
+static void RecordTrafficEdit(Avid::Traffic::Data& data, std::filesystem::path const& recordlog, uint8_t hexaddr)
 {
     Stencil::FileTransactionRecorder<Avid::Traffic::Data> recorder(recordlog);
 
@@ -126,7 +126,7 @@ TEST_CASE("DataRecorder", "[DataRecorder]")
             replay.Start();
             replay.Wait(1);
             REQUIRE(replay.Get<Avid::Traffic::Data>().aircrafts().size() == 1);
-            REQUIRE(replay.Get<Avid::Traffic::Data>().aircrafts().at(0).hexaddr().at(0) == 1);
+            REQUIRE(replay.Get<Avid::Traffic::Data>().aircrafts().at(0).hexaddr().at(0) == 1u);
         }
     }
 
@@ -141,8 +141,8 @@ TEST_CASE("DataRecorder", "[DataRecorder]")
             replay.Start();
             replay.Wait(2);
             REQUIRE(replay.Get<Avid::Traffic::Data>().aircrafts().size() == 2);
-            REQUIRE(replay.Get<Avid::Traffic::Data>().aircrafts().at(0).hexaddr().at(0) == 1);
-            REQUIRE(replay.Get<Avid::Traffic::Data>().aircrafts().at(1).hexaddr().at(0) == 2);
+            REQUIRE(replay.Get<Avid::Traffic::Data>().aircrafts().at(0).hexaddr().at(0) == 1u);
+            REQUIRE(replay.Get<Avid::Traffic::Data>().aircrafts().at(1).hexaddr().at(0) == 2u);
         }
 
         RecordTrafficRemoveIndex(data, recordlog, 0);
@@ -153,7 +153,7 @@ TEST_CASE("DataRecorder", "[DataRecorder]")
                 replay.Start();
                 replay.Wait(3);
                 REQUIRE(replay.Get<Avid::Traffic::Data>().aircrafts().size() == 1);
-                REQUIRE(replay.Get<Avid::Traffic::Data>().aircrafts().at(0).hexaddr().at(0) == 2);
+                REQUIRE(replay.Get<Avid::Traffic::Data>().aircrafts().at(0).hexaddr().at(0) == 2u);
             }
         }
     }
@@ -170,7 +170,7 @@ TEST_CASE("DataRecorder", "[DataRecorder]")
             replay.Start();
             replay.Wait(3);
             REQUIRE(replay.Get<Avid::Traffic::Data>().aircrafts().size() == 2);
-            REQUIRE(replay.Get<Avid::Traffic::Data>().aircrafts().at(0).hexaddr().at(0) == 3);
+            REQUIRE(replay.Get<Avid::Traffic::Data>().aircrafts().at(0).hexaddr().at(0) == 3u);
         }
     }
 

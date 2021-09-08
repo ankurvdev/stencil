@@ -21,7 +21,7 @@ struct Aircraft
 {
     timestamp   seen;
     uint32      addr;       /* ICAO address */
-    char[7]     hexaddr; /* Printable ICAO address */
+    uint8[7]    hexaddr; /* Printable ICAO address */
     char[9]     flight;  /* Flight number */
     int32       altitude;
     int32       groundSpeed;
