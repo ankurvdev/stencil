@@ -579,24 +579,24 @@ struct Data :
 #if 0
 #endif
     private:
-    std::array<char, 7> _hexaddr = {};
+    std::array<uint8_t, 7> _hexaddr = {};
 
     public:
-    std::array<char, 7>&       hexaddr() { return _hexaddr; }
-    const std::array<char, 7>& hexaddr() const { return _hexaddr; }
-    void                            hexaddr(std::array<char, 7>&& val) { _hexaddr = std::move(val); }
-    std::array<char, 7>&       get_hexaddr() { return _hexaddr; }
+    std::array<uint8_t, 7>&       hexaddr() { return _hexaddr; }
+    const std::array<uint8_t, 7>& hexaddr() const { return _hexaddr; }
+    void                            hexaddr(std::array<uint8_t, 7>&& val) { _hexaddr = std::move(val); }
+    std::array<uint8_t, 7>&       get_hexaddr() { return _hexaddr; }
 
     bool isset_hexaddr() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::hexaddr); }
 
-    void set_hexaddr(std::array<char, 7>&& val)
+    void set_hexaddr(std::array<uint8_t, 7>&& val)
     {
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::hexaddr, _hexaddr, val);
         _hexaddr = std::move(val);
     }
 
 #if 0
-    char at_hexaddr(size_t const& args) const;
+    uint8_t at_hexaddr(size_t const& args) const;
 #endif
     private:
     std::array<char, 9> _flight = {};
@@ -2175,7 +2175,7 @@ template <> struct ReflectionBase::TypeTraits<Avid::Aircraft::Data&>
     struct Traits_hexaddr
     {
         using TOwner     = Avid::Aircraft::Data;
-        using TFieldType = std::array<char, 7>;
+        using TFieldType = std::array<uint8_t, 7>;
 
         static constexpr std::string_view Name() { return "hexaddr"; }
 
@@ -2516,7 +2516,7 @@ struct Stencil::Transaction<Avid::Aircraft::Data> : Stencil::TransactionT<Avid::
 
     Transaction<timestamp> _subtracker_seen;
     Transaction<uint32_t> _subtracker_addr;
-    Transaction<std::array<char, 7>> _subtracker_hexaddr;
+    Transaction<std::array<uint8_t, 7>> _subtracker_hexaddr;
     Transaction<std::array<char, 9>> _subtracker_flight;
     Transaction<int32_t> _subtracker_altitude;
     Transaction<int32_t> _subtracker_groundSpeed;
@@ -2633,7 +2633,7 @@ struct Stencil::Transaction<Avid::Aircraft::Data> : Stencil::TransactionT<Avid::
         Obj().set_addr(std::move(val));
     }
 
-    void set_hexaddr(std::array<char, 7>&& val)
+    void set_hexaddr(std::array<uint8_t, 7>&& val)
     {
         OnStructFieldChangeRequested(TData::FieldIndex::hexaddr, Obj().hexaddr(), val);
         Obj().set_hexaddr(std::move(val));
