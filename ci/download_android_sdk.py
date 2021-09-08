@@ -83,10 +83,12 @@ def GetBinary(binname, bindir):
 
 def AcceptSDKLicenses(path):
     sdkpath = os.path.join(path, 'sdk')
-    proc = subprocess.Popen([GetBinary('sdkmanager', path), f"--sdk_root={sdkpath}", '--licenses'], stdin=subprocess.PIPE)
+    cmd = [GetBinary('sdkmanager', path), f"--sdk_root={sdkpath}", '--licenses']
+    sys.stderr.write(" ".join(cmd) + "\n")
+    proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     while proc.poll() is None:
         time.sleep(1)
-        proc.communicate(input=b'y\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\n')
+        proc.communicate(input=b'y\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\n')
 
 
 def AddToPath(dir):
@@ -173,7 +175,7 @@ def DownloadTo(path: str):
     }
     if not IsNeeded(): return retval
     cmd = [sdkmanager, f"--sdk_root={sdkpath}"] + packages
-    print(" ".join(cmd))
+    sys.stderr.write(" ".join(cmd) + "\n")
     subprocess.check_call(cmd)
     AcceptSDKLicenses(path)
     return retval
