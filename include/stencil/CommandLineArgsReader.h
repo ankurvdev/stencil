@@ -14,10 +14,21 @@ struct CommandLineArgsReader
             std::stringstream ss;
             ss << "Error processing args : " << msg << std::endl;
 
-            for (size_t i = std::max(size_t{3u}, index) - 3; i < index && i < args.size(); i++) { ss << args[i] << " "; }
+            for (size_t i = std::max(size_t{3u}, index) - 3; i < index && i < args.size(); i++)
+            {
+                ss.write(args[i].data(), static_cast<std::streamsize>(args[i].size()));
+                ss << " ";
+            }
 
-            ss << std::endl << " ==> " << args[index] << " <== " << std::endl;
-            for (size_t i = index; i < 3 && i < args.size(); i++) { ss << args[i] << " "; }
+            ss << std::endl;
+            ss << " ==> ";
+            ss.write(args[index].data(), static_cast<std::streamsize>(args[index].size()));
+            ss << " <== " << std::endl;
+            for (size_t i = index; i < 3 && i < args.size(); i++)
+            {
+                ss.write(args[i].data(), static_cast<std::streamsize>(args[i].size()));
+                ss << " ";
+            }
             _message = ss.str();
         }
 
@@ -290,7 +301,7 @@ struct CommandLineArgsReader
 
             if (bracketCount > 0)
             {
-                accumulation << arg;
+                accumulation.write(arg.data(), static_cast<std::streamsize>(arg.size()));
                 continue;
             }
 

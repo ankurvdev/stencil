@@ -68,8 +68,9 @@ struct ResourceFileManager
             {
                 auto          path = std::filesystem::current_path() / (prefix + name);
                 std::ofstream f(path);
+                auto const&   str = r.string();
                 if (!f.is_open()) { throw std::runtime_error("Cannot write resource file : " + path.string()); }
-                f << r.string();
+                f << str;
                 f.close();
                 _openedfiles[name] = path;
                 return path;

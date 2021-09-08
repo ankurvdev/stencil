@@ -138,7 +138,7 @@ struct Json
             else
                 first = false;
 
-            ss << "\"" << Writer<decltype(key)>::Stringify(key) << "\":";
+            ss << Writer<decltype(key)>::Stringify(key) << ":";
             ss << Writer<std::remove_cvref_t<decltype(value)>>::Stringify(value);
         });
 
@@ -210,9 +210,20 @@ struct Json
         }
     };
 
+    template <size_t N> struct Writer<std::array<char, N>>
+    {
+        static std::string Stringify(const std::array<char, N>& obj)
+        {
+            auto str  = std::string(obj);
+            auto term = str.find(char{0}, 0);
+            if (term != std::string::npos) { str.resize(term); }
+            return "\"" + str + "\"";
+        }
+    };
+
     template <size_t N> struct Writer<char const (&)[N]>
     {
-        static std::string Stringify(char const (&obj)[N]) { return std::string(obj); }
+        static std::string Stringify(char const (&obj)[N]) { return "\"" + std::string(obj) + "\""; }
     };
 
     template <typename T> struct Writer<T, std::enable_if_t<Value::Supported<T>::value>>
