@@ -174,9 +174,22 @@ template <typename T> struct VisitorT
             auto  cptr  = const_cast<void*>(state.Ptr);    // Shhh... Thats ok.
             return state.Handler->ValueHandler()->Write(cptr, val);
         }
-
+        case ReflectionBase::DataType::List:    // Could be a string => (char list)
+        {
+            if (val.GetType() != Value::Type::String) break;
+            shared_string str     = val;
+            auto&         state   = _stack.back();
+            auto          cptr    = const_cast<void*>(state.Ptr);    // Shhh... Thats ok.
+            auto          handler = state.Handler->ListHandler();
+            for (size_t i = 0; i < str.size(); i++)
+            {
+                ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::List>::SubComponent sub;
+                if (!handler->TryGetSubComponent(cptr, Value{i}, sub)) { break; }
+                sub.handler->ValueHandler()->Write(sub.ptr, Value{str.at(i)});
+            }
+            return;
+        }
         case ReflectionBase::DataType::Object: [[fallthrough]];
-        case ReflectionBase::DataType::List: [[fallthrough]];
         case ReflectionBase::DataType::Invalid: [[fallthrough]];
         case ReflectionBase::DataType::Unknown: break;
         }
