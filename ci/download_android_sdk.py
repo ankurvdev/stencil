@@ -69,7 +69,7 @@ def MoveUp(dir):
 
 
 def GetBinary(binname, bindir):
-    exe = shutil.which(binname)
+    exe = None # shutil.which(binname)
     if exe is not None:
         if sys.platform == "win32" and os.path.basename(os.path.dirname(exe)) != "system32":
             return exe
@@ -82,7 +82,8 @@ def GetBinary(binname, bindir):
 
 
 def AcceptSDKLicenses(path):
-    proc = subprocess.Popen([GetBinary('sdkmanager', path), f"--sdk_root={path}", '--licenses'], stdin=subprocess.PIPE)
+    sdkpath = os.path.join(path, 'sdk')
+    proc = subprocess.Popen([GetBinary('sdkmanager', path), f"--sdk_root={sdkpath}", '--licenses'], stdin=subprocess.PIPE)
     while proc.poll() is None:
         time.sleep(1)
         proc.communicate(input=b'y\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\n')
@@ -149,6 +150,8 @@ def DownloadJava(path):
 def GetJava(path):
     return GetBinary('java', path) or DownloadJava(path) or GetBinary('java', path)
 
+def GetJarSigner(path):
+    return GetBinary('jarsigner', path) or DownloadJava(path) or GetBinary('jarsigner', path)
 
 def DownloadTo(path: str):
     java = GetJava(path)
@@ -164,7 +167,7 @@ def DownloadTo(path: str):
             if not p.split(';')[0] in dirs: return True
         return False
     retval = {
-        "ndk": os.path.abspath(os.path.join(path, "ndk-bundle")),
+        "ndk": os.path.abspath(os.path.join(sdkpath, "ndk-bundle")),
         "java_home": os.path.dirname(os.path.dirname(java)),
         "sdk_root": sdkpath
     }
@@ -172,6 +175,7 @@ def DownloadTo(path: str):
     cmd = [sdkmanager, f"--sdk_root={sdkpath}"] + packages
     print(" ".join(cmd))
     subprocess.check_call(cmd)
+    AcceptSDKLicenses(path)
     return retval
 
 
