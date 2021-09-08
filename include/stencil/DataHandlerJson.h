@@ -214,7 +214,7 @@ struct Json
     {
         static std::string Stringify(const std::array<char, N>& obj)
         {
-            auto str  = std::string(obj);
+            auto str  = std::string(obj.data(), obj.size());
             auto term = str.find(char{0}, 0);
             if (term != std::string::npos) { str.resize(term); }
             return "\"" + str + "\"";
