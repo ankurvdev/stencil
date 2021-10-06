@@ -5,54 +5,33 @@
 A code generation tool that is inspired by [Model-Template-View](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93viewmodel) architectural patterns that involve Data-Binding.
 The tool in its bare-bones form can take as input: 
 1. An IDL representation of interfaces and structs (Model)
-2. Native Type and container mappings (Template)
+2. Native Type and container mappings (Type Declarations)
 3. Templates for binding the Data-Structs and API-Interfaces (Template)
+
+![](docs/overview.png)
 
 And generate code (View) thats based on replication and substitution of bindable expression in the templates (data-binding)
 
+Includes (optional) built-in templates for some real-world usage scenarios, like json-parsing, tabular-data-storage, command-line-args etc.
 
-To allow for a more practical usage a set of built-in templates are provided along with a runtime (C++20 header-only) that relies on code-generated compile time reflection to enable certain practical real-world usages.
-
-# Philosophy and design principles
-
-The code generation tool in its bare-form tries to stick to the follow design principles
-* Language independent codegen, to allow for potentially generating other languages
-  - Currently C++ support only (Builtin)
-* Modular parsing of input formats into their in-memory representation to allow extensible and varied input format for each input category
-  - Currently supported formats and parsers
-    - IDL : Custom [Thrift](https://en.wikipedia.org/wiki/Apache_Thrift)-like IDL 
-    - Templates : C++ code (Intellisense available) with HTML-Markup in line-comments and distinct variables naming schema for binding declarations. XML as the parsing engine
-    - Type-Mappings : YAML
-* Model-Template-View 
-  - Model : IDL 
-  - Template : Code-Template + Type-Mapping
-  - View : Generated Code
-* Declarative (Binding-only) templates, no loops or algorithmic generation codification in templates
-* Allow for complete bypass of all Built-in layers (Templates and Type-mapping) with full-barebone usage of the core engine
-  - Templates and Mappings can be loaded from user specified directories at runtime
-  - No loadings of builtin templates and mappings
-* Provide Built-in template + mapping support for most common scenarios for easier out-of-box experience
-* Cross platform C++
-* Easy build system integration. (CMake included)
-
-# Built-In Template and Out-of-box supported scenarios
+# (Optional) Built-In Templates and scenarios
 
 THe built-in templates generate compile time reflection of structs and interface that along with a header-only runtime make possible the following core usage scenarios 
 
-* JSON Data-Serialization/Deserialization
+* JSON Data-Serialization/Deserialization (Built upon nlohmann-json)
 * Command Line Args parsing for CLI Tools with auto help generation
-* Data Storage : MySQL (Broken currently)
-* Data Storage : Records + PageTables (FixedSize, Blobs)
-* Web-Service : C++ based REST HTTP Web-service (JSON) based on IDL interface definition. 
+* Data Storage CRUD (Sqlite object model) (TODO: Broken currently)
+* Data Storage CRUD (Custom Paged Tabular Records) (FixedSize, Blobs)
+* Web-Service : C++ based REST HTTP Web-service (JSON) based on IDL interface definition. (using cpp-httplib)
 
 Along with certain supplemental functionalities
 * Data Recording and replay along with delta-binary patching of objects.
 * Property Change Event notifcations and listeners
 
-The built-in functionalities follow the listed design principles: 
+The built-in functionalities follow the design principles: 
 
-* Pay for what you use. So if you want simply JSON Parsing functionality to simply populate your struct members based on inputs json string. That is as lean as it can be, with no hit from other core or supplemental features
-* Dont care about compile-times. 
+* Pay for what you use. No runtime compute/memory impact from unused features
+* Dont care about compile-times
 * Header only to allow for easier build integration and portability
 * The templates generate highly reusable compile-time reflection metadata that the header-only runtime uses for providing the requested functionality by integration with the popular corresponding framework (JSON -> nlohmann-json, Web-Service -> cpp-httplib) 
 * One liner integrations for most common scenarios.
@@ -60,11 +39,11 @@ The built-in functionalities follow the listed design principles:
 * Cross platform Runtime header generation: Tested for Windows, Linux, RaspberryPi's, Android, with Clang, GCC, MSVC
 * No compiler warnings with Wall, WEverything, Wextra pedantic pedantic-errors etc on either 32 bit or 64 bit platforms.
 
-# Examples (Built-in templates)
+## Examples (Built-in templates)
 
 The following code usage examples demonstrate how to use the builtin templates for each use-case
 
-## Serialization / Deserialization
+### Serialization / Deserialization
 
 * JSON Input and Output
 * Command Line Arg parsing and help generation
@@ -111,7 +90,7 @@ int main(int arg, char* argv[])
 
 ```
 
-# Data Storage
+### Data Storage CRUD 
 
 IDL example
 ```
@@ -154,7 +133,7 @@ int main(int argc, char *argv[])
 }
 ```
 
-# REST based Web-Service(JSON)
+### REST based Web-Service(JSON)
 IDL example (Service.pidl)
 ```
 
@@ -204,3 +183,25 @@ To either support a new code generation langauage or to support additional scena
 ## Code Templates
 
 ## Native Types
+
+# Philosophy and design principles
+
+The code generation tool in its bare-form tries to stick to the follow design principles
+* Language independent codegen, to allow for potentially generating other languages
+  - Currently C++ support only (Builtin)
+* Modular parsing of input formats into their in-memory representation to allow extensible and varied input format for each input category
+  - Currently supported formats and parsers
+    - IDL : Custom [Thrift](https://en.wikipedia.org/wiki/Apache_Thrift)-like IDL 
+    - Templates : C++ code (Intellisense available) with HTML-Markup in line-comments and distinct variables naming schema for binding declarations. XML as the parsing engine
+    - Type-Mappings : YAML
+* Model-Template-View 
+  - Model : IDL 
+  - Template : Code-Template + Type-Mapping
+  - View : Generated Code
+* Declarative (Binding-only) templates, no loops or algorithmic generation codification in templates
+* Allow for complete bypass of all Built-in layers (Templates and Type-mapping) with full-barebone usage of the core engine
+  - Templates and Mappings can be loaded from user specified directories at runtime
+  - No loadings of builtin templates and mappings
+* Provide Built-in template + mapping support for most common scenarios for easier out-of-box experience
+* Cross platform C++
+* Easy build system integration. (CMake included)
