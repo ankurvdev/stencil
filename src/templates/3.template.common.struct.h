@@ -458,6 +458,33 @@ struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz::Data> : Stencil::
         _subtracker_zzNamezz(Obj().zzNamezz(), rec)
     //</Field>
     {}
+    //<Field>
+    auto& zzNamezz() { return _subtracker_zzNamezz; }
+    //</Field>
+
+    template <typename TLambda> void Visit(std::string_view const& fieldName, TLambda&& lambda) const
+    {
+        //<Field>
+        if (fieldName == "zzNamezz")
+        {
+            lambda(_subtracker_zzNamezz);
+            return;
+        }
+        //</Field>
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
+
+    template <typename TLambda> void Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        //<Field>
+        if (fieldName == "zzNamezz")
+        {
+            lambda(_subtracker_zzNamezz);
+            return;
+        }
+        //</Field>
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
 
     template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
     {

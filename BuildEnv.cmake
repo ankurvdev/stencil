@@ -81,8 +81,6 @@ macro(EnableStrictCompilation)
             -g
             -fPIC
             -Wl,--exclude-libs,ALL
-            -Wno-unused-command-line-argument
-            -Wno-c99-extensions
             -fvisibility=hidden
             -Wall   # Enable all errors
             -Werror     # All warnings as errors
@@ -96,24 +94,29 @@ macro(EnableStrictCompilation)
             -fvisibility-inlines-hidden
         )
         if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL Clang)
-            list(APPEND extraflags -Weverything)
+            list(APPEND extraflags
+                -Weverything
+                -Wno-weak-vtables # Virtual Classes will actually be virtual
+                -Wno-return-std-move-in-c++11 # Rely on guaranteed copy ellisioning
+                -Wno-c++98-c++11-c++14-compat
+                -Wno-documentation-unknown-command
+                -Wno-covered-switch-default
+                -Wno-documentation
+                -Wno-unknown-warning-option
+                -Wno-unknown-warning
+                -Wno-unknown-argument
+                -Wno-c99-extensions
+                -Wno-unused-command-line-argument
+                -Wno-c++98-compat # Dont care about c++98 compatibility
+                -Wno-c++98-compat-pedantic
+                )
         endif()
+
         list(APPEND extracxxflags
             #suppression list
             -Wno-ctad-maybe-unsupported
-            -Wno-unknown-argument
             -Wno-unknown-pragmas
-            -Wno-unknown-warning
-            -Wno-unknown-warning-option
-            -Wno-documentation
-            -Wno-covered-switch-default
-            -Wno-documentation-unknown-command
-            -Wno-c++98-compat # Dont care about c++98 compatibility
-            -Wno-c++98-compat-pedantic
-            -Wno-c++98-c++11-c++14-compat
             -Wno-padded # Dont care about auto padding
-            -Wno-return-std-move-in-c++11 # Rely on guaranteed copy ellisioning
-            -Wno-weak-vtables # Virtual Classes will actually be virtual
         )
 
         set(exclusions "[-/]W[a-zA-Z1-9]+")
@@ -141,8 +144,8 @@ macro(EnableStrictCompilation)
         endif()
     endif()
     set(STRICT_COMPILATION_MODE ${filetime} CACHE INTERNAL "Is Strict Compilation mode enabled" FORCE)
-    if (EXISTS ${BuildEnvCMAKE_LOCATION}/CommonMacros.h)
-        include_directories(${BuildEnvCMAKE_LOCATION})
+    if (EXISTS ${BuildEnvCMAKE_LOCATION}/../include)
+        include_directories(${BuildEnvCMAKE_LOCATION}/../include)
     endif()
 endmacro()
 
@@ -170,9 +173,10 @@ macro (SupressWarningForTarget targetName)
 endmacro()
 
 function(init_submodule path)
-    if (EXISTS  "${path}/.git")
+    if (EXISTS  "${CMAKE_CURRENT_SOURCE_DIR}/${path}")
         return()
     endif()
+    message(STATUS "Submodule Update: ${CMAKE_CURRENT_SOURCE_DIR}/${path}")
     find_package(Git QUIET REQUIRED)
     execute_process(
         COMMAND "${GIT_EXECUTABLE}" submodule update --init --recursive --single-branch "${path}"

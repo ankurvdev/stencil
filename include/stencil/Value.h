@@ -163,7 +163,7 @@ struct Value
         case Type::Signed: return Value(static_cast<uint64_t>(_iVal));
         case Type::Unsigned: return Value(_uVal);
         case Type::Double: return Value(_doubletoint(_dVal));
-        case Type::String: return Value(_strtoint(_sVal));
+        case Type::String: return Value(static_cast<uint64_t>(_strtoint(_sVal)));
         case Type::Unknown: [[fallthrough]];
 
         default: throw UnsupportedCast();

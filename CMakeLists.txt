@@ -147,10 +147,11 @@ if (BUILD_TESTING)
         tests/Test_Database2.cpp
         tests/Test_Database.cpp
         tests/Test_DataHandlerJson.cpp
+        tests/Test_DataRecorderPlayer.cpp
+        tests/Test_ObservableOptionalProps.cpp
+        tests/Test_Transactions.cpp
         tests/Test_WebService_Handwritten.cpp
         tests/Test_WebService_Autogen.cpp
-        tests/Test_ObservableOptionalProps.cpp
-        tests/Test_DataRecorderPlayer.cpp
     )
 
     target_add_resource(runtime_tests testdata ${resfiles} ${pidlfiles})

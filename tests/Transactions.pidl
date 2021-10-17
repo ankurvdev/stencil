@@ -1,0 +1,63 @@
+struct Location
+{
+    timestamp time;
+    int32     lat1E7; // 7 digit double precision
+    int32     lon1E7; // 7 digit double precision
+    int32     altitudeM1E2;       // meters 2 digit precision
+    uint32    groundSpeedMS1E2;   // m/s 2 digit precision
+    uint32    headingDeg1E2;      // degrees 2digit precision
+    int32     climbMS1E2;         // m/s 2 digit precision
+    uint8     sourceId;
+}
+
+struct GPS
+{
+    Location loc;
+    uint32 horzAccuracyM1E2;
+    uint32 vertAccuracyM1E2;
+}
+
+struct Aircraft
+{
+    uint32   addr;        /* ICAO address */
+    char[6]  tailNumber   // Tail number
+    Location loc;
+}
+
+struct Traffic
+{
+    list<Aircraft> aircrafts
+}
+
+struct IMU
+{
+    uint32 pitchDeg1E6;
+    uint32 rollDeg1E6;
+    uint32 azimuthDeg1E6;
+    uint32 slip;
+}
+
+struct Environment
+{
+    uint32 pressureHgIn1E7;
+}
+
+struct Settings
+{
+    uint32 altimeterHgIn1E7;
+    bool sendOnBluetooth;
+    bool recording;
+    bool useFlightRadar;
+}
+
+struct State
+{
+    Settings settings;
+    Environment environment;
+    IMU imu;
+    GPS gps;
+    Traffic traffic;
+}
+
+relationship optionalprops 	 object = GPS, Environment
+relationship timestamped 	 object = GPS, Aircraft, Traffic, IMU, Environment, Settings
