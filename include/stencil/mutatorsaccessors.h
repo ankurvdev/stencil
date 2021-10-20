@@ -10,19 +10,21 @@ template <typename T> struct Accessors;
 
 template <typename T> struct Mutators<std::vector<T>>
 {
-    template <typename TTransaction> static void add(TTransaction const& /*transaction*/, std::vector<T>& arr, T&& obj)
+    using ListObj = T;
+    static void add(std::vector<T>& arr, T&& obj)
     {
         arr.push_back(std::move(obj));
     }
 
-    template <typename TTransaction> static void remove(TTransaction const& /*transaction*/, std::vector<T>& arr, size_t index)
+    static void remove(std::vector<T>& arr, size_t index)
     {
         arr.erase(arr.begin() + static_cast<typename std::vector<T>::difference_type>(index));
     }
 
-    template <typename T1, typename TTransaction> static auto edit(TTransaction& tracker, std::vector<T1>& arr, size_t index)
+    static auto& edit(std::vector<T>& arr, size_t index)
     {
-        return tracker.GetSubObjectTracker(arr, index);
+        return arr[index];
+        //return tracker.GetSubObjectTracker(arr, index);
     }
 
     template <typename TLambda> static void remove_matching(std::vector<T>& arr, TLambda&& lambda)

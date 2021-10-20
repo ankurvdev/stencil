@@ -13,13 +13,410 @@
 
 namespace Stencil
 {
+/*
+ */
+
 template <typename TObj, typename _Ts = void> struct Transaction;
+
+template <typename TObj, typename _Ts = void> struct TransactionT
+{
+    TransactionT(TObj& /*obj*/) {}
+
+    template <typename TLambda> auto Visit(size_t fieldIndex, TLambda&& /* lambda */)
+    {
+        throw std::logic_error("Visit Not supported on Transaction");
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& /* fieldName */, TLambda&& /* lambda */)
+    {
+        throw std::logic_error("Visit Not supported on Transaction");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& /* lambda */) { throw std::logic_error("Visit Not supported on Transaction"); }
+
+#if 0
+    unsigned GetFieldTypeByName(std::string_view const& /* name */) { throw std::logic_error("Add Not supported on Transaction"); }
+    template <typename TSerDes, typename... TArgs> void Add(TArgs&&...) { throw std::logic_error("Add Not supported on Transaction"); }
+    template <typename... TArgs> void Remove(TArgs&&...) { throw std::logic_error("Remove Not supported on Transaction"); }
+
+    template <typename TSerDes, typename... TArgs> void Set(TArgs&&...) { throw std::logic_error("Set Not supported on Transaction"); }
+#endif
+};
+
+template <typename TObj>
+struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::Object>>
+{
+    TransactionT(TObj& obj) : _ref(std::ref(obj)) {}
+#if 0
+    ~TransactionT()
+    {
+        if (_settracker.any())
+        {
+            for (size_t i = 0; i < _settracker.size(); i++)
+            {
+                if (!_settracker.test(i)) continue;
+                Visitor<TObj> visitor(_ref);
+                visitor.Select(Value{i - 1});
+                _recorder << static_cast<uint8_t>(i);
+                _recorder << uint8_t{0};    // set
+                Writer writer;
+                BinarySerDes::Serialize(visitor, writer);
+                _recorder << writer.Reset();
+            }
+        }
+        _recorder << uint16_t{0};
+        _recorder.Flush_();
+    }
+#endif
+    DELETE_COPY_AND_MOVE(TransactionT);
+
+    TObj& Obj() { return _ref; }
+
+    private:
+    using TTransaction = Transaction<TObj>;
+
+    auto& _GetTransactionObj()
+    {
+        static_assert(std::is_base_of_v<TransactionT<TObj>, TTransaction>, "Transaction<TObj> must derive TransactionT<TObj>");
+        return *static_cast<TTransaction*>(*this);
+    }
+
+    public:
+    template <typename TEnum> bool IsFieldChanged(TEnum field) const
+    {
+        return _assigntracker.test(static_cast<uint8_t>(field)) || _edittracker.test(static_cast<uint8_t>(field));
+    }
+
+    size_t CountFieldsChanged() const { return (_assigntracker | _edittracker).count(); }
+
+    protected:
+    template <typename TEnum, typename TVal> void MarkFieldAssigned_(TEnum field, TVal const& curval, TVal const& newval)
+    {
+        if constexpr (std::is_base_of_v<Stencil::OptionalPropsT<TObj>, TObj>)
+        {
+            if (!Obj().IsValid(field))
+            {
+                _assigntracker.set(static_cast<uint8_t>(field));
+                return;
+            }
+        }
+        if (!ReflectionBase::AreEqual(curval, newval)) { _assigntracker.set(static_cast<uint8_t>(field)); }
+    }
+    template <typename TEnum, typename TVal, typename... TArgs>
+    void MarkFieldEdited_(TEnum field, TVal const& /* curval */, TArgs&&... /* args */)
+    {
+        _edittracker.set(static_cast<uint8_t>(field));
+    }
+#if 0
+    template <typename TEnum, typename TFieldType, typename TVal> void OnMutation_add(TEnum field, TFieldType const& obj, TVal const& val)
+    {
+        _edittracker.set(static_cast<uint8_t>(field));
+        _recorder << static_cast<uint8_t>(field);
+        _recorder << uint8_t{1};    // edit
+        _recorder << uint8_t{1};    // mutation add
+        _recorder << static_cast<uint32_t>(obj.size());
+
+        Writer              writer;
+        Visitor<TVal const> visitor(val);
+        BinarySerDes::Serialize(visitor, writer);
+        _recorder << writer.Reset();
+    }
+
+    template <typename TEnum, typename TFieldType, typename TVal>
+    void OnMutation_remove(TEnum field, TFieldType const& /*obj*/, TVal const& val)
+    {
+        _edittracker.set(static_cast<uint8_t>(field));
+
+        _recorder << static_cast<uint8_t>(field);
+        _recorder << uint8_t{1};    // edit
+        _recorder << uint8_t{2};    // mutation remove
+        _recorder << static_cast<uint32_t>(val);
+    }
+
+    template <typename TEnum, typename TFieldType, typename TVal>
+    void OnMutation_edit(TEnum field, TFieldType const& /*obj*/, TVal const& index)
+    {
+        _edittracker.set(static_cast<uint8_t>(field));
+    }
+
+    template <typename TSerDes, typename TEnum, typename TVal> void Add(TEnum const& field, size_t index, TVal&& val)
+    {
+        _edittracker.set(static_cast<uint8_t>(field));
+        Visitor<TObj> visitor(Obj());
+        visitor.Select(field);
+        visitor.Select(index);
+        TSerDes::Deserialize(visitor, val);
+    }
+
+    template <typename TEnum> void Remove(TEnum const& field, size_t index)
+    {
+        _edittracker.set(static_cast<uint8_t>(field));
+        Visitor<TObj> visitor(Obj());
+        visitor.Select(field);
+        auto& upcasted = *static_cast<Transaction<TObj>*>(this);
+        upcasted.Visit(field, [&](auto& subtxn) { subtxn.Remove(index); });
+    }
+
+    template <typename TSerDes, typename TEnum, typename TVal> void Set(TEnum const& field, TVal&& val)
+    {
+        _settracker.set(static_cast<uint8_t>(field));
+        Visitor<TObj> visitor(Obj());
+        visitor.Select(static_cast<uint8_t>((static_cast<unsigned>(field) - 1)));
+        TSerDes::Deserialize(visitor, val);
+    }
+#endif
+
+    std::reference_wrapper<TObj>        _ref;
+    std::bitset<TObj::FieldCount() + 1> _assigntracker;
+    std::bitset<TObj::FieldCount() + 1> _edittracker;
+};
+
+template <typename TObj>
+struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::List>>
+{
+    TransactionT(TObj& obj) : _ref(std::ref(obj)) {}
+    ~TransactionT() {}
+
+    DELETE_COPY_AND_MOVE(TransactionT);
+
+    TObj& Obj() { return _ref; }
+
+    template <typename TLambda> auto Visit(size_t fieldIndex, TLambda&& /* lambda */)
+    {
+        throw std::logic_error("Visit Not supported on Transaction");
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& /* fieldName */, TLambda&& /* lambda */)
+    {
+        throw std::logic_error("Visit Not supported on Transaction");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& /* lambda */) { throw std::logic_error("Visit Not supported on Transaction"); }
+
+    std::reference_wrapper<TObj> _ref;
+};
+
+}    // namespace Stencil
+
+namespace Stencil
+{
+template <typename T> struct PatchHandler
+{
+    static std::vector<uint8_t> Create(T const& obj, Transaction<T> const& ctx)
+    {
+        Writer           writer;
+        Visitor<T const> visitor(obj);
+        _Write(writer, visitor, ctx);
+        return writer.Reset();
+    }
+
+    static ByteIt Apply(Transaction<T>& ctx, ByteIt const& itbeg)
+    {
+        Reader     reader(itbeg);
+        Visitor<T> visitor(ctx.Obj());
+        _Apply(reader, visitor, ctx);
+        return reader.GetIterator();
+    }
+
+    template <typename TObj, typename TVisitor> static void _Write(Writer& writer, TVisitor& visitor, Transaction<TObj> const& ctx)
+    {
+
+        // Create(int, ctx) = nochange=>{}  change=>{0,0,0,1}
+        // Create(string, ctx) = nochange=>{}  change=>{n, e, w, s, t, r, i, n, g}
+        // Create(list<int>, ctx) = nochange=>{} change=>{set/add/remove, serialized list / index {0, 0, 0, 1} / index }
+        // Create(struct, ctx) = nochange=>{} change=>{fieldindex, Create<fieldIndex>(val, subctx)}
+        // Create(list<struct>, ctx) = nochange=>{} change=>{set/add/remove, serialized value / index Create<struct>
+        if (!ctx.IsChanged()) { return; }
+        static_assert(Transaction<TObj>::Type() != ReflectionBase::DataType::Invalid, "Cannot Create Patch for Invalid DataType");
+
+        if constexpr (Transaction<TObj>::Type() == ReflectionBase::DataType::Enum
+                      || Transaction<TObj>::Type() == ReflectionBase::DataType::Value)
+        {
+            // Dump the entire value
+            BinarySerDes::Serialize(visitor, writer);
+        }
+        else if constexpr (Transaction<TObj>::Type() == ReflectionBase::DataType::List)
+        {
+            writer << static_cast<uint8_t>(ctx.MutationCount());
+            for (auto& mutation : ctx.Mutations())
+            {
+                auto mutationIndex = mutation.mutationIndex;
+                auto listIndex     = mutation.listIndex;
+                writer << static_cast<uint8_t>(mutationIndex);
+                if (mutationIndex == 0)    // Set
+                {
+                    BinarySerDes::Serialize(visitor, writer);
+                }
+                else if (mutationIndex == 1)    // List Add
+                {
+                    writer << static_cast<uint32_t>(listIndex);
+                    visitor.Select(listIndex);
+                    BinarySerDes::Serialize(visitor, writer);
+                    //_Write(writer, visitor, ctx.GetSubObjectTracker(ctx.ListIndex()));
+                    visitor.GoBackUp();
+                }
+                else if (mutationIndex == 2)    // List remove
+                {
+                    writer << static_cast<uint32_t>(listIndex);
+                }
+                else if (mutationIndex == 3)    // List edit
+                {
+                    writer << static_cast<uint32_t>(listIndex);
+                    visitor.Select(listIndex);
+                }
+                else
+                {
+                    throw std::logic_error("Unknown Mutator");
+                }
+            }
+        }
+        else if constexpr (Transaction<TObj>::Type() == ReflectionBase::DataType::Object)
+        {
+            // 0 is always invalid field
+            auto fieldsChanged = ctx.CountFieldsChanged();
+            if (ctx.NumFields() > 254) { throw std::logic_error("Too Many fields. Not supported yet"); }
+            writer << static_cast<uint8_t>(fieldsChanged);
+            for (size_t i = 0u; i < ctx.NumFields(); i++)
+            {
+                auto fieldIndex = static_cast<typename TObj::FieldIndex>(i + 1);
+                ctx.Visit(fieldIndex, [&](auto const& subctx) {
+                    if (!ctx.IsFieldChanged(fieldIndex)) return;
+                    if (fieldsChanged == 0) { throw std::logic_error("Something doesnt add up. Too many changed fields visited"); }
+
+                    fieldsChanged--;
+
+                    visitor.Select(i);
+                    writer << static_cast<uint8_t>(i);
+                    _Write(writer, visitor, subctx);
+                    visitor.GoBackUp();
+                });
+            }
+        }
+        else if constexpr (Transaction<TObj>::Type() == ReflectionBase::DataType::Union)
+        {
+            throw std::logic_error("unions not supported for patch yet");
+            /*
+            writer << ctx.MutatorIndex();
+            if (mutatorIndex == 0)    // Set Value
+            {
+                writer << _Create(visitor, )
+            }
+            else if (mutatorIndex == 1)    // Set Type
+            {
+            }
+            else
+            {
+                throw std::logic_error("Unknown Mutator");
+            }*/
+        }
+        else
+        {
+            static_assert(Transaction<TObj>::Type() == ReflectionBase::DataType::Unknown);
+            static_assert(Transaction<TObj>::Type() != ReflectionBase::DataType::Unknown, "Cannot Create Patch for Unknown DataType");
+        }
+    }
+
+    template <typename TObj, typename TVisitor> static void _Apply(Reader& reader, TVisitor& visitor, Transaction<TObj>& ctx)
+    {
+        // TODO: TypeTraits should not have reference type
+        static_assert(ReflectionBase::TypeTraits<TObj&>::Type() != ReflectionBase::DataType::Invalid,
+                      "Cannot Create Patch for Invalid DataType");
+
+        if constexpr (ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::Enum
+                      || ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::Value)
+        {
+            BinarySerDes::Deserialize(visitor, reader);
+        }
+
+        else if constexpr (ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::List)
+        {
+            auto mutatorIndex = reader.read<uint8_t>();
+            if (mutatorIndex == 0)    // Set
+            {
+                BinarySerDes::Deserialize(visitor, reader);
+            }
+            else if (mutatorIndex == 1)    // List Add
+            {
+                auto listIndex = reader.read<uint32_t>();
+                visitor.Select(listIndex);
+                BinarySerDes::Deserialize(visitor, reader);
+
+                // auto subctx = ctx.GetSubObjectTracker(listIndex);
+                //_Apply(reader, visitor, subctx);
+                visitor.GoBackUp();
+            }
+            else if (mutatorIndex == 2)    // List remove
+            {
+                auto listIndex = reader.read<uint32_t>();
+                Stencil::Mutators<TObj>::remove(ctx, ctx.Obj(), listIndex);
+            }
+            else if (mutatorIndex == 3)    // List edit
+            {
+                auto listIndex = reader.read<uint32_t>();
+                visitor.Select(listIndex);
+                auto subctx = ctx.GetSubObjectTracker(ctx.Obj(), listIndex);
+                _Apply(reader, visitor, subctx);
+                visitor.GoBackUp();
+            }
+            else
+            {
+                throw std::logic_error("Unknown Mutator");
+            }
+        }
+        else if constexpr (ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::Object)
+        {
+            for (auto changedFieldIndex = reader.read<uint8_t>(); changedFieldIndex != 0; changedFieldIndex = reader.read<uint8_t>())
+            {
+                auto action = reader.read<uint8_t>();
+                // assert(changedFieldIndex <= ctx.NumFields());
+                //                auto changedFieldType = static_cast<typename TObj::FieldIndex>(changedFieldIndex);
+                visitor.Select(static_cast<uint8_t>(changedFieldIndex - 1));
+                if (action == 0)    // Set
+                {
+                    BinarySerDes::Deserialize(visitor, reader);
+                }
+                else if (action == 1)    // Edit
+                {
+                    throw std::logic_error("Unknown action");
+
+                    //                    ctx.Visit(changedFieldType, [&](auto& subctx) { _Apply(reader, visitor, subctx); });
+                }
+                else
+                {
+                    throw std::logic_error("Unknown action");
+                }
+                visitor.GoBackUp();
+            }
+        }
+        else if constexpr (ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::Union)
+        {
+            throw std::logic_error("unions not supported for patch yet");
+        }
+        else
+        {
+            static_assert(ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::Unknown);
+            static_assert(ReflectionBase::TypeTraits<TObj&>::Type() != ReflectionBase::DataType::Unknown,
+                          "Cannot Create Patch for Unknown DataType");
+        }
+    }
+};
+
+template <typename T> struct BinarySerDesHandler
+{
+    static std::vector<uint8_t> Serialize(T const& obj)
+    {
+        Writer           writer;
+        Visitor<T const> visitor(obj);
+        BinarySerDes::Serialize(visitor, writer);
+        return writer.Reset();
+    }
+};
 
 struct TransactionRecorder
 {
     virtual ~TransactionRecorder() = default;
 
-    template <typename TObj> Transaction<TObj> Start(TObj& obj) { return Transaction<TObj>(obj, *this); }
+    template <typename TObj> Transaction<TObj> Start(TObj& obj) { return Transaction<TObj>(obj); }
 
     template <typename T> TransactionRecorder& operator<<(T const& obj)
     {
@@ -101,164 +498,8 @@ struct MemTransactionRecorder : Stencil::TransactionRecorder
     std::vector<uint8_t> _recording;
 };
 
-template <typename TObj, typename _Ts = void> struct TransactionT
-{
-    TransactionT(TObj& /*obj*/, TransactionRecorder& /*rec*/) {}
-
-    template <typename... TArgs> void Add(TArgs&...) { throw std::logic_error("Add Not supported on Transaction"); }
-    template <typename... TArgs> void Remove(TArgs&...) { throw std::logic_error("Remove Not supported on Transaction"); }
-
-    template <typename TSerDes, typename... TArgs> void Set(TArgs&...) { throw std::logic_error("Set Not supported on Transaction"); }
-
-    template <typename... TArgs> void Visit(TArgs&...) { throw std::logic_error("Visit Not supported on Transaction"); }
-};
-
-template <typename TObj>
-struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::Object>>
-{
-    TransactionT(TObj& obj, TransactionRecorder& rec) : _ref(std::ref(obj)), _recorder(rec) {}
-    ~TransactionT()
-    {
-        if (_settracker.any())
-        {
-            for (size_t i = 0; i < _settracker.size(); i++)
-            {
-                if (!_settracker.test(i)) continue;
-                Visitor<TObj> visitor(_ref);
-                visitor.Select(Value{i - 1});
-                _recorder << static_cast<uint8_t>(i);
-                _recorder << uint8_t{0};    // set
-                Writer writer;
-                BinarySerDes::Serialize(visitor, writer);
-                _recorder << writer.Reset();
-            }
-        }
-        _recorder << uint16_t{0};
-        _recorder.Flush_();
-    }
-
-    DELETE_COPY_AND_MOVE(TransactionT);
-
-    TObj& Obj() { return _ref; }
-
-    template <typename TEnum> bool IsFieldChanged(TEnum field) const
-    {
-        return _settracker.test(static_cast<uint8_t>(field)) || _edittracker.test(static_cast<uint8_t>(field));
-    }
-
-    size_t CountFieldsChanged() const { return (_settracker | _edittracker).count(); }
-
-    template <typename TEnum, typename TVal> void OnStructFieldChangeRequested(TEnum field, TVal const& curval, TVal const& newval)
-    {
-        if constexpr (std::is_base_of_v<Stencil::OptionalPropsT<TObj>, TObj>)
-        {
-            if (!Obj().IsValid(field))
-            {
-                _settracker.set(static_cast<uint8_t>(field));
-                return;
-            }
-        }
-        if (!ReflectionBase::AreEqual(curval, newval)) { _settracker.set(static_cast<uint8_t>(field)); }
-    }
-
-    template <typename TEnum, typename TFieldType, typename TVal> void OnMutation_add(TEnum field, TFieldType const& obj, TVal const& val)
-    {
-        _edittracker.set(static_cast<uint8_t>(field));
-        _recorder << static_cast<uint8_t>(field);
-        _recorder << uint8_t{1};    // edit
-        _recorder << uint8_t{1};    // mutation add
-        _recorder << static_cast<uint32_t>(obj.size());
-
-        Writer              writer;
-        Visitor<TVal const> visitor(val);
-        BinarySerDes::Serialize(visitor, writer);
-        _recorder << writer.Reset();
-    }
-
-    template <typename TEnum, typename TFieldType, typename TVal>
-    void OnMutation_remove(TEnum field, TFieldType const& /*obj*/, TVal const& val)
-    {
-        _edittracker.set(static_cast<uint8_t>(field));
-
-        _recorder << static_cast<uint8_t>(field);
-        _recorder << uint8_t{1};    // edit
-        _recorder << uint8_t{2};    // mutation remove
-        _recorder << static_cast<uint32_t>(val);
-    }
-
-    template <typename TEnum, typename TFieldType, typename TVal>
-    void OnMutation_edit(TEnum field, TFieldType const& /*obj*/, TVal const& index)
-    {
-        _edittracker.set(static_cast<uint8_t>(field));
-
-        _recorder << static_cast<uint8_t>(field);
-        _recorder << uint8_t{1};    // edit
-        _recorder << uint8_t{3};    // mutation edit
-        _recorder << static_cast<uint32_t>(index);
-    }
-
-    template <typename... TArgs> void Add(TArgs&...) { throw std::logic_error("Add Not supported on Transaction"); }
-    template <typename... TArgs> void Remove(TArgs&...) { throw std::logic_error("Remove Not supported on Transaction"); }
-
-    template <typename TSerDes, typename TEnum, typename TVal> void Set(TEnum const& field, TVal&& val)
-    {
-        _edittracker.set(static_cast<uint8_t>(field));
-        Visitor<TObj> visitor(Obj());
-        visitor.Select(static_cast<uint8_t>((static_cast<unsigned>(field) - 1)));
-        TSerDes::Deserialize(visitor, val);
-    }
-    template <typename TSerDes, typename TVal> void Set(std::string_view const& fieldName, TVal&& val)
-    {
-        uint8_t       index = 1;
-        Visitor<TObj> visitor(Obj());
-        visitor.VisitAll([&](auto& name, auto& /*obj*/) {
-            if (name == fieldName) { Set<TSerDes>(static_cast<TObj::FieldIndex>(index), std::forward<TVal>(val)); }
-            index++;
-        });
-    }
-
-    template <typename... TArgs> void Visit(TArgs&...) { throw std::logic_error("Visit Not supported on Transaction"); }
-
-    std::reference_wrapper<TObj>        _ref;
-    TransactionRecorder&                _recorder;
-    std::bitset<TObj::FieldCount() + 1> _settracker;
-    std::bitset<TObj::FieldCount() + 1> _edittracker;
-};
-
-template <typename TObj>
-struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::List>>
-{
-    TransactionT(TObj& obj, TransactionRecorder& rec) : _ref(std::ref(obj)), _recorder(rec) {}
-    ~TransactionT() {}
-
-    DELETE_COPY_AND_MOVE(TransactionT);
-
-    TObj& Obj() { return _ref; }
-
-    auto GetSubObjectTracker(TObj& obj, size_t index)
-    {
-        auto& subobj = obj[index];
-        //_recorder << static_cast<uint32_t>(index);
-        return Stencil::Transaction<std::remove_reference_t<decltype(subobj)>>(subobj, _recorder);
-    }
-
-    template <typename... TArgs> void Add(TArgs&...) { throw std::logic_error("Add Not supported on Transaction"); }
-    template <typename... TArgs> void Remove(TArgs&...) { throw std::logic_error("Remove Not supported on Transaction"); }
-
-    template <typename TSerDes, typename... TArgs> void Set(TArgs&...) { throw std::logic_error("Set Not supported on Transaction"); }
-    template <typename TLambda> void                    Visit(std::string_view const& /* index */, TLambda&& /* lambda */)
-    {
-        throw std::logic_error("String index visit on Transaction");
-    }
-    template <typename TLambda> void Visit(size_t index, TLambda&& lambda) { lambda(GetSubObjectTracker(index)); }
-
-    std::reference_wrapper<TObj> _ref;
-    TransactionRecorder&         _recorder;
-};
-
 struct BinaryTransactionDataReader
 {};
-
 struct StringTransactionDataReader
 {
     private:
@@ -311,104 +552,165 @@ struct StringTransactionDataReader
         }
     };
 
-    template <typename T, typename TLambda> static size_t _Replay(T& txn, TokenIterator& it, TLambda&& lambda)
+    template <typename T, typename F = void> struct _StructApplicator
     {
-        if (it.delimiter == ':' || it.delimiter == ' ' || it.delimiter == '=')
+        static void Apply(Transaction<T>& /* txn */,
+                          std::string_view const& /* fieldname */,
+                          uint8_t /* mutator */,
+                          std::string_view const& /* mutatordata */,
+                          std::string_view const& /* rhs */)
+        {
+            throw std::logic_error("Invalid");
+        }
+    };
+
+    template <typename T, typename F = void> struct _ListApplicator
+    {
+        static void Add(Transaction<T>& /* txn */, size_t /* listindex */, std::string_view const& /* rhs */)
+        {
+            throw std::logic_error("Invalid");
+        }
+
+        static void Remove(Transaction<T>& /* txn */, size_t /* listindex */) { throw std::logic_error("Invalid"); }
+    };
+
+    template <typename T>
+    struct _ListApplicator<T, std::enable_if_t<ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::List>>
+    {
+        static void Add(Transaction<T>& txn, size_t /* listindex */, std::string_view const& rhs)
+        {
+            typename Stencil::Mutators<T>::ListObj obj;
+
+            Visitor<decltype(obj)> visitor(obj);
+            JsonSerDes::Deserialize(visitor, rhs);
+            Stencil::Mutators<T>::add(txn.Obj(), std::move(obj));
+        }
+        static void Remove(Transaction<T>& txn, size_t listindex) { Stencil::Mutators<T>::remove(txn.Obj(), listindex); }
+    };
+
+    template <typename TObj> static void _ListAdd(Transaction<TObj>& txn, size_t listindex, std::string_view const& rhs)
+    {
+        _ListApplicator<TObj>::Add(txn, listindex, rhs);
+    }
+
+    template <typename TObj> static void _ListRemove(Transaction<TObj>& txn, size_t listindex)
+    {
+        _ListApplicator<TObj>::Remove(txn, listindex);
+    }
+
+    template <typename T>
+    struct _StructApplicator<T, std::enable_if_t<ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Object>>
+    {
+        static void Apply(Transaction<T>&         txn,
+                          std::string_view const& fieldname,
+                          uint8_t                 mutator,
+                          std::string_view const& mutatordata,
+                          std::string_view const& rhs)
+        {
+            if (mutator == 0)    // Set
+            {
+                Visitor<T> visitor(txn.Obj());
+                visitor.Select(fieldname);
+                JsonSerDes::Deserialize(visitor, rhs);
+                // txn.Visit(fieldname, [&](auto fieldType, auto& subtxn) { _ApplyJson(subtxn , fieldType, rhs); });
+            }
+            else if (mutator == 1)    // List Add
+            {
+                txn.Visit(fieldname,
+                          [&](auto /* fieldType */, auto& subtxn) { _ListAdd(subtxn, Value(mutatordata).convert<size_t>(), rhs); });
+            }
+            else if (mutator == 2)    // List remove
+            {
+                txn.Visit(fieldname,
+                          [&](auto /* fieldType */, auto& subtxn) { _ListRemove(subtxn, Value(mutatordata).convert<size_t>()); });
+            }
+            else
+            {
+                throw std::logic_error("Unknown Mutator");
+            }
+        }
+    };
+
+    template <typename T>
+    static void _ApplyOnStruct(Transaction<T>&         txn,
+                               std::string_view const& fieldname,
+                               uint8_t                 mutator,
+                               std::string_view const& mutatordata,
+                               std::string_view const& rhs)
+    {
+        _StructApplicator<T>::Apply(txn, fieldname, mutator, mutatordata, rhs);
+    }
+
+    template <typename T> static size_t _Apply(TokenIterator& it, Transaction<T>& txn)
+    {
+        if (!(it.delimiter == ':' || it.delimiter == ' ' || it.delimiter == '='))
         {
             auto name = it.token;
-            // Reached the end
-            uint8_t          mutator = 0;
-            std::string_view mutatordata;
-            if (it.delimiter == ':')
-            {
-                ++it;
-                auto mutatorname = it.token;
-                if (it.delimiter == '[')
-                {
-                    size_t i = it.startIndex;
-                    while (it.data[i] != ']' && i < it.data.size()) i++;
-                    if (i == it.data.size()) throw std::logic_error("Invalid Format. Cannot find end ']'");
-                    mutatordata   = std::string_view(it.data.begin() + it.startIndex, it.data.begin() + i);
-                    it.startIndex = i;
-                    it.token      = {};
-                }
-                if (mutatorname == "add") { mutator = 1; }
-                else if (mutatorname == "remove")
-                {
-                    mutator = 2;
-                }
-                else
-                {
-                    throw std::logic_error("Invalid Mutator");
-                }
-            }
-            size_t i = it.startIndex + it.token.size() + 1;
-            while (it.data[i] == ' ' && i < it.data.size()) i++;
-            if (i == it.data.size() || it.data[i] != '=') throw std::logic_error("Invalid Format. Expected '='");
-            ++i;    // skip =
-            while (it.data[i] == ' ' && i < it.data.size()) i++;
-            if (i == it.data.size()) throw std::logic_error("Invalid Format. Cannot find rhs");
-            size_t rhsS = i;
-            while (it.data[i] != ';' && i < it.data.size()) i++;
-            auto rhs = std::string_view(it.data.begin() + rhsS, it.data.begin() + i);
-            lambda(txn, name, mutator, mutatordata, rhs);
-            return it.data.size() + 1;
-        }
-        else
-        {
-            size_t retval;
-            auto   name = it.token;
             ++it;
-            txn.Visit(name, [&](auto& subtxn) { retval = _Replay(subtxn, it, std::move(lambda)); });
+            size_t retval;
+            txn.Visit(name, [&](auto /* fieldType */, auto& args) { retval = _Apply(it, args); });
             return retval;
         }
+
+        auto name = it.token;
+        // Reached the end
+        uint8_t          mutator = 0;
+        std::string_view mutatordata;
+        if (it.delimiter == ':')
+        {
+            ++it;
+            auto mutatorname = it.token;
+            if (it.delimiter == '[')
+            {
+                size_t i = it.startIndex;
+                while (it.data[i] != ']' && i < it.data.size()) i++;
+                if (i == it.data.size()) throw std::logic_error("Invalid Format. Cannot find end ']'");
+                mutatordata   = std::string_view(it.data.begin() + it.startIndex, it.data.begin() + i);
+                it.startIndex = i;
+                it.token      = {};
+            }
+            if (mutatorname == "add") { mutator = 1; }
+            else if (mutatorname == "remove")
+            {
+                mutator = 2;
+            }
+            else
+            {
+                throw std::logic_error("Invalid Mutator");
+            }
+        }
+        size_t i = it.startIndex + it.token.size() + 1;
+        while (it.data[i] == ' ' && i < it.data.size()) i++;
+        if (i == it.data.size() || it.data[i] != '=') throw std::logic_error("Invalid Format. Expected '='");
+        ++i;    // skip =
+        while (it.data[i] == ' ' && i < it.data.size()) i++;
+        if (i == it.data.size()) throw std::logic_error("Invalid Format. Cannot find rhs");
+        size_t rhsS = i;
+        while (it.data[i] != ';' && i < it.data.size()) i++;
+        auto rhs = std::string_view(it.data.begin() + rhsS, it.data.begin() + i);
+        _ApplyOnStruct(txn, name, mutator, mutatordata, rhs);
+        return it.data.size() + 1;
     }
 
     public:
-    template <typename T> static void Replay(Transaction<T>& txn, std::string_view const& txndata)
+    template <typename T> static auto Apply(Transaction<T>& txn, std::string_view const& txndata)
     {
         size_t startIndex = 0;
         do {
             TokenIterator it(txndata.substr(startIndex));
-            startIndex += _Replay(
-                txn,
-                it,
-                [&](auto& subtxn, std::string_view fieldname, uint8_t mutator, std::string_view mutatordata, std::string_view rhs) {
-                    if (mutator == 0)    // Set
-                    {
-                        subtxn.template Set<JsonSerDes>(fieldname, rhs);
-                    }
-                    else if (mutator == 1)    // List Add
-                    {
-                        throw std::logic_error("Not implemented");
-
-                        // subtxn.Add(mutatordata).template Deserialize<JsonSerDes>(rhs);
-                    }
-                    else if (mutator == 2)    // List remove
-                    {
-                        subtxn.Remove(mutatordata);
-                    }
-                    else
-                    {
-                        throw std::logic_error("Unknown Mutator");
-                    }
-                });
+            startIndex += _Apply(it, txn);
         } while (startIndex < txndata.size());
     }
 };
-
 }    // namespace Stencil
 template <typename T, typename _Ts> struct Stencil::Transaction : Stencil::TransactionT<T>
 {
-    Transaction(T& obj, TransactionRecorder& rec) : Stencil::TransactionT<T>(obj, rec) {}
+    Transaction(T& obj) : Stencil::TransactionT<T>(obj) {}
     DELETE_COPY_AND_MOVE(Transaction);
-
-    friend struct TransactionRecorder;
 };
 
 template <typename T> struct Stencil::Transaction<T, std::enable_if_t<Value::Supported<T>::value>> : Stencil::TransactionT<T>
 {
-    Transaction(T& obj, TransactionRecorder& rec) : Stencil::TransactionT<T>(obj, rec) {}
-    template <typename... TArgs> void Visit(TArgs&&...) const { throw std::logic_error("Visiting Values does not make sense"); }
+    Transaction(T& obj) : Stencil::TransactionT<T>(obj) {}
     DELETE_COPY_AND_MOVE(Transaction);
 };

@@ -451,80 +451,58 @@ struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz::Data> : Stencil::
 
     DELETE_COPY_AND_MOVE(Transaction);
 
-    Transaction(TData& ptr, TransactionRecorder& rec) :
-        Stencil::TransactionT<zzProgram_Namezz::zzStruct_Namezz::Data>(ptr, rec)
+    Transaction(TData& ptr) :
+        Stencil::TransactionT<zzProgram_Namezz::zzStruct_Namezz::Data>(ptr)
         //<Field>
         ,
-        _subtracker_zzNamezz(Obj().zzNamezz(), rec)
+        _subtracker_zzNamezz(Obj().zzNamezz())
     //</Field>
     {}
+
     //<Field>
     auto& zzNamezz() { return _subtracker_zzNamezz; }
     //</Field>
-
-    template <typename TLambda> void Visit(std::string_view const& fieldName, TLambda&& lambda) const
-    {
-        //<Field>
-        if (fieldName == "zzNamezz")
-        {
-            lambda(_subtracker_zzNamezz);
-            return;
-        }
-        //</Field>
-        throw std::invalid_argument("Asked to visit invalid field");
-    }
-
-    template <typename TLambda> void Visit(std::string_view const& fieldName, TLambda&& lambda)
-    {
-        //<Field>
-        if (fieldName == "zzNamezz")
-        {
-            lambda(_subtracker_zzNamezz);
-            return;
-        }
-        //</Field>
-        throw std::invalid_argument("Asked to visit invalid field");
-    }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
-    {
-        switch (index)
-        {
-        //<Field>
-        case TData::FieldIndex::zzNamezz: lambda(_subtracker_zzNamezz); return;
-        //</Field>
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
-    {
-        switch (index)
-        {
-        //<Field>
-        case TData::FieldIndex::zzNamezz: lambda(_subtracker_zzNamezz); return;
-        //</Field>
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
     //<Field>
-
     void set_zzNamezz(zzFieldType_NativeTypezz&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::zzNamezz, Obj().zzNamezz(), val);
+        MarkFieldAssigned_(TData::FieldIndex::zzNamezz, Obj().zzNamezz(), val);
         Obj().set_zzNamezz(std::move(val));
     }
 
     //<FieldType_Mutator>
     zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz&& args)
     {
-        OnMutation_zzNamezz(TData::FieldIndex::zzField_Namezz, Obj().zzField_Namezz(), args);
-        return Stencil::Mutators<zzField_FieldType_NativeTypezz>::zzNamezz(
-            _subtracker_zzField_Namezz, Obj().zzField_Namezz(), std::move(args));
+        MarkFieldEdited_(TData::FieldIndex::zzField_Namezz, Obj().zzField_Namezz(), args);
+        return Stencil::Mutators<zzField_FieldType_NativeTypezz>::zzNamezz(Obj().zzField_Namezz(), std::move(args));
     }
     //</FieldType_Mutator>
     //</Field>
+
+    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        //<Field>
+        case TData::FieldIndex::zzNamezz: return lambda("zzNamezz", zzNamezz()); return;
+        //</Field>
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        //<Field>
+        if (fieldName == "zzNamezz") { return lambda(TData::FieldIndex::zzNamezz, zzNamezz()); }
+        //</Field>
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    {
+        //<Field>
+        lambda("zzNamezz", TData::FieldIndex::zzNamezz, zzNamezz());
+        //</Field>
+    }
 };
 
 template <>

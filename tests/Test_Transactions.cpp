@@ -8,9 +8,9 @@ struct TestReplay
 
     void Replay(std::string_view const& txndata)
     {
-        Stencil::MemTransactionRecorder                 record;
-        Stencil::Transaction<Transactions::State::Data> txn(obj, record);
-        Stencil::StringTransactionDataReader::Replay<Transactions::State::Data>(txn, txndata);
+        // Stencil::MemTransactionRecorder                 record;
+        Stencil::Transaction<Transactions::State::Data> txn(obj);
+        Stencil::StringTransactionDataReader::Apply(txn, txndata);
     }
     Transactions::State::Data                    obj;
     std::vector<Stencil::MemTransactionRecorder> records;
