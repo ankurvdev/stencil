@@ -5,8 +5,6 @@
 #include <deque>
 #include <sstream>
 
-class JsonDataModel;
-
 #ifdef USE_NLOHMANN_JSON
 #pragma warning(push, 3)
 #pragma clang diagnostic push
@@ -17,6 +15,11 @@ class JsonDataModel;
 #pragma GCC diagnostic   pop
 #pragma clang diagnostic pop
 #pragma warning(pop)
+#endif
+namespace Stencil
+{
+class JsonDataModel;
+#ifdef USE_NLOHMANN_JSON
 
 #define SAFEEXEC(stmt)    \
     do {                  \
@@ -37,11 +40,11 @@ struct Json
     using string_t          = std::string;
     using binary_t          = std::string;
 
-    template <typename TStruct> struct Reader : public nlohmann::json_sax<nlohmann::json>
+    template <typename TVisitor> struct Reader : public nlohmann::json_sax<nlohmann::json>
     {
         using sax = typename nlohmann::json_sax<nlohmann::json>;
 
-        Reader(TStruct& obj) : _visitor(obj) { _stack.push_back(std::numeric_limits<size_t>::max()); }
+        Reader(TVisitor& obj) : _visitor(obj) { _stack.push_back(std::numeric_limits<size_t>::max()); }
 
         bool IsArray() { return _stack.back() != std::numeric_limits<size_t>::max(); }
 
@@ -120,8 +123,8 @@ struct Json
             throw ex;
         }
 #endif
-        Stencil::Visitor<TStruct> _visitor;
-        std::vector<size_t>       _stack;
+        TVisitor            _visitor;
+        std::vector<size_t> _stack;
         // ReflectionServices::StateTraker<TStruct, void*> _tracker;
     };
 
@@ -241,9 +244,16 @@ struct Json
         static std::string Stringify(const std::unique_ptr<T>& obj) { return std::string(obj->GetObjectUuid().ToString()); }
     };
 
+    template <typename TStruct> static void Load(Visitor<TStruct>& visitor, const std::string_view& str)
+    {
+        Reader<Visitor<TStruct>> handler(visitor);
+        nlohmann::json::sax_parse(str, &handler);
+    }
+
     template <typename TStruct> static void Load(TStruct& obj, const std::string_view& str)
     {
-        Reader<TStruct> handler(obj);
+        Visitor<TStruct>         visitor(obj);
+        Reader<Visitor<TStruct>> handler(visitor);
         nlohmann::json::sax_parse(str, &handler);
     }
 
@@ -257,6 +267,7 @@ struct Json
     template <typename T> static std::string Stringify(const T& obj) { return Writer<T>::Stringify(obj); }
 };
 #endif
+}    // namespace Stencil
 
 // TODO : Fork it out into cliserdes
 #include "CommandLineArgsReader.h"

@@ -215,6 +215,8 @@ template <typename T> struct Visitor<std::vector<T> const> : VisitorT<std::vecto
 {
     Visitor(std::vector<T> const& obj) : VisitorT<std::vector<T> const>(obj), _ref(obj) {}
 
+    template <typename TLambda> void Visit(size_t index, TLambda&& lambda) const { lambda(index, _ref.get().at(index)); }
+
     template <typename TLambda> void VisitAll(TLambda&& lambda) const
     {
         for (size_t i = 0; i < _ref.get().size(); i++) { lambda(i, _ref.get().at(i)); }
@@ -223,13 +225,44 @@ template <typename T> struct Visitor<std::vector<T> const> : VisitorT<std::vecto
     std::reference_wrapper<std::vector<T> const> _ref;
 };
 
+template <typename T> struct Visitor<std::vector<T>> : VisitorT<std::vector<T>>
+{
+    Visitor(std::vector<T>& obj) : VisitorT<std::vector<T>>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(size_t index, TLambda&& lambda) { lambda(index, _ref.get().at(index)); }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    {
+        for (size_t i = 0; i < _ref.get().size(); i++) { lambda(i, _ref.get().at(i)); }
+    }
+
+    std::reference_wrapper<std::vector<T>> _ref;
+};
+
 template <typename T, size_t N> struct Visitor<std::array<T, N> const> : VisitorT<std::array<T, N> const>
 {
     using TData = std::array<T, N>;
 
     Visitor(TData const& obj) : VisitorT<TData const>(obj), _ref(obj) {}
 
+    template <typename TLambda> void Visit(size_t index, TLambda&& lambda) const { lambda(index, _ref.get().at(index)); }
+
     template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    {
+        for (size_t i = 0; i < _ref.get().size(); i++) { lambda(i, _ref.get().at(i)); }
+    }
+    std::reference_wrapper<TData> _ref;
+};
+
+template <typename T, size_t N> struct Visitor<std::array<T, N>> : VisitorT<std::array<T, N>>
+{
+    using TData = std::array<T, N>;
+
+    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
+
+    template <typename TLambda> void Visit(size_t index, TLambda&& lambda) { lambda(index, _ref.get().at(index)); }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
     {
         for (size_t i = 0; i < _ref.get().size(); i++) { lambda(i, _ref.get().at(i)); }
     }

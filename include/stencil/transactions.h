@@ -181,14 +181,18 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
 
     TObj& Obj() { return _ref; }
 
-    template <typename TLambda> auto Visit(size_t fieldIndex, TLambda&& /* lambda */)
+    template <typename TLambda> auto Visit(size_t fieldIndex, TLambda&& lambda)
     {
-        throw std::logic_error("Visit Not supported on Transaction");
+        Visitor<TObj> visitor(_ref.get());
+        visitor.Visit(fieldIndex, [&](auto index, auto& obj) {
+            Transaction<std::remove_reference_t<decltype(obj)>> subtxn(obj);
+            lambda(index, subtxn);
+        });
     }
 
-    template <typename TLambda> auto Visit(std::string_view const& /* fieldName */, TLambda&& /* lambda */)
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
     {
-        throw std::logic_error("Visit Not supported on Transaction");
+        return Visit(Value(fieldName).convert<size_t>(), std::forward<TLambda>(lambda));
     }
 
     template <typename TLambda> void VisitAll(TLambda&& /* lambda */) { throw std::logic_error("Visit Not supported on Transaction"); }
@@ -527,7 +531,7 @@ struct StringTransactionDataReader
             {
                 if (data[i] == '.' || data[i] == '[' || data[i] == ' ' || data[i] == '=' || data[i] == ':')
                 {
-                    token     = std::string_view(data.begin() + startIndex, data.begin() + i);
+                    token = std::string_view(data.begin() + static_cast<ptrdiff_t>(startIndex), data.begin() + static_cast<ptrdiff_t>(i));
                     delimiter = data[i];
                     return;
                 }
@@ -663,9 +667,10 @@ struct StringTransactionDataReader
             if (it.delimiter == '[')
             {
                 size_t i = it.startIndex;
-                while (it.data[i] != ']' && i < it.data.size()) i++;
+                while (i < it.data.size() && it.data[i] != ']') i++;
                 if (i == it.data.size()) throw std::logic_error("Invalid Format. Cannot find end ']'");
-                mutatordata   = std::string_view(it.data.begin() + it.startIndex, it.data.begin() + i);
+                mutatordata   = std::string_view(it.data.begin() + static_cast<ptrdiff_t>(it.startIndex),
+                                               it.data.begin() + static_cast<ptrdiff_t>(i));
                 it.startIndex = i;
                 it.token      = {};
             }
@@ -680,16 +685,16 @@ struct StringTransactionDataReader
             }
         }
         size_t i = it.startIndex + it.token.size() + 1;
-        while (it.data[i] == ' ' && i < it.data.size()) i++;
+        while (i < it.data.size() && it.data[i] == ' ') i++;
         if (i == it.data.size() || it.data[i] != '=') throw std::logic_error("Invalid Format. Expected '='");
         ++i;    // skip =
-        while (it.data[i] == ' ' && i < it.data.size()) i++;
+        while (i < it.data.size() && it.data[i] == ' ') i++;
         if (i == it.data.size()) throw std::logic_error("Invalid Format. Cannot find rhs");
         size_t rhsS = i;
-        while (it.data[i] != ';' && i < it.data.size()) i++;
-        auto rhs = std::string_view(it.data.begin() + rhsS, it.data.begin() + i);
+        while (i < it.data.size() && it.data[i] != ';') i++;
+        auto rhs = std::string_view(it.data.begin() + static_cast<ptrdiff_t>(rhsS), it.data.begin() + static_cast<ptrdiff_t>(i));
         _ApplyOnStruct(txn, name, mutator, mutatordata, rhs);
-        return it.data.size() + 1;
+        return i + 1;
     }
 
     public:
