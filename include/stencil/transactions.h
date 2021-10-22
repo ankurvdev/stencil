@@ -504,7 +504,7 @@ struct MemTransactionRecorder : Stencil::TransactionRecorder
 
 struct BinaryTransactionDataReader
 {};
-struct StringTransactionDataReader
+struct StringTransactionSerDes
 {
     private:
     struct TokenIterator
@@ -706,6 +706,8 @@ struct StringTransactionDataReader
             startIndex += _Apply(it, txn);
         } while (startIndex < txndata.size());
     }
+
+    template <typename T> static std::string Deserialize(Transaction<T>& /* txn */) { throw std::logic_error("Not implemented"); }
 };
 }    // namespace Stencil
 template <typename T, typename _Ts> struct Stencil::Transaction : Stencil::TransactionT<T>

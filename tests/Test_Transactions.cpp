@@ -5,14 +5,27 @@
 
 struct TestReplay
 {
+    TestReplay() : txn2(obj2) {}
 
     void Replay(std::string_view const& txndata)
     {
-        // Stencil::MemTransactionRecorder                 record;
-        Stencil::Transaction<Transactions::State::Data> txn(obj);
-        Stencil::StringTransactionDataReader::Apply(txn, txndata);
+        Stencil::Transaction<Transactions::State::Data> txn(obj1);
+        Stencil::StringTransactionSerDes::Apply(txn, txndata);
+        snapshots.push_back(Stencil::Json::Stringify(obj1));
+
+        auto delta = Stencil::StringTransactionSerDes::Deserialize(txn);
+        REQUIRE(delta == txndata);
+        deltas.push_back(Stencil::StringTransactionSerDes::Deserialize(txn2));
     }
-    Transactions::State::Data                    obj;
+
+    std::vector<std::string> snapshots;
+    std::vector<std::string> deltas;
+
+    Transactions::State::Data obj1;
+    Transactions::State::Data obj2;
+
+    Stencil::Transaction<Transactions::State::Data> txn2;
+
     std::vector<Stencil::MemTransactionRecorder> records;
 };
 
@@ -36,8 +49,8 @@ TEST_CASE("Transactions", "[Transactions]")
     replay.Replay("environment.pressureHgIn1E7 = 110000000");
     replay.Replay("settings.altimeterHgIn1E7 = 222000000");
 
-    // CheckOutputAgainstResource(testsvc->GetChangeDataSnapshots(), "ChangeDataSnapshots");
-    // CheckOutputAgainstResource(testsvc->GetChangeDelta(), "ChangeDelta.txt");
+    CheckOutputAgainstResource(replay.snapshots, "Transactions_ChangeDataSnapshots.txt");
+    CheckOutputAgainstResource(replay.deltas, "Transactions_Deltas.txt");
 
     // auto& fdr = *static_cast<FlightDataRecorder const*>(fdrsvc.get());
     // REQUIRE(fdr.GetRecordFiles().size() == 1);
