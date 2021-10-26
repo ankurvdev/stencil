@@ -460,7 +460,11 @@ struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz::Data> : Stencil::
     {}
 
     //<Field>
-    auto& zzNamezz() { return _subtracker_zzNamezz; }
+    auto& zzNamezz()
+    {
+        MarkFieldEdited_(TData::FieldIndex::zzField_Namezz);
+        return _subtracker_zzNamezz;
+    }
     //</Field>
     //<Field>
     void set_zzNamezz(zzFieldType_NativeTypezz&& val)
@@ -472,7 +476,7 @@ struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz::Data> : Stencil::
     //<FieldType_Mutator>
     zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz&& args)
     {
-        MarkFieldEdited_(TData::FieldIndex::zzField_Namezz, Obj().zzField_Namezz(), args);
+        MarkFieldEdited_(TData::FieldIndex::zzField_Namezz);
         return Stencil::Mutators<zzField_FieldType_NativeTypezz>::zzNamezz(Obj().zzField_Namezz(), std::move(args));
     }
     //</FieldType_Mutator>
@@ -500,7 +504,7 @@ struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz::Data> : Stencil::
     template <typename TLambda> void VisitAll(TLambda&& lambda)
     {
         //<Field>
-        lambda("zzNamezz", TData::FieldIndex::zzNamezz, zzNamezz());
+        lambda("zzNamezz", TData::FieldIndex::zzNamezz, zzNamezz(), Obj().zzNamezz());
         //</Field>
     }
 };

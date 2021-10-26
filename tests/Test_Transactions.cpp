@@ -7,14 +7,18 @@ struct TestReplay
 {
     TestReplay() : txn2(obj2) {}
 
-    void Replay(std::string_view const& txndata)
+    void Replay(std::string_view const& txndata, std::string_view const& expectedIn = {})
     {
         Stencil::Transaction<Transactions::State::Data> txn(obj1);
         Stencil::StringTransactionSerDes::Apply(txn, txndata);
         snapshots.push_back(Stencil::Json::Stringify(obj1));
-
-        auto delta = Stencil::StringTransactionSerDes::Deserialize(txn);
-        REQUIRE(delta == txndata);
+        auto expected = expectedIn.size() == 0 ? txndata : expectedIn;
+        auto delta    = Stencil::StringTransactionSerDes::Deserialize(txn);
+        if (txndata[expected.size() - 1] == ';') { REQUIRE(delta == expected); }
+        else
+        {
+            REQUIRE(delta.substr(0, delta.size() - 1) == expected);
+        }
         deltas.push_back(Stencil::StringTransactionSerDes::Deserialize(txn2));
     }
 
@@ -32,8 +36,9 @@ struct TestReplay
 TEST_CASE("Transactions", "[Transactions]")
 {
     TestReplay replay;
-    replay.Replay("imu.pitchDeg1E6 = 1000000;imu.pitchDeg1E6 = 1000000;gps.loc.lat1E7 = 10000000;gps.loc.lon1E7 = 10000000");
-    replay.Replay("imu.pitchDeg1E6 = 2000000;imu.pitchDeg1E6 = 2000000;gps.loc.lat1E7 = 20000000;gps.loc.lon1E7 = 20000000");
+    replay.Replay("imu.pitchDeg1E6 = 1000000;imu.pitchDeg1E6 = 1000000;gps.loc.lat1E7 = 10000000;gps.loc.lon1E7 = 10000000",
+                  "imu.pitchDeg1E6 = 1000000;gps.loc.lat1E7 = 10000000;gps.loc.lon1E7 = 10000000");
+    replay.Replay("imu.pitchDeg1E6 = 2000000;gps.loc.lat1E7 = 20000000;gps.loc.lon1E7 = 20000000;");
     replay.Replay("traffic.aircrafts:add[0] = {\"addr\": 100}");
     replay.Replay("traffic.aircrafts:add[0] = {\"addr\": 200}");
     replay.Replay("traffic.aircrafts:add[0] = {\"addr\": 300}");

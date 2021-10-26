@@ -34,6 +34,8 @@ template <typename TObj, typename _Ts = void> struct TransactionT
 
     template <typename TLambda> void VisitAll(TLambda&& /* lambda */) { throw std::logic_error("Visit Not supported on Transaction"); }
 
+    TObj& Obj() { throw std::logic_error("Obj Not supported on Transaction"); }
+
 #if 0
     unsigned GetFieldTypeByName(std::string_view const& /* name */) { throw std::logic_error("Add Not supported on Transaction"); }
     template <typename TSerDes, typename... TArgs> void Add(TArgs&&...) { throw std::logic_error("Add Not supported on Transaction"); }
@@ -78,18 +80,28 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
     auto& _GetTransactionObj()
     {
         static_assert(std::is_base_of_v<TransactionT<TObj>, TTransaction>, "Transaction<TObj> must derive TransactionT<TObj>");
-        return *static_cast<TTransaction*>(*this);
+        return *static_cast<TTransaction*>(this);
     }
 
     public:
-    template <typename TEnum> bool IsFieldChanged(TEnum field) const
-    {
-        return _assigntracker.test(static_cast<uint8_t>(field)) || _edittracker.test(static_cast<uint8_t>(field));
-    }
+    template <typename TEnum> bool IsFieldAssigned(TEnum field) const { return _assigntracker.test(static_cast<uint8_t>(field)); }
+    template <typename TEnum> bool IsFieldEdited(TEnum field) const { return _edittracker.test(static_cast<uint8_t>(field)); }
+    template <typename TEnum> bool IsFieldChanged(TEnum field) const { return IsFieldAssigned(field) || IsFieldEdited(field); }
 
     size_t CountFieldsChanged() const { return (_assigntracker | _edittracker).count(); }
 
+    template <typename TLambda> void VisitChanges(TLambda&& lambda)
+    {
+        _GetTransactionObj().VisitAll([&](auto const& name, auto const& type, auto& subtxn, auto& obj) {
+            if (IsFieldAssigned(type)) lambda(name, type, 0, 0, subtxn, obj);
+            if (IsFieldEdited(type)) lambda(name, type, 3, 0, subtxn, obj);
+        });
+    }
+    template <typename TEnum> void MarkFieldAssigned_(TEnum field) { _assigntracker.set(static_cast<uint8_t>(field)); }
+
     protected:
+    // template <typename TEnum> void MarkFieldAssigned_(TEnum field) { _assigntracker.set(static_cast<uint8_t>(field)); }
+
     template <typename TEnum, typename TVal> void MarkFieldAssigned_(TEnum field, TVal const& curval, TVal const& newval)
     {
         if constexpr (std::is_base_of_v<Stencil::OptionalPropsT<TObj>, TObj>)
@@ -102,11 +114,9 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
         }
         if (!ReflectionBase::AreEqual(curval, newval)) { _assigntracker.set(static_cast<uint8_t>(field)); }
     }
-    template <typename TEnum, typename TVal, typename... TArgs>
-    void MarkFieldEdited_(TEnum field, TVal const& /* curval */, TArgs&&... /* args */)
-    {
-        _edittracker.set(static_cast<uint8_t>(field));
-    }
+
+    template <typename TEnum> void MarkFieldEdited_(TEnum field) { _edittracker.set(static_cast<uint8_t>(field)); }
+
 #if 0
     template <typename TEnum, typename TFieldType, typename TVal> void OnMutation_add(TEnum field, TFieldType const& obj, TVal const& val)
     {
@@ -196,6 +206,10 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
     }
 
     template <typename TLambda> void VisitAll(TLambda&& /* lambda */) { throw std::logic_error("Visit Not supported on Transaction"); }
+    template <typename TLambda> void VisitChanges(TLambda&& /* lambda */)
+    {
+        // throw std::logic_error("Visit Not supported on Transaction");
+    }
 
     std::reference_wrapper<TObj> _ref;
 };
@@ -613,9 +627,13 @@ struct StringTransactionSerDes
         {
             if (mutator == 0)    // Set
             {
-                Visitor<T> visitor(txn.Obj());
-                visitor.Select(fieldname);
-                JsonSerDes::Deserialize(visitor, rhs);
+                txn.Visit(fieldname, [&](auto fieldType, auto& /* subtxn */) {
+                    Visitor<T> visitor(txn.Obj());
+                    visitor.Select(fieldname);
+                    txn.MarkFieldAssigned_(fieldType);
+                    JsonSerDes::Deserialize(visitor, rhs);
+                });
+
                 // txn.Visit(fieldname, [&](auto fieldType, auto& subtxn) { _ApplyJson(subtxn , fieldType, rhs); });
             }
             else if (mutator == 1)    // List Add
@@ -707,7 +725,52 @@ struct StringTransactionSerDes
         } while (startIndex < txndata.size());
     }
 
-    template <typename T> static std::string Deserialize(Transaction<T>& /* txn */) { throw std::logic_error("Not implemented"); }
+    template <typename T> static std::ostream& _DeserializeTo(Transaction<T>& txn, std::ostream& ostr, std::vector<std::string>& stack)
+    {
+        using Traits = ReflectionBase::TypeTraits<T&>;
+
+        if constexpr (Traits::Type() == ReflectionBase::DataType::List)
+        {
+            txn.VisitChanges([&](auto const& /* name */,
+                                 auto const& /* type */,
+                                 auto const& /* mutator */,
+                                 auto const& /* mutatordata */,
+                                 auto& /* subtxn */,
+                                 auto& /* obj */) {
+
+            });
+        }
+
+        if constexpr (ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Object)
+        {
+            txn.VisitChanges(
+                [&](auto const& name, auto const& /* type */, auto const& mutator, auto const& /* mutatordata */, auto& subtxn, auto& obj) {
+                    if (mutator == 0)
+                    {
+                        for (auto& s : stack) { ostr << s << "."; }
+                        ostr << name << " = " << Stencil::Json::Stringify(obj) << ";";
+                    }
+                    else if (mutator == 3)
+                    {
+                        stack.push_back(name);
+                        _DeserializeTo(subtxn, ostr, stack);
+                        stack.pop_back();
+                    }
+                    else
+                    {
+                        throw std::logic_error("Unknown mutator");
+                    }
+                });
+        }
+        return ostr;
+    }
+    template <typename T> static std::string Deserialize(Transaction<T>& txn)
+    {
+        std::stringstream        sstr;
+        std::vector<std::string> stack;
+        _DeserializeTo(txn, sstr, stack);
+        return sstr.str();
+    }
 };
 }    // namespace Stencil
 template <typename T, typename _Ts> struct Stencil::Transaction : Stencil::TransactionT<T>

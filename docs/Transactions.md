@@ -116,7 +116,7 @@ template <typename TLambda>
 void Visit(size_t index, TLamda&& lambda); // Invoke lambda(Tranction<SubType>) based on given index
 template <typename TLambda>
 void Visit(std::string_view const& name, TLambda&& lambda); // Invoke  lambda(Tranction<SubType>) based on given name
-
+void VisitChanges()
 
 };
 
