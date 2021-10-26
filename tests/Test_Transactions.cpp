@@ -9,7 +9,7 @@ struct TestReplay
 
     void Replay(std::string_view const& txndata, std::string_view const& expectedIn = {})
     {
-        Stencil::Transaction<Transactions::State::Data> txn(obj1);
+        Stencil::Transaction<Transactions::Object::Data> txn(obj1);
         Stencil::StringTransactionSerDes::Apply(txn, txndata);
         snapshots.push_back(Stencil::Json::Stringify(obj1));
         auto expected = expectedIn.size() == 0 ? txndata : expectedIn;
@@ -25,10 +25,10 @@ struct TestReplay
     std::vector<std::string> snapshots;
     std::vector<std::string> deltas;
 
-    Transactions::State::Data obj1;
-    Transactions::State::Data obj2;
+    Transactions::Object::Data obj1;
+    Transactions::Object::Data obj2;
 
-    Stencil::Transaction<Transactions::State::Data> txn2;
+    Stencil::Transaction<Transactions::Object::Data> txn2;
 
     std::vector<Stencil::MemTransactionRecorder> records;
 };
@@ -36,23 +36,23 @@ struct TestReplay
 TEST_CASE("Transactions", "[Transactions]")
 {
     TestReplay replay;
-    replay.Replay("imu.pitchDeg1E6 = 1000000;imu.pitchDeg1E6 = 1000000;gps.loc.lat1E7 = 10000000;gps.loc.lon1E7 = 10000000",
-                  "imu.pitchDeg1E6 = 1000000;gps.loc.lat1E7 = 10000000;gps.loc.lon1E7 = 10000000");
-    replay.Replay("imu.pitchDeg1E6 = 2000000;gps.loc.lat1E7 = 20000000;gps.loc.lon1E7 = 20000000;");
-    replay.Replay("traffic.aircrafts:add[0] = {\"addr\": 100}");
-    replay.Replay("traffic.aircrafts:add[0] = {\"addr\": 200}");
-    replay.Replay("traffic.aircrafts:add[0] = {\"addr\": 300}");
-    replay.Replay("traffic.aircrafts:add[0] = {\"addr\": 400}");
-    replay.Replay("traffic.aircrafts:add[0] = {\"addr\": 500}");
-    replay.Replay("traffic.aircrafts.0.loc.lat1E7 = 30000001;");
-    replay.Replay("traffic.aircrafts.1.loc.lat1E7 = 30000002;");
-    replay.Replay("traffic.aircrafts.2.loc.lat1E7 = 30000003;");
-    replay.Replay("traffic.aircrafts.3.loc.lat1E7 = 30000004;");
-    replay.Replay("traffic.aircrafts.4.loc.lat1E7 = 30000005;");
-    replay.Replay("traffic.aircrafts:remove[2] = {}");
-    replay.Replay("traffic.aircrafts:remove[2] = {}");
-    replay.Replay("environment.pressureHgIn1E7 = 110000000");
-    replay.Replay("settings.altimeterHgIn1E7 = 222000000");
+    replay.Replay("obj1.val2 = 1000000;obj1.val2 = 1000000;obj2.val1 = 10000000;obj2.val2 = 10.0000001",
+                  "obj1.val2 = 1000000;obj2.val1 = 1;obj2.val2 = 10.000000");
+    replay.Replay("obj1.val2 = 2000000;obj1.val5 = 20.000000;obj2.val2 = 20000000.000000;");
+    replay.Replay("list1.listobj:add[0] = {\"value\": 100}");
+    replay.Replay("list1.listobj:add[0] = {\"value\": 200}");
+    replay.Replay("list1.listobj:add[0] = {\"value\": 300}");
+    replay.Replay("list1.listobj:add[0] = {\"value\": 400}");
+    replay.Replay("list1.listobj:add[0] = {\"value\": 500}");
+    replay.Replay("list1.listobj.0.obj1.val2 = 30000001;");
+    replay.Replay("list1.listobj.1.obj1.val2 = 30000002;");
+    replay.Replay("list1.listobj.2.obj1.val2 = 30000003;");
+    replay.Replay("list1.listobj.3.obj1.val2 = 30000004;");
+    replay.Replay("list1.listobj.4.obj1.val2 = 30000005;");
+    replay.Replay("list1.listobj:remove[2] = {}");
+    replay.Replay("list1.listobj:remove[2] = {}");
+    replay.Replay("obj3.obj1.val1 = 110000000");
+    replay.Replay("obj3.obj1.val2 = 222000000");
 
     CheckOutputAgainstResource(replay.snapshots, "Transactions_ChangeDataSnapshots.txt");
     CheckOutputAgainstResource(replay.deltas, "Transactions_Deltas.txt");

@@ -231,7 +231,11 @@ struct Json
 
     template <typename T> struct Writer<T, std::enable_if_t<Value::Supported<T>::value>>
     {
-        static std::string Stringify(const T& obj) { return Value(obj).convert<shared_string>().str(); }
+        static std::string Stringify(const T& obj)
+        {
+            auto const& sval = Value(obj).convert<shared_string>();
+            return sval.empty() ?  std::string() : sval.str();
+        }
     };
 
     template <typename T> struct Writer<T, std::enable_if_t<std::is_base_of<::ReflectionBase::InterfaceMarker, T>::value>>

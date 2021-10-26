@@ -477,6 +477,7 @@ struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz::Data> : Stencil::
     zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::zzField_Namezz);
+        zzField_Namezz().RecordMutation_zzNamezz_(args);
         return Stencil::Mutators<zzField_FieldType_NativeTypezz>::zzNamezz(Obj().zzField_Namezz(), std::move(args));
     }
     //</FieldType_Mutator>

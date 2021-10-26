@@ -191,6 +191,49 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
 
     TObj& Obj() { return _ref; }
 
+    template <typename TArg> void RecordMutation_add_(TArg&)
+    {
+        TODO("Not Implented");
+#if 0
+        auto iit = std::lower_bound(_added.begin(), _added.end(), index);
+        for (auto it = iit; it != _added.end(); ++it) { (*it)++; }
+        _added.insert(iit, index);
+#endif
+    }
+
+    void RecordMutation_remove_(size_t index)
+    {
+        _removed.push_back(index);
+        auto it = std::lower_bound(_added.begin(), _added.end(), index);
+        for (; it != _added.end(); ++it) { (*it)--; }
+    }
+
+    void RecordMutation_edit_(size_t index)
+    {
+        _removed.push_back(index);
+        auto it = std::lower_bound(_added.begin(), _added.end(), index);
+        for (; it != _added.end(); ++it) { (*it)--; }
+    }
+
+    void RecordMutation_assign_(size_t index)
+    {
+        _removed.push_back(index);
+        auto it = std::lower_bound(_added.begin(), _added.end(), index);
+        for (; it != _added.end(); ++it) { (*it)--; }
+    }
+
+    template <typename TListObj> void add(TListObj&& obj)
+    {
+        RecordMutation_add_(obj);
+        Mutators<TObj>::add(Obj(), std::move(obj));
+    }
+
+    void remove(size_t index)
+    {
+        RecordMutation_remove_(index);
+        Mutators<TObj>::remove(Obj(), index);
+    }
+
     template <typename TLambda> auto Visit(size_t fieldIndex, TLambda&& lambda)
     {
         Visitor<TObj> visitor(_ref.get());
@@ -211,6 +254,8 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
         // throw std::logic_error("Visit Not supported on Transaction");
     }
 
+    std::vector<size_t>          _added;
+    std::vector<size_t>          _removed;
     std::reference_wrapper<TObj> _ref;
 };
 
@@ -601,9 +646,9 @@ struct StringTransactionSerDes
 
             Visitor<decltype(obj)> visitor(obj);
             JsonSerDes::Deserialize(visitor, rhs);
-            Stencil::Mutators<T>::add(txn.Obj(), std::move(obj));
+            txn.add(std::move(obj));
         }
-        static void Remove(Transaction<T>& txn, size_t listindex) { Stencil::Mutators<T>::remove(txn.Obj(), listindex); }
+        static void Remove(Transaction<T>& txn, size_t listindex) { txn.remove(listindex); }
     };
 
     template <typename TObj> static void _ListAdd(Transaction<TObj>& txn, size_t listindex, std::string_view const& rhs)

@@ -1,63 +1,37 @@
-struct Location
+struct SimpleObject1
 {
     timestamp time;
-    int32     lat1E7; // 7 digit double precision
-    int32     lon1E7; // 7 digit double precision
-    int32     altitudeM1E2;       // meters 2 digit precision
-    uint32    groundSpeedMS1E2;   // m/s 2 digit precision
-    uint32    headingDeg1E2;      // degrees 2digit precision
-    int32     climbMS1E2;         // m/s 2 digit precision
-    uint8     sourceId;
+    int32     val1;
+    uint32    val2;
+    uint8     val3;
+    string    val4;
+    double    val5;
 }
 
-struct GPS
+struct ListObject
 {
-    Location loc;
-    uint32 horzAccuracyM1E2;
-    uint32 vertAccuracyM1E2;
+    uint32        value;
+    SimpleObject1 obj1;
 }
 
-struct Aircraft
+struct List
 {
-    uint32   addr;        /* ICAO address */
-    char[6]  tailNumber   // Tail number
-    Location loc;
+    list<ListObject> listobj;
 }
 
-struct Traffic
+struct SimpleObject2
 {
-    list<Aircraft> aircrafts
+    bool    val1;
+    double  val2;
 }
 
-struct IMU
+struct Object
 {
-    uint32 pitchDeg1E6;
-    uint32 rollDeg1E6;
-    uint32 azimuthDeg1E6;
-    uint32 slip;
+    SimpleObject1   obj1;
+    SimpleObject2   obj2;
+    ListObject      obj3;
+    List            list1;
 }
 
-struct Environment
-{
-    uint32 pressureHgIn1E7;
-}
-
-struct Settings
-{
-    uint32 altimeterHgIn1E7;
-    bool sendOnBluetooth;
-    bool recording;
-    bool useFlightRadar;
-}
-
-struct State
-{
-    Settings settings;
-    Environment environment;
-    IMU imu;
-    GPS gps;
-    Traffic traffic;
-}
-
-relationship optionalprops 	 object = GPS, Environment
-relationship timestamped 	 object = GPS, Aircraft, Traffic, IMU, Environment, Settings
+relationship optionalprops 	 object = SimpleObject1, SimpleObject2
+relationship timestamped 	 object = SimpleObject1, ListObject, List, SimpleObject2
