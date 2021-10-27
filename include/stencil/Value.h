@@ -189,7 +189,7 @@ struct Value
     {
         switch (_type)
         {
-        case Type::Empty: throw UnsupportedCast();
+        case Type::Empty: return Value(_sVal);
         case Type::Signed: return Value(_inttostr(_iVal));
         case Type::Unsigned: return Value(_inttostr(_uVal));
         case Type::Double: return Value(_doubletostr(_dVal));

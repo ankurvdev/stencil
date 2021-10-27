@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <fstream>
 #include <span>
+#include <unordered_map>
 
 namespace Stencil
 {
@@ -184,6 +185,8 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
 template <typename TObj>
 struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::List>>
 {
+    using ListObjType = ReflectionBase::TypeTraits<TObj&>::ListObjType;
+
     TransactionT(TObj& obj) : _ref(std::ref(obj)) {}
     ~TransactionT() {}
 
@@ -197,7 +200,7 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
     void RecordMutation_edit_(size_t index) { _changes.push_back({3u, index}); }
     void RecordMutation_assign_(size_t index) { _changes.push_back({0u, index}); }
 
-    template <typename TListObj> void add(TListObj&& obj)
+    void add(ListObjType&& obj)
     {
         RecordMutation_add_(obj);
         Mutators<TObj>::add(Obj(), std::move(obj));
@@ -213,8 +216,10 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
     {
         Visitor<TObj> visitor(_ref.get());
         visitor.Visit(fieldIndex, [&](auto index, auto& obj) {
-            Transaction<std::remove_reference_t<decltype(obj)>> subtxn(obj);
-            lambda(index, subtxn);
+            auto subtxnptr = std::make_unique<Transaction<ListObjType>>(obj);
+            lambda(index, *subtxnptr);
+            // TODO : only do it if there was a change;
+            _edited.insert(std::make_pair(index, std::move(subtxnptr)));
         });
     }
 
@@ -229,18 +234,24 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
         if (_changes.size() == 0) return;
         for (auto& c : _changes)
         {
-            // TODO : Fix me
-            auto&                                               obj = Obj()[c.mutationdata];
-            Transaction<std::remove_reference_t<decltype(obj)>> subtxn(obj);
-            lambda(nullptr, nullptr, c.mutationtype, c.mutationdata, subtxn, obj);
+            // TODO : Fix me. This is horrible
+            auto& obj = Obj()[c.index];
+            auto  it  = _edited.find(c.index);
+            if (it == _edited.end())
+            {
+                it = _edited.insert(std::make_pair(c.index, std::make_unique<Transaction<ListObjType>>(obj))).first;
+            }
+            lambda(nullptr, nullptr, c.mutationtype, c.index, *it->second, obj);
         }
     }
 
     struct _Record
     {
         uint8_t mutationtype;
-        size_t  mutationdata;
+        size_t  index;
     };
+
+    std::unordered_map<size_t, std::unique_ptr<Transaction<ListObjType>>> _edited;
 
     std::vector<_Record>         _changes;
     std::reference_wrapper<TObj> _ref;
@@ -769,15 +780,21 @@ struct StringTransactionSerDes
                                  size_t const&  index,
                                  auto& /* subtxn */,
                                  auto& obj) {
+                bool first = true;
+                for (auto& s : stack)
+                {
+                    if (!first) ostr << ".";
+                    first = false;
+                    ostr << s;
+                }
                 if (mutator == 0)
                 {
                     // Assign
-                    for (auto& s : stack) { ostr << s << "."; }
-                    ostr << index << " = " << Stencil::Json::Stringify(obj) << ";";
+                    ostr << "." << index << " = " << Stencil::Json::Stringify(obj) << ";";
                 }
                 else if (mutator == 1)
                 {
-                    for (auto& s : stack) { ostr << s << "."; }
+
                     ostr << ":add[" << index << "] = " << Stencil::Json::Stringify(obj) << ";";
                 }
                 else if (mutator == 2)

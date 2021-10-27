@@ -234,7 +234,7 @@ struct Json
         static std::string Stringify(const T& obj)
         {
             auto const& sval = Value(obj).convert<shared_string>();
-            return sval.empty() ?  std::string() : sval.str();
+            return sval.empty() ?  "null" : sval.str();
         }
     };
 

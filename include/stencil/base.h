@@ -1043,6 +1043,7 @@ template <typename TClock, typename TDur> struct ReflectionBase::TypeTraits<std:
 #endif
 template <typename T> struct ReflectionBase::TypeTraits<std::vector<T>&>
 {
+    using ListObjType = T;
     static constexpr DataType Type() { return DataType::List; }
     static std::string        Name() { return "list<" + std::string(::ReflectionBase::TypeTraits<T&>::Name()) + ">"; }
 
@@ -1063,6 +1064,8 @@ template <typename T> struct ReflectionBase::TypeTraits<std::vector<T>&>
 
 template <typename T, size_t N> struct ReflectionBase::TypeTraits<std::array<T, N>&>
 {
+    using ListObjType = T;
+
     static constexpr DataType Type() { return DataType::List; }
     static std::string        Name() { return "array<" + std::string(::ReflectionBase::TypeTraits<T&>::Name()) + ">"; }
 
@@ -1154,6 +1157,8 @@ struct ReflectionBase::TypeTraits<std::shared_ptr<T>&, std::enable_if_t<std::is_
 
 template <typename T> struct ReflectionBase::TypeTraits<shared_tree<T>&>
 {
+    using ListObjType = T;
+
     static constexpr DataType         Type() { return DataType::List; }
     static constexpr std::string_view Name() { return ::ReflectionBase::TypeTraits<T&>::Name(); }
     static std::string                Description()
