@@ -191,36 +191,11 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
 
     TObj& Obj() { return _ref; }
 
-    template <typename TArg> void RecordMutation_add_(TArg&)
-    {
-        TODO("Not Implented");
-#if 0
-        auto iit = std::lower_bound(_added.begin(), _added.end(), index);
-        for (auto it = iit; it != _added.end(); ++it) { (*it)++; }
-        _added.insert(iit, index);
-#endif
-    }
+    template <typename TArg> void RecordMutation_add_(TArg&) { _changes.push_back({1u, Obj().size()}); }
 
-    void RecordMutation_remove_(size_t index)
-    {
-        _removed.push_back(index);
-        auto it = std::lower_bound(_added.begin(), _added.end(), index);
-        for (; it != _added.end(); ++it) { (*it)--; }
-    }
-
-    void RecordMutation_edit_(size_t index)
-    {
-        _removed.push_back(index);
-        auto it = std::lower_bound(_added.begin(), _added.end(), index);
-        for (; it != _added.end(); ++it) { (*it)--; }
-    }
-
-    void RecordMutation_assign_(size_t index)
-    {
-        _removed.push_back(index);
-        auto it = std::lower_bound(_added.begin(), _added.end(), index);
-        for (; it != _added.end(); ++it) { (*it)--; }
-    }
+    void RecordMutation_remove_(size_t index) { _changes.push_back({2u, index}); }
+    void RecordMutation_edit_(size_t index) { _changes.push_back({3u, index}); }
+    void RecordMutation_assign_(size_t index) { _changes.push_back({0u, index}); }
 
     template <typename TListObj> void add(TListObj&& obj)
     {
@@ -249,13 +224,25 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
     }
 
     template <typename TLambda> void VisitAll(TLambda&& /* lambda */) { throw std::logic_error("Visit Not supported on Transaction"); }
-    template <typename TLambda> void VisitChanges(TLambda&& /* lambda */)
+    template <typename TLambda> void VisitChanges(TLambda&& lambda)
     {
-        // throw std::logic_error("Visit Not supported on Transaction");
+        if (_changes.size() == 0) return;
+        for (auto& c : _changes)
+        {
+            // TODO : Fix me
+            auto&                                               obj = Obj()[c.mutationdata];
+            Transaction<std::remove_reference_t<decltype(obj)>> subtxn(obj);
+            lambda(nullptr, nullptr, c.mutationtype, c.mutationdata, subtxn, obj);
+        }
     }
 
-    std::vector<size_t>          _added;
-    std::vector<size_t>          _removed;
+    struct _Record
+    {
+        uint8_t mutationtype;
+        size_t  mutationdata;
+    };
+
+    std::vector<_Record>         _changes;
     std::reference_wrapper<TObj> _ref;
 };
 
@@ -778,11 +765,38 @@ struct StringTransactionSerDes
         {
             txn.VisitChanges([&](auto const& /* name */,
                                  auto const& /* type */,
-                                 auto const& /* mutator */,
-                                 auto const& /* mutatordata */,
+                                 uint8_t const& mutator,
+                                 size_t const&  index,
                                  auto& /* subtxn */,
-                                 auto& /* obj */) {
+                                 auto& obj) {
+                if (mutator == 0)
+                {
+                    // Assign
+                    for (auto& s : stack) { ostr << s << "."; }
+                    ostr << index << " = " << Stencil::Json::Stringify(obj) << ";";
+                }
+                else if (mutator == 1)
+                {
+                    for (auto& s : stack) { ostr << s << "."; }
+                    ostr << ":add[" << index << "] = " << Stencil::Json::Stringify(obj) << ";";
+                }
+                else if (mutator == 2)
+                {
+                    for (auto& s : stack) { ostr << s << "."; }
+                    ostr << ":remove[" << index << "] = {};";
+                }
+                else if (mutator == 3)
+                {
+                    throw std::logic_error("Not handled mutator");
 
+                    // stack.push_back(name);
+                    //_DeserializeTo(subtxn, ostr, stack);
+                    // stack.pop_back();
+                }
+                else
+                {
+                    throw std::logic_error("Unknown mutator");
+                }
             });
         }
 
