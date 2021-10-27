@@ -216,6 +216,7 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
     {
         Visitor<TObj> visitor(_ref.get());
         visitor.Visit(fieldIndex, [&](auto index, auto& obj) {
+            RecordMutation_edit_(index);
             auto subtxnptr = std::make_unique<Transaction<ListObjType>>(obj);
             lambda(index, *subtxnptr);
             // TODO : only do it if there was a change;
@@ -774,47 +775,41 @@ struct StringTransactionSerDes
 
         if constexpr (Traits::Type() == ReflectionBase::DataType::List)
         {
-            txn.VisitChanges([&](auto const& /* name */,
-                                 auto const& /* type */,
-                                 uint8_t const& mutator,
-                                 size_t const&  index,
-                                 auto& /* subtxn */,
-                                 auto& obj) {
-                bool first = true;
-                for (auto& s : stack)
-                {
-                    if (!first) ostr << ".";
-                    first = false;
-                    ostr << s;
-                }
-                if (mutator == 0)
-                {
-                    // Assign
-                    ostr << "." << index << " = " << Stencil::Json::Stringify(obj) << ";";
-                }
-                else if (mutator == 1)
-                {
+            txn.VisitChanges(
+                [&](auto const& /* name */, auto const& /* type */, uint8_t const& mutator, size_t const& index, auto& subtxn, auto& obj) {
+                    if (mutator == 3)
+                    {
+                        stack.push_back(std::to_string(index));
+                        _DeserializeTo(subtxn, ostr, stack);
+                        stack.pop_back();
+                        return;
+                    }
+                    bool first = true;
+                    for (auto& s : stack)
+                    {
+                        if (!first) ostr << ".";
+                        first = false;
+                        ostr << s;
+                    }
+                    if (mutator == 0)
+                    {
+                        // Assign
+                        ostr << "." << index << " = " << Stencil::Json::Stringify(obj) << ";";
+                    }
+                    else if (mutator == 1)
+                    {
 
-                    ostr << ":add[" << index << "] = " << Stencil::Json::Stringify(obj) << ";";
-                }
-                else if (mutator == 2)
-                {
-                    for (auto& s : stack) { ostr << s << "."; }
-                    ostr << ":remove[" << index << "] = {};";
-                }
-                else if (mutator == 3)
-                {
-                    throw std::logic_error("Not handled mutator");
-
-                    // stack.push_back(name);
-                    //_DeserializeTo(subtxn, ostr, stack);
-                    // stack.pop_back();
-                }
-                else
-                {
-                    throw std::logic_error("Unknown mutator");
-                }
-            });
+                        ostr << ":add[" << index << "] = " << Stencil::Json::Stringify(obj) << ";";
+                    }
+                    else if (mutator == 2)
+                    {
+                        ostr << ":remove[" << index << "] = {};";
+                    }
+                    else
+                    {
+                        throw std::logic_error("Unknown mutator");
+                    }
+                });
         }
 
         if constexpr (ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Object)
