@@ -19,6 +19,7 @@ struct TestReplay
         {
             REQUIRE(delta.substr(0, delta.size() - 1) == expected);
         }
+        Stencil::StringTransactionSerDes::Apply(txn2, txndata);
         deltas.push_back(Stencil::StringTransactionSerDes::Deserialize(txn2));
     }
 
