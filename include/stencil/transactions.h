@@ -729,10 +729,10 @@ struct StringTransactionSerDes
             if (it.delimiter == '[')
             {
                 size_t i = it.startIndex;
+                size_t s = it.startIndex + it.token.size() + 1;
                 while (i < it.data.size() && it.data[i] != ']') i++;
                 if (i == it.data.size()) throw std::logic_error("Invalid Format. Cannot find end ']'");
-                mutatordata   = std::string_view(it.data.begin() + static_cast<ptrdiff_t>(it.startIndex),
-                                               it.data.begin() + static_cast<ptrdiff_t>(i));
+                mutatordata   = std::string_view(it.data.begin() + static_cast<ptrdiff_t>(s), it.data.begin() + static_cast<ptrdiff_t>(i));
                 it.startIndex = i;
                 it.token      = {};
             }
