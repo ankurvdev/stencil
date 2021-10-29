@@ -6,7 +6,8 @@
 struct TestReplay
 {
     TestReplay() : txn2(obj2) {}
-
+    CLASS_DELETE_COPY_AND_MOVE(TestReplay);
+    
     void Replay(std::string_view const& txndata, std::string_view const& expectedIn = {})
     {
         Stencil::Transaction<Transactions::Object::Data> txn(obj1);
