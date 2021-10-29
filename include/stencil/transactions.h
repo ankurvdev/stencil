@@ -1,6 +1,6 @@
 #pragma once
 #include "optionalprops.h"
-#include "serdes.h"
+#include "jsonserdes.h"
 #include "visitor.h"
 
 #include <algorithm>
@@ -23,7 +23,7 @@ template <typename TObj, typename _Ts = void> struct TransactionT
 {
     TransactionT(TObj& /*obj*/) {}
 
-    template <typename TLambda> auto Visit(size_t fieldIndex, TLambda&& /* lambda */)
+    template <typename TLambda> auto Visit(size_t /* fieldIndex */, TLambda&& /* lambda */)
     {
         throw std::logic_error("Visit Not supported on Transaction");
     }
@@ -185,7 +185,7 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
 template <typename TObj>
 struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::List>>
 {
-    using ListObjType = ReflectionBase::TypeTraits<TObj&>::ListObjType;
+    using ListObjType = typename ReflectionBase::TypeTraits<TObj&>::ListObjType;
 
     TransactionT(TObj& obj) : _ref(std::ref(obj)) {}
     ~TransactionT() {}
