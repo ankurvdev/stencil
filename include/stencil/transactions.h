@@ -1,6 +1,6 @@
 #pragma once
-#include "optionalprops.h"
 #include "jsonserdes.h"
+#include "optionalprops.h"
 #include "visitor.h"
 
 #include <algorithm>
@@ -589,7 +589,7 @@ struct StringTransactionSerDes
             {
                 if (data[i] == '.' || data[i] == '[' || data[i] == ' ' || data[i] == '=' || data[i] == ':')
                 {
-                    token = std::string_view(data.begin() + static_cast<ptrdiff_t>(startIndex), data.begin() + static_cast<ptrdiff_t>(i));
+                    token     = data.substr(startIndex, i - startIndex);
                     delimiter = data[i];
                     return;
                 }
@@ -732,7 +732,7 @@ struct StringTransactionSerDes
                 size_t s = it.startIndex + it.token.size() + 1;
                 while (i < it.data.size() && it.data[i] != ']') i++;
                 if (i == it.data.size()) throw std::logic_error("Invalid Format. Cannot find end ']'");
-                mutatordata   = std::string_view(it.data.begin() + static_cast<ptrdiff_t>(s), it.data.begin() + static_cast<ptrdiff_t>(i));
+                mutatordata   = it.data.substr(s, i - s);
                 it.startIndex = i;
                 it.token      = {};
             }
@@ -754,7 +754,7 @@ struct StringTransactionSerDes
         if (i == it.data.size()) throw std::logic_error("Invalid Format. Cannot find rhs");
         size_t rhsS = i;
         while (i < it.data.size() && it.data[i] != ';') i++;
-        auto rhs = std::string_view(it.data.begin() + static_cast<ptrdiff_t>(rhsS), it.data.begin() + static_cast<ptrdiff_t>(i));
+        auto rhs = it.data.substr(rhsS, i - rhsS);
         _ApplyOnStruct(txn, name, mutator, mutatordata, rhs);
         return i + 1;
     }
