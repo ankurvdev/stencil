@@ -1,7 +1,4 @@
 #pragma once
-#include "DataHandlerJson.h"
-#include "base.h"
-
 namespace Stencil
 {
 
@@ -192,27 +189,6 @@ struct BinarySerDes
             }
         }
         break;
-        case ReflectionBase::DataType::Enum: TODO();
-        case ReflectionBase::DataType::Union: TODO();
-        case ReflectionBase::DataType::Invalid: [[fallthrough]];
-        case ReflectionBase::DataType::Unknown: throw std::runtime_error("Unsupported Data Type");
-        }
-    }
-};
-
-struct JsonSerDes
-{
-    template <typename TVisitor> static void Deserialize(TVisitor& visitor, std::string_view const& str)
-    {
-        switch (visitor.GetDataTypeHint())
-        {
-        case ReflectionBase::DataType::Value:
-        {
-            visitor.SetValue(Value{str});
-        }
-        break;
-        case ReflectionBase::DataType::List:
-        case ReflectionBase::DataType::Object: Json::Load(visitor, str); break;
         case ReflectionBase::DataType::Enum: TODO();
         case ReflectionBase::DataType::Union: TODO();
         case ReflectionBase::DataType::Invalid: [[fallthrough]];
