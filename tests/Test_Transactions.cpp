@@ -14,17 +14,19 @@ struct TestReplay
         snapshots.push_back(Stencil::Json::Stringify(obj1));
         auto expected = expectedIn.size() == 0 ? txndata : expectedIn;
         auto delta    = Stencil::StringTransactionSerDes::Deserialize(txn);
+        changes.push_back(delta);
         if (txndata[expected.size() - 1] == ';') { REQUIRE(delta == expected); }
         else
         {
             REQUIRE(delta.substr(0, delta.size() - 1) == expected);
         }
         Stencil::StringTransactionSerDes::Apply(txn2, txndata);
-        deltas.push_back(Stencil::StringTransactionSerDes::Deserialize(txn2));
+        deltatxns.push_back(Stencil::StringTransactionSerDes::Deserialize(txn2));
     }
 
+    std::vector<std::string> changes;
     std::vector<std::string> snapshots;
-    std::vector<std::string> deltas;
+    std::vector<std::string> deltatxns;
 
     Transactions::Object::Data obj1;
     Transactions::Object::Data obj2;
@@ -64,15 +66,22 @@ TEST_CASE("Transactions", "[Transactions]")
     replay.Replay("list1.listobj:remove[2] = {}");
     replay.Replay("obj3.obj1.val1 = 110000000");
     replay.Replay("obj3.obj1.val2 = 222000000");
+    {
+        CheckOutputAgainstResource(replay.snapshots, "Transactions_ChangeDataSnapshots.txt");
+        CheckOutputAgainstResource(replay.deltatxns, "Transactions_Deltas.txt");
 
-    CheckOutputAgainstResource(replay.snapshots, "Transactions_ChangeDataSnapshots.txt");
-    CheckOutputAgainstResource(replay.deltas, "Transactions_Deltas.txt");
-
-    // auto& fdr = *static_cast<FlightDataRecorder const*>(fdrsvc.get());
-    // REQUIRE(fdr.GetRecordFiles().size() == 1);
-    // CompareFileAgainstResource(fdr.GetRecordFiles()[0], "FDRTrace.bin");
-
-    // TODO
-    // 1. Replay FDRTrace on empty object Avid::State::Data{} and compare with final state
-    //          auto json = Json::Stringify(testsrc->ReadData().Obj());
+        REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(replay.obj2));
+    }
+    {
+        Transactions::Object::Data                       obj3;
+        Stencil::Transaction<Transactions::Object::Data> txn3(obj3);
+        for (auto& c : replay.changes) { Stencil::StringTransactionSerDes::Apply(txn3, c); }
+        REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
+    }
+    {
+        Transactions::Object::Data                       obj3;
+        Stencil::Transaction<Transactions::Object::Data> txn3(obj3);
+        Stencil::StringTransactionSerDes::Apply(txn3, replay.deltatxns.back());
+        REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
+    }
 }
