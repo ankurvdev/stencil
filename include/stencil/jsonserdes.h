@@ -259,7 +259,7 @@ struct Json
 #endif
     }
 
-    template <typename TStruct> static void Load(TStruct& obj, const std::string_view& str)
+    template <typename TStruct> static void Load([[maybe_unused]] TStruct& obj, [[maybe_unused]] const std::string_view& str)
     {
 #ifdef USE_NLOHMANN_JSON
 
