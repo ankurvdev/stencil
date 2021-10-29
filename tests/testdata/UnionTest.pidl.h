@@ -258,46 +258,58 @@ struct Stencil::Transaction<UnionTest::Struct1::Data> : Stencil::TransactionT<Un
     Transaction<shared_string> _subtracker_field2;
     DELETE_COPY_AND_MOVE(Transaction);
 
-    Transaction(TData& ptr, TransactionRecorder& rec) :
-        Stencil::TransactionT<UnionTest::Struct1::Data>(ptr, rec)
+    Transaction(TData& ptr) :
+        Stencil::TransactionT<UnionTest::Struct1::Data>(ptr)
         ,
-        _subtracker_field1(Obj().field1(), rec)
+        _subtracker_field1(Obj().field1())
         ,
-        _subtracker_field2(Obj().field2(), rec)
+        _subtracker_field2(Obj().field2())
     {}
 
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    auto& field1()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::field1: lambda(_subtracker_field1); return;
-        case TData::FieldIndex::field2: lambda(_subtracker_field2); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::field1);
+        return _subtracker_field1;
     }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    auto& field2()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::field1: lambda(_subtracker_field1); return;
-        case TData::FieldIndex::field2: lambda(_subtracker_field2); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::field2);
+        return _subtracker_field2;
     }
-
     void set_field1(shared_string&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::field1, Obj().field1(), val);
+        MarkFieldAssigned_(TData::FieldIndex::field1, Obj().field1(), val);
         Obj().set_field1(std::move(val));
     }
 
     void set_field2(shared_string&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::field2, Obj().field2(), val);
+        MarkFieldAssigned_(TData::FieldIndex::field2, Obj().field2(), val);
         Obj().set_field2(std::move(val));
     }
 
+    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::field1: return lambda("field1", field1()); return;
+        case TData::FieldIndex::field2: return lambda("field2", field2()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        if (fieldName == "field1") { return lambda(TData::FieldIndex::field1, field1()); }
+        if (fieldName == "field2") { return lambda(TData::FieldIndex::field2, field2()); }
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    {
+        lambda("field1", TData::FieldIndex::field1, field1(), Obj().field1());
+        lambda("field2", TData::FieldIndex::field2, field2(), Obj().field2());
+    }
 };
 
 template <>

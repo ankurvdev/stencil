@@ -907,76 +907,106 @@ struct Stencil::Transaction<CLOpts2::InstallOptions::Data> : Stencil::Transactio
     Transaction<shared_string> _subtracker_User;
     DELETE_COPY_AND_MOVE(Transaction);
 
-    Transaction(TData& ptr, TransactionRecorder& rec) :
-        Stencil::TransactionT<CLOpts2::InstallOptions::Data>(ptr, rec)
+    Transaction(TData& ptr) :
+        Stencil::TransactionT<CLOpts2::InstallOptions::Data>(ptr)
         ,
-        _subtracker_ProductId(Obj().ProductId(), rec)
+        _subtracker_ProductId(Obj().ProductId())
         ,
-        _subtracker_Repair(Obj().Repair(), rec)
+        _subtracker_Repair(Obj().Repair())
         ,
-        _subtracker_ForceNonSD(Obj().ForceNonSD(), rec)
+        _subtracker_ForceNonSD(Obj().ForceNonSD())
         ,
-        _subtracker_TargetVolume(Obj().TargetVolume(), rec)
+        _subtracker_TargetVolume(Obj().TargetVolume())
         ,
-        _subtracker_User(Obj().User(), rec)
+        _subtracker_User(Obj().User())
     {}
 
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    auto& ProductId()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
-        case TData::FieldIndex::Repair: lambda(_subtracker_Repair); return;
-        case TData::FieldIndex::ForceNonSD: lambda(_subtracker_ForceNonSD); return;
-        case TData::FieldIndex::TargetVolume: lambda(_subtracker_TargetVolume); return;
-        case TData::FieldIndex::User: lambda(_subtracker_User); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::ProductId);
+        return _subtracker_ProductId;
     }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    auto& Repair()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
-        case TData::FieldIndex::Repair: lambda(_subtracker_Repair); return;
-        case TData::FieldIndex::ForceNonSD: lambda(_subtracker_ForceNonSD); return;
-        case TData::FieldIndex::TargetVolume: lambda(_subtracker_TargetVolume); return;
-        case TData::FieldIndex::User: lambda(_subtracker_User); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::Repair);
+        return _subtracker_Repair;
     }
-
+    auto& ForceNonSD()
+    {
+        MarkFieldEdited_(TData::FieldIndex::ForceNonSD);
+        return _subtracker_ForceNonSD;
+    }
+    auto& TargetVolume()
+    {
+        MarkFieldEdited_(TData::FieldIndex::TargetVolume);
+        return _subtracker_TargetVolume;
+    }
+    auto& User()
+    {
+        MarkFieldEdited_(TData::FieldIndex::User);
+        return _subtracker_User;
+    }
     void set_ProductId(shared_string&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::ProductId, Obj().ProductId(), val);
+        MarkFieldAssigned_(TData::FieldIndex::ProductId, Obj().ProductId(), val);
         Obj().set_ProductId(std::move(val));
     }
 
     void set_Repair(bool&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::Repair, Obj().Repair(), val);
+        MarkFieldAssigned_(TData::FieldIndex::Repair, Obj().Repair(), val);
         Obj().set_Repair(std::move(val));
     }
 
     void set_ForceNonSD(bool&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::ForceNonSD, Obj().ForceNonSD(), val);
+        MarkFieldAssigned_(TData::FieldIndex::ForceNonSD, Obj().ForceNonSD(), val);
         Obj().set_ForceNonSD(std::move(val));
     }
 
     void set_TargetVolume(shared_string&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::TargetVolume, Obj().TargetVolume(), val);
+        MarkFieldAssigned_(TData::FieldIndex::TargetVolume, Obj().TargetVolume(), val);
         Obj().set_TargetVolume(std::move(val));
     }
 
     void set_User(shared_string&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::User, Obj().User(), val);
+        MarkFieldAssigned_(TData::FieldIndex::User, Obj().User(), val);
         Obj().set_User(std::move(val));
     }
 
+    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: return lambda("ProductId", ProductId()); return;
+        case TData::FieldIndex::Repair: return lambda("Repair", Repair()); return;
+        case TData::FieldIndex::ForceNonSD: return lambda("ForceNonSD", ForceNonSD()); return;
+        case TData::FieldIndex::TargetVolume: return lambda("TargetVolume", TargetVolume()); return;
+        case TData::FieldIndex::User: return lambda("User", User()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        if (fieldName == "ProductId") { return lambda(TData::FieldIndex::ProductId, ProductId()); }
+        if (fieldName == "Repair") { return lambda(TData::FieldIndex::Repair, Repair()); }
+        if (fieldName == "ForceNonSD") { return lambda(TData::FieldIndex::ForceNonSD, ForceNonSD()); }
+        if (fieldName == "TargetVolume") { return lambda(TData::FieldIndex::TargetVolume, TargetVolume()); }
+        if (fieldName == "User") { return lambda(TData::FieldIndex::User, User()); }
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    {
+        lambda("ProductId", TData::FieldIndex::ProductId, ProductId(), Obj().ProductId());
+        lambda("Repair", TData::FieldIndex::Repair, Repair(), Obj().Repair());
+        lambda("ForceNonSD", TData::FieldIndex::ForceNonSD, ForceNonSD(), Obj().ForceNonSD());
+        lambda("TargetVolume", TData::FieldIndex::TargetVolume, TargetVolume(), Obj().TargetVolume());
+        lambda("User", TData::FieldIndex::User, User(), Obj().User());
+    }
 };
 
 template <>
@@ -1108,36 +1138,42 @@ struct Stencil::Transaction<CLOpts2::QueueOptions::Data> : Stencil::TransactionT
     Transaction<shared_string> _subtracker_ProductId;
     DELETE_COPY_AND_MOVE(Transaction);
 
-    Transaction(TData& ptr, TransactionRecorder& rec) :
-        Stencil::TransactionT<CLOpts2::QueueOptions::Data>(ptr, rec)
+    Transaction(TData& ptr) :
+        Stencil::TransactionT<CLOpts2::QueueOptions::Data>(ptr)
         ,
-        _subtracker_ProductId(Obj().ProductId(), rec)
+        _subtracker_ProductId(Obj().ProductId())
     {}
 
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    auto& ProductId()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::ProductId);
+        return _subtracker_ProductId;
     }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
-    {
-        switch (index)
-        {
-        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
     void set_ProductId(shared_string&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::ProductId, Obj().ProductId(), val);
+        MarkFieldAssigned_(TData::FieldIndex::ProductId, Obj().ProductId(), val);
         Obj().set_ProductId(std::move(val));
     }
 
+    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: return lambda("ProductId", ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        if (fieldName == "ProductId") { return lambda(TData::FieldIndex::ProductId, ProductId()); }
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    {
+        lambda("ProductId", TData::FieldIndex::ProductId, ProductId(), Obj().ProductId());
+    }
 };
 
 template <>
@@ -1248,36 +1284,42 @@ struct Stencil::Transaction<CLOpts2::PauseOptions::Data> : Stencil::TransactionT
     Transaction<shared_string> _subtracker_ProductId;
     DELETE_COPY_AND_MOVE(Transaction);
 
-    Transaction(TData& ptr, TransactionRecorder& rec) :
-        Stencil::TransactionT<CLOpts2::PauseOptions::Data>(ptr, rec)
+    Transaction(TData& ptr) :
+        Stencil::TransactionT<CLOpts2::PauseOptions::Data>(ptr)
         ,
-        _subtracker_ProductId(Obj().ProductId(), rec)
+        _subtracker_ProductId(Obj().ProductId())
     {}
 
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    auto& ProductId()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::ProductId);
+        return _subtracker_ProductId;
     }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
-    {
-        switch (index)
-        {
-        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
     void set_ProductId(shared_string&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::ProductId, Obj().ProductId(), val);
+        MarkFieldAssigned_(TData::FieldIndex::ProductId, Obj().ProductId(), val);
         Obj().set_ProductId(std::move(val));
     }
 
+    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: return lambda("ProductId", ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        if (fieldName == "ProductId") { return lambda(TData::FieldIndex::ProductId, ProductId()); }
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    {
+        lambda("ProductId", TData::FieldIndex::ProductId, ProductId(), Obj().ProductId());
+    }
 };
 
 template <>
@@ -1388,36 +1430,42 @@ struct Stencil::Transaction<CLOpts2::CancelOptions::Data> : Stencil::Transaction
     Transaction<shared_string> _subtracker_ProductId;
     DELETE_COPY_AND_MOVE(Transaction);
 
-    Transaction(TData& ptr, TransactionRecorder& rec) :
-        Stencil::TransactionT<CLOpts2::CancelOptions::Data>(ptr, rec)
+    Transaction(TData& ptr) :
+        Stencil::TransactionT<CLOpts2::CancelOptions::Data>(ptr)
         ,
-        _subtracker_ProductId(Obj().ProductId(), rec)
+        _subtracker_ProductId(Obj().ProductId())
     {}
 
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    auto& ProductId()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::ProductId);
+        return _subtracker_ProductId;
     }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
-    {
-        switch (index)
-        {
-        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
     void set_ProductId(shared_string&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::ProductId, Obj().ProductId(), val);
+        MarkFieldAssigned_(TData::FieldIndex::ProductId, Obj().ProductId(), val);
         Obj().set_ProductId(std::move(val));
     }
 
+    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: return lambda("ProductId", ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        if (fieldName == "ProductId") { return lambda(TData::FieldIndex::ProductId, ProductId()); }
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    {
+        lambda("ProductId", TData::FieldIndex::ProductId, ProductId(), Obj().ProductId());
+    }
 };
 
 template <>
@@ -1528,36 +1576,42 @@ struct Stencil::Transaction<CLOpts2::ResumeOptions::Data> : Stencil::Transaction
     Transaction<shared_string> _subtracker_ProductId;
     DELETE_COPY_AND_MOVE(Transaction);
 
-    Transaction(TData& ptr, TransactionRecorder& rec) :
-        Stencil::TransactionT<CLOpts2::ResumeOptions::Data>(ptr, rec)
+    Transaction(TData& ptr) :
+        Stencil::TransactionT<CLOpts2::ResumeOptions::Data>(ptr)
         ,
-        _subtracker_ProductId(Obj().ProductId(), rec)
+        _subtracker_ProductId(Obj().ProductId())
     {}
 
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    auto& ProductId()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::ProductId);
+        return _subtracker_ProductId;
     }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
-    {
-        switch (index)
-        {
-        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
     void set_ProductId(shared_string&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::ProductId, Obj().ProductId(), val);
+        MarkFieldAssigned_(TData::FieldIndex::ProductId, Obj().ProductId(), val);
         Obj().set_ProductId(std::move(val));
     }
 
+    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: return lambda("ProductId", ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        if (fieldName == "ProductId") { return lambda(TData::FieldIndex::ProductId, ProductId()); }
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    {
+        lambda("ProductId", TData::FieldIndex::ProductId, ProductId(), Obj().ProductId());
+    }
 };
 
 template <>
@@ -1669,36 +1723,42 @@ struct Stencil::Transaction<CLOpts2::UpdateOptions::Data> : Stencil::Transaction
     Transaction<shared_string> _subtracker_ProductId;
     DELETE_COPY_AND_MOVE(Transaction);
 
-    Transaction(TData& ptr, TransactionRecorder& rec) :
-        Stencil::TransactionT<CLOpts2::UpdateOptions::Data>(ptr, rec)
+    Transaction(TData& ptr) :
+        Stencil::TransactionT<CLOpts2::UpdateOptions::Data>(ptr)
         ,
-        _subtracker_ProductId(Obj().ProductId(), rec)
+        _subtracker_ProductId(Obj().ProductId())
     {}
 
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    auto& ProductId()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::ProductId);
+        return _subtracker_ProductId;
     }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
-    {
-        switch (index)
-        {
-        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
     void set_ProductId(shared_string&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::ProductId, Obj().ProductId(), val);
+        MarkFieldAssigned_(TData::FieldIndex::ProductId, Obj().ProductId(), val);
         Obj().set_ProductId(std::move(val));
     }
 
+    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: return lambda("ProductId", ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        if (fieldName == "ProductId") { return lambda(TData::FieldIndex::ProductId, ProductId()); }
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    {
+        lambda("ProductId", TData::FieldIndex::ProductId, ProductId(), Obj().ProductId());
+    }
 };
 
 template <>
@@ -1809,36 +1869,42 @@ struct Stencil::Transaction<CLOpts2::HydrateOptions::Data> : Stencil::Transactio
     Transaction<shared_string> _subtracker_ProductId;
     DELETE_COPY_AND_MOVE(Transaction);
 
-    Transaction(TData& ptr, TransactionRecorder& rec) :
-        Stencil::TransactionT<CLOpts2::HydrateOptions::Data>(ptr, rec)
+    Transaction(TData& ptr) :
+        Stencil::TransactionT<CLOpts2::HydrateOptions::Data>(ptr)
         ,
-        _subtracker_ProductId(Obj().ProductId(), rec)
+        _subtracker_ProductId(Obj().ProductId())
     {}
 
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    auto& ProductId()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::ProductId);
+        return _subtracker_ProductId;
     }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
-    {
-        switch (index)
-        {
-        case TData::FieldIndex::ProductId: lambda(_subtracker_ProductId); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
     void set_ProductId(shared_string&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::ProductId, Obj().ProductId(), val);
+        MarkFieldAssigned_(TData::FieldIndex::ProductId, Obj().ProductId(), val);
         Obj().set_ProductId(std::move(val));
     }
 
+    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::ProductId: return lambda("ProductId", ProductId()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        if (fieldName == "ProductId") { return lambda(TData::FieldIndex::ProductId, ProductId()); }
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    {
+        lambda("ProductId", TData::FieldIndex::ProductId, ProductId(), Obj().ProductId());
+    }
 };
 
 template <>
