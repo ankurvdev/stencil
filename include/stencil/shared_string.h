@@ -23,7 +23,7 @@ template <typename T> struct shared_stringT : private std::shared_ptr<std::basic
     using const_pointer = typename TString::const_pointer;
     using value_type    = typename TString::value_type;
 
-    shared_stringT() : BaseT({nullptr}) {}
+    shared_stringT() : BaseT(nullptr) {}
 
     template <size_t N> shared_stringT(T const (&str)[N]) { *this = make(str); }
 
@@ -96,7 +96,7 @@ template <typename T> struct shared_stringT : private std::shared_ptr<std::basic
     auto           substr(size_t start, size_t len) const { return shared_stringT(this->get()->substr(start, len)); }
     auto           substr(size_t start) const { return shared_stringT(this->get()->substr(start)); }
     void           clear() { this->reset(); }
-    const TString& str() const { return *(this->get()); }
+    const TString& str() const { return *this->get(); }
 
     shared_stringT& operator=(const shared_stringT& str)
     {

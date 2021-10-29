@@ -21,7 +21,6 @@ template <typename T> struct Mutators<std::vector<T>>
     static auto& edit(std::vector<T>& arr, size_t index)
     {
         return arr[index];
-        // return tracker.GetSubObjectTracker(arr, index);
     }
 
     template <typename TLambda> static void remove_matching(std::vector<T>& arr, TLambda&& lambda)
