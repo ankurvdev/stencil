@@ -173,7 +173,7 @@ macro (SupressWarningForTarget targetName)
 endmacro()
 
 function(init_submodule path)
-    if (EXISTS  "${CMAKE_CURRENT_SOURCE_DIR}/${path}")
+    if ((IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${path}") AND (EXISTS  "${CMAKE_CURRENT_SOURCE_DIR}/${path}.git"))
         return()
     endif()
     message(STATUS "Submodule Update: ${CMAKE_CURRENT_SOURCE_DIR}/${path}")
