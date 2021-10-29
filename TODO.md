@@ -23,12 +23,6 @@ Reflection.Database - Database Merging with OnChanged event handling with more U
     - Handler Interfaces should not be templated virtual classes. Simplify SubComponent and isolate
     - Rename Union -> Variant
     - Move string out of Value. Rename to Fixed64BitValue
-* [cli]
-    - Fork out of json
-* [json]
-    - Rename to JsonSerDes
-* [serdes]
-    - Should we fork out reader.h , writer.h and serdes.h
 * [database]
     - Encrypted string support Encryption support with openssl integration
     - Add openssl to list of external linking projects and Migrate libssh2 to use openssl
