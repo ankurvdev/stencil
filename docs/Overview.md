@@ -18,15 +18,19 @@ Includes (optional) built-in templates for some real-world usage scenarios, like
 
 THe built-in templates generate compile time reflection of structs and interface that along with a header-only runtime make possible the following core usage scenarios 
 
-* JSON Data-Serialization/Deserialization (Built upon nlohmann-json)
-* Command Line Args parsing for CLI Tools with auto help generation
-* Data Storage CRUD (Sqlite object model) (TODO: Broken currently)
-* Data Storage CRUD (Custom Paged Tabular Records) (FixedSize, Blobs)
-* Web-Service : C++ based REST HTTP Web-service (JSON) based on IDL interface definition. (using cpp-httplib)
-
-Along with certain supplemental functionalities
-* Data Recording and replay along with delta-binary patching of objects.
-* Property Change Event notifcations and listeners
+* Serialization / Deserialization 
+    - [JSON](../tests/Test_DataHandlerJson.cpp) (using nlohmann-json)
+    - [CLI](../tests/Test_CLOpts.cpp) (argc, argv):  Deserialize Command line args based on IDL structs (with auto help generation)
+    - Custom Compact Binary Format
+* Data Storage CRUD 
+    - SQLITE (TODO: Broken currently)
+    - PageDB (Custom Paged Tabular Records) (FixedSize, Blobs)
+* RPC
+    - REST Web-Service : C++ based REST HTTP Web-service (JSON) based on IDL interface definition. (using cpp-httplib)
+    - [TODO] Bluetooth BLE Services 
+* Object Modelling
+    - [Transactions](Transactions.md) : Record and Replay of Delta changes into runtime objects
+    - Property change event notifications and listeners
 
 The built-in functionalities follow the design principles: 
 

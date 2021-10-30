@@ -10,19 +10,17 @@ template <typename T> struct Accessors;
 
 template <typename T> struct Mutators<std::vector<T>>
 {
-    template <typename TTransaction> static void add(TTransaction const& /*transaction*/, std::vector<T>& arr, T&& obj)
-    {
-        arr.push_back(std::move(obj));
-    }
+    using ListObj = T;
+    static void add(std::vector<T>& arr, T&& obj) { arr.push_back(std::move(obj)); }
 
-    template <typename TTransaction> static void remove(TTransaction const& /*transaction*/, std::vector<T>& arr, size_t index)
+    static void remove(std::vector<T>& arr, size_t index)
     {
         arr.erase(arr.begin() + static_cast<typename std::vector<T>::difference_type>(index));
     }
 
-    template <typename T1, typename TTransaction> static auto edit(TTransaction& tracker, std::vector<T1>& arr, size_t index)
+    static auto& edit(std::vector<T>& arr, size_t index)
     {
-        return tracker.GetSubObjectTracker(arr, index);
+        return arr[index];
     }
 
     template <typename TLambda> static void remove_matching(std::vector<T>& arr, TLambda&& lambda)
@@ -67,22 +65,14 @@ template <typename T> struct Mutators<std::vector<T>>
 
 template <typename T, size_t N> struct Mutators<std::array<T, N>>
 {
-    using TData = std::array<T, N>;
+    using TData   = std::array<T, N>;
+    using ListObj = T;
 
-    template <typename TTransaction> static void add(TTransaction const& /*transaction*/, TData& /*arr*/, T&& /*obj*/)
-    {
-        throw std::logic_error("Invalid");
-    }
+    template <typename... TArgs> static void add(TArgs&&...) { throw std::logic_error("Invalid"); }
 
-    template <typename TTransaction> static void remove(TTransaction const& /*transaction*/, TData& /*arr*/, size_t /*index*/)
-    {
-        throw std::logic_error("Invalid");
-    }
+    template <typename... TArgs> static void remove(TArgs&&...) { throw std::logic_error("Invalid"); }
 
-    template <typename TTransaction> static void edit(TTransaction const& /*transaction*/, TData& /*arr*/, size_t /*index*/)
-    {
-        throw std::logic_error("Invalid");
-    }
+    template <typename... TArgs> static void edit(TArgs&&...) { throw std::logic_error("Invalid"); }
 
     template <typename TLambda> static void remove_matching(TData& /*arr*/, TLambda&& /*lambda*/) { throw std::logic_error("Invalid"); }
 

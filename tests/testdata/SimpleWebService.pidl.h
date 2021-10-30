@@ -296,46 +296,58 @@ struct Stencil::Transaction<SimpleWebService::Data::Data> : Stencil::Transaction
     Transaction<shared_string> _subtracker_randomString;
     DELETE_COPY_AND_MOVE(Transaction);
 
-    Transaction(TData& ptr, TransactionRecorder& rec) :
-        Stencil::TransactionT<SimpleWebService::Data::Data>(ptr, rec)
+    Transaction(TData& ptr) :
+        Stencil::TransactionT<SimpleWebService::Data::Data>(ptr)
         ,
-        _subtracker_randomInteger(Obj().randomInteger(), rec)
+        _subtracker_randomInteger(Obj().randomInteger())
         ,
-        _subtracker_randomString(Obj().randomString(), rec)
+        _subtracker_randomString(Obj().randomString())
     {}
 
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    auto& randomInteger()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::randomInteger: lambda(_subtracker_randomInteger); return;
-        case TData::FieldIndex::randomString: lambda(_subtracker_randomString); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::randomInteger);
+        return _subtracker_randomInteger;
     }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    auto& randomString()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::randomInteger: lambda(_subtracker_randomInteger); return;
-        case TData::FieldIndex::randomString: lambda(_subtracker_randomString); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::randomString);
+        return _subtracker_randomString;
     }
-
     void set_randomInteger(int32_t&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::randomInteger, Obj().randomInteger(), val);
+        MarkFieldAssigned_(TData::FieldIndex::randomInteger, Obj().randomInteger(), val);
         Obj().set_randomInteger(std::move(val));
     }
 
     void set_randomString(shared_string&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::randomString, Obj().randomString(), val);
+        MarkFieldAssigned_(TData::FieldIndex::randomString, Obj().randomString(), val);
         Obj().set_randomString(std::move(val));
     }
 
+    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::randomInteger: return lambda("randomInteger", randomInteger()); return;
+        case TData::FieldIndex::randomString: return lambda("randomString", randomString()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        if (fieldName == "randomInteger") { return lambda(TData::FieldIndex::randomInteger, randomInteger()); }
+        if (fieldName == "randomString") { return lambda(TData::FieldIndex::randomString, randomString()); }
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    {
+        lambda("randomInteger", TData::FieldIndex::randomInteger, randomInteger(), Obj().randomInteger());
+        lambda("randomString", TData::FieldIndex::randomString, randomString(), Obj().randomString());
+    }
 };
 
 template <>

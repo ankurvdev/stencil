@@ -693,112 +693,142 @@ struct Stencil::Transaction<CLOpts1::CommandLineOptions::Data> : Stencil::Transa
     Transaction<bool> _subtracker_daemon;
     DELETE_COPY_AND_MOVE(Transaction);
 
-    Transaction(TData& ptr, TransactionRecorder& rec) :
-        Stencil::TransactionT<CLOpts1::CommandLineOptions::Data>(ptr, rec)
+    Transaction(TData& ptr) :
+        Stencil::TransactionT<CLOpts1::CommandLineOptions::Data>(ptr)
         ,
-        _subtracker_workingDirectory(Obj().workingDirectory(), rec)
+        _subtracker_workingDirectory(Obj().workingDirectory())
         ,
-        _subtracker_libraries(Obj().libraries(), rec)
+        _subtracker_libraries(Obj().libraries())
         ,
-        _subtracker_scan(Obj().scan(), rec)
+        _subtracker_scan(Obj().scan())
         ,
-        _subtracker_httpsPort(Obj().httpsPort(), rec)
+        _subtracker_httpsPort(Obj().httpsPort())
         ,
-        _subtracker_daemon(Obj().daemon(), rec)
+        _subtracker_daemon(Obj().daemon())
     {}
 
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    auto& workingDirectory()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::workingDirectory: lambda(_subtracker_workingDirectory); return;
-        case TData::FieldIndex::libraries: lambda(_subtracker_libraries); return;
-        case TData::FieldIndex::scan: lambda(_subtracker_scan); return;
-        case TData::FieldIndex::httpsPort: lambda(_subtracker_httpsPort); return;
-        case TData::FieldIndex::daemon: lambda(_subtracker_daemon); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::workingDirectory);
+        return _subtracker_workingDirectory;
     }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    auto& libraries()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::workingDirectory: lambda(_subtracker_workingDirectory); return;
-        case TData::FieldIndex::libraries: lambda(_subtracker_libraries); return;
-        case TData::FieldIndex::scan: lambda(_subtracker_scan); return;
-        case TData::FieldIndex::httpsPort: lambda(_subtracker_httpsPort); return;
-        case TData::FieldIndex::daemon: lambda(_subtracker_daemon); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::libraries);
+        return _subtracker_libraries;
     }
-
+    auto& scan()
+    {
+        MarkFieldEdited_(TData::FieldIndex::scan);
+        return _subtracker_scan;
+    }
+    auto& httpsPort()
+    {
+        MarkFieldEdited_(TData::FieldIndex::httpsPort);
+        return _subtracker_httpsPort;
+    }
+    auto& daemon()
+    {
+        MarkFieldEdited_(TData::FieldIndex::daemon);
+        return _subtracker_daemon;
+    }
     void set_workingDirectory(shared_string&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::workingDirectory, Obj().workingDirectory(), val);
+        MarkFieldAssigned_(TData::FieldIndex::workingDirectory, Obj().workingDirectory(), val);
         Obj().set_workingDirectory(std::move(val));
     }
 
     void set_libraries(std::vector<shared_string>&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::libraries, Obj().libraries(), val);
+        MarkFieldAssigned_(TData::FieldIndex::libraries, Obj().libraries(), val);
         Obj().set_libraries(std::move(val));
     }
 
     void add_libraries(shared_string&& args)
     {
-        OnMutation_add(TData::FieldIndex::libraries, Obj().libraries(), args);
-        return Stencil::Mutators<std::vector<shared_string>>::add(
-            _subtracker_libraries, Obj().libraries(), std::move(args));
+        MarkFieldEdited_(TData::FieldIndex::libraries);
+        libraries().RecordMutation_add_(args);
+        return Stencil::Mutators<std::vector<shared_string>>::add(Obj().libraries(), std::move(args));
     }
     void remove_libraries(size_t&& args)
     {
-        OnMutation_remove(TData::FieldIndex::libraries, Obj().libraries(), args);
-        return Stencil::Mutators<std::vector<shared_string>>::remove(
-            _subtracker_libraries, Obj().libraries(), std::move(args));
+        MarkFieldEdited_(TData::FieldIndex::libraries);
+        libraries().RecordMutation_remove_(args);
+        return Stencil::Mutators<std::vector<shared_string>>::remove(Obj().libraries(), std::move(args));
     }
     Stencil::Transaction<shared_string> edit_libraries(size_t&& args)
     {
-        OnMutation_edit(TData::FieldIndex::libraries, Obj().libraries(), args);
-        return Stencil::Mutators<std::vector<shared_string>>::edit(
-            _subtracker_libraries, Obj().libraries(), std::move(args));
+        MarkFieldEdited_(TData::FieldIndex::libraries);
+        libraries().RecordMutation_edit_(args);
+        return Stencil::Mutators<std::vector<shared_string>>::edit(Obj().libraries(), std::move(args));
     }
     void set_scan(std::vector<shared_string>&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::scan, Obj().scan(), val);
+        MarkFieldAssigned_(TData::FieldIndex::scan, Obj().scan(), val);
         Obj().set_scan(std::move(val));
     }
 
     void add_scan(shared_string&& args)
     {
-        OnMutation_add(TData::FieldIndex::scan, Obj().scan(), args);
-        return Stencil::Mutators<std::vector<shared_string>>::add(
-            _subtracker_scan, Obj().scan(), std::move(args));
+        MarkFieldEdited_(TData::FieldIndex::scan);
+        scan().RecordMutation_add_(args);
+        return Stencil::Mutators<std::vector<shared_string>>::add(Obj().scan(), std::move(args));
     }
     void remove_scan(size_t&& args)
     {
-        OnMutation_remove(TData::FieldIndex::scan, Obj().scan(), args);
-        return Stencil::Mutators<std::vector<shared_string>>::remove(
-            _subtracker_scan, Obj().scan(), std::move(args));
+        MarkFieldEdited_(TData::FieldIndex::scan);
+        scan().RecordMutation_remove_(args);
+        return Stencil::Mutators<std::vector<shared_string>>::remove(Obj().scan(), std::move(args));
     }
     Stencil::Transaction<shared_string> edit_scan(size_t&& args)
     {
-        OnMutation_edit(TData::FieldIndex::scan, Obj().scan(), args);
-        return Stencil::Mutators<std::vector<shared_string>>::edit(
-            _subtracker_scan, Obj().scan(), std::move(args));
+        MarkFieldEdited_(TData::FieldIndex::scan);
+        scan().RecordMutation_edit_(args);
+        return Stencil::Mutators<std::vector<shared_string>>::edit(Obj().scan(), std::move(args));
     }
     void set_httpsPort(int32_t&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::httpsPort, Obj().httpsPort(), val);
+        MarkFieldAssigned_(TData::FieldIndex::httpsPort, Obj().httpsPort(), val);
         Obj().set_httpsPort(std::move(val));
     }
 
     void set_daemon(bool&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::daemon, Obj().daemon(), val);
+        MarkFieldAssigned_(TData::FieldIndex::daemon, Obj().daemon(), val);
         Obj().set_daemon(std::move(val));
     }
 
+    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::workingDirectory: return lambda("workingDirectory", workingDirectory()); return;
+        case TData::FieldIndex::libraries: return lambda("libraries", libraries()); return;
+        case TData::FieldIndex::scan: return lambda("scan", scan()); return;
+        case TData::FieldIndex::httpsPort: return lambda("httpsPort", httpsPort()); return;
+        case TData::FieldIndex::daemon: return lambda("daemon", daemon()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        if (fieldName == "workingDirectory") { return lambda(TData::FieldIndex::workingDirectory, workingDirectory()); }
+        if (fieldName == "libraries") { return lambda(TData::FieldIndex::libraries, libraries()); }
+        if (fieldName == "scan") { return lambda(TData::FieldIndex::scan, scan()); }
+        if (fieldName == "httpsPort") { return lambda(TData::FieldIndex::httpsPort, httpsPort()); }
+        if (fieldName == "daemon") { return lambda(TData::FieldIndex::daemon, daemon()); }
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    {
+        lambda("workingDirectory", TData::FieldIndex::workingDirectory, workingDirectory(), Obj().workingDirectory());
+        lambda("libraries", TData::FieldIndex::libraries, libraries(), Obj().libraries());
+        lambda("scan", TData::FieldIndex::scan, scan(), Obj().scan());
+        lambda("httpsPort", TData::FieldIndex::httpsPort, httpsPort(), Obj().httpsPort());
+        lambda("daemon", TData::FieldIndex::daemon, daemon(), Obj().daemon());
+    }
 };
 
 template <>
@@ -950,46 +980,58 @@ struct Stencil::Transaction<CLOpts1::SimpleObj::Data> : Stencil::TransactionT<CL
     Transaction<shared_string> _subtracker_field2;
     DELETE_COPY_AND_MOVE(Transaction);
 
-    Transaction(TData& ptr, TransactionRecorder& rec) :
-        Stencil::TransactionT<CLOpts1::SimpleObj::Data>(ptr, rec)
+    Transaction(TData& ptr) :
+        Stencil::TransactionT<CLOpts1::SimpleObj::Data>(ptr)
         ,
-        _subtracker_field1(Obj().field1(), rec)
+        _subtracker_field1(Obj().field1())
         ,
-        _subtracker_field2(Obj().field2(), rec)
+        _subtracker_field2(Obj().field2())
     {}
 
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    auto& field1()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::field1: lambda(_subtracker_field1); return;
-        case TData::FieldIndex::field2: lambda(_subtracker_field2); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::field1);
+        return _subtracker_field1;
     }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    auto& field2()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::field1: lambda(_subtracker_field1); return;
-        case TData::FieldIndex::field2: lambda(_subtracker_field2); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::field2);
+        return _subtracker_field2;
     }
-
     void set_field1(shared_string&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::field1, Obj().field1(), val);
+        MarkFieldAssigned_(TData::FieldIndex::field1, Obj().field1(), val);
         Obj().set_field1(std::move(val));
     }
 
     void set_field2(shared_string&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::field2, Obj().field2(), val);
+        MarkFieldAssigned_(TData::FieldIndex::field2, Obj().field2(), val);
         Obj().set_field2(std::move(val));
     }
 
+    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::field1: return lambda("field1", field1()); return;
+        case TData::FieldIndex::field2: return lambda("field2", field2()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        if (fieldName == "field1") { return lambda(TData::FieldIndex::field1, field1()); }
+        if (fieldName == "field2") { return lambda(TData::FieldIndex::field2, field2()); }
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    {
+        lambda("field1", TData::FieldIndex::field1, field1(), Obj().field1());
+        lambda("field2", TData::FieldIndex::field2, field2(), Obj().field2());
+    }
 };
 
 template <>
@@ -1104,53 +1146,59 @@ struct Stencil::Transaction<CLOpts1::ObjWithList::Data> : Stencil::TransactionT<
     Transaction<std::vector<shared_string>> _subtracker_field1;
     DELETE_COPY_AND_MOVE(Transaction);
 
-    Transaction(TData& ptr, TransactionRecorder& rec) :
-        Stencil::TransactionT<CLOpts1::ObjWithList::Data>(ptr, rec)
+    Transaction(TData& ptr) :
+        Stencil::TransactionT<CLOpts1::ObjWithList::Data>(ptr)
         ,
-        _subtracker_field1(Obj().field1(), rec)
+        _subtracker_field1(Obj().field1())
     {}
 
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    auto& field1()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::field1: lambda(_subtracker_field1); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::field1);
+        return _subtracker_field1;
     }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
-    {
-        switch (index)
-        {
-        case TData::FieldIndex::field1: lambda(_subtracker_field1); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
     void set_field1(std::vector<shared_string>&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::field1, Obj().field1(), val);
+        MarkFieldAssigned_(TData::FieldIndex::field1, Obj().field1(), val);
         Obj().set_field1(std::move(val));
     }
 
     void add_field1(shared_string&& args)
     {
-        OnMutation_add(TData::FieldIndex::field1, Obj().field1(), args);
-        return Stencil::Mutators<std::vector<shared_string>>::add(
-            _subtracker_field1, Obj().field1(), std::move(args));
+        MarkFieldEdited_(TData::FieldIndex::field1);
+        field1().RecordMutation_add_(args);
+        return Stencil::Mutators<std::vector<shared_string>>::add(Obj().field1(), std::move(args));
     }
     void remove_field1(size_t&& args)
     {
-        OnMutation_remove(TData::FieldIndex::field1, Obj().field1(), args);
-        return Stencil::Mutators<std::vector<shared_string>>::remove(
-            _subtracker_field1, Obj().field1(), std::move(args));
+        MarkFieldEdited_(TData::FieldIndex::field1);
+        field1().RecordMutation_remove_(args);
+        return Stencil::Mutators<std::vector<shared_string>>::remove(Obj().field1(), std::move(args));
     }
     Stencil::Transaction<shared_string> edit_field1(size_t&& args)
     {
-        OnMutation_edit(TData::FieldIndex::field1, Obj().field1(), args);
-        return Stencil::Mutators<std::vector<shared_string>>::edit(
-            _subtracker_field1, Obj().field1(), std::move(args));
+        MarkFieldEdited_(TData::FieldIndex::field1);
+        field1().RecordMutation_edit_(args);
+        return Stencil::Mutators<std::vector<shared_string>>::edit(Obj().field1(), std::move(args));
+    }
+    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::field1: return lambda("field1", field1()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        if (fieldName == "field1") { return lambda(TData::FieldIndex::field1, field1()); }
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    {
+        lambda("field1", TData::FieldIndex::field1, field1(), Obj().field1());
     }
 };
 
@@ -1371,140 +1419,176 @@ struct Stencil::Transaction<CLOpts1::CLOptsTest::Data> : Stencil::TransactionT<C
     Transaction<shared_string> _subtracker_key2;
     DELETE_COPY_AND_MOVE(Transaction);
 
-    Transaction(TData& ptr, TransactionRecorder& rec) :
-        Stencil::TransactionT<CLOpts1::CLOptsTest::Data>(ptr, rec)
+    Transaction(TData& ptr) :
+        Stencil::TransactionT<CLOpts1::CLOptsTest::Data>(ptr)
         ,
-        _subtracker_key1(Obj().key1(), rec)
+        _subtracker_key1(Obj().key1())
         ,
-        _subtracker_listofint(Obj().listofint(), rec)
+        _subtracker_listofint(Obj().listofint())
         ,
-        _subtracker_listoflist(Obj().listoflist(), rec)
+        _subtracker_listoflist(Obj().listoflist())
         ,
-        _subtracker_listofobj(Obj().listofobj(), rec)
+        _subtracker_listofobj(Obj().listofobj())
         ,
-        _subtracker_objoflist(Obj().objoflist(), rec)
+        _subtracker_objoflist(Obj().objoflist())
         ,
-        _subtracker_key2(Obj().key2(), rec)
+        _subtracker_key2(Obj().key2())
     {}
 
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    auto& key1()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::key1: lambda(_subtracker_key1); return;
-        case TData::FieldIndex::listofint: lambda(_subtracker_listofint); return;
-        case TData::FieldIndex::listoflist: lambda(_subtracker_listoflist); return;
-        case TData::FieldIndex::listofobj: lambda(_subtracker_listofobj); return;
-        case TData::FieldIndex::objoflist: lambda(_subtracker_objoflist); return;
-        case TData::FieldIndex::key2: lambda(_subtracker_key2); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::key1);
+        return _subtracker_key1;
     }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    auto& listofint()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::key1: lambda(_subtracker_key1); return;
-        case TData::FieldIndex::listofint: lambda(_subtracker_listofint); return;
-        case TData::FieldIndex::listoflist: lambda(_subtracker_listoflist); return;
-        case TData::FieldIndex::listofobj: lambda(_subtracker_listofobj); return;
-        case TData::FieldIndex::objoflist: lambda(_subtracker_objoflist); return;
-        case TData::FieldIndex::key2: lambda(_subtracker_key2); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::listofint);
+        return _subtracker_listofint;
     }
-
+    auto& listoflist()
+    {
+        MarkFieldEdited_(TData::FieldIndex::listoflist);
+        return _subtracker_listoflist;
+    }
+    auto& listofobj()
+    {
+        MarkFieldEdited_(TData::FieldIndex::listofobj);
+        return _subtracker_listofobj;
+    }
+    auto& objoflist()
+    {
+        MarkFieldEdited_(TData::FieldIndex::objoflist);
+        return _subtracker_objoflist;
+    }
+    auto& key2()
+    {
+        MarkFieldEdited_(TData::FieldIndex::key2);
+        return _subtracker_key2;
+    }
     void set_key1(shared_string&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::key1, Obj().key1(), val);
+        MarkFieldAssigned_(TData::FieldIndex::key1, Obj().key1(), val);
         Obj().set_key1(std::move(val));
     }
 
     void set_listofint(std::vector<int32_t>&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::listofint, Obj().listofint(), val);
+        MarkFieldAssigned_(TData::FieldIndex::listofint, Obj().listofint(), val);
         Obj().set_listofint(std::move(val));
     }
 
     void add_listofint(int32_t&& args)
     {
-        OnMutation_add(TData::FieldIndex::listofint, Obj().listofint(), args);
-        return Stencil::Mutators<std::vector<int32_t>>::add(
-            _subtracker_listofint, Obj().listofint(), std::move(args));
+        MarkFieldEdited_(TData::FieldIndex::listofint);
+        listofint().RecordMutation_add_(args);
+        return Stencil::Mutators<std::vector<int32_t>>::add(Obj().listofint(), std::move(args));
     }
     void remove_listofint(size_t&& args)
     {
-        OnMutation_remove(TData::FieldIndex::listofint, Obj().listofint(), args);
-        return Stencil::Mutators<std::vector<int32_t>>::remove(
-            _subtracker_listofint, Obj().listofint(), std::move(args));
+        MarkFieldEdited_(TData::FieldIndex::listofint);
+        listofint().RecordMutation_remove_(args);
+        return Stencil::Mutators<std::vector<int32_t>>::remove(Obj().listofint(), std::move(args));
     }
     Stencil::Transaction<int32_t> edit_listofint(size_t&& args)
     {
-        OnMutation_edit(TData::FieldIndex::listofint, Obj().listofint(), args);
-        return Stencil::Mutators<std::vector<int32_t>>::edit(
-            _subtracker_listofint, Obj().listofint(), std::move(args));
+        MarkFieldEdited_(TData::FieldIndex::listofint);
+        listofint().RecordMutation_edit_(args);
+        return Stencil::Mutators<std::vector<int32_t>>::edit(Obj().listofint(), std::move(args));
     }
     void set_listoflist(std::vector<std::vector<int32_t>>&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::listoflist, Obj().listoflist(), val);
+        MarkFieldAssigned_(TData::FieldIndex::listoflist, Obj().listoflist(), val);
         Obj().set_listoflist(std::move(val));
     }
 
     void add_listoflist(std::vector<int32_t>&& args)
     {
-        OnMutation_add(TData::FieldIndex::listoflist, Obj().listoflist(), args);
-        return Stencil::Mutators<std::vector<std::vector<int32_t>>>::add(
-            _subtracker_listoflist, Obj().listoflist(), std::move(args));
+        MarkFieldEdited_(TData::FieldIndex::listoflist);
+        listoflist().RecordMutation_add_(args);
+        return Stencil::Mutators<std::vector<std::vector<int32_t>>>::add(Obj().listoflist(), std::move(args));
     }
     void remove_listoflist(size_t&& args)
     {
-        OnMutation_remove(TData::FieldIndex::listoflist, Obj().listoflist(), args);
-        return Stencil::Mutators<std::vector<std::vector<int32_t>>>::remove(
-            _subtracker_listoflist, Obj().listoflist(), std::move(args));
+        MarkFieldEdited_(TData::FieldIndex::listoflist);
+        listoflist().RecordMutation_remove_(args);
+        return Stencil::Mutators<std::vector<std::vector<int32_t>>>::remove(Obj().listoflist(), std::move(args));
     }
     Stencil::Transaction<std::vector<int32_t>> edit_listoflist(size_t&& args)
     {
-        OnMutation_edit(TData::FieldIndex::listoflist, Obj().listoflist(), args);
-        return Stencil::Mutators<std::vector<std::vector<int32_t>>>::edit(
-            _subtracker_listoflist, Obj().listoflist(), std::move(args));
+        MarkFieldEdited_(TData::FieldIndex::listoflist);
+        listoflist().RecordMutation_edit_(args);
+        return Stencil::Mutators<std::vector<std::vector<int32_t>>>::edit(Obj().listoflist(), std::move(args));
     }
     void set_listofobj(std::vector<::CLOpts1::SimpleObj::Data>&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::listofobj, Obj().listofobj(), val);
+        MarkFieldAssigned_(TData::FieldIndex::listofobj, Obj().listofobj(), val);
         Obj().set_listofobj(std::move(val));
     }
 
     void add_listofobj(::CLOpts1::SimpleObj::Data&& args)
     {
-        OnMutation_add(TData::FieldIndex::listofobj, Obj().listofobj(), args);
-        return Stencil::Mutators<std::vector<::CLOpts1::SimpleObj::Data>>::add(
-            _subtracker_listofobj, Obj().listofobj(), std::move(args));
+        MarkFieldEdited_(TData::FieldIndex::listofobj);
+        listofobj().RecordMutation_add_(args);
+        return Stencil::Mutators<std::vector<::CLOpts1::SimpleObj::Data>>::add(Obj().listofobj(), std::move(args));
     }
     void remove_listofobj(size_t&& args)
     {
-        OnMutation_remove(TData::FieldIndex::listofobj, Obj().listofobj(), args);
-        return Stencil::Mutators<std::vector<::CLOpts1::SimpleObj::Data>>::remove(
-            _subtracker_listofobj, Obj().listofobj(), std::move(args));
+        MarkFieldEdited_(TData::FieldIndex::listofobj);
+        listofobj().RecordMutation_remove_(args);
+        return Stencil::Mutators<std::vector<::CLOpts1::SimpleObj::Data>>::remove(Obj().listofobj(), std::move(args));
     }
     Stencil::Transaction<::CLOpts1::SimpleObj::Data> edit_listofobj(size_t&& args)
     {
-        OnMutation_edit(TData::FieldIndex::listofobj, Obj().listofobj(), args);
-        return Stencil::Mutators<std::vector<::CLOpts1::SimpleObj::Data>>::edit(
-            _subtracker_listofobj, Obj().listofobj(), std::move(args));
+        MarkFieldEdited_(TData::FieldIndex::listofobj);
+        listofobj().RecordMutation_edit_(args);
+        return Stencil::Mutators<std::vector<::CLOpts1::SimpleObj::Data>>::edit(Obj().listofobj(), std::move(args));
     }
     void set_objoflist(::CLOpts1::ObjWithList::Data&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::objoflist, Obj().objoflist(), val);
+        MarkFieldAssigned_(TData::FieldIndex::objoflist, Obj().objoflist(), val);
         Obj().set_objoflist(std::move(val));
     }
 
     void set_key2(shared_string&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::key2, Obj().key2(), val);
+        MarkFieldAssigned_(TData::FieldIndex::key2, Obj().key2(), val);
         Obj().set_key2(std::move(val));
     }
 
+    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::key1: return lambda("key1", key1()); return;
+        case TData::FieldIndex::listofint: return lambda("listofint", listofint()); return;
+        case TData::FieldIndex::listoflist: return lambda("listoflist", listoflist()); return;
+        case TData::FieldIndex::listofobj: return lambda("listofobj", listofobj()); return;
+        case TData::FieldIndex::objoflist: return lambda("objoflist", objoflist()); return;
+        case TData::FieldIndex::key2: return lambda("key2", key2()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        if (fieldName == "key1") { return lambda(TData::FieldIndex::key1, key1()); }
+        if (fieldName == "listofint") { return lambda(TData::FieldIndex::listofint, listofint()); }
+        if (fieldName == "listoflist") { return lambda(TData::FieldIndex::listoflist, listoflist()); }
+        if (fieldName == "listofobj") { return lambda(TData::FieldIndex::listofobj, listofobj()); }
+        if (fieldName == "objoflist") { return lambda(TData::FieldIndex::objoflist, objoflist()); }
+        if (fieldName == "key2") { return lambda(TData::FieldIndex::key2, key2()); }
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    {
+        lambda("key1", TData::FieldIndex::key1, key1(), Obj().key1());
+        lambda("listofint", TData::FieldIndex::listofint, listofint(), Obj().listofint());
+        lambda("listoflist", TData::FieldIndex::listoflist, listoflist(), Obj().listoflist());
+        lambda("listofobj", TData::FieldIndex::listofobj, listofobj(), Obj().listofobj());
+        lambda("objoflist", TData::FieldIndex::objoflist, objoflist(), Obj().objoflist());
+        lambda("key2", TData::FieldIndex::key2, key2(), Obj().key2());
+    }
 };
 
 template <>

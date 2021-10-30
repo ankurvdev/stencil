@@ -1402,46 +1402,58 @@ struct Stencil::Transaction<ComplexWebService::MapPoint::Data> : Stencil::Transa
     Transaction<int64_t> _subtracker_longitude;
     DELETE_COPY_AND_MOVE(Transaction);
 
-    Transaction(TData& ptr, TransactionRecorder& rec) :
-        Stencil::TransactionT<ComplexWebService::MapPoint::Data>(ptr, rec)
+    Transaction(TData& ptr) :
+        Stencil::TransactionT<ComplexWebService::MapPoint::Data>(ptr)
         ,
-        _subtracker_latitude(Obj().latitude(), rec)
+        _subtracker_latitude(Obj().latitude())
         ,
-        _subtracker_longitude(Obj().longitude(), rec)
+        _subtracker_longitude(Obj().longitude())
     {}
 
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    auto& latitude()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::latitude: lambda(_subtracker_latitude); return;
-        case TData::FieldIndex::longitude: lambda(_subtracker_longitude); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::latitude);
+        return _subtracker_latitude;
     }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    auto& longitude()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::latitude: lambda(_subtracker_latitude); return;
-        case TData::FieldIndex::longitude: lambda(_subtracker_longitude); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::longitude);
+        return _subtracker_longitude;
     }
-
     void set_latitude(int64_t&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::latitude, Obj().latitude(), val);
+        MarkFieldAssigned_(TData::FieldIndex::latitude, Obj().latitude(), val);
         Obj().set_latitude(std::move(val));
     }
 
     void set_longitude(int64_t&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::longitude, Obj().longitude(), val);
+        MarkFieldAssigned_(TData::FieldIndex::longitude, Obj().longitude(), val);
         Obj().set_longitude(std::move(val));
     }
 
+    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::latitude: return lambda("latitude", latitude()); return;
+        case TData::FieldIndex::longitude: return lambda("longitude", longitude()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        if (fieldName == "latitude") { return lambda(TData::FieldIndex::latitude, latitude()); }
+        if (fieldName == "longitude") { return lambda(TData::FieldIndex::longitude, longitude()); }
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    {
+        lambda("latitude", TData::FieldIndex::latitude, latitude(), Obj().latitude());
+        lambda("longitude", TData::FieldIndex::longitude, longitude(), Obj().longitude());
+    }
 };
 
 template <>
@@ -1600,56 +1612,74 @@ struct Stencil::Transaction<ComplexWebService::GeographicalArea::Data> : Stencil
     Transaction<std::vector<::ComplexWebService::MapPoint::Data>> _subtracker_areaPolygon;
     DELETE_COPY_AND_MOVE(Transaction);
 
-    Transaction(TData& ptr, TransactionRecorder& rec) :
-        Stencil::TransactionT<ComplexWebService::GeographicalArea::Data>(ptr, rec)
+    Transaction(TData& ptr) :
+        Stencil::TransactionT<ComplexWebService::GeographicalArea::Data>(ptr)
         ,
-        _subtracker_type(Obj().type(), rec)
+        _subtracker_type(Obj().type())
         ,
-        _subtracker_name(Obj().name(), rec)
+        _subtracker_name(Obj().name())
         ,
-        _subtracker_areaPolygon(Obj().areaPolygon(), rec)
+        _subtracker_areaPolygon(Obj().areaPolygon())
     {}
 
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    auto& type()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::type: lambda(_subtracker_type); return;
-        case TData::FieldIndex::name: lambda(_subtracker_name); return;
-        case TData::FieldIndex::areaPolygon: lambda(_subtracker_areaPolygon); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::type);
+        return _subtracker_type;
     }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    auto& name()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::type: lambda(_subtracker_type); return;
-        case TData::FieldIndex::name: lambda(_subtracker_name); return;
-        case TData::FieldIndex::areaPolygon: lambda(_subtracker_areaPolygon); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::name);
+        return _subtracker_name;
     }
-
+    auto& areaPolygon()
+    {
+        MarkFieldEdited_(TData::FieldIndex::areaPolygon);
+        return _subtracker_areaPolygon;
+    }
     void set_type(shared_string&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::type, Obj().type(), val);
+        MarkFieldAssigned_(TData::FieldIndex::type, Obj().type(), val);
         Obj().set_type(std::move(val));
     }
 
     void set_name(shared_string&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::name, Obj().name(), val);
+        MarkFieldAssigned_(TData::FieldIndex::name, Obj().name(), val);
         Obj().set_name(std::move(val));
     }
 
     void set_areaPolygon(std::vector<::ComplexWebService::MapPoint::Data>&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::areaPolygon, Obj().areaPolygon(), val);
+        MarkFieldAssigned_(TData::FieldIndex::areaPolygon, Obj().areaPolygon(), val);
         Obj().set_areaPolygon(std::move(val));
     }
 
+    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::type: return lambda("type", type()); return;
+        case TData::FieldIndex::name: return lambda("name", name()); return;
+        case TData::FieldIndex::areaPolygon: return lambda("areaPolygon", areaPolygon()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        if (fieldName == "type") { return lambda(TData::FieldIndex::type, type()); }
+        if (fieldName == "name") { return lambda(TData::FieldIndex::name, name()); }
+        if (fieldName == "areaPolygon") { return lambda(TData::FieldIndex::areaPolygon, areaPolygon()); }
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    {
+        lambda("type", TData::FieldIndex::type, type(), Obj().type());
+        lambda("name", TData::FieldIndex::name, name(), Obj().name());
+        lambda("areaPolygon", TData::FieldIndex::areaPolygon, areaPolygon(), Obj().areaPolygon());
+    }
 };
 
 template <>
@@ -1879,86 +1909,122 @@ struct Stencil::Transaction<ComplexWebService::DigitalAssetInfo::Data> : Stencil
     Transaction<shared_string> _subtracker_fileUrl;
     DELETE_COPY_AND_MOVE(Transaction);
 
-    Transaction(TData& ptr, TransactionRecorder& rec) :
-        Stencil::TransactionT<ComplexWebService::DigitalAssetInfo::Data>(ptr, rec)
+    Transaction(TData& ptr) :
+        Stencil::TransactionT<ComplexWebService::DigitalAssetInfo::Data>(ptr)
         ,
-        _subtracker_id(Obj().id(), rec)
+        _subtracker_id(Obj().id())
         ,
-        _subtracker_keywords(Obj().keywords(), rec)
+        _subtracker_keywords(Obj().keywords())
         ,
-        _subtracker_location(Obj().location(), rec)
+        _subtracker_location(Obj().location())
         ,
-        _subtracker_md5sum(Obj().md5sum(), rec)
+        _subtracker_md5sum(Obj().md5sum())
         ,
-        _subtracker_thumbnailBlob(Obj().thumbnailBlob(), rec)
+        _subtracker_thumbnailBlob(Obj().thumbnailBlob())
         ,
-        _subtracker_fileUrl(Obj().fileUrl(), rec)
+        _subtracker_fileUrl(Obj().fileUrl())
     {}
 
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    auto& id()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::id: lambda(_subtracker_id); return;
-        case TData::FieldIndex::keywords: lambda(_subtracker_keywords); return;
-        case TData::FieldIndex::location: lambda(_subtracker_location); return;
-        case TData::FieldIndex::md5sum: lambda(_subtracker_md5sum); return;
-        case TData::FieldIndex::thumbnailBlob: lambda(_subtracker_thumbnailBlob); return;
-        case TData::FieldIndex::fileUrl: lambda(_subtracker_fileUrl); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::id);
+        return _subtracker_id;
     }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    auto& keywords()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::id: lambda(_subtracker_id); return;
-        case TData::FieldIndex::keywords: lambda(_subtracker_keywords); return;
-        case TData::FieldIndex::location: lambda(_subtracker_location); return;
-        case TData::FieldIndex::md5sum: lambda(_subtracker_md5sum); return;
-        case TData::FieldIndex::thumbnailBlob: lambda(_subtracker_thumbnailBlob); return;
-        case TData::FieldIndex::fileUrl: lambda(_subtracker_fileUrl); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::keywords);
+        return _subtracker_keywords;
     }
-
+    auto& location()
+    {
+        MarkFieldEdited_(TData::FieldIndex::location);
+        return _subtracker_location;
+    }
+    auto& md5sum()
+    {
+        MarkFieldEdited_(TData::FieldIndex::md5sum);
+        return _subtracker_md5sum;
+    }
+    auto& thumbnailBlob()
+    {
+        MarkFieldEdited_(TData::FieldIndex::thumbnailBlob);
+        return _subtracker_thumbnailBlob;
+    }
+    auto& fileUrl()
+    {
+        MarkFieldEdited_(TData::FieldIndex::fileUrl);
+        return _subtracker_fileUrl;
+    }
     void set_id(int32_t&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::id, Obj().id(), val);
+        MarkFieldAssigned_(TData::FieldIndex::id, Obj().id(), val);
         Obj().set_id(std::move(val));
     }
 
     void set_keywords(std::vector<shared_tree<shared_string>>&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::keywords, Obj().keywords(), val);
+        MarkFieldAssigned_(TData::FieldIndex::keywords, Obj().keywords(), val);
         Obj().set_keywords(std::move(val));
     }
 
     void set_location(shared_tree<::ComplexWebService::GeographicalArea::Data>&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::location, Obj().location(), val);
+        MarkFieldAssigned_(TData::FieldIndex::location, Obj().location(), val);
         Obj().set_location(std::move(val));
     }
 
     void set_md5sum(int64_t&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::md5sum, Obj().md5sum(), val);
+        MarkFieldAssigned_(TData::FieldIndex::md5sum, Obj().md5sum(), val);
         Obj().set_md5sum(std::move(val));
     }
 
     void set_thumbnailBlob(shared_string&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::thumbnailBlob, Obj().thumbnailBlob(), val);
+        MarkFieldAssigned_(TData::FieldIndex::thumbnailBlob, Obj().thumbnailBlob(), val);
         Obj().set_thumbnailBlob(std::move(val));
     }
 
     void set_fileUrl(shared_string&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::fileUrl, Obj().fileUrl(), val);
+        MarkFieldAssigned_(TData::FieldIndex::fileUrl, Obj().fileUrl(), val);
         Obj().set_fileUrl(std::move(val));
     }
 
+    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::id: return lambda("id", id()); return;
+        case TData::FieldIndex::keywords: return lambda("keywords", keywords()); return;
+        case TData::FieldIndex::location: return lambda("location", location()); return;
+        case TData::FieldIndex::md5sum: return lambda("md5sum", md5sum()); return;
+        case TData::FieldIndex::thumbnailBlob: return lambda("thumbnailBlob", thumbnailBlob()); return;
+        case TData::FieldIndex::fileUrl: return lambda("fileUrl", fileUrl()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        if (fieldName == "id") { return lambda(TData::FieldIndex::id, id()); }
+        if (fieldName == "keywords") { return lambda(TData::FieldIndex::keywords, keywords()); }
+        if (fieldName == "location") { return lambda(TData::FieldIndex::location, location()); }
+        if (fieldName == "md5sum") { return lambda(TData::FieldIndex::md5sum, md5sum()); }
+        if (fieldName == "thumbnailBlob") { return lambda(TData::FieldIndex::thumbnailBlob, thumbnailBlob()); }
+        if (fieldName == "fileUrl") { return lambda(TData::FieldIndex::fileUrl, fileUrl()); }
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    {
+        lambda("id", TData::FieldIndex::id, id(), Obj().id());
+        lambda("keywords", TData::FieldIndex::keywords, keywords(), Obj().keywords());
+        lambda("location", TData::FieldIndex::location, location(), Obj().location());
+        lambda("md5sum", TData::FieldIndex::md5sum, md5sum(), Obj().md5sum());
+        lambda("thumbnailBlob", TData::FieldIndex::thumbnailBlob, thumbnailBlob(), Obj().thumbnailBlob());
+        lambda("fileUrl", TData::FieldIndex::fileUrl, fileUrl(), Obj().fileUrl());
+    }
 };
 
 template <>

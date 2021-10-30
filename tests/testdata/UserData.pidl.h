@@ -464,46 +464,58 @@ struct Stencil::Transaction<UserData::UserData::Data> : Stencil::TransactionT<Us
     Transaction<timestamp> _subtracker_creation;
     DELETE_COPY_AND_MOVE(Transaction);
 
-    Transaction(TData& ptr, TransactionRecorder& rec) :
-        Stencil::TransactionT<UserData::UserData::Data>(ptr, rec)
+    Transaction(TData& ptr) :
+        Stencil::TransactionT<UserData::UserData::Data>(ptr)
         ,
-        _subtracker_modified(Obj().modified(), rec)
+        _subtracker_modified(Obj().modified())
         ,
-        _subtracker_creation(Obj().creation(), rec)
+        _subtracker_creation(Obj().creation())
     {}
 
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    auto& modified()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::modified: lambda(_subtracker_modified); return;
-        case TData::FieldIndex::creation: lambda(_subtracker_creation); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::modified);
+        return _subtracker_modified;
     }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    auto& creation()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::modified: lambda(_subtracker_modified); return;
-        case TData::FieldIndex::creation: lambda(_subtracker_creation); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::creation);
+        return _subtracker_creation;
     }
-
     void set_modified(timestamp&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::modified, Obj().modified(), val);
+        MarkFieldAssigned_(TData::FieldIndex::modified, Obj().modified(), val);
         Obj().set_modified(std::move(val));
     }
 
     void set_creation(timestamp&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::creation, Obj().creation(), val);
+        MarkFieldAssigned_(TData::FieldIndex::creation, Obj().creation(), val);
         Obj().set_creation(std::move(val));
     }
 
+    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::modified: return lambda("modified", modified()); return;
+        case TData::FieldIndex::creation: return lambda("creation", creation()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        if (fieldName == "modified") { return lambda(TData::FieldIndex::modified, modified()); }
+        if (fieldName == "creation") { return lambda(TData::FieldIndex::creation, creation()); }
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    {
+        lambda("modified", TData::FieldIndex::modified, modified(), Obj().modified());
+        lambda("creation", TData::FieldIndex::creation, creation(), Obj().creation());
+    }
 };
 
 template <>
@@ -706,76 +718,106 @@ struct Stencil::Transaction<UserData::Identity::Data> : Stencil::TransactionT<Us
     Transaction<::Database2::ChildRef<Database2::WideString>> _subtracker_secretcode;
     DELETE_COPY_AND_MOVE(Transaction);
 
-    Transaction(TData& ptr, TransactionRecorder& rec) :
-        Stencil::TransactionT<UserData::Identity::Data>(ptr, rec)
+    Transaction(TData& ptr) :
+        Stencil::TransactionT<UserData::Identity::Data>(ptr)
         ,
-        _subtracker_username(Obj().username(), rec)
+        _subtracker_username(Obj().username())
         ,
-        _subtracker_password(Obj().password(), rec)
+        _subtracker_password(Obj().password())
         ,
-        _subtracker_privatekey(Obj().privatekey(), rec)
+        _subtracker_privatekey(Obj().privatekey())
         ,
-        _subtracker_clientcert(Obj().clientcert(), rec)
+        _subtracker_clientcert(Obj().clientcert())
         ,
-        _subtracker_secretcode(Obj().secretcode(), rec)
+        _subtracker_secretcode(Obj().secretcode())
     {}
 
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    auto& username()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::username: lambda(_subtracker_username); return;
-        case TData::FieldIndex::password: lambda(_subtracker_password); return;
-        case TData::FieldIndex::privatekey: lambda(_subtracker_privatekey); return;
-        case TData::FieldIndex::clientcert: lambda(_subtracker_clientcert); return;
-        case TData::FieldIndex::secretcode: lambda(_subtracker_secretcode); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::username);
+        return _subtracker_username;
     }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    auto& password()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::username: lambda(_subtracker_username); return;
-        case TData::FieldIndex::password: lambda(_subtracker_password); return;
-        case TData::FieldIndex::privatekey: lambda(_subtracker_privatekey); return;
-        case TData::FieldIndex::clientcert: lambda(_subtracker_clientcert); return;
-        case TData::FieldIndex::secretcode: lambda(_subtracker_secretcode); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::password);
+        return _subtracker_password;
     }
-
+    auto& privatekey()
+    {
+        MarkFieldEdited_(TData::FieldIndex::privatekey);
+        return _subtracker_privatekey;
+    }
+    auto& clientcert()
+    {
+        MarkFieldEdited_(TData::FieldIndex::clientcert);
+        return _subtracker_clientcert;
+    }
+    auto& secretcode()
+    {
+        MarkFieldEdited_(TData::FieldIndex::secretcode);
+        return _subtracker_secretcode;
+    }
     void set_username(::Database2::ChildRef<Database2::WideString>&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::username, Obj().username(), val);
+        MarkFieldAssigned_(TData::FieldIndex::username, Obj().username(), val);
         Obj().set_username(std::move(val));
     }
 
     void set_password(::Database2::ChildRef<Database2::WideString>&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::password, Obj().password(), val);
+        MarkFieldAssigned_(TData::FieldIndex::password, Obj().password(), val);
         Obj().set_password(std::move(val));
     }
 
     void set_privatekey(::Database2::ChildRef<Database2::WideString>&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::privatekey, Obj().privatekey(), val);
+        MarkFieldAssigned_(TData::FieldIndex::privatekey, Obj().privatekey(), val);
         Obj().set_privatekey(std::move(val));
     }
 
     void set_clientcert(::Database2::ChildRef<Database2::WideString>&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::clientcert, Obj().clientcert(), val);
+        MarkFieldAssigned_(TData::FieldIndex::clientcert, Obj().clientcert(), val);
         Obj().set_clientcert(std::move(val));
     }
 
     void set_secretcode(::Database2::ChildRef<Database2::WideString>&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::secretcode, Obj().secretcode(), val);
+        MarkFieldAssigned_(TData::FieldIndex::secretcode, Obj().secretcode(), val);
         Obj().set_secretcode(std::move(val));
     }
 
+    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::username: return lambda("username", username()); return;
+        case TData::FieldIndex::password: return lambda("password", password()); return;
+        case TData::FieldIndex::privatekey: return lambda("privatekey", privatekey()); return;
+        case TData::FieldIndex::clientcert: return lambda("clientcert", clientcert()); return;
+        case TData::FieldIndex::secretcode: return lambda("secretcode", secretcode()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        if (fieldName == "username") { return lambda(TData::FieldIndex::username, username()); }
+        if (fieldName == "password") { return lambda(TData::FieldIndex::password, password()); }
+        if (fieldName == "privatekey") { return lambda(TData::FieldIndex::privatekey, privatekey()); }
+        if (fieldName == "clientcert") { return lambda(TData::FieldIndex::clientcert, clientcert()); }
+        if (fieldName == "secretcode") { return lambda(TData::FieldIndex::secretcode, secretcode()); }
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    {
+        lambda("username", TData::FieldIndex::username, username(), Obj().username());
+        lambda("password", TData::FieldIndex::password, password(), Obj().password());
+        lambda("privatekey", TData::FieldIndex::privatekey, privatekey(), Obj().privatekey());
+        lambda("clientcert", TData::FieldIndex::clientcert, clientcert(), Obj().clientcert());
+        lambda("secretcode", TData::FieldIndex::secretcode, secretcode(), Obj().secretcode());
+    }
 };
 
 template <>
@@ -949,56 +991,74 @@ struct Stencil::Transaction<UserData::RemoteHost::Data> : Stencil::TransactionT<
     Transaction<::UuidBasedId<::UserData::Identity::Data>> _subtracker_identity;
     DELETE_COPY_AND_MOVE(Transaction);
 
-    Transaction(TData& ptr, TransactionRecorder& rec) :
-        Stencil::TransactionT<UserData::RemoteHost::Data>(ptr, rec)
+    Transaction(TData& ptr) :
+        Stencil::TransactionT<UserData::RemoteHost::Data>(ptr)
         ,
-        _subtracker_name(Obj().name(), rec)
+        _subtracker_name(Obj().name())
         ,
-        _subtracker_uri(Obj().uri(), rec)
+        _subtracker_uri(Obj().uri())
         ,
-        _subtracker_identity(Obj().identity(), rec)
+        _subtracker_identity(Obj().identity())
     {}
 
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    auto& name()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::name: lambda(_subtracker_name); return;
-        case TData::FieldIndex::uri: lambda(_subtracker_uri); return;
-        case TData::FieldIndex::identity: lambda(_subtracker_identity); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::name);
+        return _subtracker_name;
     }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    auto& uri()
     {
-        switch (index)
-        {
-        case TData::FieldIndex::name: lambda(_subtracker_name); return;
-        case TData::FieldIndex::uri: lambda(_subtracker_uri); return;
-        case TData::FieldIndex::identity: lambda(_subtracker_identity); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        MarkFieldEdited_(TData::FieldIndex::uri);
+        return _subtracker_uri;
     }
-
+    auto& identity()
+    {
+        MarkFieldEdited_(TData::FieldIndex::identity);
+        return _subtracker_identity;
+    }
     void set_name(::Database2::ChildRef<Database2::WideString>&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::name, Obj().name(), val);
+        MarkFieldAssigned_(TData::FieldIndex::name, Obj().name(), val);
         Obj().set_name(std::move(val));
     }
 
     void set_uri(::Database2::ChildRef<Database2::WideString>&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::uri, Obj().uri(), val);
+        MarkFieldAssigned_(TData::FieldIndex::uri, Obj().uri(), val);
         Obj().set_uri(std::move(val));
     }
 
     void set_identity(::UuidBasedId<::UserData::Identity::Data>&& val)
     {
-        OnStructFieldChangeRequested(TData::FieldIndex::identity, Obj().identity(), val);
+        MarkFieldAssigned_(TData::FieldIndex::identity, Obj().identity(), val);
         Obj().set_identity(std::move(val));
     }
 
+    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case TData::FieldIndex::name: return lambda("name", name()); return;
+        case TData::FieldIndex::uri: return lambda("uri", uri()); return;
+        case TData::FieldIndex::identity: return lambda("identity", identity()); return;
+        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        if (fieldName == "name") { return lambda(TData::FieldIndex::name, name()); }
+        if (fieldName == "uri") { return lambda(TData::FieldIndex::uri, uri()); }
+        if (fieldName == "identity") { return lambda(TData::FieldIndex::identity, identity()); }
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    {
+        lambda("name", TData::FieldIndex::name, name(), Obj().name());
+        lambda("uri", TData::FieldIndex::uri, uri(), Obj().uri());
+        lambda("identity", TData::FieldIndex::identity, identity(), Obj().identity());
+    }
 };
 
 template <>

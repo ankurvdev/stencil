@@ -8,8 +8,8 @@
 #include "uuidobject.h"
 #include "visitor.h"
 
-#include "CommandLineArgsReader.h"
-#include "DataHandlerJson.h"
+#include "cliserdes.h"
+#include "jsonserdes.h"
 #include "Database2.h"
 #if defined USE_CPP_HTTPLIB
 #include "WebService.h"

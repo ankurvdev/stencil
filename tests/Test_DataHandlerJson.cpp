@@ -33,15 +33,15 @@ TEST_CASE("CodeGen::JsonDataHandler", "[DataHandlerJson]")
               R"({"seen":0,"addr":2,"hexaddr":[3,4,5,6,7,8,9],"flight":"123","altitude":19,"groundSpeed":20,"track":21,"lat":22.000000,"lon":23.000000,"verticalRate":24,"messageCount":25,"odd_cprlat":26,"odd_cprlon":27,"odd_cprtime":0,"even_cprlat":28,"even_cprlon":29,"even_cprtime":0},)"
               R"({"seen":1,"addr":3,"hexaddr":[4,5,6,7,8,9,0],"flight":"12345678910","altitude":29,"groundSpeed":30,"track":41,"lat":23.000000,"lon":24.000000,"verticalRate":25,"messageCount":26,"odd_cprlat":27,"odd_cprlon":28,"odd_cprtime":0,"even_cprlat":28,"even_cprlon":29,"even_cprtime":0})"
               R"(]})";
-        auto parseData = Json::Parse<Avid::Traffic::Data>(dataStr);
+        auto parseData = Stencil::Json::Parse<Avid::Traffic::Data>(dataStr);
         REQUIRE(parseData->aircrafts().size() == 3);
         auto& obj1 = parseData->aircrafts()[0];
         auto& obj2 = parseData->aircrafts()[1];
         REQUIRE(obj1.addr() == 1);
         REQUIRE(obj2.addr() == 2);
-        auto stringified = Json::Stringify(parseData);
+        auto stringified = Stencil::Json::Stringify(parseData);
         REQUIRE(stringified == dataStr);
-        REQUIRE(stringified == Json::Stringify(Json::Parse<Avid::Traffic::Data>(stringified)));
-        REQUIRE(stringified == Json::Stringify(Json::Parse<Avid::Traffic::Data>(dataStr1)));
+        REQUIRE(stringified == Stencil::Json::Stringify(Stencil::Json::Parse<Avid::Traffic::Data>(stringified)));
+        REQUIRE(stringified == Stencil::Json::Stringify(Stencil::Json::Parse<Avid::Traffic::Data>(dataStr1)));
     }
 }

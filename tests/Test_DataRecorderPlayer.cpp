@@ -9,7 +9,7 @@
 #include <cstdint>
 #include <functional>
 #include <span>
-
+#if 0
 static void RecordTrafficAdd(Avid::Traffic::Data& data, std::filesystem::path const& recordlog, uint8_t hexaddr)
 {
     Stencil::FileTransactionRecorder<Avid::Traffic::Data> recorder(recordlog);
@@ -176,3 +176,4 @@ TEST_CASE("DataRecorder", "[DataRecorder]")
 
     std::filesystem::remove(recordlog);
 }
+#endif

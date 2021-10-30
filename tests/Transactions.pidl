@@ -1,0 +1,37 @@
+struct SimpleObject1
+{
+    timestamp time;
+    int32     val1;
+    uint32    val2;
+    uint8     val3;
+    string    val4;
+    double    val5;
+}
+
+struct ListObject
+{
+    uint32        value;
+    SimpleObject1 obj1;
+}
+
+struct List
+{
+    list<ListObject> listobj;
+}
+
+struct SimpleObject2
+{
+    bool    val1;
+    double  val2;
+}
+
+struct Object
+{
+    SimpleObject1   obj1;
+    SimpleObject2   obj2;
+    ListObject      obj3;
+    List            list1;
+}
+
+relationship optionalprops 	 object = SimpleObject1, SimpleObject2
+relationship timestamped 	 object = SimpleObject1, ListObject, List, SimpleObject2

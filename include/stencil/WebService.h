@@ -1,4 +1,4 @@
-#include "DataHandlerJson.h"
+#include "jsonserdes.h"
 
 #pragma warning(push, 3)
 #pragma warning(disable : 4365)    // conversion from 'const char' to 'unsigned char', signed/unsigned mismatch
@@ -263,7 +263,7 @@ inline auto WebServiceRequestExecuteApis(httplib::Request const& request, const 
 
     auto retval = ::ReflectionBase::InterfaceApiTraits<TInterfaceApi>::Invoke(args);
 #ifdef USE_NLOHMANN_JSON
-    return ::Json::Stringify<decltype(retval)>(retval);
+    return Stencil::Json::Stringify<decltype(retval)>(retval);
 #else
     throw std::logic_error("No json stringifier defined");
 #endif
