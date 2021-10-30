@@ -123,7 +123,7 @@ struct Json
             throw ex;
         }
 #endif
-        TVisitor            _visitor;
+        TVisitor&           _visitor;
         std::vector<size_t> _stack;
         // ReflectionServices::StateTraker<TStruct, void*> _tracker;
     };

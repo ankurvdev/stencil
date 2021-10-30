@@ -287,7 +287,7 @@ struct BinaryTransactionSerDes
                     writer << static_cast<uint32_t>(index);
 
                     if (mutator == 3) { _DeserializeTo(subtxn, writer); }
-                    if (mutator == 0)
+                    else if (mutator == 0)
                     {
                         Visitor<ObjType const> visitor(obj);
                         Stencil::BinarySerDes::Serialize(visitor, writer);
