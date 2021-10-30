@@ -16,7 +16,7 @@ struct TestReplay
         auto expected = expectedIn.size() == 0 ? txndata : expectedIn;
         auto delta    = Stencil::StringTransactionSerDes::Deserialize(txn);
         changes.push_back(delta);
-        if (txndata[expected.size() - 1] == ';') { REQUIRE(delta == expected); }
+        if (expected[expected.size() - 1] == ';') { REQUIRE(delta == expected); }
         else
         {
             REQUIRE(delta.substr(0, delta.size() - 1) == expected);

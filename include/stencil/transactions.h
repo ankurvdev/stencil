@@ -233,11 +233,21 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
     template <typename TLambda> void VisitChanges(TLambda&& lambda)
     {
         if (_changes.size() == 0) return;
-        for (auto& c : _changes)
+
+        for (size_t i = 0; i < _changes.size(); i++)
         {
+            auto& c     = _changes[i];
+            auto  index = c.index;
+            for (size_t j = i + 1; j < _changes.size(); j++)
+            {
+                auto& c1 = _changes[j];
+                if (c1.mutationtype == 2u && c1.index < index) { index--; }
+                if (c1.mutationtype == 1u && c1.index < index) { index++; }
+            }
+
             // TODO : Fix me. This is horrible
-            auto& obj = Obj()[c.index];
-            auto  it  = _edited.find(c.index);
+            auto& obj = Obj()[index];
+            auto  it  = _edited.find(index);
             if (it == _edited.end())
             {
                 it = _edited.insert(std::make_pair(c.index, std::make_unique<Transaction<ListObjType>>(obj))).first;
