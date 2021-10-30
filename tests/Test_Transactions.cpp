@@ -7,14 +7,15 @@ struct TestReplay
 {
     TestReplay() : txn2(obj2) {}
     CLASS_DELETE_COPY_AND_MOVE(TestReplay);
-    
+
     void Replay(std::string_view const& txndata, std::string_view const& expectedIn = {})
     {
         Stencil::Transaction<Transactions::Object::Data> txn(obj1);
         Stencil::StringTransactionSerDes::Apply(txn, txndata);
         snapshots.push_back(Stencil::Json::Stringify(obj1));
         auto expected = expectedIn.size() == 0 ? txndata : expectedIn;
-        auto delta    = Stencil::StringTransactionSerDes::Deserialize(txn);
+
+        auto delta = Stencil::StringTransactionSerDes::Deserialize(txn);
         changes.push_back(delta);
         if (expected[expected.size() - 1] == ';') { REQUIRE(delta == expected); }
         else
@@ -23,6 +24,15 @@ struct TestReplay
         }
         Stencil::StringTransactionSerDes::Apply(txn2, txndata);
         deltatxns.push_back(Stencil::StringTransactionSerDes::Deserialize(txn2));
+
+        Stencil::BinaryTransactionSerDes::Deserialize(txn, binary_txns);
+        Stencil::BinaryTransactionSerDes::Deserialize(txn2, binary_acc_txns);
+
+        {
+            std::ofstream binary_lastacc_txns("Transactions.LastAccumulated.bin", std::ios::binary);
+            Stencil::BinaryTransactionSerDes::Deserialize(txn2, binary_lastacc_txns);
+            binary_lastacc_txns.close();
+        }
     }
 
     std::vector<std::string> changes;
@@ -32,9 +42,10 @@ struct TestReplay
     Transactions::Object::Data obj1;
     Transactions::Object::Data obj2;
 
-    Stencil::Transaction<Transactions::Object::Data> txn2;
+    std::ofstream binary_txns     = std::ofstream("Transactions.bin", std::ios::binary);
+    std::ofstream binary_acc_txns = std::ofstream("Transactions.Accumulated.bin", std::ios::binary);
 
-    std::vector<Stencil::MemTransactionRecorder> records;
+    Stencil::Transaction<Transactions::Object::Data> txn2;
 };
 
 TEST_CASE("Transactions", "[Transactions]")
@@ -83,6 +94,30 @@ TEST_CASE("Transactions", "[Transactions]")
         Transactions::Object::Data                       obj3;
         Stencil::Transaction<Transactions::Object::Data> txn3(obj3);
         Stencil::StringTransactionSerDes::Apply(txn3, replay.deltatxns.back());
+        REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
+    }
+
+    replay.binary_txns.close();
+    replay.binary_acc_txns.close();
+
+    // And now binary streams
+    {
+        Transactions::Object::Data                       obj3;
+        Stencil::Transaction<Transactions::Object::Data> txn3(obj3);
+
+        std::ifstream istrm("Transactions.bin", std::ios::binary);
+        while (istrm.good()) Stencil::BinaryTransactionSerDes::Apply(txn3, istrm);
+
+        REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
+    }
+    {
+        Transactions::Object::Data                       obj3;
+        Stencil::Transaction<Transactions::Object::Data> txn3(obj3);
+
+        std::ifstream istrm("Transactions.LastAccumulated.bin", std::ios::binary);
+        Stencil::BinaryTransactionSerDes::Apply(txn3, istrm);
+        REQUIRE(istrm.eof());
+
         REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
     }
 }

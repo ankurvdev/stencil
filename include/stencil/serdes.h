@@ -1,4 +1,4 @@
-#pragma once
+#pragma onces
 namespace Stencil
 {
 
@@ -41,6 +41,51 @@ template <typename TVal, typename = typename std::enable_if<std::is_trivial<TVal
 {
     return std::span(reinterpret_cast<uint8_t*>(&val), sizeof(TVal));
 }
+struct OStrmWriter
+{
+    OStrmWriter(std::ostream& ostr) : _ostr(ostr) {}
+    CLASS_DELETE_COPY_AND_MOVE(OStrmWriter);
+
+    template <typename TVal, std::enable_if_t<std::is_trivial<TVal>::value, bool> = true> auto& operator<<(TVal const& val)
+    {
+        auto spn = AsCSpan(val);
+        _ostr.write(reinterpret_cast<char const*>(spn.data()), static_cast<std::streamsize>(spn.size()));
+        return *this;
+    }
+
+    auto& operator<<(shared_string const& val)
+    {
+        *this << val.size();
+        if (val.size() > 0) _ostr.write(reinterpret_cast<char const*>(val.data()), static_cast<std::streamsize>(val.size()));
+        return *this;
+    }
+
+    std::ostream& _ostr;
+};
+
+struct IStrmReader
+{
+    IStrmReader(std::istream& istrm) : _istrm(istrm) {}
+    CLASS_DELETE_COPY_AND_MOVE(IStrmReader);
+
+    template <typename TVal, std::enable_if_t<std::is_trivial<TVal>::value, bool> = true> TVal read()
+    {
+        TVal val;
+        auto spn = AsSpan(val);
+        _istrm.read(reinterpret_cast<char*>(spn.data()), static_cast<std::streamsize>(spn.size()));
+        return val;
+    }
+
+    shared_string read_shared_string()
+    {
+        size_t      size = read<size_t>();
+        std::string str(size, 0);
+        _istrm.read(reinterpret_cast<char*>(str.data()), static_cast<std::streamsize>(size));
+        return shared_string::make(std::move(str));
+    }
+
+    std::istream& _istrm;
+};
 
 struct Writer
 {
@@ -97,7 +142,7 @@ struct Reader
 
 struct BinarySerDes
 {
-    template <typename TVisitor> static void Serialize(TVisitor& visitor, Writer& writer)
+    template <typename TVisitor, typename TWriter> static void Serialize(TVisitor& visitor, TWriter& writer)
     {
         switch (visitor.GetDataTypeHint())
         {
@@ -156,24 +201,24 @@ struct BinarySerDes
         }
     }
 
-    template <typename TVisitor> static void Deserialize(TVisitor& visitor, Reader& reader)
+    template <typename TVisitor, typename TReader> static void Deserialize(TVisitor& visitor, TReader& reader)
     {
         switch (visitor.GetDataTypeHint())
         {
         case ReflectionBase::DataType::Value:
         {
-            auto valType = static_cast<Value::Type>(reader.read<uint8_t>());
+            auto valType = static_cast<Value::Type>(reader.template read<uint8_t>());
             switch (valType)
             {
-            case Value::Type::Double: visitor.SetValue(Value{reader.read<double>()}); break;
+            case Value::Type::Double: visitor.SetValue(Value{reader.template read<double>()}); break;
             case Value::Type::Empty: TODO(); break;
-            case Value::Type::Signed: visitor.SetValue(Value{reader.read<int64_t>()}); break;
+            case Value::Type::Signed: visitor.SetValue(Value{reader.template read<int64_t>()}); break;
             case Value::Type::String:
                 // TODO : See if this can be removed and renamed Value to Value64Bit
                 // Value::Type::String -> TrivialConstArray
                 visitor.SetValue(Value{reader.read_shared_string()});
                 break;
-            case Value::Type::Unsigned: visitor.SetValue(Value{reader.read<uint64_t>()}); break;
+            case Value::Type::Unsigned: visitor.SetValue(Value{reader.template read<uint64_t>()}); break;
             case Value::Type::Unknown: throw std::logic_error("Unknown Value Type");
             }
         }

@@ -183,24 +183,315 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
 
 namespace Stencil
 {
-template <typename T> struct PatchHandler
+#if 0
+
+struct TransactionRecorder
 {
-    static std::vector<uint8_t> Create(T const& obj, Transaction<T> const& ctx)
+    virtual ~TransactionRecorder() = default;
+
+    template <typename TObj> Transaction<TObj> Start(TObj& obj) { return Transaction<TObj>(obj); }
+
+    template <typename T> TransactionRecorder& operator<<(T const& obj)
     {
-        Writer           writer;
-        Visitor<T const> visitor(obj);
-        _Write(writer, visitor, ctx);
-        return writer.Reset();
+        auto byteSpan = std::span<uint8_t const>(reinterpret_cast<uint8_t const*>(&obj), sizeof(T));
+        _it           = std::copy(byteSpan.begin(), byteSpan.end(), _it);
+        return *this;
     }
 
-    static ByteIt Apply(Transaction<T>& ctx, ByteIt const& itbeg)
+    template <typename T> TransactionRecorder& operator<<(std::vector<T> const& obj)
     {
-        Reader     reader(itbeg);
-        Visitor<T> visitor(ctx.Obj());
-        _Apply(reader, visitor, ctx);
-        return reader.GetIterator();
+        auto byteSpan = std::span<uint8_t const>(reinterpret_cast<uint8_t const*>(obj.data()), sizeof(T) * obj.size());
+        _it           = std::copy(byteSpan.begin(), byteSpan.end(), _it);
+        return *this;
+    }
+    void Flush_()
+    {
+        Write_(std::span<uint8_t const>(_buffer.begin(), _it));
+        _it = _buffer.begin();
     }
 
+    virtual void Write_(std::span<uint8_t const> buffer) = 0;
+
+    std::array<uint8_t, 1024>           _buffer;
+    std::array<uint8_t, 1024>::iterator _it{_buffer.begin()};
+};
+
+template <typename TObj> struct FileTransactionRecorder : TransactionRecorder
+{
+    FileTransactionRecorder(std::filesystem::path const& fpath) : _fpath(fpath) {}
+
+    virtual void Write_(std::span<uint8_t const> buffer) override
+    {
+        std::ofstream fstrm(_fpath, std::fstream::out | std::fstream::app);
+        auto          now = std::chrono::system_clock::now();
+
+        auto delta   = now - _init_time;
+        auto deltaus = std::chrono::duration_cast<std::chrono::microseconds>(delta).count();
+        _lastnotif   = now;
+        _write(fstrm, deltaus);
+        _write(fstrm, uint8_t{0});
+        _write(fstrm, static_cast<uint16_t>(buffer.size()));
+        _write(fstrm, buffer);
+    }
+
+    template <typename T, std::enable_if_t<std::is_trivial<T>::value, bool> = true>
+    std::ofstream& _write(std::ofstream& fstrm, T const& val)
+    {
+        fstrm.write(reinterpret_cast<const char*>(&val), std::streamsize{sizeof(T)});
+        return fstrm;
+    }
+
+    std::ofstream& _write(std::ofstream& fstrm, std::span<uint8_t const> const& val)
+    {
+        fstrm.write(reinterpret_cast<const char*>(val.data()), static_cast<std::streamsize>(val.size()));
+        return fstrm;
+    }
+
+    private:
+    std::filesystem::path                 _fpath;
+    std::chrono::system_clock::time_point _init_time = std::chrono::system_clock::now();
+    std::chrono::system_clock::time_point _lastnotif = _init_time;
+};
+
+struct NullTransactionRecorder : TransactionRecorder
+{
+    NullTransactionRecorder() = default;
+    virtual void Write_(std::span<uint8_t const> /*buffer*/) override {}
+};
+
+struct MemTransactionRecorder : Stencil::TransactionRecorder
+{
+    MemTransactionRecorder() = default;
+    CLASS_DELETE_COPY_AND_MOVE(MemTransactionRecorder);
+    virtual void Write_(std::span<uint8_t const> buffer) override
+    {
+        std::copy(buffer.begin(), buffer.end(), std::back_inserter(_recording));
+    }
+
+    std::vector<uint8_t> _recording;
+};
+#endif
+
+struct BinaryTransactionSerDes
+{
+    template <typename T> static auto& _DeserializeTo(Transaction<T>& txn, OStrmWriter& writer)
+    {
+        using Traits = ReflectionBase::TypeTraits<T&>;
+
+        if constexpr (Traits::Type() == ReflectionBase::DataType::List)
+        {
+            txn.VisitChanges(
+                [&](auto const& /* name */, auto const& /* type */, uint8_t const& mutator, size_t const& index, auto& subtxn, auto& obj) {
+                    using ObjType = std::remove_reference_t<decltype(obj)>;
+                    writer << static_cast<uint8_t>(mutator);
+                    writer << static_cast<uint32_t>(index);
+
+                    if (mutator == 3) { _DeserializeTo(subtxn, writer); }
+                    if (mutator == 0)
+                    {
+                        Visitor<ObjType const> visitor(obj);
+                        Stencil::BinarySerDes::Serialize(visitor, writer);
+                    }
+                    else if (mutator == 1)
+                    {
+                        Visitor<ObjType const> visitor(obj);
+                        Stencil::BinarySerDes::Serialize(visitor, writer);
+                    }
+                    else if (mutator == 2)
+                    {
+                        // Nothing else needed
+                    }
+                    else
+                    {
+                        throw std::logic_error("Unknown mutator");
+                    }
+                });
+        }
+
+        if constexpr (ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Object)
+        {
+            txn.VisitChanges(
+                [&](auto const& /* name */, auto const& type, auto const& mutator, auto const& /* mutatordata */, auto& subtxn, auto& obj) {
+                    using ObjType = std::remove_reference_t<decltype(obj)>;
+
+                    writer << static_cast<uint8_t>(mutator);
+                    writer << static_cast<uint32_t>(type);
+
+                    if (mutator == 0)
+                    {
+                        Visitor<ObjType const> visitor(obj);
+                        Stencil::BinarySerDes::Serialize(visitor, writer);
+                    }
+                    else if (mutator == 3)
+                    {
+                        _DeserializeTo(subtxn, writer);
+                    }
+                    else
+                    {
+                        throw std::logic_error("Unknown mutator");
+                    }
+                });
+        }
+        return writer;
+    }
+
+    template <typename T> static std::ostream& Deserialize(Transaction<T>& txn, std::ostream& ostr)
+    {
+        OStrmWriter writer(ostr);
+        _DeserializeTo(txn, writer);
+        return ostr;
+    }
+
+    template <typename T, typename F = void> struct _StructApplicator
+    {
+        static void Apply(Transaction<T>& /* txn */,
+                          std::string_view const& /* fieldname */,
+                          uint8_t /* mutator */,
+                          std::string_view const& /* mutatordata */,
+                          std::string_view const& /* rhs */)
+        {
+            throw std::logic_error("Invalid");
+        }
+    };
+
+    template <typename T, typename F = void> struct _ListApplicator
+    {
+        static void Add(Transaction<T>& /* txn */, size_t /* listindex */, std::string_view const& /* rhs */)
+        {
+            throw std::logic_error("Invalid");
+        }
+
+        static void Remove(Transaction<T>& /* txn */, size_t /* listindex */) { throw std::logic_error("Invalid"); }
+    };
+
+    template <typename T>
+    struct _ListApplicator<T, std::enable_if_t<ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::List>>
+    {
+        static void Add(Transaction<T>& txn, size_t /* listindex */, std::string_view const& rhs)
+        {
+            typename Stencil::Mutators<T>::ListObj obj;
+
+            Visitor<decltype(obj)> visitor(obj);
+            JsonSerDes::Deserialize(visitor, rhs);
+            txn.add(std::move(obj));
+        }
+        static void Remove(Transaction<T>& txn, size_t listindex) { txn.remove(listindex); }
+    };
+
+    template <typename TObj> static void _ListAdd(Transaction<TObj>& txn, size_t listindex, std::string_view const& rhs)
+    {
+        _ListApplicator<TObj>::Add(txn, listindex, rhs);
+    }
+
+    template <typename TObj> static void _ListRemove(Transaction<TObj>& txn, size_t listindex)
+    {
+        _ListApplicator<TObj>::Remove(txn, listindex);
+    }
+
+    template <typename T>
+    struct _StructApplicator<T, std::enable_if_t<ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Object>>
+    {
+        static void Apply(Transaction<T>&         txn,
+                          std::string_view const& fieldname,
+                          uint8_t                 mutator,
+                          std::string_view const& mutatordata,
+                          std::string_view const& rhs)
+        {
+            if (mutator == 0)    // Set
+            {
+                txn.Visit(fieldname, [&](auto fieldType, auto& /* subtxn */) {
+                    Visitor<T> visitor(txn.Obj());
+                    visitor.Select(fieldname);
+                    txn.MarkFieldAssigned_(fieldType);
+                    JsonSerDes::Deserialize(visitor, rhs);
+                });
+
+                // txn.Visit(fieldname, [&](auto fieldType, auto& subtxn) { _ApplyJson(subtxn , fieldType, rhs); });
+            }
+            else if (mutator == 1)    // List Add
+            {
+                txn.Visit(fieldname,
+                          [&](auto /* fieldType */, auto& subtxn) { _ListAdd(subtxn, Value(mutatordata).convert<size_t>(), rhs); });
+            }
+            else if (mutator == 2)    // List remove
+            {
+                txn.Visit(fieldname,
+                          [&](auto /* fieldType */, auto& subtxn) { _ListRemove(subtxn, Value(mutatordata).convert<size_t>()); });
+            }
+            else
+            {
+                throw std::logic_error("Unknown Mutator");
+            }
+        }
+    };
+
+    template <typename T>
+    static void _ApplyOnStruct(Transaction<T>&         txn,
+                               std::string_view const& fieldname,
+                               uint8_t                 mutator,
+                               std::string_view const& mutatordata,
+                               std::string_view const& rhs)
+    {
+        _StructApplicator<T>::Apply(txn, fieldname, mutator, mutatordata, rhs);
+    }
+#if 0
+    template <typename T> static auto& _Apply(Transaction<T>& txn, IStrmReader& reader)
+    {
+        auto mutatortype = reader.read<uint8_t>();
+        auto mutatortype = reader.read<uint8_t>();
+
+        if (!(it.delimiter == ':' || it.delimiter == ' ' || it.delimiter == '='))
+        {
+            auto name = it.token;
+            ++it;
+            size_t retval;
+            txn.Visit(name, [&](auto /* fieldType */, auto& args) { retval = _Apply(it, args); });
+            return retval;
+        }
+
+        auto name = it.token;
+        // Reached the end
+        uint8_t          mutator = 0;
+        std::string_view mutatordata;
+        if (it.delimiter == ':')
+        {
+            ++it;
+            auto mutatorname = it.token;
+            if (it.delimiter == '[')
+            {
+                size_t i = it.startIndex;
+                size_t s = it.startIndex + it.token.size() + 1;
+                while (i < it.data.size() && it.data[i] != ']') i++;
+                if (i == it.data.size()) throw std::logic_error("Invalid Format. Cannot find end ']'");
+                mutatordata   = it.data.substr(s, i - s);
+                it.startIndex = i;
+                it.token      = {};
+            }
+            if (mutatorname == "add") { mutator = 1; }
+            else if (mutatorname == "remove")
+            {
+                mutator = 2;
+            }
+            else
+            {
+                throw std::logic_error("Invalid Mutator");
+            }
+        }
+        size_t i = it.startIndex + it.token.size() + 1;
+        while (i < it.data.size() && it.data[i] == ' ') i++;
+        if (i == it.data.size() || it.data[i] != '=') throw std::logic_error("Invalid Format. Expected '='");
+        ++i;    // skip =
+        while (i < it.data.size() && it.data[i] == ' ') i++;
+        if (i == it.data.size()) throw std::logic_error("Invalid Format. Cannot find rhs");
+        size_t rhsS = i;
+        while (i < it.data.size() && it.data[i] != ';') i++;
+        auto rhs = it.data.substr(rhsS, i - rhsS);
+        _ApplyOnStruct(txn, name, mutator, mutatordata, rhs);
+        return i + 1;
+    }
+#endif
+    public:
+#if 0
     template <typename TObj, typename TVisitor> static void _Write(Writer& writer, TVisitor& visitor, Transaction<TObj> const& ctx)
     {
 
@@ -298,8 +589,9 @@ template <typename T> struct PatchHandler
             static_assert(Transaction<TObj>::Type() != ReflectionBase::DataType::Unknown, "Cannot Create Patch for Unknown DataType");
         }
     }
+#endif
 
-    template <typename TObj, typename TVisitor> static void _Apply(Reader& reader, TVisitor& visitor, Transaction<TObj>& ctx)
+    template <typename TObj, typename TVisitor> static IStrmReader& _Apply(IStrmReader& reader, TVisitor& visitor, Transaction<TObj>& ctx)
     {
         // TODO: TypeTraits should not have reference type
         static_assert(ReflectionBase::TypeTraits<TObj&>::Type() != ReflectionBase::DataType::Invalid,
@@ -316,6 +608,8 @@ template <typename T> struct PatchHandler
             auto mutatorIndex = reader.read<uint8_t>();
             if (mutatorIndex == 0)    // Set
             {
+                auto listIndex = reader.read<uint32_t>();
+                visitor.Select(listIndex);
                 BinarySerDes::Deserialize(visitor, reader);
             }
             else if (mutatorIndex == 1)    // List Add
@@ -381,108 +675,15 @@ template <typename T> struct PatchHandler
             static_assert(ReflectionBase::TypeTraits<TObj&>::Type() != ReflectionBase::DataType::Unknown,
                           "Cannot Create Patch for Unknown DataType");
         }
+        return reader;
+    }
+    template <typename T> static IStrmReader& Apply(Transaction<T>& txn, std::istream& strm)
+    {
+        IStrmReader reader(strm);
+        Visitor<T>  visitor(txn.Obj());
+        return _Apply(reader, visitor, txn);
     }
 };
-
-template <typename T> struct BinarySerDesHandler
-{
-    static std::vector<uint8_t> Serialize(T const& obj)
-    {
-        Writer           writer;
-        Visitor<T const> visitor(obj);
-        BinarySerDes::Serialize(visitor, writer);
-        return writer.Reset();
-    }
-};
-
-struct TransactionRecorder
-{
-    virtual ~TransactionRecorder() = default;
-
-    template <typename TObj> Transaction<TObj> Start(TObj& obj) { return Transaction<TObj>(obj); }
-
-    template <typename T> TransactionRecorder& operator<<(T const& obj)
-    {
-        auto byteSpan = std::span<uint8_t const>(reinterpret_cast<uint8_t const*>(&obj), sizeof(T));
-        _it           = std::copy(byteSpan.begin(), byteSpan.end(), _it);
-        return *this;
-    }
-
-    template <typename T> TransactionRecorder& operator<<(std::vector<T> const& obj)
-    {
-        auto byteSpan = std::span<uint8_t const>(reinterpret_cast<uint8_t const*>(obj.data()), sizeof(T) * obj.size());
-        _it           = std::copy(byteSpan.begin(), byteSpan.end(), _it);
-        return *this;
-    }
-    void Flush_()
-    {
-        Write_(std::span<uint8_t const>(_buffer.begin(), _it));
-        _it = _buffer.begin();
-    }
-
-    virtual void Write_(std::span<uint8_t const> buffer) = 0;
-
-    std::array<uint8_t, 1024>           _buffer;
-    std::array<uint8_t, 1024>::iterator _it{_buffer.begin()};
-};
-
-template <typename TObj> struct FileTransactionRecorder : TransactionRecorder
-{
-    FileTransactionRecorder(std::filesystem::path const& fpath) : _fpath(fpath) {}
-
-    virtual void Write_(std::span<uint8_t const> buffer) override
-    {
-        std::ofstream fstrm(_fpath, std::fstream::out | std::fstream::app);
-        auto          now = std::chrono::system_clock::now();
-
-        auto delta   = now - _init_time;
-        auto deltaus = std::chrono::duration_cast<std::chrono::microseconds>(delta).count();
-        _lastnotif   = now;
-        _write(fstrm, deltaus);
-        _write(fstrm, uint8_t{0});
-        _write(fstrm, static_cast<uint16_t>(buffer.size()));
-        _write(fstrm, buffer);
-    }
-
-    template <typename T, std::enable_if_t<std::is_trivial<T>::value, bool> = true>
-    std::ofstream& _write(std::ofstream& fstrm, T const& val)
-    {
-        fstrm.write(reinterpret_cast<const char*>(&val), std::streamsize{sizeof(T)});
-        return fstrm;
-    }
-
-    std::ofstream& _write(std::ofstream& fstrm, std::span<uint8_t const> const& val)
-    {
-        fstrm.write(reinterpret_cast<const char*>(val.data()), static_cast<std::streamsize>(val.size()));
-        return fstrm;
-    }
-
-    private:
-    std::filesystem::path                 _fpath;
-    std::chrono::system_clock::time_point _init_time = std::chrono::system_clock::now();
-    std::chrono::system_clock::time_point _lastnotif = _init_time;
-};
-
-struct NullTransactionRecorder : TransactionRecorder
-{
-    NullTransactionRecorder() = default;
-    virtual void Write_(std::span<uint8_t const> /*buffer*/) override {}
-};
-
-struct MemTransactionRecorder : Stencil::TransactionRecorder
-{
-    MemTransactionRecorder() = default;
-    CLASS_DELETE_COPY_AND_MOVE(MemTransactionRecorder);
-    virtual void Write_(std::span<uint8_t const> buffer) override
-    {
-        std::copy(buffer.begin(), buffer.end(), std::back_inserter(_recording));
-    }
-
-    std::vector<uint8_t> _recording;
-};
-
-struct BinaryTransactionDataReader
-{};
 struct StringTransactionSerDes
 {
     private:
@@ -756,6 +957,7 @@ struct StringTransactionSerDes
         }
         return ostr;
     }
+
     template <typename T> static std::string Deserialize(Transaction<T>& txn)
     {
         std::stringstream        sstr;
