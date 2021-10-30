@@ -14,8 +14,6 @@
 
 namespace Stencil
 {
-/*
- */
 
 template <typename TObj, typename _Ts = void> struct Transaction;
 
@@ -36,41 +34,13 @@ template <typename TObj, typename _Ts = void> struct TransactionT
     template <typename TLambda> void VisitAll(TLambda&& /* lambda */) { throw std::logic_error("Visit Not supported on Transaction"); }
 
     TObj& Obj() { throw std::logic_error("Obj Not supported on Transaction"); }
-
-#if 0
-    unsigned GetFieldTypeByName(std::string_view const& /* name */) { throw std::logic_error("Add Not supported on Transaction"); }
-    template <typename TSerDes, typename... TArgs> void Add(TArgs&&...) { throw std::logic_error("Add Not supported on Transaction"); }
-    template <typename... TArgs> void Remove(TArgs&&...) { throw std::logic_error("Remove Not supported on Transaction"); }
-
-    template <typename TSerDes, typename... TArgs> void Set(TArgs&&...) { throw std::logic_error("Set Not supported on Transaction"); }
-#endif
 };
 
 template <typename TObj>
 struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::Object>>
 {
     TransactionT(TObj& obj) : _ref(std::ref(obj)) {}
-#if 0
-    ~TransactionT()
-    {
-        if (_settracker.any())
-        {
-            for (size_t i = 0; i < _settracker.size(); i++)
-            {
-                if (!_settracker.test(i)) continue;
-                Visitor<TObj> visitor(_ref);
-                visitor.Select(Value{i - 1});
-                _recorder << static_cast<uint8_t>(i);
-                _recorder << uint8_t{0};    // set
-                Writer writer;
-                BinarySerDes::Serialize(visitor, writer);
-                _recorder << writer.Reset();
-            }
-        }
-        _recorder << uint16_t{0};
-        _recorder.Flush_();
-    }
-#endif
+
     DELETE_COPY_AND_MOVE(TransactionT);
 
     TObj& Obj() { return _ref; }
@@ -117,65 +87,6 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
     }
 
     template <typename TEnum> void MarkFieldEdited_(TEnum field) { _edittracker.set(static_cast<uint8_t>(field)); }
-
-#if 0
-    template <typename TEnum, typename TFieldType, typename TVal> void OnMutation_add(TEnum field, TFieldType const& obj, TVal const& val)
-    {
-        _edittracker.set(static_cast<uint8_t>(field));
-        _recorder << static_cast<uint8_t>(field);
-        _recorder << uint8_t{1};    // edit
-        _recorder << uint8_t{1};    // mutation add
-        _recorder << static_cast<uint32_t>(obj.size());
-
-        Writer              writer;
-        Visitor<TVal const> visitor(val);
-        BinarySerDes::Serialize(visitor, writer);
-        _recorder << writer.Reset();
-    }
-
-    template <typename TEnum, typename TFieldType, typename TVal>
-    void OnMutation_remove(TEnum field, TFieldType const& /*obj*/, TVal const& val)
-    {
-        _edittracker.set(static_cast<uint8_t>(field));
-
-        _recorder << static_cast<uint8_t>(field);
-        _recorder << uint8_t{1};    // edit
-        _recorder << uint8_t{2};    // mutation remove
-        _recorder << static_cast<uint32_t>(val);
-    }
-
-    template <typename TEnum, typename TFieldType, typename TVal>
-    void OnMutation_edit(TEnum field, TFieldType const& /*obj*/, TVal const& index)
-    {
-        _edittracker.set(static_cast<uint8_t>(field));
-    }
-
-    template <typename TSerDes, typename TEnum, typename TVal> void Add(TEnum const& field, size_t index, TVal&& val)
-    {
-        _edittracker.set(static_cast<uint8_t>(field));
-        Visitor<TObj> visitor(Obj());
-        visitor.Select(field);
-        visitor.Select(index);
-        TSerDes::Deserialize(visitor, val);
-    }
-
-    template <typename TEnum> void Remove(TEnum const& field, size_t index)
-    {
-        _edittracker.set(static_cast<uint8_t>(field));
-        Visitor<TObj> visitor(Obj());
-        visitor.Select(field);
-        auto& upcasted = *static_cast<Transaction<TObj>*>(this);
-        upcasted.Visit(field, [&](auto& subtxn) { subtxn.Remove(index); });
-    }
-
-    template <typename TSerDes, typename TEnum, typename TVal> void Set(TEnum const& field, TVal&& val)
-    {
-        _settracker.set(static_cast<uint8_t>(field));
-        Visitor<TObj> visitor(Obj());
-        visitor.Select(static_cast<uint8_t>((static_cast<unsigned>(field) - 1)));
-        TSerDes::Deserialize(visitor, val);
-    }
-#endif
 
     std::reference_wrapper<TObj>        _ref;
     std::bitset<TObj::FieldCount() + 1> _assigntracker;
