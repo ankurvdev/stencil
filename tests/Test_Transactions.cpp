@@ -117,8 +117,11 @@ TEST_CASE("Transactions", "[Transactions]")
 
         std::ifstream istrm("Transactions.LastAccumulated.bin", std::ios::binary);
         Stencil::BinaryTransactionSerDes::Apply(txn3, istrm);
-        REQUIRE(istrm.eof());
-
         REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
+        auto offset = static_cast<unsigned>(istrm.tellg());
+        REQUIRE(offset == std::filesystem::file_size("Transactions.LastAccumulated.bin"));
+        REQUIRE(!istrm.eof());
     }
+    CompareFileAgainstResource("Transactions.bin", "Transactions.bin");
+    CompareFileAgainstResource("Transactions.LastAccumulated.bin", "Transactions.LastAccumulated.bin");
 }

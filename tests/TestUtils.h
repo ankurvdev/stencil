@@ -109,3 +109,26 @@ inline void CheckOutputAgainstResource(std::vector<std::string> const& lines, st
     ResourceFileManager resfiles;
     CompareLines(lines, readlines(resfiles.load(resourcename, "res_")), resourcename);
 }
+
+inline void CompareBinaryOutputAgainstResource(std::span<const uint8_t> const &actual, std::string_view const &resourcename)
+{
+    auto testresname = Catch::getResultCapture().getCurrentTestName() + std::string(resourcename);
+    auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
+    for (auto const r : resourceCollection)
+    {
+        if (wstring_to_string(r.name()) == testresname)
+        {
+            auto data = r.data<uint8_t>();
+            REQUIRE(data.size() == actual.size());
+            REQUIRE(std::equal(actual.begin(), actual.end(), data.begin()));
+            return;
+        }
+    }
+    FAIL("Cannot find reference resource");
+}
+inline void CompareFileAgainstResource(std::filesystem::path const &actualf, std::string_view const &resourcename)
+{
+    std::ifstream instream(actualf, std::ios::in | std::ios::binary);
+    std::vector<uint8_t> actualdata((std::istreambuf_iterator<char>(instream)), std::istreambuf_iterator<char>());
+    CompareBinaryOutputAgainstResource(actualdata, resourcename);
+}

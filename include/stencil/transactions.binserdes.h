@@ -41,6 +41,7 @@ struct BinaryTransactionSerDes
                         throw std::logic_error("Unknown mutator");
                     }
                 });
+            writer << std::numeric_limits<uint8_t>::max();
         }
 
         if constexpr (ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Object)
@@ -66,6 +67,7 @@ struct BinaryTransactionSerDes
                         throw std::logic_error("Unknown mutator");
                     }
                 });
+            writer << std::numeric_limits<uint8_t>::max();
         }
         return writer;
     }
@@ -79,16 +81,14 @@ struct BinaryTransactionSerDes
 
     template <typename T, typename F = void> struct _StructApplicator
     {
-        static void Apply(Transaction<T>& /* txn */, uint32_t /* fieldIndex */, uint8_t /* mutator */, IStrmReader& /* reader */)
-        {
-            throw std::logic_error("Invalid");
-        }
+        static void Apply(Transaction<T>& /* txn */, IStrmReader& /* reader */) { throw std::logic_error("Invalid"); }
     };
 
     template <typename T, typename F = void> struct _ListApplicator
     {
         static void Add(Transaction<T>& /* txn */, size_t /* listindex */, IStrmReader& /* reader */) { throw std::logic_error("Invalid"); }
         static void Remove(Transaction<T>& /* txn */, size_t /* listindex */) { throw std::logic_error("Invalid"); }
+        static void Apply(Transaction<T>& /* txn */, IStrmReader& /* reader */) { throw std::logic_error("Invalid"); }
     };
 
     template <typename T>
@@ -103,6 +103,30 @@ struct BinaryTransactionSerDes
             txn.add(std::move(obj));
         }
         static void Remove(Transaction<T>& txn, size_t listindex) { txn.remove(listindex); }
+
+        static void Apply(Transaction<T>& txn, IStrmReader& reader)
+        {
+            for (auto mutator = reader.read<uint8_t>(); mutator != std::numeric_limits<uint8_t>::max(); mutator = reader.read<uint8_t>())
+            {
+                auto index = reader.read<uint32_t>();
+                if (mutator == 1)    // List Add
+                {
+                    Add(txn, index, reader);
+                }
+                else if (mutator == 2)    // List remove
+                {
+                    Remove(txn, index);
+                }
+                else if (mutator == 3)    // Edit
+                {
+                    txn.Visit(index, [&](auto /* fieldType */, auto& subtxn) { _Apply(subtxn, reader); });
+                }
+                else
+                {
+                    throw std::logic_error("invalid mutator");
+                }
+            }
+        }
     };
 
     template <typename TObj> static void _ListAdd(Transaction<TObj>& txn, size_t listindex, IStrmReader& reader)
@@ -116,55 +140,74 @@ struct BinaryTransactionSerDes
     }
 
     template <typename T>
+    struct _StructApplicator<T, std::enable_if_t<ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Value>>
+    {
+        static void Apply(Transaction<T>& /* txn */, IStrmReader& /* reader */)
+        {
+            // throw std::logic_error("Invalid");
+        }
+    };
+
+    template <typename T>
     struct _StructApplicator<T, std::enable_if_t<ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Object>>
     {
-        static void Apply(Transaction<T>& txn, uint32_t fieldIndex, uint8_t mutator, IStrmReader& reader)
+        static void Apply(Transaction<T>& txn, IStrmReader& reader)
         {
-            using FieldIndex = typename T::FieldIndex;
-            auto fieldEnum   = static_cast<FieldIndex>(fieldIndex);
-            if (mutator == 0)    // Set
+            for (auto mutator = reader.read<uint8_t>(); mutator != std::numeric_limits<uint8_t>::max(); mutator = reader.read<uint8_t>())
             {
-                txn.Visit(fieldEnum, [&](auto /* fieldType */, auto& /* subtxn */) {
-                    Visitor<T> visitor(txn.Obj());
-                    visitor.Select(fieldIndex);
-                    txn.MarkFieldAssigned_(fieldEnum);
-                    BinarySerDes::Deserialize(visitor, reader);
-                });
+                auto fieldIndex = reader.read<uint32_t>();
 
-                // txn.Visit(fieldname, [&](auto fieldType, auto& subtxn) { _ApplyJson(subtxn , fieldType, rhs); });
-            }
-            else if (mutator == 1)    // List Add
-            {
-                txn.Visit(fieldEnum, [&](auto /* fieldType */, auto& subtxn) { _ListAdd(subtxn, reader.read<uint32_t>(), reader); });
-            }
-            else if (mutator == 2)    // List remove
-            {
-                txn.Visit(fieldEnum, [&](auto /* fieldType */, auto& subtxn) {
-                    _ListRemove(subtxn, Value(reader.read<uint32_t>()).convert<size_t>());
-                });
-            }
-            else
-            {
-                txn.Visit(fieldEnum, [&](auto /* fieldType */, auto& subtxn) { _Apply(subtxn, reader); });
-                // throw std::logic_error("Unknown Mutator");
+                using FieldIndex = typename T::FieldIndex;
+                auto fieldEnum   = static_cast<FieldIndex>(fieldIndex);
+                if (mutator == 0)    // Set
+                {
+                    txn.Visit(fieldEnum, [&](auto /* fieldType */, auto& /* subtxn */) {
+                        Visitor<T> visitor(txn.Obj());
+                        visitor.Select(fieldIndex - 1);
+                        txn.MarkFieldAssigned_(fieldEnum);
+                        BinarySerDes::Deserialize(visitor, reader);
+                    });
+
+                    // txn.Visit(fieldname, [&](auto fieldType, auto& subtxn) { _ApplyJson(subtxn , fieldType, rhs); });
+                }
+#if 0
+                else if (mutator == 1)    // List Add
+                {
+                    txn.Visit(fieldEnum, [&](auto /* fieldType */, auto& subtxn) { _ListAdd(subtxn, reader.read<uint32_t>(), reader); });
+                }
+                else if (mutator == 2)    // List remove
+                {
+                    txn.Visit(fieldEnum, [&](auto /* fieldType */, auto& subtxn) {
+                        _ListRemove(subtxn, Value(reader.read<uint32_t>()).convert<size_t>());
+                    });
+                }
+#endif
+                else if (mutator == 3)    // edit
+                {
+                    txn.Visit(fieldEnum, [&](auto /* fieldType */, auto& subtxn) { _Apply(subtxn, reader); });
+                    // throw std::logic_error("Unknown Mutator");
+                }
+                else
+                {
+                    throw std::logic_error("invalid mutator");
+                }
             }
         }
     };
 
-    template <typename T> static void _ApplyOnStruct(Transaction<T>& txn, uint32_t fieldIndex, uint8_t mutator, IStrmReader& reader)
-    {
-        _StructApplicator<T>::Apply(txn, fieldIndex, mutator, reader);
-    }
+    template <typename T> static void _ApplyOnStruct(Transaction<T>& txn, IStrmReader& reader) { _StructApplicator<T>::Apply(txn, reader); }
+    template <typename T> static void _ApplyOnList(Transaction<T>& txn, IStrmReader& reader) { _ListApplicator<T>::Apply(txn, reader); }
 
     template <typename T> static void _Apply(Transaction<T>& txn, IStrmReader& reader)
     {
-        auto mutatortype = reader.read<uint8_t>();
-        auto index       = reader.read<uint32_t>();
-        _ApplyOnStruct(txn, index, mutatortype, reader);
+        using Traits = ReflectionBase::TypeTraits<T&>;
+
+        if constexpr (Traits::Type() == ReflectionBase::DataType::List) { _ApplyOnList(txn, reader); }
+        if constexpr (Traits::Type() == ReflectionBase::DataType::Object) { _ApplyOnStruct(txn, reader); }
+        return;
     }
 
     public:
-
     template <typename T> static std::istream& Apply(Transaction<T>& txn, std::istream& strm)
     {
         IStrmReader reader(strm);
