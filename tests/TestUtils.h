@@ -4,11 +4,11 @@
 #pragma warning(push, 3)
 #pragma warning(disable : 4868)
 #pragma warning(disable : 4738)
-#pragma warning(disable : 4365) // signed unsigned mismatch
-#pragma warning(disable : 5219) // implicit conversion from 'uint64_t' to 'double', possible loss of data
-#pragma warning(disable : 5204) // class has virtual functions, but its trivial destructor is not virtual
-#pragma warning(disable : 4668) // not defined as a preprocessor macro
-#pragma warning(disable : 5039) // pointer or reference to potentially throwing function passed to 'extern)
+#pragma warning(disable : 4365)    // signed unsigned mismatch
+#pragma warning(disable : 5219)    // implicit conversion from 'uint64_t' to 'double', possible loss of data
+#pragma warning(disable : 5204)    // class has virtual functions, but its trivial destructor is not virtual
+#pragma warning(disable : 4668)    // not defined as a preprocessor macro
+#pragma warning(disable : 5039)    // pointer or reference to potentially throwing function passed to 'extern)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
 
@@ -20,10 +20,10 @@
 
 #include <filesystem>
 #include <fstream>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
-#include <span>
 DECLARE_RESOURCE_COLLECTION(testdata);
 
 inline std::string wstring_to_string(std::wstring_view wstr)
@@ -36,18 +36,15 @@ inline std::string wstring_to_string(std::wstring_view wstr)
     return out;
 }
 
-inline std::vector<std::string> readlines(std::filesystem::path const &filepath)
+inline std::vector<std::string> readlines(std::filesystem::path const& filepath)
 {
     std::vector<std::string> lines;
-    std::ifstream file(filepath);
-    std::string line;
+    std::ifstream            file(filepath);
+    std::string              line;
 
     while (std::getline(file, line))
     {
-        if (line.length() > 0 && line[line.length() - 1] == '\r')
-        {
-            line.resize(line.length() - 1);
-        }
+        if (line.length() > 0 && line[line.length() - 1] == '\r') { line.resize(line.length() - 1); }
         lines.push_back(std::move(line));
     }
     return lines;
@@ -55,39 +52,42 @@ inline std::vector<std::string> readlines(std::filesystem::path const &filepath)
 
 struct ResourceFileManager
 {
+    static std::string _GeneratePrefixFromTestName()
+    {
+        auto prefix = Catch::getResultCapture().getCurrentTestName() + "_";
+        for (auto& c : prefix)
+        {
+            if (std::isalpha(c) || std::isdigit(c)) continue;
+            c = '_';
+        }
+        return prefix;
+    }
+
     ResourceFileManager() = default;
     ~ResourceFileManager()
     {
-        for (auto const &[k, v] : _openedfiles)
-        {
-            std::filesystem::remove(v);
-        }
+        for (auto const& [k, v] : _openedfiles) { std::filesystem::remove(v); }
     }
 
-    auto load(std::string const &name, std::string const &prefix)
+    auto load(std::string const& name, std::string const& prefix)
     {
-        auto testresname = Catch::getResultCapture().getCurrentTestName() + name;
+        auto testresname = _GeneratePrefixFromTestName() + name;
 
         auto it = _openedfiles.find(testresname);
-        if (it != _openedfiles.end())
-        {
-            return it->second;
-        }
+        if (it != _openedfiles.end()) { return it->second; }
         auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
         for (auto const r : resourceCollection)
         {
-            if (wstring_to_string(r.name()) == testresname)
+            auto resname = wstring_to_string(r.name());
+            if (resname == testresname || resname == name)
             {
-                auto path = std::filesystem::current_path() / (prefix + testresname);
+                auto          path = std::filesystem::current_path() / (prefix + resname);
                 std::ofstream f(path);
-                auto const &str = r.string();
-                if (!f.is_open())
-                {
-                    throw std::runtime_error("Cannot write resource file : " + path.string());
-                }
+                auto const&   str = r.string();
+                if (!f.is_open()) { throw std::runtime_error("Cannot write resource file : " + path.string()); }
                 f << str;
                 f.close();
-                _openedfiles[testresname] = path;
+                _openedfiles[resname] = path;
                 return path;
             }
         }
@@ -97,24 +97,21 @@ struct ResourceFileManager
     std::unordered_map<std::string, std::filesystem::path> _openedfiles;
 };
 
-inline void CompareLines(std::vector<std::string> const &actualstring,
-                         std::vector<std::string> const &expectedstring,
-                         std::string_view const &resname = "test")
+inline void CompareLines(std::vector<std::string> const& actualstring,
+                         std::vector<std::string> const& expectedstring,
+                         std::string_view const&         resname = "test")
 {
 
     dtl::Diff<std::string, std::vector<std::string>> d(expectedstring, actualstring);
-    d.compose();             // construct an edit distance and LCS and SES
-    d.composeUnifiedHunks(); // construct a difference as Unified Format with SES.
+    d.compose();                // construct an edit distance and LCS and SES
+    d.composeUnifiedHunks();    // construct a difference as Unified Format with SES.
 
     if (actualstring != expectedstring)
     {
-        d.printUnifiedFormat(); // print a difference as Unified Format.
+        d.printUnifiedFormat();    // print a difference as Unified Format.
         {
             std::ofstream f(std::string(resname) + "_failure.txt");
-            for (auto &l : actualstring)
-            {
-                f << l << std::endl;
-            }
+            for (auto& l : actualstring) { f << l << std::endl; }
             f.flush();
             f.close();
         }
@@ -122,19 +119,20 @@ inline void CompareLines(std::vector<std::string> const &actualstring,
     }
 }
 
-inline void CheckOutputAgainstResource(std::vector<std::string> const &lines, std::string_view const &resourcename)
+inline void CheckOutputAgainstResource(std::vector<std::string> const& lines, std::string_view const& resourcename)
 {
     ResourceFileManager resfiles;
     CompareLines(lines, readlines(resfiles.load(std::string(resourcename), "res_")), resourcename);
 }
 
-inline void CompareBinaryOutputAgainstResource(std::span<const uint8_t> const &actual, std::string_view const &resourcename)
+inline void CompareBinaryOutputAgainstResource(std::span<const uint8_t> const& actual, std::string_view const& resourcename)
 {
-    auto testresname = Catch::getResultCapture().getCurrentTestName() + "_" + std::string(resourcename);
+    auto testresname        = ResourceFileManager::_GeneratePrefixFromTestName() + std::string(resourcename);
     auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
     for (auto const r : resourceCollection)
     {
-        if (wstring_to_string(r.name()) == testresname)
+        auto resname = wstring_to_string(r.name());
+        if (resname == testresname || resname == resourcename)
         {
             auto data = r.data<uint8_t>();
             REQUIRE(data.size() == actual.size());
@@ -142,11 +140,11 @@ inline void CompareBinaryOutputAgainstResource(std::span<const uint8_t> const &a
             return;
         }
     }
-    FAIL("Cannot find reference resource", testresname);
+    FAIL("Cannot find reference resource" + testresname);
 }
-inline void CompareFileAgainstResource(std::filesystem::path const &actualf, std::string_view const &resourcename)
+inline void CompareFileAgainstResource(std::filesystem::path const& actualf, std::string_view const& resourcename)
 {
-    std::ifstream instream(actualf, std::ios::in | std::ios::binary);
+    std::ifstream        instream(actualf, std::ios::in | std::ios::binary);
     std::vector<uint8_t> actualdata((std::istreambuf_iterator<char>(instream)), std::istreambuf_iterator<char>());
     CompareBinaryOutputAgainstResource(actualdata, resourcename);
 }
