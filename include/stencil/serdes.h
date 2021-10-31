@@ -1,4 +1,5 @@
-#pragma onces
+#pragma once
+
 namespace Stencil
 {
 

@@ -1,7 +1,8 @@
 #include "TestUtils.h"
 #include "Transactions.pidl.h"
 
-#include "stencil/transactions.h"
+#include "stencil/transactions.binserdes.h"
+#include "stencil/transactions.strserdes.h"
 
 struct TestReplay
 {
