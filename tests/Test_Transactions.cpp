@@ -107,7 +107,12 @@ TEST_CASE("Transactions", "[Transactions]")
         Stencil::Transaction<Transactions::Object::Data> txn3(obj3);
 
         std::ifstream istrm("Transactions.bin", std::ios::binary);
-        while (istrm.good()) Stencil::BinaryTransactionSerDes::Apply(txn3, istrm);
+        istrm.peek();
+        while (istrm.good() && (!istrm.eof()))
+        {
+            Stencil::BinaryTransactionSerDes::Apply(txn3, istrm);
+            istrm.peek();
+        }
 
         REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
     }
