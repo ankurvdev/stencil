@@ -144,7 +144,8 @@ inline void CompareBinaryOutputAgainstResource(std::span<const uint8_t> const& a
 }
 inline void CompareFileAgainstResource(std::filesystem::path const& actualf, std::string_view const& resourcename)
 {
-    std::ifstream        instream(actualf, std::ios::in | std::ios::binary);
-    std::vector<uint8_t> actualdata((std::istreambuf_iterator<char>(instream)), std::istreambuf_iterator<char>());
-    CompareBinaryOutputAgainstResource(actualdata, resourcename);
+    std::ifstream         instream(actualf, std::ios::in | std::ios::binary);
+    std::vector<char>     actualdata((std::istreambuf_iterator<char>(instream)), std::istreambuf_iterator<char>());
+    std::span<const char> spn = actualdata;
+    CompareBinaryOutputAgainstResource({reinterpret_cast<uint8_t const*>(spn.data()), spn.size()}, resourcename);
 }
