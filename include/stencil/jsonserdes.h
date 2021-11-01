@@ -45,6 +45,7 @@ struct Json
         using sax = typename nlohmann::json_sax<nlohmann::json>;
 
         Reader(TVisitor& obj) : _visitor(obj) { _stack.push_back(std::numeric_limits<size_t>::max()); }
+        CLASS_DELETE_COPY_AND_MOVE(Reader);
 
         bool IsArray() { return _stack.back() != std::numeric_limits<size_t>::max(); }
 
@@ -123,7 +124,7 @@ struct Json
             throw ex;
         }
 #endif
-        TVisitor            _visitor;
+        TVisitor&           _visitor;
         std::vector<size_t> _stack;
         // ReflectionServices::StateTraker<TStruct, void*> _tracker;
     };

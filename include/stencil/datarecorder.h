@@ -1,5 +1,5 @@
 #pragma once
-#include "transactions.h"
+#include "transactions.binserdes.h"
 
 #include <chrono>
 #include <condition_variable>
@@ -54,11 +54,9 @@ template <typename... Ts> struct DataPlayerT : std::enable_shared_from_this<Data
         return val;
     }
 
-    template <typename T> auto ReadChangeDescAndNotify(T& obj, std::span<const uint8_t>::iterator const& dataIt)
+    template <typename T> auto ReadChangeDescAndNotify(T& /* obj */, std::span<const uint8_t>::iterator const& /* dataIt */)
     {
-        Stencil::NullTransactionRecorder recorder;
-        auto                             ctx = recorder.Start(obj);
-        return PatchHandler<T>::Apply(ctx, dataIt);
+        throw std::logic_error("Not implemented");
     }
 
     void _ThreadFunc()
@@ -136,8 +134,10 @@ template <typename... Ts> struct DataRecorder
         auto deltaus = std::chrono::duration_cast<std::chrono::microseconds>(delta).count();
 
         _lastnotif           = now;
-        auto serializedPatch = PatchHandler<T>::Create(ctx.Obj(), ctx);
-        (*this) << deltaus << static_cast<uint8_t>(IndexOf<T, Ts...>()) << static_cast<uint16_t>(serializedPatch.size()) << serializedPatch;
+        (*this) << deltaus << static_cast<uint8_t>(IndexOf<T, Ts...>());
+        Stencil::BinaryTransactionSerDes::Deserialize(ctx, *_ost);
+
+         //<< static_cast<uint16_t>(serializedPatch.size()) << serializedPatch;
     }
 
     std::chrono::system_clock::time_point _init_time = std::chrono::system_clock::now();

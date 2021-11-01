@@ -20,6 +20,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -51,6 +52,17 @@ inline std::vector<std::string> readlines(std::filesystem::path const& filepath)
 
 struct ResourceFileManager
 {
+    static std::string _GeneratePrefixFromTestName()
+    {
+        auto prefix = Catch::getResultCapture().getCurrentTestName() + "_";
+        for (auto& c : prefix)
+        {
+            if (std::isalpha(c) || std::isdigit(c)) continue;
+            c = '_';
+        }
+        return prefix;
+    }
+
     ResourceFileManager() = default;
     ~ResourceFileManager()
     {
@@ -59,24 +71,27 @@ struct ResourceFileManager
 
     auto load(std::string const& name, std::string const& prefix)
     {
-        auto it = _openedfiles.find(name);
+        auto testresname = _GeneratePrefixFromTestName() + name;
+
+        auto it = _openedfiles.find(testresname);
         if (it != _openedfiles.end()) { return it->second; }
         auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
         for (auto const r : resourceCollection)
         {
-            if (wstring_to_string(r.name()) == name)
+            auto resname = wstring_to_string(r.name());
+            if (resname == testresname || resname == name)
             {
-                auto          path = std::filesystem::current_path() / (prefix + name);
+                auto          path = std::filesystem::current_path() / (prefix + resname);
                 std::ofstream f(path);
                 auto const&   str = r.string();
                 if (!f.is_open()) { throw std::runtime_error("Cannot write resource file : " + path.string()); }
                 f << str;
                 f.close();
-                _openedfiles[name] = path;
+                _openedfiles[resname] = path;
                 return path;
             }
         }
-        throw std::logic_error("Cannot find resource : " + name);
+        throw std::logic_error("Cannot find resource : " + testresname);
     }
 
     std::unordered_map<std::string, std::filesystem::path> _openedfiles;
@@ -84,7 +99,7 @@ struct ResourceFileManager
 
 inline void CompareLines(std::vector<std::string> const& actualstring,
                          std::vector<std::string> const& expectedstring,
-                         std::string const&              resname = "test")
+                         std::string_view const&         resname = "test")
 {
 
     dtl::Diff<std::string, std::vector<std::string>> d(expectedstring, actualstring);
@@ -95,7 +110,7 @@ inline void CompareLines(std::vector<std::string> const& actualstring,
     {
         d.printUnifiedFormat();    // print a difference as Unified Format.
         {
-            std::ofstream f(resname + "_failure.txt");
+            std::ofstream f(std::string(resname) + "_failure.txt");
             for (auto& l : actualstring) { f << l << std::endl; }
             f.flush();
             f.close();
@@ -104,8 +119,33 @@ inline void CompareLines(std::vector<std::string> const& actualstring,
     }
 }
 
-inline void CheckOutputAgainstResource(std::vector<std::string> const& lines, std::string const& resourcename)
+inline void CheckOutputAgainstResource(std::vector<std::string> const& lines, std::string_view const& resourcename)
 {
     ResourceFileManager resfiles;
-    CompareLines(lines, readlines(resfiles.load(resourcename, "res_")), resourcename);
+    CompareLines(lines, readlines(resfiles.load(std::string(resourcename), "res_")), resourcename);
+}
+
+inline void CompareBinaryOutputAgainstResource(std::span<const uint8_t> const& actual, std::string_view const& resourcename)
+{
+    auto testresname        = ResourceFileManager::_GeneratePrefixFromTestName() + std::string(resourcename);
+    auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
+    for (auto const r : resourceCollection)
+    {
+        auto resname = wstring_to_string(r.name());
+        if (resname == testresname || resname == resourcename)
+        {
+            auto data = r.data<uint8_t>();
+            REQUIRE(data.size() == actual.size());
+            REQUIRE(std::equal(actual.begin(), actual.end(), data.begin()));
+            return;
+        }
+    }
+    FAIL("Cannot find reference resource" + testresname);
+}
+inline void CompareFileAgainstResource(std::filesystem::path const& actualf, std::string_view const& resourcename)
+{
+    std::ifstream         instream(actualf, std::ios::in | std::ios::binary);
+    std::vector<char>     actualdata((std::istreambuf_iterator<char>(instream)), std::istreambuf_iterator<char>());
+    std::span<const char> spn = actualdata;
+    CompareBinaryOutputAgainstResource({reinterpret_cast<uint8_t const*>(spn.data()), spn.size()}, resourcename);
 }

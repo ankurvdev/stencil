@@ -109,6 +109,7 @@ macro(EnableStrictCompilation)
                 -Wno-unused-command-line-argument
                 -Wno-c++98-compat # Dont care about c++98 compatibility
                 -Wno-c++98-compat-pedantic
+                -Wno-reserved-identifier # Allow names starting with underscore
                 )
         endif()
 
