@@ -33,6 +33,8 @@ template <typename TObj, typename _Ts = void> struct TransactionT
     template <typename TLambda> void VisitAll(TLambda&& /* lambda */) { throw std::logic_error("Visit Not supported on Transaction"); }
 
     TObj& Obj() { throw std::logic_error("Obj Not supported on Transaction"); }
+
+    void Flush_() const { throw std::logic_error("Flush not supported on transaction"); }
 };
 
 template <typename TObj>
@@ -54,6 +56,8 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
     }
 
     public:
+    bool IsChanged() const { return (_assigntracker | _edittracker).any(); }
+
     template <typename TEnum> bool IsFieldAssigned(TEnum field) const { return _assigntracker.test(static_cast<uint8_t>(field)); }
     template <typename TEnum> bool IsFieldEdited(TEnum field) const { return _edittracker.test(static_cast<uint8_t>(field)); }
     template <typename TEnum> bool IsFieldChanged(TEnum field) const { return IsFieldAssigned(field) || IsFieldEdited(field); }
@@ -67,6 +71,7 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
             if (IsFieldEdited(type)) lambda(name, type, 3, 0, subtxn, obj);
         });
     }
+
     template <typename TEnum> void MarkFieldAssigned_(TEnum field) { _assigntracker.set(static_cast<uint8_t>(field)); }
 
     protected:
@@ -86,6 +91,11 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
     }
 
     template <typename TEnum> void MarkFieldEdited_(TEnum field) { _edittracker.set(static_cast<uint8_t>(field)); }
+
+    void Flush_()
+    {
+        if constexpr (std::is_base_of_v<Stencil::TimestampedT<TObj>, TObj>) { Obj().UpdateTimestamp_(); }
+    }
 
     std::reference_wrapper<TObj>        _ref;
     std::bitset<TObj::FieldCount() + 1> _assigntracker;
@@ -166,6 +176,8 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
         }
     }
 
+    void Flush() {}
+
     struct _Record
     {
         uint8_t mutationtype;
@@ -183,11 +195,17 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
 template <typename T, typename _Ts> struct Stencil::Transaction : Stencil::TransactionT<T>
 {
     Transaction(T& obj) : Stencil::TransactionT<T>(obj) {}
+    void Flush() const {}
+    bool IsChanged() const { return false; }
+
     DELETE_COPY_AND_MOVE(Transaction);
 };
 
 template <typename T> struct Stencil::Transaction<T, std::enable_if_t<Value::Supported<T>::value>> : Stencil::TransactionT<T>
 {
     Transaction(T& obj) : Stencil::TransactionT<T>(obj) {}
+    void Flush() const {}
+    bool IsChanged() const { return false; }
+
     DELETE_COPY_AND_MOVE(Transaction);
 };

@@ -54,10 +54,7 @@ template <typename... Ts> struct DataPlayerT : std::enable_shared_from_this<Data
         return val;
     }
 
-    template <typename T> auto ReadChangeDescAndNotify(T& /* obj */, std::span<const uint8_t>::iterator const& /* dataIt */)
-    {
-        throw std::logic_error("Not implemented");
-    }
+    template <typename T> auto ReadChangeDescAndNotify(T& /* obj */, std::span<const uint8_t>::iterator const& dataIt) { return dataIt; }
 
     void _ThreadFunc()
     {
@@ -124,7 +121,7 @@ template <typename... Ts> struct DataRecorder
     }
 
     // void OnChanged(LockT const& /*lock*/, TransactionT const& /*ctx*/, T const& /*data*/) override { TODO(); }
-    template <typename T> void Record(Transaction<T> const& ctx)
+    template <typename T> void Record(Transaction<T>& ctx)
     {
         if (!ctx.IsChanged()) { return; }
 
@@ -133,11 +130,11 @@ template <typename... Ts> struct DataRecorder
         auto delta   = now - _init_time;
         auto deltaus = std::chrono::duration_cast<std::chrono::microseconds>(delta).count();
 
-        _lastnotif           = now;
+        _lastnotif = now;
         (*this) << deltaus << static_cast<uint8_t>(IndexOf<T, Ts...>());
         Stencil::BinaryTransactionSerDes::Deserialize(ctx, *_ost);
 
-         //<< static_cast<uint16_t>(serializedPatch.size()) << serializedPatch;
+        //<< static_cast<uint16_t>(serializedPatch.size()) << serializedPatch;
     }
 
     std::chrono::system_clock::time_point _init_time = std::chrono::system_clock::now();

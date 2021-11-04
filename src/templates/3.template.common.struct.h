@@ -508,6 +508,21 @@ struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz::Data> : Stencil::
         lambda("zzNamezz", TData::FieldIndex::zzNamezz, zzNamezz(), Obj().zzNamezz());
         //</Field>
     }
+
+    void Flush()
+    {
+        //<Field>
+        zzNamezz().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::zzNamezz))
+        {
+            if (!zzNamezz().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::zzNamezz));
+        }
+
+        //</Field>
+
+        Stencil::TransactionT<zzProgram_Namezz::zzStruct_Namezz::Data>::Flush_();
+    }
 };
 
 template <>

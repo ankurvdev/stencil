@@ -135,39 +135,30 @@ TEST_CASE("Transactions", "[transaction]")
 TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
 {
 
-SECTION("Auto Update On Assign", "Timestamp should automatically update when a field value is assigned")
-{
+    SECTION("Auto Update On Assign", "Timestamp should automatically update when a field value is assigned")
+    {
+        Transactions::Object::Data obj1;
+        auto                       t1 = obj1.obj1().time();
 
-}
+        Stencil::Transaction<Transactions::Object::Data> txn(obj1);
+        txn.obj1().set_val1(1000);
+        auto t2 = obj1.obj1().time();
 
-SECTION("Auto Update On List Add", "Timestamp should automatically update when a list item is added")
-{
+        txn.Flush();
+        auto t3 = obj1.obj1().time();
+        REQUIRE(t1 == t2);
+        REQUIRE(t1 < t3);
+    }
 
-}
+    SECTION("Auto Update On List Add", "Timestamp should automatically update when a list item is added") {}
 
-SECTION("Auto Update On List Remove", "Timestamp should automatically update when a list item is removed")
-{
+    SECTION("Auto Update On List Remove", "Timestamp should automatically update when a list item is removed") {}
 
-}
+    SECTION("Auto Update On List Edit", "Timestamp should automatically update when a list is edited") {}
 
-SECTION("Auto Update On List Edit", "Timestamp should automatically update when a list is edited")
-{
+    SECTION("Auto Update On Struct Edit", "Timestamp should automatically update when a field struct is edited") {}
 
-}
+    SECTION("Update only on finalize/flush", "Timestamp should be updated only when the transaction is finalized") {}
 
-SECTION("Auto Update On Struct Edit", "Timestamp should automatically update when a field struct is edited")
-{
-
-}
-
-SECTION("Update only on finalize/flush", "Timestamp should be updated only when the transaction is finalized")
-{
-
-}
-
-SECTION("No update on false edits", "Timestamp should not be updated on false edits/ no value changes")
-{
-
-}
-
+    SECTION("No update on false edits", "Timestamp should not be updated on false edits/ no value changes") {}
 }

@@ -51,7 +51,7 @@ static void RecordChangeGPSClimb(std::filesystem::path const& recordlog, double 
     txn.set_climb(double{value});
     recorder.Record(txn);
 }
-
+/*
 static void RecordChangeGPSSpeed(std::filesystem::path const& recordlog, double value)
 {
     Stencil::DataRecorder<Avid::GPS::Data> recorder(recordlog);
@@ -60,7 +60,7 @@ static void RecordChangeGPSSpeed(std::filesystem::path const& recordlog, double 
     Stencil::Transaction<Avid::GPS::Data> txn(data);
     txn.set_speed(double{value});
     recorder.Record(txn);
-}
+}*/
 
 static void RecordChangeGPSClimbAndSpeed(std::filesystem::path const& recordlog, double climb, double speed)
 {

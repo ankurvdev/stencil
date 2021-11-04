@@ -251,7 +251,7 @@ template <typename T, size_t N> struct Visitor<std::array<T, N> const> : Visitor
     {
         for (size_t i = 0; i < _ref.get().size(); i++) { lambda(i, _ref.get().at(i)); }
     }
-    std::reference_wrapper<TData> _ref;
+    std::reference_wrapper<TData const> _ref;
 };
 
 template <typename T, size_t N> struct Visitor<std::array<T, N>> : VisitorT<std::array<T, N>>
