@@ -1,3 +1,4 @@
+#pragma once
 #include "serdes.h"
 #include "transactions.h"
 

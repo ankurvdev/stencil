@@ -54,7 +54,7 @@ macro(EnableStrictCompilation)
             /DWIN32_LEAN_AND_MEAN
             /bigobj
             /guard:cf
-            /std:c++latest
+            /std:c++20
             /Zc:__cplusplus
             #suppression list
             /wd4068  # unknown pragma

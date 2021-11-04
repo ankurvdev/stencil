@@ -49,7 +49,8 @@ struct TestReplay
     Stencil::Transaction<Transactions::Object::Data> txn2;
 };
 
-TEST_CASE("Transactions", "[Transactions]")
+TEST_CASE("Transactions", "[transaction]")
+
 {
     TestReplay replay;
     replay.Replay("obj1.val2 = 1000000;obj1.val2 = 1000000;obj2.val1 = 10000000;obj2.val2 = 10.0000001",
@@ -129,4 +130,44 @@ TEST_CASE("Transactions", "[Transactions]")
     }
     CompareFileAgainstResource("Transactions.bin", "Transactions.bin");
     CompareFileAgainstResource("Transactions.LastAccumulated.bin", "Transactions.LastAccumulated.bin");
+}
+
+TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
+{
+
+SECTION("Auto Update On Assign", "Timestamp should automatically update when a field value is assigned")
+{
+
+}
+
+SECTION("Auto Update On List Add", "Timestamp should automatically update when a list item is added")
+{
+
+}
+
+SECTION("Auto Update On List Remove", "Timestamp should automatically update when a list item is removed")
+{
+
+}
+
+SECTION("Auto Update On List Edit", "Timestamp should automatically update when a list is edited")
+{
+
+}
+
+SECTION("Auto Update On Struct Edit", "Timestamp should automatically update when a field struct is edited")
+{
+
+}
+
+SECTION("Update only on finalize/flush", "Timestamp should be updated only when the transaction is finalized")
+{
+
+}
+
+SECTION("No update on false edits", "Timestamp should not be updated on false edits/ no value changes")
+{
+
+}
+
 }
