@@ -97,9 +97,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::modified, _modified, val);
         _modified = std::move(val);
     }
-
-#if 0
-#endif
     private:
     timestamp _creation = {};
 
@@ -116,9 +113,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::creation, _creation, val);
         _creation = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace UserData
@@ -195,9 +189,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::username, _username, val);
         _username = std::move(val);
     }
-
-#if 0
-#endif
     private:
     ::Database2::ChildRef<Database2::WideString> _password = {};
 
@@ -214,9 +205,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::password, _password, val);
         _password = std::move(val);
     }
-
-#if 0
-#endif
     private:
     ::Database2::ChildRef<Database2::WideString> _privatekey = {};
 
@@ -233,9 +221,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::privatekey, _privatekey, val);
         _privatekey = std::move(val);
     }
-
-#if 0
-#endif
     private:
     ::Database2::ChildRef<Database2::WideString> _clientcert = {};
 
@@ -252,9 +237,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::clientcert, _clientcert, val);
         _clientcert = std::move(val);
     }
-
-#if 0
-#endif
     private:
     ::Database2::ChildRef<Database2::WideString> _secretcode = {};
 
@@ -271,9 +253,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::secretcode, _secretcode, val);
         _secretcode = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace Identity
@@ -341,9 +320,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::name, _name, val);
         _name = std::move(val);
     }
-
-#if 0
-#endif
     private:
     ::Database2::ChildRef<Database2::WideString> _uri = {};
 
@@ -360,9 +336,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::uri, _uri, val);
         _uri = std::move(val);
     }
-
-#if 0
-#endif
     private:
     ::UuidBasedId<::UserData::Identity::Data> _identity = ::UuidBasedId<::UserData::Identity::Data>::Create();
 
@@ -379,9 +352,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::identity, _identity, val);
         _identity = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace RemoteHost

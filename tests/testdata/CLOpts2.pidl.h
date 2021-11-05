@@ -147,9 +147,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
-
-#if 0
-#endif
     private:
     bool _Repair = 0;
 
@@ -166,9 +163,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::Repair, _Repair, val);
         _Repair = std::move(val);
     }
-
-#if 0
-#endif
     private:
     bool _ForceNonSD = 0;
 
@@ -185,9 +179,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ForceNonSD, _ForceNonSD, val);
         _ForceNonSD = std::move(val);
     }
-
-#if 0
-#endif
     private:
     shared_string _TargetVolume = "";
 
@@ -204,9 +195,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::TargetVolume, _TargetVolume, val);
         _TargetVolume = std::move(val);
     }
-
-#if 0
-#endif
     private:
     shared_string _User = "";
 
@@ -223,9 +211,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::User, _User, val);
         _User = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace InstallOptions
@@ -283,9 +268,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace QueueOptions
@@ -343,9 +325,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace PauseOptions
@@ -403,9 +382,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace CancelOptions
@@ -463,9 +439,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace ResumeOptions
@@ -523,9 +496,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace UpdateOptions
@@ -583,9 +553,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace HydrateOptions

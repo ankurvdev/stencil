@@ -76,9 +76,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::field1, _field1, val);
         _field1 = std::move(val);
     }
-
-#if 0
-#endif
     private:
     shared_string _field2 = {};
 
@@ -95,9 +92,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::field2, _field2, val);
         _field2 = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace Struct1

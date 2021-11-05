@@ -100,9 +100,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::latitude, _latitude, val);
         _latitude = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int64_t _longitude = {};
 
@@ -119,9 +116,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::longitude, _longitude, val);
         _longitude = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace MapPoint
@@ -186,9 +180,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::type, _type, val);
         _type = std::move(val);
     }
-
-#if 0
-#endif
     private:
     shared_string _name = {};
 
@@ -205,9 +196,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::name, _name, val);
         _name = std::move(val);
     }
-
-#if 0
-#endif
     private:
     std::vector<::Service::MapPoint::Data> _areaPolygon = {};
 
@@ -224,9 +212,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::areaPolygon, _areaPolygon, val);
         _areaPolygon = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace GeographicalArea
@@ -303,9 +288,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::id, _id, val);
         _id = std::move(val);
     }
-
-#if 0
-#endif
     private:
     std::vector<shared_tree<shared_string>> _keywords = {};
 
@@ -322,9 +304,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::keywords, _keywords, val);
         _keywords = std::move(val);
     }
-
-#if 0
-#endif
     private:
     shared_tree<::Service::GeographicalArea::Data> _location = {};
 
@@ -341,9 +320,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::location, _location, val);
         _location = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int64_t _md5sum = {};
 
@@ -360,9 +336,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::md5sum, _md5sum, val);
         _md5sum = std::move(val);
     }
-
-#if 0
-#endif
     private:
     shared_string _thumbnailBlob = {};
 
@@ -379,9 +352,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::thumbnailBlob, _thumbnailBlob, val);
         _thumbnailBlob = std::move(val);
     }
-
-#if 0
-#endif
     private:
     shared_string _fileUrl = {};
 
@@ -398,9 +368,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::fileUrl, _fileUrl, val);
         _fileUrl = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace DigitalAssetInfo

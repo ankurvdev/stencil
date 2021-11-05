@@ -166,9 +166,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::heading, _heading, val);
         _heading = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _lat = {};
 
@@ -185,9 +182,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::lat, _lat, val);
         _lat = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _lon = {};
 
@@ -204,9 +198,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::lon, _lon, val);
         _lon = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _speed = {};
 
@@ -223,9 +214,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::speed, _speed, val);
         _speed = std::move(val);
     }
-
-#if 0
-#endif
     private:
     timestamp _utc = {};
 
@@ -242,9 +230,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::utc, _utc, val);
         _utc = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _galt = {};
 
@@ -261,9 +246,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::galt, _galt, val);
         _galt = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _climb = {};
 
@@ -280,9 +262,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::climb, _climb, val);
         _climb = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _epx = {};
 
@@ -299,9 +278,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::epx, _epx, val);
         _epx = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _epy = {};
 
@@ -318,9 +294,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::epy, _epy, val);
         _epy = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _epv = {};
 
@@ -337,9 +310,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::epv, _epv, val);
         _epv = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _ept = {};
 
@@ -356,9 +326,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ept, _ept, val);
         _ept = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _eps = {};
 
@@ -375,9 +342,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::eps, _eps, val);
         _eps = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _epc = {};
 
@@ -394,9 +358,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::epc, _epc, val);
         _epc = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _eph = {};
 
@@ -413,9 +374,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::eph, _eph, val);
         _eph = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _sep = {};
 
@@ -432,9 +390,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::sep, _sep, val);
         _sep = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace GPS
@@ -556,9 +511,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::seen, _seen, val);
         _seen = std::move(val);
     }
-
-#if 0
-#endif
     private:
     uint32_t _addr = {};
 
@@ -575,9 +527,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::addr, _addr, val);
         _addr = std::move(val);
     }
-
-#if 0
-#endif
     private:
     std::array<uint8_t, 7> _hexaddr = {};
 
@@ -594,10 +543,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::hexaddr, _hexaddr, val);
         _hexaddr = std::move(val);
     }
-
-#if 0
-    uint8_t at_hexaddr(size_t const& args) const;
-#endif
     private:
     std::array<char, 9> _flight = {};
 
@@ -614,10 +559,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::flight, _flight, val);
         _flight = std::move(val);
     }
-
-#if 0
-    char at_flight(size_t const& args) const;
-#endif
     private:
     int32_t _altitude = {};
 
@@ -634,9 +575,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::altitude, _altitude, val);
         _altitude = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int32_t _groundSpeed = {};
 
@@ -653,9 +591,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::groundSpeed, _groundSpeed, val);
         _groundSpeed = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int32_t _track = {};
 
@@ -672,9 +607,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::track, _track, val);
         _track = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _lat = {};
 
@@ -691,9 +623,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::lat, _lat, val);
         _lat = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _lon = {};
 
@@ -710,9 +639,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::lon, _lon, val);
         _lon = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int32_t _verticalRate = {};
 
@@ -729,9 +655,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::verticalRate, _verticalRate, val);
         _verticalRate = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int32_t _messageCount = {};
 
@@ -748,9 +671,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::messageCount, _messageCount, val);
         _messageCount = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int32_t _odd_cprlat = {};
 
@@ -767,9 +687,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::odd_cprlat, _odd_cprlat, val);
         _odd_cprlat = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int32_t _odd_cprlon = {};
 
@@ -786,9 +703,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::odd_cprlon, _odd_cprlon, val);
         _odd_cprlon = std::move(val);
     }
-
-#if 0
-#endif
     private:
     timestamp _odd_cprtime = {};
 
@@ -805,9 +719,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::odd_cprtime, _odd_cprtime, val);
         _odd_cprtime = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int32_t _even_cprlat = {};
 
@@ -824,9 +735,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::even_cprlat, _even_cprlat, val);
         _even_cprlat = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int32_t _even_cprlon = {};
 
@@ -843,9 +751,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::even_cprlon, _even_cprlon, val);
         _even_cprlon = std::move(val);
     }
-
-#if 0
-#endif
     private:
     timestamp _even_cprtime = {};
 
@@ -862,9 +767,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::even_cprtime, _even_cprtime, val);
         _even_cprtime = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace Aircraft
@@ -922,13 +824,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::aircrafts, _aircrafts, val);
         _aircrafts = std::move(val);
     }
-
-#if 0
-    void add_aircrafts(::Avid::Aircraft::Data&& args);
-    void remove_aircrafts(size_t&& args);
-    auto& edit_aircrafts(size_t&& args);
-    ::Avid::Aircraft::Data at_aircrafts(size_t const& args) const;
-#endif
 };
 
 }    // namespace Traffic
@@ -1054,9 +949,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::mag_x, _mag_x, val);
         _mag_x = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int64_t _mag_y = {};
 
@@ -1073,9 +965,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::mag_y, _mag_y, val);
         _mag_y = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int64_t _mag_z = {};
 
@@ -1092,9 +981,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::mag_z, _mag_z, val);
         _mag_z = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int64_t _acc_x = {};
 
@@ -1111,9 +997,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::acc_x, _acc_x, val);
         _acc_x = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int64_t _acc_y = {};
 
@@ -1130,9 +1013,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::acc_y, _acc_y, val);
         _acc_y = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int64_t _acc_z = {};
 
@@ -1149,9 +1029,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::acc_z, _acc_z, val);
         _acc_z = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int64_t _rot_x = {};
 
@@ -1168,9 +1045,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::rot_x, _rot_x, val);
         _rot_x = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int64_t _rot_y = {};
 
@@ -1187,9 +1061,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::rot_y, _rot_y, val);
         _rot_y = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int64_t _rot_z = {};
 
@@ -1206,9 +1077,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::rot_z, _rot_z, val);
         _rot_z = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _dmag_x = {};
 
@@ -1225,9 +1093,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::dmag_x, _dmag_x, val);
         _dmag_x = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _dmag_y = {};
 
@@ -1244,9 +1109,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::dmag_y, _dmag_y, val);
         _dmag_y = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _dmag_z = {};
 
@@ -1263,9 +1125,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::dmag_z, _dmag_z, val);
         _dmag_z = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _dacc_x = {};
 
@@ -1282,9 +1141,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::dacc_x, _dacc_x, val);
         _dacc_x = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _dacc_y = {};
 
@@ -1301,9 +1157,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::dacc_y, _dacc_y, val);
         _dacc_y = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _dacc_z = {};
 
@@ -1320,9 +1173,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::dacc_z, _dacc_z, val);
         _dacc_z = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _drot_x = {};
 
@@ -1339,9 +1189,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::drot_x, _drot_x, val);
         _drot_x = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _drot_y = {};
 
@@ -1358,9 +1205,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::drot_y, _drot_y, val);
         _drot_y = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _drot_z = {};
 
@@ -1377,9 +1221,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::drot_z, _drot_z, val);
         _drot_z = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace Motion
@@ -1442,9 +1283,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::pressure, _pressure, val);
         _pressure = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _temperature = {};
 
@@ -1461,9 +1299,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::temperature, _temperature, val);
         _temperature = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace Pressure

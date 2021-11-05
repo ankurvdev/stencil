@@ -76,9 +76,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::randomInteger, _randomInteger, val);
         _randomInteger = std::move(val);
     }
-
-#if 0
-#endif
     private:
     shared_string _randomString = {};
 
@@ -95,9 +92,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::randomString, _randomString, val);
         _randomString = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace Data

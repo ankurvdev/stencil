@@ -126,9 +126,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::val1, _val1, val);
         _val1 = std::move(val);
     }
-
-#if 0
-#endif
     private:
     uint32_t _val2 = {};
 
@@ -145,9 +142,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::val2, _val2, val);
         _val2 = std::move(val);
     }
-
-#if 0
-#endif
     private:
     uint8_t _val3 = {};
 
@@ -164,9 +158,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::val3, _val3, val);
         _val3 = std::move(val);
     }
-
-#if 0
-#endif
     private:
     shared_string _val4 = {};
 
@@ -183,9 +174,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::val4, _val4, val);
         _val4 = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _val5 = {};
 
@@ -202,9 +190,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::val5, _val5, val);
         _val5 = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace SimpleObject1
@@ -266,9 +251,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::value, _value, val);
         _value = std::move(val);
     }
-
-#if 0
-#endif
     private:
     ::Transactions::SimpleObject1::Data _obj1 = {};
 
@@ -285,9 +267,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::obj1, _obj1, val);
         _obj1 = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace ListObject
@@ -345,13 +324,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::listobj, _listobj, val);
         _listobj = std::move(val);
     }
-
-#if 0
-    void add_listobj(::Transactions::ListObject::Data&& args);
-    void remove_listobj(size_t&& args);
-    auto& edit_listobj(size_t&& args);
-    ::Transactions::ListObject::Data at_listobj(size_t const& args) const;
-#endif
 };
 
 }    // namespace List
@@ -414,9 +386,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::val1, _val1, val);
         _val1 = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _val2 = {};
 
@@ -433,9 +402,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::val2, _val2, val);
         _val2 = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace SimpleObject2
@@ -505,9 +471,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::obj1, _obj1, val);
         _obj1 = std::move(val);
     }
-
-#if 0
-#endif
     private:
     ::Transactions::SimpleObject2::Data _obj2 = {};
 
@@ -524,9 +487,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::obj2, _obj2, val);
         _obj2 = std::move(val);
     }
-
-#if 0
-#endif
     private:
     ::Transactions::ListObject::Data _obj3 = {};
 
@@ -543,9 +503,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::obj3, _obj3, val);
         _obj3 = std::move(val);
     }
-
-#if 0
-#endif
     private:
     ::Transactions::List::Data _list1 = {};
 
@@ -562,9 +519,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::list1, _list1, val);
         _list1 = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace Object

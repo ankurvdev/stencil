@@ -125,9 +125,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::workingDirectory, _workingDirectory, val);
         _workingDirectory = std::move(val);
     }
-
-#if 0
-#endif
     private:
     std::vector<shared_string> _libraries = {};
 
@@ -144,13 +141,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::libraries, _libraries, val);
         _libraries = std::move(val);
     }
-
-#if 0
-    void add_libraries(shared_string&& args);
-    void remove_libraries(size_t&& args);
-    auto& edit_libraries(size_t&& args);
-    shared_string at_libraries(size_t const& args) const;
-#endif
     private:
     std::vector<shared_string> _scan = {};
 
@@ -167,13 +157,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::scan, _scan, val);
         _scan = std::move(val);
     }
-
-#if 0
-    void add_scan(shared_string&& args);
-    void remove_scan(size_t&& args);
-    auto& edit_scan(size_t&& args);
-    shared_string at_scan(size_t const& args) const;
-#endif
     private:
     int32_t _httpsPort = 3443;
 
@@ -190,9 +173,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::httpsPort, _httpsPort, val);
         _httpsPort = std::move(val);
     }
-
-#if 0
-#endif
     private:
     bool _daemon = 0;
 
@@ -209,9 +189,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::daemon, _daemon, val);
         _daemon = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace CommandLineOptions
@@ -272,9 +249,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::field1, _field1, val);
         _field1 = std::move(val);
     }
-
-#if 0
-#endif
     private:
     shared_string _field2 = {};
 
@@ -291,9 +265,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::field2, _field2, val);
         _field2 = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace SimpleObj
@@ -350,13 +321,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::field1, _field1, val);
         _field1 = std::move(val);
     }
-
-#if 0
-    void add_field1(shared_string&& args);
-    void remove_field1(size_t&& args);
-    auto& edit_field1(size_t&& args);
-    shared_string at_field1(size_t const& args) const;
-#endif
 };
 
 }    // namespace ObjWithList
@@ -433,9 +397,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::key1, _key1, val);
         _key1 = std::move(val);
     }
-
-#if 0
-#endif
     private:
     std::vector<int32_t> _listofint = {};
 
@@ -452,13 +413,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::listofint, _listofint, val);
         _listofint = std::move(val);
     }
-
-#if 0
-    void add_listofint(int32_t&& args);
-    void remove_listofint(size_t&& args);
-    auto& edit_listofint(size_t&& args);
-    int32_t at_listofint(size_t const& args) const;
-#endif
     private:
     std::vector<std::vector<int32_t>> _listoflist = {};
 
@@ -475,13 +429,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::listoflist, _listoflist, val);
         _listoflist = std::move(val);
     }
-
-#if 0
-    void add_listoflist(std::vector<int32_t>&& args);
-    void remove_listoflist(size_t&& args);
-    auto& edit_listoflist(size_t&& args);
-    std::vector<int32_t> at_listoflist(size_t const& args) const;
-#endif
     private:
     std::vector<::CLOpts1::SimpleObj::Data> _listofobj = {};
 
@@ -498,13 +445,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::listofobj, _listofobj, val);
         _listofobj = std::move(val);
     }
-
-#if 0
-    void add_listofobj(::CLOpts1::SimpleObj::Data&& args);
-    void remove_listofobj(size_t&& args);
-    auto& edit_listofobj(size_t&& args);
-    ::CLOpts1::SimpleObj::Data at_listofobj(size_t const& args) const;
-#endif
     private:
     ::CLOpts1::ObjWithList::Data _objoflist = {};
 
@@ -521,9 +461,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::objoflist, _objoflist, val);
         _objoflist = std::move(val);
     }
-
-#if 0
-#endif
     private:
     shared_string _key2 = {};
 
@@ -540,9 +477,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::key2, _key2, val);
         _key2 = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace CLOptsTest
