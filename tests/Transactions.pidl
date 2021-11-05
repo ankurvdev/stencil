@@ -1,6 +1,5 @@
 struct SimpleObject1
 {
-    timestamp time;
     int32     val1;
     uint32    val2;
     uint8     val3;
@@ -34,4 +33,4 @@ struct Object
 }
 
 relationship optionalprops 	 object = SimpleObject1, SimpleObject2
-relationship timestamped 	 object = SimpleObject1, ListObject, List, SimpleObject2
+relationship timestamped 	 object = Object, SimpleObject1, ListObject, List, SimpleObject2

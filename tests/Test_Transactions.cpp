@@ -138,27 +138,50 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
     SECTION("Auto Update On Assign", "Timestamp should automatically update when a field value is assigned")
     {
         Transactions::Object::Data obj1;
-        auto                       t1 = obj1.obj1().time();
 
-        Stencil::Transaction<Transactions::Object::Data> txn(obj1);
-        txn.obj1().set_val1(1000);
-        auto t2 = obj1.obj1().time();
+        auto t1 = obj1.obj1().LastModified();
+        auto t2 = t1;
+        auto t3 = t1;
+        auto t4 = t1;
+        {
+            // Update only on flush
+            // Update on sub-struct edit
+            Stencil::Transaction<Transactions::Object::Data> txn(obj1);
+            txn.obj1().set_val1(1000);
+            t2 = obj1.obj1().LastModified();
+            txn.Flush();
 
-        txn.Flush();
-        auto t3 = obj1.obj1().time();
-        REQUIRE(t1 == t2);
-        REQUIRE(t1 < t3);
+            t3 = obj1.obj1().LastModified();
+            t4 = obj1.LastModified();
+            REQUIRE(t1 == t2);
+            REQUIRE(t1 < t3);
+            REQUIRE(t1 < t4);
+        }
+        {
+            // No update on false edits
+            Stencil::Transaction<Transactions::Object::Data> txn(obj1);
+            txn.obj1().set_val1(1000);
+            t4 = obj1.obj1().LastModified();
+            txn.Flush();
+            REQUIRE(t3 == t4);
+        }
+        {
+            // List edits
+            t2 = obj1.LastModified();
+            Stencil::Transaction<Transactions::Object::Data> txn(obj1);
+            Transactions::ListObject::Data                   lobj1, lobj2;
+            lobj1.set_value(100);
+            txn.list1().add_listobj(std::move(lobj1));
+            txn.Flush();
+            t3 = obj1.LastModified();
+            REQUIRE(t2 < t3);
+            txn.list1().edit_listobj(0).set_value(200);
+            txn.Flush();
+            t4 = obj1.LastModified();
+            REQUIRE(t3 < t4);
+            txn.Flush();
+            // TODO : Bugfix
+            // REQUIRE(t4 == obj1.LastModified());
+        }
     }
-
-    SECTION("Auto Update On List Add", "Timestamp should automatically update when a list item is added") {}
-
-    SECTION("Auto Update On List Remove", "Timestamp should automatically update when a list item is removed") {}
-
-    SECTION("Auto Update On List Edit", "Timestamp should automatically update when a list is edited") {}
-
-    SECTION("Auto Update On Struct Edit", "Timestamp should automatically update when a field struct is edited") {}
-
-    SECTION("Update only on finalize/flush", "Timestamp should be updated only when the transaction is finalized") {}
-
-    SECTION("No update on false edits", "Timestamp should not be updated on false edits/ no value changes") {}
 }
