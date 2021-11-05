@@ -310,6 +310,25 @@ struct Stencil::Transaction<UnionTest::Struct1::Data> : Stencil::TransactionT<Un
         lambda("field1", TData::FieldIndex::field1, field1(), Obj().field1());
         lambda("field2", TData::FieldIndex::field2, field2(), Obj().field2());
     }
+
+    void Flush()
+    {
+        field1().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::field1))
+        {
+            if (!field1().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::field1));
+        }
+
+        field2().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::field2))
+        {
+            if (!field2().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::field2));
+        }
+
+        Stencil::TransactionT<UnionTest::Struct1::Data>::Flush_();
+    }
 };
 
 template <>

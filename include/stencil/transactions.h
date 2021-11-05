@@ -1,4 +1,5 @@
 #pragma once
+#include "mutatorsaccessors.h"
 #include "optionalprops.h"
 #include "visitor.h"
 
@@ -132,6 +133,13 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
         Mutators<TObj>::remove(Obj(), index);
     }
 
+    auto& edit(size_t index)
+    {
+        Transaction<ListObjType>* ptr = nullptr;
+        Visit(index, [&](auto /* fieldIndex */, auto& txn) { ptr = &txn; });
+        return *ptr;
+    }
+
     template <typename TLambda> auto Visit(size_t fieldIndex, TLambda&& lambda)
     {
         Visitor<TObj> visitor(_ref.get());
@@ -208,4 +216,15 @@ template <typename T> struct Stencil::Transaction<T, std::enable_if_t<Value::Sup
     bool IsChanged() const { return false; }
 
     DELETE_COPY_AND_MOVE(Transaction);
+};
+
+// Transaction Mutators Accessors
+
+template <typename T>
+struct Stencil::Mutators<Stencil::Transaction<T>,
+                         std::enable_if_t<ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::List>>
+{
+    static void  add(Stencil::Transaction<T>& txn, auto&& obj) { txn.add(std::move(obj)); }
+    static void  remove(Stencil::Transaction<T>& txn, size_t index) { txn.remove(index); }
+    static auto& edit(Stencil::Transaction<T>& txn, size_t index) { return txn.edit(index); }
 };

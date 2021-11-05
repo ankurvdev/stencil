@@ -148,7 +148,7 @@ struct Data :
 #if 0
     void add_libraries(shared_string&& args);
     void remove_libraries(size_t&& args);
-    Stencil::Transaction<shared_string> edit_libraries(size_t&& args);
+    auto& edit_libraries(size_t&& args);
     shared_string at_libraries(size_t const& args) const;
 #endif
     private:
@@ -171,7 +171,7 @@ struct Data :
 #if 0
     void add_scan(shared_string&& args);
     void remove_scan(size_t&& args);
-    Stencil::Transaction<shared_string> edit_scan(size_t&& args);
+    auto& edit_scan(size_t&& args);
     shared_string at_scan(size_t const& args) const;
 #endif
     private:
@@ -354,7 +354,7 @@ struct Data :
 #if 0
     void add_field1(shared_string&& args);
     void remove_field1(size_t&& args);
-    Stencil::Transaction<shared_string> edit_field1(size_t&& args);
+    auto& edit_field1(size_t&& args);
     shared_string at_field1(size_t const& args) const;
 #endif
 };
@@ -456,7 +456,7 @@ struct Data :
 #if 0
     void add_listofint(int32_t&& args);
     void remove_listofint(size_t&& args);
-    Stencil::Transaction<int32_t> edit_listofint(size_t&& args);
+    auto& edit_listofint(size_t&& args);
     int32_t at_listofint(size_t const& args) const;
 #endif
     private:
@@ -479,7 +479,7 @@ struct Data :
 #if 0
     void add_listoflist(std::vector<int32_t>&& args);
     void remove_listoflist(size_t&& args);
-    Stencil::Transaction<std::vector<int32_t>> edit_listoflist(size_t&& args);
+    auto& edit_listoflist(size_t&& args);
     std::vector<int32_t> at_listoflist(size_t const& args) const;
 #endif
     private:
@@ -502,7 +502,7 @@ struct Data :
 #if 0
     void add_listofobj(::CLOpts1::SimpleObj::Data&& args);
     void remove_listofobj(size_t&& args);
-    Stencil::Transaction<::CLOpts1::SimpleObj::Data> edit_listofobj(size_t&& args);
+    auto& edit_listofobj(size_t&& args);
     ::CLOpts1::SimpleObj::Data at_listofobj(size_t const& args) const;
 #endif
     private:
@@ -747,20 +747,17 @@ struct Stencil::Transaction<CLOpts1::CommandLineOptions::Data> : Stencil::Transa
     void add_libraries(shared_string&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::libraries);
-        libraries().RecordMutation_add_(args);
-        return Stencil::Mutators<std::vector<shared_string>>::add(Obj().libraries(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(libraries())>>::add(libraries(), std::move(args));
     }
     void remove_libraries(size_t&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::libraries);
-        libraries().RecordMutation_remove_(args);
-        return Stencil::Mutators<std::vector<shared_string>>::remove(Obj().libraries(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(libraries())>>::remove(libraries(), std::move(args));
     }
-    Stencil::Transaction<shared_string> edit_libraries(size_t&& args)
+    auto& edit_libraries(size_t&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::libraries);
-        libraries().RecordMutation_edit_(args);
-        return Stencil::Mutators<std::vector<shared_string>>::edit(Obj().libraries(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(libraries())>>::edit(libraries(), std::move(args));
     }
     void set_scan(std::vector<shared_string>&& val)
     {
@@ -771,20 +768,17 @@ struct Stencil::Transaction<CLOpts1::CommandLineOptions::Data> : Stencil::Transa
     void add_scan(shared_string&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::scan);
-        scan().RecordMutation_add_(args);
-        return Stencil::Mutators<std::vector<shared_string>>::add(Obj().scan(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(scan())>>::add(scan(), std::move(args));
     }
     void remove_scan(size_t&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::scan);
-        scan().RecordMutation_remove_(args);
-        return Stencil::Mutators<std::vector<shared_string>>::remove(Obj().scan(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(scan())>>::remove(scan(), std::move(args));
     }
-    Stencil::Transaction<shared_string> edit_scan(size_t&& args)
+    auto& edit_scan(size_t&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::scan);
-        scan().RecordMutation_edit_(args);
-        return Stencil::Mutators<std::vector<shared_string>>::edit(Obj().scan(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(scan())>>::edit(scan(), std::move(args));
     }
     void set_httpsPort(int32_t&& val)
     {
@@ -828,6 +822,46 @@ struct Stencil::Transaction<CLOpts1::CommandLineOptions::Data> : Stencil::Transa
         lambda("scan", TData::FieldIndex::scan, scan(), Obj().scan());
         lambda("httpsPort", TData::FieldIndex::httpsPort, httpsPort(), Obj().httpsPort());
         lambda("daemon", TData::FieldIndex::daemon, daemon(), Obj().daemon());
+    }
+
+    void Flush()
+    {
+        workingDirectory().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::workingDirectory))
+        {
+            if (!workingDirectory().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::workingDirectory));
+        }
+
+        libraries().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::libraries))
+        {
+            if (!libraries().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::libraries));
+        }
+
+        scan().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::scan))
+        {
+            if (!scan().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::scan));
+        }
+
+        httpsPort().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::httpsPort))
+        {
+            if (!httpsPort().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::httpsPort));
+        }
+
+        daemon().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::daemon))
+        {
+            if (!daemon().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::daemon));
+        }
+
+        Stencil::TransactionT<CLOpts1::CommandLineOptions::Data>::Flush_();
     }
 };
 
@@ -1032,6 +1066,25 @@ struct Stencil::Transaction<CLOpts1::SimpleObj::Data> : Stencil::TransactionT<CL
         lambda("field1", TData::FieldIndex::field1, field1(), Obj().field1());
         lambda("field2", TData::FieldIndex::field2, field2(), Obj().field2());
     }
+
+    void Flush()
+    {
+        field1().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::field1))
+        {
+            if (!field1().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::field1));
+        }
+
+        field2().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::field2))
+        {
+            if (!field2().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::field2));
+        }
+
+        Stencil::TransactionT<CLOpts1::SimpleObj::Data>::Flush_();
+    }
 };
 
 template <>
@@ -1166,20 +1219,17 @@ struct Stencil::Transaction<CLOpts1::ObjWithList::Data> : Stencil::TransactionT<
     void add_field1(shared_string&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::field1);
-        field1().RecordMutation_add_(args);
-        return Stencil::Mutators<std::vector<shared_string>>::add(Obj().field1(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(field1())>>::add(field1(), std::move(args));
     }
     void remove_field1(size_t&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::field1);
-        field1().RecordMutation_remove_(args);
-        return Stencil::Mutators<std::vector<shared_string>>::remove(Obj().field1(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(field1())>>::remove(field1(), std::move(args));
     }
-    Stencil::Transaction<shared_string> edit_field1(size_t&& args)
+    auto& edit_field1(size_t&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::field1);
-        field1().RecordMutation_edit_(args);
-        return Stencil::Mutators<std::vector<shared_string>>::edit(Obj().field1(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(field1())>>::edit(field1(), std::move(args));
     }
     template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
     {
@@ -1199,6 +1249,18 @@ struct Stencil::Transaction<CLOpts1::ObjWithList::Data> : Stencil::TransactionT<
     template <typename TLambda> void VisitAll(TLambda&& lambda)
     {
         lambda("field1", TData::FieldIndex::field1, field1(), Obj().field1());
+    }
+
+    void Flush()
+    {
+        field1().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::field1))
+        {
+            if (!field1().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::field1));
+        }
+
+        Stencil::TransactionT<CLOpts1::ObjWithList::Data>::Flush_();
     }
 };
 
@@ -1480,20 +1542,17 @@ struct Stencil::Transaction<CLOpts1::CLOptsTest::Data> : Stencil::TransactionT<C
     void add_listofint(int32_t&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::listofint);
-        listofint().RecordMutation_add_(args);
-        return Stencil::Mutators<std::vector<int32_t>>::add(Obj().listofint(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(listofint())>>::add(listofint(), std::move(args));
     }
     void remove_listofint(size_t&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::listofint);
-        listofint().RecordMutation_remove_(args);
-        return Stencil::Mutators<std::vector<int32_t>>::remove(Obj().listofint(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(listofint())>>::remove(listofint(), std::move(args));
     }
-    Stencil::Transaction<int32_t> edit_listofint(size_t&& args)
+    auto& edit_listofint(size_t&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::listofint);
-        listofint().RecordMutation_edit_(args);
-        return Stencil::Mutators<std::vector<int32_t>>::edit(Obj().listofint(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(listofint())>>::edit(listofint(), std::move(args));
     }
     void set_listoflist(std::vector<std::vector<int32_t>>&& val)
     {
@@ -1504,20 +1563,17 @@ struct Stencil::Transaction<CLOpts1::CLOptsTest::Data> : Stencil::TransactionT<C
     void add_listoflist(std::vector<int32_t>&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::listoflist);
-        listoflist().RecordMutation_add_(args);
-        return Stencil::Mutators<std::vector<std::vector<int32_t>>>::add(Obj().listoflist(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(listoflist())>>::add(listoflist(), std::move(args));
     }
     void remove_listoflist(size_t&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::listoflist);
-        listoflist().RecordMutation_remove_(args);
-        return Stencil::Mutators<std::vector<std::vector<int32_t>>>::remove(Obj().listoflist(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(listoflist())>>::remove(listoflist(), std::move(args));
     }
-    Stencil::Transaction<std::vector<int32_t>> edit_listoflist(size_t&& args)
+    auto& edit_listoflist(size_t&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::listoflist);
-        listoflist().RecordMutation_edit_(args);
-        return Stencil::Mutators<std::vector<std::vector<int32_t>>>::edit(Obj().listoflist(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(listoflist())>>::edit(listoflist(), std::move(args));
     }
     void set_listofobj(std::vector<::CLOpts1::SimpleObj::Data>&& val)
     {
@@ -1528,20 +1584,17 @@ struct Stencil::Transaction<CLOpts1::CLOptsTest::Data> : Stencil::TransactionT<C
     void add_listofobj(::CLOpts1::SimpleObj::Data&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::listofobj);
-        listofobj().RecordMutation_add_(args);
-        return Stencil::Mutators<std::vector<::CLOpts1::SimpleObj::Data>>::add(Obj().listofobj(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(listofobj())>>::add(listofobj(), std::move(args));
     }
     void remove_listofobj(size_t&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::listofobj);
-        listofobj().RecordMutation_remove_(args);
-        return Stencil::Mutators<std::vector<::CLOpts1::SimpleObj::Data>>::remove(Obj().listofobj(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(listofobj())>>::remove(listofobj(), std::move(args));
     }
-    Stencil::Transaction<::CLOpts1::SimpleObj::Data> edit_listofobj(size_t&& args)
+    auto& edit_listofobj(size_t&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::listofobj);
-        listofobj().RecordMutation_edit_(args);
-        return Stencil::Mutators<std::vector<::CLOpts1::SimpleObj::Data>>::edit(Obj().listofobj(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(listofobj())>>::edit(listofobj(), std::move(args));
     }
     void set_objoflist(::CLOpts1::ObjWithList::Data&& val)
     {
@@ -1588,6 +1641,53 @@ struct Stencil::Transaction<CLOpts1::CLOptsTest::Data> : Stencil::TransactionT<C
         lambda("listofobj", TData::FieldIndex::listofobj, listofobj(), Obj().listofobj());
         lambda("objoflist", TData::FieldIndex::objoflist, objoflist(), Obj().objoflist());
         lambda("key2", TData::FieldIndex::key2, key2(), Obj().key2());
+    }
+
+    void Flush()
+    {
+        key1().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::key1))
+        {
+            if (!key1().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::key1));
+        }
+
+        listofint().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::listofint))
+        {
+            if (!listofint().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::listofint));
+        }
+
+        listoflist().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::listoflist))
+        {
+            if (!listoflist().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::listoflist));
+        }
+
+        listofobj().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::listofobj))
+        {
+            if (!listofobj().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::listofobj));
+        }
+
+        objoflist().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::objoflist))
+        {
+            if (!objoflist().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::objoflist));
+        }
+
+        key2().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::key2))
+        {
+            if (!key2().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::key2));
+        }
+
+        Stencil::TransactionT<CLOpts1::CLOptsTest::Data>::Flush_();
     }
 };
 

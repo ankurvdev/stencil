@@ -115,7 +115,7 @@ inline void CompareLines(std::vector<std::string> const& actualstring,
             f.flush();
             f.close();
         }
-        FAIL("Comparison Failed: Output: failure.txt");
+        FAIL("Comparison Failed: Output: " + std::string(resname) + "_failure.txt");
     }
 }
 
@@ -135,9 +135,14 @@ inline void CompareBinaryOutputAgainstResource(std::span<const uint8_t> const& a
         if (resname == testresname || resname == resourcename)
         {
             auto data = r.data<uint8_t>();
-            REQUIRE(data.size() == actual.size());
+            INFO("Checking Resource : " + resname)
+            if (data.size() == actual.size() && std::equal(actual.begin(), actual.end(), data.begin())) { return; }
+            std::ofstream f(resname);
+            f.write(reinterpret_cast<char const*>(actual.data()), static_cast<std::streamsize>(actual.size()));
+            f.flush();
+            f.close();
+            REQUIRE(data.size() == actual.size() );
             REQUIRE(std::equal(actual.begin(), actual.end(), data.begin()));
-            return;
         }
     }
     FAIL("Cannot find reference resource" + testresname);

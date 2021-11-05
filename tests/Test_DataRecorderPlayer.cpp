@@ -37,7 +37,7 @@ static void RecordTrafficEdit(Avid::Traffic::Data& data, std::filesystem::path c
     Stencil::DataRecorder<Avid::Traffic::Data> recorder(recordlog);
     Stencil::Transaction<Avid::Traffic::Data>  txn(data);
 
-    auto subctx = txn.edit_aircrafts(0);
+    auto& subctx = txn.edit_aircrafts(0);
     subctx.set_hexaddr({hexaddr, hexaddr, hexaddr, hexaddr, hexaddr, hexaddr, hexaddr});
     recorder.Record(txn);
 }

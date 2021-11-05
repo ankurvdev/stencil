@@ -516,6 +516,25 @@ struct Stencil::Transaction<UserData::UserData::Data> : Stencil::TransactionT<Us
         lambda("modified", TData::FieldIndex::modified, modified(), Obj().modified());
         lambda("creation", TData::FieldIndex::creation, creation(), Obj().creation());
     }
+
+    void Flush()
+    {
+        modified().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::modified))
+        {
+            if (!modified().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::modified));
+        }
+
+        creation().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::creation))
+        {
+            if (!creation().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::creation));
+        }
+
+        Stencil::TransactionT<UserData::UserData::Data>::Flush_();
+    }
 };
 
 template <>
@@ -818,6 +837,46 @@ struct Stencil::Transaction<UserData::Identity::Data> : Stencil::TransactionT<Us
         lambda("clientcert", TData::FieldIndex::clientcert, clientcert(), Obj().clientcert());
         lambda("secretcode", TData::FieldIndex::secretcode, secretcode(), Obj().secretcode());
     }
+
+    void Flush()
+    {
+        username().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::username))
+        {
+            if (!username().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::username));
+        }
+
+        password().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::password))
+        {
+            if (!password().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::password));
+        }
+
+        privatekey().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::privatekey))
+        {
+            if (!privatekey().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::privatekey));
+        }
+
+        clientcert().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::clientcert))
+        {
+            if (!clientcert().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::clientcert));
+        }
+
+        secretcode().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::secretcode))
+        {
+            if (!secretcode().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::secretcode));
+        }
+
+        Stencil::TransactionT<UserData::Identity::Data>::Flush_();
+    }
 };
 
 template <>
@@ -1058,6 +1117,32 @@ struct Stencil::Transaction<UserData::RemoteHost::Data> : Stencil::TransactionT<
         lambda("name", TData::FieldIndex::name, name(), Obj().name());
         lambda("uri", TData::FieldIndex::uri, uri(), Obj().uri());
         lambda("identity", TData::FieldIndex::identity, identity(), Obj().identity());
+    }
+
+    void Flush()
+    {
+        name().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::name))
+        {
+            if (!name().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::name));
+        }
+
+        uri().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::uri))
+        {
+            if (!uri().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::uri));
+        }
+
+        identity().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::identity))
+        {
+            if (!identity().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::identity));
+        }
+
+        Stencil::TransactionT<UserData::RemoteHost::Data>::Flush_();
     }
 };
 

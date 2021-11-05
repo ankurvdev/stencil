@@ -32,5 +32,5 @@ struct Object
     List            list1;
 }
 
-relationship optionalprops 	 object = SimpleObject1, SimpleObject2
-relationship timestamped 	 object = Object, SimpleObject1, ListObject, List, SimpleObject2
+relationship optionalprops  object = SimpleObject1, SimpleObject2
+relationship timestamped    object = Object, SimpleObject1, ListObject, List, SimpleObject2
