@@ -224,7 +224,9 @@ template <typename T>
 struct Stencil::Mutators<Stencil::Transaction<T>,
                          std::enable_if_t<ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::List>>
 {
-    static void  add(Stencil::Transaction<T>& txn, auto&& obj) { txn.add(std::move(obj)); }
+    using ListObjType = typename ReflectionBase::TypeTraits<T&>::ListObjType;
+
+    static void  add(Stencil::Transaction<T>& txn, ListObjType&& obj) { txn.add(std::move(obj)); }
     static void  remove(Stencil::Transaction<T>& txn, size_t index) { txn.remove(index); }
     static auto& edit(Stencil::Transaction<T>& txn, size_t index) { return txn.edit(index); }
 };

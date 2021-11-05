@@ -139,16 +139,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::zzField_Namezz, _zzNamezz, val);
         _zzNamezz = std::move(val);
     }
-
-#if 0
-    //<FieldType_Mutator>
-    zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz&& args);
-    //</FieldType_Mutator>
-
-    //<FieldType_Accessor>
-    zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz const& args) const;
-    //</FieldType_Accessor>
-#endif
     //</Field>
 };
 
