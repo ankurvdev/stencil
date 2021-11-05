@@ -4,68 +4,73 @@
 #include "TestUtils.h"
 
 #include <stencil/datarecorder.h>
+#include <stencil/transactions.binserdes.h>
 
 #include <chrono>
 #include <cstdint>
 #include <functional>
 #include <span>
-#if 0
+
 static void RecordTrafficAdd(Avid::Traffic::Data& data, std::filesystem::path const& recordlog, uint8_t hexaddr)
 {
-    Stencil::FileTransactionRecorder<Avid::Traffic::Data> recorder(recordlog);
+    Stencil::DataRecorder<Avid::Traffic::Data> recorder(recordlog);
 
-    {
-        Avid::Aircraft::Data aircraft;
-        aircraft.set_hexaddr({hexaddr, hexaddr, hexaddr, hexaddr, hexaddr, hexaddr, hexaddr});
+    Avid::Aircraft::Data aircraft;
+    aircraft.set_hexaddr({hexaddr, hexaddr, hexaddr, hexaddr, hexaddr, hexaddr, hexaddr});
 
-        recorder.Start(data).add_aircrafts(std::move(aircraft));
-    }
+    Stencil::Transaction<Avid::Traffic::Data> txn(data);
+    txn.add_aircrafts(std::move(aircraft));
+    recorder.Record(txn);
 }
 
 static void RecordTrafficRemoveIndex(Avid::Traffic::Data& data, std::filesystem::path const& recordlog, size_t index)
 {
-    Stencil::FileTransactionRecorder<Avid::Traffic::Data> recorder(recordlog);
+    Stencil::DataRecorder<Avid::Traffic::Data> recorder(recordlog);
+    Stencil::Transaction<Avid::Traffic::Data>  txn(data);
 
-    recorder.Start(data).remove_aircrafts(size_t{index});
+    txn.remove_aircrafts(size_t{index});
+    recorder.Record(txn);
 }
 
 static void RecordTrafficEdit(Avid::Traffic::Data& data, std::filesystem::path const& recordlog, uint8_t hexaddr)
 {
-    Stencil::FileTransactionRecorder<Avid::Traffic::Data> recorder(recordlog);
+    Stencil::DataRecorder<Avid::Traffic::Data> recorder(recordlog);
+    Stencil::Transaction<Avid::Traffic::Data>  txn(data);
 
-    auto ctx = recorder.Start(data);
-    {
-        auto subctx = ctx.edit_aircrafts(0);
-        subctx.set_hexaddr({hexaddr, hexaddr, hexaddr, hexaddr, hexaddr, hexaddr, hexaddr});
-    }
+    auto& subctx = txn.edit_aircrafts(0);
+    subctx.set_hexaddr({hexaddr, hexaddr, hexaddr, hexaddr, hexaddr, hexaddr, hexaddr});
+    recorder.Record(txn);
 }
 
 static void RecordChangeGPSClimb(std::filesystem::path const& recordlog, double value)
 {
-    Stencil::FileTransactionRecorder<Avid::GPS::Data> recorder(recordlog);
-    Avid::GPS::Data                                   data;
-    recorder.Start(data).set_climb(double{value});
-}
+    Stencil::DataRecorder<Avid::GPS::Data> recorder(recordlog);
+    Avid::GPS::Data                        data;
 
-#if 0
+    Stencil::Transaction<Avid::GPS::Data> txn(data);
+    txn.set_climb(double{value});
+    recorder.Record(txn);
+}
+/*
 static void RecordChangeGPSSpeed(std::filesystem::path const& recordlog, double value)
 {
-    Avid::GPS::Data                        data;
     Stencil::DataRecorder<Avid::GPS::Data> recorder(recordlog);
-    auto                                   ctx = data.Edit();
-    ctx.set_speed(double{value});
-    recorder.Record(data, ctx);
-}
-#endif
+
+    Avid::GPS::Data                       data;
+    Stencil::Transaction<Avid::GPS::Data> txn(data);
+    txn.set_speed(double{value});
+    recorder.Record(txn);
+}*/
 
 static void RecordChangeGPSClimbAndSpeed(std::filesystem::path const& recordlog, double climb, double speed)
 {
-    Avid::GPS::Data                                   data;
-    Stencil::FileTransactionRecorder<Avid::GPS::Data> recorder(recordlog);
+    Stencil::DataRecorder<Avid::GPS::Data> recorder(recordlog);
 
-    auto ctx = recorder.Start(data);
-    ctx.set_speed(double{speed});
-    ctx.set_climb(double{climb});
+    Avid::GPS::Data                       data;
+    Stencil::Transaction<Avid::GPS::Data> txn(data);
+    txn.set_speed(double{speed});
+    txn.set_climb(double{climb});
+    recorder.Record(txn);
 }
 
 TEST_CASE("DataRecorder", "[DataRecorder]")
@@ -176,4 +181,3 @@ TEST_CASE("DataRecorder", "[DataRecorder]")
 
     std::filesystem::remove(recordlog);
 }
-#endif

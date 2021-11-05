@@ -76,9 +76,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::randomInteger, _randomInteger, val);
         _randomInteger = std::move(val);
     }
-
-#if 0
-#endif
     private:
     shared_string _randomString = {};
 
@@ -95,9 +92,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::randomString, _randomString, val);
         _randomString = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace Data
@@ -347,6 +341,25 @@ struct Stencil::Transaction<SimpleWebService::Data::Data> : Stencil::Transaction
     {
         lambda("randomInteger", TData::FieldIndex::randomInteger, randomInteger(), Obj().randomInteger());
         lambda("randomString", TData::FieldIndex::randomString, randomString(), Obj().randomString());
+    }
+
+    void Flush()
+    {
+        randomInteger().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::randomInteger))
+        {
+            if (!randomInteger().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::randomInteger));
+        }
+
+        randomString().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::randomString))
+        {
+            if (!randomString().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::randomString));
+        }
+
+        Stencil::TransactionT<SimpleWebService::Data::Data>::Flush_();
     }
 };
 

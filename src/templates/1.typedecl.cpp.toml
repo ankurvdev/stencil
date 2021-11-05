@@ -117,7 +117,7 @@ Args = "size_t"
 Id = 2
 
 [Containers.list.Mutators.edit]
-ReturnType = "Stencil::Transaction<%type:NativeType%>"
+ReturnType = "auto&"
 Args = "size_t"
 Id = 3
 

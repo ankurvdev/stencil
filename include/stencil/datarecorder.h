@@ -54,9 +54,10 @@ template <typename... Ts> struct DataPlayerT : std::enable_shared_from_this<Data
         return val;
     }
 
-    template <typename T> auto ReadChangeDescAndNotify(T& /* obj */, std::span<const uint8_t>::iterator const& /* dataIt */)
+    template <typename T> void ReadChangeDescAndNotify(T& obj, std::istream& ostrm)
     {
-        throw std::logic_error("Not implemented");
+        Stencil::Transaction<T> txn(obj);
+        Stencil::BinaryTransactionSerDes::Apply(txn, ostrm);
     }
 
     void _ThreadFunc()
@@ -71,14 +72,8 @@ template <typename... Ts> struct DataPlayerT : std::enable_shared_from_this<Data
             if (!_file.good() || _file.tellg() == length) { return; }
             std::this_thread::sleep_for(std::chrono::microseconds{read<std::chrono::microseconds::rep>(_file)});
             {
-                size_t               index = read<uint8_t>(_file);
-                auto                 bytes = read<uint16_t>(_file);
-                std::vector<uint8_t> data(bytes);
-                _file.read(reinterpret_cast<char*>(data.data()), bytes);
-                std::span<const uint8_t> dataSpan(data);
-                auto                     it = dataSpan.begin();
-                VisitAt(_data, index, [&](auto& arg) { it = ReadChangeDescAndNotify<std::remove_reference_t<decltype(arg)>>(arg, it); });
-
+                size_t index = read<uint8_t>(_file);
+                VisitAt(_data, index, [&](auto& arg) { ReadChangeDescAndNotify(arg, _file); });
                 {
                     auto lock = std::unique_lock<std::mutex>(_mutex);
                     _counter++;
@@ -124,7 +119,7 @@ template <typename... Ts> struct DataRecorder
     }
 
     // void OnChanged(LockT const& /*lock*/, TransactionT const& /*ctx*/, T const& /*data*/) override { TODO(); }
-    template <typename T> void Record(Transaction<T> const& ctx)
+    template <typename T> void Record(Transaction<T>& ctx)
     {
         if (!ctx.IsChanged()) { return; }
 
@@ -133,11 +128,11 @@ template <typename... Ts> struct DataRecorder
         auto delta   = now - _init_time;
         auto deltaus = std::chrono::duration_cast<std::chrono::microseconds>(delta).count();
 
-        _lastnotif           = now;
+        _lastnotif = now;
         (*this) << deltaus << static_cast<uint8_t>(IndexOf<T, Ts...>());
         Stencil::BinaryTransactionSerDes::Deserialize(ctx, *_ost);
 
-         //<< static_cast<uint16_t>(serializedPatch.size()) << serializedPatch;
+        //<< static_cast<uint16_t>(serializedPatch.size()) << serializedPatch;
     }
 
     std::chrono::system_clock::time_point _init_time = std::chrono::system_clock::now();

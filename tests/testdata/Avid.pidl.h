@@ -166,9 +166,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::heading, _heading, val);
         _heading = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _lat = {};
 
@@ -185,9 +182,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::lat, _lat, val);
         _lat = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _lon = {};
 
@@ -204,9 +198,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::lon, _lon, val);
         _lon = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _speed = {};
 
@@ -223,9 +214,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::speed, _speed, val);
         _speed = std::move(val);
     }
-
-#if 0
-#endif
     private:
     timestamp _utc = {};
 
@@ -242,9 +230,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::utc, _utc, val);
         _utc = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _galt = {};
 
@@ -261,9 +246,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::galt, _galt, val);
         _galt = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _climb = {};
 
@@ -280,9 +262,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::climb, _climb, val);
         _climb = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _epx = {};
 
@@ -299,9 +278,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::epx, _epx, val);
         _epx = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _epy = {};
 
@@ -318,9 +294,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::epy, _epy, val);
         _epy = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _epv = {};
 
@@ -337,9 +310,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::epv, _epv, val);
         _epv = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _ept = {};
 
@@ -356,9 +326,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ept, _ept, val);
         _ept = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _eps = {};
 
@@ -375,9 +342,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::eps, _eps, val);
         _eps = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _epc = {};
 
@@ -394,9 +358,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::epc, _epc, val);
         _epc = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _eph = {};
 
@@ -413,9 +374,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::eph, _eph, val);
         _eph = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _sep = {};
 
@@ -432,9 +390,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::sep, _sep, val);
         _sep = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace GPS
@@ -556,9 +511,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::seen, _seen, val);
         _seen = std::move(val);
     }
-
-#if 0
-#endif
     private:
     uint32_t _addr = {};
 
@@ -575,9 +527,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::addr, _addr, val);
         _addr = std::move(val);
     }
-
-#if 0
-#endif
     private:
     std::array<uint8_t, 7> _hexaddr = {};
 
@@ -594,10 +543,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::hexaddr, _hexaddr, val);
         _hexaddr = std::move(val);
     }
-
-#if 0
-    uint8_t at_hexaddr(size_t const& args) const;
-#endif
     private:
     std::array<char, 9> _flight = {};
 
@@ -614,10 +559,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::flight, _flight, val);
         _flight = std::move(val);
     }
-
-#if 0
-    char at_flight(size_t const& args) const;
-#endif
     private:
     int32_t _altitude = {};
 
@@ -634,9 +575,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::altitude, _altitude, val);
         _altitude = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int32_t _groundSpeed = {};
 
@@ -653,9 +591,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::groundSpeed, _groundSpeed, val);
         _groundSpeed = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int32_t _track = {};
 
@@ -672,9 +607,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::track, _track, val);
         _track = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _lat = {};
 
@@ -691,9 +623,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::lat, _lat, val);
         _lat = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _lon = {};
 
@@ -710,9 +639,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::lon, _lon, val);
         _lon = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int32_t _verticalRate = {};
 
@@ -729,9 +655,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::verticalRate, _verticalRate, val);
         _verticalRate = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int32_t _messageCount = {};
 
@@ -748,9 +671,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::messageCount, _messageCount, val);
         _messageCount = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int32_t _odd_cprlat = {};
 
@@ -767,9 +687,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::odd_cprlat, _odd_cprlat, val);
         _odd_cprlat = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int32_t _odd_cprlon = {};
 
@@ -786,9 +703,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::odd_cprlon, _odd_cprlon, val);
         _odd_cprlon = std::move(val);
     }
-
-#if 0
-#endif
     private:
     timestamp _odd_cprtime = {};
 
@@ -805,9 +719,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::odd_cprtime, _odd_cprtime, val);
         _odd_cprtime = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int32_t _even_cprlat = {};
 
@@ -824,9 +735,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::even_cprlat, _even_cprlat, val);
         _even_cprlat = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int32_t _even_cprlon = {};
 
@@ -843,9 +751,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::even_cprlon, _even_cprlon, val);
         _even_cprlon = std::move(val);
     }
-
-#if 0
-#endif
     private:
     timestamp _even_cprtime = {};
 
@@ -862,9 +767,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::even_cprtime, _even_cprtime, val);
         _even_cprtime = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace Aircraft
@@ -922,13 +824,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::aircrafts, _aircrafts, val);
         _aircrafts = std::move(val);
     }
-
-#if 0
-    void add_aircrafts(::Avid::Aircraft::Data&& args);
-    void remove_aircrafts(size_t&& args);
-    Stencil::Transaction<::Avid::Aircraft::Data> edit_aircrafts(size_t&& args);
-    ::Avid::Aircraft::Data at_aircrafts(size_t const& args) const;
-#endif
 };
 
 }    // namespace Traffic
@@ -1054,9 +949,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::mag_x, _mag_x, val);
         _mag_x = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int64_t _mag_y = {};
 
@@ -1073,9 +965,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::mag_y, _mag_y, val);
         _mag_y = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int64_t _mag_z = {};
 
@@ -1092,9 +981,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::mag_z, _mag_z, val);
         _mag_z = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int64_t _acc_x = {};
 
@@ -1111,9 +997,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::acc_x, _acc_x, val);
         _acc_x = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int64_t _acc_y = {};
 
@@ -1130,9 +1013,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::acc_y, _acc_y, val);
         _acc_y = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int64_t _acc_z = {};
 
@@ -1149,9 +1029,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::acc_z, _acc_z, val);
         _acc_z = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int64_t _rot_x = {};
 
@@ -1168,9 +1045,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::rot_x, _rot_x, val);
         _rot_x = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int64_t _rot_y = {};
 
@@ -1187,9 +1061,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::rot_y, _rot_y, val);
         _rot_y = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int64_t _rot_z = {};
 
@@ -1206,9 +1077,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::rot_z, _rot_z, val);
         _rot_z = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _dmag_x = {};
 
@@ -1225,9 +1093,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::dmag_x, _dmag_x, val);
         _dmag_x = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _dmag_y = {};
 
@@ -1244,9 +1109,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::dmag_y, _dmag_y, val);
         _dmag_y = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _dmag_z = {};
 
@@ -1263,9 +1125,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::dmag_z, _dmag_z, val);
         _dmag_z = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _dacc_x = {};
 
@@ -1282,9 +1141,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::dacc_x, _dacc_x, val);
         _dacc_x = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _dacc_y = {};
 
@@ -1301,9 +1157,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::dacc_y, _dacc_y, val);
         _dacc_y = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _dacc_z = {};
 
@@ -1320,9 +1173,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::dacc_z, _dacc_z, val);
         _dacc_z = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _drot_x = {};
 
@@ -1339,9 +1189,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::drot_x, _drot_x, val);
         _drot_x = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _drot_y = {};
 
@@ -1358,9 +1205,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::drot_y, _drot_y, val);
         _drot_y = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _drot_z = {};
 
@@ -1377,9 +1221,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::drot_z, _drot_z, val);
         _drot_z = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace Motion
@@ -1442,9 +1283,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::pressure, _pressure, val);
         _pressure = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _temperature = {};
 
@@ -1461,9 +1299,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::temperature, _temperature, val);
         _temperature = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace Pressure
@@ -2091,6 +1926,116 @@ struct Stencil::Transaction<Avid::GPS::Data> : Stencil::TransactionT<Avid::GPS::
         lambda("epc", TData::FieldIndex::epc, epc(), Obj().epc());
         lambda("eph", TData::FieldIndex::eph, eph(), Obj().eph());
         lambda("sep", TData::FieldIndex::sep, sep(), Obj().sep());
+    }
+
+    void Flush()
+    {
+        heading().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::heading))
+        {
+            if (!heading().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::heading));
+        }
+
+        lat().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::lat))
+        {
+            if (!lat().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::lat));
+        }
+
+        lon().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::lon))
+        {
+            if (!lon().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::lon));
+        }
+
+        speed().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::speed))
+        {
+            if (!speed().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::speed));
+        }
+
+        utc().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::utc))
+        {
+            if (!utc().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::utc));
+        }
+
+        galt().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::galt))
+        {
+            if (!galt().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::galt));
+        }
+
+        climb().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::climb))
+        {
+            if (!climb().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::climb));
+        }
+
+        epx().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::epx))
+        {
+            if (!epx().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::epx));
+        }
+
+        epy().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::epy))
+        {
+            if (!epy().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::epy));
+        }
+
+        epv().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::epv))
+        {
+            if (!epv().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::epv));
+        }
+
+        ept().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::ept))
+        {
+            if (!ept().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::ept));
+        }
+
+        eps().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::eps))
+        {
+            if (!eps().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::eps));
+        }
+
+        epc().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::epc))
+        {
+            if (!epc().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::epc));
+        }
+
+        eph().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::eph))
+        {
+            if (!eph().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::eph));
+        }
+
+        sep().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::sep))
+        {
+            if (!sep().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::sep));
+        }
+
+        Stencil::TransactionT<Avid::GPS::Data>::Flush_();
     }
 };
 
@@ -2915,6 +2860,130 @@ struct Stencil::Transaction<Avid::Aircraft::Data> : Stencil::TransactionT<Avid::
         lambda("even_cprlon", TData::FieldIndex::even_cprlon, even_cprlon(), Obj().even_cprlon());
         lambda("even_cprtime", TData::FieldIndex::even_cprtime, even_cprtime(), Obj().even_cprtime());
     }
+
+    void Flush()
+    {
+        seen().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::seen))
+        {
+            if (!seen().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::seen));
+        }
+
+        addr().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::addr))
+        {
+            if (!addr().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::addr));
+        }
+
+        hexaddr().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::hexaddr))
+        {
+            if (!hexaddr().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::hexaddr));
+        }
+
+        flight().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::flight))
+        {
+            if (!flight().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::flight));
+        }
+
+        altitude().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::altitude))
+        {
+            if (!altitude().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::altitude));
+        }
+
+        groundSpeed().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::groundSpeed))
+        {
+            if (!groundSpeed().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::groundSpeed));
+        }
+
+        track().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::track))
+        {
+            if (!track().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::track));
+        }
+
+        lat().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::lat))
+        {
+            if (!lat().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::lat));
+        }
+
+        lon().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::lon))
+        {
+            if (!lon().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::lon));
+        }
+
+        verticalRate().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::verticalRate))
+        {
+            if (!verticalRate().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::verticalRate));
+        }
+
+        messageCount().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::messageCount))
+        {
+            if (!messageCount().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::messageCount));
+        }
+
+        odd_cprlat().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::odd_cprlat))
+        {
+            if (!odd_cprlat().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::odd_cprlat));
+        }
+
+        odd_cprlon().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::odd_cprlon))
+        {
+            if (!odd_cprlon().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::odd_cprlon));
+        }
+
+        odd_cprtime().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::odd_cprtime))
+        {
+            if (!odd_cprtime().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::odd_cprtime));
+        }
+
+        even_cprlat().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::even_cprlat))
+        {
+            if (!even_cprlat().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::even_cprlat));
+        }
+
+        even_cprlon().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::even_cprlon))
+        {
+            if (!even_cprlon().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::even_cprlon));
+        }
+
+        even_cprtime().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::even_cprtime))
+        {
+            if (!even_cprtime().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::even_cprtime));
+        }
+
+        Stencil::TransactionT<Avid::Aircraft::Data>::Flush_();
+    }
 };
 
 template <>
@@ -3124,20 +3193,17 @@ struct Stencil::Transaction<Avid::Traffic::Data> : Stencil::TransactionT<Avid::T
     void add_aircrafts(::Avid::Aircraft::Data&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::aircrafts);
-        aircrafts().RecordMutation_add_(args);
-        return Stencil::Mutators<std::vector<::Avid::Aircraft::Data>>::add(Obj().aircrafts(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(aircrafts())>>::add(aircrafts(), std::move(args));
     }
     void remove_aircrafts(size_t&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::aircrafts);
-        aircrafts().RecordMutation_remove_(args);
-        return Stencil::Mutators<std::vector<::Avid::Aircraft::Data>>::remove(Obj().aircrafts(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(aircrafts())>>::remove(aircrafts(), std::move(args));
     }
-    Stencil::Transaction<::Avid::Aircraft::Data> edit_aircrafts(size_t&& args)
+    auto& edit_aircrafts(size_t&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::aircrafts);
-        aircrafts().RecordMutation_edit_(args);
-        return Stencil::Mutators<std::vector<::Avid::Aircraft::Data>>::edit(Obj().aircrafts(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(aircrafts())>>::edit(aircrafts(), std::move(args));
     }
     template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
     {
@@ -3157,6 +3223,18 @@ struct Stencil::Transaction<Avid::Traffic::Data> : Stencil::TransactionT<Avid::T
     template <typename TLambda> void VisitAll(TLambda&& lambda)
     {
         lambda("aircrafts", TData::FieldIndex::aircrafts, aircrafts(), Obj().aircrafts());
+    }
+
+    void Flush()
+    {
+        aircrafts().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::aircrafts))
+        {
+            if (!aircrafts().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::aircrafts));
+        }
+
+        Stencil::TransactionT<Avid::Traffic::Data>::Flush_();
     }
 };
 
@@ -3949,6 +4027,137 @@ struct Stencil::Transaction<Avid::Motion::Data> : Stencil::TransactionT<Avid::Mo
         lambda("drot_y", TData::FieldIndex::drot_y, drot_y(), Obj().drot_y());
         lambda("drot_z", TData::FieldIndex::drot_z, drot_z(), Obj().drot_z());
     }
+
+    void Flush()
+    {
+        mag_x().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::mag_x))
+        {
+            if (!mag_x().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::mag_x));
+        }
+
+        mag_y().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::mag_y))
+        {
+            if (!mag_y().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::mag_y));
+        }
+
+        mag_z().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::mag_z))
+        {
+            if (!mag_z().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::mag_z));
+        }
+
+        acc_x().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::acc_x))
+        {
+            if (!acc_x().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::acc_x));
+        }
+
+        acc_y().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::acc_y))
+        {
+            if (!acc_y().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::acc_y));
+        }
+
+        acc_z().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::acc_z))
+        {
+            if (!acc_z().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::acc_z));
+        }
+
+        rot_x().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::rot_x))
+        {
+            if (!rot_x().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::rot_x));
+        }
+
+        rot_y().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::rot_y))
+        {
+            if (!rot_y().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::rot_y));
+        }
+
+        rot_z().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::rot_z))
+        {
+            if (!rot_z().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::rot_z));
+        }
+
+        dmag_x().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::dmag_x))
+        {
+            if (!dmag_x().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::dmag_x));
+        }
+
+        dmag_y().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::dmag_y))
+        {
+            if (!dmag_y().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::dmag_y));
+        }
+
+        dmag_z().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::dmag_z))
+        {
+            if (!dmag_z().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::dmag_z));
+        }
+
+        dacc_x().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::dacc_x))
+        {
+            if (!dacc_x().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::dacc_x));
+        }
+
+        dacc_y().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::dacc_y))
+        {
+            if (!dacc_y().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::dacc_y));
+        }
+
+        dacc_z().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::dacc_z))
+        {
+            if (!dacc_z().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::dacc_z));
+        }
+
+        drot_x().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::drot_x))
+        {
+            if (!drot_x().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::drot_x));
+        }
+
+        drot_y().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::drot_y))
+        {
+            if (!drot_y().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::drot_y));
+        }
+
+        drot_z().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::drot_z))
+        {
+            if (!drot_z().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::drot_z));
+        }
+
+        Stencil::TransactionT<Avid::Motion::Data>::Flush_();
+    }
 };
 
 template <>
@@ -4216,6 +4425,25 @@ struct Stencil::Transaction<Avid::Pressure::Data> : Stencil::TransactionT<Avid::
     {
         lambda("pressure", TData::FieldIndex::pressure, pressure(), Obj().pressure());
         lambda("temperature", TData::FieldIndex::temperature, temperature(), Obj().temperature());
+    }
+
+    void Flush()
+    {
+        pressure().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::pressure))
+        {
+            if (!pressure().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::pressure));
+        }
+
+        temperature().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::temperature))
+        {
+            if (!temperature().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::temperature));
+        }
+
+        Stencil::TransactionT<Avid::Pressure::Data>::Flush_();
     }
 };
 

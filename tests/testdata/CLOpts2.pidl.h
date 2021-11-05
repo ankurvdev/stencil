@@ -147,9 +147,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
-
-#if 0
-#endif
     private:
     bool _Repair = 0;
 
@@ -166,9 +163,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::Repair, _Repair, val);
         _Repair = std::move(val);
     }
-
-#if 0
-#endif
     private:
     bool _ForceNonSD = 0;
 
@@ -185,9 +179,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ForceNonSD, _ForceNonSD, val);
         _ForceNonSD = std::move(val);
     }
-
-#if 0
-#endif
     private:
     shared_string _TargetVolume = "";
 
@@ -204,9 +195,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::TargetVolume, _TargetVolume, val);
         _TargetVolume = std::move(val);
     }
-
-#if 0
-#endif
     private:
     shared_string _User = "";
 
@@ -223,9 +211,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::User, _User, val);
         _User = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace InstallOptions
@@ -283,9 +268,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace QueueOptions
@@ -343,9 +325,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace PauseOptions
@@ -403,9 +382,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace CancelOptions
@@ -463,9 +439,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace ResumeOptions
@@ -523,9 +496,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace UpdateOptions
@@ -583,9 +553,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::ProductId, _ProductId, val);
         _ProductId = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace HydrateOptions
@@ -1007,6 +974,46 @@ struct Stencil::Transaction<CLOpts2::InstallOptions::Data> : Stencil::Transactio
         lambda("TargetVolume", TData::FieldIndex::TargetVolume, TargetVolume(), Obj().TargetVolume());
         lambda("User", TData::FieldIndex::User, User(), Obj().User());
     }
+
+    void Flush()
+    {
+        ProductId().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::ProductId))
+        {
+            if (!ProductId().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::ProductId));
+        }
+
+        Repair().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::Repair))
+        {
+            if (!Repair().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::Repair));
+        }
+
+        ForceNonSD().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::ForceNonSD))
+        {
+            if (!ForceNonSD().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::ForceNonSD));
+        }
+
+        TargetVolume().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::TargetVolume))
+        {
+            if (!TargetVolume().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::TargetVolume));
+        }
+
+        User().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::User))
+        {
+            if (!User().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::User));
+        }
+
+        Stencil::TransactionT<CLOpts2::InstallOptions::Data>::Flush_();
+    }
 };
 
 template <>
@@ -1174,6 +1181,18 @@ struct Stencil::Transaction<CLOpts2::QueueOptions::Data> : Stencil::TransactionT
     {
         lambda("ProductId", TData::FieldIndex::ProductId, ProductId(), Obj().ProductId());
     }
+
+    void Flush()
+    {
+        ProductId().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::ProductId))
+        {
+            if (!ProductId().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::ProductId));
+        }
+
+        Stencil::TransactionT<CLOpts2::QueueOptions::Data>::Flush_();
+    }
 };
 
 template <>
@@ -1319,6 +1338,18 @@ struct Stencil::Transaction<CLOpts2::PauseOptions::Data> : Stencil::TransactionT
     template <typename TLambda> void VisitAll(TLambda&& lambda)
     {
         lambda("ProductId", TData::FieldIndex::ProductId, ProductId(), Obj().ProductId());
+    }
+
+    void Flush()
+    {
+        ProductId().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::ProductId))
+        {
+            if (!ProductId().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::ProductId));
+        }
+
+        Stencil::TransactionT<CLOpts2::PauseOptions::Data>::Flush_();
     }
 };
 
@@ -1466,6 +1497,18 @@ struct Stencil::Transaction<CLOpts2::CancelOptions::Data> : Stencil::Transaction
     {
         lambda("ProductId", TData::FieldIndex::ProductId, ProductId(), Obj().ProductId());
     }
+
+    void Flush()
+    {
+        ProductId().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::ProductId))
+        {
+            if (!ProductId().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::ProductId));
+        }
+
+        Stencil::TransactionT<CLOpts2::CancelOptions::Data>::Flush_();
+    }
 };
 
 template <>
@@ -1611,6 +1654,18 @@ struct Stencil::Transaction<CLOpts2::ResumeOptions::Data> : Stencil::Transaction
     template <typename TLambda> void VisitAll(TLambda&& lambda)
     {
         lambda("ProductId", TData::FieldIndex::ProductId, ProductId(), Obj().ProductId());
+    }
+
+    void Flush()
+    {
+        ProductId().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::ProductId))
+        {
+            if (!ProductId().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::ProductId));
+        }
+
+        Stencil::TransactionT<CLOpts2::ResumeOptions::Data>::Flush_();
     }
 };
 
@@ -1759,6 +1814,18 @@ struct Stencil::Transaction<CLOpts2::UpdateOptions::Data> : Stencil::Transaction
     {
         lambda("ProductId", TData::FieldIndex::ProductId, ProductId(), Obj().ProductId());
     }
+
+    void Flush()
+    {
+        ProductId().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::ProductId))
+        {
+            if (!ProductId().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::ProductId));
+        }
+
+        Stencil::TransactionT<CLOpts2::UpdateOptions::Data>::Flush_();
+    }
 };
 
 template <>
@@ -1904,6 +1971,18 @@ struct Stencil::Transaction<CLOpts2::HydrateOptions::Data> : Stencil::Transactio
     template <typename TLambda> void VisitAll(TLambda&& lambda)
     {
         lambda("ProductId", TData::FieldIndex::ProductId, ProductId(), Obj().ProductId());
+    }
+
+    void Flush()
+    {
+        ProductId().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::ProductId))
+        {
+            if (!ProductId().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::ProductId));
+        }
+
+        Stencil::TransactionT<CLOpts2::HydrateOptions::Data>::Flush_();
     }
 };
 

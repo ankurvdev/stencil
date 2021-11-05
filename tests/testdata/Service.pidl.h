@@ -100,9 +100,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::latitude, _latitude, val);
         _latitude = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int64_t _longitude = {};
 
@@ -119,9 +116,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::longitude, _longitude, val);
         _longitude = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace MapPoint
@@ -186,9 +180,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::type, _type, val);
         _type = std::move(val);
     }
-
-#if 0
-#endif
     private:
     shared_string _name = {};
 
@@ -205,9 +196,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::name, _name, val);
         _name = std::move(val);
     }
-
-#if 0
-#endif
     private:
     std::vector<::Service::MapPoint::Data> _areaPolygon = {};
 
@@ -224,9 +212,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::areaPolygon, _areaPolygon, val);
         _areaPolygon = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace GeographicalArea
@@ -303,9 +288,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::id, _id, val);
         _id = std::move(val);
     }
-
-#if 0
-#endif
     private:
     std::vector<shared_tree<shared_string>> _keywords = {};
 
@@ -322,9 +304,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::keywords, _keywords, val);
         _keywords = std::move(val);
     }
-
-#if 0
-#endif
     private:
     shared_tree<::Service::GeographicalArea::Data> _location = {};
 
@@ -341,9 +320,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::location, _location, val);
         _location = std::move(val);
     }
-
-#if 0
-#endif
     private:
     int64_t _md5sum = {};
 
@@ -360,9 +336,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::md5sum, _md5sum, val);
         _md5sum = std::move(val);
     }
-
-#if 0
-#endif
     private:
     shared_string _thumbnailBlob = {};
 
@@ -379,9 +352,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::thumbnailBlob, _thumbnailBlob, val);
         _thumbnailBlob = std::move(val);
     }
-
-#if 0
-#endif
     private:
     shared_string _fileUrl = {};
 
@@ -398,9 +368,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::fileUrl, _fileUrl, val);
         _fileUrl = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace DigitalAssetInfo
@@ -1454,6 +1421,25 @@ struct Stencil::Transaction<Service::MapPoint::Data> : Stencil::TransactionT<Ser
         lambda("latitude", TData::FieldIndex::latitude, latitude(), Obj().latitude());
         lambda("longitude", TData::FieldIndex::longitude, longitude(), Obj().longitude());
     }
+
+    void Flush()
+    {
+        latitude().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::latitude))
+        {
+            if (!latitude().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::latitude));
+        }
+
+        longitude().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::longitude))
+        {
+            if (!longitude().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::longitude));
+        }
+
+        Stencil::TransactionT<Service::MapPoint::Data>::Flush_();
+    }
 };
 
 template <>
@@ -1679,6 +1665,32 @@ struct Stencil::Transaction<Service::GeographicalArea::Data> : Stencil::Transact
         lambda("type", TData::FieldIndex::type, type(), Obj().type());
         lambda("name", TData::FieldIndex::name, name(), Obj().name());
         lambda("areaPolygon", TData::FieldIndex::areaPolygon, areaPolygon(), Obj().areaPolygon());
+    }
+
+    void Flush()
+    {
+        type().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::type))
+        {
+            if (!type().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::type));
+        }
+
+        name().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::name))
+        {
+            if (!name().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::name));
+        }
+
+        areaPolygon().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::areaPolygon))
+        {
+            if (!areaPolygon().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::areaPolygon));
+        }
+
+        Stencil::TransactionT<Service::GeographicalArea::Data>::Flush_();
     }
 };
 
@@ -2024,6 +2036,53 @@ struct Stencil::Transaction<Service::DigitalAssetInfo::Data> : Stencil::Transact
         lambda("md5sum", TData::FieldIndex::md5sum, md5sum(), Obj().md5sum());
         lambda("thumbnailBlob", TData::FieldIndex::thumbnailBlob, thumbnailBlob(), Obj().thumbnailBlob());
         lambda("fileUrl", TData::FieldIndex::fileUrl, fileUrl(), Obj().fileUrl());
+    }
+
+    void Flush()
+    {
+        id().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::id))
+        {
+            if (!id().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::id));
+        }
+
+        keywords().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::keywords))
+        {
+            if (!keywords().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::keywords));
+        }
+
+        location().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::location))
+        {
+            if (!location().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::location));
+        }
+
+        md5sum().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::md5sum))
+        {
+            if (!md5sum().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::md5sum));
+        }
+
+        thumbnailBlob().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::thumbnailBlob))
+        {
+            if (!thumbnailBlob().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::thumbnailBlob));
+        }
+
+        fileUrl().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::fileUrl))
+        {
+            if (!fileUrl().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::fileUrl));
+        }
+
+        Stencil::TransactionT<Service::DigitalAssetInfo::Data>::Flush_();
     }
 };
 

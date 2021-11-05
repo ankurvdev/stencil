@@ -71,8 +71,7 @@ struct Data :
     enum class FieldIndex
     {
         Invalid,
-        time
-,        val1
+        val1
 ,        val2
 ,        val3
 ,        val4
@@ -87,7 +86,6 @@ struct Data :
                + 1u
                + 1u
                + 1u
-               + 1u
             ;
     }
 
@@ -95,8 +93,6 @@ struct Data :
     {
         switch (index)
         {
-        case FieldIndex::time:
-            return ::ReflectionServices::EmptyAttributeValue(key);
         case FieldIndex::val1:
             return ::ReflectionServices::EmptyAttributeValue(key);
         case FieldIndex::val2:
@@ -115,25 +111,6 @@ struct Data :
     }
 
     private:
-    timestamp _time = {};
-
-    public:
-    timestamp&       time() { return _time; }
-    const timestamp& time() const { return _time; }
-    void                            time(timestamp&& val) { _time = std::move(val); }
-    timestamp&       get_time() { return _time; }
-
-    bool isset_time() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::time); }
-
-    void set_time(timestamp&& val)
-    {
-        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::time, _time, val);
-        _time = std::move(val);
-    }
-
-#if 0
-#endif
-    private:
     int32_t _val1 = {};
 
     public:
@@ -149,9 +126,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::val1, _val1, val);
         _val1 = std::move(val);
     }
-
-#if 0
-#endif
     private:
     uint32_t _val2 = {};
 
@@ -168,9 +142,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::val2, _val2, val);
         _val2 = std::move(val);
     }
-
-#if 0
-#endif
     private:
     uint8_t _val3 = {};
 
@@ -187,9 +158,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::val3, _val3, val);
         _val3 = std::move(val);
     }
-
-#if 0
-#endif
     private:
     shared_string _val4 = {};
 
@@ -206,9 +174,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::val4, _val4, val);
         _val4 = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _val5 = {};
 
@@ -225,9 +190,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::val5, _val5, val);
         _val5 = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace SimpleObject1
@@ -289,9 +251,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::value, _value, val);
         _value = std::move(val);
     }
-
-#if 0
-#endif
     private:
     ::Transactions::SimpleObject1::Data _obj1 = {};
 
@@ -308,9 +267,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::obj1, _obj1, val);
         _obj1 = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace ListObject
@@ -368,13 +324,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::listobj, _listobj, val);
         _listobj = std::move(val);
     }
-
-#if 0
-    void add_listobj(::Transactions::ListObject::Data&& args);
-    void remove_listobj(size_t&& args);
-    Stencil::Transaction<::Transactions::ListObject::Data> edit_listobj(size_t&& args);
-    ::Transactions::ListObject::Data at_listobj(size_t const& args) const;
-#endif
 };
 
 }    // namespace List
@@ -437,9 +386,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::val1, _val1, val);
         _val1 = std::move(val);
     }
-
-#if 0
-#endif
     private:
     double _val2 = {};
 
@@ -456,9 +402,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::val2, _val2, val);
         _val2 = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace SimpleObject2
@@ -466,6 +409,7 @@ namespace Object
 {
 
 struct Data :
+    public ::Stencil::TimestampedT<::Transactions::Object::Data>,
     public ReflectionBase::ObjMarker
 {
     /*template <typename...TArgs> Data(TArgs&& ... args)
@@ -527,9 +471,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::obj1, _obj1, val);
         _obj1 = std::move(val);
     }
-
-#if 0
-#endif
     private:
     ::Transactions::SimpleObject2::Data _obj2 = {};
 
@@ -546,9 +487,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::obj2, _obj2, val);
         _obj2 = std::move(val);
     }
-
-#if 0
-#endif
     private:
     ::Transactions::ListObject::Data _obj3 = {};
 
@@ -565,9 +503,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::obj3, _obj3, val);
         _obj3 = std::move(val);
     }
-
-#if 0
-#endif
     private:
     ::Transactions::List::Data _list1 = {};
 
@@ -584,9 +519,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::list1, _list1, val);
         _list1 = std::move(val);
     }
-
-#if 0
-#endif
 };
 
 }    // namespace Object
@@ -600,25 +532,6 @@ struct Data :
 // SECTION:
 template <> struct ReflectionBase::TypeTraits<Transactions::SimpleObject1::Data&>
 {
-    struct Traits_time
-    {
-        using TOwner     = Transactions::SimpleObject1::Data;
-        using TFieldType = timestamp;
-
-        static constexpr std::string_view Name() { return "time"; }
-
-        static constexpr auto TPropertyGetter() { return &TOwner::get_time; }
-        static constexpr auto TPropertySetter() { return &TOwner::set_time; }
-        static constexpr auto TAttributeValue(const std::string_view& key)
-        {
-            return TOwner::FieldAttributeValue(TOwner::FieldIndex::time, key);
-        }
-
-        static const ::ReflectionBase::Flags Flags()
-        {
-            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
-        }
-    };
     struct Traits_val1
     {
         using TOwner     = Transactions::SimpleObject1::Data;
@@ -725,7 +638,6 @@ template <> struct ReflectionBase::TypeTraits<Transactions::SimpleObject1::Data&
     static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
     {
         return true
-               && ReflectionBase::AreEqual(obj1.time(), obj2.time())
                && ReflectionBase::AreEqual(obj1.val1(), obj2.val1())
                && ReflectionBase::AreEqual(obj1.val2(), obj2.val2())
                && ReflectionBase::AreEqual(obj1.val3(), obj2.val3())
@@ -735,8 +647,7 @@ template <> struct ReflectionBase::TypeTraits<Transactions::SimpleObject1::Data&
     }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<Transactions::SimpleObject1::Data,
-                                                                 Traits_time
-,                                                                 Traits_val1
+                                                                 Traits_val1
 ,                                                                 Traits_val2
 ,                                                                 Traits_val3
 ,                                                                 Traits_val4
@@ -749,7 +660,6 @@ struct Stencil::Transaction<Transactions::SimpleObject1::Data> : Stencil::Transa
 {
     using TData = Transactions::SimpleObject1::Data;
 
-    Transaction<timestamp> _subtracker_time;
     Transaction<int32_t> _subtracker_val1;
     Transaction<uint32_t> _subtracker_val2;
     Transaction<uint8_t> _subtracker_val3;
@@ -759,8 +669,6 @@ struct Stencil::Transaction<Transactions::SimpleObject1::Data> : Stencil::Transa
 
     Transaction(TData& ptr) :
         Stencil::TransactionT<Transactions::SimpleObject1::Data>(ptr)
-        ,
-        _subtracker_time(Obj().time())
         ,
         _subtracker_val1(Obj().val1())
         ,
@@ -773,11 +681,6 @@ struct Stencil::Transaction<Transactions::SimpleObject1::Data> : Stencil::Transa
         _subtracker_val5(Obj().val5())
     {}
 
-    auto& time()
-    {
-        MarkFieldEdited_(TData::FieldIndex::time);
-        return _subtracker_time;
-    }
     auto& val1()
     {
         MarkFieldEdited_(TData::FieldIndex::val1);
@@ -803,12 +706,6 @@ struct Stencil::Transaction<Transactions::SimpleObject1::Data> : Stencil::Transa
         MarkFieldEdited_(TData::FieldIndex::val5);
         return _subtracker_val5;
     }
-    void set_time(timestamp&& val)
-    {
-        MarkFieldAssigned_(TData::FieldIndex::time, Obj().time(), val);
-        Obj().set_time(std::move(val));
-    }
-
     void set_val1(int32_t&& val)
     {
         MarkFieldAssigned_(TData::FieldIndex::val1, Obj().val1(), val);
@@ -843,7 +740,6 @@ struct Stencil::Transaction<Transactions::SimpleObject1::Data> : Stencil::Transa
     {
         switch (index)
         {
-        case TData::FieldIndex::time: return lambda("time", time()); return;
         case TData::FieldIndex::val1: return lambda("val1", val1()); return;
         case TData::FieldIndex::val2: return lambda("val2", val2()); return;
         case TData::FieldIndex::val3: return lambda("val3", val3()); return;
@@ -855,7 +751,6 @@ struct Stencil::Transaction<Transactions::SimpleObject1::Data> : Stencil::Transa
 
     template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
     {
-        if (fieldName == "time") { return lambda(TData::FieldIndex::time, time()); }
         if (fieldName == "val1") { return lambda(TData::FieldIndex::val1, val1()); }
         if (fieldName == "val2") { return lambda(TData::FieldIndex::val2, val2()); }
         if (fieldName == "val3") { return lambda(TData::FieldIndex::val3, val3()); }
@@ -866,12 +761,51 @@ struct Stencil::Transaction<Transactions::SimpleObject1::Data> : Stencil::Transa
 
     template <typename TLambda> void VisitAll(TLambda&& lambda)
     {
-        lambda("time", TData::FieldIndex::time, time(), Obj().time());
         lambda("val1", TData::FieldIndex::val1, val1(), Obj().val1());
         lambda("val2", TData::FieldIndex::val2, val2(), Obj().val2());
         lambda("val3", TData::FieldIndex::val3, val3(), Obj().val3());
         lambda("val4", TData::FieldIndex::val4, val4(), Obj().val4());
         lambda("val5", TData::FieldIndex::val5, val5(), Obj().val5());
+    }
+
+    void Flush()
+    {
+        val1().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::val1))
+        {
+            if (!val1().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::val1));
+        }
+
+        val2().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::val2))
+        {
+            if (!val2().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::val2));
+        }
+
+        val3().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::val3))
+        {
+            if (!val3().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::val3));
+        }
+
+        val4().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::val4))
+        {
+            if (!val4().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::val4));
+        }
+
+        val5().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::val5))
+        {
+            if (!val5().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::val5));
+        }
+
+        Stencil::TransactionT<Transactions::SimpleObject1::Data>::Flush_();
     }
 };
 
@@ -886,7 +820,6 @@ struct Stencil::Visitor<Transactions::SimpleObject1::Data, void> : Stencil::Visi
     {
         switch (index)
         {
-        case TData::FieldIndex::time: lambda("time", _ref.get().time()); return;
         case TData::FieldIndex::val1: lambda("val1", _ref.get().val1()); return;
         case TData::FieldIndex::val2: lambda("val2", _ref.get().val2()); return;
         case TData::FieldIndex::val3: lambda("val3", _ref.get().val3()); return;
@@ -900,7 +833,6 @@ struct Stencil::Visitor<Transactions::SimpleObject1::Data, void> : Stencil::Visi
     {
         switch (index)
         {
-        case TData::FieldIndex::time: lambda("time", _ref.get().time()); return;
         case TData::FieldIndex::val1: lambda("val1", _ref.get().val1()); return;
         case TData::FieldIndex::val2: lambda("val2", _ref.get().val2()); return;
         case TData::FieldIndex::val3: lambda("val3", _ref.get().val3()); return;
@@ -912,7 +844,6 @@ struct Stencil::Visitor<Transactions::SimpleObject1::Data, void> : Stencil::Visi
 
     template <typename TLambda> void VisitAll(TLambda&& lambda) const
     {
-        lambda("time", _ref.get().time());
         lambda("val1", _ref.get().val1());
         lambda("val2", _ref.get().val2());
         lambda("val3", _ref.get().val3());
@@ -935,7 +866,6 @@ struct Stencil::Visitor<const Transactions::SimpleObject1::Data, void>
     {
         switch (index)
         {
-        case TData::FieldIndex::time: lambda("time", _ref.get().time()); return;
         case TData::FieldIndex::val1: lambda("val1", _ref.get().val1()); return;
         case TData::FieldIndex::val2: lambda("val2", _ref.get().val2()); return;
         case TData::FieldIndex::val3: lambda("val3", _ref.get().val3()); return;
@@ -947,7 +877,6 @@ struct Stencil::Visitor<const Transactions::SimpleObject1::Data, void>
 
     template <typename TLambda> void VisitAll(TLambda&& lambda) const
     {
-        lambda("time", _ref.get().time());
         lambda("val1", _ref.get().val1());
         lambda("val2", _ref.get().val2());
         lambda("val3", _ref.get().val3());
@@ -1080,6 +1009,25 @@ struct Stencil::Transaction<Transactions::ListObject::Data> : Stencil::Transacti
     {
         lambda("value", TData::FieldIndex::value, value(), Obj().value());
         lambda("obj1", TData::FieldIndex::obj1, obj1(), Obj().obj1());
+    }
+
+    void Flush()
+    {
+        value().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::value))
+        {
+            if (!value().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::value));
+        }
+
+        obj1().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::obj1))
+        {
+            if (!obj1().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::obj1));
+        }
+
+        Stencil::TransactionT<Transactions::ListObject::Data>::Flush_();
     }
 };
 
@@ -1215,20 +1163,17 @@ struct Stencil::Transaction<Transactions::List::Data> : Stencil::TransactionT<Tr
     void add_listobj(::Transactions::ListObject::Data&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::listobj);
-        listobj().RecordMutation_add_(args);
-        return Stencil::Mutators<std::vector<::Transactions::ListObject::Data>>::add(Obj().listobj(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(listobj())>>::add(listobj(), std::move(args));
     }
     void remove_listobj(size_t&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::listobj);
-        listobj().RecordMutation_remove_(args);
-        return Stencil::Mutators<std::vector<::Transactions::ListObject::Data>>::remove(Obj().listobj(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(listobj())>>::remove(listobj(), std::move(args));
     }
-    Stencil::Transaction<::Transactions::ListObject::Data> edit_listobj(size_t&& args)
+    auto& edit_listobj(size_t&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::listobj);
-        listobj().RecordMutation_edit_(args);
-        return Stencil::Mutators<std::vector<::Transactions::ListObject::Data>>::edit(Obj().listobj(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(listobj())>>::edit(listobj(), std::move(args));
     }
     template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
     {
@@ -1248,6 +1193,18 @@ struct Stencil::Transaction<Transactions::List::Data> : Stencil::TransactionT<Tr
     template <typename TLambda> void VisitAll(TLambda&& lambda)
     {
         lambda("listobj", TData::FieldIndex::listobj, listobj(), Obj().listobj());
+    }
+
+    void Flush()
+    {
+        listobj().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::listobj))
+        {
+            if (!listobj().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::listobj));
+        }
+
+        Stencil::TransactionT<Transactions::List::Data>::Flush_();
     }
 };
 
@@ -1431,6 +1388,25 @@ struct Stencil::Transaction<Transactions::SimpleObject2::Data> : Stencil::Transa
     {
         lambda("val1", TData::FieldIndex::val1, val1(), Obj().val1());
         lambda("val2", TData::FieldIndex::val2, val2(), Obj().val2());
+    }
+
+    void Flush()
+    {
+        val1().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::val1))
+        {
+            if (!val1().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::val1));
+        }
+
+        val2().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::val2))
+        {
+            if (!val2().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::val2));
+        }
+
+        Stencil::TransactionT<Transactions::SimpleObject2::Data>::Flush_();
     }
 };
 
@@ -1695,6 +1671,39 @@ struct Stencil::Transaction<Transactions::Object::Data> : Stencil::TransactionT<
         lambda("obj2", TData::FieldIndex::obj2, obj2(), Obj().obj2());
         lambda("obj3", TData::FieldIndex::obj3, obj3(), Obj().obj3());
         lambda("list1", TData::FieldIndex::list1, list1(), Obj().list1());
+    }
+
+    void Flush()
+    {
+        obj1().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::obj1))
+        {
+            if (!obj1().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::obj1));
+        }
+
+        obj2().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::obj2))
+        {
+            if (!obj2().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::obj2));
+        }
+
+        obj3().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::obj3))
+        {
+            if (!obj3().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::obj3));
+        }
+
+        list1().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::list1))
+        {
+            if (!list1().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::list1));
+        }
+
+        Stencil::TransactionT<Transactions::Object::Data>::Flush_();
     }
 };
 

@@ -139,16 +139,6 @@ struct Data :
         Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::zzField_Namezz, _zzNamezz, val);
         _zzNamezz = std::move(val);
     }
-
-#if 0
-    //<FieldType_Mutator>
-    zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz&& args);
-    //</FieldType_Mutator>
-
-    //<FieldType_Accessor>
-    zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz const& args) const;
-    //</FieldType_Accessor>
-#endif
     //</Field>
 };
 
@@ -477,8 +467,7 @@ struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz::Data> : Stencil::
     zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz&& args)
     {
         MarkFieldEdited_(TData::FieldIndex::zzField_Namezz);
-        zzField_Namezz().RecordMutation_zzNamezz_(args);
-        return Stencil::Mutators<zzField_FieldType_NativeTypezz>::zzNamezz(Obj().zzField_Namezz(), std::move(args));
+        return Stencil::Mutators<std::remove_reference_t<decltype(zzField_Namezz())>>::zzNamezz(zzField_Namezz(), std::move(args));
     }
     //</FieldType_Mutator>
     //</Field>
@@ -507,6 +496,21 @@ struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz::Data> : Stencil::
         //<Field>
         lambda("zzNamezz", TData::FieldIndex::zzNamezz, zzNamezz(), Obj().zzNamezz());
         //</Field>
+    }
+
+    void Flush()
+    {
+        //<Field>
+        zzNamezz().Flush();
+
+        if (IsFieldEdited(TData::FieldIndex::zzNamezz))
+        {
+            if (!zzNamezz().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::zzNamezz));
+        }
+
+        //</Field>
+
+        Stencil::TransactionT<zzProgram_Namezz::zzStruct_Namezz::Data>::Flush_();
     }
 };
 

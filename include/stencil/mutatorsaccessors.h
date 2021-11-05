@@ -4,9 +4,9 @@
 
 namespace Stencil
 {
-template <typename T> struct Mutators;
+template <typename T, typename _Ts = void> struct Mutators;
 
-template <typename T> struct Accessors;
+template <typename T, typename _Ts = void> struct Accessors;
 
 template <typename T> struct Mutators<std::vector<T>>
 {
@@ -18,10 +18,7 @@ template <typename T> struct Mutators<std::vector<T>>
         arr.erase(arr.begin() + static_cast<typename std::vector<T>::difference_type>(index));
     }
 
-    static auto& edit(std::vector<T>& arr, size_t index)
-    {
-        return arr[index];
-    }
+    static auto& edit(std::vector<T>& arr, size_t index) { return arr[index]; }
 
     template <typename TLambda> static void remove_matching(std::vector<T>& arr, TLambda&& lambda)
     {
