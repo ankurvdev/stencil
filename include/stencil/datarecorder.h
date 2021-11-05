@@ -54,7 +54,11 @@ template <typename... Ts> struct DataPlayerT : std::enable_shared_from_this<Data
         return val;
     }
 
-    template <typename T> auto ReadChangeDescAndNotify(T& /* obj */, std::span<const uint8_t>::iterator const& dataIt) { return dataIt; }
+    template <typename T> void ReadChangeDescAndNotify(T& obj, std::istream& ostrm)
+    {
+        Stencil::Transaction<T> txn(obj);
+        Stencil::BinaryTransactionSerDes::Apply(txn, ostrm);
+    }
 
     void _ThreadFunc()
     {
@@ -68,14 +72,9 @@ template <typename... Ts> struct DataPlayerT : std::enable_shared_from_this<Data
             if (!_file.good() || _file.tellg() == length) { return; }
             std::this_thread::sleep_for(std::chrono::microseconds{read<std::chrono::microseconds::rep>(_file)});
             {
-                size_t               index = read<uint8_t>(_file);
-                auto                 bytes = read<uint16_t>(_file);
-                std::vector<uint8_t> data(bytes);
-                _file.read(reinterpret_cast<char*>(data.data()), bytes);
-                std::span<const uint8_t> dataSpan(data);
-                auto                     it = dataSpan.begin();
-                VisitAt(_data, index, [&](auto& arg) { it = ReadChangeDescAndNotify<std::remove_reference_t<decltype(arg)>>(arg, it); });
-
+                size_t index = read<uint8_t>(_file);
+                [[maybe_unused]] auto   bytes = read<uint16_t>(_file);
+                VisitAt(_data, index, [&](auto& arg) { ReadChangeDescAndNotify(arg, _file); });
                 {
                     auto lock = std::unique_lock<std::mutex>(_mutex);
                     _counter++;
