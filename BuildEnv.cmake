@@ -173,14 +173,15 @@ macro (SupressWarningForTarget targetName)
     endif()
 endmacro()
 
-macro(init_submodule path)
-    if (NOT IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${path}")
-        message(STATUS "Submodule Update: ${CMAKE_CURRENT_SOURCE_DIR}/${path}")
-        find_package(Git QUIET REQUIRED)
-        execute_process(
-            COMMAND "${GIT_EXECUTABLE}" submodule update --init --recursive --single-branch "${path}"
-            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-            COMMAND_ERROR_IS_FATAL ANY
-        )
+function(init_submodule path)
+    if ((IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${path}") AND (EXISTS  "${CMAKE_CURRENT_SOURCE_DIR}/${path}.git"))
+        return()
     endif()
-endmacro()
+    message(STATUS "Submodule Update: ${CMAKE_CURRENT_SOURCE_DIR}/${path}")
+    find_package(Git QUIET REQUIRED)
+    execute_process(
+        COMMAND "${GIT_EXECUTABLE}" submodule update --init --recursive --single-branch "${path}"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        COMMAND_ERROR_IS_FATAL ANY
+    )
+endfunction()
