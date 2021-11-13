@@ -2,11 +2,11 @@
 #include "visitor.h"
 
 #include <cstring>
+#include <deque>
 #include <filesystem>
 #include <iostream>
 #include <span>
 #include <sstream>
-#include <deque>
 
 struct CommandLineArgsReader
 {

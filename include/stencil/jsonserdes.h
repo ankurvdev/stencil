@@ -250,32 +250,29 @@ struct Json
         static std::string Stringify(const std::unique_ptr<T>& obj) { return std::string(obj->GetObjectUuid().ToString()); }
     };
 
-    template <typename TStruct> static void Load([[maybe_unused]] Visitor<TStruct>& visitor, [[maybe_unused]] const std::string_view& str)
+    template <typename TStruct> static void Load([[maybe_unused]] Visitor<TStruct>& visitor, [[maybe_unused]] std::istream& strm)
     {
 #ifdef USE_NLOHMANN_JSON
         Reader<Visitor<TStruct>> handler(visitor);
-        nlohmann::json::sax_parse(str, &handler);
+        nlohmann::json::sax_parse(strm, &handler);
 #else
         throw std::logic_error("json parser disabled at compile time");
 #endif
     }
 
-    template <typename TStruct> static void Load([[maybe_unused]] TStruct& obj, [[maybe_unused]] const std::string_view& str)
+    template <typename TStruct> static void Load([[maybe_unused]] TStruct& obj, std::istream& strm)
     {
-#ifdef USE_NLOHMANN_JSON
-
-        Visitor<TStruct>         visitor(obj);
-        Reader<Visitor<TStruct>> handler(visitor);
-        nlohmann::json::sax_parse(str, &handler);
-#else
-        throw std::logic_error("json parser disabled at compile time");
-#endif
+        Visitor<TStruct> visitor(obj);
+        Load(visitor, strm);
     }
 
-    template <typename TStruct> static std::unique_ptr<TStruct> Parse(const std::string_view& str)
+    template <typename TStruct> static std::unique_ptr<TStruct> Parse(const std::string_view& strv)
     {
         std::unique_ptr<TStruct> ptr(new TStruct());
-        Load(*ptr.get(), str);
+        // TODO : Avoid stringing
+        std::string        str(strv);
+        std::istringstream istr(str);
+        Load(*ptr.get(), istr);
         return ptr;
     }
 
@@ -284,22 +281,57 @@ struct Json
 
 struct JsonSerDes
 {
-    template <typename TVisitor> static void Deserialize(TVisitor& visitor, std::string_view const& str)
+    template <typename TVisitor> static void Serialize(TVisitor& visitor, std::ostream& strm)
+    {
+        auto& ss = strm;
+        ss << "{";
+        bool first = true;
+        visitor.VisitAll([&](auto& key, auto& value) {
+            if (!first)
+                ss << ",";
+            else
+                first = false;
+
+            ss << Json::Writer<decltype(key)>::Stringify(key) << ":";
+            ss << Json::Writer<std::remove_cvref_t<decltype(value)>>::Stringify(value);
+        });
+
+        ss << "}";
+    }
+
+    template <typename TVisitor> static void Deserialize(TVisitor& visitor, std::istream& strm)
     {
         switch (visitor.GetDataTypeHint())
         {
         case ReflectionBase::DataType::Value:
         {
-            visitor.SetValue(Value{str});
+            std::ostringstream sstrm;
+            strm.peek();
+            while (strm.good())
+            {
+                char c;
+                strm >> c;
+                sstrm << c;
+                strm.peek();
+            }
+            visitor.SetValue(Value{sstrm.str()});
         }
         break;
         case ReflectionBase::DataType::List:
-        case ReflectionBase::DataType::Object: Json::Load(visitor, str); break;
+        case ReflectionBase::DataType::Object: Json::Load(visitor, strm); break;
         case ReflectionBase::DataType::Enum: TODO();
         case ReflectionBase::DataType::Union: TODO();
         case ReflectionBase::DataType::Invalid: [[fallthrough]];
         case ReflectionBase::DataType::Unknown: throw std::runtime_error("Unsupported Data Type");
         }
+    }
+
+    template <typename TVisitor> static void Deserialize(TVisitor& visitor, std::string_view const& strv)
+    {
+        // TODO : Avoid stringing
+        std::string        str(strv);
+        std::istringstream istr(str);
+        Deserialize(visitor, istr);
     }
 };
 

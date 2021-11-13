@@ -122,7 +122,9 @@ struct StringTransactionSerDes
                     Visitor<T> visitor(txn.Obj());
                     visitor.Select(fieldname);
                     txn.MarkFieldAssigned_(fieldType);
-                    JsonSerDes::Deserialize(visitor, rhs);
+                    std::string        str(rhs);
+                    std::istringstream istr(str);
+                    JsonSerDes::Deserialize(visitor, istr);
                 });
 
                 // txn.Visit(fieldname, [&](auto fieldType, auto& subtxn) { _ApplyJson(subtxn , fieldType, rhs); });

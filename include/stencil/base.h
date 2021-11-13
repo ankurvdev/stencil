@@ -164,11 +164,12 @@ template <> struct IDataTypeHandler<DataType::List> : public IDataTypeHandler<Da
         void*                                      ptr;
     };
 
-    virtual SubComponent GetListItemHandler() const                                                       = 0;
-    virtual void         Start() const                                                                    = 0;
-    virtual void         End() const                                                                      = 0;
-    virtual SubComponent MoveNext(void* rawptr) const                                                     = 0;
-    virtual bool         TryGetSubComponent(void* rawptr, size_t index, SubComponent& subcomponent) const = 0;
+    virtual SubComponent GetListItemHandler() const                                             = 0;
+    virtual void         Start() const                                                          = 0;
+    virtual void         End() const                                                            = 0;
+    virtual SubComponent MoveNext(void* rawptr) const                                           = 0;
+    virtual bool         TryGetAt(void* rawptr, size_t index, SubComponent& subcomponent) const = 0;
+    virtual SubComponent GetOrCreateAt(void* rawptr, size_t index) const                        = 0;
 };
 
 template <> struct IDataTypeHandler<DataType::Object> : IDataTypeHandler<DataType::Unknown>
@@ -477,13 +478,21 @@ template <typename TValue> struct StdVectorListHandler : public IDataTypeHandler
         return {&_handler, &((*vecptr)[index])};
     }
 
-    bool TryGetSubComponent(void* ptr, size_t index, SubComponent& subcomponent) const override
+    bool TryGetAt(void* ptr, size_t index, SubComponent& subcomponent) const override
     {
-        auto vecptr = static_cast<std::vector<TValue>*>(ptr);
-        if (index >= vecptr->size()) { vecptr->resize(index + 1); }
-        subcomponent = {&_handler, &((*vecptr)[index])};
+        auto& vec = *static_cast<std::vector<TValue>*>(ptr);
+        if (index >= vec.size()) return false;
+        subcomponent = SubComponent{&_handler, &vec[index]};
         return true;
     }
+
+    SubComponent GetOrCreateAt(void* ptr, size_t index) const override
+    {
+        auto& vec = *static_cast<std::vector<TValue>*>(ptr);
+        if (index >= vec.size()) vec.resize(index + 1);
+        return SubComponent{&_handler, &vec[index]};
+    }
+
     virtual shared_string Description() const override { return shared_string::make("[" + _handler.Description().str() + " ...]"); }
     virtual shared_string AttributeValue(const std::string_view& /*key*/) const override { throw std::logic_error("TODO"); }
     virtual shared_string Name() const override { return shared_string::make("[" + _handler.Name().str() + " ...]"); }
@@ -509,12 +518,19 @@ template <typename TValue, size_t N> struct StdArrayListHandler : public IDataTy
         return {&_handler, &((*vecptr)[_index++])};
     }
 
-    bool TryGetSubComponent(void* ptr, size_t index, SubComponent& subcomponent) const override
+    bool TryGetAt(void* ptr, size_t index, SubComponent& subcomponent) const override
     {
+        auto& vec = *static_cast<std::array<TValue, N>*>(ptr);
         if (index >= N) return false;
-        auto vecptr  = static_cast<std::array<TValue, N>*>(ptr);
-        subcomponent = {&_handler, &((*vecptr)[index])};
+        subcomponent = SubComponent{&_handler, &vec[index]};
         return true;
+    }
+
+    SubComponent GetOrCreateAt(void* ptr, size_t index) const override
+    {
+        auto& vec = *static_cast<std::array<TValue, N>*>(ptr);
+        if (index >= N) throw std::logic_error("Cannot Create objects on arrays");
+        return SubComponent{&_handler, &vec[index]};
     }
 
     virtual shared_string Description() const override { return shared_string::make("[" + _handler.Description().str() + " ...]"); }
@@ -613,11 +629,18 @@ template <typename TFieldTraits> struct ObjectDataTypeHandler<DataType::List, TF
         return _handler.MoveNext(reinterpret_cast<void*>(&obj));
     }
 
-    virtual bool TryGetSubComponent(void* rawptr, size_t index, SubComponent& subcomponent) const override
+    bool TryGetAt(void* rawptr, size_t index, SubComponent& subcomponent) const override
     {
         auto  structptr = static_cast<TOwner*>(rawptr);
         auto& obj       = (structptr->*(TFieldTraits::TPropertyGetter()))();
-        return _handler.TryGetSubComponent(&obj, index, subcomponent);
+        return _handler.TryGetAt(&obj, index, subcomponent);
+    }
+
+    SubComponent GetOrCreateAt(void* rawptr, size_t index) const override
+    {
+        auto  structptr = static_cast<TOwner*>(rawptr);
+        auto& obj       = (structptr->*(TFieldTraits::TPropertyGetter()))();
+        return _handler.GetOrCreateAt(&obj, index);
     }
 
     virtual shared_string Description() const override
@@ -1176,10 +1199,9 @@ template <typename T> struct ReflectionBase::TypeTraits<shared_tree<T>&>
 
         SubComponent MoveNext(void* /*ptr*/) const override { throw std::logic_error("TODO"); }
 
-        bool TryGetSubComponent(void* /*ptr*/, size_t /*index*/, SubComponent& /*subcomponent*/) const override
-        {
-            throw std::logic_error("TODO");
-        }
+        bool TryGetAt(void* /*ptr*/, size_t /*index*/, SubComponent& /*subcomponent*/) const override { throw std::logic_error("TODO"); }
+        SubComponent GetOrCreateAt(void* /*ptr*/, size_t /*index*/) const override { throw std::logic_error("TODO"); }
+
         virtual void End() const override {}
 
         virtual shared_string Description() const override { throw std::logic_error("TODO"); }

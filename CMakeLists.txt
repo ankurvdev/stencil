@@ -149,6 +149,7 @@ if (BUILD_TESTING)
         tests/Test_DataHandlerJson.cpp
         tests/Test_DataRecorderPlayer.cpp
         tests/Test_ObservableOptionalProps.cpp
+        tests/Test_SerDes.cpp
         tests/Test_Transactions.cpp
         tests/Test_WebService_Handwritten.cpp
         tests/Test_WebService_Autogen.cpp

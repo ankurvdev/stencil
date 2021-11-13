@@ -66,7 +66,7 @@ template <typename T> struct VisitorT
 
     VisitorT(T& obj) { _stack.push_back(StateStack{&_rootHandler, static_cast<decltype(GetPtrType())>(&obj), Mode::Obj}); }
 
-    bool TrySelect(Value const& val)
+    bool _TrySelect(Value const& val, bool editmode)
     {
         switch (GetDataTypeHint())
         {
@@ -85,10 +85,17 @@ template <typename T> struct VisitorT
         {
             auto& state = _stack.back();
             auto  cptr  = const_cast<void*>(state.Ptr);    // Shhh... Thats ok.
-            ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::List>::SubComponent sub;
-
-            if (!state.Handler->ListHandler()->TryGetSubComponent(cptr, val, sub)) { return false; }
-            _stack.push_back(StateStack{sub.handler, sub.ptr, Mode::List});
+            if (editmode)
+            {
+                auto sub = state.Handler->ListHandler()->GetOrCreateAt(cptr, val);
+                _stack.push_back(StateStack{sub.handler, sub.ptr, Mode::List});
+            }
+            else
+            {
+                ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::List>::SubComponent sub;
+                if (!state.Handler->ListHandler()->TryGetAt(cptr, val, sub)) { return false; }
+                _stack.push_back(StateStack{sub.handler, sub.ptr, Mode::List});
+            }
             return true;
         }
 
@@ -102,9 +109,11 @@ template <typename T> struct VisitorT
         throw std::runtime_error("Unsupported Data Type");
     }
 
+    bool TrySelect(Value const& val) { return _TrySelect(val, false); }
+
     VisitorT& Select(Value const& val)
     {
-        if (!TrySelect(val)) { throw std::runtime_error("Cannot select into the Visitor Object"); }
+        if (!_TrySelect(val, true)) { throw std::runtime_error("Cannot select into the Visitor Object"); }
         return *this;
     }
 
@@ -183,8 +192,7 @@ template <typename T> struct VisitorT
             auto          handler = state.Handler->ListHandler();
             for (size_t i = 0; i < str.size(); i++)
             {
-                ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::List>::SubComponent sub;
-                if (!handler->TryGetSubComponent(cptr, Value{i}, sub)) { break; }
+                auto sub = handler->GetOrCreateAt(cptr, i);
                 sub.handler->ValueHandler()->Write(sub.ptr, Value{str.at(i)});
             }
             return;
