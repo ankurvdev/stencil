@@ -26,12 +26,12 @@ struct BinaryTransactionSerDes
                     else if (mutator == 0)
                     {
                         Visitor<ObjType const> visitor(obj);
-                        Stencil::BinarySerDes::Serialize(visitor, writer);
+                        Stencil::BinarySerDes::Serialize(visitor, writer.strm());
                     }
                     else if (mutator == 1)
                     {
                         Visitor<ObjType const> visitor(obj);
-                        Stencil::BinarySerDes::Serialize(visitor, writer);
+                        Stencil::BinarySerDes::Serialize(visitor, writer.strm());
                     }
                     else if (mutator == 2)
                     {
@@ -57,7 +57,7 @@ struct BinaryTransactionSerDes
                     if (mutator == 0)
                     {
                         Visitor<ObjType const> visitor(obj);
-                        Stencil::BinarySerDes::Serialize(visitor, writer);
+                        Stencil::BinarySerDes::Serialize(visitor, writer.strm());
                     }
                     else if (mutator == 3)
                     {
@@ -100,7 +100,7 @@ struct BinaryTransactionSerDes
             typename Stencil::Mutators<T>::ListObj obj;
 
             Visitor<decltype(obj)> visitor(obj);
-            BinarySerDes::Deserialize(visitor, reader);
+            BinarySerDes::Deserialize(visitor, reader.strm());
             txn.add(std::move(obj));
         }
         static void Remove(Transaction<T>& txn, size_t listindex) { txn.remove(listindex); }
@@ -166,7 +166,7 @@ struct BinaryTransactionSerDes
                         Visitor<T> visitor(txn.Obj());
                         visitor.Select(fieldIndex - 1);
                         txn.MarkFieldAssigned_(fieldEnum);
-                        BinarySerDes::Deserialize(visitor, reader);
+                        BinarySerDes::Deserialize(visitor, reader.strm());
                     });
 
                     // txn.Visit(fieldname, [&](auto fieldType, auto& subtxn) { _ApplyJson(subtxn , fieldType, rhs); });

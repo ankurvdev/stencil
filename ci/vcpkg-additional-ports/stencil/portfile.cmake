@@ -11,8 +11,8 @@ elseif (DEFINED ENV{VCPKG_USE_STENCIL_GIT_REPO} AND NOT "$ENV{VCPKG_USE_STENCIL_
         REF ${commitId}
     )
 else()
-    set(commitId 585bcb7028cc754a40164f1150ce6664a3a82689)
-    set(sha512 87ad90c3bb9ac4c8199d9e3c29469711708d7c35d5b4c8b019f12512abddc2d6c1246ed490f0297c0ec344ffe59fe3852275a8feea039b7b51e7814cd27f2a43)
+    set(commitId 92bcb242e3a1d4af7f521ec24b50b01e10397ca4)
+    set(sha512 0dbcb78c67864f08f645b0ebe5128e35ec5614d109cf2d0d25335a5773a95b507d4b5d518ba3162721ae66af279ec117e48f2b9ca605fde0010472728fcdcf85)
     vcpkg_from_github(
         OUT_SOURCE_PATH SOURCE_PATH
         REPO ankurverma85/stencil

@@ -1,4 +1,5 @@
 #pragma once
+#include "visitor.h"
 
 namespace Stencil
 {
@@ -54,6 +55,8 @@ struct OStrmWriter
         return *this;
     }
 
+    auto& strm() { return _ostr; }
+
     auto& operator<<(shared_string const& val)
     {
         *this << val.size();
@@ -68,6 +71,9 @@ struct IStrmReader
 {
     IStrmReader(std::istream& istrm) : _istrm(istrm) {}
     CLASS_DELETE_COPY_AND_MOVE(IStrmReader);
+
+    bool  isEof() { return !_istrm.good(); }
+    auto& strm() { return _istrm; }
 
     template <typename TVal, std::enable_if_t<std::is_trivial<TVal>::value, bool> = true> TVal read()
     {
@@ -143,8 +149,9 @@ struct Reader
 
 struct BinarySerDes
 {
-    template <typename TVisitor, typename TWriter> static void Serialize(TVisitor& visitor, TWriter& writer)
+    template <typename T> static void Serialize(Stencil::Visitor<T const>& visitor, std::ostream& strm)
     {
+        Stencil::OStrmWriter writer(strm);
         switch (visitor.GetDataTypeHint())
         {
         case ReflectionBase::DataType::Value:
@@ -185,14 +192,24 @@ struct BinarySerDes
             }
         }
         break;
-        case ReflectionBase::DataType::Object: [[fallthrough]];
-        case ReflectionBase::DataType::List:
+        case ReflectionBase::DataType::Object:
         {
             for (size_t i = 0; visitor.TrySelect(i); i++)
             {
-                Serialize(visitor, writer);
+                Serialize(visitor, writer.strm());
                 visitor.GoBackUp();
             }
+        }
+        break;
+        case ReflectionBase::DataType::List:
+        {
+            for (uint32_t i = 0; visitor.TrySelect(i); i++)
+            {
+                writer << i + 1;
+                Serialize(visitor, writer.strm());
+                visitor.GoBackUp();
+            }
+            writer << uint32_t{0};
         }
         break;
         case ReflectionBase::DataType::Enum: [[fallthrough]];
@@ -202,8 +219,10 @@ struct BinarySerDes
         }
     }
 
-    template <typename TVisitor, typename TReader> static void Deserialize(TVisitor& visitor, TReader& reader)
+    template <typename TVisitor> static void Deserialize(TVisitor& visitor, std::istream& istrm)
     {
+        Stencil::IStrmReader reader(istrm);
+
         switch (visitor.GetDataTypeHint())
         {
         case ReflectionBase::DataType::Value:
@@ -225,12 +244,23 @@ struct BinarySerDes
         }
         break;
         case ReflectionBase::DataType::List:
+        {
+            auto index = reader.read<uint32_t>();
+            for (size_t i = 0; index != 0; i++)
+            {
+                visitor.Select(i);
+                Deserialize(visitor, reader.strm());
+                visitor.GoBackUp();
+                index = reader.read<uint32_t>();
+            }
+            break;
+        }
         case ReflectionBase::DataType::Object:
         {
 
             for (size_t i = 0; visitor.TrySelect(i); i++)
             {
-                Deserialize(visitor, reader);
+                Deserialize(visitor, reader.strm());
                 visitor.GoBackUp();
             }
         }
