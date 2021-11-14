@@ -17,6 +17,7 @@ struct TestReplay
         auto expected = expectedIn.size() == 0 ? txndata : expectedIn;
 
         auto delta = Stencil::StringTransactionSerDes::Deserialize(txn);
+
         changes.push_back(delta);
         if (expected[expected.size() - 1] == ';') { REQUIRE(delta == expected); }
         else
@@ -29,6 +30,16 @@ struct TestReplay
         Stencil::BinaryTransactionSerDes::Deserialize(txn, binary_txns);
         Stencil::BinaryTransactionSerDes::Deserialize(txn2, binary_acc_txns);
 
+        // Check repeat binary deserialization doesnt change the delta
+        {
+            std::ostringstream strm1, strm2;
+            Stencil::BinaryTransactionSerDes::Deserialize(txn, strm1);
+            auto delta1 = Stencil::StringTransactionSerDes::Deserialize(txn);
+            Stencil::BinaryTransactionSerDes::Deserialize(txn, strm2);
+
+            REQUIRE(delta == delta1);
+            REQUIRE(strm1.str() == strm2.str());
+        }
         {
             std::ofstream binary_lastacc_txns("Transactions.LastAccumulated.bin", std::ios::binary);
             Stencil::BinaryTransactionSerDes::Deserialize(txn2, binary_lastacc_txns);
