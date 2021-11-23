@@ -185,6 +185,7 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
     }
 
     void Flush() {}
+    bool IsChanged() { return _changes.size() > 1; }
 
     struct _Record
     {
@@ -203,8 +204,6 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
 template <typename T, typename _Ts> struct Stencil::Transaction : Stencil::TransactionT<T>
 {
     Transaction(T& obj) : Stencil::TransactionT<T>(obj) {}
-    void Flush() const {}
-    bool IsChanged() const { return false; }
 
     DELETE_COPY_AND_MOVE(Transaction);
 };
