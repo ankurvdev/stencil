@@ -7,7 +7,9 @@ set(BuildEnvCMAKE_LOCATION "${CMAKE_CURRENT_LIST_DIR}")
 if (UNIX AND NOT ANDROID)
     set(LINUX 1)
 endif()
-
+if (IS_DIRECTORY ${BuildEnvCMAKE_LOCATION}/../Format.cmake)
+add_subdirectory(${BuildEnvCMAKE_LOCATION}/../Format.cmake Format.cmake)
+endif()
 
 macro(_FixFlags name)
     cmake_parse_arguments("" "" "" "VALUE;EXCLUDE;APPEND" ${ARGN})
@@ -110,6 +112,7 @@ macro(EnableStrictCompilation)
                 -Wno-c++98-compat # Dont care about c++98 compatibility
                 -Wno-c++98-compat-pedantic
                 -Wno-reserved-identifier # Allow names starting with underscore
+                -Wno-reserved-id-macro
                 )
         endif()
 

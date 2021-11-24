@@ -61,7 +61,6 @@ struct TestReplay
 };
 
 TEST_CASE("Transactions", "[transaction]")
-
 {
     TestReplay replay;
     replay.Replay("obj1.val2 = 1000000;obj1.val2 = 1000000;obj2.val1 = 10000000;obj2.val2 = 10.0000001",
@@ -194,5 +193,19 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
             // TODO : Bugfix
             // REQUIRE(t4 == obj1.LastModified());
         }
+    }
+}
+
+TEST_CASE("Transactions_Bugs", "[transaction]")
+{
+    SECTION("List-Edit", "Object sublist edit must propagate up as object edits too")
+    {
+        Transactions::Object::Data obj1;
+        obj1.list1().listobj().push_back({});
+        Stencil::Transaction<Transactions::Object::Data> txn(obj1);
+        txn.list1().edit_listobj(0).obj1().set_val1(1);
+        txn.Flush();
+        REQUIRE(txn.list1().IsChanged());
+        REQUIRE(txn.IsChanged());
     }
 }

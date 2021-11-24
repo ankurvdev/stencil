@@ -141,7 +141,7 @@ inline void CompareBinaryOutputAgainstResource(std::span<const uint8_t> const& a
             f.write(reinterpret_cast<char const*>(actual.data()), static_cast<std::streamsize>(actual.size()));
             f.flush();
             f.close();
-            REQUIRE(data.size() == actual.size() );
+            REQUIRE(data.size() == actual.size());
             REQUIRE(std::equal(actual.begin(), actual.end(), data.begin()));
         }
     }
