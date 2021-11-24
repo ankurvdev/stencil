@@ -230,3 +230,4 @@ template <typename T, typename _Ts> struct Stencil::Transaction : Stencil::Trans
     Transaction(T& obj) : Stencil::TransactionT<T>(obj) {}
     DELETE_COPY_AND_MOVE(Transaction);
 };
+
