@@ -17,6 +17,7 @@ struct TestReplay
         auto expected = expectedIn.size() == 0 ? txndata : expectedIn;
 
         auto delta = Stencil::StringTransactionSerDes::Deserialize(txn);
+
         changes.push_back(delta);
         if (expected[expected.size() - 1] == ';') { REQUIRE(delta == expected); }
         else
@@ -29,6 +30,16 @@ struct TestReplay
         Stencil::BinaryTransactionSerDes::Deserialize(txn, binary_txns);
         Stencil::BinaryTransactionSerDes::Deserialize(txn2, binary_acc_txns);
 
+        // Check repeat binary deserialization doesnt change the delta
+        {
+            std::ostringstream strm1, strm2;
+            Stencil::BinaryTransactionSerDes::Deserialize(txn, strm1);
+            auto delta1 = Stencil::StringTransactionSerDes::Deserialize(txn);
+            Stencil::BinaryTransactionSerDes::Deserialize(txn, strm2);
+
+            REQUIRE(delta == delta1);
+            REQUIRE(strm1.str() == strm2.str());
+        }
         {
             std::ofstream binary_lastacc_txns("Transactions.LastAccumulated.bin", std::ios::binary);
             Stencil::BinaryTransactionSerDes::Deserialize(txn2, binary_lastacc_txns);
@@ -50,7 +61,6 @@ struct TestReplay
 };
 
 TEST_CASE("Transactions", "[transaction]")
-
 {
     TestReplay replay;
     replay.Replay("obj1.val2 = 1000000;obj1.val2 = 1000000;obj2.val1 = 10000000;obj2.val2 = 10.0000001",
@@ -183,5 +193,19 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
             // TODO : Bugfix
             // REQUIRE(t4 == obj1.LastModified());
         }
+    }
+}
+
+TEST_CASE("Transactions_Bugs", "[transaction]")
+{
+    SECTION("List-Edit", "Object sublist edit must propagate up as object edits too")
+    {
+        Transactions::Object::Data obj1;
+        obj1.list1().listobj().push_back({});
+        Stencil::Transaction<Transactions::Object::Data> txn(obj1);
+        txn.list1().edit_listobj(0).obj1().set_val1(1);
+        txn.Flush();
+        REQUIRE(txn.list1().IsChanged());
+        REQUIRE(txn.IsChanged());
     }
 }

@@ -1,4 +1,6 @@
-# Overview
+# Transactions
+
+## Overview
 
 Transactions can be used for the following scenarios, mainly to deal with sparse changes to object models.
 
@@ -12,30 +14,33 @@ In general the use-cases involve the following steps
 
 1. Start Transaction
 2. Make changes to objects and sub-objects
-    * Change values
-    * Add remove list values
-    * Edit sub-structs
+   - Change values
+   - Add remove list values
+   - Edit sub-structs
 3. End Transaction
 4. Notify listeners with transaction data
 
 with the following characteristics
 
-* Listeners notified at the end of the transaction
-    - Notification generated only if the transaction actually changes object model
-    - No notification for empty or non-altering edits (assigning with same values)
-* Notification involves sending TransactionRecordData and Object Model itself with a read-lock
-* Allow Serialization/Deserialization of TransactionRecordData (TransactionRecordSerDes)
-    - Binary Serialization for Trace recording
-    - Text Serialization for logging/debugging
-* TransactionRecordData can be replayed by deserializing Text based TransactionRecordData and applying it to an Object model.
-* Apply TransactionRecordData notifies listeners as well.
+- Listeners notified at the end of the transaction
+  - Notification generated only if the transaction actually changes object model
+  - No notification for empty or non-altering edits (assigning with same values)
+- Notification involves sending TransactionRecordData and Object Model itself with a read-lock
+- Allow Serialization/Deserialization of TransactionRecordData (TransactionRecordSerDes)
+  - Binary Serialization for Trace recording
+  - Text Serialization for logging/debugging
+- TransactionRecordData can be replayed by deserializing Text based TransactionRecordData and applying it to an Object
+  model.
+- Apply TransactionRecordData notifies listeners as well.
 
 Dependencies
-* Visitor (Apply TransactionRecordData and Replay, Serialization of TransactionRecordData)
-* JsonSerDes
-* BinarySerDes
+
+- Visitor (Apply TransactionRecordData and Replay, Serialization of TransactionRecordData)
+- JsonSerDes
+- BinarySerDes
 
 Use-cases
+
 ```c++
 struct SubStruct
 {
@@ -55,6 +60,7 @@ struct Foo
     int              val3;
 }
 ```
+
 Generating a transaction
 
 ```c++
@@ -70,11 +76,13 @@ Foo foo;
 ```
 
 ## Delta Change listeners
+
 ```c++
 NotifyListeners(txn, foo);
 ```
 
 ## Data Recording
+
 ```c++
 std::ofstream f("record.bin", ios::binary| ios::app);
 f << timestamp << BinaryTransactionSerDes::Writer(txn, foo);
@@ -102,7 +110,7 @@ fmt::print("{}", StringTransactionSerDes::Deserialize(txn, foo);
 auto txn = StringTransactionSerDes::Apply(foo, "child1.val1 = 1;child1.val2 = \"newvalue\";child1.list1:add[0] = {val: 1}; child1.list1:add[0]= {val: 2};val3 = 2");
 ```
 
-# Specializing for Custom types
+## Specializing for Custom types
 
 ```C++
 

@@ -36,10 +36,23 @@ template <typename TObj, typename _Ts = void> struct TransactionT
     TObj& Obj() { throw std::logic_error("Obj Not supported on Transaction"); }
 
     void Flush_() const { throw std::logic_error("Flush not supported on transaction"); }
+
+    void Flush() const {}
+    bool IsChanged() const { return false; }
+};
+}    // namespace Stencil
+
+template <typename T> struct Stencil::Transaction<T, std::enable_if_t<Value::Supported<T>::value>> : Stencil::TransactionT<T>
+{
+    Transaction(T& obj) : Stencil::TransactionT<T>(obj) {}
+    void Flush() const {}
+    bool IsChanged() const { return false; }
+
+    DELETE_COPY_AND_MOVE(Transaction);
 };
 
 template <typename TObj>
-struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::Object>>
+struct Stencil::TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::Object>>
 {
     TransactionT(TObj& obj) : _ref(std::ref(obj)) {}
 
@@ -104,7 +117,7 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
 };
 
 template <typename TObj>
-struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::List>>
+struct Stencil::TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::List>>
 {
     using ListObjType = typename ReflectionBase::TypeTraits<TObj&>::ListObjType;
 
@@ -185,6 +198,7 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
     }
 
     void Flush() {}
+    bool IsChanged() { return _changes.size() > 0; }
 
     struct _Record
     {
@@ -196,26 +210,6 @@ struct TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Ty
 
     std::vector<_Record>         _changes;
     std::reference_wrapper<TObj> _ref;
-};
-
-}    // namespace Stencil
-
-template <typename T, typename _Ts> struct Stencil::Transaction : Stencil::TransactionT<T>
-{
-    Transaction(T& obj) : Stencil::TransactionT<T>(obj) {}
-    void Flush() const {}
-    bool IsChanged() const { return false; }
-
-    DELETE_COPY_AND_MOVE(Transaction);
-};
-
-template <typename T> struct Stencil::Transaction<T, std::enable_if_t<Value::Supported<T>::value>> : Stencil::TransactionT<T>
-{
-    Transaction(T& obj) : Stencil::TransactionT<T>(obj) {}
-    void Flush() const {}
-    bool IsChanged() const { return false; }
-
-    DELETE_COPY_AND_MOVE(Transaction);
 };
 
 // Transaction Mutators Accessors
@@ -230,3 +224,10 @@ struct Stencil::Mutators<Stencil::Transaction<T>,
     static void  remove(Stencil::Transaction<T>& txn, size_t index) { txn.remove(index); }
     static auto& edit(Stencil::Transaction<T>& txn, size_t index) { return txn.edit(index); }
 };
+
+template <typename T, typename _Ts> struct Stencil::Transaction : Stencil::TransactionT<T>
+{
+    Transaction(T& obj) : Stencil::TransactionT<T>(obj) {}
+    DELETE_COPY_AND_MOVE(Transaction);
+};
+
