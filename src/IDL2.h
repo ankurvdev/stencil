@@ -442,11 +442,15 @@ struct Union : public std::enable_shared_from_this<Union>, public IDLGenerics::S
 };
 
 struct FunctionArgs;
-struct Function;
+struct InterfaceFunction;
+struct InterfaceEvent;
+struct InterfaceObjectStore;
 
 struct Interface : public std::enable_shared_from_this<Interface>,
                    public IDLGenerics::StorageIndexT<Program, Interface>::StorageType,
-                   public IDLGenerics::NamedIndexT<Interface, Function>::Owner,
+                   public IDLGenerics::NamedIndexT<Interface, InterfaceFunction>::Owner,
+                   public IDLGenerics::NamedIndexT<Interface, InterfaceEvent>::Owner,
+                   public IDLGenerics::NamedIndexT<Interface, InterfaceObjectStore>::Owner,
                    public IDLGenerics::StorageIndexT<Interface, FunctionArgs>::Owner
 {
     private:
@@ -490,26 +494,26 @@ struct FunctionArgs : public std::enable_shared_from_this<FunctionArgs>,
     {}
 };
 
-struct Function : public std::enable_shared_from_this<Function>,
-                  public Binding::BindableT<Function>,
-                  public IDLGenerics::NamedIndexT<Interface, Function>::NamedObject
+struct InterfaceFunction : public std::enable_shared_from_this<InterfaceFunction>,
+                           public Binding::BindableT<InterfaceFunction>,
+                           public IDLGenerics::NamedIndexT<Interface, InterfaceFunction>::NamedObject
 {
 
     public:
-    OBJECTNAME(Function);
-    DELETE_COPY_AND_MOVE(Function);
+    OBJECTNAME(InterfaceFunction);
+    DELETE_COPY_AND_MOVE(InterfaceFunction);
 
     auto& Args() const { return m_Args; }
-    Function(std::shared_ptr<Interface>               iface,
-             Str::Type&&                              name,
-             std::shared_ptr<IDLGenerics::IFieldType> returnType,
-             std::shared_ptr<FunctionArgs>            args) :
+    InterfaceFunction(std::shared_ptr<Interface>               iface,
+                      Str::Type&&                              name,
+                      std::shared_ptr<IDLGenerics::IFieldType> returnType,
+                      std::shared_ptr<FunctionArgs>            args) :
 
-        Binding::BindableT<Function>(Str::Create(L"ReturnType"),
-                                     &Function::GetBindableReturnType,
-                                     Str::Create(L"Args"),
-                                     &Function::GetBindableArgs),
-        IDLGenerics::NamedIndexT<Interface, Function>::NamedObject(iface, std::move(name)),
+        Binding::BindableT<InterfaceFunction>(Str::Create(L"ReturnType"),
+                                              &InterfaceFunction::GetBindableReturnType,
+                                              Str::Create(L"Args"),
+                                              &InterfaceFunction::GetBindableArgs),
+        IDLGenerics::NamedIndexT<Interface, InterfaceFunction>::NamedObject(iface, std::move(name)),
         m_ReturnType(returnType),
         m_Args(args)
     {}
@@ -519,6 +523,45 @@ struct Function : public std::enable_shared_from_this<Function>,
 
     std::shared_ptr<BindableBase> m_ReturnType;
     std::shared_ptr<FunctionArgs> m_Args;
+};
+
+struct InterfaceEvent : public std::enable_shared_from_this<InterfaceEvent>,
+                        public Binding::BindableT<InterfaceEvent>,
+                        public IDLGenerics::NamedIndexT<Interface, InterfaceEvent>::NamedObject
+{
+
+    public:
+    OBJECTNAME(InterfaceEvent);
+    DELETE_COPY_AND_MOVE(InterfaceEvent);
+
+    auto& Args() const { return m_Args; }
+    InterfaceEvent(std::shared_ptr<Interface> iface, Str::Type&& name, std::shared_ptr<FunctionArgs> args) :
+
+        Binding::BindableT<InterfaceEvent>(Str::Create(L"Args"), &InterfaceEvent::GetBindableArgs),
+        IDLGenerics::NamedIndexT<Interface, InterfaceEvent>::NamedObject(iface, std::move(name)),
+        m_Args(args)
+    {}
+
+    Binding::IBindable&           GetBindableArgs() const { return *m_Args; }
+    std::shared_ptr<FunctionArgs> m_Args;
+};
+
+struct InterfaceObjectStore : public std::enable_shared_from_this<InterfaceObjectStore>,
+                              public Binding::BindableT<InterfaceObjectStore>,
+                              public IDLGenerics::NamedIndexT<Interface, InterfaceObjectStore>::NamedObject
+{
+
+    public:
+    OBJECTNAME(InterfaceObjectStore);
+    DELETE_COPY_AND_MOVE(InterfaceObjectStore);
+    InterfaceObjectStore(std::shared_ptr<Interface> iface, std::shared_ptr<IDLGenerics::IFieldType> objectType, Str::Type&& name) :
+        Binding::BindableT<InterfaceObjectStore>(Str::Create(L"ObjectType"), &InterfaceObjectStore::GetBindableObjectType),
+        IDLGenerics::NamedIndexT<Interface, InterfaceObjectStore>::NamedObject(iface, std::move(name)),
+        m_ObjectType(objectType)
+    {}
+
+    Binding::IBindable&           GetBindableObjectType() const { return m_ObjectType->GetBindable(); }
+    std::shared_ptr<BindableBase> m_ObjectType;
 };
 
 inline void Program::InitializeModelDataSources(const std::wstring_view& datasourcesIn)

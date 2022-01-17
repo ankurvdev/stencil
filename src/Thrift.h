@@ -3,6 +3,8 @@
 #include "IDL2.h"
 
 #include <algorithm>
+#include <variant>
+
 namespace std
 {
 template <typename TStr1, typename TStr2> bool iequals(TStr1 const& str1, TStr2 const& str2)
@@ -17,9 +19,10 @@ namespace IDL::Lang::Thrift
 template <typename T> using StrOps = Binding::StrOps<T>;
 using Str                          = Binding::Str;
 class Context;
-
-struct Function;
 struct Field;
+struct InterfaceFunction;
+struct InterfaceEvent;
+struct InterfaceObjectStore;
 
 using TypeAttribute     = std::pair<Str::Type, Str::Type>;
 using TypeAttributeList = std::shared_ptr<Binding::AttributeMap>;
@@ -29,18 +32,24 @@ using Typedef   = std::optional<std::shared_ptr<IDL::Typedef>>;
 using Struct    = std::optional<std::shared_ptr<IDL::Struct>>;
 using Union     = std::optional<std::shared_ptr<IDL::Union>>;
 using Interface = std::optional<std::shared_ptr<IDL::Interface>>;
+
+// using InterfaceFunction    = std::optional<std::shared_ptr<IDL::InterfaceFunction>>;
+// using InterfaceEvent       = std::optional<std::shared_ptr<IDL::InterfaceEvent>>;
+// using InterfaceObjectStore = std::optional<std::shared_ptr<IDL::InterfaceObjectStore>>;
+using InterfaceMember = std::variant<InterfaceFunction, InterfaceEvent, InterfaceObjectStore>;
+
 using FieldType = std::optional<std::shared_ptr<IDLGenerics::IFieldType>>;
 
 using Id = Str::Type;
 
 using ConstValue = std::shared_ptr<IDLGenerics::ConstValue>;
 
-using ConstValueList = std::vector<ConstValue>;
-using ConstValueDict = std::vector<std::pair<ConstValue, ConstValue>>;
-using FunctionList   = std::vector<Function>;
-using FieldList      = std::vector<Field>;
-using FieldTypeList  = std::vector<FieldType>;
-using IdList         = std::vector<Str::Type>;
+using ConstValueList      = std::vector<ConstValue>;
+using ConstValueDict      = std::vector<std::pair<ConstValue, ConstValue>>;
+using InterfaceMemberList = std::vector<InterfaceMember>;
+using FieldList           = std::vector<Field>;
+using FieldTypeList       = std::vector<FieldType>;
+using IdList              = std::vector<Str::Type>;
 
 using RelationshipComponent     = std::pair<Str::Type, std::vector<Str::Type>>;
 using RelationshipComponentList = std::unordered_map<Str::Type, std::vector<Str::Type>>;
@@ -93,16 +102,38 @@ struct Field
     {}
 };
 
-struct Function
+struct InterfaceFunction
 {
     Str::Type         m_Name;
     bool              m_isStatic;
     FieldType         m_ReturnType;
     FieldList         m_Fields;
     TypeAttributeList m_Attributes;
-    Function() = default;
-    Function(Str::View const& isStatic, FieldType retType, Str::Type& name, FieldList& fields, TypeAttributeList& map) :
+    InterfaceFunction() = default;
+    InterfaceFunction(Str::View const& isStatic, FieldType retType, Str::Type& name, FieldList& fields, TypeAttributeList& map) :
         m_Name(std::move(name)), m_isStatic(!Str::IsEmpty(isStatic)), m_ReturnType(retType), m_Fields(std::move(fields)), m_Attributes(map)
+    {}
+};
+
+struct InterfaceEvent
+{
+    Str::Type         m_Name;
+    FieldList         m_Fields;
+    TypeAttributeList m_Attributes;
+    InterfaceEvent() = default;
+    InterfaceEvent(Str::Type& name, FieldList& fields, TypeAttributeList& map) :
+        m_Name(std::move(name)), m_Fields(std::move(fields)), m_Attributes(map)
+    {}
+};
+
+struct InterfaceObjectStore
+{
+    FieldType         m_ObjectType;
+    Str::Type         m_Name;
+    TypeAttributeList m_Attributes;
+    InterfaceObjectStore() = default;
+    InterfaceObjectStore(FieldType objectType, Str::Type& name, TypeAttributeList& map) :
+        m_ObjectType(objectType), m_Name(std::move(name)), m_Attributes(map)
     {}
 };
 
@@ -202,18 +233,46 @@ inline TypeAttributeList CreateAttributeMapEntry(TypeAttributeList ptr, TypeAttr
     return ptr;
 }
 
-inline Interface CreateInterface(Context& context, Str::Type& name, Interface& /*base*/, FunctionList& functions, TypeAttributeList& map)
+inline Interface
+CreateInterface(Context& context, Str::Type& name, Interface& /*base*/, InterfaceMemberList& members, TypeAttributeList& map)
 {
     auto iface = context.program.CreateStorageObject<IDL::Interface>(std::move(name), map);
-    for (auto& f : functions)
+    for (auto& m : members)
     {
-        auto argsstruct = iface->CreateStorageObject<IDL::FunctionArgs>(Str::Copy(f.m_Name), nullptr);
-        for (auto& a : f.m_Fields)
+        switch (m.index())
         {
-            argsstruct->CreateField(a.m_FieldType.value(), std::move(a.m_Id), std::move(a.m_FieldValue), std::move(a.m_AttributeMap));
-        }
+        case 0:    // InterfaceFunction
+        {
+            auto f          = std::get<InterfaceFunction>(m);
+            auto argsstruct = iface->CreateStorageObject<IDL::FunctionArgs>(Str::Copy(f.m_Name), nullptr);
+            for (auto& a : f.m_Fields)
+            {
+                argsstruct->CreateField(a.m_FieldType.value(), std::move(a.m_Id), std::move(a.m_FieldValue), std::move(a.m_AttributeMap));
+            }
 
-        iface->CreateNamedObject<IDL::Function>(std::move(f.m_Name), f.m_ReturnType.value(), std::move(argsstruct));
+            iface->CreateNamedObject<IDL::InterfaceFunction>(std::move(f.m_Name), f.m_ReturnType.value(), std::move(argsstruct));
+        }
+        break;
+        case 1:    // InterfaceEvent
+        {
+            auto e          = std::get<InterfaceEvent>(m);
+            auto argsstruct = iface->CreateStorageObject<IDL::FunctionArgs>(Str::Copy(e.m_Name), nullptr);
+            for (auto& a : e.m_Fields)
+            {
+                argsstruct->CreateField(a.m_FieldType.value(), std::move(a.m_Id), std::move(a.m_FieldValue), std::move(a.m_AttributeMap));
+            }
+
+            iface->CreateNamedObject<IDL::InterfaceEvent>(std::move(e.m_Name), std::move(argsstruct));
+        }
+        break;
+        case 2:    // InterfaceObjectStore
+        {
+            auto o = std::get<InterfaceObjectStore>(m);
+            iface->CreateNamedObject<IDL::InterfaceObjectStore>(o.m_ObjectType.value(), std::move(o.m_Name));
+        }
+        break;
+        default: throw std::logic_error("invalid interface member type");
+        }
     }
     return iface;
 }

@@ -300,8 +300,10 @@ struct InterfaceFactoryMarker
 struct InterfaceObjectTracker
 {};
 
-template <typename TInterface> struct Interface : public InterfaceMarker
+template <typename TInterface> struct InterfaceT : public InterfaceMarker
 {
+    using Interface = TInterface;
+
     constexpr std::string_view Name() { return typeid(TInterface).name(); }
     using Id = UuidBasedId<TInterface>;
     const Id& GetObjectUuid() { return _id; }
@@ -310,15 +312,15 @@ template <typename TInterface> struct Interface : public InterfaceMarker
     static TInterface* FindObjectById(const Id& id) { return static_cast<TInterface*>(_GetRegistry()[id]); }
     static TInterface* FindObjectById(const std::string_view& id) { return FindObjectById(Id{UuidStr(id)}); }
 
-    Interface() { _GetRegistry()[_id] = this; }
+    InterfaceT() { _GetRegistry()[_id] = this; }
 
-    DELETE_COPY_AND_MOVE(Interface);
+    DELETE_COPY_AND_MOVE(InterfaceT);
 
-    static std::unordered_map<Id, Interface<TInterface>*>& _GetRegistry()
+    static std::unordered_map<Id, InterfaceT<TInterface>*>& _GetRegistry()
     {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
-        static std::unordered_map<Id, Interface<TInterface>*> registry;
+        static std::unordered_map<Id, InterfaceT<TInterface>*> registry;
 #pragma clang diagnostic pop
         return registry;
     }

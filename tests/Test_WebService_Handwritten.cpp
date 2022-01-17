@@ -1,7 +1,7 @@
 #include "TestUtils.h"
 #include "stencil/stencil.h"
 
-struct TestInterface : public ReflectionBase::Interface<TestInterface>
+struct TestInterface : public ReflectionBase::InterfaceT<TestInterface>
 {
     public:
     TestInterface()          = default;
@@ -10,22 +10,6 @@ struct TestInterface : public ReflectionBase::Interface<TestInterface>
 
     virtual uint64_t                      AddNumber(uint64_t num1, uint64_t num2) = 0;
     static std::unique_ptr<TestInterface> Create(uint64_t randomInteger, shared_string randomString);
-};
-
-struct TestInterfaceFactory : public ReflectionBase::InterfaceFactory<TestInterface>
-{
-    public:
-    virtual ~TestInterfaceFactory() = default;
-
-    virtual std::unique_ptr<TestInterface> Activate(uint64_t randomInteger, shared_string randomString) = 0;
-};
-
-template <> struct ReflectionBase::InterfaceActivator<TestInterface>
-{
-    std::unique_ptr<TestInterface> Activate(uint64_t randomInteger, shared_string randomString)
-    {
-        return TestInterface::Create(randomInteger, randomString);
-    }
 };
 
 struct TestInterface_AddNumber_Args
@@ -183,6 +167,7 @@ class TestInterfaceImpl : public TestInterface
     // Inherited via TestInterface
     virtual uint64_t AddNumber(uint64_t num1, uint64_t num2) override { return num1 + num2; }
 
+    TestInterfaceImpl() = default;
     TestInterfaceImpl(uint64_t randomInteger, shared_string randomString) : _randomInteger(randomInteger), _randomString(randomString) {}
 
     DELETE_COPY_AND_MOVE(TestInterfaceImpl);
@@ -191,33 +176,14 @@ class TestInterfaceImpl : public TestInterface
     shared_string _randomString;
 };
 
-class TestInterfaceFactoryImpl : public TestInterfaceFactory
-{
-    // Inherited via TestInterfaceFactory
-    virtual std::unique_ptr<TestInterface> Activate(uint64_t randomInteger, shared_string randomString) override
-    {
-        return TestInterface::Create(randomInteger, randomString);
-    }
-};
 }    // namespace impl
 
-template <> struct ReflectionBase::InterfaceActivator<TestInterfaceFactory>
-{
-    static std::unique_ptr<TestInterfaceFactory> Activate()
-    {
-        return std::unique_ptr<TestInterfaceFactory>(new impl::TestInterfaceFactoryImpl());
-    }
-};
-
-std::unique_ptr<TestInterface> TestInterface::Create(uint64_t randomInteger, shared_string randomString)
-{
-    return std::unique_ptr<TestInterface>(new impl::TestInterfaceImpl(randomInteger, randomString));
-}
-
-template <> struct WebServiceHandlerTraits<TestInterface>
+template <> struct Stencil::WebServiceHandlerTraits<TestInterface>
 {
     static constexpr const std::string_view Url() { return std::string_view("TestInterface"); }
+    static void HandleRequest(TestInterface& obj, httplib::Request const& req, httplib::Response& res, std::string_view const& path);
 };
+
 #pragma warning(push, 3)
 #include <httplib.h>
 #pragma warning(pop)
@@ -250,7 +216,7 @@ TEST_CASE("CodeGen::WebService::HandWritten", "[WebService]")
 {
     SECTION("Positive: SimpleCase")
     {
-        WebService<TestInterface> svc;
+        Stencil::WebService<impl::TestInterfaceImpl> svc;
         svc.StartOnPort(44444);
         try
         {

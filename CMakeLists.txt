@@ -97,6 +97,7 @@ if (BUILD_TESTING)
         add_library(fmt INTERFACE)
         add_library(fmt::fmt-header-only ALIAS fmt)
         target_include_directories(fmt INTERFACE external/fmt/include)
+        target_compile_definitions(fmt INTERFACE FMT_HEADER_ONLY=1)
     endif()
 endif()
 

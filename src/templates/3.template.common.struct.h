@@ -232,32 +232,32 @@ struct Data : public ReflectionBase::ObjMarker
 
 //<Interface>
 
-struct zzInterface_Namezz : public ReflectionBase::Interface<zzInterface_Namezz>
+struct zzInterface_Namezz : public ReflectionBase::InterfaceT<zzInterface_Namezz>
 {
     public:
     zzInterface_Namezz()          = default;
     virtual ~zzInterface_Namezz() = default;
     DELETE_COPY_AND_MOVE(zzInterface_Namezz);
-    //<Function>
-    virtual zzReturnType_NativeTypezz zzFunction_Namezz(
+    //<InterfaceFunction>
+    virtual zzReturnType_NativeTypezz zzInterfaceFunction_Namezz(
         //<Args_Field Join=','>
         zzFieldType_NativeTypezz const& zzNamezz
         //</Args_Field>
         )
         = 0;
-    //</Function>
+    //</InterfaceFunction>
     // static std::unique_ptr<zzInterface_Namezz> Create();
 };
-
+#if 0
 struct zzInterface_NamezzFactory : public ReflectionBase::InterfaceFactory<zzInterface_Namezz>
 {
     public:
     virtual std::unique_ptr<zzInterface_Namezz> Activate() = 0;
     virtual ~zzInterface_NamezzFactory()                   = default;
 };
-
-//<Function>
-struct zzInterface_Namezz_zzFunction_Namezz_Args
+#endif
+//<InterfaceFunction>
+struct zzInterface_Namezz_zzInterfaceFunction_Namezz_Args
 {
     zzInterface_Namezz* instance = nullptr;
 
@@ -269,7 +269,7 @@ struct zzInterface_Namezz_zzFunction_Namezz_Args
     //</Args_Field>
 };
 
-//</Function>
+//</InterfaceFunction>
 
 //</Interface>
 }    // namespace zzProgram_Namezz
@@ -281,14 +281,14 @@ struct zzInterface_Namezz_zzFunction_Namezz_Args
 
 // SECTION:
 //<Interface>
-//<Function>
-template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzInterface_Namezz_zzFunction_Namezz_Args&>
+//<InterfaceFunction>
+template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args&>
 {
     //<Args_Field>
 
     struct Traits_arg_zzNamezz
     {
-        using TOwner     = zzProgram_Namezz::zzInterface_Namezz_zzFunction_Namezz_Args;
+        using TOwner     = zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args;
         using TFieldType = zzFieldType_NativeTypezz;
 
         static constexpr std::string_view    Name() { return "zzNamezz"; }
@@ -300,10 +300,10 @@ template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzInterface_Name
     //</Args_Field>
 
     static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
-    static constexpr std::string_view           Name() { return "zzFunction_Namezz"; }
+    static constexpr std::string_view           Name() { return "zzInterfaceFunction_Namezz"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
-    using ThisType = zzProgram_Namezz::zzInterface_Namezz_zzFunction_Namezz_Args;
+    using ThisType = zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args;
     static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
     {
         return true
@@ -313,18 +313,18 @@ template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzInterface_Name
             ;
     }
 
-    using Handler = ::ReflectionServices::ReflectedStructHandler<zzProgram_Namezz::zzInterface_Namezz_zzFunction_Namezz_Args
+    using Handler = ::ReflectionServices::ReflectedStructHandler<zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args
                                                                  //<Args_Field>
                                                                  ,
                                                                  Traits_arg_zzNamezz
                                                                  //</Args_Field>
                                                                  >;
 };
-//</Function>
+//</InterfaceFunction>
 
 template <> struct ReflectionBase::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz>
 {
-    //<Function>
+    //<InterfaceFunction>
     struct ApiTraits_zzNamezz
     {
         using TOwner = zzProgram_Namezz::zzInterface_Namezz;
@@ -332,21 +332,21 @@ template <> struct ReflectionBase::InterfaceTraits<zzProgram_Namezz::zzInterface
         static constexpr std::string_view    Name() { return "zzNamezz"; }
         static constexpr bool                Static = false;
     };
-    //</Function>
+    //</InterfaceFunction>
 
     using Apis = ::ReflectionBase::InterfaceApiPack<
-        //<Function  Join=','>
+        //<InterfaceFunction  Join=','>
         ApiTraits_zzNamezz
-        //</Function>
+        //</InterfaceFunction>
         >;
 };
 
-//<Function>
+//<InterfaceFunction>
 
 template <>
 struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz>::ApiTraits_zzNamezz>
 {
-    using ArgsStruct = zzProgram_Namezz::zzInterface_Namezz_zzFunction_Namezz_Args;
+    using ArgsStruct = zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args;
     static constexpr bool             IsStatic() { return false; }
     static constexpr std::string_view Name() { return "zzNamezz"; }
 
@@ -360,11 +360,16 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<zzProg
     }
 };
 
-//</Function>
+//</InterfaceFunction>
 #if ((defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0))
-template <> struct WebServiceHandlerTraits<zzProgram_Namezz::zzInterface_Namezz>
+template <> struct Stencil::WebServiceHandlerTraits<zzProgram_Namezz::zzInterface_Namezz>
 {
     static constexpr const std::string_view Url() { return std::string_view("zzInterface_Namezz"); }
+    // Name to api enum
+    // Name to funcptr mapping
+    // Name to argstruct mapping
+    // Invoke api for each arg struct
+    static void HandleRequest(zzProgram_Namezz::zzInterface_Namezz& obj, httplib::Request const& req, httplib::Response& res, std::string_view const& path);
 };
 #endif
 

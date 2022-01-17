@@ -1,19 +1,22 @@
 #include "TestUtils.h"
 
+#include <Catalog.pidl.h>
 #include <ComplexWebService.pidl.h>
 #include <SimpleWebService.pidl.h>
 
 #include <sstream>
 #include <string>
 #include <string_view>
-//
-// template <> struct ReflectionBase::InterfaceActivator<SimpleWebService::>
-//{
-//    std::unique_ptr<zzInterface_Namezz> Activate(uint64_t randomInteger, shared_string randomString)
-//    {
-//        return zzInterface_Namezz::Create(randomInteger, randomString);
-//    }
-//};
+struct TestInterfaceImpl : SimpleWebService::TestInterface
+{
+    virtual SimpleWebService::Data::Data Create(int32_t const& randomInteger, shared_string const& randomString) override
+    {
+        SimpleWebService::Data::Data data;
+        data.randomInteger() = randomInteger;
+        data.randomString()  = randomString;
+        return data;
+    }
+};
 
 class CppHttpLib
 {
@@ -35,12 +38,11 @@ class CppHttpLib
     std::string _response;
 };
 
-#if 0
 TEST_CASE("CodeGen::WebService::Autogen", "[WebService]")
 {
     SECTION("Positive: SimpleCase")
     {
-        WebService<SimpleWebService::TestInterface> svc;
+        Stencil::WebService<TestInterfaceImpl> svc;
         svc.StartOnPort(44444);
         try
         {
@@ -48,8 +50,7 @@ TEST_CASE("CodeGen::WebService::Autogen", "[WebService]")
             REQUIRE(str.size() == 38);
             REQUIRE(str[0] == '{');
             REQUIRE(str[37] == '}');
-        }
-        catch (std::exception const& ex)
+        } catch (std::exception const& ex)
         {
             FAIL(ex.what());
         }
@@ -57,4 +58,3 @@ TEST_CASE("CodeGen::WebService::Autogen", "[WebService]")
         svc.WaitForStop();
     }
 }
-#endif
