@@ -2,17 +2,22 @@
 #include "stencil/stencil.h"
 struct TestInterface;
 
-struct TestObj_obj : Database2::ObjectT<TestInterface, TestObj_obj>
-{};
-
-struct TestInterface : public ReflectionBase::InterfaceT<TestInterface>, public Database2::OwnerT<TestInterface, TestObj_obj>
+struct TestInterface : public ReflectionBase::InterfaceT<TestInterface>
 {
     public:
+    struct TestObj_obj : Database2::ObjectT<TestInterface, TestObj_obj>
+    {};
+
+    //struct DataStore : Database2::OwnerT<DataStore, TestObj_obj>
+    //{};
+
     TestInterface()          = default;
     virtual ~TestInterface() = default;
     DELETE_COPY_AND_MOVE(TestInterface);
 
     virtual uint64_t AddNumber(uint64_t num1, uint64_t num2) = 0;
+
+    //DataStore objects;
 };
 
 struct TestInterface_AddNumber_Args
@@ -62,7 +67,7 @@ template <> struct ReflectionBase::TypeTraits<TestInterface_AddNumber_Args&>
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<TestInterface_AddNumber_Args, Traits_arg_num1, Traits_arg_num2>;
 };
-template <> struct ReflectionBase::InterfaceObjectTraits<TestObj_obj>
+template <> struct ReflectionBase::InterfaceObjectTraits<TestInterface::TestObj_obj>
 {
     static constexpr std::string_view Name() { return "obj"; }
 };
@@ -79,7 +84,7 @@ template <> struct ReflectionBase::InterfaceTraits<TestInterface>
     };
 
     using Apis    = std::tuple<ApiTraits_AddNumber>;
-    using Objects = std::tuple<TestObj_obj>;
+    using Objects = std::tuple<TestInterface::TestObj_obj>;
 };
 
 template <> struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<TestInterface>::ApiTraits_AddNumber>
@@ -133,9 +138,7 @@ class CppHttpLib
     {
         httplib::Client cli(host.data(), port);
         auto            res = cli.Get(get.data());
-        if (res && res->status == 200) { 
-            _response = res->body; 
-        }
+        if (res && res->status == 200) { _response = res->body; }
         else
         {
             throw std::runtime_error("Unable to get");

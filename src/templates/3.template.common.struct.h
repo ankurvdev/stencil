@@ -235,10 +235,22 @@ struct Data : public ReflectionBase::ObjMarker
 struct zzInterface_Namezz : public ReflectionBase::InterfaceT<zzInterface_Namezz>
 {
     public:
-    //<InterfaceObjectStore>
-    struct ObjectStore_zzNamezz
+    struct Dummy
     {};
+    struct ObjectStore;
+
+    //<InterfaceObjectStore>
+    struct ObjectStore_zzNamezz : zzObjectType_NativeTypezz, Database2::ObjectT<ObjectStore, ObjectStore_zzNamezz>
+    {};
+
     //</InterfaceObjectStore>
+    struct ObjectStore : Dummy
+        //<InterfaceObjectStore>
+        ,
+                         public Database2::OwnerT<ObjectStore, ObjectStore_zzNamezz>
+    //</InterfaceObjectStore>
+    {};
+
     zzInterface_Namezz()          = default;
     virtual ~zzInterface_Namezz() = default;
     DELETE_COPY_AND_MOVE(zzInterface_Namezz);
@@ -251,6 +263,7 @@ struct zzInterface_Namezz : public ReflectionBase::InterfaceT<zzInterface_Namezz
         = 0;
     //</InterfaceFunction>
     // static std::unique_ptr<zzInterface_Namezz> Create();
+    ObjectStore objects;
 };
 #if 0
 struct zzInterface_NamezzFactory : public ReflectionBase::InterfaceFactory<zzInterface_Namezz>
@@ -338,7 +351,7 @@ template <> struct ReflectionBase::InterfaceTraits<zzProgram_Namezz::zzInterface
     };
     //</InterfaceFunction>
 
-    using Apis =  std::tuple<
+    using Apis = std::tuple<
         //<InterfaceFunction  Join=','>
         ApiTraits_zzNamezz
         //</InterfaceFunction>

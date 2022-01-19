@@ -74,6 +74,35 @@ TEST_CASE("CodeGen::WebService::Autogen", "[WebService]")
     {
         Stencil::WebService<CatalogImpl> svc;
         svc.StartOnPort(44444);
+        auto Test = [&](auto const& input, auto const& out) {
+            auto str = CppHttpLib("http", "localhost", 44444, input).response();
+            REQUIRE(str == out);
+        };
+
+        Test("/catalog/onlinedir/create?url=http%3A%2F%2F127.0.0.1%2F", "");
+        Test("/catalog/onlinedir/create?url=http%3A%2F%2F127.0.0.2%2F&maxFrequencyInMins=60", "");
+        Test("/catalog/onlinedir/get?ids=0", "");
+        Test("/catalog/onlinedir/get?ids=0,1", "");
+        Test("/catalog/onlinedir/0", "");
+        Test("/catalog/onlinedir/0?maxFrequencyInMins=120", "");
+        Test("/catalog/onlinedir/1?url=http%3A%2F%2F127.0.0.3%2F", "");
+        Test("/catalog/onlinedir/delete?ids=0", "");
+        Test("/catalog/onlinedir/all", "");
+        Test("/catalog/onlinedir/create?url=http%3A%2F%2F127.0.0.4%2F", "");
+        Test("/catalog/onlinedir/all", "");
+
+        Test("/catalog/localdir/create?url=http%3A%2F%2F127.0.0.1%2F", "");
+        Test("/catalog/localdir/create?url=http%3A%2F%2F127.0.0.2%2F&maxFrequencyInMins=60", "");
+        Test("/catalog/localdir/get?ids=0", "");
+        Test("/catalog/localdir/get?ids=0,1", "");
+        Test("/catalog/localdir/0", "");
+        Test("/catalog/localdir/0?maxFrequencyInMins=120", "");
+        Test("/catalog/localdir/1?url=http%3A%2F%2F127.0.0.3%2F", "");
+        Test("/catalog/localdir/delete?ids=0", "");
+        Test("/catalog/localdir/all", "");
+        Test("/catalog/localdir/create?url=http%3A%2F%2F127.0.0.4%2F", "");
+        Test("/catalog/localdir/all", "");
+
         svc.StopDaemon();
         svc.WaitForStop();
     }
