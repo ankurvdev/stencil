@@ -47,12 +47,16 @@ namespace impl
 {
 template <typename T1, typename T2> inline bool iequal(T1 const& a, T2 const& b)
 {
-    return std::equal(a.begin(), a.end(), b.begin(), b.end(), [](auto a1, auto b1) { return tolower(a1) == tolower(b1); });
+    return std::equal(std::begin(a), std::end(a), std::begin(b), std::end(b), [](auto a1, auto b1) { return tolower(a1) == tolower(b1); });
 }
 }    // namespace impl
 
 template <typename T>
-concept WebInterfaceImpl = std::is_default_constructible_v<WebServiceHandlerTraits<T>>;
+concept WebInterfaceImpl = requires(T t)
+{
+    typename T::Interface;
+    typename WebServiceHandlerTraits<typename T::Interface>;
+};
 
 template <WebInterfaceImpl... TImpls> struct WebService
 {
@@ -71,7 +75,7 @@ template <WebInterfaceImpl... TImpls> struct WebService
     void StartOnPort(uint16_t port)
     {
         auto guardscope = std::unique_lock<std::mutex>();
-        _server.Get("/.*", [this](auto... args) { return this->_HandleRequest(args...); });
+        _server.Get("/.*", [this](httplib::Request const& req, httplib::Response& res) { return this->_HandleRequest(req, res); });
         _server.set_error_handler([this](auto... args) { return this->_HandleRequest(args...); });
         _port         = port;
         _listenthread = std::thread([this]() { _server.listen("localhost", _port); });
@@ -102,8 +106,7 @@ template <WebInterfaceImpl... TImpls> struct WebService
             auto index = path.find('/', 1);
             if (index == path.npos) throw std::runtime_error("Invalid path. Cannot detect interface");
             auto ifname = path.substr(1, index - 1);
-            _HandleRequest<TImpls...>(req, res, ifname, path.substr(index + 1));
-            res.status = 200;
+            _HandleRequest<TImpls...>(req, res, ifname, path.substr(index));
         } catch (std::exception const& ex)
         {
             res.status = 500;
@@ -135,43 +138,94 @@ template <WebInterfaceImpl... TImpls> struct WebService
          *          The argstruct and the event name are plumbed here (WebService) which serializes that to a JSON object
          *          And pumps the data into all the clients (req here)
          */
-        return false;
-    }
-    template <WebInterfaceImpl T>
-    bool _HandleObjectStore(T& /* obj */,
-                            httplib::Request const& /* req */,
-                            httplib::Response& /* res */,
-                            std::string_view const& ifname,
-                            std::string_view const& /* path */)
-    {
-        /*
-           * Object Store
-           *      Condition: path matches datastore-name (traits)
-           *      Action:
-           *          Based on the first path-name identified we consult the traits to pass control onto the respective Object-Store
-           *          The next keyword dictates the Object-Store action. Each action interacts with central-DataStore (Database2) based on
-           the
-           * args. Explanation: Object Store apis can be
-           *          1. create: Create
-           *          2. get: Get-Multiple
-           *          3. edit: GetSingle
-           *          4. delete: Delete (multiple)
-           *          5. all: Search/filter
-           *          The Traits converts URL-Encoded args (GET/POST) to data-structs if needed
-           *          Each object-store gets a specific wrapper-type (over field-type) to handle situation where a single-type is used for
-           * multiple object stores The Interface contains the datamember Database<....> based on all Data-Store members of the interface.
-           */
-
         throw std::logic_error("Not implemented");
     }
 
-    template <WebInterfaceImpl T>
-    bool _HandleFunction(T& /* obj */,
-                         httplib::Request const& /* req */,
-                         httplib::Response& /* res */,
-                         std::string_view const& ifname,
-                         std::string_view const& /* path */)
+    template <typename TTup, size_t TTupIndex, WebInterfaceImpl T>
+    bool _TryHandleObjectStore(T&                      obj,
+                               httplib::Request const& req,
+                               httplib::Response&      res,
+                               std::string_view const& ifname,
+                               std::string_view const& path)
     {
+        if constexpr (TTupIndex == 0) { return false; }
+        else
+        {
+            using SelectedTup = std::tuple_element_t<TTupIndex - 1, TTup>;
+            if (!impl::iequal(ReflectionBase::InterfaceObjectTraits<SelectedTup>::Name(), ifname))
+            {
+                return _TryHandleObjectStore<TTup, TTupIndex - 1, T>(obj, req, res, ifname, path);
+            }
+            throw std::logic_error("Not implemented");
+        }
+    }
+
+    template <WebInterfaceImpl T>
+    bool _HandleObjectStore(T&                      obj,
+                            httplib::Request const& req,
+                            httplib::Response&      res,
+                            std::string_view const& ifname,
+                            std::string_view const& path)
+    {
+        using ObjectsTup = typename ReflectionBase::InterfaceTraits<typename T::Interface>::Objects;
+        return _TryHandleObjectStore<ObjectsTup, std::tuple_size_v<ObjectsTup>, T>(obj, req, res, ifname, path);
+    }
+
+    template <typename TTup, size_t TTupIndex, WebInterfaceImpl T>
+    bool _TryHandleFunction(T&                      obj,
+                            httplib::Request const& req,
+                            httplib::Response&      res,
+                            std::string_view const& ifname,
+                            std::string_view const& path)
+    {
+        if constexpr (TTupIndex == 0) { return false; }
+        else
+        {
+            using SelectedTup = std::tuple_element_t<TTupIndex - 1, TTup>;
+            if (!impl::iequal(ReflectionBase::InterfaceApiTraits<SelectedTup>::Name(), ifname))
+            {
+                return _TryHandleObjectStore<TTup, TTupIndex - 1, T>(obj, req, res, ifname, path);
+            }
+
+            using ArgsStruct   = typename ::ReflectionBase::InterfaceApiTraits<SelectedTup>::ArgsStruct;
+            using StateTracker = ReflectionServices::StateTraker<ArgsStruct, void*>;
+            ArgsStruct args;
+            args.instance = &obj;
+            StateTracker tracker(&args, nullptr);
+            for (auto const& [key, value] : req.params)
+            {
+                if (tracker.TryObjKey(Value(shared_string::make(key)), nullptr))
+                {
+                    tracker.HandleValue(Value(shared_string::make(value)), nullptr);
+                }
+            }
+
+            if constexpr (std::is_same_v<void, decltype(::ReflectionBase::InterfaceApiTraits<SelectedTup>::Invoke(args))>)
+            {
+                ::ReflectionBase::InterfaceApiTraits<SelectedTup>::Invoke(args);
+            }
+            else
+            {
+                auto retval = ::ReflectionBase::InterfaceApiTraits<SelectedTup>::Invoke(args);
+#ifdef USE_NLOHMANN_JSON
+                auto rslt = Stencil::Json::Stringify<decltype(retval)>(retval);
+                res.set_content(rslt, "application/json");
+#else
+                throw std::logic_error("No json stringifier defined");
+#endif
+            }
+            return true;
+        }
+    }
+
+    template <WebInterfaceImpl T>
+    bool _HandleFunction(T&                      obj,
+                         httplib::Request const& req,
+                         httplib::Response&      res,
+                         std::string_view const& ifname,
+                         std::string_view const& path)
+    {
+        using Tup = typename ReflectionBase::InterfaceTraits<typename T::Interface>::Apis;
         /* Func API
          *      Condition: path matches api-name
          *      Action:
@@ -179,7 +233,7 @@ template <WebInterfaceImpl... TImpls> struct WebService
          *          Traits are used to translate arg-struct to virtual function args for the given name
          *
          * */
-        throw std::logic_error("Not implemented");
+        return _TryHandleFunction<Tup, std::tuple_size_v<Tup>, T>(obj, req, res, ifname, path);
     }
 
     template <WebInterfaceImpl T>
@@ -187,12 +241,14 @@ template <WebInterfaceImpl... TImpls> struct WebService
     {
         if (path.empty() || path[0] != '/') throw std::logic_error("Invalid path");
         auto index = path.find('/', 1);
-        if (index == path.npos) throw std::runtime_error("Invalid api name. Cannot detect api name");
+        if (index == path.npos) index = path.size();
         auto ifname    = path.substr(1, index - 1);
         auto remaining = path.substr(index);
 
-        _HandleEventSource(obj, req, res, ifname, remaining) || _HandleObjectStore(obj, req, ifname, remaining)
-            || _HandleFunction(obj, req, res, ifname, remaining);
+        bool found = _HandleEventSource(obj, req, res, ifname, remaining) || _HandleObjectStore(obj, req, res, ifname, remaining)
+                     || _HandleFunction(obj, req, res, ifname, remaining);
+
+        if (!found) { throw std::runtime_error(fmt::format("No Matching api found for {}", path)); }
     }
 
     template <WebInterfaceImpl T, WebInterfaceImpl... Ts>

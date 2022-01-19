@@ -235,6 +235,10 @@ struct Data : public ReflectionBase::ObjMarker
 struct zzInterface_Namezz : public ReflectionBase::InterfaceT<zzInterface_Namezz>
 {
     public:
+    //<InterfaceObjectStore>
+    struct ObjectStore_zzNamezz
+    {};
+    //</InterfaceObjectStore>
     zzInterface_Namezz()          = default;
     virtual ~zzInterface_Namezz() = default;
     DELETE_COPY_AND_MOVE(zzInterface_Namezz);
@@ -334,10 +338,16 @@ template <> struct ReflectionBase::InterfaceTraits<zzProgram_Namezz::zzInterface
     };
     //</InterfaceFunction>
 
-    using Apis = ::ReflectionBase::InterfaceApiPack<
+    using Apis =  std::tuple<
         //<InterfaceFunction  Join=','>
         ApiTraits_zzNamezz
         //</InterfaceFunction>
+        >;
+
+    using Objects = std::tuple<
+        //<InterfaceObjectStore Join=','>
+        zzProgram_Namezz::zzInterface_Namezz::ObjectStore_zzNamezz
+        //</InterfaceObjectStore>
         >;
 };
 
@@ -361,6 +371,14 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<zzProg
 };
 
 //</InterfaceFunction>
+
+//<InterfaceObjectStore>
+template <> struct ReflectionBase::InterfaceObjectTraits<zzProgram_Namezz::zzInterface_Namezz::ObjectStore_zzNamezz>
+{
+    static constexpr std::string_view Name() { return "zzNamezz"; }
+};
+//</InterfaceObjectStore>
+
 #if ((defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0))
 template <> struct Stencil::WebServiceHandlerTraits<zzProgram_Namezz::zzInterface_Namezz>
 {
@@ -369,7 +387,10 @@ template <> struct Stencil::WebServiceHandlerTraits<zzProgram_Namezz::zzInterfac
     // Name to funcptr mapping
     // Name to argstruct mapping
     // Invoke api for each arg struct
-    static void HandleRequest(zzProgram_Namezz::zzInterface_Namezz& obj, httplib::Request const& req, httplib::Response& res, std::string_view const& path);
+    static void HandleRequest(zzProgram_Namezz::zzInterface_Namezz& obj,
+                              httplib::Request const&               req,
+                              httplib::Response&                    res,
+                              std::string_view const&               path);
 };
 #endif
 

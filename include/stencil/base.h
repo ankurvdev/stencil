@@ -328,6 +328,7 @@ template <typename TInterface> struct InterfaceT : public InterfaceMarker
     Id _id = Id::Create();
 };
 
+#if 0
 template <typename TInterface> struct InterfaceFactory : public InterfaceFactoryMarker, public InterfaceMarker
 {};
 
@@ -335,6 +336,7 @@ template <typename TInterface> struct InterfaceActivator
 {
     static std::unique_ptr<TInterface> Activate();
 };
+#endif
 
 struct IInterfaceApiHandler
 {
@@ -380,8 +382,10 @@ template <typename TInterfaceApi> struct InterfaceApiTraits
     }
 };
 
-template <typename... TInterfaceApis> struct InterfaceApiPack
-{};
+template <typename T> struct InterfaceObjectTraits
+{
+    static constexpr std::string_view Name() { return "Unknown"; }
+};
 
 template <typename TInterface> struct InterfaceTraits
 {
