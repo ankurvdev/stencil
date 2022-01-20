@@ -175,8 +175,9 @@ template <WebInterfaceImpl... TImpls> struct WebService
             {
                 auto lock       = obj.objects.LockForEdit();
                 auto [id, obj1] = obj.objects.template Create<SelectedTup>(lock, _CreateArgStruct<SelectedTup>(req));
-                // auto rslt       = Stencil::Json::Stringify<decltype(id)>(id);
-                // res.set_content(rslt, "application/json");
+                uint32_t idint  = ((uint32_t{id.page} << 16) | uint32_t{id.slot});
+                auto     rslt   = Stencil::Json::Stringify<decltype(idint)>(idint);
+                res.set_content(rslt, "application/json");
 
                 throw std::logic_error("Not implemented");
             }
@@ -211,7 +212,7 @@ template <WebInterfaceImpl... TImpls> struct WebService
             using SelectedTup = std::tuple_element_t<TTupIndex - 1, TTup>;
             if (!impl::iequal(ReflectionBase::InterfaceApiTraits<SelectedTup>::Name(), ifname))
             {
-                return _TryHandleObjectStore<TTup, TTupIndex - 1, T>(obj, req, res, ifname, path);
+                return _TryHandleFunction<TTup, TTupIndex - 1, T>(obj, req, res, ifname, path);
             }
             using Traits = ::ReflectionBase::InterfaceApiTraits<SelectedTup>;
             auto args    = _CreateArgStruct<typename Traits::ArgsStruct>(req);

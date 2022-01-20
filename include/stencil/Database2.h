@@ -93,10 +93,13 @@ template <typename TDb, typename TObj> struct FixedSizeObjTraits
     using ViewType = TObj const&;
     using EditType = TObj&;
 
-    constexpr static ObjTypeId TypeId() { return TObj::TypeId(); }
-    constexpr static size_t    RecordSize() { return sizeof(TObj); }
-    constexpr bool             IsEncrypted() { return false; }
-    constexpr static size_t    StructMemberCount() { return 0; }    // Unavailable / not-needed
+    constexpr static ObjTypeId TypeId()
+    { /*return TObj::TypeId();*/
+        return 0;
+    }
+    constexpr static size_t RecordSize() { return sizeof(TObj); }
+    constexpr bool          IsEncrypted() { return false; }
+    constexpr static size_t StructMemberCount() { return 0; }    // Unavailable / not-needed
 };
 
 template <typename TDb, typename TObj> struct ObjTraits : FixedSizeObjTraits<TDb, TObj>
@@ -1221,14 +1224,15 @@ template <typename TDb> struct DatabaseT
         }
         else
         {
-            auto [ref, buffer] = _Allocate<Traits<TObj>::RecordSize()>(lock, TypeId<TObj>());
+            auto [ref, slotobj] = _Allocate<Traits<TObj>::RecordSize()>(lock, TypeId<TObj>());
+            void* buffer        = slotobj.data.data();
             if constexpr (Traits<TObj>::StructMemberCount() > 0)
             {
                 //                auto wireobj = new (buffer) WireT<TObj>{};
 
                 // static_assert(Traits<TObj>::StructMemberCount() == sizeof...(args));
                 // auto wireobj = new (buffer) Traits<TObj>::WireT{};
-                auto wireobj = new (buffer.data.data()) WireT<TObj>();
+                auto wireobj = new (buffer) WireT<TObj>();
                 static_assert(sizeof...(args) == Traits<TObj>::StructMemberCount());
                 _FillParent<0, sizeof...(args), TObj>(lock, *wireobj, std::forward<TArgs>(args)...);
                 return RefAndEditT<TObj>(RefT<TObj>{ref}, *wireobj);
