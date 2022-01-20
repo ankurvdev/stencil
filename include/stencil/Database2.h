@@ -1237,7 +1237,7 @@ template <typename TDb> struct DatabaseT
             }
             else
             {
-                auto editptr = new (buffer) WireT<TObj>{std::forward<TArgs>(args)...};
+                auto editptr = new (buffer) WireT<TObj>(std::forward<TArgs>(args)...);
                 return RefAndEditT<TObj>(RefT<TObj>{ref}, *editptr);
             }
         }

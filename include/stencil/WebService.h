@@ -173,12 +173,11 @@ template <WebInterfaceImpl... TImpls> struct WebService
             }
             if (path == "/create")
             {
-#if 0
                 auto lock       = obj.objects.LockForEdit();
                 auto [id, obj1] = obj.objects.template Create<SelectedTup>(lock, _CreateArgStruct<SelectedTup>(req));
-                auto rslt       = Stencil::Json::Stringify<decltype(id)>(id);
-                res.set_content(rslt, "application/json");
-#endif
+                // auto rslt       = Stencil::Json::Stringify<decltype(id)>(id);
+                // res.set_content(rslt, "application/json");
+
                 throw std::logic_error("Not implemented");
             }
             else

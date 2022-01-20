@@ -69,7 +69,10 @@ TEST_CASE("CodeGen::WebService::Autogen", "[WebService]")
         svc.StopDaemon();
         svc.WaitForStop();
     }
+}
 
+TEST_CASE("CatalogImpl", "[WebService]")
+{
     SECTION("CatalogImpl")
     {
         Stencil::WebService<CatalogImpl> svc;

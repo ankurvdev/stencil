@@ -5,11 +5,22 @@ struct TestInterface;
 struct TestInterface : public ReflectionBase::InterfaceT<TestInterface>
 {
     public:
-    struct TestObj_obj : Database2::ObjectT<TestInterface, TestObj_obj>
-    {};
+    struct DataStore;
 
-    //struct DataStore : Database2::OwnerT<DataStore, TestObj_obj>
-    //{};
+    struct TestObj_obj : Database2::ObjectT<DataStore, TestObj_obj>
+    {
+        uint64_t arg_num1{};
+        uint64_t arg_num2{};
+
+        uint64_t& get_arg_num1() { return arg_num1; }
+        void      set_arg_num1(uint64_t&& value) { arg_num1 = value; }
+
+        uint64_t& get_arg_num2() { return arg_num2; }
+        void      set_arg_num2(uint64_t&& value) { arg_num2 = value; }
+    };
+
+    struct DataStore : Database2::OwnerT<DataStore, TestObj_obj>
+    {};
 
     TestInterface()          = default;
     virtual ~TestInterface() = default;
@@ -17,7 +28,41 @@ struct TestInterface : public ReflectionBase::InterfaceT<TestInterface>
 
     virtual uint64_t AddNumber(uint64_t num1, uint64_t num2) = 0;
 
-    //DataStore objects;
+    DataStore objects;
+};
+
+template <> struct ReflectionBase::TypeTraits<TestInterface::TestObj_obj&>
+{
+    struct Traits_arg_num1
+    {
+        using TOwner     = TestInterface::TestObj_obj;
+        using TFieldType = uint64_t;
+        static constexpr std::string_view    Name() { return "num1"; }
+        static const ::ReflectionBase::Flags Flags() { return {}; }
+        static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
+        static constexpr auto TPropertyGetter() { return &TestInterface::TestObj_obj::get_arg_num1; }
+        static constexpr auto TPropertySetter() { return &TestInterface::TestObj_obj::set_arg_num1; }
+    };
+
+    struct Traits_arg_num2
+    {
+        using TOwner     = TestInterface::TestObj_obj;
+        using TFieldType = uint64_t;
+
+        static constexpr std::string_view    Name() { return "num2"; }
+        static const ::ReflectionBase::Flags Flags() { return {}; }
+
+        static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
+
+        static constexpr auto TPropertyGetter() { return &TestInterface::TestObj_obj::get_arg_num2; }
+        static constexpr auto TPropertySetter() { return &TestInterface::TestObj_obj::set_arg_num2; }
+    };
+
+    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr std::string_view           Name() { return "AddNumber"; }
+    static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
+
+    using Handler = ::ReflectionServices::ReflectedStructHandler<TestInterface::TestObj_obj, Traits_arg_num1, Traits_arg_num2>;
 };
 
 struct TestInterface_AddNumber_Args
