@@ -250,6 +250,11 @@ struct Json
         static std::string Stringify(const std::unique_ptr<T>& obj) { return std::string(obj->GetObjectUuid().ToString()); }
     };
 
+    template <typename T> struct Writer<UuidBasedId<T>>
+    {
+        static std::string Stringify(const UuidBasedId<T>& obj) { return std::string(obj.ToString()); }
+    };
+
     template <typename TStruct> static void Load([[maybe_unused]] Visitor<TStruct>& visitor, [[maybe_unused]] std::istream& strm)
     {
 #ifdef USE_NLOHMANN_JSON

@@ -40,6 +40,19 @@ template <typename> struct is_tuple : std::false_type
 template <typename... T> struct is_tuple<std::tuple<T...>> : std::true_type
 {};
 
+template <typename T, typename TTup, size_t I = 0> constexpr size_t tuple_index_of()
+{
+    if constexpr (std::tuple_size<TTup>::value == I) { static_assert(std::is_same_v<T, T>, "Tuple Out of range"); }
+    else
+    {
+        if constexpr (std::is_same_v<std::tuple_element_t<I, TTup>, T>) { return I; }
+        else
+        {
+            return tuple_index_of<T, TTup, I + 1>();
+        }
+    }
+}
+
 struct shared_lock : std::unique_lock<std::shared_mutex>
 {
     shared_lock(std::shared_mutex& mutex) : std::unique_lock<std::shared_mutex>(mutex) {}
@@ -80,7 +93,7 @@ enum class Ownership
 
 typedef uint32_t ObjTypeId;
 
-template <typename T> struct DatabaseT;
+template <typename TDb> struct DatabaseT;
 template <typename TDb> struct PageLoaderTraits;
 template <typename TDb, typename TObj> struct ObjTraits;
 template <typename TDb, typename TObj> struct Ref;
@@ -93,13 +106,10 @@ template <typename TDb, typename TObj> struct FixedSizeObjTraits
     using ViewType = TObj const&;
     using EditType = TObj&;
 
-    constexpr static ObjTypeId TypeId()
-    { /*return TObj::TypeId();*/
-        return 0;
-    }
-    constexpr static size_t RecordSize() { return sizeof(TObj); }
-    constexpr bool          IsEncrypted() { return false; }
-    constexpr static size_t StructMemberCount() { return 0; }    // Unavailable / not-needed
+    constexpr static ObjTypeId TypeId() { return TDb::template TypeId<TObj>(); }
+    constexpr static size_t    RecordSize() { return sizeof(TObj); }
+    constexpr bool             IsEncrypted() { return false; }
+    constexpr static size_t    StructMemberCount() { return 0; }    // Unavailable / not-needed
 };
 
 template <typename TDb, typename TObj> struct ObjTraits : FixedSizeObjTraits<TDb, TObj>
@@ -144,6 +154,13 @@ struct Ref
 
     static Ref Invalid() { return Ref{}; }
     bool       Valid() const { return page >= 2 && slot < 1000; }
+
+    static auto FromUInt(uint32_t value)
+    {
+        SlotIndex slot = static_cast<uint16_t>(value & 0xff);
+        PageIndex page = static_cast<uint16_t>(value >> 16);
+        return Ref(page, slot);
+    }
 };
 
 struct SlotObj
@@ -1104,7 +1121,7 @@ template <typename TDb> struct DatabaseT
         auto end() const { return _end; }
     };
 
-    template <typename TObj> constexpr ObjTypeId TypeId() { return Traits<TObj>::TypeId(); }
+    template <typename TObj> static constexpr ObjTypeId TypeId() { return static_cast<ObjTypeId>(typeid(TObj).hash_code() + 1); }
 
     public:    // Constructor Destructor
     static constexpr struct InMemoryType
@@ -1241,7 +1258,7 @@ template <typename TDb> struct DatabaseT
             }
             else
             {
-                auto editptr = new (buffer) WireT<TObj>(std::forward<TArgs>(args)...);
+                auto editptr = new (buffer) WireT<TObj>{std::forward<TArgs>(args)...};
                 return RefAndEditT<TObj>(RefT<TObj>{ref}, *editptr);
             }
         }

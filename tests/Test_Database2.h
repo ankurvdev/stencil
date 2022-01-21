@@ -21,7 +21,7 @@ struct Shared
 {
     static constexpr auto GetOwnership() { return Database2::Ownership::Shared; }
 
-    static constexpr Database2::ObjTypeId TypeId() { return 2; }
+    // static constexpr Database2::ObjTypeId TypeId() { return 2; }
 
     Uuid uuid;
 };
@@ -30,7 +30,7 @@ struct Encrypted
 {
     static constexpr auto GetOwnership() { return Database2::Ownership::Unique; }
 
-    static constexpr Database2::ObjTypeId TypeId() { return 3; }
+    // static constexpr Database2::ObjTypeId TypeId() { return 3; }
 
     Uuid uuid;
 };
@@ -39,7 +39,7 @@ struct EncryptedAndShared
 {
     static constexpr auto GetOwnership() { return Database2::Ownership::Shared; }
 
-    static constexpr Database2::ObjTypeId TypeId() { return 4; }
+    // static constexpr Database2::ObjTypeId TypeId() { return 4; }
 
     Uuid uuid;
 };
@@ -48,7 +48,7 @@ struct WithSimpleRef
 {
     static constexpr auto GetOwnership() { return Database2::Ownership::Self; }
 
-    static constexpr Database2::ObjTypeId     TypeId() { return 5; }
+    // static constexpr Database2::ObjTypeId     TypeId() { return 5; }
     Database2::ChildRef<Simple>               ref1;
     Uuid                                      uuid;
     Database2::ChildRef<Simple>               ref2;

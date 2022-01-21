@@ -298,7 +298,6 @@ struct zzInterface_Namezz_zzInterfaceFunction_Namezz_Args
 
 // SECTION:
 
-
 //<Struct>
 
 template <> struct ReflectionBase::TypeTraits<zzProgram_Namezz::zzStruct_Namezz::Data&>

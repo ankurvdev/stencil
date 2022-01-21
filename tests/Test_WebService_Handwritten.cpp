@@ -19,8 +19,12 @@ struct TestInterface : public ReflectionBase::InterfaceT<TestInterface>
         void      set_arg_num2(uint64_t&& value) { arg_num2 = value; }
     };
 
-    struct DataStore : Database2::OwnerT<DataStore, TestObj_obj>
-    {};
+    struct DataStore : Database2::DatabaseT<DataStore>
+    {
+        using ObjectTypePack = std::tuple<TestObj_obj>;
+        DataStore()          = default;
+        CLASS_DELETE_COPY_AND_MOVE(DataStore);
+    };
 
     TestInterface()          = default;
     virtual ~TestInterface() = default;

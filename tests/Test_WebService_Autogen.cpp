@@ -22,7 +22,7 @@ struct TestInterfaceImpl : SimpleWebService::TestInterface
 
 struct CatalogImpl : Catalog::Catalog
 {
-    CatalogImpl() = default;
+    CatalogImpl() { objects.Init(); }
     CLASS_DELETE_COPY_AND_MOVE(CatalogImpl);
 
     virtual std::vector<::Catalog::File::Data> Search(shared_string const& /*query*/) override
@@ -82,14 +82,14 @@ TEST_CASE("CatalogImpl", "[WebService]")
             REQUIRE(str == out);
         };
 
-        Test("/catalog/onlinedir/create?url=http%3A%2F%2F127.0.0.1%2F", "");
-        Test("/catalog/onlinedir/create?url=http%3A%2F%2F127.0.0.2%2F&maxFrequencyInMins=60", "");
-        Test("/catalog/onlinedir/get?ids=0", "");
-        Test("/catalog/onlinedir/get?ids=0,1", "");
-        Test("/catalog/onlinedir/0", "");
-        Test("/catalog/onlinedir/0?maxFrequencyInMins=120", "");
-        Test("/catalog/onlinedir/1?url=http%3A%2F%2F127.0.0.3%2F", "");
-        Test("/catalog/onlinedir/delete?ids=0", "");
+        Test("/catalog/onlinedir/create?url=http%3A%2F%2F127.0.0.1%2F", "131072");
+        Test("/catalog/onlinedir/create?url=http%3A%2F%2F127.0.0.2%2F&maxFrequencyInMins=60", "131073");
+        Test("/catalog/onlinedir/get?ids=131072", "");
+        Test("/catalog/onlinedir/get?ids=131072,131073", "");
+        Test("/catalog/onlinedir/131072", "");
+        Test("/catalog/onlinedir/131072?maxFrequencyInMins=120", "");
+        Test("/catalog/onlinedir/131073?url=http%3A%2F%2F127.0.0.3%2F", "");
+        Test("/catalog/onlinedir/delete?ids=131072", "");
         Test("/catalog/onlinedir/all", "");
         Test("/catalog/onlinedir/create?url=http%3A%2F%2F127.0.0.4%2F", "");
         Test("/catalog/onlinedir/all", "");

@@ -178,8 +178,30 @@ template <WebInterfaceImpl... TImpls> struct WebService
                 uint32_t idint  = ((uint32_t{id.page} << 16) | uint32_t{id.slot});
                 auto     rslt   = Stencil::Json::Stringify<decltype(idint)>(idint);
                 res.set_content(rslt, "application/json");
-
-                throw std::logic_error("Not implemented");
+                return true;
+            }
+            else if (path == "/get")
+            {
+                auto              ids = req.params.find("ids")->second;
+                std::stringstream rslt;
+                rslt << '[';
+                bool   first;
+                size_t sindex = 0;
+                do {
+                    auto eindex = ids.find(',', sindex);
+                    if (eindex == std::string_view::npos) eindex = ids.size();
+                    if (!first) { rslt << ','; }
+                    auto idstr = ids.substr(sindex, eindex - sindex);
+                    auto id    = std::stoul(idstr);
+                    auto lock  = obj.objects.LockForEdit();
+                    auto obj1  = obj.objects.template Get<SelectedTup>(lock, Database2::impl::Ref::FromUInt(id));
+                    auto jsobj = Stencil::Json::Stringify<SelectedTup>(obj1);
+                    rslt << jsobj;
+                    sindex = eindex + 1;
+                } while (sindex < ids.size());
+                rslt << ']';
+                res.set_content(rslt.str(), "application/json");
+                return true;
             }
             else
             {
