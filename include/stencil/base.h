@@ -24,7 +24,7 @@
 // TODO: Get rid of this
 using timestamp = decltype(std::chrono::system_clock::now());
 
-namespace ReflectionBase
+namespace Stencil
 {
 
 namespace ExceptionTraits
@@ -400,9 +400,9 @@ template <typename T, typename = void> struct Functions
     static bool AreEqual(T const& obj1, T const& obj2) { return std::memcmp(&obj1, &obj2, sizeof(T)) == 0; }
 };
 
-template <typename T> struct Functions<T, std::enable_if_t<std::is_base_of<::ReflectionBase::ObjMarker, T>::value>>
+template <typename T> struct Functions<T, std::enable_if_t<std::is_base_of<::Stencil::ObjMarker, T>::value>>
 {
-    static bool AreEqual(T const& obj1, T const& obj2) { return ReflectionBase::TypeTraits<T&>::AreEqual(obj1, obj2); }
+    static bool AreEqual(T const& obj1, T const& obj2) { return Stencil::TypeTraits<T&>::AreEqual(obj1, obj2); }
 };
 
 template <typename T> bool AreEqual(T const& obj1, T const& obj2)
@@ -410,12 +410,12 @@ template <typename T> bool AreEqual(T const& obj1, T const& obj2)
     return Functions<T>::AreEqual(obj1, obj2);
 }
 
-}    // namespace ReflectionBase
+}    // namespace Stencil
 
 // Provide handlers for some very commonly used types
 namespace ReflectionServices
 {
-using namespace ReflectionBase;
+using namespace Stencil;
 using DataType = DataType;
 
 template <typename T> struct CommonValueHandler : public IDataTypeHandler<DataType::Value>
@@ -585,7 +585,7 @@ template <typename TFieldTraits> struct ObjectDataTypeHandler<DataType::Value, T
     void Write(void* ptr, Value const& value) const override
     {
         typename TFieldTraits::TFieldType                                                fieldValue;
-        typename ReflectionBase::TypeTraits<typename TFieldTraits::TFieldType&>::Handler handler;
+        typename Stencil::TypeTraits<typename TFieldTraits::TFieldType&>::Handler handler;
         handler.Write(&fieldValue, value);
         (static_cast<TOwner*>(ptr)->*(TFieldTraits::TPropertySetter()))(std::move(fieldValue));
     }
@@ -595,7 +595,7 @@ template <typename TFieldTraits> struct ObjectDataTypeHandler<DataType::Value, T
         auto method = TFieldTraits::TPropertyGetter();
         auto obj    = static_cast<TOwner*>(ptr);
 
-        typename ReflectionBase::TypeTraits<typename TFieldTraits::TFieldType&>::Handler handler;
+        typename Stencil::TypeTraits<typename TFieldTraits::TFieldType&>::Handler handler;
         return handler.Read(&(obj->*method)());
     }
 
@@ -1005,14 +1005,14 @@ template <typename T, typename TStackData> struct StateTraker
 
 namespace ReflectionServices
 {
-using namespace ReflectionBase;
+using namespace Stencil;
 
 template <typename... TApiTraits> struct InterfaceHandler
 {};
 
 }    // namespace ReflectionServices
 
-template <typename T> struct ReflectionBase::TypeTraits<T&, std::enable_if_t<Value::Supported<T>::value>>
+template <typename T> struct Stencil::TypeTraits<T&, std::enable_if_t<Value::Supported<T>::value>>
 {
     static constexpr DataType         Type() { return DataType::Value; }
     static constexpr std::string_view Name() { return std::string_view(typeid(T).name()); }
@@ -1024,7 +1024,7 @@ template <typename T> struct ReflectionBase::TypeTraits<T&, std::enable_if_t<Val
     using Handler   = typename ::ReflectionServices::CommonValueHandler<T>;
 };
 #if 0
-template <typename TClock, typename TDur> struct ReflectionBase::TypeTraits<std::chrono::time_point<TClock, TDur>&>
+template <typename TClock, typename TDur> struct Stencil::TypeTraits<std::chrono::time_point<TClock, TDur>&>
 {
     using time_point = std::chrono::time_point<TClock, TDur>;
 
@@ -1037,7 +1037,7 @@ template <typename TClock, typename TDur> struct ReflectionBase::TypeTraits<std:
 
     using ValueType = uint64_t;
 
-    struct Handler : public ::ReflectionBase::IDataTypeHandler<DataType::Value>
+    struct Handler : public ::Stencil::IDataTypeHandler<DataType::Value>
     {
         virtual void Write(void* ptr, Value const& value) const override
         {
@@ -1070,58 +1070,58 @@ template <typename TClock, typename TDur> struct ReflectionBase::TypeTraits<std:
     };
 };
 #endif
-template <typename T> struct ReflectionBase::TypeTraits<std::vector<T>&>
+template <typename T> struct Stencil::TypeTraits<std::vector<T>&>
 {
     using ListObjType = T;
     static constexpr DataType Type() { return DataType::List; }
-    static std::string        Name() { return "list<" + std::string(::ReflectionBase::TypeTraits<T&>::Name()) + ">"; }
+    static std::string        Name() { return "list<" + std::string(::Stencil::TypeTraits<T&>::Name()) + ">"; }
 
     static std::string Description()
     {
-        return "list<" + std::string(::ReflectionBase::TypeTraits<T&>::AttributeValue("Description")) + ">";
+        return "list<" + std::string(::Stencil::TypeTraits<T&>::AttributeValue("Description")) + ">";
     }
     static std::string_view AttributeValue(const std::string_view& /*key*/) { return ""; }
 
     bool AreEqual(std::vector<T>& obj1, std::vector<T>& obj2)
     {
         return std::equal(obj1.begin(), obj2.end(), obj2.begin(), obj2.end(), [](auto&& o1, auto&& o2) {
-            return ReflectionBase::TypeTraits<decltype(o1)>::AreEqual(o1, o2);
+            return Stencil::TypeTraits<decltype(o1)>::AreEqual(o1, o2);
         });
     }
     using Handler = typename ::ReflectionServices::StdVectorListHandler<T>;
 };
 
-template <typename T, size_t N> struct ReflectionBase::TypeTraits<std::array<T, N>&>
+template <typename T, size_t N> struct Stencil::TypeTraits<std::array<T, N>&>
 {
     using ListObjType = T;
 
     static constexpr DataType Type() { return DataType::List; }
-    static std::string        Name() { return "array<" + std::string(::ReflectionBase::TypeTraits<T&>::Name()) + ">"; }
+    static std::string        Name() { return "array<" + std::string(::Stencil::TypeTraits<T&>::Name()) + ">"; }
 
     static std::string Description()
     {
-        return "array<" + std::string(::ReflectionBase::TypeTraits<T&>::AttributeValue("Description")) + ">";
+        return "array<" + std::string(::Stencil::TypeTraits<T&>::AttributeValue("Description")) + ">";
     }
     static std::string_view AttributeValue(const std::string_view& /* key */) { return ""; }
 
     bool AreEqual(std::array<T, N>& obj1, std::array<T, N>& obj2)
     {
         return std::equal(obj1.begin(), obj2.end(), obj2.begin(), obj2.end(), [](auto&& o1, auto&& o2) {
-            return ReflectionBase::TypeTraits<decltype(o1)>::AreEqual(o1, o2);
+            return Stencil::TypeTraits<decltype(o1)>::AreEqual(o1, o2);
         });
     }
     using Handler = typename ::ReflectionServices::StdArrayListHandler<T, N>;
 };
 
 template <typename T>
-struct ReflectionBase::TypeTraits<std::unique_ptr<T>&, std::enable_if_t<std::is_base_of<::ReflectionBase::ObjMarker, T>::value>>
+struct Stencil::TypeTraits<std::unique_ptr<T>&, std::enable_if_t<std::is_base_of<::Stencil::ObjMarker, T>::value>>
 {
     static constexpr DataType                       Type() { return DataType::Object; }
-    static constexpr std::string_view               Name() { return ::ReflectionBase::TypeTraits<T&>::Name(); }
+    static constexpr std::string_view               Name() { return ::Stencil::TypeTraits<T&>::Name(); }
     static std::string_view                         AttributeValue(const std::string_view& /*key*/) { throw std::logic_error("TODO"); }
     template <typename T1, typename T2> static bool AreEqual(T1 const& obj1, T2 const& obj2) { return obj1 == obj2; }
 
-    struct Handler : public ::ReflectionBase::IDataTypeHandler<DataType::Object>
+    struct Handler : public ::Stencil::IDataTypeHandler<DataType::Object>
     {
         virtual void Start() const override {}
         virtual bool TryGetSubComponent(void* rawptr, Value const& key, SubComponent& subcomponent) const override
@@ -1135,29 +1135,29 @@ struct ReflectionBase::TypeTraits<std::unique_ptr<T>&, std::enable_if_t<std::is_
         virtual shared_string Description() const override { return AttributeValue("Description"); }
         virtual shared_string AttributeValue(const std::string_view& key) const override
         {
-            return shared_string::make(::ReflectionBase::TypeTraits<T&>::AttributeValue(key));
+            return shared_string::make(::Stencil::TypeTraits<T&>::AttributeValue(key));
         }
-        virtual shared_string Name() const override { return shared_string::make(::ReflectionBase::TypeTraits<T&>::Name()); }
+        virtual shared_string Name() const override { return shared_string::make(::Stencil::TypeTraits<T&>::Name()); }
         virtual size_t        GetSubComponentCount() const override { return _handler.GetSubComponentCount(); }
         virtual SubComponent  GetSubComponentAt(void* rawptr, size_t index) const override
         {
             return _handler.GetSubComponentAt(rawptr, index);
         }
 
-        typename ::ReflectionBase::TypeTraits<T&>::Handler _handler;
+        typename ::Stencil::TypeTraits<T&>::Handler _handler;
     };
 };
 
 template <typename T>
-struct ReflectionBase::TypeTraits<std::shared_ptr<T>&, std::enable_if_t<std::is_base_of<::ReflectionBase::ObjMarker, T>::value>>
+struct Stencil::TypeTraits<std::shared_ptr<T>&, std::enable_if_t<std::is_base_of<::Stencil::ObjMarker, T>::value>>
 {
     static constexpr DataType         Type() { return DataType::Object; }
-    static constexpr std::string_view Name() { return ::ReflectionBase::TypeTraits<T&>::Name(); }
+    static constexpr std::string_view Name() { return ::Stencil::TypeTraits<T&>::Name(); }
     static std::string_view           AttributeValue(const std::string_view& /*key*/) { throw std::logic_error("TODO"); }
 
     template <typename T1, typename T2> static bool AreEqual(T1 const& obj1, T2 const& obj2) { return obj1 == obj2; }
 
-    struct Handler : public ::ReflectionBase::IDataTypeHandler<DataType::Object>
+    struct Handler : public ::Stencil::IDataTypeHandler<DataType::Object>
     {
         virtual void Start() const override {}
         virtual bool TryGetSubComponent(void* rawptr, Value const& key, SubComponent& subcomponent) const override
@@ -1171,35 +1171,35 @@ struct ReflectionBase::TypeTraits<std::shared_ptr<T>&, std::enable_if_t<std::is_
         virtual shared_string Description() const override { return AttributeValue("Description"); }
         virtual shared_string AttributeValue(const std::string_view& key) const override
         {
-            return shared_string::make(::ReflectionBase::TypeTraits<T&>::AttributeValue(key));
+            return shared_string::make(::Stencil::TypeTraits<T&>::AttributeValue(key));
         }
-        virtual shared_string Name() const override { return shared_string::make(::ReflectionBase::TypeTraits<T&>::Name()); }
+        virtual shared_string Name() const override { return shared_string::make(::Stencil::TypeTraits<T&>::Name()); }
         virtual size_t        GetSubComponentCount() const override { return _handler.GetSubComponentCount(); }
         virtual SubComponent  GetSubComponentAt(void* rawptr, size_t index) const override
         {
             return _handler.GetSubComponentAt(rawptr, index);
         }
 
-        typename ::ReflectionBase::TypeTraits<T&>::Handler _handler;
+        typename ::Stencil::TypeTraits<T&>::Handler _handler;
     };
 };
 
-template <typename T> struct ReflectionBase::TypeTraits<shared_tree<T>&>
+template <typename T> struct Stencil::TypeTraits<shared_tree<T>&>
 {
     using ListObjType = T;
 
     static constexpr DataType         Type() { return DataType::List; }
-    static constexpr std::string_view Name() { return ::ReflectionBase::TypeTraits<T&>::Name(); }
+    static constexpr std::string_view Name() { return ::Stencil::TypeTraits<T&>::Name(); }
     static std::string                Description()
     {
-        return "shared_tree<" + std::string(::ReflectionBase::TypeTraits<T&>::AttributeValue("Description")) + ">";
+        return "shared_tree<" + std::string(::Stencil::TypeTraits<T&>::AttributeValue("Description")) + ">";
     }
 
     static std::string_view AttributeValue(const std::string_view& /*key*/) { throw std::logic_error("TODO"); }
 
     template <typename T1, typename T2> static bool AreEqual(T1 const& obj1, T2 const& obj2) { return obj1 == obj2; }
 
-    struct Handler : public ::ReflectionBase::IDataTypeHandler<DataType::List>
+    struct Handler : public ::Stencil::IDataTypeHandler<DataType::List>
     {
         virtual void Start() const override {}
 
@@ -1216,28 +1216,28 @@ template <typename T> struct ReflectionBase::TypeTraits<shared_tree<T>&>
 
         virtual SubComponent GetListItemHandler() const override { return {&_handler, nullptr}; }
 
-        typename ::ReflectionBase::TypeTraits<T&>::Handler _handler;
+        typename ::Stencil::TypeTraits<T&>::Handler _handler;
     };
 };
 
-template <typename T> struct ReflectionBase::TypeTraits<UuidBasedId<T>&>
+template <typename T> struct Stencil::TypeTraits<UuidBasedId<T>&>
 {
     static constexpr DataType         Type() { return DataType::Value; }
-    static constexpr std::string_view Name() { return ::ReflectionBase::TypeTraits<T&>::Name(); }
+    static constexpr std::string_view Name() { return ::Stencil::TypeTraits<T&>::Name(); }
     static std::string_view           AttributeValue(const std::string_view& /*key*/) { throw std::logic_error("TODO"); }
     static std::string                Description() { throw std::logic_error("TODO"); }
 
     template <typename T1, typename T2> static bool AreEqual(T1 const& obj1, T2 const& obj2) { return obj1 == obj2; }
 
-    struct Handler : public ::ReflectionBase::IDataTypeHandler<DataType::Value>
+    struct Handler : public ::Stencil::IDataTypeHandler<DataType::Value>
     {
         virtual shared_string Description() const override { throw std::logic_error("TODO"); }
         virtual shared_string AttributeValue(const std::string_view& /*key*/) const override { throw std::logic_error("TODO"); }
-        virtual shared_string Name() const override { return shared_string::make(::ReflectionBase::TypeTraits<T&>::Name()); }
+        virtual shared_string Name() const override { return shared_string::make(::Stencil::TypeTraits<T&>::Name()); }
 
         virtual void  Write(void* /*ptr*/, Value const& /*value*/) const override { throw std::logic_error("TODO"); }
         virtual Value Read(void* /*ptr*/) const override { throw std::logic_error("TODO"); }
 
-        typename ::ReflectionBase::TypeTraits<T&>::Handler _handler;
+        typename ::Stencil::TypeTraits<T&>::Handler _handler;
     };
 };
