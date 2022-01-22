@@ -185,18 +185,19 @@ template <WebInterfaceImpl... TImpls> struct WebService
                 auto              ids = req.params.find("ids")->second;
                 std::stringstream rslt;
                 rslt << '[';
-                bool   first;
+                bool   first = true;
                 size_t sindex = 0;
                 do {
                     auto eindex = ids.find(',', sindex);
                     if (eindex == std::string_view::npos) eindex = ids.size();
                     if (!first) { rslt << ','; }
+                    first      = false;
                     auto idstr = ids.substr(sindex, eindex - sindex);
                     auto id    = std::stoul(idstr);
                     auto lock  = obj.objects.LockForEdit();
                     auto obj1  = obj.objects.template Get<SelectedTup>(lock, Database2::impl::Ref::FromUInt(id));
-                    auto jsobj = Stencil::Json::Stringify<SelectedTup>(obj1);
-                    rslt << jsobj;
+                    // auto jsobj = Stencil::Json::Stringify<SelectedTup>(obj1);
+                    // rslt << jsobj;
                     sindex = eindex + 1;
                 } while (sindex < ids.size());
                 rslt << ']';
