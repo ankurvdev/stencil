@@ -325,7 +325,7 @@ struct JsonSerDes
         case ReflectionBase::DataType::List:
         case ReflectionBase::DataType::Object: Json::Load(visitor, strm); break;
         case ReflectionBase::DataType::Enum: TODO();
-        case ReflectionBase::DataType::Union: TODO();
+        case ReflectionBase::DataType::Variant: TODO();
         case ReflectionBase::DataType::Invalid: [[fallthrough]];
         case ReflectionBase::DataType::Unknown: throw std::runtime_error("Unsupported Data Type");
         }

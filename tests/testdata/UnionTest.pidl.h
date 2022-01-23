@@ -3,17 +3,17 @@
 
 // SECTION START: DECLARATIONS
 #if true
-namespace UnionTest::Struct1
+namespace VariantTest::Struct1
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<UnionTest::Struct1::Data&>;
+template <> struct ReflectionBase::TypeTraits<VariantTest::Struct1::Data&>;
 #endif
 // SECTION END: DECLARATIONS
 
 // SECTION START: Definitions
 #if true
-namespace UnionTest
+namespace VariantTest
 {
 namespace Struct1
 {
@@ -95,13 +95,13 @@ struct Data :
 };
 
 }    // namespace Struct1
-namespace Union1
+namespace Variant1
 {
-struct Union;
+struct Variant;
 }
-namespace Union1
+namespace Variant1
 {
-enum class UnionType
+enum class VariantType
 {
     Invalid,
     field1
@@ -110,15 +110,15 @@ enum class UnionType
 
 struct Data : public ReflectionBase::ObjMarker
 {
-    UnionType _type;
+    VariantType _type;
 
     public:
-    UnionType Type() const { return _type; }
+    VariantType Type() const { return _type; }
 
-    UnionType& get_Type() { return _type; }
-    void       set_Type(UnionType&& val) { _type = std::move(val); }
+    VariantType& get_Type() { return _type; }
+    void       set_Type(VariantType&& val) { _type = std::move(val); }
 
-    Data() : _type(UnionType::Invalid) {}
+    Data() : _type(VariantType::Invalid) {}
 
     public:
     enum class FieldIndex
@@ -172,8 +172,8 @@ struct Data : public ReflectionBase::ObjMarker
     void                      set_field2(int32_t&& val) { _field2 = std::move(val); }
 
 };
-}    // namespace Union1
-}    // namespace UnionTest
+}    // namespace Variant1
+}    // namespace VariantTest
 #endif
 // SECTION END: Definitions
 
@@ -181,11 +181,11 @@ struct Data : public ReflectionBase::ObjMarker
 #if true
 
 // SECTION:
-template <> struct ReflectionBase::TypeTraits<UnionTest::Struct1::Data&>
+template <> struct ReflectionBase::TypeTraits<VariantTest::Struct1::Data&>
 {
     struct Traits_field1
     {
-        using TOwner     = UnionTest::Struct1::Data;
+        using TOwner     = VariantTest::Struct1::Data;
         using TFieldType = shared_string;
 
         static constexpr std::string_view Name() { return "field1"; }
@@ -204,7 +204,7 @@ template <> struct ReflectionBase::TypeTraits<UnionTest::Struct1::Data&>
     };
     struct Traits_field2
     {
-        using TOwner     = UnionTest::Struct1::Data;
+        using TOwner     = VariantTest::Struct1::Data;
         using TFieldType = shared_string;
 
         static constexpr std::string_view Name() { return "field2"; }
@@ -228,7 +228,7 @@ template <> struct ReflectionBase::TypeTraits<UnionTest::Struct1::Data&>
         return ::ReflectionServices::EmptyAttributeValue(key);
     }
 
-    using ThisType = UnionTest::Struct1::Data;
+    using ThisType = VariantTest::Struct1::Data;
     static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
     {
         return true
@@ -237,23 +237,23 @@ template <> struct ReflectionBase::TypeTraits<UnionTest::Struct1::Data&>
             ;
     }
 
-    using Handler = ::ReflectionServices::ReflectedStructHandler<UnionTest::Struct1::Data,
+    using Handler = ::ReflectionServices::ReflectedStructHandler<VariantTest::Struct1::Data,
                                                                  Traits_field1
 ,                                                                 Traits_field2
                                                                  >;
 };
 
 template <>
-struct Stencil::Transaction<UnionTest::Struct1::Data> : Stencil::TransactionT<UnionTest::Struct1::Data>
+struct Stencil::Transaction<VariantTest::Struct1::Data> : Stencil::TransactionT<VariantTest::Struct1::Data>
 {
-    using TData = UnionTest::Struct1::Data;
+    using TData = VariantTest::Struct1::Data;
 
     Transaction<shared_string> _subtracker_field1;
     Transaction<shared_string> _subtracker_field2;
     DELETE_COPY_AND_MOVE(Transaction);
 
     Transaction(TData& ptr) :
-        Stencil::TransactionT<UnionTest::Struct1::Data>(ptr)
+        Stencil::TransactionT<VariantTest::Struct1::Data>(ptr)
         ,
         _subtracker_field1(Obj().field1())
         ,
@@ -321,14 +321,14 @@ struct Stencil::Transaction<UnionTest::Struct1::Data> : Stencil::TransactionT<Un
             if (!field2().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::field2));
         }
 
-        Stencil::TransactionT<UnionTest::Struct1::Data>::Flush_();
+        Stencil::TransactionT<VariantTest::Struct1::Data>::Flush_();
     }
 };
 
 template <>
-struct Stencil::Visitor<UnionTest::Struct1::Data, void> : Stencil::VisitorT<UnionTest::Struct1::Data>
+struct Stencil::Visitor<VariantTest::Struct1::Data, void> : Stencil::VisitorT<VariantTest::Struct1::Data>
 {
-    using TData = UnionTest::Struct1::Data;
+    using TData = VariantTest::Struct1::Data;
 
     Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
 
@@ -362,10 +362,10 @@ struct Stencil::Visitor<UnionTest::Struct1::Data, void> : Stencil::VisitorT<Unio
 };
 
 template <>
-struct Stencil::Visitor<const UnionTest::Struct1::Data, void>
-    : Stencil::VisitorT<const UnionTest::Struct1::Data>
+struct Stencil::Visitor<const VariantTest::Struct1::Data, void>
+    : Stencil::VisitorT<const VariantTest::Struct1::Data>
 {
-    using TData = UnionTest::Struct1::Data const;
+    using TData = VariantTest::Struct1::Data const;
 
     Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
 
@@ -388,7 +388,7 @@ struct Stencil::Visitor<const UnionTest::Struct1::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionServices::EnumTraits<UnionTest::Union1::UnionType>
+template <> struct ReflectionServices::EnumTraits<VariantTest::Variant1::VariantType>
 {
     static constexpr const char* EnumStrings[] = {"Invalid",
                                                   "field1",
@@ -398,7 +398,7 @@ template <> struct ReflectionServices::EnumTraits<UnionTest::Union1::UnionType>
     using ValueType = uint32_t;
 };
 
-template <> struct ValueTraits<UnionTest::Union1::UnionType>
+template <> struct ValueTraits<VariantTest::Variant1::VariantType>
 {
     static constexpr auto    ValueType() { return Value::Type::Unsigned; }
     [[noreturn]] static void Get(Value& /*obj*/) { throw std::logic_error("Not Implemented"); }
@@ -406,19 +406,19 @@ template <> struct ValueTraits<UnionTest::Union1::UnionType>
     [[noreturn]] static void Check() { throw std::logic_error("Not Implemented"); }
 };
 
-template <> struct ReflectionBase::TypeTraits<UnionTest::Union1::UnionType&>
+template <> struct ReflectionBase::TypeTraits<VariantTest::Variant1::VariantType&>
 {
     static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Value; }
-    static constexpr std::string_view           Name() { return "Union1"; }
+    static constexpr std::string_view           Name() { return "Variant1"; }
 
-    using Handler = ::ReflectionServices::EnumHandler<UnionTest::Union1::UnionType>;
+    using Handler = ::ReflectionServices::EnumHandler<VariantTest::Variant1::VariantType>;
 };
 
-template <> struct ReflectionBase::TypeTraits<UnionTest::Union1::Data&>
+template <> struct ReflectionBase::TypeTraits<VariantTest::Variant1::Data&>
 {
     struct Traits_field1
     {
-        using TOwner     = UnionTest::Union1::Data;
+        using TOwner     = VariantTest::Variant1::Data;
         using TFieldType = int32_t;
 
         static constexpr std::string_view Name() { return "field1"; }
@@ -437,7 +437,7 @@ template <> struct ReflectionBase::TypeTraits<UnionTest::Union1::Data&>
     };
     struct Traits_field2
     {
-        using TOwner     = UnionTest::Union1::Data;
+        using TOwner     = VariantTest::Variant1::Data;
         using TFieldType = int32_t;
 
         static constexpr std::string_view Name() { return "field2"; }
@@ -455,13 +455,13 @@ template <> struct ReflectionBase::TypeTraits<UnionTest::Union1::Data&>
         }
     };
     static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
-    static constexpr std::string_view           Name() { return "Union1"; }
+    static constexpr std::string_view           Name() { return "Variant1"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
         return ::ReflectionServices::EmptyAttributeValue(key);
     }
 
-    using ThisType = UnionTest::Union1::Data;
+    using ThisType = VariantTest::Variant1::Data;
     static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
     {
         return true
@@ -470,17 +470,17 @@ template <> struct ReflectionBase::TypeTraits<UnionTest::Union1::Data&>
             ;
     }
 
-    using Handler = ::ReflectionServices::ReflectedUnionHandler<UnionTest::Union1::Data,
-                                                                UnionTest::Union1::UnionType,
+    using Handler = ::ReflectionServices::ReflectedVariantHandler<VariantTest::Variant1::Data,
+                                                                VariantTest::Variant1::VariantType,
                                                                 Traits_field1
 ,                                                                Traits_field2
                                                                 >;
 };
 
 template <>
-struct Stencil::Visitor<UnionTest::Union1::Data, void> : Stencil::VisitorT<UnionTest::Union1::Data>
+struct Stencil::Visitor<VariantTest::Variant1::Data, void> : Stencil::VisitorT<VariantTest::Variant1::Data>
 {
-    using TData = UnionTest::Union1::Data;
+    using TData = VariantTest::Variant1::Data;
 
     Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
 
@@ -514,10 +514,10 @@ struct Stencil::Visitor<UnionTest::Union1::Data, void> : Stencil::VisitorT<Union
 };
 
 template <>
-struct Stencil::Visitor<const UnionTest::Union1::Data, void>
-    : Stencil::VisitorT<const UnionTest::Union1::Data>
+struct Stencil::Visitor<const VariantTest::Variant1::Data, void>
+    : Stencil::VisitorT<const VariantTest::Variant1::Data>
 {
-    using TData = UnionTest::Union1::Data const;
+    using TData = VariantTest::Variant1::Data const;
 
     Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
 

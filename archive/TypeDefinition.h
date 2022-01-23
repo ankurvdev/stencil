@@ -11,7 +11,7 @@ using TextValue         = Str::Type;
 using KVP               = std::pair<Str::Type, Str::Type>;
 using ContainerTypeList = std::vector<Str::Type>;
 using NameWithTypeList  = std::pair<Str::Type, std::vector<Str::Type>>;
-using RelationshipMap   = std::unordered_map<Str::Type, Str::Type>;
+using AttributeMap   = std::unordered_map<Str::Type, Str::Type>;
 
 inline Attributes CreateAttributeMapEntry(Attributes& ptr, KVP& entry)
 {
@@ -44,9 +44,9 @@ class Context
             program.CreateFieldTypeObject<IDL::NativeFieldType>(std::move(name.first), program.TryGetFieldTypeName(basename.first), map);
         }
     }
-    void CreateRelationshipDefinition(Str::Type&& name, RelationshipMap&& components)
+    void CreateAttributeDefinition(Str::Type&& name, AttributeMap&& components)
     {
-        program.CreateNamedObject<IDL::RelationshipDefinition>(std::move(name), nullptr, std::move(components));
+        program.CreateNamedObject<IDL::AttributeDefinition>(std::move(name), nullptr, std::move(components));
     }
 
     bool Debug() { return false; }

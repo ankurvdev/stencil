@@ -1,15 +1,5 @@
 # Build System
 
-# Codegen
-* Rename
-    - relationship, relationshipdef => linkedattribute attributelink
-    - Stencil namespace
-    - DataBase -> Repository / Journal
-* TypeDecl
-	• Reflection.Base - OnChanged Event Handling
-	• Reflection.Database - Encryption for Identity and unittests
-Reflection.Database - Database Merging with OnChanged event handling with more Unittests
-
 # Runtime
 
 * SerDes + Writer Reader
@@ -20,10 +10,7 @@ Reflection.Database - Database Merging with OnChanged event handling with more U
     - FileReader, MemReader
 * [base] 
     - Get rid of timestamp
-    - Handler Interfaces should not be templated virtual classes. Simplify SubComponent and isolate
-    - Rename Union -> Variant
-    - Move string out of Value. Rename to Fixed64BitValue
-* [database]
+ [database]
     - Encrypted string support Encryption support with openssl integration
     - Add openssl to list of external linking projects and Migrate libssh2 to use openssl
     - Add support for multiple lifetime objects (saved, session, temp) [not doing]

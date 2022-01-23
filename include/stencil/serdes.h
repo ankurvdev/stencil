@@ -213,7 +213,7 @@ struct BinarySerDes
         }
         break;
         case ReflectionBase::DataType::Enum: [[fallthrough]];
-        case ReflectionBase::DataType::Union: TODO();
+        case ReflectionBase::DataType::Variant: TODO();
         case ReflectionBase::DataType::Invalid: [[fallthrough]];
         case ReflectionBase::DataType::Unknown: throw std::runtime_error("Unsupported Data Type");
         }
@@ -266,7 +266,7 @@ struct BinarySerDes
         }
         break;
         case ReflectionBase::DataType::Enum: TODO();
-        case ReflectionBase::DataType::Union: TODO();
+        case ReflectionBase::DataType::Variant: TODO();
         case ReflectionBase::DataType::Invalid: [[fallthrough]];
         case ReflectionBase::DataType::Unknown: throw std::runtime_error("Unsupported Data Type");
         }

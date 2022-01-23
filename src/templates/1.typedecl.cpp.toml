@@ -85,8 +85,8 @@ NativeType = "::%Program:Name%::%Struct:Name%::Data"
 [Typedef]
 NativeType = "%Name%"
 
-[Union]
-NativeType = "::%Program:Name%::Union  "
+[Variant]
+NativeType = "::%Program:Name%::Variant  "
 
 [Containers.array]
 Params = [ "type", "size" ]
@@ -151,8 +151,8 @@ Params = [ "type" ]
 NativeType = "::UuidBasedId<%type:NativeType%>"
 DefaultValue = "::UuidBasedId<%type:NativeType%>::Create()"
 
-[Relationships.optionalprops]
+[Attributes.optionalprops]
 object = "optionalprops"
 
-[Relationships.observableprops]
+[Attributes.observableprops]
 object = "observableprops"

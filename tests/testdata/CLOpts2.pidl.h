@@ -558,11 +558,11 @@ struct Data :
 }    // namespace HydrateOptions
 namespace CommandLineOptions
 {
-struct Union;
+struct Variant;
 }
 namespace CommandLineOptions
 {
-enum class UnionType
+enum class VariantType
 {
     Invalid,
     install
@@ -576,15 +576,15 @@ enum class UnionType
 
 struct Data : public ReflectionBase::ObjMarker
 {
-    UnionType _type;
+    VariantType _type;
 
     public:
-    UnionType Type() const { return _type; }
+    VariantType Type() const { return _type; }
 
-    UnionType& get_Type() { return _type; }
-    void       set_Type(UnionType&& val) { _type = std::move(val); }
+    VariantType& get_Type() { return _type; }
+    void       set_Type(VariantType&& val) { _type = std::move(val); }
 
-    Data() : _type(UnionType::Invalid) {}
+    Data() : _type(VariantType::Invalid) {}
 
     public:
     enum class FieldIndex
@@ -2044,7 +2044,7 @@ struct Stencil::Visitor<const CLOpts2::HydrateOptions::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionServices::EnumTraits<CLOpts2::CommandLineOptions::UnionType>
+template <> struct ReflectionServices::EnumTraits<CLOpts2::CommandLineOptions::VariantType>
 {
     static constexpr const char* EnumStrings[] = {"Invalid",
                                                   "install",
@@ -2059,7 +2059,7 @@ template <> struct ReflectionServices::EnumTraits<CLOpts2::CommandLineOptions::U
     using ValueType = uint32_t;
 };
 
-template <> struct ValueTraits<CLOpts2::CommandLineOptions::UnionType>
+template <> struct ValueTraits<CLOpts2::CommandLineOptions::VariantType>
 {
     static constexpr auto    ValueType() { return Value::Type::Unsigned; }
     [[noreturn]] static void Get(Value& /*obj*/) { throw std::logic_error("Not Implemented"); }
@@ -2067,12 +2067,12 @@ template <> struct ValueTraits<CLOpts2::CommandLineOptions::UnionType>
     [[noreturn]] static void Check() { throw std::logic_error("Not Implemented"); }
 };
 
-template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::UnionType&>
+template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::VariantType&>
 {
     static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Value; }
     static constexpr std::string_view           Name() { return "CommandLineOptions"; }
 
-    using Handler = ::ReflectionServices::EnumHandler<CLOpts2::CommandLineOptions::UnionType>;
+    using Handler = ::ReflectionServices::EnumHandler<CLOpts2::CommandLineOptions::VariantType>;
 };
 
 template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::Data&>
@@ -2232,8 +2232,8 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::Data&
             ;
     }
 
-    using Handler = ::ReflectionServices::ReflectedUnionHandler<CLOpts2::CommandLineOptions::Data,
-                                                                CLOpts2::CommandLineOptions::UnionType,
+    using Handler = ::ReflectionServices::ReflectedVariantHandler<CLOpts2::CommandLineOptions::Data,
+                                                                CLOpts2::CommandLineOptions::VariantType,
                                                                 Traits_install
 ,                                                                Traits_queue
 ,                                                                Traits_pause

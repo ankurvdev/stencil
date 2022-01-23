@@ -57,7 +57,7 @@ HEX_D           [a-fA-F0-9]
 "objectstore"   { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_objectstore; }
 "oneway"        { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_oneway; }
 "optional"      { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_optional; }
-"relationship"  { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_relationship; }
+"attribute"  { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_attribute; }
 "required"      { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_required; }
 "static"        { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_static; }
 "struct"        { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_struct; }
@@ -95,7 +95,7 @@ LEXYACC:YACC:START
 %token tok_objectstore
 %token tok_oneway
 %token tok_optional
-%token tok_relationship
+%token tok_attribute
 %token tok_required
 %token tok_static
 %token tok_struct
@@ -124,7 +124,7 @@ tok_namespace
 tok_objectstore
 tok_oneway
 tok_optional
-tok_relationship
+tok_attribute
 tok_required
 tok_static
 tok_struct
@@ -146,7 +146,7 @@ Static
 %type<Typedef>              Typedef
 %type<ConstValue>           ConstValue     FieldValue
 %type<Struct>               Struct
-%type<Union>                Union
+%type<Variant>                Variant
 %type<Interface>            Interface
 %type<Interface>            Extends
 %type<InterfaceMember>      InterfaceMember
@@ -155,7 +155,7 @@ Static
 %type<InterfaceObjectStore> InterfaceObjectStore
 %type<Field>                Field
 %type<FieldType>            FieldType FunctionType ContainerType ArrayType
-%type<RelationshipComponent>           RelationshipComponent
+%type<AttributeComponent>           AttributeComponent
 
 %type<TypeAttribute>  TypeAttribute
 
@@ -168,7 +168,7 @@ Static
 %type<ConstValueDict>       ConstMapContents
 %type<IdList>            identifierlist
 
-%type<RelationshipComponentList>          RelationshipComponents
+%type<AttributeComponentList>          AttributeComponents
 %type<Program>        Program
 %%
 
@@ -199,8 +199,8 @@ Definition:
 
       Typedef
     | Struct
-    | Relationship
-    | Union
+    | Attribute
+    | Variant
     | Interface
     /*
     | Enum
@@ -249,21 +249,21 @@ ConstMapContents: ConstMapContents ConstValue ':' ConstValue CommaOrSemicolonOpt
 Struct: tok_struct tok_identifier  '{' FieldList '}' TypeAttributes    { $$ = CreateStruct(context, $2, $4, $6); }
 ;
 
-Relationship : tok_relationship tok_identifier RelationshipComponents CommaOrSemicolonOptional { CreateRelationship(context, $2, $3); }
+Attribute : tok_attribute tok_identifier AttributeComponents CommaOrSemicolonOptional { CreateAttribute(context, $2, $3); }
 ;
 
-RelationshipComponents: RelationshipComponents ':' RelationshipComponent { $1[std::move($3.first)] = std::move($3.second); $$ = std::move($1); }
-| RelationshipComponent { $$ = {}; $$[std::move($1.first)] = std::move($1.second); }
+AttributeComponents: AttributeComponents ':' AttributeComponent { $1[std::move($3.first)] = std::move($3.second); $$ = std::move($1); }
+| AttributeComponent { $$ = {}; $$[std::move($1.first)] = std::move($1.second); }
 ;
 
-RelationshipComponent : tok_identifier '=' identifierlist { $$ = std::make_pair(std::move($1), std::move($3)); }
+AttributeComponent : tok_identifier '=' identifierlist { $$ = std::make_pair(std::move($1), std::move($3)); }
 ;
 
 identifierlist : identifierlist ',' tok_identifier { $1.push_back($3); $$ = std::move($1); }
 | tok_identifier { $$.push_back($1); }
 ;
 
-Union:    tok_union  tok_identifier  '{' FieldList '}' TypeAttributes    { $$ = CreateUnion(context, $2, $4, $6); }
+Variant:    tok_union  tok_identifier  '{' FieldList '}' TypeAttributes    { $$ = CreateVariant(context, $2, $4, $6); }
     ;
     /*
 Xception: tok_xception tok_identifier '{' FieldList '}' TypeAttributes { $$ = CreateXception($2, $4, $6); }

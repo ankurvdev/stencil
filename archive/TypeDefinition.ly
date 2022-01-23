@@ -64,7 +64,7 @@ unixcomment   ("#"[^\n]*)
 ">"                    { return token::TOKEN_GreaterThan; }
 ","                    { return token::TOKEN_Comma; }
 "="                    { return token::TOKEN_Equal; }
-"relationship"         { return token::TOKEN_RELATIONSHIP; }
+"attribute"         { return token::TOKEN_RELATIONSHIP; }
 
 {IDENTIFIER}    { lval->emplace<TextValue>(StrOps<TextValue>::Convert(yytext)); return token::TOKEN_IDENTIFIER; }
 .               { throw std::runtime_error("Unknown Character:" + std::to_string((int)(yytext[0]))); }
@@ -85,7 +85,7 @@ LEXYACC:YACC:START
 %type<ContainerTypeList>    typelist containertypes
 %type<Attributes>           definition values
 %type<KVP>                  value
-%type<RelationshipMap>      relationshipcomponents
+%type<AttributeMap>      attributecomponents
 
 %start lines
 %%
@@ -94,7 +94,7 @@ lines : lines line
 |
 ;
 
-line : TOKEN_RELATIONSHIP TOKEN_IDENTIFIER TOKEN_LeftBrace relationshipcomponents TOKEN_RightBrace { context.CreateRelationshipDefinition(std::move($2), std::move($4)); }
+line : TOKEN_RELATIONSHIP TOKEN_IDENTIFIER TOKEN_LeftBrace attributecomponents TOKEN_RightBrace { context.CreateAttributeDefinition(std::move($2), std::move($4)); }
 | name optionalname definition { context.CreateFieldDefinition(std::move($1), std::move($2), std::move($3)); }
 ;
 
@@ -113,7 +113,7 @@ typelist: typelist TOKEN_Comma TOKEN_IDENTIFIER { $1.push_back($3); $$ = std::mo
 | {}
 ;
 
-relationshipcomponents: relationshipcomponents commaOrNewline TOKEN_IDENTIFIER TOKEN_Equal TOKEN_IDENTIFIER { $1[std::move($3)] = std::move($5); $$ = std::move($1); }
+attributecomponents: attributecomponents commaOrNewline TOKEN_IDENTIFIER TOKEN_Equal TOKEN_IDENTIFIER { $1[std::move($3)] = std::move($5); $$ = std::move($1); }
 | TOKEN_IDENTIFIER TOKEN_Equal TOKEN_IDENTIFIER { $$[std::move($1)] = std::move($3);}
 | {}
 ;

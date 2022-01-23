@@ -32,6 +32,12 @@ template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzStruct_Namezz>;
 struct zzVariant_Namezz;
 template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzVariant_Namezz>;
 //</Variant>
+
+//<Interface>
+struct zzInterface_Namezz;
+template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz>;
+template <> struct Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz>;
+//</Interface>
 }    // namespace zzProgram_Namezz
 
 #endif
@@ -130,10 +136,19 @@ struct zzInterface_Namezz : public Stencil::InterfaceT<zzInterface_Namezz>
         );
     }
 
+    zzReturnType_NativeTypezz zzInterfaceFunction_Namezz(Args_zzInterfaceFunction_Namezz&& args)
+    {
+        return this->zzInterfaceFunction_Namezz(
+            //<Args_Field Join=','>
+            std::move(args.zzNamezz)
+            //</Args_Field>
+        );
+    }
+
     //</InterfaceFunction>
     ObjectStore objects;
 };
-//</InterfaceFunction>
+//</Interface>
 
 }    // namespace zzProgram_Namezz
 #endif
@@ -216,7 +231,7 @@ template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzStruct_Namezz>
         return "<Unknown>";
     }
 
-    using ThisType = zzProgram_Namezz::zzStruct_Namezz::Data;
+    using ThisType = zzProgram_Namezz::zzStruct_Namezz;
     static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
     {
         return true
@@ -226,7 +241,7 @@ template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzStruct_Namezz>
             ;
     }
 
-    using Handler = ::ReflectionServices::ReflectedStructHandler<zzProgram_Namezz::zzStruct_Namezz::Data,
+    using Handler = ::ReflectionServices::ReflectedStructHandler<zzProgram_Namezz::zzStruct_Namezz,
                                                                  //<Field Join=','>
                                                                  zzNamezz
                                                                  //</Field>
@@ -312,7 +327,7 @@ template <> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz> : Ste
 
         //</Field>
 
-        Stencil::TransactionT<zzProgram_Namezz::zzStruct_Namezz::Data>::Flush_();
+        Stencil::TransactionT<zzProgram_Namezz::zzStruct_Namezz>::Flush_();
     }
 };
 
@@ -390,9 +405,8 @@ template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz_zzIn
     }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args
-                                                                 //<Args_Field>
-                                                                 ,
-                                                                 Traits_arg_zzNamezz
+                                                                     //<Args_Field Join=','>
+                                                                     Traits_arg_zzNamezz
                                                                  //</Args_Field>
                                                                  >;
 };
@@ -411,7 +425,7 @@ template <> struct Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz
     //</InterfaceFunction>
 
     using Apis = std::tuple<
-        //<InterfaceFunction  Join=','>
+        //<InterfaceFunction Join=','>
         ApiTraits_zzNamezz
         //</InterfaceFunction>
         >;
@@ -510,7 +524,7 @@ template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzVariant_Namezz&>
     //<Field>
     struct Traits_zzNamezz
     {
-        using TOwner     = zzVariant_Program_Namezz::zzVariant_Namezz::Data;
+        using TOwner     = zzVariant_Program_Namezz::zzVariant_Namezz;
         using TFieldType = zzFieldType_NativeTypezz;
 
         static constexpr std::string_view Name() { return "zzNamezz"; }
@@ -546,7 +560,7 @@ template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzVariant_Namezz&>
         return ::ReflectionServices::EmptyAttributeValue(key);
     }
 
-    using ThisType = zzProgram_Namezz::zzVariant_Namezz::Data;
+    using ThisType = zzProgram_Namezz::zzVariant_Namezz;
     static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
     {
         return true
@@ -556,7 +570,7 @@ template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzVariant_Namezz&>
             ;
     }
 
-    using Handler = ::ReflectionServices::ReflectedVariantHandler<zzProgram_Namezz::zzVariant_Namezz::Data,
+    using Handler = ::ReflectionServices::ReflectedVariantHandler<zzProgram_Namezz::zzVariant_Namezz,
                                                                   zzVariant_Program_Namezz::zzVariant_Namezz::VariantType,
                                                                   //<Field Join=','>
                                                                   Traits_zzNamezz
@@ -564,9 +578,9 @@ template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzVariant_Namezz&>
                                                                   >;
 };
 
-template <> struct Stencil::Visitor<zzProgram_Namezz::zzVariant_Namezz, void> : Stencil::VisitorT<zzProgram_Namezz::zzVariant_Namezz::Data>
+template <> struct Stencil::Visitor<zzProgram_Namezz::zzVariant_Namezz, void> : Stencil::VisitorT<zzProgram_Namezz::zzVariant_Namezz>
 {
-    using TData = zzProgram_Namezz::zzVariant_Namezz::Data;
+    using TData = zzProgram_Namezz::zzVariant_Namezz;
 
     Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
 

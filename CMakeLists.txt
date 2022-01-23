@@ -54,6 +54,15 @@ if (NOT cxxopts_FOUND)
     target_include_directories(cxxopts INTERFACE external/cxxopts/include)
 endif()
 
+
+find_package(stduuid QUIET)
+if (NOT stduuid_FOUND)
+    init_submodule(external/stduuid)
+    add_library(stduuid INTERFACE)
+    add_library(stduuid::stduuid ALIAS stduuid)
+    target_include_directories(stduuid INTERFACE external/stduuid/include)
+endif()
+
 if (BUILD_TESTING)
     enable_testing()
 
@@ -120,6 +129,9 @@ target_include_directories(libstencil PRIVATE src)
 add_executable(stencil src/main.cpp)
 
 file(GLOB public_headers ${CMAKE_CURRENT_LIST_DIR}/include/stencil/*)
+find_file(UUIDHEADER REQUIRED NAMES uuid.h HINTS external/stduuid/include)
+list(APPEND public_headers "${UUIDHEADER}")
+
 
 set_target_properties(stencil PROPERTIES PUBLIC_HEADER "${public_headers}")
 

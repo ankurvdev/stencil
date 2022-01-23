@@ -78,5 +78,5 @@ struct Pressure
     double temperature;
 }
 
-relationship optionalprops 	 object = GPS, Pressure
-relationship timestamped 	 object = GPS, Aircraft, Traffic, Motion, Pressure
+attribute optionalprops 	 object = GPS, Pressure
+attribute timestamped 	 object = GPS, Aircraft, Traffic, Motion, Pressure

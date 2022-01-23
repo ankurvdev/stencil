@@ -63,5 +63,5 @@ interface Catalog {
     void RequestDownload(string link);
 }
 
-relationship uuidbasedobject object = Directory, File, ScanRequest, ImdbInfo
-relationship timestamped     object = Directory, File, ScanRequest, ImdbInfo
+attribute uuidbasedobject object = Directory, File, ScanRequest, ImdbInfo
+attribute timestamped     object = Directory, File, ScanRequest, ImdbInfo

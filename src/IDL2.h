@@ -285,24 +285,24 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
                                                                  std::shared_ptr<Binding::AttributeMap>                  unordered_map);
 };
 
-struct RelationshipDefinition : public std::enable_shared_from_this<RelationshipDefinition>,
-                                public IDLGenerics::NamedIndexT<Program, RelationshipDefinition>::NamedObject
+struct AttributeDefinition : public std::enable_shared_from_this<AttributeDefinition>,
+                                public IDLGenerics::NamedIndexT<Program, AttributeDefinition>::NamedObject
 {
     public:
-    typedef std::unordered_map<Str::Type, Str::Type> RelationshipComponentMap;
+    typedef std::unordered_map<Str::Type, Str::Type> AttributeComponentMap;
 
     private:
-    RelationshipComponentMap m_ComponentMap;
+    AttributeComponentMap m_ComponentMap;
 
     public:
-    OBJECTNAME(RelationshipDefinition);
-    DELETE_COPY_AND_MOVE(RelationshipDefinition);
+    OBJECTNAME(AttributeDefinition);
+    DELETE_COPY_AND_MOVE(AttributeDefinition);
 
-    RelationshipDefinition(std::shared_ptr<Program> program,
+    AttributeDefinition(std::shared_ptr<Program> program,
                            Str::Type&&              name,
                            std::shared_ptr<Binding::AttributeMap> /* attributes */,
-                           RelationshipComponentMap&& unordered_map) :
-        IDLGenerics::NamedIndexT<Program, RelationshipDefinition>::NamedObject(program, std::move(name)),
+                           AttributeComponentMap&& unordered_map) :
+        IDLGenerics::NamedIndexT<Program, AttributeDefinition>::NamedObject(program, std::move(name)),
         m_ComponentMap(std::move(unordered_map))
     {
         // AddAttribute(std::move(attributes));
@@ -312,13 +312,13 @@ struct RelationshipDefinition : public std::enable_shared_from_this<Relationship
 };
 
 struct Struct;
-struct Union;
+struct Variant;
 struct Interface;
 
 struct Program : public std::enable_shared_from_this<Program>,
                  public Binding::BindableT<Program>,
                  public IDLGenerics::NamedIndexT<Program, DataSource>::Owner,
-                 public IDLGenerics::NamedIndexT<Program, RelationshipDefinition>::Owner,
+                 public IDLGenerics::NamedIndexT<Program, AttributeDefinition>::Owner,
                  public IDLGenerics::NamedIndexT<Program, Container>::Owner,
 
                  public IDLGenerics::FieldTypeIndex<Program, Typedef>::Owner,
@@ -326,7 +326,7 @@ struct Program : public std::enable_shared_from_this<Program>,
                  public IDLGenerics::FieldTypeIndex<Program, NativeFieldType>::Owner,
 
                  public IDLGenerics::StorageIndexT<Program, Struct>::Owner,
-                 public IDLGenerics::StorageIndexT<Program, Union>::Owner,
+                 public IDLGenerics::StorageIndexT<Program, Variant>::Owner,
                  public IDLGenerics::StorageIndexT<Program, Interface>::Owner
 {
     Str::Type             m_DefaultNamespace;
@@ -390,23 +390,23 @@ struct Program : public std::enable_shared_from_this<Program>,
 
 struct Struct;
 
-struct RelationshipTag : public std::enable_shared_from_this<RelationshipTag>,
-                         public Binding::BindableT<RelationshipTag>,
-                         public IDLGenerics::NamedIndexT<Struct, RelationshipTag>::NamedObject
+struct AttributeTag : public std::enable_shared_from_this<AttributeTag>,
+                         public Binding::BindableT<AttributeTag>,
+                         public IDLGenerics::NamedIndexT<Struct, AttributeTag>::NamedObject
 {
-    OBJECTNAME(RelationshipTag);
-    DELETE_COPY_AND_MOVE(RelationshipTag);
+    OBJECTNAME(AttributeTag);
+    DELETE_COPY_AND_MOVE(AttributeTag);
 
-    RelationshipTag(std::shared_ptr<Struct> owner,
+    AttributeTag(std::shared_ptr<Struct> owner,
                     Str::Type&&             name,
-                    std::optional<std::shared_ptr<const RelationshipDefinition>> /*def*/,
+                    std::optional<std::shared_ptr<const AttributeDefinition>> /*def*/,
                     std::shared_ptr<IDLGenerics::IFieldType> fieldType) :
-        Binding::BindableT<RelationshipTag>(Str::Create(L"TagType"), &RelationshipTag::GetRelationshipDefinitionBindable),
-        IDLGenerics::NamedIndexT<Struct, RelationshipTag>::NamedObject(owner, std::move(name)),
+        Binding::BindableT<AttributeTag>(Str::Create(L"TagType"), &AttributeTag::GetAttributeDefinitionBindable),
+        IDLGenerics::NamedIndexT<Struct, AttributeTag>::NamedObject(owner, std::move(name)),
         _fieldType(fieldType)
     {}
 
-    IBindable& GetRelationshipDefinitionBindable() const { return _fieldType->GetBindable(); }
+    IBindable& GetAttributeDefinitionBindable() const { return _fieldType->GetBindable(); }
 
     std::shared_ptr<Binding::BindableBase>   _fieldType;
     std::unordered_map<Str::Type, Str::Type> _defmap;
@@ -415,7 +415,7 @@ struct RelationshipTag : public std::enable_shared_from_this<RelationshipTag>,
 
 struct Struct : public std::enable_shared_from_this<Struct>,
                 public IDLGenerics::StorageIndexT<Program, Struct>::StorageType,
-                public IDLGenerics::NamedIndexT<Struct, RelationshipTag>::Owner
+                public IDLGenerics::NamedIndexT<Struct, AttributeTag>::Owner
 {
     public:
     OBJECTNAME(Struct);
@@ -431,13 +431,13 @@ struct Struct : public std::enable_shared_from_this<Struct>,
     }
 };
 
-struct Union : public std::enable_shared_from_this<Union>, public IDLGenerics::StorageIndexT<Program, Union>::StorageType
+struct Variant : public std::enable_shared_from_this<Variant>, public IDLGenerics::StorageIndexT<Program, Variant>::StorageType
 {
-    OBJECTNAME(Union);
-    DELETE_COPY_AND_MOVE(Union);
+    OBJECTNAME(Variant);
+    DELETE_COPY_AND_MOVE(Variant);
 
-    Union(std::shared_ptr<Program> program, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> unordered_map) :
-        IDLGenerics::StorageIndexT<Program, Union>::StorageType(program, std::move(name), {}, unordered_map)
+    Variant(std::shared_ptr<Program> program, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> unordered_map) :
+        IDLGenerics::StorageIndexT<Program, Variant>::StorageType(program, std::move(name), {}, unordered_map)
     {}
 };
 

@@ -30,7 +30,7 @@ using TypeAttributeList = std::shared_ptr<Binding::AttributeMap>;
 using Program   = std::optional<std::shared_ptr<IDL::Program>>;
 using Typedef   = std::optional<std::shared_ptr<IDL::Typedef>>;
 using Struct    = std::optional<std::shared_ptr<IDL::Struct>>;
-using Union     = std::optional<std::shared_ptr<IDL::Union>>;
+using Variant     = std::optional<std::shared_ptr<IDL::Variant>>;
 using Interface = std::optional<std::shared_ptr<IDL::Interface>>;
 
 // using InterfaceFunction    = std::optional<std::shared_ptr<IDL::InterfaceFunction>>;
@@ -51,8 +51,8 @@ using FieldList           = std::vector<Field>;
 using FieldTypeList       = std::vector<FieldType>;
 using IdList              = std::vector<Str::Type>;
 
-using RelationshipComponent     = std::pair<Str::Type, std::vector<Str::Type>>;
-using RelationshipComponentList = std::unordered_map<Str::Type, std::vector<Str::Type>>;
+using AttributeComponent     = std::pair<Str::Type, std::vector<Str::Type>>;
+using AttributeComponentList = std::unordered_map<Str::Type, std::vector<Str::Type>>;
 using ComponentList             = std::unordered_map<Str::Type, Str::Type>;
 
 }    // namespace IDL::Lang::Thrift
@@ -144,9 +144,9 @@ inline std::shared_ptr<IDL::Typedef> CreateTypedef(Context& context, FieldType f
 
 std::shared_ptr<IDL::Struct> CreateStruct(Context& context, Str::Type& name, FieldList& fields, TypeAttributeList& map);
 
-std::shared_ptr<IDL::Union> CreateUnion(Context& context, Str::Type& name, FieldList& fields, TypeAttributeList& map);
+std::shared_ptr<IDL::Variant> CreateVariant(Context& context, Str::Type& name, FieldList& fields, TypeAttributeList& map);
 
-void CreateRelationship(Context& context, Str::Type& name, RelationshipComponentList& map);
+void CreateAttribute(Context& context, Str::Type& name, AttributeComponentList& map);
 
 #if 0
 
@@ -166,7 +166,7 @@ void CreateRelationship(Context& context, Str::Type& name, RelationshipComponent
             expandedmap = newmap;
         }
 
-        auto def = context.program.Lookup<IDL::RelationshipDefinition>(id);
+        auto def = context.program.Lookup<IDL::AttributeDefinition>(id);
         for (auto it = expandedmap.begin(); it != expandedmap.end(); ++it)
         {
             IDL::ContainerFieldType::ContainerFieldTypeMap fieldmap;

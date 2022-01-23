@@ -50,7 +50,7 @@ struct CommandLineArgsReader
             List,
             Value,
             Enum,
-            Union,
+            Variant,
         };
         std::string name;
         Type        type{Type::Invalid};
@@ -77,7 +77,7 @@ struct CommandLineArgsReader
         virtual void ObjKey(size_t index)                     = 0;
         virtual void AddKey(size_t index)                     = 0;
         virtual void HandleEnum(std::string_view const& str)  = 0;
-        virtual void UnionType(std::string_view const& str)   = 0;
+        virtual void VariantType(std::string_view const& str)   = 0;
 
         virtual std::shared_ptr<Definition> GetCurrentContext() = 0;
         virtual std::string                 GenerateHelp()      = 0;
@@ -132,7 +132,7 @@ struct CommandLineArgsReader
             break;
         case Definition::Type::Value: [[fallthrough]];
         case Definition::Type::Enum: [[fallthrough]];
-        case Definition::Type::Union: _ProcessValue(argv); break;
+        case Definition::Type::Variant: _ProcessValue(argv); break;
         case Definition::Type::Invalid:
             _handler->ObjEnd();
             _handler->ObjKey(argv);
@@ -272,7 +272,7 @@ struct CommandLineArgsReader
             break;
         case Definition::Type::Value: _handler->HandleValue(valToUse); break;
         case Definition::Type::Enum: _handler->HandleEnum(valToUse); break;
-        case Definition::Type::Union: _handler->UnionType(valToUse); break;
+        case Definition::Type::Variant: _handler->VariantType(valToUse); break;
         case Definition::Type::Invalid: [[fallthrough]];
         default: throw std::logic_error("Error Processing Value");
         }
@@ -404,13 +404,13 @@ struct CommandLineArgsReader
 
 enum HelpFormats
 {
-    Union,
+    Variant,
     Enum
 };
 struct HelpFormat;
-struct HelpFormatUnion
+struct HelpFormatVariant
 {
-    std::string              UnionName;
+    std::string              VariantName;
     std::vector<std::string> Types;
 };
 struct HelpFormatEnum
@@ -584,7 +584,7 @@ template <typename TStruct> struct CommandLineArgs
             _visitor.GoBackUp();
         }
 
-        virtual void UnionType(std::string_view const& str) override { _visitor.SetValue(str); }
+        virtual void VariantType(std::string_view const& str) override { _visitor.SetValue(str); }
 
         virtual void ListStart() override {}
         virtual void ListEnd() override { _visitor.GoBackUp(); }
@@ -608,7 +608,7 @@ template <typename TStruct> struct CommandLineArgs
             case ReflectionBase::DataType::Object: type = CommandLineArgsReader::Definition::Type::Object; break;
             case ReflectionBase::DataType::Value: type = CommandLineArgsReader::Definition::Type::Value; break;
             case ReflectionBase::DataType::Enum: type = CommandLineArgsReader::Definition::Type::Enum; break;
-            case ReflectionBase::DataType::Union: type = CommandLineArgsReader::Definition::Type::Union; break;
+            case ReflectionBase::DataType::Variant: type = CommandLineArgsReader::Definition::Type::Variant; break;
             case ReflectionBase::DataType::Invalid: type = CommandLineArgsReader::Definition::Type::Invalid; break;
             case ReflectionBase::DataType::Unknown: [[fallthrough]];    // TODO
             default:
@@ -619,7 +619,7 @@ template <typename TStruct> struct CommandLineArgs
             return std::make_shared<CommandLineArgsReader::Definition>("empty", type);
         }
 
-        std::unique_ptr<Table> _PrintUnion(const ::ReflectionBase::DataInfo& info)
+        std::unique_ptr<Table> _PrintVariant(const ::ReflectionBase::DataInfo& info)
         {
             std::unique_ptr<Table> table(new Table());
             table->AddRowColumn(0, 1, "List of available options:");
@@ -640,7 +640,7 @@ template <typename TStruct> struct CommandLineArgs
             // print usage
             switch (info.datatype)
             {
-            case ::ReflectionBase::DataType::Union:
+            case ::ReflectionBase::DataType::Variant:
                 args.push_back("<" + info.name.str() + ">");
                 args.push_back("...");
                 break;
@@ -672,7 +672,7 @@ template <typename TStruct> struct CommandLineArgs
 
             switch (info.datatype)
             {
-            case ::ReflectionBase::DataType::Union: table->AddTable(0, 255, *_PrintUnion(info)); break;
+            case ::ReflectionBase::DataType::Variant: table->AddTable(0, 255, *_PrintVariant(info)); break;
             case ::ReflectionBase::DataType::Object:
             {
                 bool cont = true;

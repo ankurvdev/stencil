@@ -53,8 +53,8 @@ template <typename T> struct VisitorT
         Enum,
         List,
         Obj,
-        Union,
-        Key,    // List: Integer, Union: Integer, Obj: String/Integer
+        Variant,
+        Key,    // List: Integer, Variant: Integer, Obj: String/Integer
     };
 
     struct StateStack
@@ -99,7 +99,7 @@ template <typename T> struct VisitorT
             return true;
         }
 
-        case ReflectionBase::DataType::Union: throw std::runtime_error("Not yet supported. Get to work");
+        case ReflectionBase::DataType::Variant: throw std::runtime_error("Not yet supported. Get to work");
         case ReflectionBase::DataType::Value: [[fallthrough]];
         case ReflectionBase::DataType::Enum: throw std::runtime_error("Unsupported Data Type");
 
@@ -151,7 +151,7 @@ template <typename T> struct VisitorT
 
         case ReflectionBase::DataType::Object: [[fallthrough]];
         case ReflectionBase::DataType::List: [[fallthrough]];
-        case ReflectionBase::DataType::Union: [[fallthrough]];
+        case ReflectionBase::DataType::Variant: [[fallthrough]];
 
         case ReflectionBase::DataType::Invalid: [[fallthrough]];
         case ReflectionBase::DataType::Unknown: break;
@@ -165,15 +165,15 @@ template <typename T> struct VisitorT
 
         switch (GetDataTypeHint())
         {
-        case ReflectionBase::DataType::Union:
+        case ReflectionBase::DataType::Variant:
         {
             auto& state    = _stack.back();
             auto  cptr     = const_cast<void*>(state.Ptr);    // Shhh... Thats ok.
-            auto  typecomp = state.Handler->UnionHandler()->GetUnionTypesHandler(cptr);
+            auto  typecomp = state.Handler->VariantHandler()->GetVariantTypesHandler(cptr);
             typecomp.uniontypehandler->Write(typecomp.ptr, val);
-            auto sub = state.Handler->UnionHandler()->GetActiveUnionHandler(cptr);
+            auto sub = state.Handler->VariantHandler()->GetActiveVariantHandler(cptr);
             _stack.pop_back();
-            _stack.push_back(StateStack{sub.handler, sub.ptr, Mode::Union});
+            _stack.push_back(StateStack{sub.handler, sub.ptr, Mode::Variant});
             return;
         }
         case ReflectionBase::DataType::Enum: [[fallthrough]];

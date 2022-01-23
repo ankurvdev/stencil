@@ -79,12 +79,12 @@ TEST_CASE("CodeGen::CommandLineArgs::Simplecase", "[CommandLineArgs]")
     }
 }
 
-TEST_CASE("CodeGen::CommandLineArgs::Unions")
+TEST_CASE("CodeGen::CommandLineArgs::Variants")
 {
     {
         auto options = ParseArgs<::CLOpts2::CommandLineOptions::Data>("install", "productid");
 
-        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::UnionType::install);
+        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::install);
         REQUIRE(options.install().ProductId() == "productid");
         REQUIRE(options.install().Repair() == false);
         REQUIRE(options.install().TargetVolume().empty());
@@ -93,7 +93,7 @@ TEST_CASE("CodeGen::CommandLineArgs::Unions")
     {
         auto options = ParseArgs<::CLOpts2::CommandLineOptions::Data>("install", "productid", "--TargetVolume=/tmp");
 
-        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::UnionType::install);
+        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::install);
         REQUIRE(options.install().ProductId() == (("productid")));
         REQUIRE(options.install().Repair() == false);
         REQUIRE(options.install().TargetVolume() == (("/tmp")));
@@ -103,7 +103,7 @@ TEST_CASE("CodeGen::CommandLineArgs::Unions")
         auto options
             = ParseArgs<::CLOpts2::CommandLineOptions::Data>("install", "productid", "productid", "--TargetVolume=/tmp", "--User=user1");
 
-        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::UnionType::install);
+        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::install);
         REQUIRE(options.install().ProductId() == (("productid")));
         REQUIRE(options.install().Repair() == false);
         REQUIRE(options.install().TargetVolume() == (("/tmp")));
@@ -113,7 +113,7 @@ TEST_CASE("CodeGen::CommandLineArgs::Unions")
         auto options
             = ParseArgs<::CLOpts2::CommandLineOptions::Data>("install", "productid", "--TargetVolume=/tmp", "--User=user1", "--Repair");
 
-        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::UnionType::install);
+        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::install);
         REQUIRE(options.install().ProductId() == (("productid")));
         REQUIRE(options.install().Repair() == true);
         REQUIRE(options.install().TargetVolume() == (("/tmp")));
@@ -122,43 +122,43 @@ TEST_CASE("CodeGen::CommandLineArgs::Unions")
     {
         auto options = ParseArgs<::CLOpts2::CommandLineOptions::Data>("queue", "productid");
 
-        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::UnionType::queue);
+        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::queue);
         REQUIRE(options.queue().ProductId() == (("productid")));
     }
     {
         auto options = ParseArgs<::CLOpts2::CommandLineOptions::Data>("pause", "productid");
 
-        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::UnionType::pause);
+        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::pause);
         REQUIRE(options.pause().ProductId() == (("productid")));
     }
     {
         auto options = ParseArgs<::CLOpts2::CommandLineOptions::Data>("cancel", "productid");
 
-        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::UnionType::cancel);
+        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::cancel);
         REQUIRE(options.cancel().ProductId() == (("productid")));
     }
     {
         auto options = ParseArgs<::CLOpts2::CommandLineOptions::Data>("resume", "productid");
 
-        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::UnionType::resume);
+        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::resume);
         REQUIRE(options.resume().ProductId() == (("productid")));
     }
     {
         auto options = ParseArgs<::CLOpts2::CommandLineOptions::Data>("update", "productid");
 
-        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::UnionType::update);
+        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::update);
         REQUIRE(options.update().ProductId() == (("productid")));
     }
     {
         auto options = ParseArgs<::CLOpts2::CommandLineOptions::Data>("update");
 
-        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::UnionType::update);
+        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::update);
         REQUIRE(options.update().ProductId().empty());
     }
     {
         auto options = ParseArgs<::CLOpts2::CommandLineOptions::Data>("hydrate", "productid");
 
-        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::UnionType::hydrate);
+        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::hydrate);
         REQUIRE(options.hydrate().ProductId() == (("productid")));
     }
 }
@@ -183,7 +183,7 @@ TEST_CASE("CodeGen::CommandLineArgs::Help")
         output.push_back("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     }
 
-    CheckOutputAgainstResource(output, "testdata_output_CLOpts2_Union_Help.txt");
+    CheckOutputAgainstResource(output, "testdata_output_CLOpts2_Variant_Help.txt");
 }
 
 TEST_CASE("CodeGen::CommandLineArgs::CLOptsTest")

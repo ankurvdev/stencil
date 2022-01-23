@@ -220,22 +220,22 @@ struct GenericDefinitionTreeHandler : public ReflectionBase::IDataTypeHandler<Re
         GenericDefinitionTreeHandler& handler;
     };
 
-    struct GenericUnionHandler : ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::Union>
+    struct GenericVariantHandler : ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::Variant>
     {
-        GenericUnionHandler(GenericDefinitionTreeHandler& owner) : handler(owner) {}
+        GenericVariantHandler(GenericDefinitionTreeHandler& owner) : handler(owner) {}
 
-        virtual void Start() const { handler.Trace("Union::Start"); }
+        virtual void Start() const { handler.Trace("Variant::Start"); }
 
-        virtual void End() const { handler.Trace("Union::End"); }
+        virtual void End() const { handler.Trace("Variant::End"); }
 
-        virtual UnionTypeSubComponent GetUnionTypesHandler(void* rawptr) const
+        virtual VariantTypeSubComponent GetVariantTypesHandler(void* rawptr) const
         {
-            handler.Trace("Union::GetUnionTypesHandler", rawptr);
+            handler.Trace("Variant::GetVariantTypesHandler", rawptr);
             TODO();
         }
-        virtual UnionSubComponent GetActiveUnionHandler(void* rawptr) const
+        virtual VariantSubComponent GetActiveVariantHandler(void* rawptr) const
         {
-            handler.Trace("Union::GetActiveUnionHandler", rawptr);
+            handler.Trace("Variant::GetActiveVariantHandler", rawptr);
             TODO();
         }
 
@@ -245,13 +245,13 @@ struct GenericDefinitionTreeHandler : public ReflectionBase::IDataTypeHandler<Re
 
         virtual std::vector<Value> AcceptableTypeNames() const
         {
-            handler.Trace("Union::AcceptableTypeNames");
+            handler.Trace("Variant::AcceptableTypeNames");
             throw std::logic_error("Unsupported while tracing");
         }
 
-        virtual std::vector<UnionSubComponent> SubComponentHandlers() const
+        virtual std::vector<VariantSubComponent> SubComponentHandlers() const
         {
-            handler.Trace("Union::SubComponentHandlers");
+            handler.Trace("Variant::SubComponentHandlers");
             throw std::logic_error("Unsupported while tracing");
         }
 
@@ -269,7 +269,7 @@ struct GenericDefinitionTreeHandler : public ReflectionBase::IDataTypeHandler<Re
     const ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::Value>*  ValueHandler() const override { return &_value; }
     const ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::Object>* ObjectHandler() const override { return &_object; }
     const ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::Enum>*   EnumHandler() const override { return &_enum; }
-    const ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::Union>*  UnionHandler() const override { return &_union; }
+    const ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::Variant>*  VariantHandler() const override { return &_union; }
 
     virtual ReflectionBase::DataType GetDataType() const override { return ReflectionBase::DataType::List; }
 
@@ -278,7 +278,7 @@ struct GenericDefinitionTreeHandler : public ReflectionBase::IDataTypeHandler<Re
     GenericValueHandler  _value;
     GenericObjectHandler _object;
     GenericEnumHandler   _enum;
-    GenericUnionHandler  _union;
+    GenericVariantHandler  _union;
 
     std::shared_ptr<CommandLineArgsReader::Definition> _currentDef;
 };

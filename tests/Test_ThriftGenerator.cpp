@@ -10,6 +10,14 @@ static void RunTest(std::initializer_list<std::string_view const> const& pidlfil
 
     for (auto const& pidlfile : pidlfiles)
     {
+        auto generator = Generator::Get("thrift");
+        generator->LoadBuilltinTemplates();
+        generator->LoadFile(resfiles.load(std::string(pidlfile), ""));
+        auto outfiles = generator->Generate(false, std::filesystem::current_path());
+    }
+
+    for (auto const& pidlfile : pidlfiles)
+    {
 
         auto generator = Generator::Get("thrift");
         generator->LoadBuilltinTemplates();
@@ -28,37 +36,14 @@ static void RunTest(std::initializer_list<std::string_view const> const& pidlfil
     }
 }
 
-TEST_CASE("CodeGen::ThriftGenerator::CLOpts1", "[ThriftGenerator]")
+TEST_CASE("CodeGen", "[ThriftGenerator]")
 {
-    REQUIRE_NOTHROW(RunTest({"CLOpts1.pidl"}));
-}
-
-TEST_CASE("CodeGen::ThriftGenerator::CLOpts2", "[ThriftGenerator]")
-{
-    REQUIRE_NOTHROW(RunTest({"CLOpts2.pidl"}));
-}
-
-TEST_CASE("CodeGen::ThriftGenerator::UnionTest", "[ThriftGenerator]")
-{
-    REQUIRE_NOTHROW(RunTest({"UnionTest.pidl"}));
-}
-
-TEST_CASE("CodeGen::ThriftGenerator::UserData", "[ThriftGenerator]")
-{
-    REQUIRE_NOTHROW(RunTest({"UserData.pidl"}));
-}
-
-TEST_CASE("CodeGen::ThriftGenerator::WebService1", "[ThriftGenerator]")
-{
-    REQUIRE_NOTHROW(RunTest({"SimpleWebService.pidl"}));
-}
-
-TEST_CASE("CodeGen::ThriftGenerator::WebService2", "[ThriftGenerator]")
-{
-    REQUIRE_NOTHROW(RunTest({"Metadata.pidl", "ComplexWebService.pidl"}));
-}
-
-TEST_CASE("CodeGen::ThriftGenerator::Avid", "[ThriftGenerator]")
-{
-    REQUIRE_NOTHROW(RunTest({"Avid.pidl"}));
+    REQUIRE_NOTHROW(RunTest({"CLOpts1.pidl",
+                             "CLOpts2.pidl",
+                             "VariantTest.pidl",
+                             "UserData.pidl",
+                             "SimpleWebService.pidl",
+                             "Metadata.pidl",
+                             "ComplexWebService.pidl",
+                             "Avid.pidl"}));
 }

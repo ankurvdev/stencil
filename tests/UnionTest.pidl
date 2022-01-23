@@ -1,4 +1,4 @@
-union Union1
+union Variant1
 {
 i32 field1;
 i32 field2;

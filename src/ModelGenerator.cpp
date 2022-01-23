@@ -362,7 +362,7 @@ void Generator::_AddTypeDefinitions(std::string_view const& /*name*/, std::strin
             _structDefault.Merge(FieldTypeDeclFromTomlNode(node));
         }
 
-        else if (propname == "Union")
+        else if (propname == "Variant")
         {
             _unionDefault.Merge(FieldTypeDeclFromTomlNode(node));
         }
@@ -388,11 +388,11 @@ void Generator::_AddTypeDefinitions(std::string_view const& /*name*/, std::strin
                 _FindOrInsertContainerDecls(typedecl.name).Merge(std::move(typedecl));
             }
         }
-        else if (propname == "Relationships")
+        else if (propname == "Attributes")
         {
             for (auto [key, node1] : node.as_table())
             {
-                auto& objmap = _relationshipDefs[Str::Convert(key)];
+                auto& objmap = _attributeDefs[Str::Convert(key)];
                 for (auto const& [key1, node2] : node1.as_table()) { objmap[Str::Convert(key1)] = Str::Convert(node2.as_string().str); }
             }
         }
@@ -671,9 +671,9 @@ void Generator::FinalizeTypeDefinitions()
         for (auto& m : v.accessors) { container->AddAccessor(std::move(m)); }
     }
 
-    for (auto& [k, v] : _relationshipDefs)
+    for (auto& [k, v] : _attributeDefs)
     {
-        _program->CreateNamedObject<IDL::RelationshipDefinition>(Str::Create(k), nullptr, std::move(v));
+        _program->CreateNamedObject<IDL::AttributeDefinition>(Str::Create(k), nullptr, std::move(v));
     }
 
     std::optional<std::shared_ptr<IDLGenerics::IFieldType>> emptyBaseField;

@@ -2,7 +2,7 @@
 #include "Logging.h"
 #include "Value.h"
 #include "shared_tree.h"
-#include "uuidobject.h"
+
 #include <algorithm>
 #include <bitset>
 #include <cassert>
@@ -19,6 +19,7 @@
 #include <tuple>
 #include <typeinfo>
 #include <unordered_map>
+#include <uuid.h>
 #include <vector>
 
 // TODO: Get rid of this
@@ -26,7 +27,7 @@ using timestamp = decltype(std::chrono::system_clock::now());
 
 namespace Stencil
 {
-
+#if 0
 namespace ExceptionTraits
 {
 struct Generic
@@ -55,7 +56,7 @@ enum class DataType
     List,
     Object,
     Enum,
-    Union,
+    Variant,
     Unknown    // TODO : Why Invalid and Unknown
 };
 
@@ -91,11 +92,9 @@ struct DataInfo
     bool                                   required() const { return !(flags[Flag::Optional] || flags[Flag::HasDefaultValue]); }
 };
 
-template <DataType TDataType> struct IDataTypeHandler;
-
-template <> struct IDataTypeHandler<DataType::Unknown>
+struct IDataTypeHandlerUnknown
 {
-    virtual ~IDataTypeHandler() = default;
+    virtual ~IDataTypeHandlerUnknown() = default;
 
     virtual shared_string Name() const                                      = 0;
     virtual shared_string Description() const                               = 0;
@@ -108,32 +107,32 @@ template <> struct IDataTypeHandler<DataType::Unknown>
         return std::shared_ptr<DataInfo>(new DataInfo{Name(), Description(), Name(), GetDataType(), {}, {}, {}});
     }
 
-    virtual const IDataTypeHandler<DataType::Value>*  ValueHandler() const  = 0;
-    virtual const IDataTypeHandler<DataType::List>*   ListHandler() const   = 0;
-    virtual const IDataTypeHandler<DataType::Object>* ObjectHandler() const = 0;
-    virtual const IDataTypeHandler<DataType::Enum>*   EnumHandler() const   = 0;
-    virtual const IDataTypeHandler<DataType::Union>*  UnionHandler() const  = 0;
+    virtual const IDataTypeHandlerValue*  ValueHandler() const  = 0;
+    virtual const IDataTypeHandlerList*   ListHandler() const   = 0;
+    virtual const IDataTypeHandlerObject* ObjectHandler() const = 0;
+    virtual const IDataTypeHandlerEnum*   EnumHandler() const   = 0;
+    virtual const IDataTypeHandlerVariant*  VariantHandler() const  = 0;
 
     // template <DataType TDataType> const IDataTypeHandler<TDataType>* CastTo() const;
 
-    inline const IDataTypeHandler<DataType::Value>*  CastToValue() const { return ValueHandler(); }
-    inline const IDataTypeHandler<DataType::List>*   CastToList() const { return ListHandler(); }
-    inline const IDataTypeHandler<DataType::Object>* CastToObject() const { return ObjectHandler(); }
-    inline const IDataTypeHandler<DataType::Enum>*   CastToEnum() const { return EnumHandler(); }
-    inline const IDataTypeHandler<DataType::Union>*  CastToUnion() const { return UnionHandler(); }
+    inline const IDataTypeHandlerValue*  CastToValue() const { return ValueHandler(); }
+    inline const IDataTypeHandlerList*   CastToList() const { return ListHandler(); }
+    inline const IDataTypeHandlerObject* CastToObject() const { return ObjectHandler(); }
+    inline const IDataTypeHandlerEnum*   CastToEnum() const { return EnumHandler(); }
+    inline const IDataTypeHandlerVariant*  CastToVariant() const { return VariantHandler(); }
 };
 
-template <> struct IDataTypeHandler<DataType::Value> : public IDataTypeHandler<DataType::Unknown>
+struct IDataTypeHandlerValue : public IDataTypeHandlerUnknown >
 {
     virtual ~IDataTypeHandler() override = default;
-    DataType                                 GetDataType() const override { return DataType::Value; }
-    const IDataTypeHandler<DataType::Value>* ValueHandler() const override { return this; }
+    DataType                     GetDataType() const override { return DataType::Value; }
+    const IDataTypeHandlerValue* ValueHandler() const override { return this; }
 
-    // const IDataTypeHandler<DataType::Value>*  ValueHandler()  const { throw Exception::UnknownDataTypeHandler(); }
-    const IDataTypeHandler<DataType::List>*   ListHandler() const override { throw Exception::UnknownDataTypeHandler(); }
-    const IDataTypeHandler<DataType::Object>* ObjectHandler() const override { throw Exception::UnknownDataTypeHandler(); }
-    const IDataTypeHandler<DataType::Enum>*   EnumHandler() const override { throw Exception::UnknownDataTypeHandler(); }
-    const IDataTypeHandler<DataType::Union>*  UnionHandler() const override { throw Exception::UnknownDataTypeHandler(); }
+    // const IDataTypeHandlerValue*  ValueHandler()  const { throw Exception::UnknownDataTypeHandler(); }
+    const IDataTypeHandlerList*   ListHandler() const override { throw Exception::UnknownDataTypeHandler(); }
+    const IDataTypeHandlerObject* ObjectHandler() const override { throw Exception::UnknownDataTypeHandler(); }
+    const IDataTypeHandlerEnum*   EnumHandler() const override { throw Exception::UnknownDataTypeHandler(); }
+    const IDataTypeHandlerVariant*  VariantHandler() const override { throw Exception::UnknownDataTypeHandler(); }
 
     virtual void          Write(void* ptr, Value const& value) const                 = 0;
     virtual Value         Read(void* ptr) const                                      = 0;
@@ -142,17 +141,17 @@ template <> struct IDataTypeHandler<DataType::Value> : public IDataTypeHandler<D
     virtual shared_string AttributeValue(const std::string_view& key) const override = 0;
 };
 
-template <> struct IDataTypeHandler<DataType::List> : public IDataTypeHandler<DataType::Unknown>
+struct IDataTypeHandlerList : public IDataTypeHandlerUnknown
 {
-    virtual ~IDataTypeHandler() override = default;
-    DataType                                GetDataType() const override { return DataType::List; }
-    const IDataTypeHandler<DataType::List>* ListHandler() const override { return this; }
+    virtual ~IDataTypeHandlerList() override = default;
+    DataType                    GetDataType() const override { return DataType::List; }
+    const IDataTypeHandlerList* ListHandler() const override { return this; }
 
-    const IDataTypeHandler<DataType::Value>* ValueHandler() const override { throw Exception::UnknownDataTypeHandler(); }
-    // const IDataTypeHandler<DataType::List>*   ListHandler()   const { throw Exception::UnknownDataTypeHandler(); }
-    const IDataTypeHandler<DataType::Object>* ObjectHandler() const override { throw Exception::UnknownDataTypeHandler(); }
-    const IDataTypeHandler<DataType::Enum>*   EnumHandler() const override { throw Exception::UnknownDataTypeHandler(); }
-    const IDataTypeHandler<DataType::Union>*  UnionHandler() const override { throw Exception::UnknownDataTypeHandler(); }
+    const IDataTypeHandlerValue* ValueHandler() const override { throw Exception::UnknownDataTypeHandler(); }
+    // const IDataTypeHandlerList*   ListHandler()   const { throw Exception::UnknownDataTypeHandler(); }
+    const IDataTypeHandlerObject* ObjectHandler() const override { throw Exception::UnknownDataTypeHandler(); }
+    const IDataTypeHandlerEnum*   EnumHandler() const override { throw Exception::UnknownDataTypeHandler(); }
+    const IDataTypeHandlerVariant*  VariantHandler() const override { throw Exception::UnknownDataTypeHandler(); }
 
     virtual shared_string Name() const override                                      = 0;
     virtual shared_string Description() const override                               = 0;
@@ -160,8 +159,8 @@ template <> struct IDataTypeHandler<DataType::List> : public IDataTypeHandler<Da
 
     struct SubComponent
     {
-        const IDataTypeHandler<DataType::Unknown>* handler;
-        void*                                      ptr;
+        const IDataTypeHandlerUnknown* handler;
+        void*                          ptr;
     };
 
     virtual SubComponent GetListItemHandler() const                                             = 0;
@@ -172,23 +171,23 @@ template <> struct IDataTypeHandler<DataType::List> : public IDataTypeHandler<Da
     virtual SubComponent GetOrCreateAt(void* rawptr, size_t index) const                        = 0;
 };
 
-template <> struct IDataTypeHandler<DataType::Object> : IDataTypeHandler<DataType::Unknown>
+struct IDataTypeHandlerObject : IDataTypeHandlerUnknown
 {
-    virtual ~IDataTypeHandler() override = default;
-    DataType                                  GetDataType() const override { return DataType::Object; }
-    const IDataTypeHandler<DataType::Object>* ObjectHandler() const override { return this; }
+    virtual ~IDataTypeHandlerObject() override = default;
+    DataType                      GetDataType() const override { return DataType::Object; }
+    const IDataTypeHandlerObject* ObjectHandler() const override { return this; }
 
-    const IDataTypeHandler<DataType::Value>* ValueHandler() const override { throw Exception::UnknownDataTypeHandler(); }
-    const IDataTypeHandler<DataType::List>*  ListHandler() const override { throw Exception::UnknownDataTypeHandler(); }
-    // const IDataTypeHandler<DataType::Object>* ObjectHandler() const override { throw Exception::UnknownDataTypeHandler(); }
-    const IDataTypeHandler<DataType::Enum>*  EnumHandler() const override { throw Exception::UnknownDataTypeHandler(); }
-    const IDataTypeHandler<DataType::Union>* UnionHandler() const override { throw Exception::UnknownDataTypeHandler(); }
+    const IDataTypeHandlerValue* ValueHandler() const override { throw Exception::UnknownDataTypeHandler(); }
+    const IDataTypeHandlerList*  ListHandler() const override { throw Exception::UnknownDataTypeHandler(); }
+    // const IDataTypeHandlerObject* ObjectHandler() const override { throw Exception::UnknownDataTypeHandler(); }
+    const IDataTypeHandlerEnum*  EnumHandler() const override { throw Exception::UnknownDataTypeHandler(); }
+    const IDataTypeHandlerVariant* VariantHandler() const override { throw Exception::UnknownDataTypeHandler(); }
 
     struct SubComponent
     {
-        shared_string                              keyname;
-        const IDataTypeHandler<DataType::Unknown>* handler;
-        void*                                      ptr;
+        shared_string                  keyname;
+        const IDataTypeHandlerUnknown* handler;
+        void*                          ptr;
     };
 
     virtual void                      Start() const                                                                        = 0;
@@ -214,17 +213,17 @@ template <> struct IDataTypeHandler<DataType::Object> : IDataTypeHandler<DataTyp
     }
 };
 
-template <> struct IDataTypeHandler<DataType::Enum> : IDataTypeHandler<DataType::Unknown>
+struct IDataTypeHandlerEnum : IDataTypeHandlerUnknown
 {
-    virtual ~IDataTypeHandler() override = default;
-    DataType                                GetDataType() const override { return DataType::Enum; }
-    const IDataTypeHandler<DataType::Enum>* EnumHandler() const override { return this; }
+    virtual ~IDataTypeHandlerEnum() override = default;
+    DataType                    GetDataType() const override { return DataType::Enum; }
+    const IDataTypeHandlerEnum* EnumHandler() const override { return this; }
 
-    const IDataTypeHandler<DataType::Value>*  ValueHandler() const override { throw Exception::UnknownDataTypeHandler(); }
-    const IDataTypeHandler<DataType::List>*   ListHandler() const override { throw Exception::UnknownDataTypeHandler(); }
-    const IDataTypeHandler<DataType::Object>* ObjectHandler() const override { throw Exception::UnknownDataTypeHandler(); }
-    // const IDataTypeHandler<DataType::Enum>*   EnumHandler()   const { throw Exception::UnknownDataTypeHandler(); }
-    const IDataTypeHandler<DataType::Union>* UnionHandler() const override { throw Exception::UnknownDataTypeHandler(); }
+    const IDataTypeHandlerValue*  ValueHandler() const override { throw Exception::UnknownDataTypeHandler(); }
+    const IDataTypeHandlerList*   ListHandler() const override { throw Exception::UnknownDataTypeHandler(); }
+    const IDataTypeHandlerObject* ObjectHandler() const override { throw Exception::UnknownDataTypeHandler(); }
+    // const IDataTypeHandlerEnum*   EnumHandler()   const { throw Exception::UnknownDataTypeHandler(); }
+    const IDataTypeHandlerVariant* VariantHandler() const override { throw Exception::UnknownDataTypeHandler(); }
 
     virtual void               Write(void* ptr, Value const& value) const                 = 0;
     virtual Value              Read(void* ptr) const                                      = 0;
@@ -238,41 +237,41 @@ template <> struct IDataTypeHandler<DataType::Enum> : IDataTypeHandler<DataType:
     }
 };
 
-template <> struct IDataTypeHandler<DataType::Union> : IDataTypeHandler<DataType::Unknown>
+struct IDataTypeHandlerVariant : IDataTypeHandlerUnknown
 {
-    virtual ~IDataTypeHandler() override = default;
-    DataType                                 GetDataType() const override { return DataType::Union; }
-    const IDataTypeHandler<DataType::Union>* UnionHandler() const override { return this; }
+    virtual ~IDataTypeHandlerVariant() override = default;
+    DataType                     GetDataType() const override { return DataType::Variant; }
+    const IDataTypeHandlerVariant* VariantHandler() const override { return this; }
 
-    const IDataTypeHandler<DataType::Value>*  ValueHandler() const override { throw Exception::UnknownDataTypeHandler(); }
-    const IDataTypeHandler<DataType::List>*   ListHandler() const override { throw Exception::UnknownDataTypeHandler(); }
-    const IDataTypeHandler<DataType::Object>* ObjectHandler() const override { throw Exception::UnknownDataTypeHandler(); }
-    const IDataTypeHandler<DataType::Enum>*   EnumHandler() const override { throw Exception::UnknownDataTypeHandler(); }
-    // const IDataTypeHandler<DataType::Union>*  UnionHandler()  const { throw Exception::UnknownDataTypeHandler(); }
+    const IDataTypeHandlerValue*  ValueHandler() const override { throw Exception::UnknownDataTypeHandler(); }
+    const IDataTypeHandlerList*   ListHandler() const override { throw Exception::UnknownDataTypeHandler(); }
+    const IDataTypeHandlerObject* ObjectHandler() const override { throw Exception::UnknownDataTypeHandler(); }
+    const IDataTypeHandlerEnum*   EnumHandler() const override { throw Exception::UnknownDataTypeHandler(); }
+    // const IDataTypeHandlerVariant*  VariantHandler()  const { throw Exception::UnknownDataTypeHandler(); }
 
-    struct UnionTypeSubComponent
+    struct VariantTypeSubComponent
     {
-        shared_string                           name;
-        const IDataTypeHandler<DataType::Enum>* uniontypehandler;
-        void*                                   ptr;
+        shared_string               name;
+        const IDataTypeHandlerEnum* uniontypehandler;
+        void*                       ptr;
     };
 
-    struct UnionSubComponent
+    struct VariantSubComponent
     {
-        shared_string                              name;
-        const IDataTypeHandler<DataType::Unknown>* handler;
-        void*                                      ptr;
+        shared_string                  name;
+        const IDataTypeHandlerUnknown* handler;
+        void*                          ptr;
     };
 
     virtual void                           Start() const                                              = 0;
-    virtual UnionTypeSubComponent          GetUnionTypesHandler(void* rawptr) const                   = 0;
-    virtual UnionSubComponent              GetActiveUnionHandler(void* rawptr) const                  = 0;
+    virtual VariantTypeSubComponent          GetVariantTypesHandler(void* rawptr) const                   = 0;
+    virtual VariantSubComponent              GetActiveVariantHandler(void* rawptr) const                  = 0;
     virtual void                           End() const                                                = 0;
     virtual shared_string                  Name() const override                                      = 0;
     virtual shared_string                  Description() const override                               = 0;
     virtual shared_string                  AttributeValue(const std::string_view& key) const override = 0;
     virtual std::vector<Value>             AcceptableTypeNames() const                                = 0;
-    virtual std::vector<UnionSubComponent> SubComponentHandlers() const                               = 0;
+    virtual std::vector<VariantSubComponent> SubComponentHandlers() const                               = 0;
     virtual std::shared_ptr<DataInfo>      GetDataInfo() const override
     {
         std::vector<std::shared_ptr<DataInfo>> children;
@@ -328,23 +327,13 @@ template <typename TInterface> struct InterfaceT : public InterfaceMarker
     Id _id = Id::Create();
 };
 
-#if 0
-template <typename TInterface> struct InterfaceFactory : public InterfaceFactoryMarker, public InterfaceMarker
-{};
-
-template <typename TInterface> struct InterfaceActivator
-{
-    static std::unique_ptr<TInterface> Activate();
-};
-#endif
-
 struct IInterfaceApiHandler
 {
-    virtual ~IInterfaceApiHandler()                                              = default;
-    virtual shared_string                              Name()                    = 0;
-    virtual const IDataTypeHandler<DataType::Unknown>* ReturnDataHandler() const = 0;
-    virtual const IDataTypeHandler<DataType::Unknown>* ArgsHandler() const       = 0;
-    virtual void                                       Invoke(void* ifaceobj, void* args, void* result);
+    virtual ~IInterfaceApiHandler()                                  = default;
+    virtual shared_string                  Name()                    = 0;
+    virtual const IDataTypeHandlerUnknown* ReturnDataHandler() const = 0;
+    virtual const IDataTypeHandlerUnknown* ArgsHandler() const       = 0;
+    virtual void                           Invoke(void* ifaceobj, void* args, void* result);
 };
 
 struct IInterfaceHandler
@@ -353,7 +342,7 @@ struct IInterfaceHandler
     virtual shared_string               Name()                      = 0;
     virtual const IInterfaceApiHandler* FindApi(Value& value) const = 0;
 };
-
+#endif
 template <typename TInterfaceApi> struct InterfaceApiTraits
 {
     using InterfaceType = typename TInterfaceApi::InterfaceType;
@@ -418,7 +407,7 @@ namespace ReflectionServices
 using namespace Stencil;
 using DataType = DataType;
 
-template <typename T> struct CommonValueHandler : public IDataTypeHandler<DataType::Value>
+template <typename T> struct CommonValueHandler : public IDataTypeHandlerValue
 {
     virtual void  Write(void* ptr, Value const& value) const override { *(static_cast<T*>(ptr)) = value.convert<T>(); }
     virtual Value Read(void* ptr) const override { return Value(*(static_cast<T*>(ptr))); }
@@ -433,7 +422,7 @@ template <typename T> struct EnumTraits
     static constexpr std::string_view EnumStrings[]{"Invalid"};    // 0 is always invalid
 };
 
-template <typename TEnum> struct EnumHandler : public IDataTypeHandler<DataType::Enum>
+template <typename TEnum> struct EnumHandler : public IDataTypeHandlerEnum
 {
     virtual void Write(void* ptr, Value const& value) const override
     {
@@ -471,7 +460,7 @@ template <typename TEnum> struct EnumHandler : public IDataTypeHandler<DataType:
     virtual shared_string Name() const override { return shared_string::make(TypeTraits<TEnum&>::Name()); }
 };
 
-template <typename TValue> struct StdVectorListHandler : public IDataTypeHandler<DataType::List>
+template <typename TValue> struct StdVectorListHandler : public IDataTypeHandlerList
 {
     virtual void Start() const override {}
     virtual void End() const override {}
@@ -513,7 +502,7 @@ template <typename TValue> struct StdVectorListHandler : public IDataTypeHandler
     typename TypeTraits<TValue&>::Handler _handler;
 };
 
-template <typename TValue, size_t N> struct StdArrayListHandler : public IDataTypeHandler<DataType::List>
+template <typename TValue, size_t N> struct StdArrayListHandler : public IDataTypeHandlerList
 {
     virtual void Start() const override {}
     virtual void End() const override {}
@@ -576,7 +565,7 @@ template <typename TFieldTraits> struct ObjectFieldTraits;
 
 template <DataType TDataType, typename TFieldTraits> struct ObjectDataTypeHandler;
 
-template <typename TFieldTraits> struct ObjectDataTypeHandler<DataType::Value, TFieldTraits> : public IDataTypeHandler<DataType::Value>
+template <typename TFieldTraits> struct ObjectDataTypeHandler<DataType::Value, TFieldTraits> : public IDataTypeHandlerValue
 {
     using TOwner          = typename TFieldTraits::TOwner;
     using TFieldType      = std::invoke_result_t<decltype(TFieldTraits::TPropertyGetter()), std::unique_ptr<TOwner>>;
@@ -584,7 +573,7 @@ template <typename TFieldTraits> struct ObjectDataTypeHandler<DataType::Value, T
 
     void Write(void* ptr, Value const& value) const override
     {
-        typename TFieldTraits::TFieldType                                                fieldValue;
+        typename TFieldTraits::TFieldType                                         fieldValue;
         typename Stencil::TypeTraits<typename TFieldTraits::TFieldType&>::Handler handler;
         handler.Write(&fieldValue, value);
         (static_cast<TOwner*>(ptr)->*(TFieldTraits::TPropertySetter()))(std::move(fieldValue));
@@ -613,13 +602,13 @@ template <typename TFieldTraits> struct ObjectDataTypeHandler<DataType::Value, T
 
     virtual std::shared_ptr<DataInfo> GetDataInfo() const override
     {
-        auto info   = IDataTypeHandler<DataType::Value>::GetDataInfo();
+        auto info   = IDataTypeHandlerValue::GetDataInfo();
         info->flags = TFieldTraits::Flags();
         return info;
     }
 };
 
-template <typename TFieldTraits> struct ObjectDataTypeHandler<DataType::List, TFieldTraits> : public IDataTypeHandler<DataType::List>
+template <typename TFieldTraits> struct ObjectDataTypeHandler<DataType::List, TFieldTraits> : public IDataTypeHandlerList
 {
     using TOwner          = typename TFieldTraits::TOwner;
     using TFieldType      = std::invoke_result_t<decltype(TFieldTraits::TPropertyGetter()), std::unique_ptr<TOwner>>;
@@ -661,7 +650,7 @@ template <typename TFieldTraits> struct ObjectDataTypeHandler<DataType::List, TF
     virtual shared_string             Name() const override { return shared_string::make(FieldTypeTraits::Name()); }
     virtual std::shared_ptr<DataInfo> GetDataInfo() const override
     {
-        auto info   = IDataTypeHandler<DataType::List>::GetDataInfo();
+        auto info   = IDataTypeHandlerList::GetDataInfo();
         info->flags = TFieldTraits::Flags();
         return info;
     }
@@ -670,7 +659,7 @@ template <typename TFieldTraits> struct ObjectDataTypeHandler<DataType::List, TF
     typename FieldTypeTraits::Handler _handler;
 };
 
-template <typename TFieldTraits> struct ObjectDataTypeHandler<DataType::Object, TFieldTraits> : public IDataTypeHandler<DataType::Object>
+template <typename TFieldTraits> struct ObjectDataTypeHandler<DataType::Object, TFieldTraits> : public IDataTypeHandlerObject
 {
     using TOwner          = typename TFieldTraits::TOwner;
     using TFieldType      = std::invoke_result_t<decltype(TFieldTraits::TPropertyGetter()), std::unique_ptr<TOwner>>;
@@ -704,7 +693,7 @@ template <typename TFieldTraits> struct ObjectDataTypeHandler<DataType::Object, 
     }
     virtual std::shared_ptr<DataInfo> GetDataInfo() const override
     {
-        auto info   = IDataTypeHandler<DataType::Object>::GetDataInfo();
+        auto info   = IDataTypeHandlerObject::GetDataInfo();
         info->flags = TFieldTraits::Flags();
         return info;
     }
@@ -716,7 +705,7 @@ template <typename TFieldTraits> struct ObjectDataTypeHandler<DataType::Object, 
 struct ReflectedStruct
 {};
 
-template <typename TStruct, typename... TFieldTraits> struct ReflectedStructHandler : public IDataTypeHandler<DataType::Object>
+template <typename TStruct, typename... TFieldTraits> struct ReflectedStructHandler : public IDataTypeHandlerObject
 {
     void Start() const override {}
     void End() const override {}
@@ -790,8 +779,7 @@ template <typename TStruct, typename... TFieldTraits> struct ReflectedStructHand
     std::tuple<Handler<TFieldTraits>...> _handlers;
 };
 
-template <typename TUnion, typename TTypeTrait, typename... TFieldTraits>
-struct ReflectedUnionHandler : public IDataTypeHandler<DataType::Union>
+template <typename TVariant, typename TTypeTrait, typename... TFieldTraits> struct ReflectedVariantHandler : public IDataTypeHandlerVariant
 {
     void Start() const override {}
     void End() const override {}
@@ -799,47 +787,47 @@ struct ReflectedUnionHandler : public IDataTypeHandler<DataType::Union>
     template <typename Trait> struct Handler : public ObjectDataTypeHandler<Trait::Type(), Trait>
     {};
 
-    virtual UnionTypeSubComponent GetUnionTypesHandler(void* rawptr) const override
+    virtual VariantTypeSubComponent GetVariantTypesHandler(void* rawptr) const override
     {
-        auto ptr = static_cast<TUnion*>(rawptr);
+        auto ptr = static_cast<TVariant*>(rawptr);
 
-        UnionTypeSubComponent s;
+        VariantTypeSubComponent s;
         s.name             = shared_string::make("AllowedType");
         s.ptr              = ptr;
         s.uniontypehandler = &_typehandler;
         return s;
     }
 
-    virtual UnionSubComponent GetActiveUnionHandler(void* rawptr) const override
+    virtual VariantSubComponent GetActiveVariantHandler(void* rawptr) const override
     {
-        auto   ptr        = static_cast<TUnion*>(rawptr);
+        auto   ptr        = static_cast<TVariant*>(rawptr);
         size_t activetype = static_cast<size_t>(ptr->Type());
         if (activetype == 0)    // Enum type 0 is reserved to be unset
         {
             throw Exception::Exception();
         }
         auto s = _structhandler.GetSubComponentAt(rawptr, (activetype - 1));
-        return UnionSubComponent{s.keyname, s.handler, s.ptr};
+        return VariantSubComponent{s.keyname, s.handler, s.ptr};
     }
 
     virtual shared_string Description() const override { return AttributeValue("Description"); }
     virtual shared_string AttributeValue(const std::string_view& key) const override
     {
-        return shared_string::make(TypeTraits<TUnion&>::AttributeValue(key));
+        return shared_string::make(TypeTraits<TVariant&>::AttributeValue(key));
     }
-    virtual shared_string      Name() const override { return shared_string::make(TypeTraits<TUnion&>::Name()); }
+    virtual shared_string      Name() const override { return shared_string::make(TypeTraits<TVariant&>::Name()); }
     virtual std::vector<Value> AcceptableTypeNames() const override { return _typehandler.AcceptableValues(); }
 
-    virtual std::vector<UnionSubComponent> SubComponentHandlers() const override
+    virtual std::vector<VariantSubComponent> SubComponentHandlers() const override
     {
-        std::vector<UnionSubComponent> comps;
+        std::vector<VariantSubComponent> comps;
         for (size_t i = 0; i < _structhandler.GetSubComponentCount(); i++)
         {
-            UnionSubComponent u;
-            auto              s = _structhandler.GetSubComponentAt(nullptr, i);
-            u.name              = s.keyname;
-            u.handler           = s.handler;
-            u.ptr               = s.ptr;
+            VariantSubComponent u;
+            auto                s = _structhandler.GetSubComponentAt(nullptr, i);
+            u.name                = s.keyname;
+            u.handler             = s.handler;
+            u.ptr                 = s.ptr;
 
             comps.push_back(u);
         }
@@ -847,8 +835,8 @@ struct ReflectedUnionHandler : public IDataTypeHandler<DataType::Union>
     }
 
     private:
-    ::ReflectionServices::EnumHandler<TTypeTrait>   _typehandler;
-    ReflectedStructHandler<TUnion, TFieldTraits...> _structhandler;
+    ::ReflectionServices::EnumHandler<TTypeTrait>     _typehandler;
+    ReflectedStructHandler<TVariant, TFieldTraits...> _structhandler;
 };
 
 template <typename T, typename TStackData> struct StateTraker
@@ -859,8 +847,8 @@ template <typename T, typename TStackData> struct StateTraker
         List,
         Obj,
         Enum,
-        Union,
-        UnionChild,
+        Variant,
+        VariantChild,
         ObjKeyValue,
         ListValue
     };
@@ -871,7 +859,7 @@ template <typename T, typename TStackData> struct StateTraker
 
     DataType GetDataTypeHint() const { return _stack.back().Handler->GetDataType(); }
 
-    const IDataTypeHandler<DataType::Unknown>* GetHandler() const { return _stack.back().Handler; }
+    const IDataTypeHandlerUnknown* GetHandler() const { return _stack.back().Handler; }
 
     std::string Stringify()
     {
@@ -886,7 +874,7 @@ template <typename T, typename TStackData> struct StateTraker
         case DataType::Invalid: [[fallthrough]];
         case DataType::List: [[fallthrough]];
         case DataType::Enum: [[fallthrough]];
-        case DataType::Union: break;
+        case DataType::Variant: break;
         }
         throw std::logic_error("unsupported data type");
     }
@@ -909,15 +897,15 @@ template <typename T, typename TStackData> struct StateTraker
         _End(Mode::Enum);
     }
 
-    void UnionType(Value const& val, TStackData&& data)
+    void VariantType(Value const& val, TStackData&& data)
     {
-        _Start(Mode::Union, std::move(data));
-        auto handler = _stack.back().Handler->UnionHandler();
+        _Start(Mode::Variant, std::move(data));
+        auto handler = _stack.back().Handler->VariantHandler();
         assert(handler != nullptr);
-        auto typecomp = handler->GetUnionTypesHandler(_stack.back().Ptr);
+        auto typecomp = handler->GetVariantTypesHandler(_stack.back().Ptr);
         typecomp.uniontypehandler->Write(typecomp.ptr, val);
-        auto activecomp = handler->GetActiveUnionHandler(_stack.back().Ptr);
-        _stack.push_back(StateStack{activecomp.handler, activecomp.ptr, Mode::UnionChild, std::move(data)});
+        auto activecomp = handler->GetActiveVariantHandler(_stack.back().Ptr);
+        _stack.push_back(StateStack{activecomp.handler, activecomp.ptr, Mode::VariantChild, std::move(data)});
     }
 
     void _Start(Mode mode, TStackData&& data)
@@ -983,7 +971,7 @@ template <typename T, typename TStackData> struct StateTraker
 
     bool TryObjKey(Value key, TStackData&& data)
     {
-        IDataTypeHandler<DataType::Object>::SubComponent subcomponent;
+        IDataTypeHandlerObject::SubComponent subcomponent;
         if (!_stack.back().Handler->CastToObject()->TryGetSubComponent(_stack.back().Ptr, key, subcomponent)) { return false; }
         _stack.push_back(StateStack{subcomponent.handler, subcomponent.ptr, Mode::ObjKeyValue, std::move(data)});
         return true;
@@ -991,10 +979,10 @@ template <typename T, typename TStackData> struct StateTraker
 
     struct StateStack
     {
-        const IDataTypeHandler<DataType::Unknown>* Handler = nullptr;
-        void*                                      Ptr     = nullptr;
-        Mode                                       mode;
-        TStackData                                 data;
+        const IDataTypeHandlerUnknown* Handler = nullptr;
+        void*                          Ptr     = nullptr;
+        Mode                           mode;
+        TStackData                     data;
     };
 
     private:
@@ -1023,63 +1011,14 @@ template <typename T> struct Stencil::TypeTraits<T&, std::enable_if_t<Value::Sup
     using ValueType = T;
     using Handler   = typename ::ReflectionServices::CommonValueHandler<T>;
 };
-#if 0
-template <typename TClock, typename TDur> struct Stencil::TypeTraits<std::chrono::time_point<TClock, TDur>&>
-{
-    using time_point = std::chrono::time_point<TClock, TDur>;
 
-    static constexpr DataType Type() { return DataType::Value; }
-    static std::string        Name() { return "timestamp"; }
-
-    static std::string                              Description() { return "Timestamp"; }
-    static std::string_view                         AttributeValue(const std::string_view& /*key*/) { throw std::logic_error("TODO"); }
-    template <typename T1, typename T2> static bool AreEqual(T1 const& obj1, T2 const& obj2) { return obj1 == obj2; }
-
-    using ValueType = uint64_t;
-
-    struct Handler : public ::Stencil::IDataTypeHandler<DataType::Value>
-    {
-        virtual void Write(void* ptr, Value const& value) const override
-        {
-            if (value.GetType() == Value::Type::String)
-            {
-                throw std::logic_error("String time format not supported yet");
-                // auto str = value.convert<shared_string>().str();
-
-                // std::istringstream iss(str);
-                // std::chrono::from_stream(iss, "%FT%T", obj);
-                // iss >> std::chrono::parse("%FT%TZ", obj);
-            }
-            else
-            {
-                using tpinttype = decltype(std::chrono::nanoseconds{}.count());
-                *(static_cast<time_point*>(ptr))
-                    = time_point(std::chrono::duration_cast<TDur>(std::chrono::nanoseconds(value.convert<tpinttype>())));
-            }
-        }
-
-        virtual Value Read(void* ptr) const override
-        {
-            auto val = std::chrono::duration_cast<std::chrono::nanoseconds>((static_cast<time_point*>(ptr))->time_since_epoch()).count();
-            return Value(val);
-        }
-
-        virtual shared_string Name() const override { return "timestamp"; }
-        virtual shared_string Description() const override { return Name(); }
-        virtual shared_string AttributeValue(const std::string_view& /*key*/) const override { throw std::logic_error("TODO"); }
-    };
-};
-#endif
 template <typename T> struct Stencil::TypeTraits<std::vector<T>&>
 {
     using ListObjType = T;
     static constexpr DataType Type() { return DataType::List; }
     static std::string        Name() { return "list<" + std::string(::Stencil::TypeTraits<T&>::Name()) + ">"; }
 
-    static std::string Description()
-    {
-        return "list<" + std::string(::Stencil::TypeTraits<T&>::AttributeValue("Description")) + ">";
-    }
+    static std::string      Description() { return "list<" + std::string(::Stencil::TypeTraits<T&>::AttributeValue("Description")) + ">"; }
     static std::string_view AttributeValue(const std::string_view& /*key*/) { return ""; }
 
     bool AreEqual(std::vector<T>& obj1, std::vector<T>& obj2)
@@ -1098,10 +1037,7 @@ template <typename T, size_t N> struct Stencil::TypeTraits<std::array<T, N>&>
     static constexpr DataType Type() { return DataType::List; }
     static std::string        Name() { return "array<" + std::string(::Stencil::TypeTraits<T&>::Name()) + ">"; }
 
-    static std::string Description()
-    {
-        return "array<" + std::string(::Stencil::TypeTraits<T&>::AttributeValue("Description")) + ">";
-    }
+    static std::string      Description() { return "array<" + std::string(::Stencil::TypeTraits<T&>::AttributeValue("Description")) + ">"; }
     static std::string_view AttributeValue(const std::string_view& /* key */) { return ""; }
 
     bool AreEqual(std::array<T, N>& obj1, std::array<T, N>& obj2)
@@ -1113,15 +1049,14 @@ template <typename T, size_t N> struct Stencil::TypeTraits<std::array<T, N>&>
     using Handler = typename ::ReflectionServices::StdArrayListHandler<T, N>;
 };
 
-template <typename T>
-struct Stencil::TypeTraits<std::unique_ptr<T>&, std::enable_if_t<std::is_base_of<::Stencil::ObjMarker, T>::value>>
+template <typename T> struct Stencil::TypeTraits<std::unique_ptr<T>&, std::enable_if_t<std::is_base_of<::Stencil::ObjMarker, T>::value>>
 {
     static constexpr DataType                       Type() { return DataType::Object; }
     static constexpr std::string_view               Name() { return ::Stencil::TypeTraits<T&>::Name(); }
     static std::string_view                         AttributeValue(const std::string_view& /*key*/) { throw std::logic_error("TODO"); }
     template <typename T1, typename T2> static bool AreEqual(T1 const& obj1, T2 const& obj2) { return obj1 == obj2; }
 
-    struct Handler : public ::Stencil::IDataTypeHandler<DataType::Object>
+    struct Handler : public ::Stencil::IDataTypeHandlerObject
     {
         virtual void Start() const override {}
         virtual bool TryGetSubComponent(void* rawptr, Value const& key, SubComponent& subcomponent) const override
@@ -1148,8 +1083,7 @@ struct Stencil::TypeTraits<std::unique_ptr<T>&, std::enable_if_t<std::is_base_of
     };
 };
 
-template <typename T>
-struct Stencil::TypeTraits<std::shared_ptr<T>&, std::enable_if_t<std::is_base_of<::Stencil::ObjMarker, T>::value>>
+template <typename T> struct Stencil::TypeTraits<std::shared_ptr<T>&, std::enable_if_t<std::is_base_of<::Stencil::ObjMarker, T>::value>>
 {
     static constexpr DataType         Type() { return DataType::Object; }
     static constexpr std::string_view Name() { return ::Stencil::TypeTraits<T&>::Name(); }
@@ -1157,7 +1091,7 @@ struct Stencil::TypeTraits<std::shared_ptr<T>&, std::enable_if_t<std::is_base_of
 
     template <typename T1, typename T2> static bool AreEqual(T1 const& obj1, T2 const& obj2) { return obj1 == obj2; }
 
-    struct Handler : public ::Stencil::IDataTypeHandler<DataType::Object>
+    struct Handler : public ::Stencil::IDataTypeHandlerObject
     {
         virtual void Start() const override {}
         virtual bool TryGetSubComponent(void* rawptr, Value const& key, SubComponent& subcomponent) const override
@@ -1199,7 +1133,7 @@ template <typename T> struct Stencil::TypeTraits<shared_tree<T>&>
 
     template <typename T1, typename T2> static bool AreEqual(T1 const& obj1, T2 const& obj2) { return obj1 == obj2; }
 
-    struct Handler : public ::Stencil::IDataTypeHandler<DataType::List>
+    struct Handler : public ::Stencil::IDataTypeHandlerList
     {
         virtual void Start() const override {}
 
@@ -1229,7 +1163,7 @@ template <typename T> struct Stencil::TypeTraits<UuidBasedId<T>&>
 
     template <typename T1, typename T2> static bool AreEqual(T1 const& obj1, T2 const& obj2) { return obj1 == obj2; }
 
-    struct Handler : public ::Stencil::IDataTypeHandler<DataType::Value>
+    struct Handler : public ::Stencil::IDataTypeHandlerValue
     {
         virtual shared_string Description() const override { throw std::logic_error("TODO"); }
         virtual shared_string AttributeValue(const std::string_view& /*key*/) const override { throw std::logic_error("TODO"); }

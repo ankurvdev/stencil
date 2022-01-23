@@ -21,6 +21,6 @@ NativeType = "::Database2::ObjectRefT<%object:NativeType%>"
 Params = [ "object" ]
 NativeType = "::Database2::EncryptedT<%object:NativeType%>"
 
-[Relationships.database]
+[Attributes.database]
 owner = "databaseowner"
 object = "databaseobject"

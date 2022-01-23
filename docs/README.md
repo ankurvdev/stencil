@@ -135,10 +135,10 @@ struct RemoteHost
     uuidref<Identity> identity;
 }
 
-relationship database owner = UserData : object = RemoteHost, Identity
-relationship uuidbasedobject object = RemoteHost, Identity
-relationship encryptedobject object = Identity
-relationship timestamped object = RemoteHost, Identity, UserData
+attribute database owner = UserData : object = RemoteHost, Identity
+attribute uuidbasedobject object = RemoteHost, Identity
+attribute encryptedobject object = Identity
+attribute timestamped object = RemoteHost, Identity, UserData
 ```
 
 C++ Code
