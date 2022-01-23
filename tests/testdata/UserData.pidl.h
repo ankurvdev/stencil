@@ -7,17 +7,17 @@ namespace UserData::UserData
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<UserData::UserData::Data&>;
+template <> struct Stencil::TypeTraits<UserData::UserData::Data&>;
 namespace UserData::Identity
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<UserData::Identity::Data&>;
+template <> struct Stencil::TypeTraits<UserData::Identity::Data&>;
 namespace UserData::RemoteHost
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<UserData::RemoteHost::Data&>;
+template <> struct Stencil::TypeTraits<UserData::RemoteHost::Data&>;
 #endif
 // SECTION END: DECLARATIONS
 
@@ -363,7 +363,7 @@ struct Data :
 #if true
 
 // SECTION:
-template <> struct ReflectionBase::TypeTraits<UserData::UserData::Data&>
+template <> struct Stencil::TypeTraits<UserData::UserData::Data&>
 {
     struct Traits_modified
     {
@@ -403,7 +403,7 @@ template <> struct ReflectionBase::TypeTraits<UserData::UserData::Data&>
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "UserData"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -570,7 +570,7 @@ struct Stencil::Visitor<const UserData::UserData::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionBase::TypeTraits<UserData::Identity::Data&>
+template <> struct Stencil::TypeTraits<UserData::Identity::Data&>
 {
     struct Traits_username
     {
@@ -667,7 +667,7 @@ template <> struct ReflectionBase::TypeTraits<UserData::Identity::Data&>
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "Identity"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -927,7 +927,7 @@ struct Stencil::Visitor<const UserData::Identity::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionBase::TypeTraits<UserData::RemoteHost::Data&>
+template <> struct Stencil::TypeTraits<UserData::RemoteHost::Data&>
 {
     struct Traits_name
     {
@@ -986,7 +986,7 @@ template <> struct ReflectionBase::TypeTraits<UserData::RemoteHost::Data&>
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "RemoteHost"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {

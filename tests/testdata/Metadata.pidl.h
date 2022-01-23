@@ -7,17 +7,17 @@ namespace Metadata::MapPoint
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<Metadata::MapPoint::Data&>;
+template <> struct Stencil::TypeTraits<Metadata::MapPoint::Data&>;
 namespace Metadata::GeographicalArea
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<Metadata::GeographicalArea::Data&>;
+template <> struct Stencil::TypeTraits<Metadata::GeographicalArea::Data&>;
 namespace Metadata::DigitalAssetInfo
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<Metadata::DigitalAssetInfo::Data&>;
+template <> struct Stencil::TypeTraits<Metadata::DigitalAssetInfo::Data&>;
 #endif
 // SECTION END: DECLARATIONS
 
@@ -385,7 +385,7 @@ typedef std::vector<shared_tree<shared_string>> Entities;
 #if true
 
 // SECTION:
-template <> struct ReflectionBase::TypeTraits<Metadata::MapPoint::Data&>
+template <> struct Stencil::TypeTraits<Metadata::MapPoint::Data&>
 {
     struct Traits_latitude
     {
@@ -425,7 +425,7 @@ template <> struct ReflectionBase::TypeTraits<Metadata::MapPoint::Data&>
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "MapPoint"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -592,7 +592,7 @@ struct Stencil::Visitor<const Metadata::MapPoint::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionBase::TypeTraits<Metadata::GeographicalArea::Data&>
+template <> struct Stencil::TypeTraits<Metadata::GeographicalArea::Data&>
 {
     struct Traits_type
     {
@@ -651,7 +651,7 @@ template <> struct ReflectionBase::TypeTraits<Metadata::GeographicalArea::Data&>
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "GeographicalArea"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -849,7 +849,7 @@ struct Stencil::Visitor<const Metadata::GeographicalArea::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionBase::TypeTraits<Metadata::DigitalAssetInfo::Data&>
+template <> struct Stencil::TypeTraits<Metadata::DigitalAssetInfo::Data&>
 {
     struct Traits_id
     {
@@ -965,7 +965,7 @@ template <> struct ReflectionBase::TypeTraits<Metadata::DigitalAssetInfo::Data&>
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "DigitalAssetInfo"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {

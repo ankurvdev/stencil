@@ -77,7 +77,7 @@ struct CommandLineArgsReader
         virtual void ObjKey(size_t index)                     = 0;
         virtual void AddKey(size_t index)                     = 0;
         virtual void HandleEnum(std::string_view const& str)  = 0;
-        virtual void VariantType(std::string_view const& str)   = 0;
+        virtual void VariantType(std::string_view const& str) = 0;
 
         virtual std::shared_ptr<Definition> GetCurrentContext() = 0;
         virtual std::string                 GenerateHelp()      = 0;
@@ -530,7 +530,7 @@ struct Table
         return lines;
     }
 };
-
+#if 0
 template <typename TStruct> struct CommandLineArgs
 {
     struct Exception
@@ -604,21 +604,21 @@ template <typename TStruct> struct CommandLineArgs
             CommandLineArgsReader::Definition::Type type;
             switch (_visitor.GetDataTypeHint())
             {
-            case ReflectionBase::DataType::List: type = CommandLineArgsReader::Definition::Type::List; break;
-            case ReflectionBase::DataType::Object: type = CommandLineArgsReader::Definition::Type::Object; break;
-            case ReflectionBase::DataType::Value: type = CommandLineArgsReader::Definition::Type::Value; break;
-            case ReflectionBase::DataType::Enum: type = CommandLineArgsReader::Definition::Type::Enum; break;
-            case ReflectionBase::DataType::Variant: type = CommandLineArgsReader::Definition::Type::Variant; break;
-            case ReflectionBase::DataType::Invalid: type = CommandLineArgsReader::Definition::Type::Invalid; break;
-            case ReflectionBase::DataType::Unknown: [[fallthrough]];    // TODO
+            case Stencil::DataType::List: type = CommandLineArgsReader::Definition::Type::List; break;
+            case Stencil::DataType::Object: type = CommandLineArgsReader::Definition::Type::Object; break;
+            case Stencil::DataType::Value: type = CommandLineArgsReader::Definition::Type::Value; break;
+            case Stencil::DataType::Enum: type = CommandLineArgsReader::Definition::Type::Enum; break;
+            case Stencil::DataType::Variant: type = CommandLineArgsReader::Definition::Type::Variant; break;
+            case Stencil::DataType::Invalid: type = CommandLineArgsReader::Definition::Type::Invalid; break;
+            case Stencil::DataType::Unknown: [[fallthrough]];    // TODO
             default:
                 throw std::logic_error("Unknown Data Type");
-                // TODO: case ReflectionBase::DataType::Unknown: type = CommandLineArgsReader::Definition::Type::Unknown; break;
+                // TODO: case Stencil::DataType::Unknown: type = CommandLineArgsReader::Definition::Type::Unknown; break;
             }
 
             return std::make_shared<CommandLineArgsReader::Definition>("empty", type);
         }
-
+#if 0
         std::unique_ptr<Table> _PrintVariant(const ::ReflectionBase::DataInfo& info)
         {
             std::unique_ptr<Table> table(new Table());
@@ -640,23 +640,23 @@ template <typename TStruct> struct CommandLineArgs
             // print usage
             switch (info.datatype)
             {
-            case ::ReflectionBase::DataType::Variant:
+            case ::Stencil::DataType::Variant:
                 args.push_back("<" + info.name.str() + ">");
                 args.push_back("...");
                 break;
-            case ::ReflectionBase::DataType::Object:
+            case ::Stencil::DataType::Object:
                 for (const auto& c : info.children)
                 {
                     if (!c->required()) break;
                     args.push_back(("<" + c->name.str() + ">"));
                 }
                 break;
-            case ::ReflectionBase::DataType::Value: [[fallthrough]];
-            case ::ReflectionBase::DataType::Enum: [[fallthrough]];
-            case ::ReflectionBase::DataType::List: [[fallthrough]];
+            case ::Stencil::DataType::Value: [[fallthrough]];
+            case ::Stencil::DataType::Enum: [[fallthrough]];
+            case ::Stencil::DataType::List: [[fallthrough]];
 
-            case ::ReflectionBase::DataType::Unknown: [[fallthrough]];
-            case ::ReflectionBase::DataType::Invalid: [[fallthrough]];
+            case ::Stencil::DataType::Unknown: [[fallthrough]];
+            case ::Stencil::DataType::Invalid: [[fallthrough]];
 
             default: throw std::logic_error("TODO");
             }
@@ -672,8 +672,8 @@ template <typename TStruct> struct CommandLineArgs
 
             switch (info.datatype)
             {
-            case ::ReflectionBase::DataType::Variant: table->AddTable(0, 255, *_PrintVariant(info)); break;
-            case ::ReflectionBase::DataType::Object:
+            case ::Stencil::DataType::Variant: table->AddTable(0, 255, *_PrintVariant(info)); break;
+            case ::Stencil::DataType::Object:
             {
                 bool cont = true;
                 for (const auto& c : info.children)
@@ -685,19 +685,19 @@ template <typename TStruct> struct CommandLineArgs
                 }
             }
             break;
-            case ::ReflectionBase::DataType::Value: [[fallthrough]];
-            case ::ReflectionBase::DataType::Enum: [[fallthrough]];
-            case ::ReflectionBase::DataType::List: [[fallthrough]];
+            case ::Stencil::DataType::Value: [[fallthrough]];
+            case ::Stencil::DataType::Enum: [[fallthrough]];
+            case ::Stencil::DataType::List: [[fallthrough]];
 
-            case ::ReflectionBase::DataType::Unknown: [[fallthrough]];
-            case ::ReflectionBase::DataType::Invalid: [[fallthrough]];
+            case ::Stencil::DataType::Unknown: [[fallthrough]];
+            case ::Stencil::DataType::Invalid: [[fallthrough]];
 
             default: throw std::logic_error("TODO");
             }
 
             return table;
         }
-
+#endif
         void _RecursivelyAddHelp(std::vector<std::string>&                                lines,
                                  std::deque<std::shared_ptr<::ReflectionBase::DataInfo>>& pending,
                                  int /*depth*/)
@@ -757,3 +757,4 @@ template <typename TStruct> struct CommandLineArgs
 
     std::vector<std::string> _helpInfo;
 };
+#endif

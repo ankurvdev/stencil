@@ -1,7 +1,8 @@
 #pragma once
 #include "Logging.h"
-#include "Value.h"
+#include "fixedwidthvalue.h"
 #include "shared_tree.h"
+#include "uuidobject.h"
 
 #include <algorithm>
 #include <bitset>
@@ -27,6 +28,33 @@ using timestamp = decltype(std::chrono::system_clock::now());
 
 namespace Stencil
 {
+struct StructMarker
+{};
+struct VariantMarker
+{};
+struct InterfaceMarker
+{};
+
+template <typename T>
+concept FixedWidthValueConcept = requires(T t)
+{
+    typename ValueTraits<T>;
+};
+
+template <typename T>
+concept StructConcept = requires(T t)
+{
+    std::is_base_of<Stencil::StructMarker, T>::type;
+};
+template <typename T> struct TypeTraits;
+
+enum class DataType
+{
+    Invalid,
+    Atomic,      // Fixed size or blobs
+    Iterable,    // Iterable by Atomic Values as keys
+};
+
 #if 0
 namespace ExceptionTraits
 {
@@ -48,18 +76,6 @@ struct UnknownDataTypeHandler
 
 struct ExceptionUnknownDataTypeHandlerTraits
 {};
-
-enum class DataType
-{
-    Invalid,
-    Value,
-    List,
-    Object,
-    Enum,
-    Variant,
-    Unknown    // TODO : Why Invalid and Unknown
-};
-
 enum class Flag : uint8_t
 {
     Default,
@@ -389,9 +405,9 @@ template <typename T, typename = void> struct Functions
     static bool AreEqual(T const& obj1, T const& obj2) { return std::memcmp(&obj1, &obj2, sizeof(T)) == 0; }
 };
 
-template <typename T> struct Functions<T, std::enable_if_t<std::is_base_of<::Stencil::ObjMarker, T>::value>>
+template <typename T> struct Functions<T, std::enable_if_t<std::is_base_of<::Stencil::StructMarker, T>::value>>
 {
-    static bool AreEqual(T const& obj1, T const& obj2) { return Stencil::TypeTraits<T&>::AreEqual(obj1, obj2); }
+    static bool AreEqual(T const& obj1, T const& obj2) { return Stencil::TypeTraits<T>::AreEqual(obj1, obj2); }
 };
 
 template <typename T> bool AreEqual(T const& obj1, T const& obj2)
@@ -401,6 +417,7 @@ template <typename T> bool AreEqual(T const& obj1, T const& obj2)
 
 }    // namespace Stencil
 
+#if 0
 // Provide handlers for some very commonly used types
 namespace ReflectionServices
 {
@@ -986,8 +1003,8 @@ template <typename T, typename TStackData> struct StateTraker
     };
 
     private:
-    typename TypeTraits<T&>::Handler _rootHandler;
-    std::vector<StateStack>          _stack;
+    typename TypeTraits<T>::Handler _rootHandler;
+    std::vector<StateStack>         _stack;
 };
 }    // namespace ReflectionServices
 
@@ -999,25 +1016,25 @@ template <typename... TApiTraits> struct InterfaceHandler
 {};
 
 }    // namespace ReflectionServices
+#endif
 
-template <typename T> struct Stencil::TypeTraits<T&, std::enable_if_t<Value::Supported<T>::value>>
+template <Stencil::FixedWidthValueConcept T> struct Stencil::TypeTraits<T>
 {
-    static constexpr DataType         Type() { return DataType::Value; }
+    // static constexpr DataType         Type() { return DataType::Value; }
     static constexpr std::string_view Name() { return std::string_view(typeid(T).name()); }
     static constexpr std::string_view Description() { return Name(); }
     static constexpr std::string_view AttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
     template <typename T1, typename T2> static bool AreEqual(T1 const& obj1, T2 const& obj2) { return obj1 == obj2; }
 
     using ValueType = T;
-    using Handler   = typename ::ReflectionServices::CommonValueHandler<T>;
+    // using Handler   = typename ::ReflectionServices::CommonValueHandler<T>;
 };
 
 template <typename T> struct Stencil::TypeTraits<std::vector<T>&>
 {
     using ListObjType = T;
-    static constexpr DataType Type() { return DataType::List; }
-    static std::string        Name() { return "list<" + std::string(::Stencil::TypeTraits<T&>::Name()) + ">"; }
-
+    // static constexpr DataType Type() { return DataType::List; }
+    static std::string      Name() { return "list<" + std::string(::Stencil::TypeTraits<T&>::Name()) + ">"; }
     static std::string      Description() { return "list<" + std::string(::Stencil::TypeTraits<T&>::AttributeValue("Description")) + ">"; }
     static std::string_view AttributeValue(const std::string_view& /*key*/) { return ""; }
 
@@ -1027,15 +1044,16 @@ template <typename T> struct Stencil::TypeTraits<std::vector<T>&>
             return Stencil::TypeTraits<decltype(o1)>::AreEqual(o1, o2);
         });
     }
-    using Handler = typename ::ReflectionServices::StdVectorListHandler<T>;
+
+    // using Handler = typename ::ReflectionServices::StdVectorListHandler<T>;
 };
 
 template <typename T, size_t N> struct Stencil::TypeTraits<std::array<T, N>&>
 {
     using ListObjType = T;
 
-    static constexpr DataType Type() { return DataType::List; }
-    static std::string        Name() { return "array<" + std::string(::Stencil::TypeTraits<T&>::Name()) + ">"; }
+    // static constexpr DataType Type() { return DataType::List; }
+    static std::string Name() { return "array<" + std::string(::Stencil::TypeTraits<T&>::Name()) + ">"; }
 
     static std::string      Description() { return "array<" + std::string(::Stencil::TypeTraits<T&>::AttributeValue("Description")) + ">"; }
     static std::string_view AttributeValue(const std::string_view& /* key */) { return ""; }
@@ -1046,15 +1064,17 @@ template <typename T, size_t N> struct Stencil::TypeTraits<std::array<T, N>&>
             return Stencil::TypeTraits<decltype(o1)>::AreEqual(o1, o2);
         });
     }
-    using Handler = typename ::ReflectionServices::StdArrayListHandler<T, N>;
+
+    // using Handler = typename ::ReflectionServices::StdArrayListHandler<T, N>;
 };
 
-template <typename T> struct Stencil::TypeTraits<std::unique_ptr<T>&, std::enable_if_t<std::is_base_of<::Stencil::ObjMarker, T>::value>>
+template <Stencil::StructConcept T> struct Stencil::TypeTraits<std::unique_ptr<T>>
 {
     static constexpr DataType                       Type() { return DataType::Object; }
-    static constexpr std::string_view               Name() { return ::Stencil::TypeTraits<T&>::Name(); }
+    static constexpr std::string_view               Name() { return ::Stencil::TypeTraits<T>::Name(); }
     static std::string_view                         AttributeValue(const std::string_view& /*key*/) { throw std::logic_error("TODO"); }
     template <typename T1, typename T2> static bool AreEqual(T1 const& obj1, T2 const& obj2) { return obj1 == obj2; }
+#if 0
 
     struct Handler : public ::Stencil::IDataTypeHandlerObject
     {
@@ -1081,16 +1101,17 @@ template <typename T> struct Stencil::TypeTraits<std::unique_ptr<T>&, std::enabl
 
         typename ::Stencil::TypeTraits<T&>::Handler _handler;
     };
+#endif
 };
 
-template <typename T> struct Stencil::TypeTraits<std::shared_ptr<T>&, std::enable_if_t<std::is_base_of<::Stencil::ObjMarker, T>::value>>
+template <Stencil::StructConcept T> struct Stencil::TypeTraits<std::shared_ptr<T>>
 {
     static constexpr DataType         Type() { return DataType::Object; }
     static constexpr std::string_view Name() { return ::Stencil::TypeTraits<T&>::Name(); }
     static std::string_view           AttributeValue(const std::string_view& /*key*/) { throw std::logic_error("TODO"); }
 
     template <typename T1, typename T2> static bool AreEqual(T1 const& obj1, T2 const& obj2) { return obj1 == obj2; }
-
+#if 0
     struct Handler : public ::Stencil::IDataTypeHandlerObject
     {
         virtual void Start() const override {}
@@ -1116,8 +1137,9 @@ template <typename T> struct Stencil::TypeTraits<std::shared_ptr<T>&, std::enabl
 
         typename ::Stencil::TypeTraits<T&>::Handler _handler;
     };
+#endif
 };
-
+#if 0
 template <typename T> struct Stencil::TypeTraits<shared_tree<T>&>
 {
     using ListObjType = T;
@@ -1153,7 +1175,9 @@ template <typename T> struct Stencil::TypeTraits<shared_tree<T>&>
         typename ::Stencil::TypeTraits<T&>::Handler _handler;
     };
 };
+#endif
 
+#if 0
 template <typename T> struct Stencil::TypeTraits<UuidBasedId<T>&>
 {
     static constexpr DataType         Type() { return DataType::Value; }
@@ -1175,3 +1199,4 @@ template <typename T> struct Stencil::TypeTraits<UuidBasedId<T>&>
         typename ::Stencil::TypeTraits<T&>::Handler _handler;
     };
 };
+#endif

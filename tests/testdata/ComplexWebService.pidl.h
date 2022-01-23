@@ -7,17 +7,17 @@ namespace ComplexWebService::MapPoint
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<ComplexWebService::MapPoint::Data&>;
+template <> struct Stencil::TypeTraits<ComplexWebService::MapPoint::Data&>;
 namespace ComplexWebService::GeographicalArea
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<ComplexWebService::GeographicalArea::Data&>;
+template <> struct Stencil::TypeTraits<ComplexWebService::GeographicalArea::Data&>;
 namespace ComplexWebService::DigitalAssetInfo
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<ComplexWebService::DigitalAssetInfo::Data&>;
+template <> struct Stencil::TypeTraits<ComplexWebService::DigitalAssetInfo::Data&>;
 #endif
 // SECTION END: DECLARATIONS
 
@@ -618,7 +618,7 @@ struct Store_Download_Args
 #if true
 
 // SECTION:
-template <> struct ReflectionBase::TypeTraits<ComplexWebService::KeywordS_Find_Args&>
+template <> struct Stencil::TypeTraits<ComplexWebService::KeywordS_Find_Args&>
 {
     struct Traits_arg_root
     {
@@ -653,7 +653,7 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::KeywordS_Find_A
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_type; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_type; }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "Find"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
@@ -676,7 +676,7 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::KeywordS_Find_A
                                                                  Traits_arg_type
                                                                  >;
 };
-template <> struct ReflectionBase::TypeTraits<ComplexWebService::KeywordS_Create_Args&>
+template <> struct Stencil::TypeTraits<ComplexWebService::KeywordS_Create_Args&>
 {
     struct Traits_arg_word
     {
@@ -700,7 +700,7 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::KeywordS_Create
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_parent; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_parent; }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "Create"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
@@ -720,9 +720,9 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::KeywordS_Create
                                                                  Traits_arg_parent
                                                                  >;
 };
-template <> struct ReflectionBase::TypeTraits<ComplexWebService::KeywordS_Delete_Args&>
+template <> struct Stencil::TypeTraits<ComplexWebService::KeywordS_Delete_Args&>
 {
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "Delete"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
@@ -736,7 +736,7 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::KeywordS_Delete
     using Handler = ::ReflectionServices::ReflectedStructHandler<ComplexWebService::KeywordS_Delete_Args
                                                                  >;
 };
-template <> struct ReflectionBase::TypeTraits<ComplexWebService::KeywordS_Modify_Args&>
+template <> struct Stencil::TypeTraits<ComplexWebService::KeywordS_Modify_Args&>
 {
     struct Traits_arg_word
     {
@@ -749,7 +749,7 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::KeywordS_Modify
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_word; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_word; }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "Modify"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
@@ -766,7 +766,7 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::KeywordS_Modify
                                                                  Traits_arg_word
                                                                  >;
 };
-template <> struct ReflectionBase::TypeTraits<ComplexWebService::KeywordS_SetParent_Args&>
+template <> struct Stencil::TypeTraits<ComplexWebService::KeywordS_SetParent_Args&>
 {
     struct Traits_arg_parent
     {
@@ -779,7 +779,7 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::KeywordS_SetPar
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_parent; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_parent; }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "SetParent"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
@@ -926,7 +926,7 @@ template <> struct WebServiceHandlerTraits<ComplexWebService::KeywordS>
 };
 #endif
 
-template <> struct ReflectionBase::TypeTraits<ComplexWebService::Content_AddKeyword_Args&>
+template <> struct Stencil::TypeTraits<ComplexWebService::Content_AddKeyword_Args&>
 {
     struct Traits_arg_keyword
     {
@@ -939,7 +939,7 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::Content_AddKeyw
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_keyword; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_keyword; }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "AddKeyword"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
@@ -956,7 +956,7 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::Content_AddKeyw
                                                                  Traits_arg_keyword
                                                                  >;
 };
-template <> struct ReflectionBase::TypeTraits<ComplexWebService::Content_RemoveKeyword_Args&>
+template <> struct Stencil::TypeTraits<ComplexWebService::Content_RemoveKeyword_Args&>
 {
     struct Traits_arg_keyword
     {
@@ -969,7 +969,7 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::Content_RemoveK
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_keyword; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_keyword; }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "RemoveKeyword"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
@@ -1045,7 +1045,7 @@ template <> struct WebServiceHandlerTraits<ComplexWebService::Content>
 };
 #endif
 
-template <> struct ReflectionBase::TypeTraits<ComplexWebService::Search_SearchByKeywords_Args&>
+template <> struct Stencil::TypeTraits<ComplexWebService::Search_SearchByKeywords_Args&>
 {
     struct Traits_arg_keywords
     {
@@ -1058,7 +1058,7 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::Search_SearchBy
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_keywords; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_keywords; }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "SearchByKeywords"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
@@ -1075,7 +1075,7 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::Search_SearchBy
                                                                  Traits_arg_keywords
                                                                  >;
 };
-template <> struct ReflectionBase::TypeTraits<ComplexWebService::Search_SearchByDate_Args&>
+template <> struct Stencil::TypeTraits<ComplexWebService::Search_SearchByDate_Args&>
 {
     struct Traits_arg_startDate
     {
@@ -1099,7 +1099,7 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::Search_SearchBy
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_endDate; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_endDate; }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "SearchByDate"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
@@ -1179,7 +1179,7 @@ template <> struct WebServiceHandlerTraits<ComplexWebService::Search>
 };
 #endif
 
-template <> struct ReflectionBase::TypeTraits<ComplexWebService::Store_Upload_Args&>
+template <> struct Stencil::TypeTraits<ComplexWebService::Store_Upload_Args&>
 {
     struct Traits_arg_file
     {
@@ -1192,7 +1192,7 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::Store_Upload_Ar
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_file; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_file; }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "Upload"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
@@ -1209,7 +1209,7 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::Store_Upload_Ar
                                                                  Traits_arg_file
                                                                  >;
 };
-template <> struct ReflectionBase::TypeTraits<ComplexWebService::Store_Download_Args&>
+template <> struct Stencil::TypeTraits<ComplexWebService::Store_Download_Args&>
 {
     struct Traits_arg_content
     {
@@ -1222,7 +1222,7 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::Store_Download_
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_content; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_content; }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "Download"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
@@ -1298,7 +1298,7 @@ template <> struct WebServiceHandlerTraits<ComplexWebService::Store>
 };
 #endif
 
-template <> struct ReflectionBase::TypeTraits<ComplexWebService::MapPoint::Data&>
+template <> struct Stencil::TypeTraits<ComplexWebService::MapPoint::Data&>
 {
     struct Traits_latitude
     {
@@ -1338,7 +1338,7 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::MapPoint::Data&
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "MapPoint"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -1505,7 +1505,7 @@ struct Stencil::Visitor<const ComplexWebService::MapPoint::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionBase::TypeTraits<ComplexWebService::GeographicalArea::Data&>
+template <> struct Stencil::TypeTraits<ComplexWebService::GeographicalArea::Data&>
 {
     struct Traits_type
     {
@@ -1564,7 +1564,7 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::GeographicalAre
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "GeographicalArea"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -1762,7 +1762,7 @@ struct Stencil::Visitor<const ComplexWebService::GeographicalArea::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionBase::TypeTraits<ComplexWebService::DigitalAssetInfo::Data&>
+template <> struct Stencil::TypeTraits<ComplexWebService::DigitalAssetInfo::Data&>
 {
     struct Traits_id
     {
@@ -1878,7 +1878,7 @@ template <> struct ReflectionBase::TypeTraits<ComplexWebService::DigitalAssetInf
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "DigitalAssetInfo"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {

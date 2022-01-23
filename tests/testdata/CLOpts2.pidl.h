@@ -7,37 +7,37 @@ namespace CLOpts2::InstallOptions
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<CLOpts2::InstallOptions::Data&>;
+template <> struct Stencil::TypeTraits<CLOpts2::InstallOptions::Data&>;
 namespace CLOpts2::QueueOptions
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<CLOpts2::QueueOptions::Data&>;
+template <> struct Stencil::TypeTraits<CLOpts2::QueueOptions::Data&>;
 namespace CLOpts2::PauseOptions
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<CLOpts2::PauseOptions::Data&>;
+template <> struct Stencil::TypeTraits<CLOpts2::PauseOptions::Data&>;
 namespace CLOpts2::CancelOptions
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<CLOpts2::CancelOptions::Data&>;
+template <> struct Stencil::TypeTraits<CLOpts2::CancelOptions::Data&>;
 namespace CLOpts2::ResumeOptions
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<CLOpts2::ResumeOptions::Data&>;
+template <> struct Stencil::TypeTraits<CLOpts2::ResumeOptions::Data&>;
 namespace CLOpts2::UpdateOptions
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<CLOpts2::UpdateOptions::Data&>;
+template <> struct Stencil::TypeTraits<CLOpts2::UpdateOptions::Data&>;
 namespace CLOpts2::HydrateOptions
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<CLOpts2::HydrateOptions::Data&>;
+template <> struct Stencil::TypeTraits<CLOpts2::HydrateOptions::Data&>;
 #endif
 // SECTION END: DECLARATIONS
 
@@ -732,7 +732,7 @@ struct Data : public ReflectionBase::ObjMarker
 #if true
 
 // SECTION:
-template <> struct ReflectionBase::TypeTraits<CLOpts2::InstallOptions::Data&>
+template <> struct Stencil::TypeTraits<CLOpts2::InstallOptions::Data&>
 {
     struct Traits_ProductId
     {
@@ -833,7 +833,7 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::InstallOptions::Data&>
                                            ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "InstallOptions"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -1094,7 +1094,7 @@ struct Stencil::Visitor<const CLOpts2::InstallOptions::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionBase::TypeTraits<CLOpts2::QueueOptions::Data&>
+template <> struct Stencil::TypeTraits<CLOpts2::QueueOptions::Data&>
 {
     struct Traits_ProductId
     {
@@ -1116,7 +1116,7 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::QueueOptions::Data&>
                                            ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "QueueOptions"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -1253,7 +1253,7 @@ struct Stencil::Visitor<const CLOpts2::QueueOptions::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionBase::TypeTraits<CLOpts2::PauseOptions::Data&>
+template <> struct Stencil::TypeTraits<CLOpts2::PauseOptions::Data&>
 {
     struct Traits_ProductId
     {
@@ -1274,7 +1274,7 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::PauseOptions::Data&>
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "PauseOptions"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -1411,7 +1411,7 @@ struct Stencil::Visitor<const CLOpts2::PauseOptions::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionBase::TypeTraits<CLOpts2::CancelOptions::Data&>
+template <> struct Stencil::TypeTraits<CLOpts2::CancelOptions::Data&>
 {
     struct Traits_ProductId
     {
@@ -1432,7 +1432,7 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CancelOptions::Data&>
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "CancelOptions"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -1569,7 +1569,7 @@ struct Stencil::Visitor<const CLOpts2::CancelOptions::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionBase::TypeTraits<CLOpts2::ResumeOptions::Data&>
+template <> struct Stencil::TypeTraits<CLOpts2::ResumeOptions::Data&>
 {
     struct Traits_ProductId
     {
@@ -1590,7 +1590,7 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::ResumeOptions::Data&>
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "ResumeOptions"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -1727,7 +1727,7 @@ struct Stencil::Visitor<const CLOpts2::ResumeOptions::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionBase::TypeTraits<CLOpts2::UpdateOptions::Data&>
+template <> struct Stencil::TypeTraits<CLOpts2::UpdateOptions::Data&>
 {
     struct Traits_ProductId
     {
@@ -1749,7 +1749,7 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::UpdateOptions::Data&>
                                            ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "UpdateOptions"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -1886,7 +1886,7 @@ struct Stencil::Visitor<const CLOpts2::UpdateOptions::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionBase::TypeTraits<CLOpts2::HydrateOptions::Data&>
+template <> struct Stencil::TypeTraits<CLOpts2::HydrateOptions::Data&>
 {
     struct Traits_ProductId
     {
@@ -1907,7 +1907,7 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::HydrateOptions::Data&>
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "HydrateOptions"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -2067,15 +2067,15 @@ template <> struct ValueTraits<CLOpts2::CommandLineOptions::VariantType>
     [[noreturn]] static void Check() { throw std::logic_error("Not Implemented"); }
 };
 
-template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::VariantType&>
+template <> struct Stencil::TypeTraits<CLOpts2::CommandLineOptions::VariantType&>
 {
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Value; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Value; }
     static constexpr std::string_view           Name() { return "CommandLineOptions"; }
 
     using Handler = ::ReflectionServices::EnumHandler<CLOpts2::CommandLineOptions::VariantType>;
 };
 
-template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::Data&>
+template <> struct Stencil::TypeTraits<CLOpts2::CommandLineOptions::Data&>
 {
     struct Traits_install
     {
@@ -2210,7 +2210,7 @@ template <> struct ReflectionBase::TypeTraits<CLOpts2::CommandLineOptions::Data&
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "CommandLineOptions"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {

@@ -1442,8 +1442,8 @@ template <typename TDb, typename TObj> struct ObjectT
 template <typename TObj> struct EncryptedT
 {};
 }    // namespace Database2
-
-template <typename T> struct ReflectionBase::TypeTraits<Database2::ChildRef<T>&>
+#if 0
+template <typename T> struct Stencil::TypeTraits<Database2::ChildRef<T>&>
 {
     static constexpr DataType         Type() { return DataType::Value; }
     static constexpr std::string_view Name() { return "Database2::ChildRef"; }
@@ -1462,3 +1462,4 @@ template <typename T> struct ReflectionBase::TypeTraits<Database2::ChildRef<T>&>
         virtual Value Read(void* /*ptr*/) const override { throw std::logic_error("TODO"); }
     };
 };
+#endif

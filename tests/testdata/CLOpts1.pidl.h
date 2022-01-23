@@ -7,22 +7,22 @@ namespace CLOpts1::CommandLineOptions
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<CLOpts1::CommandLineOptions::Data&>;
+template <> struct Stencil::TypeTraits<CLOpts1::CommandLineOptions::Data&>;
 namespace CLOpts1::SimpleObj
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<CLOpts1::SimpleObj::Data&>;
+template <> struct Stencil::TypeTraits<CLOpts1::SimpleObj::Data&>;
 namespace CLOpts1::ObjWithList
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<CLOpts1::ObjWithList::Data&>;
+template <> struct Stencil::TypeTraits<CLOpts1::ObjWithList::Data&>;
 namespace CLOpts1::CLOptsTest
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<CLOpts1::CLOptsTest::Data&>;
+template <> struct Stencil::TypeTraits<CLOpts1::CLOptsTest::Data&>;
 #endif
 // SECTION END: DECLARATIONS
 
@@ -488,7 +488,7 @@ struct Data :
 #if true
 
 // SECTION:
-template <> struct ReflectionBase::TypeTraits<CLOpts1::CommandLineOptions::Data&>
+template <> struct Stencil::TypeTraits<CLOpts1::CommandLineOptions::Data&>
 {
     struct Traits_workingDirectory
     {
@@ -587,7 +587,7 @@ template <> struct ReflectionBase::TypeTraits<CLOpts1::CommandLineOptions::Data&
                                            ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "CommandLineOptions"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -877,7 +877,7 @@ struct Stencil::Visitor<const CLOpts1::CommandLineOptions::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionBase::TypeTraits<CLOpts1::SimpleObj::Data&>
+template <> struct Stencil::TypeTraits<CLOpts1::SimpleObj::Data&>
 {
     struct Traits_field1
     {
@@ -917,7 +917,7 @@ template <> struct ReflectionBase::TypeTraits<CLOpts1::SimpleObj::Data&>
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "SimpleObj"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -1084,7 +1084,7 @@ struct Stencil::Visitor<const CLOpts1::SimpleObj::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionBase::TypeTraits<CLOpts1::ObjWithList::Data&>
+template <> struct Stencil::TypeTraits<CLOpts1::ObjWithList::Data&>
 {
     struct Traits_field1
     {
@@ -1105,7 +1105,7 @@ template <> struct ReflectionBase::TypeTraits<CLOpts1::ObjWithList::Data&>
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "ObjWithList"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -1256,7 +1256,7 @@ struct Stencil::Visitor<const CLOpts1::ObjWithList::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionBase::TypeTraits<CLOpts1::CLOptsTest::Data&>
+template <> struct Stencil::TypeTraits<CLOpts1::CLOptsTest::Data&>
 {
     struct Traits_key1
     {
@@ -1372,7 +1372,7 @@ template <> struct ReflectionBase::TypeTraits<CLOpts1::CLOptsTest::Data&>
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "CLOptsTest"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {

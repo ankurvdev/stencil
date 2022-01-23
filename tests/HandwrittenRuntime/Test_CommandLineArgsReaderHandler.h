@@ -74,7 +74,7 @@ auto make_obj_of_list()
     return meta;
 }
 
-struct GenericDefinitionTreeHandler : public ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::Unknown>
+struct GenericDefinitionTreeHandler : public ReflectionBase::IDataTypeHandler<Stencil::DataType::Unknown>
 {
     void Trace(std::string_view const& message) {}
     void Trace(std::string_view const& message, void* ptr) {}
@@ -110,7 +110,7 @@ struct GenericDefinitionTreeHandler : public ReflectionBase::IDataTypeHandler<Re
         GenericType subtype;
     };
 
-    struct GenericListHandler : ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::List>
+    struct GenericListHandler : ReflectionBase::IDataTypeHandler<Stencil::DataType::List>
     {
         GenericListHandler(GenericDefinitionTreeHandler& owner) : handler(owner) {}
 
@@ -147,7 +147,7 @@ struct GenericDefinitionTreeHandler : public ReflectionBase::IDataTypeHandler<Re
         GenericDefinitionTreeHandler& handler;
     };
 
-    struct GenericValueHandler : ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::Value>
+    struct GenericValueHandler : ReflectionBase::IDataTypeHandler<Stencil::DataType::Value>
     {
         GenericValueHandler(GenericDefinitionTreeHandler& owner) : handler(owner) {}
 
@@ -166,7 +166,7 @@ struct GenericDefinitionTreeHandler : public ReflectionBase::IDataTypeHandler<Re
         GenericDefinitionTreeHandler& handler;
     };
 
-    struct GenericObjectHandler : ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::Object>
+    struct GenericObjectHandler : ReflectionBase::IDataTypeHandler<Stencil::DataType::Object>
     {
         GenericObjectHandler(GenericDefinitionTreeHandler& owner) : handler(owner) {}
 
@@ -195,7 +195,7 @@ struct GenericDefinitionTreeHandler : public ReflectionBase::IDataTypeHandler<Re
         GenericDefinitionTreeHandler& handler;
     };
 
-    struct GenericEnumHandler : ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::Enum>
+    struct GenericEnumHandler : ReflectionBase::IDataTypeHandler<Stencil::DataType::Enum>
     {
         GenericEnumHandler(GenericDefinitionTreeHandler& owner) : handler(owner) {}
 
@@ -220,7 +220,7 @@ struct GenericDefinitionTreeHandler : public ReflectionBase::IDataTypeHandler<Re
         GenericDefinitionTreeHandler& handler;
     };
 
-    struct GenericVariantHandler : ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::Variant>
+    struct GenericVariantHandler : ReflectionBase::IDataTypeHandler<Stencil::DataType::Variant>
     {
         GenericVariantHandler(GenericDefinitionTreeHandler& owner) : handler(owner) {}
 
@@ -265,13 +265,13 @@ struct GenericDefinitionTreeHandler : public ReflectionBase::IDataTypeHandler<Re
     {
     }
 
-    const ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::List>*   ListHandler() const override { return &_list; }
-    const ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::Value>*  ValueHandler() const override { return &_value; }
-    const ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::Object>* ObjectHandler() const override { return &_object; }
-    const ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::Enum>*   EnumHandler() const override { return &_enum; }
-    const ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::Variant>*  VariantHandler() const override { return &_union; }
+    const ReflectionBase::IDataTypeHandler<Stencil::DataType::List>*   ListHandler() const override { return &_list; }
+    const ReflectionBase::IDataTypeHandler<Stencil::DataType::Value>*  ValueHandler() const override { return &_value; }
+    const ReflectionBase::IDataTypeHandler<Stencil::DataType::Object>* ObjectHandler() const override { return &_object; }
+    const ReflectionBase::IDataTypeHandler<Stencil::DataType::Enum>*   EnumHandler() const override { return &_enum; }
+    const ReflectionBase::IDataTypeHandler<Stencil::DataType::Variant>*  VariantHandler() const override { return &_union; }
 
-    virtual ReflectionBase::DataType GetDataType() const override { return ReflectionBase::DataType::List; }
+    virtual Stencil::DataType GetDataType() const override { return Stencil::DataType::List; }
 
     private:
     GenericListHandler   _list;
@@ -283,7 +283,7 @@ struct GenericDefinitionTreeHandler : public ReflectionBase::IDataTypeHandler<Re
     std::shared_ptr<CommandLineArgsReader::Definition> _currentDef;
 };
 
-template <> struct ReflectionBase::TypeTraits<std::shared_ptr<DefinitionTree>&, void>
+template <> struct Stencil::TypeTraits<std::shared_ptr<DefinitionTree>&, void>
 {
     using Handler = GenericDefinitionTreeHandler;
 };

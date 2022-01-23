@@ -63,6 +63,15 @@ if (NOT stduuid_FOUND)
     target_include_directories(stduuid INTERFACE external/stduuid/include)
 endif()
 
+
+find_package(fmt QUIET)
+if (NOT fmt_FOUND)
+    init_submodule(external/fmt)
+    add_subdirectory(external/fmt EXCLUDE_FROM_ALL fmt)
+    SupressWarningForTarget(fmt)
+endif()
+
+
 if (BUILD_TESTING)
     enable_testing()
 
@@ -99,15 +108,6 @@ if (BUILD_TESTING)
     add_library(cpp_httplib INTERFACE)
     add_library(cpp_httplib::cpp_httplib ALIAS cpp_httplib)
     target_include_directories(cpp_httplib INTERFACE "${CPP_HTTPLIB_INCLUDE_DIRS}")
-
-    find_package(fmt QUIET)
-    if (NOT fmt_FOUND)
-        init_submodule(external/fmt)
-        add_library(fmt INTERFACE)
-        add_library(fmt::fmt-header-only ALIAS fmt)
-        target_include_directories(fmt INTERFACE external/fmt/include)
-        target_compile_definitions(fmt INTERFACE FMT_HEADER_ONLY=1)
-    endif()
 endif()
 
 build_lexyacc()
@@ -124,7 +124,9 @@ if (NOT BUILD_TESTING)
     target_add_resource(libstencil commonheaders ${resfiles})
 endif()
 
-target_link_libraries(libstencil PRIVATE toml11::toml11 tinyxml2::tinyxml2 tsl::ordered_map)
+target_link_libraries(libstencil PRIVATE toml11::toml11 tinyxml2::tinyxml2 tsl::ordered_map fmt::fmt)
+target_link_libraries(libstencil PUBLIC fmt::fmt stduuid)
+
 target_include_directories(libstencil PRIVATE src)
 add_executable(stencil src/main.cpp)
 
@@ -155,6 +157,26 @@ if (BUILD_TESTING)
     target_add_resource(codegen_tests testdata ${resfiles} ${pidlfiles})
 
     add_executable(runtime_tests
+        tests/Test_Handwritten_CLOpts.cpp
+        tests/Test_Handwritten_Json.cpp
+        tests/Test_Handwritten_Transaction.cpp
+        tests/Test_Handwritten_WebSvc.cpp
+        tests/Test_Handwritten_ObjectStore.cpp
+
+        tests/Test_CommandLineArgsReaderHandler.cpp
+        tests/Test_Database2.cpp
+        tests/Test_Database.cpp
+        tests/Test_DataHandlerJson.cpp
+        tests/Test_DataRecorderPlayer.cpp
+        tests/Test_ObservableOptionalProps.cpp
+        tests/Test_SerDes.cpp
+        tests/Test_Transactions.cpp
+        tests/Test_WebService_Handwritten.cpp
+        tests/Test_WebService_Autogen.cpp
+    )
+
+
+    add_executable(codegen_runtime_tests
         tests/Test_CLOpts.cpp
         tests/Test_CommandLineArgsReaderHandler.cpp
         tests/Test_Database2.cpp
@@ -186,7 +208,7 @@ if (BUILD_TESTING)
     target_compile_definitions(runtime_tests PRIVATE USE_NLOHMANN_JSON)
     target_compile_definitions(runtime_tests PRIVATE USE_CPP_HTTPLIB)
     target_link_libraries(runtime_tests PRIVATE libstencil)
-    target_link_libraries(runtime_tests PRIVATE dtl::dtl Catch2::Catch2 nlohmann_json::nlohmann_json cpp_httplib::cpp_httplib fmt::fmt-header-only)
+    target_link_libraries(runtime_tests PRIVATE dtl::dtl Catch2::Catch2 nlohmann_json::nlohmann_json cpp_httplib::cpp_httplib fmt)
     target_link_libraries (runtime_tests PRIVATE Threads::Threads)
     add_test(NAME runtime_tests COMMAND runtime_tests)
 endif()

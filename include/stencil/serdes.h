@@ -154,45 +154,15 @@ struct BinarySerDes
         Stencil::OStrmWriter writer(strm);
         switch (visitor.GetDataTypeHint())
         {
-        case ReflectionBase::DataType::Value:
+        case Stencil::DataType::FixedSize:
         {
-            auto val = visitor.GetValue();
-            writer << static_cast<uint8_t>(val.GetType());
-            switch (val.GetType())
-            {
-            case Value::Type::Double:
-            {
-                writer << val.template convert<double>();
-            }
-            break;
-
-            case Value::Type::Empty: TODO(); break;
-            case Value::Type::Signed:
-            {
-                writer << val.template convert<int64_t>();
-            }
-            break;
-
-            case Value::Type::String:
-
-                // TODO : See if this can be removed and renamed Value to Value64Bit
-                // Value::Type::String -> TrivialConstArray
-                {
-                    auto str = val.template convert<shared_string>();
-                    writer << str;
-                }
-                break;
-
-            case Value::Type::Unsigned:
-            {
-                writer << val.template convert<uint64_t>();
-            }
-            break;
-            case Value::Type::Unknown: throw std::logic_error("Unknown Value Type");
-            }
         }
         break;
-        case ReflectionBase::DataType::Object:
+        case Stencil::DataType::Blob:
+        {
+        }
+        break;
+        case Stencil::DataType::Dictionary:
         {
             for (size_t i = 0; visitor.TrySelect(i); i++)
             {
@@ -201,7 +171,7 @@ struct BinarySerDes
             }
         }
         break;
-        case ReflectionBase::DataType::List:
+        case Stencil::DataType::List:
         {
             for (uint32_t i = 0; visitor.TrySelect(i); i++)
             {
@@ -212,10 +182,7 @@ struct BinarySerDes
             writer << uint32_t{0};
         }
         break;
-        case ReflectionBase::DataType::Enum: [[fallthrough]];
-        case ReflectionBase::DataType::Variant: TODO();
-        case ReflectionBase::DataType::Invalid: [[fallthrough]];
-        case ReflectionBase::DataType::Unknown: throw std::runtime_error("Unsupported Data Type");
+        case Stencil::DataType::Invalid: [[fallthrough]]; throw std::runtime_error("Unsupported Data Type");
         }
     }
 
@@ -225,7 +192,7 @@ struct BinarySerDes
 
         switch (visitor.GetDataTypeHint())
         {
-        case ReflectionBase::DataType::Value:
+        case Stencil::DataType::Value:
         {
             auto valType = static_cast<Value::Type>(reader.template read<uint8_t>());
             switch (valType)
@@ -243,7 +210,7 @@ struct BinarySerDes
             }
         }
         break;
-        case ReflectionBase::DataType::List:
+        case Stencil::DataType::List:
         {
             auto index = reader.read<uint32_t>();
             for (size_t i = 0; index != 0; i++)
@@ -255,7 +222,7 @@ struct BinarySerDes
             }
             break;
         }
-        case ReflectionBase::DataType::Object:
+        case Stencil::DataType::Object:
         {
 
             for (size_t i = 0; visitor.TrySelect(i); i++)
@@ -265,10 +232,10 @@ struct BinarySerDes
             }
         }
         break;
-        case ReflectionBase::DataType::Enum: TODO();
-        case ReflectionBase::DataType::Variant: TODO();
-        case ReflectionBase::DataType::Invalid: [[fallthrough]];
-        case ReflectionBase::DataType::Unknown: throw std::runtime_error("Unsupported Data Type");
+        case Stencil::DataType::Enum: TODO();
+        case Stencil::DataType::Variant: TODO();
+        case Stencil::DataType::Invalid: [[fallthrough]];
+        case Stencil::DataType::Unknown: throw std::runtime_error("Unsupported Data Type");
         }
     }
 };

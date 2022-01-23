@@ -7,27 +7,27 @@ namespace Avid::GPS
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<Avid::GPS::Data&>;
+template <> struct Stencil::TypeTraits<Avid::GPS::Data&>;
 namespace Avid::Aircraft
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<Avid::Aircraft::Data&>;
+template <> struct Stencil::TypeTraits<Avid::Aircraft::Data&>;
 namespace Avid::Traffic
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<Avid::Traffic::Data&>;
+template <> struct Stencil::TypeTraits<Avid::Traffic::Data&>;
 namespace Avid::Motion
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<Avid::Motion::Data&>;
+template <> struct Stencil::TypeTraits<Avid::Motion::Data&>;
 namespace Avid::Pressure
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<Avid::Pressure::Data&>;
+template <> struct Stencil::TypeTraits<Avid::Pressure::Data&>;
 #endif
 // SECTION END: DECLARATIONS
 
@@ -1310,7 +1310,7 @@ struct Data :
 #if true
 
 // SECTION:
-template <> struct ReflectionBase::TypeTraits<Avid::GPS::Data&>
+template <> struct Stencil::TypeTraits<Avid::GPS::Data&>
 {
     struct Traits_heading
     {
@@ -1597,7 +1597,7 @@ template <> struct ReflectionBase::TypeTraits<Avid::GPS::Data&>
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "GPS"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -2167,7 +2167,7 @@ struct Stencil::Visitor<const Avid::GPS::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionBase::TypeTraits<Avid::Aircraft::Data&>
+template <> struct Stencil::TypeTraits<Avid::Aircraft::Data&>
 {
     struct Traits_seen
     {
@@ -2492,7 +2492,7 @@ template <> struct ReflectionBase::TypeTraits<Avid::Aircraft::Data&>
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "Aircraft"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -3124,7 +3124,7 @@ struct Stencil::Visitor<const Avid::Aircraft::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionBase::TypeTraits<Avid::Traffic::Data&>
+template <> struct Stencil::TypeTraits<Avid::Traffic::Data&>
 {
     struct Traits_aircrafts
     {
@@ -3145,7 +3145,7 @@ template <> struct ReflectionBase::TypeTraits<Avid::Traffic::Data&>
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "Traffic"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -3296,7 +3296,7 @@ struct Stencil::Visitor<const Avid::Traffic::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionBase::TypeTraits<Avid::Motion::Data&>
+template <> struct Stencil::TypeTraits<Avid::Motion::Data&>
 {
     struct Traits_mag_x
     {
@@ -3640,7 +3640,7 @@ template <> struct ReflectionBase::TypeTraits<Avid::Motion::Data&>
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "Motion"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -4303,7 +4303,7 @@ struct Stencil::Visitor<const Avid::Motion::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionBase::TypeTraits<Avid::Pressure::Data&>
+template <> struct Stencil::TypeTraits<Avid::Pressure::Data&>
 {
     struct Traits_pressure
     {
@@ -4343,7 +4343,7 @@ template <> struct ReflectionBase::TypeTraits<Avid::Pressure::Data&>
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "Pressure"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {

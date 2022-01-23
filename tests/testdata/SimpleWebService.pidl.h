@@ -7,7 +7,7 @@ namespace SimpleWebService::Data
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<SimpleWebService::Data::Data&>;
+template <> struct Stencil::TypeTraits<SimpleWebService::Data::Data&>;
 #endif
 // SECTION END: DECLARATIONS
 
@@ -138,7 +138,7 @@ struct TestInterface_Create_Args
 #if true
 
 // SECTION:
-template <> struct ReflectionBase::TypeTraits<SimpleWebService::TestInterface_Create_Args&>
+template <> struct Stencil::TypeTraits<SimpleWebService::TestInterface_Create_Args&>
 {
     struct Traits_arg_randomInteger
     {
@@ -162,7 +162,7 @@ template <> struct ReflectionBase::TypeTraits<SimpleWebService::TestInterface_Cr
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_randomString; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_randomString; }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "Create"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
@@ -219,7 +219,7 @@ template <> struct WebServiceHandlerTraits<SimpleWebService::TestInterface>
 };
 #endif
 
-template <> struct ReflectionBase::TypeTraits<SimpleWebService::Data::Data&>
+template <> struct Stencil::TypeTraits<SimpleWebService::Data::Data&>
 {
     struct Traits_randomInteger
     {
@@ -259,7 +259,7 @@ template <> struct ReflectionBase::TypeTraits<SimpleWebService::Data::Data&>
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "Data"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {

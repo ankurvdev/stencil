@@ -7,27 +7,27 @@ namespace Transactions::SimpleObject1
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<Transactions::SimpleObject1::Data&>;
+template <> struct Stencil::TypeTraits<Transactions::SimpleObject1::Data&>;
 namespace Transactions::ListObject
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<Transactions::ListObject::Data&>;
+template <> struct Stencil::TypeTraits<Transactions::ListObject::Data&>;
 namespace Transactions::List
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<Transactions::List::Data&>;
+template <> struct Stencil::TypeTraits<Transactions::List::Data&>;
 namespace Transactions::SimpleObject2
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<Transactions::SimpleObject2::Data&>;
+template <> struct Stencil::TypeTraits<Transactions::SimpleObject2::Data&>;
 namespace Transactions::Object
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<Transactions::Object::Data&>;
+template <> struct Stencil::TypeTraits<Transactions::Object::Data&>;
 #endif
 // SECTION END: DECLARATIONS
 
@@ -530,7 +530,7 @@ struct Data :
 #if true
 
 // SECTION:
-template <> struct ReflectionBase::TypeTraits<Transactions::SimpleObject1::Data&>
+template <> struct Stencil::TypeTraits<Transactions::SimpleObject1::Data&>
 {
     struct Traits_val1
     {
@@ -627,7 +627,7 @@ template <> struct ReflectionBase::TypeTraits<Transactions::SimpleObject1::Data&
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "SimpleObject1"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -887,7 +887,7 @@ struct Stencil::Visitor<const Transactions::SimpleObject1::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionBase::TypeTraits<Transactions::ListObject::Data&>
+template <> struct Stencil::TypeTraits<Transactions::ListObject::Data&>
 {
     struct Traits_value
     {
@@ -927,7 +927,7 @@ template <> struct ReflectionBase::TypeTraits<Transactions::ListObject::Data&>
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "ListObject"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -1094,7 +1094,7 @@ struct Stencil::Visitor<const Transactions::ListObject::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionBase::TypeTraits<Transactions::List::Data&>
+template <> struct Stencil::TypeTraits<Transactions::List::Data&>
 {
     struct Traits_listobj
     {
@@ -1115,7 +1115,7 @@ template <> struct ReflectionBase::TypeTraits<Transactions::List::Data&>
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "List"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -1266,7 +1266,7 @@ struct Stencil::Visitor<const Transactions::List::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionBase::TypeTraits<Transactions::SimpleObject2::Data&>
+template <> struct Stencil::TypeTraits<Transactions::SimpleObject2::Data&>
 {
     struct Traits_val1
     {
@@ -1306,7 +1306,7 @@ template <> struct ReflectionBase::TypeTraits<Transactions::SimpleObject2::Data&
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "SimpleObject2"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -1473,7 +1473,7 @@ struct Stencil::Visitor<const Transactions::SimpleObject2::Data, void>
     std::reference_wrapper<TData> _ref;
 };
 
-template <> struct ReflectionBase::TypeTraits<Transactions::Object::Data&>
+template <> struct Stencil::TypeTraits<Transactions::Object::Data&>
 {
     struct Traits_obj1
     {
@@ -1551,7 +1551,7 @@ template <> struct ReflectionBase::TypeTraits<Transactions::Object::Data&>
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "Object"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {

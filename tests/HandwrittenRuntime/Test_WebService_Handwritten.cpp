@@ -35,7 +35,7 @@ struct TestInterface : public ReflectionBase::InterfaceT<TestInterface>
     DataStore objects;
 };
 
-template <> struct ReflectionBase::TypeTraits<TestInterface::TestObj_obj&>
+template <> struct Stencil::TypeTraits<TestInterface::TestObj_obj&>
 {
     struct Traits_arg_num1
     {
@@ -62,7 +62,7 @@ template <> struct ReflectionBase::TypeTraits<TestInterface::TestObj_obj&>
         static constexpr auto TPropertySetter() { return &TestInterface::TestObj_obj::set_arg_num2; }
     };
 
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "AddNumber"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
@@ -83,7 +83,7 @@ struct TestInterface_AddNumber_Args
     void      set_arg_num2(uint64_t&& value) { arg_num2 = value; }
 };
 
-template <> struct ReflectionBase::TypeTraits<TestInterface_AddNumber_Args&>
+template <> struct Stencil::TypeTraits<TestInterface_AddNumber_Args&>
 {
     struct Traits_arg_num1
     {
@@ -110,7 +110,7 @@ template <> struct ReflectionBase::TypeTraits<TestInterface_AddNumber_Args&>
         static constexpr auto TPropertySetter() { return &TestInterface_AddNumber_Args::set_arg_num2; }
     };
 
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "AddNumber"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 

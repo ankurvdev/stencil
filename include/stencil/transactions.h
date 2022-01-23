@@ -15,9 +15,9 @@
 namespace Stencil
 {
 
-template <typename TObj, typename _Ts = void> struct Transaction;
+template <typename TObj> struct Transaction;
 
-template <typename TObj, typename _Ts = void> struct TransactionT
+template <typename TObj> struct TransactionT
 {
     TransactionT(TObj& /*obj*/) {}
 
@@ -41,7 +41,7 @@ template <typename TObj, typename _Ts = void> struct TransactionT
     bool IsChanged() const { return false; }
 };
 }    // namespace Stencil
-
+#if 0
 template <typename T> struct Stencil::Transaction<T, std::enable_if_t<Value::Supported<T>::value>> : Stencil::TransactionT<T>
 {
     Transaction(T& obj) : Stencil::TransactionT<T>(obj) {}
@@ -51,8 +51,7 @@ template <typename T> struct Stencil::Transaction<T, std::enable_if_t<Value::Sup
     DELETE_COPY_AND_MOVE(Transaction);
 };
 
-template <typename TObj>
-struct Stencil::TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::Object>>
+template <Stencil::StructConcept T> struct Stencil::TransactionT<T>
 {
     TransactionT(TObj& obj) : _ref(std::ref(obj)) {}
 
@@ -116,10 +115,9 @@ struct Stencil::TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<T
     std::bitset<TObj::FieldCount() + 1> _edittracker;
 };
 
-template <typename TObj>
-struct Stencil::TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::List>>
+template <typename TObj> struct Stencil::TransactionT<TObj, std::enable_if_t<Stencil::TypeTraits<TObj&>::Type() == Stencil::DataType::List>>
 {
-    using ListObjType = typename ReflectionBase::TypeTraits<TObj&>::ListObjType;
+    using ListObjType = typename Stencil::TypeTraits<TObj&>::ListObjType;
 
     TransactionT(TObj& obj) : _ref(std::ref(obj)) {}
     ~TransactionT() {}
@@ -215,10 +213,9 @@ struct Stencil::TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<T
 // Transaction Mutators Accessors
 
 template <typename T>
-struct Stencil::Mutators<Stencil::Transaction<T>,
-                         std::enable_if_t<ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::List>>
+struct Stencil::Mutators<Stencil::Transaction<T>, std::enable_if_t<Stencil::TypeTraits<T&>::Type() == Stencil::DataType::List>>
 {
-    using ListObjType = typename ReflectionBase::TypeTraits<T&>::ListObjType;
+    using ListObjType = typename Stencil::TypeTraits<T&>::ListObjType;
 
     static void  add(Stencil::Transaction<T>& txn, ListObjType&& obj) { txn.add(std::move(obj)); }
     static void  remove(Stencil::Transaction<T>& txn, size_t index) { txn.remove(index); }
@@ -230,4 +227,4 @@ template <typename T, typename _Ts> struct Stencil::Transaction : Stencil::Trans
     Transaction(T& obj) : Stencil::TransactionT<T>(obj) {}
     DELETE_COPY_AND_MOVE(Transaction);
 };
-
+#endif

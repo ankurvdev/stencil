@@ -84,7 +84,7 @@ struct StringTransactionSerDes
     };
 
     template <typename T>
-    struct _ListApplicator<T, std::enable_if_t<ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::List>>
+    struct _ListApplicator<T, std::enable_if_t<Stencil::TypeTraits<T&>::Type() == Stencil::DataType::List>>
     {
         static void Add(Transaction<T>& txn, size_t /* listindex */, std::string_view const& rhs)
         {
@@ -108,7 +108,7 @@ struct StringTransactionSerDes
     }
 
     template <typename T>
-    struct _StructApplicator<T, std::enable_if_t<ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Object>>
+    struct _StructApplicator<T, std::enable_if_t<Stencil::TypeTraits<T&>::Type() == Stencil::DataType::Object>>
     {
         static void Apply(Transaction<T>&         txn,
                           std::string_view const& fieldname,
@@ -220,9 +220,9 @@ struct StringTransactionSerDes
 
     template <typename T> static std::ostream& _DeserializeTo(Transaction<T>& txn, std::ostream& ostr, std::vector<std::string>& stack)
     {
-        using Traits = ReflectionBase::TypeTraits<T&>;
+        using Traits = Stencil::TypeTraits<T&>;
 
-        if constexpr (Traits::Type() == ReflectionBase::DataType::List)
+        if constexpr (Traits::Type() == Stencil::DataType::List)
         {
             txn.VisitChanges(
                 [&](auto const& /* name */, auto const& /* type */, uint8_t const& mutator, size_t const& index, auto& subtxn, auto& obj) {
@@ -261,7 +261,7 @@ struct StringTransactionSerDes
                 });
         }
 
-        if constexpr (ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Object)
+        if constexpr (Stencil::TypeTraits<T&>::Type() == Stencil::DataType::Object)
         {
             txn.VisitChanges(
                 [&](auto const& name, auto const& /* type */, auto const& mutator, auto const& /* mutatordata */, auto& subtxn, auto& obj) {

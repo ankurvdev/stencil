@@ -12,9 +12,9 @@ struct BinaryTransactionSerDes
 {
     template <typename T> static auto& _DeserializeTo(Transaction<T>& txn, OStrmWriter& writer)
     {
-        using Traits = ReflectionBase::TypeTraits<T&>;
+        using Traits = Stencil::TypeTraits<T&>;
 
-        if constexpr (Traits::Type() == ReflectionBase::DataType::List)
+        if constexpr (Traits::Type() == Stencil::DataType::List)
         {
             txn.VisitChanges(
                 [&](auto const& /* name */, auto const& /* type */, uint8_t const& mutator, size_t const& index, auto& subtxn, auto& obj) {
@@ -45,7 +45,7 @@ struct BinaryTransactionSerDes
             writer << std::numeric_limits<uint8_t>::max();
         }
 
-        if constexpr (ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Object)
+        if constexpr (Stencil::TypeTraits<T&>::Type() == Stencil::DataType::Object)
         {
             txn.VisitChanges(
                 [&](auto const& /* name */, auto const& type, auto const& mutator, auto const& /* mutatordata */, auto& subtxn, auto& obj) {
@@ -93,7 +93,7 @@ struct BinaryTransactionSerDes
     };
 
     template <typename T>
-    struct _ListApplicator<T, std::enable_if_t<ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::List>>
+    struct _ListApplicator<T, std::enable_if_t<Stencil::TypeTraits<T&>::Type() == Stencil::DataType::List>>
     {
         static void Add(Transaction<T>& txn, size_t /* listindex */, IStrmReader& reader)
         {
@@ -141,7 +141,7 @@ struct BinaryTransactionSerDes
     }
 
     template <typename T>
-    struct _StructApplicator<T, std::enable_if_t<ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Value>>
+    struct _StructApplicator<T, std::enable_if_t<Stencil::TypeTraits<T&>::Type() == Stencil::DataType::Value>>
     {
         static void Apply(Transaction<T>& /* txn */, IStrmReader& /* reader */)
         {
@@ -150,7 +150,7 @@ struct BinaryTransactionSerDes
     };
 
     template <typename T>
-    struct _StructApplicator<T, std::enable_if_t<ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Object>>
+    struct _StructApplicator<T, std::enable_if_t<Stencil::TypeTraits<T&>::Type() == Stencil::DataType::Object>>
     {
         static void Apply(Transaction<T>& txn, IStrmReader& reader)
         {
@@ -201,10 +201,10 @@ struct BinaryTransactionSerDes
 
     template <typename T> static void _Apply(Transaction<T>& txn, IStrmReader& reader)
     {
-        using Traits = ReflectionBase::TypeTraits<T&>;
+        using Traits = Stencil::TypeTraits<T&>;
 
-        if constexpr (Traits::Type() == ReflectionBase::DataType::List) { _ApplyOnList(txn, reader); }
-        if constexpr (Traits::Type() == ReflectionBase::DataType::Object) { _ApplyOnStruct(txn, reader); }
+        if constexpr (Traits::Type() == Stencil::DataType::List) { _ApplyOnList(txn, reader); }
+        if constexpr (Traits::Type() == Stencil::DataType::Object) { _ApplyOnStruct(txn, reader); }
         return;
     }
 

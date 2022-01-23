@@ -7,7 +7,7 @@ namespace VariantTest::Struct1
 {
 struct Data;
 }
-template <> struct ReflectionBase::TypeTraits<VariantTest::Struct1::Data&>;
+template <> struct Stencil::TypeTraits<VariantTest::Struct1::Data&>;
 #endif
 // SECTION END: DECLARATIONS
 
@@ -181,7 +181,7 @@ struct Data : public ReflectionBase::ObjMarker
 #if true
 
 // SECTION:
-template <> struct ReflectionBase::TypeTraits<VariantTest::Struct1::Data&>
+template <> struct Stencil::TypeTraits<VariantTest::Struct1::Data&>
 {
     struct Traits_field1
     {
@@ -221,7 +221,7 @@ template <> struct ReflectionBase::TypeTraits<VariantTest::Struct1::Data&>
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "Struct1"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {
@@ -406,15 +406,15 @@ template <> struct ValueTraits<VariantTest::Variant1::VariantType>
     [[noreturn]] static void Check() { throw std::logic_error("Not Implemented"); }
 };
 
-template <> struct ReflectionBase::TypeTraits<VariantTest::Variant1::VariantType&>
+template <> struct Stencil::TypeTraits<VariantTest::Variant1::VariantType&>
 {
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Value; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Value; }
     static constexpr std::string_view           Name() { return "Variant1"; }
 
     using Handler = ::ReflectionServices::EnumHandler<VariantTest::Variant1::VariantType>;
 };
 
-template <> struct ReflectionBase::TypeTraits<VariantTest::Variant1::Data&>
+template <> struct Stencil::TypeTraits<VariantTest::Variant1::Data&>
 {
     struct Traits_field1
     {
@@ -454,7 +454,7 @@ template <> struct ReflectionBase::TypeTraits<VariantTest::Variant1::Data&>
             return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
         }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
     static constexpr std::string_view           Name() { return "Variant1"; }
     static constexpr std::string_view           AttributeValue(const std::string_view& key)
     {

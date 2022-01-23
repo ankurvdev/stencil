@@ -164,7 +164,7 @@ struct Json
         }
         ss << "]";
     }
-
+#if 0
     template <typename T> struct Writer<T, std::enable_if_t<std::is_base_of<::ReflectionBase::ObjMarker, T>::value>>
     {
         static std::string Stringify(const T& obj)
@@ -194,7 +194,7 @@ struct Json
             return ss.str();
         }
     };
-
+#endif
     template <typename T> struct Writer<std::vector<T>>
     {
         static std::string Stringify(const std::vector<T>& obj)
@@ -239,7 +239,7 @@ struct Json
             return sval.empty() ? "null" : sval.str();
         }
     };
-
+#if 0
     template <typename T> struct Writer<T, std::enable_if_t<std::is_base_of<::ReflectionBase::InterfaceMarker, T>::value>>
     {
         static std::string Stringify(const T& obj) { return obj.Id(); }
@@ -249,7 +249,7 @@ struct Json
     {
         static std::string Stringify(const std::unique_ptr<T>& obj) { return std::string(obj->GetObjectUuid().ToString()); }
     };
-
+#endif
     template <typename T> struct Writer<UuidBasedId<T>>
     {
         static std::string Stringify(const UuidBasedId<T>& obj) { return std::string(obj.ToString()); }
@@ -308,7 +308,7 @@ struct JsonSerDes
     {
         switch (visitor.GetDataTypeHint())
         {
-        case ReflectionBase::DataType::Value:
+        case Stencil::DataType::Value:
         {
             std::ostringstream sstrm;
             strm.peek();
@@ -322,12 +322,12 @@ struct JsonSerDes
             visitor.SetValue(Value{sstrm.str()});
         }
         break;
-        case ReflectionBase::DataType::List:
-        case ReflectionBase::DataType::Object: Json::Load(visitor, strm); break;
-        case ReflectionBase::DataType::Enum: TODO();
-        case ReflectionBase::DataType::Variant: TODO();
-        case ReflectionBase::DataType::Invalid: [[fallthrough]];
-        case ReflectionBase::DataType::Unknown: throw std::runtime_error("Unsupported Data Type");
+        case Stencil::DataType::List:
+        case Stencil::DataType::Object: Json::Load(visitor, strm); break;
+        case Stencil::DataType::Enum: TODO();
+        case Stencil::DataType::Variant: TODO();
+        case Stencil::DataType::Invalid: [[fallthrough]];
+        case Stencil::DataType::Unknown: throw std::runtime_error("Unsupported Data Type");
         }
     }
 

@@ -64,7 +64,7 @@ unixcomment   ("#"[^\n]*)
 ">"                    { return token::TOKEN_GreaterThan; }
 ","                    { return token::TOKEN_Comma; }
 "="                    { return token::TOKEN_Equal; }
-"attribute"         { return token::TOKEN_RELATIONSHIP; }
+"attribute"            { return token::TOKEN_ATTRIBUTE; }
 
 {IDENTIFIER}    { lval->emplace<TextValue>(StrOps<TextValue>::Convert(yytext)); return token::TOKEN_IDENTIFIER; }
 .               { throw std::runtime_error("Unknown Character:" + std::to_string((int)(yytext[0]))); }
@@ -76,7 +76,7 @@ LEXYACC:YACC:START
 %token TOKEN_LeftBrace TOKEN_RightBrace TOKEN_Comma TOKEN_Newline TOKEN_Equal TOKEN_LessThan TOKEN_GreaterThan
 %token TOKEN_STRING TOKEN_EXPR
 %token TOKEN_IDENTIFIER
-%token TOKEN_RELATIONSHIP
+%token TOKEN_ATTRIBUTE
 %token TOKEN_LEXERROR
 %token END 0 "end of file"
 

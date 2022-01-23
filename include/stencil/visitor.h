@@ -1,6 +1,11 @@
 #pragma once
 #include "base.h"
+namespace Stencil
+{
+template <typename T> struct Visitor;
+}
 
+#if 0
 namespace Stencil
 {
 template <typename T> struct VisitorT
@@ -59,9 +64,9 @@ template <typename T> struct VisitorT
 
     struct StateStack
     {
-        const ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::Unknown>* Handler = nullptr;
-        decltype(GetPtrType())                                                     Ptr     = nullptr;
-        Mode                                                                       mode;
+        // const ReflectionBase::IDataTypeHandler<Stencil::DataType::Unknown>* Handler = nullptr;
+        decltype(GetPtrType()) Ptr = nullptr;
+        Mode                   mode;
     };
 
     VisitorT(T& obj) { _stack.push_back(StateStack{&_rootHandler, static_cast<decltype(GetPtrType())>(&obj), Mode::Obj}); }
@@ -70,19 +75,24 @@ template <typename T> struct VisitorT
     {
         switch (GetDataTypeHint())
         {
-        case ReflectionBase::DataType::Object:
+        case Stencil::DataType::Object:
         {
+            throw std::logic_error("Not implemented");
+#if 0
             auto& state = _stack.back();
             auto  cptr  = const_cast<void*>(state.Ptr);    // Shhh... Thats ok.
-            ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::Object>::SubComponent sub;
+            ReflectionBase::IDataTypeHandler<Stencil::DataType::Object>::SubComponent sub;
 
             if (!state.Handler->ObjectHandler()->TryGetSubComponent(cptr, val, sub)) { return false; }
             _stack.push_back(StateStack{sub.handler, sub.ptr, Mode::Obj});
             return true;
+#endif
         }
 
-        case ReflectionBase::DataType::List:
+        case Stencil::DataType::List:
         {
+            throw std::logic_error("Not implemented");
+#if 0
             auto& state = _stack.back();
             auto  cptr  = const_cast<void*>(state.Ptr);    // Shhh... Thats ok.
             if (editmode)
@@ -92,19 +102,20 @@ template <typename T> struct VisitorT
             }
             else
             {
-                ReflectionBase::IDataTypeHandler<ReflectionBase::DataType::List>::SubComponent sub;
+                ReflectionBase::IDataTypeHandler<Stencil::DataType::List>::SubComponent sub;
                 if (!state.Handler->ListHandler()->TryGetAt(cptr, val, sub)) { return false; }
                 _stack.push_back(StateStack{sub.handler, sub.ptr, Mode::List});
             }
             return true;
+#endif
         }
 
-        case ReflectionBase::DataType::Variant: throw std::runtime_error("Not yet supported. Get to work");
-        case ReflectionBase::DataType::Value: [[fallthrough]];
-        case ReflectionBase::DataType::Enum: throw std::runtime_error("Unsupported Data Type");
+        case Stencil::DataType::Variant: throw std::runtime_error("Not yet supported. Get to work");
+        case Stencil::DataType::Value: [[fallthrough]];
+        case Stencil::DataType::Enum: throw std::runtime_error("Unsupported Data Type");
 
-        case ReflectionBase::DataType::Invalid: [[fallthrough]];
-        case ReflectionBase::DataType::Unknown: break;
+        case Stencil::DataType::Invalid: [[fallthrough]];
+        case Stencil::DataType::Unknown: break;
         }
         throw std::runtime_error("Unsupported Data Type");
     }
@@ -141,31 +152,31 @@ template <typename T> struct VisitorT
         switch (GetDataTypeHint())
         {
 
-        case ReflectionBase::DataType::Value:
+        case Stencil::DataType::Value:
         {
             auto& state = _stack.back();
             auto  cptr  = const_cast<void*>(state.Ptr);    // Shhh... Thats ok.
             return state.Handler->ValueHandler()->Read(cptr);
         }
-        case ReflectionBase::DataType::Enum: [[fallthrough]];
+        case Stencil::DataType::Enum: [[fallthrough]];
 
-        case ReflectionBase::DataType::Object: [[fallthrough]];
-        case ReflectionBase::DataType::List: [[fallthrough]];
-        case ReflectionBase::DataType::Variant: [[fallthrough]];
+        case Stencil::DataType::Object: [[fallthrough]];
+        case Stencil::DataType::List: [[fallthrough]];
+        case Stencil::DataType::Variant: [[fallthrough]];
 
-        case ReflectionBase::DataType::Invalid: [[fallthrough]];
-        case ReflectionBase::DataType::Unknown: break;
+        case Stencil::DataType::Invalid: [[fallthrough]];
+        case Stencil::DataType::Unknown: break;
         }
         throw std::runtime_error("Unsupported Data Type");
     }
-
+#if 0
     void SetValue(Value const& val)
     {
         static_assert(!std::is_const_v<T>, "Cannot SetValue into a const type");
 
         switch (GetDataTypeHint())
         {
-        case ReflectionBase::DataType::Variant:
+        case Stencil::DataType::Variant:
         {
             auto& state    = _stack.back();
             auto  cptr     = const_cast<void*>(state.Ptr);    // Shhh... Thats ok.
@@ -176,14 +187,14 @@ template <typename T> struct VisitorT
             _stack.push_back(StateStack{sub.handler, sub.ptr, Mode::Variant});
             return;
         }
-        case ReflectionBase::DataType::Enum: [[fallthrough]];
-        case ReflectionBase::DataType::Value:
+        //case Stencil::DataType::Enum: [[fallthrough]];
+        case Stencil::DataType::Value:
         {
             auto& state = _stack.back();
             auto  cptr  = const_cast<void*>(state.Ptr);    // Shhh... Thats ok.
             return state.Handler->ValueHandler()->Write(cptr, val);
         }
-        case ReflectionBase::DataType::List:    // Could be a string => (char list)
+        case Stencil::DataType::List:    // Could be a string => (char list)
         {
             if (val.GetType() != Value::Type::String) break;
             shared_string str     = val;
@@ -197,15 +208,15 @@ template <typename T> struct VisitorT
             }
             return;
         }
-        case ReflectionBase::DataType::Object: [[fallthrough]];
-        case ReflectionBase::DataType::Invalid: [[fallthrough]];
-        case ReflectionBase::DataType::Unknown: break;
+        case Stencil::DataType::Object: [[fallthrough]];
+        case Stencil::DataType::Invalid: [[fallthrough]];
+        case Stencil::DataType::Unknown: break;
         }
         throw std::runtime_error("Unsupported Data Type");
     }
-
-    typename ReflectionBase::TypeTraits<std::remove_const_t<T>&>::Handler _rootHandler;
-    std::vector<StateStack>                                               _stack;
+#endif
+    //typename Stencil::TypeTraits<std::remove_const_t<T>&>::Handler _rootHandler;
+    std::vector<StateStack>                                        _stack;
 };
 template <typename T, typename = void> struct Visitor;
 
@@ -278,3 +289,4 @@ template <typename T, size_t N> struct Visitor<std::array<T, N>> : VisitorT<std:
 };
 
 }    // namespace Stencil
+#endif

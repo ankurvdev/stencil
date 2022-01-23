@@ -1,4 +1,5 @@
 #pragma once
+#include "DebugInfo.h"
 
 #include <algorithm>
 #include <cassert>
@@ -112,6 +113,58 @@ template <> struct StrOps<std::wstring>
     static View   SubString(View const& s, size_t startIndex, size_t endIndex = InvalidIndex) { return s.substr(startIndex, endIndex); }
     static size_t Size(View const& s) { return s.size(); }
 };
+
+template <> struct StrOps<std::string>
+{
+    using Type = std::string;
+    using View = std::string_view;
+    using Char = char;
+
+    static constexpr auto InvalidIndex = std::string::npos;
+
+    static std::string const& Value(Type const& str) { return str; }
+    static std::string        Value(View const& str) { return std::string(str); }
+
+    static Type Create(std::string_view str) { return Type(str); }
+    static Type Copy(View const& str) { return Type(str); }
+    static Type Convert(const wchar_t* in)
+    {
+        if (in == nullptr)
+            return Type{};
+        else
+            return Convert(std::wstring_view(in));
+    }
+
+    static Type Convert(std::wstring_view const& in)
+    {
+        Type out;
+        out.resize(in.size());
+        std::transform(in.begin(), in.end(), out.begin(), [](auto const a) { return static_cast<char>(a); });
+        return out;
+    }
+
+    static Type ToLower(View const& in)
+    {
+        Type out;
+        out.resize(in.size());
+        std::transform(in.begin(), in.end(), out.begin(), [](int a) -> char { return static_cast<char>(tolower(a)); });
+        return out;
+    }
+    static bool IEqual(View const& l, View const& r)
+    {
+        return std::equal(l.begin(), l.end(), r.begin(), r.end(), [](auto lc, auto rc) {
+            return std::tolower(static_cast<int>(lc)) == std::tolower(static_cast<int>(rc));
+        });
+    }
+    static bool Equal(View const& l, View const& r) { return l == r; }
+    static bool IsEmpty(View const& l) { return l.empty(); }
+
+    static size_t Find(View const& l, Char ch, size_t startIndex = 0) { return l.find(ch, startIndex); }
+    static size_t Find(View const& l, View const& substr, size_t startIndex = 0) { return l.find(substr, startIndex); }
+    static View   SubString(View const& s, size_t startIndex, size_t endIndex = InvalidIndex) { return s.substr(startIndex, endIndex); }
+    static size_t Size(View const& s) { return s.size(); }
+};
+
 using Str = StrOps<std::wstring>;
 }    // namespace Binding
 
@@ -276,6 +329,19 @@ struct Expression
             }
             return Piece(Str::Copy(text));
         }
+
+        Str::Type Stringify() const
+        {
+            if (piecetype == PieceType::String) { return text; }
+            else if (piecetype == PieceType::Expr)
+            {
+                return expr->Stringify();
+            }
+            else
+            {
+                throw std::logic_error("Invalid Piece Type");
+            }
+        }
     };
 
     std::vector<Piece> _pieces;
@@ -293,18 +359,7 @@ struct Expression
     Str::Type Stringify() const
     {
         std::wstringstream ss;
-        for (auto& p : _pieces)
-        {
-            if (p.piecetype == Piece::PieceType::String) { ss << p.text; }
-            else if (p.piecetype == Piece::PieceType::Expr)
-            {
-                ss << p.expr->Stringify();
-            }
-            else
-            {
-                throw std::logic_error("Invalid Piece Type");
-            }
-        }
+        for (auto& p : _pieces) { ss << p.Stringify(); }
         return Str::Create(ss.str());
     }
 
@@ -313,7 +368,10 @@ struct Expression
         std::wstringstream ss;
         for (auto& p : _pieces)
         {
-            if (p.piecetype != Piece::PieceType::String) { throw std::runtime_error("Expression Has unevaluated bits"); }
+            if (p.piecetype != Piece::PieceType::String)
+            {
+                throw std::runtime_error(fmt::format("Expression Has unevaluated bits: {}", StrOps<std::string>::Convert(p.Stringify())));
+            }
             assert(!Str::IsEmpty(p.text));
             ss << p.text;
         }

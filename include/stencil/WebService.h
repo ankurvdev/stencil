@@ -121,8 +121,9 @@ template <WebInterfaceImpl... TImpls> struct WebService
 
     template <typename TArgsStruct> auto _CreateArgStruct(httplib::Request const& req)
     {
+        TArgsStruct args;
+#if 0
         using StateTracker = ReflectionServices::StateTraker<TArgsStruct, void*>;
-        TArgsStruct  args;
         StateTracker tracker(&args, nullptr);
         for (auto const& [key, value] : req.params)
         {
@@ -131,6 +132,7 @@ template <WebInterfaceImpl... TImpls> struct WebService
                 tracker.HandleValue(Value(shared_string::make(value)), nullptr);
             }
         }
+#endif
         return args;
     }
 
@@ -185,7 +187,7 @@ template <WebInterfaceImpl... TImpls> struct WebService
                 auto              ids = req.params.find("ids")->second;
                 std::stringstream rslt;
                 rslt << '[';
-                bool   first = true;
+                bool   first  = true;
                 size_t sindex = 0;
                 do {
                     auto eindex = ids.find(',', sindex);

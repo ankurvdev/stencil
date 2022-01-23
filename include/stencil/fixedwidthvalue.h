@@ -1,9 +1,9 @@
 #pragma once
-#include "shared_string.h"
 SUPPRESS_WARNINGS_START
 #pragma warning(disable : 4866)    // left to right evaluation not guaranteed
 #include <chrono>
 SUPPRESS_WARNINGS_END
+
 #include <chrono>
 #include <cmath>
 #include <cstdint>
@@ -34,9 +34,9 @@ struct Value
         Unknown
     } _type
         = Type::Empty;
-    uint64_t      _uVal{0};
-    int64_t       _iVal{0};
-    double        _dVal{0.0};
+    uint64_t _uVal{0};
+    int64_t  _iVal{0};
+    double   _dVal{0.0};
     template <typename T> struct UnknownTraits
     {
         static constexpr auto ValueType() { return Type::Unknown; }
@@ -135,7 +135,6 @@ struct Value
         default: throw UnsupportedCast();
         }
     }
-
 
     Value cast(Type type) const
     {

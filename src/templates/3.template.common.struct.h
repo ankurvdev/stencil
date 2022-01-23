@@ -65,11 +65,7 @@ struct zzStruct_Namezz :
 //</Struct>
 
 //<Variant>
-struct zzVariant_Namezz :
-    //<AttributeTag>
-    public zzTagType_NativeTypezz,
-    //</AttributeTag>
-    public Stencil::VariantT<zzStruct_Namezz>
+struct zzVariant_Namezz : public Stencil::VariantT<zzVariant_Namezz>
 {
     enum class VariantType
     {
