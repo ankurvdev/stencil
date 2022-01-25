@@ -14,8 +14,8 @@ EnableStrictCompilation()
 
 find_package (Threads REQUIRED)
 
-set(LexYacc_DIR          ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc)
-set(EmbedResource_DIR    ${CMAKE_CURRENT_LIST_DIR}/external/embedresource)
+set(LexYacc_DIR       ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc)
+set(EmbedResource_DIR ${CMAKE_CURRENT_LIST_DIR}/external/embedresource)
 
 find_package(LexYacc)
 find_package(EmbedResource)
@@ -81,6 +81,7 @@ if (BUILD_TESTING)
         add_library(catch2 INTERFACE)
         add_library(Catch2::Catch2 ALIAS catch2)
         target_include_directories(catch2 INTERFACE external/Catch2/single_include)
+        target_compile_definitions(catch2 INTERFACE external/Catch2/single_include)
     endif()
 
     find_path(DTL_INCLUDE_DIRS "dtl/Diff.hpp")
@@ -150,9 +151,7 @@ if (BUILD_TESTING)
         tests/Codegen/Test_ThriftGenerator.cpp
     )
     add_test(NAME codegen_tests COMMAND codegen_tests)
-
-    target_include_directories(codegen_tests PUBLIC src)
-    target_include_directories(codegen_tests PUBLIC include)
+    target_include_directories(codegen_tests PRIVATE src include tests)
     target_link_libraries(codegen_tests PRIVATE libstencil dtl::dtl Catch2::Catch2)
     target_add_resource(codegen_tests testdata ${resfiles} ${pidlfiles})
     
@@ -187,33 +186,32 @@ if (BUILD_TESTING)
     
         add_dependencies(runtime_tests codegen)
         target_include_directories(runtime_tests PRIVATE ${CMAKE_CURRENT_BINARY_DIR} include)
-        target_compile_definitions(runtime_tests PRIVATE USE_NLOHMANN_JSON)
-        target_compile_definitions(runtime_tests PRIVATE USE_CPP_HTTPLIB)
+        target_compile_definitions(runtime_tests PRIVATE USE_NLOHMANN_JSON USE_CPP_HTTPLIB)
         target_link_libraries(runtime_tests PRIVATE libstencil)
         target_link_libraries(runtime_tests PRIVATE dtl::dtl Catch2::Catch2 nlohmann_json::nlohmann_json cpp_httplib::cpp_httplib fmt)
         target_link_libraries (runtime_tests PRIVATE Threads::Threads)
         add_test(NAME runtime_tests COMMAND runtime_tests)
     
         #target_add_resource(runtime_tests testdata ${resfiles} ${pidlfiles})
-        target_include_directories(runtime_tests PRIVATE src)
-        target_include_directories(runtime_tests PRIVATE include)
+        target_include_directories(runtime_tests PRIVATE src include tests)
 
     if (FALSE)
+        add_executable(codegen_runtime_tests
+            tests/Test_CLOpts.cpp
+            tests/Test_DataHandlerJson.cpp
 
-    add_executable(codegen_runtime_tests
-        tests/Test_CLOpts.cpp
-        tests/Test_DataHandlerJson.cpp
-
-        tests/Test_CommandLineArgsReaderHandler.cpp
-        tests/Test_Database2.cpp
-        tests/Test_Database.cpp
-        tests/Test_DataRecorderPlayer.cpp
-        tests/Test_ObservableOptionalProps.cpp
-        tests/Test_SerDes.cpp
-        tests/Test_Transactions.cpp
-        tests/Test_WebService_Handwritten.cpp
-        tests/Test_WebService_Autogen.cpp
-    )
+            tests/Test_CommandLineArgsReaderHandler.cpp
+            tests/Test_Database2.cpp
+            tests/Test_Database.cpp
+            tests/Test_DataRecorderPlayer.cpp
+            tests/Test_ObservableOptionalProps.cpp
+            tests/Test_SerDes.cpp
+            tests/Test_Transactions.cpp
+            tests/Test_WebService_Handwritten.cpp
+            tests/Test_WebService_Autogen.cpp
+        )
+        target_link_libraries(codegen_runtime_tests PRIVATE dtl::dtl Catch2::Catch2 nlohmann_json::nlohmann_json cpp_httplib::cpp_httplib fmt)
+        target_include_directories(codegen_runtime_tests PRIVATE src include tests)
     endif()
 
 endif()

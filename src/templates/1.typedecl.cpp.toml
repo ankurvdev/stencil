@@ -74,13 +74,13 @@ boolean = "bool"
   NativeType = "timestamp"
 
 [Struct]
-NativeType = "::%Program:Name%::%Struct:Name%::Data"
+NativeType = "::%Program:Name%::%Struct:Name%"
 
 [Interface]
 NativeType = "long"
 
 [FunctionArgs]
-NativeType = "::%Program:Name%::%Struct:Name%::Data"
+NativeType = "::%Program:Name%::%Struct:Name%"
 
 [Typedef]
 NativeType = "%Name%"

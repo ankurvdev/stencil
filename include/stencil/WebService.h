@@ -25,7 +25,7 @@
 
 #include <algorithm>
 #include <string_view>
-
+#if 0
 #define STENCIL_USING_WEBSERVICE 1
 namespace Stencil
 {
@@ -169,7 +169,7 @@ template <WebInterfaceImpl... TImpls> struct WebService
         else
         {
             using SelectedTup = std::tuple_element_t<TTupIndex - 1, TTup>;
-            if (!impl::iequal(ReflectionBase::InterfaceObjectTraits<SelectedTup>::Name(), ifname))
+            if (!impl::iequal(Stencil::InterfaceObjectTraits<SelectedTup>::Name(), ifname))
             {
                 return _TryHandleObjectStore<TTup, TTupIndex - 1, T>(obj, req, res, ifname, path);
             }
@@ -220,7 +220,7 @@ template <WebInterfaceImpl... TImpls> struct WebService
                             std::string_view const& ifname,
                             std::string_view const& path)
     {
-        using ObjectsTup = typename ReflectionBase::InterfaceTraits<typename T::Interface>::Objects;
+        using ObjectsTup = typename Stencil::InterfaceTraits<typename T::Interface>::Objects;
         return _TryHandleObjectStore<ObjectsTup, std::tuple_size_v<ObjectsTup>, T>(obj, req, res, ifname, path);
     }
 
@@ -235,11 +235,11 @@ template <WebInterfaceImpl... TImpls> struct WebService
         else
         {
             using SelectedTup = std::tuple_element_t<TTupIndex - 1, TTup>;
-            if (!impl::iequal(ReflectionBase::InterfaceApiTraits<SelectedTup>::Name(), ifname))
+            if (!impl::iequal(Stencil::InterfaceApiTraits<SelectedTup>::Name(), ifname))
             {
                 return _TryHandleFunction<TTup, TTupIndex - 1, T>(obj, req, res, ifname, path);
             }
-            using Traits = ::ReflectionBase::InterfaceApiTraits<SelectedTup>;
+            using Traits = ::Stencil::InterfaceApiTraits<SelectedTup>;
             auto args    = _CreateArgStruct<typename Traits::ArgsStruct>(req);
             if constexpr (std::is_same_v<void, decltype(Traits::Invoke(args))>) { Traits::Invoke(args); }
             else
@@ -263,7 +263,7 @@ template <WebInterfaceImpl... TImpls> struct WebService
                          std::string_view const& ifname,
                          std::string_view const& path)
     {
-        using Tup = typename ReflectionBase::InterfaceTraits<typename T::Interface>::Apis;
+        using Tup = typename Stencil::InterfaceTraits<typename T::Interface>::Apis;
         /* Func API
          *      Condition: path matches api-name
          *      Action:
@@ -312,3 +312,4 @@ template <WebInterfaceImpl... TImpls> struct WebService
     std::tuple<TImpls...> _impls;
 };
 }    // namespace Stencil
+#endif

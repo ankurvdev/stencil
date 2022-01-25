@@ -2,7 +2,7 @@
 #include "stencil/stencil.h"
 struct TestInterface;
 
-struct TestInterface : public ReflectionBase::InterfaceT<TestInterface>
+struct TestInterface : public Stencil::InterfaceT<TestInterface>
 {
     public:
     struct DataStore;
@@ -41,8 +41,8 @@ template <> struct Stencil::TypeTraits<TestInterface::TestObj_obj&>
     {
         using TOwner     = TestInterface::TestObj_obj;
         using TFieldType = uint64_t;
-        static constexpr std::string_view    Name() { return "num1"; }
-        static const ::ReflectionBase::Flags Flags() { return {}; }
+        static constexpr std::string_view Name() { return "num1"; }
+        static const ::Stencil::Flags     Flags() { return {}; }
         static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
         static constexpr auto TPropertyGetter() { return &TestInterface::TestObj_obj::get_arg_num1; }
         static constexpr auto TPropertySetter() { return &TestInterface::TestObj_obj::set_arg_num1; }
@@ -53,8 +53,8 @@ template <> struct Stencil::TypeTraits<TestInterface::TestObj_obj&>
         using TOwner     = TestInterface::TestObj_obj;
         using TFieldType = uint64_t;
 
-        static constexpr std::string_view    Name() { return "num2"; }
-        static const ::ReflectionBase::Flags Flags() { return {}; }
+        static constexpr std::string_view Name() { return "num2"; }
+        static const ::Stencil::Flags     Flags() { return {}; }
 
         static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
@@ -63,7 +63,7 @@ template <> struct Stencil::TypeTraits<TestInterface::TestObj_obj&>
     };
 
     static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
-    static constexpr std::string_view           Name() { return "AddNumber"; }
+    static constexpr std::string_view    Name() { return "AddNumber"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<TestInterface::TestObj_obj, Traits_arg_num1, Traits_arg_num2>;
@@ -89,8 +89,8 @@ template <> struct Stencil::TypeTraits<TestInterface_AddNumber_Args&>
     {
         using TOwner     = TestInterface_AddNumber_Args;
         using TFieldType = uint64_t;
-        static constexpr std::string_view    Name() { return "num1"; }
-        static const ::ReflectionBase::Flags Flags() { return {}; }
+        static constexpr std::string_view Name() { return "num1"; }
+        static const ::Stencil::Flags     Flags() { return {}; }
         static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
         static constexpr auto TPropertyGetter() { return &TestInterface_AddNumber_Args::get_arg_num1; }
         static constexpr auto TPropertySetter() { return &TestInterface_AddNumber_Args::set_arg_num1; }
@@ -101,8 +101,8 @@ template <> struct Stencil::TypeTraits<TestInterface_AddNumber_Args&>
         using TOwner     = TestInterface_AddNumber_Args;
         using TFieldType = uint64_t;
 
-        static constexpr std::string_view    Name() { return "num2"; }
-        static const ::ReflectionBase::Flags Flags() { return {}; }
+        static constexpr std::string_view Name() { return "num2"; }
+        static const ::Stencil::Flags     Flags() { return {}; }
 
         static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
@@ -111,22 +111,22 @@ template <> struct Stencil::TypeTraits<TestInterface_AddNumber_Args&>
     };
 
     static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
-    static constexpr std::string_view           Name() { return "AddNumber"; }
+    static constexpr std::string_view    Name() { return "AddNumber"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<TestInterface_AddNumber_Args, Traits_arg_num1, Traits_arg_num2>;
 };
-template <> struct ReflectionBase::InterfaceObjectTraits<TestInterface::TestObj_obj>
+template <> struct Stencil::InterfaceObjectTraits<TestInterface::TestObj_obj>
 {
     static constexpr std::string_view Name() { return "obj"; }
 };
 
-template <> struct ReflectionBase::InterfaceTraits<TestInterface>
+template <> struct Stencil::InterfaceTraits<TestInterface>
 {
     struct ApiTraits_AddNumber
     {
         using TOwner = TestInterface;
-        static const ::ReflectionBase::Flags Flags() { return {}; }
+        static const ::Stencil::Flags Flags() { return {}; }
 
         static constexpr std::string_view Name() { return "AddNumber"; }
         static constexpr bool             Static = false;
@@ -136,7 +136,7 @@ template <> struct ReflectionBase::InterfaceTraits<TestInterface>
     using Objects = std::tuple<TestInterface::TestObj_obj>;
 };
 
-template <> struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<TestInterface>::ApiTraits_AddNumber>
+template <> struct Stencil::InterfaceApiTraits<Stencil::InterfaceTraits<TestInterface>::ApiTraits_AddNumber>
 {
     using ArgsStruct = TestInterface_AddNumber_Args;
     static constexpr bool             IsStatic() { return false; }

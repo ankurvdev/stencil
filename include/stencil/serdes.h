@@ -146,7 +146,7 @@ struct Reader
     auto   GetIterator() { return _it; }
     ByteIt _it;
 };
-
+#if 0
 struct BinarySerDes
 {
     template <typename T> static void Serialize(Stencil::Visitor<T const>& visitor, std::ostream& strm)
@@ -239,5 +239,5 @@ struct BinarySerDes
         }
     }
 };
-
+#endif
 }    // namespace Stencil

@@ -1,5 +1,7 @@
 #pragma once
+#if defined USE_EMBEDRESOURCE
 #include <EmbeddedResource.h>
+#endif
 
 #pragma warning(push, 3)
 #pragma warning(disable : 4868)
@@ -24,7 +26,10 @@
 #include <string>
 #include <string_view>
 #include <vector>
+
+#if defined USE_EMBEDRESOURCE
 DECLARE_RESOURCE_COLLECTION(testdata);
+#endif
 
 inline std::string wstring_to_string(std::wstring_view wstr)
 {
@@ -50,6 +55,30 @@ inline std::vector<std::string> readlines(std::filesystem::path const& filepath)
     return lines;
 }
 
+inline void CompareLines(std::vector<std::string> const& actualstring,
+                         std::vector<std::string> const& expectedstring,
+                         std::string_view const&         resname = "test")
+{
+
+    dtl::Diff<std::string, std::vector<std::string>> d(expectedstring, actualstring);
+    d.compose();                // construct an edit distance and LCS and SES
+    d.composeUnifiedHunks();    // construct a difference as Unified Format with SES.
+
+    if (actualstring != expectedstring)
+    {
+        d.printUnifiedFormat();    // print a difference as Unified Format.
+        {
+            std::ofstream f(std::string(resname) + "_failure.txt");
+            for (auto& l : actualstring) { f << l << std::endl; }
+            f.flush();
+            f.close();
+        }
+        FAIL("Comparison Failed: Output: " + std::string(resname) + "_failure.txt");
+    }
+}
+
+#if defined USE_EMBEDRESOURCE
+
 struct ResourceFileManager
 {
     static std::string _GeneratePrefixFromTestName()
@@ -68,7 +97,6 @@ struct ResourceFileManager
     {
         for (auto const& [k, v] : _openedfiles) { std::filesystem::remove(v); }
     }
-
     auto load(std::string const& name, std::string const& prefix)
     {
         auto testresname = _GeneratePrefixFromTestName() + name;
@@ -93,31 +121,8 @@ struct ResourceFileManager
         }
         throw std::logic_error("Cannot find resource : " + testresname);
     }
-
     std::unordered_map<std::string, std::filesystem::path> _openedfiles;
 };
-
-inline void CompareLines(std::vector<std::string> const& actualstring,
-                         std::vector<std::string> const& expectedstring,
-                         std::string_view const&         resname = "test")
-{
-
-    dtl::Diff<std::string, std::vector<std::string>> d(expectedstring, actualstring);
-    d.compose();                // construct an edit distance and LCS and SES
-    d.composeUnifiedHunks();    // construct a difference as Unified Format with SES.
-
-    if (actualstring != expectedstring)
-    {
-        d.printUnifiedFormat();    // print a difference as Unified Format.
-        {
-            std::ofstream f(std::string(resname) + "_failure.txt");
-            for (auto& l : actualstring) { f << l << std::endl; }
-            f.flush();
-            f.close();
-        }
-        FAIL("Comparison Failed: Output: " + std::string(resname) + "_failure.txt");
-    }
-}
 
 inline void CheckOutputAgainstResource(std::vector<std::string> const& lines, std::string_view const& resourcename)
 {
@@ -154,3 +159,4 @@ inline void CompareFileAgainstResource(std::filesystem::path const& actualf, std
     std::span<const char> spn = actualdata;
     CompareBinaryOutputAgainstResource({reinterpret_cast<uint8_t const*>(spn.data()), spn.size()}, resourcename);
 }
+#endif

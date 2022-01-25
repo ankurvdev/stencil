@@ -2,8 +2,15 @@
 #include "base.h"
 namespace Stencil
 {
-template <typename T> struct Visitor;
-}
+template <typename T, typename TP> struct Visitor;
+
+template <typename T, typename TP>
+concept ConceptRVisitor = requires(T t)
+{
+    typename Visitor<T, TP>;
+};
+
+}    // namespace Stencil
 
 #if 0
 namespace Stencil

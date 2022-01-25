@@ -41,18 +41,38 @@ concept FixedWidthValueConcept = requires(T t)
     typename ValueTraits<T>;
 };
 
-template <typename T>
-concept StructConcept = requires(T t)
+enum class Type
 {
-    std::is_base_of<Stencil::StructMarker, T>::type;
+    Invalid,
+    Atomic,       // Fixed size or blobs
+    Iterable,     // Multiple values can only iterate on values
+    Indexable,    // Indexing of values via Atomics
 };
 template <typename T> struct TypeTraits;
 
-enum class DataType
+template <typename T>
+concept ConceptIndexable = requires(T t)
 {
-    Invalid,
-    Atomic,      // Fixed size or blobs
-    Iterable,    // Iterable by Atomic Values as keys
+    Stencil::TypeTraits<T>::IsIndexable();
+};
+
+template <typename T>
+concept ConceptIterableOnly = requires(T t)
+{
+    Stencil::TypeTraits<T>::IsIterable();
+};
+
+template <typename T>
+concept ConceptIterableNotIndexable = requires(T t)
+{
+    Stencil::TypeTraits<T>::IsIterable();
+    !Stencil::TypeTraits<T>::IsIndexable();
+};
+
+template <typename T>
+concept ConceptAtomicOnly = requires(T t)
+{
+    Stencil::TypeTraits<T>::IsAtomic();
 };
 
 #if 0
@@ -1068,12 +1088,20 @@ template <typename T, size_t N> struct Stencil::TypeTraits<std::array<T, N>&>
     // using Handler = typename ::ReflectionServices::StdArrayListHandler<T, N>;
 };
 
-template <Stencil::StructConcept T> struct Stencil::TypeTraits<std::unique_ptr<T>>
+template <typename T> struct Stencil::TypeTraits<std::unique_ptr<T>>
 {
-    static constexpr DataType                       Type() { return DataType::Object; }
-    static constexpr std::string_view               Name() { return ::Stencil::TypeTraits<T>::Name(); }
-    static std::string_view                         AttributeValue(const std::string_view& /*key*/) { throw std::logic_error("TODO"); }
-    template <typename T1, typename T2> static bool AreEqual(T1 const& obj1, T2 const& obj2) { return obj1 == obj2; }
+    static constexpr auto Type() { return Stencil::TypeTraits<T>::Type(); }
+    static constexpr bool IsAtomic() { return Stencil::TypeTraits<T>::IsAtomic(); }
+    static constexpr bool IsIterable() { return Stencil::TypeTraits<T>::IsIterable(); }
+    static constexpr bool IsIndexable() { return Stencil::TypeTraits<T>::IsIndexable(); }
+
+    static constexpr std::string_view Name() { return ::Stencil::TypeTraits<T>::Name(); }
+    static std::string_view           AttributeValue(const std::string_view& /*key*/) { throw std::logic_error("TODO"); }
+    static bool                       AreEqual(std::unique_ptr<T> const& obj1, std::unique_ptr<T> const& obj2)
+    {
+        return Stencil::TypeTraits<T>::AreEqual(*obj1, *obj2);
+    }
+
 #if 0
 
     struct Handler : public ::Stencil::IDataTypeHandlerObject
@@ -1104,13 +1132,20 @@ template <Stencil::StructConcept T> struct Stencil::TypeTraits<std::unique_ptr<T
 #endif
 };
 
-template <Stencil::StructConcept T> struct Stencil::TypeTraits<std::shared_ptr<T>>
+template <typename T> struct Stencil::TypeTraits<std::shared_ptr<T>>
 {
-    static constexpr DataType         Type() { return DataType::Object; }
-    static constexpr std::string_view Name() { return ::Stencil::TypeTraits<T&>::Name(); }
-    static std::string_view           AttributeValue(const std::string_view& /*key*/) { throw std::logic_error("TODO"); }
+    static constexpr auto Type() { return Stencil::TypeTraits<T>::Type(); }
+    static constexpr bool IsAtomic() { return Stencil::TypeTraits<T>::IsAtomic(); }
+    static constexpr bool IsIterable() { return Stencil::TypeTraits<T>::IsIterable(); }
+    static constexpr bool IsIndexable() { return Stencil::TypeTraits<T>::IsIndexable(); }
 
-    template <typename T1, typename T2> static bool AreEqual(T1 const& obj1, T2 const& obj2) { return obj1 == obj2; }
+    static constexpr std::string_view Name() { return ::Stencil::TypeTraits<T>::Name(); }
+    static std::string_view           AttributeValue(const std::string_view& /*key*/) { throw std::logic_error("TODO"); }
+    static bool                       AreEqual(std::shared_ptr<T> const& obj1, std::shared_ptr<T> const& obj2)
+    {
+        return Stencil::TypeTraits<T>::AreEqual(*obj1, *obj2);
+    }
+
 #if 0
     struct Handler : public ::Stencil::IDataTypeHandlerObject
     {

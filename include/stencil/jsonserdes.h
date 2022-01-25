@@ -2,7 +2,6 @@
 #include "visitor.h"
 
 #include <deque>
-#include <sstream>
 
 #ifdef USE_NLOHMANN_JSON
 #pragma warning(push, 3)
@@ -130,213 +129,57 @@ struct Json
     };
 #endif
 
-    template <typename T, typename = void> struct Writer;
+    template <typename TContext, typename T> void _WriteTo(TContext, T const& obj) { throw std::logic_error("Not Implemented"); }
+    template <typename T> struct _Stringifier;
 
-    template <typename TStruct> static void StringifyStruct(TStruct& obj, std::stringstream& ss)
+    template <Stencil::ConceptIndexable T> struct _Stringifier<T>
     {
-        Stencil::Visitor<TStruct> visitor(obj);
-        ss << "{";
-        bool first = true;
-        visitor.VisitAll([&](auto& key, auto& value) {
-            if (!first)
-                ss << ",";
-            else
+        template <typename Context, Stencil::ConceptRVisitor<T> TRVisitor> auto Write(Context& ctx, TRVisitor const& rvisitor)
+        {
+            _WriteTo(ctx, '{');
+            bool first = true;
+            rvisitor.VisitAllIndicies([&](auto& k, auto& v) {
+                _StringifyForVisitor(ctx, k);
+                _WriteTo(ctx, ':');
+                _StringifyForVisitor(ctx, v);
                 first = false;
+            });
+            WriteTo(ctx, '}');
+        }
+    };
 
-            ss << Writer<decltype(key)>::Stringify(key) << ":";
-            ss << Writer<std::remove_cvref_t<decltype(value)>>::Stringify(value);
-        });
-
-        ss << "}";
-    }
-
-    template <typename TArr> static void StringifyArray(TArr& obj, std::stringstream& ss)
+    template <Stencil::ConceptIterableNotIndexable T> struct _Stringifier<T>
     {
-        ss << "[";
-        bool first = true;
-        for (auto it = std::begin(obj); it != std::end(obj); ++it)
+        template <typename Context, Stencil::ConceptRVisitor<T> TRVisitor> auto Write(Context& ctx, TRVisitor const& rvisitor)
         {
-            if (!first)
-                ss << ",";
-            else
+            _WriteTo(ctx, '[');
+            bool first = true;
+
+            rvisitor.VisitAll([&](auto& v) {
+                if (!first) WriteTo(ctx, ',');
+                _StringifyForVisitor(ctx, v);
                 first = false;
-            ss << Writer<std::remove_cvref_t<decltype(*it)>>::Stringify(*it);
+            });
+
+            _WriteTo(ctx, ']');
         }
-        ss << "]";
-    }
-#if 0
-    template <typename T> struct Writer<T, std::enable_if_t<std::is_base_of<::ReflectionBase::ObjMarker, T>::value>>
+    };
+
+    template <Stencil::ConceptAtomicOnly T> struct _Stringifier<T>
     {
-        static std::string Stringify(const T& obj)
+        template <typename Context, Stencil::ConceptRVisitor<T> TRVisitor> auto Write(Context& /*ctx*/, TRVisitor const& /*rvisitor*/)
         {
-            std::stringstream ss;
-            StringifyStruct<T const>(obj, ss);
-            return ss.str();
+            throw std::logic_error("Not Implemented");
         }
     };
 
-    template <typename T> struct Writer<std::unique_ptr<T>, std::enable_if_t<std::is_base_of<::ReflectionBase::ObjMarker, T>::value>>
-    {
-        static std::string Stringify(const std::unique_ptr<T>& obj)
-        {
-            std::stringstream ss;
-            StringifyStruct<T>(*obj.get(), ss);
-            return ss.str();
-        }
-    };
+    template <typename T, typename TInCtx> static T Parse(TInCtx const& /*ictx*/) { throw std::logic_error("Not Implemented"); }
 
-    template <typename T> struct Writer<std::shared_ptr<T>, std::enable_if_t<std::is_base_of<::ReflectionBase::ObjMarker, T>::value>>
-    {
-        static std::string Stringify(const std::shared_ptr<T>& obj)
-        {
-            std::stringstream ss;
-            StringifyStruct<T>(*obj.get(), ss);
-            return ss.str();
-        }
-    };
-#endif
-    template <typename T> struct Writer<std::vector<T>>
-    {
-        static std::string Stringify(const std::vector<T>& obj)
-        {
-            std::stringstream ss;
-            StringifyArray(obj, ss);
-            return ss.str();
-        }
-    };
+    template <typename T> static std::string Stringify(T const& /*obj*/) { throw std::logic_error("Not Implemented"); }
 
-    template <typename T, size_t N> struct Writer<std::array<T, N>>
+    template <typename T, typename TOutCtx> static void StringifyTo(T const& /*obj*/, TOutCtx& /*octx*/)
     {
-        static std::string Stringify(const std::array<T, N>& obj)
-        {
-            std::stringstream ss;
-            StringifyArray(obj, ss);
-            return ss.str();
-        }
-    };
-
-    template <size_t N> struct Writer<std::array<char, N>>
-    {
-        static std::string Stringify(const std::array<char, N>& obj)
-        {
-            auto str  = std::string(obj.data(), obj.size());
-            auto term = str.find(char{0}, 0);
-            if (term != std::string::npos) { str.resize(term); }
-            return "\"" + str + "\"";
-        }
-    };
-
-    template <size_t N> struct Writer<char const (&)[N]>
-    {
-        static std::string Stringify(char const (&obj)[N]) { return "\"" + std::string(obj) + "\""; }
-    };
-
-    template <typename T> struct Writer<T, std::enable_if_t<Value::Supported<T>::value>>
-    {
-        static std::string Stringify(const T& obj)
-        {
-            auto const& sval = Value(obj).convert<shared_string>();
-            return sval.empty() ? "null" : sval.str();
-        }
-    };
-#if 0
-    template <typename T> struct Writer<T, std::enable_if_t<std::is_base_of<::ReflectionBase::InterfaceMarker, T>::value>>
-    {
-        static std::string Stringify(const T& obj) { return obj.Id(); }
-    };
-
-    template <typename T> struct Writer<std::unique_ptr<T>, std::enable_if_t<std::is_base_of<::ReflectionBase::InterfaceMarker, T>::value>>
-    {
-        static std::string Stringify(const std::unique_ptr<T>& obj) { return std::string(obj->GetObjectUuid().ToString()); }
-    };
-#endif
-    template <typename T> struct Writer<UuidBasedId<T>>
-    {
-        static std::string Stringify(const UuidBasedId<T>& obj) { return std::string(obj.ToString()); }
-    };
-
-    template <typename TStruct> static void Load([[maybe_unused]] Visitor<TStruct>& visitor, [[maybe_unused]] std::istream& strm)
-    {
-#ifdef USE_NLOHMANN_JSON
-        Reader<Visitor<TStruct>> handler(visitor);
-        nlohmann::json::sax_parse(strm, &handler);
-#else
-        throw std::logic_error("json parser disabled at compile time");
-#endif
-    }
-
-    template <typename TStruct> static void Load([[maybe_unused]] TStruct& obj, std::istream& strm)
-    {
-        Visitor<TStruct> visitor(obj);
-        Load(visitor, strm);
-    }
-
-    template <typename TStruct> static std::unique_ptr<TStruct> Parse(const std::string_view& strv)
-    {
-        std::unique_ptr<TStruct> ptr(new TStruct());
-        // TODO : Avoid stringing
-        std::string        str(strv);
-        std::istringstream istr(str);
-        Load(*ptr.get(), istr);
-        return ptr;
-    }
-
-    template <typename T> static std::string Stringify(const T& obj) { return Writer<T>::Stringify(obj); }
-};
-
-struct JsonSerDes
-{
-    template <typename TVisitor> static void Serialize(TVisitor& visitor, std::ostream& strm)
-    {
-        auto& ss = strm;
-        ss << "{";
-        bool first = true;
-        visitor.VisitAll([&](auto& key, auto& value) {
-            if (!first)
-                ss << ",";
-            else
-                first = false;
-
-            ss << Json::Writer<decltype(key)>::Stringify(key) << ":";
-            ss << Json::Writer<std::remove_cvref_t<decltype(value)>>::Stringify(value);
-        });
-
-        ss << "}";
-    }
-
-    template <typename TVisitor> static void Deserialize(TVisitor& visitor, std::istream& strm)
-    {
-        switch (visitor.GetDataTypeHint())
-        {
-        case Stencil::DataType::Value:
-        {
-            std::ostringstream sstrm;
-            strm.peek();
-            while (strm.good())
-            {
-                char c;
-                strm >> c;
-                sstrm << c;
-                strm.peek();
-            }
-            visitor.SetValue(Value{sstrm.str()});
-        }
-        break;
-        case Stencil::DataType::List:
-        case Stencil::DataType::Object: Json::Load(visitor, strm); break;
-        case Stencil::DataType::Enum: TODO();
-        case Stencil::DataType::Variant: TODO();
-        case Stencil::DataType::Invalid: [[fallthrough]];
-        case Stencil::DataType::Unknown: throw std::runtime_error("Unsupported Data Type");
-        }
-    }
-
-    template <typename TVisitor> static void Deserialize(TVisitor& visitor, std::string_view const& strv)
-    {
-        // TODO : Avoid stringing
-        std::string        str(strv);
-        std::istringstream istr(str);
-        Deserialize(visitor, istr);
+        throw std::logic_error("Not Implemented");
     }
 };
 

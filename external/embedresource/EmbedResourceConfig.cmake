@@ -68,4 +68,5 @@ function(target_add_resource target name)
 
     target_sources(${target} PRIVATE ${out_f})
     target_include_directories(${target} PRIVATE "${EMBEDRESOURCE_INCLUDE_DIR}")
+    target_compile_definitions(${target} PRIVATE USE_EMBEDRESOURCE)
 endfunction()
