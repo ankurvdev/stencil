@@ -147,7 +147,7 @@ if (BUILD_TESTING)
     file(GLOB pidlfiles tests/*.pidl)
 
     add_executable(codegen_tests
-        tests/Test_ThriftGenerator.cpp
+        tests/Codegen/Test_ThriftGenerator.cpp
     )
     add_test(NAME codegen_tests COMMAND codegen_tests)
 
@@ -155,45 +155,7 @@ if (BUILD_TESTING)
     target_include_directories(codegen_tests PUBLIC include)
     target_link_libraries(codegen_tests PRIVATE libstencil dtl::dtl Catch2::Catch2)
     target_add_resource(codegen_tests testdata ${resfiles} ${pidlfiles})
-
-    add_executable(runtime_tests
-        tests/Test_Handwritten_CLOpts.cpp
-        tests/Test_Handwritten_Json.cpp
-        tests/Test_Handwritten_Transaction.cpp
-        tests/Test_Handwritten_WebSvc.cpp
-        tests/Test_Handwritten_ObjectStore.cpp
-
-        tests/Test_CommandLineArgsReaderHandler.cpp
-        tests/Test_Database2.cpp
-        tests/Test_Database.cpp
-        tests/Test_DataHandlerJson.cpp
-        tests/Test_DataRecorderPlayer.cpp
-        tests/Test_ObservableOptionalProps.cpp
-        tests/Test_SerDes.cpp
-        tests/Test_Transactions.cpp
-        tests/Test_WebService_Handwritten.cpp
-        tests/Test_WebService_Autogen.cpp
-    )
-
-
-    add_executable(codegen_runtime_tests
-        tests/Test_CLOpts.cpp
-        tests/Test_CommandLineArgsReaderHandler.cpp
-        tests/Test_Database2.cpp
-        tests/Test_Database.cpp
-        tests/Test_DataHandlerJson.cpp
-        tests/Test_DataRecorderPlayer.cpp
-        tests/Test_ObservableOptionalProps.cpp
-        tests/Test_SerDes.cpp
-        tests/Test_Transactions.cpp
-        tests/Test_WebService_Handwritten.cpp
-        tests/Test_WebService_Autogen.cpp
-    )
-
-    target_add_resource(runtime_tests testdata ${resfiles} ${pidlfiles})
-    target_include_directories(runtime_tests PRIVATE src)
-    target_include_directories(runtime_tests PRIVATE include)
-
+    
     foreach(f ${pidlfiles})
         get_filename_component(fname "${f}" NAME)
         list(APPEND outputs "${CMAKE_CURRENT_BINARY_DIR}/${fname}.h")
@@ -203,14 +165,57 @@ if (BUILD_TESTING)
                 COMMAND stencil --outdir=${CMAKE_CURRENT_BINARY_DIR} ${inputs}
                 DEPENDS stencil ${inputs})
     add_custom_target(codegen DEPENDS ${outputs})
-    add_dependencies(runtime_tests codegen)
-    target_include_directories(runtime_tests PRIVATE ${CMAKE_CURRENT_BINARY_DIR} include)
-    target_compile_definitions(runtime_tests PRIVATE USE_NLOHMANN_JSON)
-    target_compile_definitions(runtime_tests PRIVATE USE_CPP_HTTPLIB)
-    target_link_libraries(runtime_tests PRIVATE libstencil)
-    target_link_libraries(runtime_tests PRIVATE dtl::dtl Catch2::Catch2 nlohmann_json::nlohmann_json cpp_httplib::cpp_httplib fmt)
-    target_link_libraries (runtime_tests PRIVATE Threads::Threads)
-    add_test(NAME runtime_tests COMMAND runtime_tests)
+
+        add_executable(runtime_tests
+            tests/HandwrittenRuntime/Test_Handwritten_CLOpts.cpp
+            tests/HandwrittenRuntime/Test_Handwritten_Json.cpp
+
+            #tests/HandwrittenRuntime/Test_Handwritten_Transaction.cpp
+            #tests/HandwrittenRuntime/Test_Handwritten_WebSvc.cpp
+            #tests/HandwrittenRuntime/Test_Handwritten_ObjectStore.cp
+            #tests/HandwrittenRuntime/Test_CommandLineArgsReaderHandler.cpp
+            #tests/HandwrittenRuntime/Test_Database2.cpp
+            #tests/HandwrittenRuntime/Test_Database.cpp
+            #tests/Test_DataHandlerJson.cpp
+            #tests/Test_DataRecorderPlayer.cpp
+            #tests/Test_ObservableOptionalProps.cpp
+            #tests/Test_SerDes.cpp
+            #tests/Test_Transactions.cpp
+            #tests/Test_WebService_Handwritten.cpp
+            #tests/Test_WebService_Autogen.cpp
+        )
+    
+        add_dependencies(runtime_tests codegen)
+        target_include_directories(runtime_tests PRIVATE ${CMAKE_CURRENT_BINARY_DIR} include)
+        target_compile_definitions(runtime_tests PRIVATE USE_NLOHMANN_JSON)
+        target_compile_definitions(runtime_tests PRIVATE USE_CPP_HTTPLIB)
+        target_link_libraries(runtime_tests PRIVATE libstencil)
+        target_link_libraries(runtime_tests PRIVATE dtl::dtl Catch2::Catch2 nlohmann_json::nlohmann_json cpp_httplib::cpp_httplib fmt)
+        target_link_libraries (runtime_tests PRIVATE Threads::Threads)
+        add_test(NAME runtime_tests COMMAND runtime_tests)
+    
+        #target_add_resource(runtime_tests testdata ${resfiles} ${pidlfiles})
+        target_include_directories(runtime_tests PRIVATE src)
+        target_include_directories(runtime_tests PRIVATE include)
+
+    if (FALSE)
+
+    add_executable(codegen_runtime_tests
+        tests/Test_CLOpts.cpp
+        tests/Test_DataHandlerJson.cpp
+
+        tests/Test_CommandLineArgsReaderHandler.cpp
+        tests/Test_Database2.cpp
+        tests/Test_Database.cpp
+        tests/Test_DataRecorderPlayer.cpp
+        tests/Test_ObservableOptionalProps.cpp
+        tests/Test_SerDes.cpp
+        tests/Test_Transactions.cpp
+        tests/Test_WebService_Handwritten.cpp
+        tests/Test_WebService_Autogen.cpp
+    )
+    endif()
+
 endif()
 
 configure_package_config_file(cmake/stencilConfig.cmake.in
