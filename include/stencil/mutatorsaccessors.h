@@ -1,7 +1,7 @@
 #pragma once
 #include "serdes.h"
 #include "visitor.h"
-
+#if 0
 namespace Stencil
 {
 template <typename T, typename _Ts = void> struct Mutators;
@@ -103,3 +103,4 @@ template <typename T, size_t N> struct Accessors<std::array<T, N>>
 };
 
 }    // namespace Stencil
+#endif

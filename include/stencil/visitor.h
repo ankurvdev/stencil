@@ -2,13 +2,33 @@
 #include "base.h"
 namespace Stencil
 {
-template <typename T, typename TP> struct Visitor;
+// 3 core datatypes
+//     Primitive
+//     Iterable
+//     Indexable
 
-template <typename T, typename TP>
-concept ConceptRVisitor = requires(T t)
-{
-    typename Visitor<T, TP>;
-};
+// [R/W]VisitorWithParent<T, TP>
+//      TP& Parent();
+//      Visitor<T>
+
+// [R/W]Visitor<T>
+//      Primitive
+//          [W] Write
+//          [R] Read
+//      Iterable
+//          Token Start()
+//          bool MoveNext(Token)
+//          void VisitAll([&] {})
+//      Indexable
+//          auto VisitAt(Key k) -> VisitorWithParent
+//          void Add(Key k)     -> VisitorWithParent
+//          void VisitAll([&](auto k, auto& v)
+template <typename T> struct Visitor;
+
+template <typename T> struct VisitorT
+{};
+
+template <typename T> struct VisitorWithParentT;
 
 }    // namespace Stencil
 

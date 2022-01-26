@@ -71,6 +71,21 @@ if (NOT fmt_FOUND)
     SupressWarningForTarget(fmt)
 endif()
 
+find_package(RapidJSON QUIET)
+if (NOT RapidJSON_FOUND)
+    init_submodule(external/rapidjson)
+    add_subdirectory(external/rapidjson EXCLUDE_FROM_ALL)
+    SupressWarningForTarget(rapidjson)
+    target_include_directories(rapidjson PUBLIC USE_RAPIDJSON=1)
+endif()
+
+
+find_package(simdjson QUIET)
+if (NOT simdjson_FOUND)
+    init_submodule(external/simdjson)
+    add_library(simdjson INTERFACE)
+endif()
+
 
 if (BUILD_TESTING)
     enable_testing()
@@ -81,7 +96,6 @@ if (BUILD_TESTING)
         add_library(catch2 INTERFACE)
         add_library(Catch2::Catch2 ALIAS catch2)
         target_include_directories(catch2 INTERFACE external/Catch2/single_include)
-        target_compile_definitions(catch2 INTERFACE external/Catch2/single_include)
     endif()
 
     find_path(DTL_INCLUDE_DIRS "dtl/Diff.hpp")
@@ -92,14 +106,6 @@ if (BUILD_TESTING)
     add_library(dtl INTERFACE)
     add_library(dtl::dtl ALIAS dtl)
     target_include_directories(dtl INTERFACE "${DTL_INCLUDE_DIRS}")
-
-    find_package(nlohmann_json QUIET)
-    if (NOT nlohmann_json_FOUND)
-        init_submodule(external/json)
-        add_library(nlohmann_json  INTERFACE)
-        add_library(nlohmann_json::nlohmann_json ALIAS nlohmann_json)
-        target_include_directories(nlohmann_json INTERFACE external/json/single_include)
-    endif()
 
     find_path(CPP_HTTPLIB_INCLUDE_DIRS "httplib.h")
     if (NOT EXISTS "${CPP_HTTPLIB_INCLUDE_DIRS}")
@@ -139,7 +145,6 @@ list(APPEND public_headers "${UUIDHEADER}")
 set_target_properties(stencil PROPERTIES PUBLIC_HEADER "${public_headers}")
 
 target_link_libraries(stencil PRIVATE libstencil cxxopts::cxxopts)
-
 
 if (BUILD_TESTING)
     enable_testing()
@@ -188,7 +193,7 @@ if (BUILD_TESTING)
         target_include_directories(runtime_tests PRIVATE ${CMAKE_CURRENT_BINARY_DIR} include)
         target_compile_definitions(runtime_tests PRIVATE USE_NLOHMANN_JSON USE_CPP_HTTPLIB)
         target_link_libraries(runtime_tests PRIVATE libstencil)
-        target_link_libraries(runtime_tests PRIVATE dtl::dtl Catch2::Catch2 nlohmann_json::nlohmann_json cpp_httplib::cpp_httplib fmt)
+        target_link_libraries(runtime_tests PRIVATE dtl::dtl rapidjson Catch2::Catch2 cpp_httplib::cpp_httplib fmt)
         target_link_libraries (runtime_tests PRIVATE Threads::Threads)
         add_test(NAME runtime_tests COMMAND runtime_tests)
     

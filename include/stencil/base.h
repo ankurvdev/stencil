@@ -44,7 +44,7 @@ concept FixedWidthValueConcept = requires(T t)
 enum class Type
 {
     Invalid,
-    Atomic,       // Fixed size or blobs
+    Primitive,       // Fixed size or blobs
     Iterable,     // Multiple values can only iterate on values
     Indexable,    // Indexing of values via Atomics
 };
@@ -70,9 +70,9 @@ concept ConceptIterableNotIndexable = requires(T t)
 };
 
 template <typename T>
-concept ConceptAtomicOnly = requires(T t)
+concept ConceptPrimitiveOnly = requires(T t)
 {
-    Stencil::TypeTraits<T>::IsAtomic();
+    Stencil::TypeTraits<T>::IsPrimitive();
 };
 
 #if 0
@@ -1091,7 +1091,7 @@ template <typename T, size_t N> struct Stencil::TypeTraits<std::array<T, N>&>
 template <typename T> struct Stencil::TypeTraits<std::unique_ptr<T>>
 {
     static constexpr auto Type() { return Stencil::TypeTraits<T>::Type(); }
-    static constexpr bool IsAtomic() { return Stencil::TypeTraits<T>::IsAtomic(); }
+    static constexpr bool IsPrimitive() { return Stencil::TypeTraits<T>::IsPrimitive(); }
     static constexpr bool IsIterable() { return Stencil::TypeTraits<T>::IsIterable(); }
     static constexpr bool IsIndexable() { return Stencil::TypeTraits<T>::IsIndexable(); }
 

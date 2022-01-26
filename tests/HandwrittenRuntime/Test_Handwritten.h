@@ -19,6 +19,8 @@ struct FixedSize
     std::chrono::time_point<std::chrono::high_resolution_clock> tVal2;
 
     std::array<double, 8> darr;
+
+    std::array<char, 8> chararr;
 };
 
 struct WithBlobs
@@ -38,6 +40,7 @@ struct Nested
     std::shared_ptr<FixedSize> sptr;
 
     std::vector<WithBlobs> vec;
+    std::vector<double>    vec2;
 };
 
 struct SingleAttributed : Stencil::TimestampedT<SingleAttributed>
@@ -72,3 +75,11 @@ template <> struct Stencil::TypeTraits<MultiAttributed>
 
 template <> struct Stencil::TypeTraits<TestObj>
 {};
+
+template <> struct Stencil::Visitor<TestObj> : Stencil::VisitorT<TestObj>
+{
+    Visitor(TestObj& obj) : _ref(obj) {}
+    CLASS_DELETE_COPY_AND_MOVE(Visitor);
+
+    TestObj& _ref;
+};
