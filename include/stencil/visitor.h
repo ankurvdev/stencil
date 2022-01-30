@@ -1,5 +1,6 @@
 #pragma once
 #include "base.h"
+#include "timestamped.h"
 namespace Stencil
 {
 // 3 core datatypes
@@ -25,12 +26,29 @@ namespace Stencil
 //          void VisitAll([&](auto k, auto& v)
 template <typename T> struct Visitor;
 
+template <typename TP, typename T> struct VisitorWithParent : Visitor<T>
+{
+    VisitorWithParent() = default;
+    CLASS_DELETE_COPY_AND_MOVE(VisitorWithParent);
+    // auto Parent() const { return _parent; }
+};
+
 template <typename T> struct VisitorT
 {};
 
-template <typename T> struct VisitorWithParentT;
+template <typename TP, typename T> struct VisitorWithParentT
+{};
+
+template <typename T> struct StructFieldEnumVisitor
+{};
 
 }    // namespace Stencil
+
+template <typename T> struct Stencil::Visitor<Stencil::TimestampedT<T>>
+{};
+
+template <typename T> struct Stencil::Visitor<UuidBasedId<T>>
+{};
 
 #if 0
 namespace Stencil

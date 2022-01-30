@@ -28,8 +28,10 @@ template <typename T> struct Tokenizer : public rapidjson::BaseReaderHandler<rap
     Tokenizer(StackVisitor<T>& stackvisitor) : _stackvisitor(stackvisitor) {}
     CLASS_DELETE_COPY_AND_MOVE(Tokenizer);
 
-    void Parse(std::string_view const& ctx)
+    void Parse(T& obj, std::string_view const& ctx)
     {
+        _obj = &obj;
+        _stackvisitor.Start(obj);
         rapidjson::Reader       reader;
         rapidjson::StringStream ss(ctx.data());
         reader.Parse(ss, *this);
@@ -55,7 +57,12 @@ template <typename T> struct Tokenizer : public rapidjson::BaseReaderHandler<rap
         _modes.pop_back();
     }
 
-    void _AddKey(std::string_view const& key) { _stackvisitor.AddKey(key); }
+    void _AddKey(std::string_view const& key)
+    {
+        _stackvisitor.AddKey();
+        _stackvisitor.Assign(key);
+        _stackvisitor.Pop();
+    }
 
     // Rapidjson apis
     bool Null() { RAPIDJSON_CHECK(_Handle(0)); }
@@ -81,6 +88,7 @@ template <typename T> struct Tokenizer : public rapidjson::BaseReaderHandler<rap
 
     std::vector<Mode> _modes;
     StackVisitor<T>&  _stackvisitor;
+    T*                _obj{};
 };    // namespace Stencil::impl::rapidjson_
 
 #pragma warning(pop)
@@ -97,9 +105,8 @@ template <typename T> using Tokenizer = Stencil::impl::rapidjson_::Tokenizer<T>;
 template <typename T, typename TInCtx> static T Parse(TInCtx const& ictx)
 {
     T                        obj{};
-    Stencil::Visitor<T>      visitor(obj);
-    Stencil::StackVisitor<T> stack(visitor);
-    Tokenizer<T>(stack).Parse(ictx);
+    Stencil::StackVisitor<T> stack;
+    Tokenizer<T>(stack).Parse(obj, ictx);
     return obj;
 }
 

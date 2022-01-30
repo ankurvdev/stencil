@@ -4,50 +4,75 @@ SUPPRESS_WARNINGS_START
 #include <chrono>
 SUPPRESS_WARNINGS_END
 
-#include <chrono>
+#include <bit>
 #include <cmath>
 #include <cstdint>
-
-template <typename TValue> struct ValueTraits;
-template <> struct ValueTraits<size_t>;
-template <> struct ValueTraits<uint64_t>;
-template <> struct ValueTraits<uint32_t>;
-template <> struct ValueTraits<uint16_t>;
-template <> struct ValueTraits<uint8_t>;
-
-template <> struct ValueTraits<int64_t>;
-template <> struct ValueTraits<int32_t>;
-template <> struct ValueTraits<int16_t>;
-template <> struct ValueTraits<int8_t>;
-template <> struct ValueTraits<bool>;
-template <> struct ValueTraits<double>;
-template <> struct ValueTraits<std::chrono::time_point<std::chrono::system_clock>>;
-
 struct Value
 {
-    enum class Type
+
+    struct Type
     {
-        Empty,
-        Signed,
-        Unsigned,
-        Double,
-        Unknown
-    } _type
-        = Type::Empty;
+        enum class Category
+        {
+            Unknown,
+            Unsigned,
+            Signed,
+            Float
+        };
+
+        enum class Width
+        {
+            W_0,
+            W_1,
+            W_2,
+            W_4,
+            W_8
+        };
+
+        uint8_t width : 3;       // 00: 0 , 01: 1, 10: 2, 11: 4, 100: 8
+        uint8_t category : 2;    // 00: unknown,  01: unsigned , 2: signed, 3: float
+
+        private:
+        static consteval unsigned _GetWidth(unsigned x) { return x < 2 ? x : 1 + _GetWidth(x >> 1); }
+
+        template <uint8_t W, typename T> static constexpr Type _Create()
+        {
+            if constexpr (std::is_unsigned<T>::value) { return Type{.width = W, .category = 1}; }
+            else if constexpr (std::is_signed<T>::value)
+            {
+                return Type{.width = W, .category = 2};
+            }
+            else if constexpr (std::is_floating_point<T>::value)
+            {
+                return Type{.width = W, .category = 3};
+            }
+            else
+            {
+                return Type{.width = 0, .category = 0};
+            }
+        }
+
+        public:
+        template <typename T> constexpr static Type Of() { return _Create<_GetWidth(sizeof(T)), T>(); }
+
+        static constexpr Type Unknown() { return Type{.width = 0, .category = 0}; }
+        constexpr bool        operator==(Type const& t) { return width == t.width && category == t.category; }
+        constexpr bool        operator!=(Type const& t) { return width != t.width || category != t.category; }
+    };
+
+    template <typename TValue> struct ValueTraits
+    {
+        static constexpr auto ValueType() { return Type::Unknown(); }
+    };
+
+    Type     _type{Type::Unknown()};
     uint64_t _uVal{0};
     int64_t  _iVal{0};
     double   _dVal{0.0};
-    template <typename T> struct UnknownTraits
-    {
-        static constexpr auto ValueType() { return Type::Unknown; }
-        static void           Assign(Value& /* obj */, T const& /* val */) { throw std::logic_error("Unknown Value Type"); }
-        static void           Get(const Value& /* obj */) {}
-        static void           Check() { throw std::logic_error("Unknown Value Type"); }
-    };
 
     template <typename T> struct SignedTraits
     {
-        static constexpr auto ValueType() { return Type::Signed; }
+        static constexpr auto ValueType() { return Type::Of<T>(); };
         static void           Assign(Value& obj, T const& val) { obj._iVal = val; }
         static const auto&    Get(const Value& obj) { return obj._iVal; }
         // static void Check() { if (obj._iVal < std::numeric_limits<T>::min() || obj.iVal >
@@ -56,7 +81,7 @@ struct Value
 
     template <typename T> struct UnsignedTraits
     {
-        static constexpr auto ValueType() { return Type::Unsigned; }
+        static constexpr auto ValueType() { return Type::Of<T>(); };
         static void           Assign(Value& obj, T const& val) { obj._uVal = val; }
         static const auto&    Get(const Value& obj) { return obj._uVal; }
         // static void Check() { if (obj._iVal < std::numeric_limits<T>::min() || obj.iVal >
@@ -65,15 +90,10 @@ struct Value
 
     template <typename T> struct DoubleTraits
     {
-        static constexpr auto ValueType() { return Type::Double; }
+        static constexpr auto ValueType() { return Type::Of<T>(); };
         static void           Assign(Value& obj, T const& val) { obj._dVal = val; }
         static const auto&    Get(const Value& obj) { return obj._dVal; }
         static void           Check() {}
-    };
-
-    template <typename T> struct Supported
-    {
-        static constexpr bool value = ValueTraits<T>::ValueType() != Type::Unknown;
     };
 
     public:
@@ -87,11 +107,12 @@ struct Value
     operator size_t() const;
 
     Type GetType() const { return _type; }
-    template <typename T> Value(T val) : _type(ValueTraits<T>::ValueType()) { ValueTraits<T>::Assign(*this, val); }
+
+    template <typename T> explicit Value(T const& val) : _type(ValueTraits<T>::ValueType()) { ValueTraits<T>::Assign(*this, val); }
 
     Value() = default;
     Value(std::nullptr_t) {}
-
+#if 0
     static int _doubletoint(double val) { return static_cast<int>(std::round(val)); }
 
     Value cast_signed() const
@@ -155,40 +176,38 @@ struct Value
         auto casted = (*this).cast(ValueTraits<T>::ValueType());
         return static_cast<T>(ValueTraits<T>::Get(casted));
     }
+#endif
 };
 
-template <typename T> struct ValueTraits : public Value::UnknownTraits<T>
+template <> struct Value::ValueTraits<uint64_t> : public Value::UnsignedTraits<uint64_t>
+{};
+template <> struct Value::ValueTraits<uint32_t> : public Value::UnsignedTraits<uint64_t>
+{};
+template <> struct Value::ValueTraits<uint16_t> : public Value::UnsignedTraits<uint64_t>
+{};
+template <> struct Value::ValueTraits<uint8_t> : public Value::UnsignedTraits<uint64_t>
+{};
+template <> struct Value::ValueTraits<int64_t> : public Value::SignedTraits<int64_t>
+{};
+template <> struct Value::ValueTraits<int32_t> : public Value::SignedTraits<int64_t>
+{};
+template <> struct Value::ValueTraits<int16_t> : public Value::SignedTraits<int64_t>
+{};
+template <> struct Value::ValueTraits<int8_t> : public Value::SignedTraits<int64_t>
 {};
 
-template <> struct ValueTraits<uint64_t> : public Value::UnsignedTraits<uint64_t>
-{};
-template <> struct ValueTraits<uint32_t> : public Value::UnsignedTraits<uint64_t>
-{};
-template <> struct ValueTraits<uint16_t> : public Value::UnsignedTraits<uint64_t>
-{};
-template <> struct ValueTraits<uint8_t> : public Value::UnsignedTraits<uint64_t>
-{};
-template <> struct ValueTraits<int64_t> : public Value::SignedTraits<int64_t>
-{};
-template <> struct ValueTraits<int32_t> : public Value::SignedTraits<int64_t>
-{};
-template <> struct ValueTraits<int16_t> : public Value::SignedTraits<int64_t>
-{};
-template <> struct ValueTraits<int8_t> : public Value::SignedTraits<int64_t>
+template <> struct Value::ValueTraits<char> : public Value::SignedTraits<int64_t>
 {};
 
-template <> struct ValueTraits<char> : public Value::SignedTraits<int64_t>
+template <> struct Value::ValueTraits<bool> : public Value::UnsignedTraits<bool>
+{};
+template <> struct Value::ValueTraits<double> : public Value::DoubleTraits<double>
 {};
 
-template <> struct ValueTraits<bool> : public Value::UnsignedTraits<bool>
-{};
-template <> struct ValueTraits<double> : public Value::DoubleTraits<double>
-{};
-
-template <> struct ValueTraits<std::chrono::time_point<std::chrono::system_clock>>
+template <> struct Value::ValueTraits<std::chrono::time_point<std::chrono::system_clock>>
 {
     using time_point = std::chrono::time_point<std::chrono::system_clock>;
-    static constexpr auto ValueType() { return Value::Type::Signed; }
+    static constexpr auto ValueType() { return Value::Type{.width = 4, .category = 1}; }
     static void           Assign(Value& obj, time_point& val) { obj._iVal = val.time_since_epoch().count(); }
     static auto           Get(Value const& obj) { return time_point(time_point::duration(obj._iVal)); }
 };
@@ -198,3 +217,10 @@ inline Value::operator ::size_t() const
     _check(ValueTraits<uint64_t>::ValueType());
     return static_cast<size_t>(ValueTraits<uint64_t>::Get(*this));
 }
+template <typename T>
+concept ConceptValue = (Value::ValueTraits<T>::ValueType() != Value::Type::Unknown());
+
+static_assert(ConceptValue<double>);
+static_assert(ConceptValue<char>);
+static_assert(ConceptValue<uint16_t>);
+static_assert(ConceptValue<bool>);

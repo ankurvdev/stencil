@@ -16,6 +16,7 @@
 
 #include <catch2/catch.hpp>
 #include <dtl/dtl.hpp>
+#include <fmt/ostream.h>
 
 #pragma clang diagnostic pop
 #pragma warning(pop)
