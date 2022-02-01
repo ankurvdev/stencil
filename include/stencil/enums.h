@@ -13,11 +13,7 @@ template <typename T> struct EnumTraits;
 };*/
 
 template <typename T>
-concept ConceptEnum = requires(T t)
-{
-    typename std::is_enum<T>::type;
-    typename EnumTraits<T>;
-};
+concept ConceptEnum = (std::is_enum_v<T> && std::is_default_constructible_v<EnumTraits<T>>);
 
 }    // namespace Stencil
 

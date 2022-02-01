@@ -78,6 +78,41 @@ template <> struct Stencil::TypeTraits<FixedSize>
     };
 
     using Key = Fields;
+
+    // TODO: Move to visitor
+    template <typename TLambda> static void VisitKey(FixedSize& obj, Fields f, TLambda&& lambda)
+    {
+        switch (f)
+        {
+        case Fields::Field_f1:; return lambda(obj.f1);
+        case Fields::Field_f2:; return lambda(obj.f2);
+        case Fields::Field_f3:; return lambda(obj.f3);
+        case Fields::Field_f4:; break;
+        case Fields::Field_f5:; break;
+        case Fields::Field_f6:; break;
+        case Fields::Field_f7:; break;
+        case Fields::Field_f8:; break;
+        case Fields::Field_f9:; break;
+        case Fields::Field_f10:; break;
+        case Fields::Field_f11:; break;
+        case Fields::Field_f12:; break;
+        case Fields::Field_f13:; break;
+
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid field");
+        }
+    }
+};
+
+template <> struct Stencil::EnumTraits<Stencil::TypeTraits<FixedSize>::Fields>
+{
+    static constexpr std::string_view Names[]
+        = {"Invalid", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12", "f13"};
+
+    static Stencil::TypeTraits<FixedSize>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraits<FixedSize>::Fields>(index);
+    }
 };
 
 static_assert(Stencil::Type::IsIndexable<FixedSize>(), "indexable");

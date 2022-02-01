@@ -9,8 +9,8 @@ struct TypeHandler;
 
 struct TypeHandlerAndPtr
 {
-    TypeHandler const* handler{nullptr};
-    void*              ptr{nullptr};
+    TypeHandler* handler{nullptr};
+    void*        ptr{nullptr};
 };
 
 // Limits choice of primitives but helps with SAX parsers
@@ -18,13 +18,13 @@ struct TypeHandler
 {
     virtual ~TypeHandler() = default;
 
-    virtual TypeHandlerAndPtr VisitNext(void* ptr) const        = 0;
-    virtual TypeHandlerAndPtr VisitKey(void* ptr) const         = 0;
-    virtual TypeHandlerAndPtr VisitValueForKey(void* ptr) const = 0;
+    virtual TypeHandlerAndPtr VisitNext(void* ptr)        = 0;
+    virtual TypeHandlerAndPtr VisitKey(void* ptr)         = 0;
+    virtual TypeHandlerAndPtr VisitValueForKey(void* ptr) = 0;
 
-    virtual void Assign(void* ptr, Value const& val) const             = 0;
-    virtual void Assign(void* ptr, std::string_view const& val) const  = 0;
-    virtual void Assign(void* ptr, std::wstring_view const& val) const = 0;
+    virtual void Assign(void* ptr, Value const& val)             = 0;
+    virtual void Assign(void* ptr, std::string_view const& val)  = 0;
+    virtual void Assign(void* ptr, std::wstring_view const& val) = 0;
 };
 
 auto VisitKey(TypeHandlerAndPtr const& item)
@@ -61,8 +61,8 @@ template <typename T> struct AssignHelper<std::basic_string_view<T>>
     void operator()(TypeHandlerAndPtr const& item, std::basic_string_view<T> const& val) { return item.handler->Assign(item.ptr, val); }
 };
 
-template <typename T> struct VisitorTypeHandler;
-
+template <typename TOwner, typename T> struct VisitorTypeHandler;
+#if 0
 template <typename TTup> struct VisitorTypeHandlerPack;
 
 template <> struct VisitorTypeHandlerPack<std::tuple<>>
@@ -70,94 +70,104 @@ template <> struct VisitorTypeHandlerPack<std::tuple<>>
     std::tuple<> handlers;
 };
 
-template <typename... Ts> struct VisitorTypeHandlerPack<std::tuple<Ts...>>
+template <typename TOWner, typename... Ts> struct VisitorTypeHandlerPack<std::tuple<Ts...>>
 {
     std::tuple<VisitorTypeHandler<Ts>...> handlers;
 };
-
-template <typename T> struct IterableVisitorTypeHandler
+#endif
+template <typename TOwner, typename T> struct IterableVisitorTypeHandler
 {
     template <typename T> void Add(T& /*obj*/) const
     {
         throw std::logic_error("Add Not supported on non-iterable types");
     }    // namespace impl
     TypeHandlerAndPtr ElementHandler() const { throw std::logic_error("Not an iterable type"); }
+    TOwner*           owner;
 };
 
-template <typename T> struct PrimitiveVisitorTypeHandler
+template <typename TOwner, typename T> struct PrimitiveVisitorTypeHandler
 {
     template <typename T2> void Assign(T& /*obj*/, T2& /*obj*/) const { throw std::logic_error("Add Not supported on primitive types"); }
+    TOwner*                     owner;
 };
 
-template <ConceptPrimitiveOnly T> struct PrimitiveVisitorTypeHandler<T>
+template <typename TOwner, ConceptPrimitiveOnly T> struct PrimitiveVisitorTypeHandler<TOwner, T>
 {
     template <typename T2> void Assign(T& obj, T2 const& val) const { Stencil::Assign<T, T2>{}(obj, val); }
+    TOwner*                     owner;
 };
 
-template <ConceptIterableNotIndexable T> struct IterableVisitorTypeHandler<T>
+template <typename TOwner, ConceptIterableNotIndexable T> struct IterableVisitorTypeHandler<TOwner, T>
 {
     template <typename T> void Add(T& /*obj*/) const { TODO(""); }
+    TOwner*                    owner;
 };
 
-template <typename T> struct IndexableVisitorTypeHandler
+template <typename TOwner, typename T> struct IndexableVisitorTypeHandler
 {
     TypeHandlerAndPtr                       KeyHandler() const { throw std::logic_error("Not an indexable type"); }
     template <typename T> TypeHandlerAndPtr VisitValueForKey(T& /*obj*/) const { throw std::logic_error("Not an indexable type"); }
+    TOwner*                                 owner;
 };
 
-template <ConceptIndexable T> struct IndexableVisitorTypeHandler<T>
+template <typename TOwner, ConceptIndexable T> struct IndexableVisitorTypeHandler<TOwner, T>
 {
     using Traits = typename Stencil::TypeTraits<T>;
 
-    TypeHandlerAndPtr                       KeyHandler() const { return TypeHandlerAndPtr{&_keyhandler, &_key}; }
+    TypeHandlerAndPtr KeyHandler() { return TypeHandlerAndPtr{&_keyhandler, &_key}; }
+
     template <typename T> TypeHandlerAndPtr VisitValueForKey(T& obj) const
     {
-        TypeHandler const* handler = nullptr;
-        void*              ptr     = nullptr;
+        TypeHandler* handler = nullptr;
+        void*        ptr     = nullptr;
         Traits::VisitKey(obj, std::move(_key), [&](auto& val) {
-            typeid(int).hash_code()
-            handler = &std::get<VisitorTypeHandler<std::remove_reference_t<decltype(val)>>>(_handlers.handlers);
-            ptr     = &val;
+            using VisitorHandler = VisitorTypeHandler<TOwner, std::remove_reference_t<decltype(val)>>;
+            handler              = owner->template FindOrCreateHandler<VisitorHandler>();
+            ptr                  = &val;
         });
         return {handler, ptr};
     }
+    TOwner* owner;
 
-    mutable Traits::Key                                 _key;
-    VisitorTypeHandler<typename Traits::Key>            _keyhandler;
-    // TODO: This is causing me 
-    //VisitorTypeHandlerPack<typename Traits::ValueTypes> _handlers;
+    Traits::Key                                      _key;
+    VisitorTypeHandler<TOwner, typename Traits::Key> _keyhandler;
+
+    // TODO: This is causing me
+    // VisitorTypeHandlerPack<typename Traits::ValueTypes> _handlers;
 };
 
-template <typename T>
-struct VisitorTypeHandler : TypeHandler
+template <typename TOwner, typename T> struct VisitorTypeHandler : TypeHandler
 {
     static_assert(std::is_default_constructible_v<Stencil::TypeTraits<T>>, "Specialization of TypeTraits required");
 
     void Add(T& obj) { TODO(""); }
 
-    virtual TypeHandlerAndPtr VisitNext(void* ptr) const override
+    virtual TypeHandlerAndPtr VisitNext(void* ptr) override
     {
         T& obj = *reinterpret_cast<T*>(ptr);
-        _iterable.Add(obj);
-        return _iterable.ElementHandler();
+        iterable.Add(obj);
+        return iterable.ElementHandler();
     }
 
-    virtual TypeHandlerAndPtr VisitKey(void* /*ptr*/) const override
+    virtual TypeHandlerAndPtr VisitKey(void* /*ptr*/) override
     {    // T& obj = *reinterpret_cast<T*>(ptr);
-        return _indexable.KeyHandler();
+        return indexable.KeyHandler();
     }
-    virtual TypeHandlerAndPtr VisitValueForKey(void* ptr) const override
+
+    virtual TypeHandlerAndPtr VisitValueForKey(void* ptr) override
     {
         T& obj = *reinterpret_cast<T*>(ptr);
-        return _indexable.VisitValueForKey(obj);
+        return indexable.VisitValueForKey(obj);
     }
-    virtual void Assign(void* ptr, Value const& val) const override { _primitive.Assign(*reinterpret_cast<T*>(ptr), val); }
-    virtual void Assign(void* ptr, std::string_view const& val) const override { _primitive.Assign(*reinterpret_cast<T*>(ptr), val); }
-    virtual void Assign(void* ptr, std::wstring_view const& val) const override { _primitive.Assign(*reinterpret_cast<T*>(ptr), val); }
 
-    PrimitiveVisitorTypeHandler<T> _primitive;
-    IterableVisitorTypeHandler<T>  _iterable;
-    IndexableVisitorTypeHandler<T> _indexable;
+    virtual void Assign(void* ptr, Value const& val) override { primitive.Assign(*reinterpret_cast<T*>(ptr), val); }
+    virtual void Assign(void* ptr, std::string_view const& val) override { primitive.Assign(*reinterpret_cast<T*>(ptr), val); }
+    virtual void Assign(void* ptr, std::wstring_view const& val) override { primitive.Assign(*reinterpret_cast<T*>(ptr), val); }
+
+    TOwner*                                owner;
+    PrimitiveVisitorTypeHandler<TOwner, T> primitive;
+    IterableVisitorTypeHandler<TOwner, T>  iterable;
+    IndexableVisitorTypeHandler<TOwner, T> indexable;
 };
 
 template <typename T> struct _StackVisitor
@@ -167,7 +177,12 @@ template <typename T> struct _StackVisitor
 
     void Start(T& obj)
     {
-        _rootObj = &obj;
+        _rootObj                 = &obj;
+        _handler.owner           = this;
+        _handler.primitive.owner = this;
+        _handler.iterable.owner  = this;
+        _handler.indexable.owner = this;
+
         _stack.push_back({&_handler, _rootObj});
     }
 
@@ -188,10 +203,30 @@ template <typename T> struct _StackVisitor
 
     void Add() { _stack.push_back(VisitNext(_stack.back())); }
 
-    bool                           _visitingKey = false;
-    std::vector<TypeHandlerAndPtr> _stack;
-    VisitorTypeHandler<T>          _handler;
-    T*                             _rootObj{nullptr};
+    // TODO : Yuck! Revisit and try to convince PROP1
+    template <typename T> TypeHandler* FindOrCreateHandler()
+    {
+        auto hashcode = typeid(T).hash_code();
+        auto it       = _allhandlers.find(hashcode);
+        if (it == _allhandlers.end())
+        {
+            auto uptr             = std::make_unique<T>();
+            uptr->owner           = this;
+            uptr->primitive.owner = this;
+            uptr->iterable.owner  = this;
+            uptr->indexable.owner = this;
+            auto ptr              = uptr.get();
+            _allhandlers.insert(std::make_pair(hashcode, std::move(uptr)));
+            return ptr;
+        }
+        return it->second.get();
+    }
+
+    bool                                                     _visitingKey = false;
+    std::unordered_map<size_t, std::unique_ptr<TypeHandler>> _allhandlers;
+    std::vector<TypeHandlerAndPtr>                           _stack;
+    VisitorTypeHandler<_StackVisitor<T>, T>                  _handler;
+    T*                                                       _rootObj{nullptr};
 };
 }    // namespace impl
 
