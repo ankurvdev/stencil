@@ -1,6 +1,7 @@
 #include "Test_Handwritten.h"
 #define CATCH_CONFIG_MAIN
 #include "TestUtils.h"
+
 struct TestCase
 {
     std::string_view json;
@@ -49,9 +50,44 @@ template <typename T> void RunTestCases(std::initializer_list<TestCase> cases)
 TEST_CASE("Json", "[Json]")
 {
     SECTION("TestObj") { RunTestCases<TestObj>({}); }
-#if 0
-    SECTION("FixedSize") { RunTestCases<FixedSize>({}); }
+    /*
+    *   int64_t  f1;
+    int16_t  f2;
+    uint64_t f3;
+    char     f4;
+    double   f5;
+    float    f6;
+    bool     f7;
 
+    std::chrono::time_point<std::chrono::system_clock>          f8;
+    std::chrono::time_point<std::chrono::high_resolution_clock> f9;
+
+    std::array<double, 4>   f10;    // Iterable only
+    std::array<char, 8>     f11;    // Iterable, blob (string) and Value (64-bit)
+    std::array<uint16_t, 4> f12;    // Iterable and by value (64 bit)
+
+    uuids::uuid f13;    // iterable , blob (string) or FixedSize buffer
+    */
+    SECTION("FixedSize")
+    {
+        RunTestCases<FixedSize>({
+            {R"({"f1": -1})", "int64-1", true},
+            {R"({"f2": -1})", "int16-1", true},
+            {R"({"f3": 1})", "uint64-1", true},
+            {R"({"f4": "a"})", "char-1", true},
+            {R"({"f5": 0.1})", "double-1", true},
+            {R"({"f6": 0.1})", "float-1", true},
+            {R"({"f7": true})", "bool-1", true},
+            {R"({"f8": "2012-04-23T18:25:43.511Z"})", "time-1", true},
+            {R"({"f9": 100})", "time-2", true},
+            {R"({"f10": [0.1, 0.2, 0.3, 0.4]})", "int64-1", true},
+            {R"({"f11": "01234567"})", "chararry-1", true},
+            {R"({"f12": 0x0123456789abcdef})", "intarray-1", true},
+            {R"({"f13": "{01234567-8901-2345-6789-012345678901}"})", "uuid-1", true},
+        });
+    }
+
+#if 0
     SECTION("WithBlobs") { RunTestCases<WithBlobs>({}); }
 
     SECTION("Nested") { RunTestCases<Nested>({}); }

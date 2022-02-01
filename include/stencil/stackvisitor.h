@@ -115,6 +115,7 @@ template <ConceptIndexable T> struct IndexableVisitorTypeHandler<T>
         TypeHandler const* handler = nullptr;
         void*              ptr     = nullptr;
         Traits::VisitKey(obj, std::move(_key), [&](auto& val) {
+            typeid(int).hash_code()
             handler = &std::get<VisitorTypeHandler<std::remove_reference_t<decltype(val)>>>(_handlers.handlers);
             ptr     = &val;
         });
@@ -123,11 +124,15 @@ template <ConceptIndexable T> struct IndexableVisitorTypeHandler<T>
 
     mutable Traits::Key                                 _key;
     VisitorTypeHandler<typename Traits::Key>            _keyhandler;
-    VisitorTypeHandlerPack<typename Traits::ValueTypes> _handlers;
+    // TODO: This is causing me 
+    //VisitorTypeHandlerPack<typename Traits::ValueTypes> _handlers;
 };
 
-template <typename T> struct VisitorTypeHandler : TypeHandler
+template <typename T>
+struct VisitorTypeHandler : TypeHandler
 {
+    static_assert(std::is_default_constructible_v<Stencil::TypeTraits<T>>, "Specialization of TypeTraits required");
+
     void Add(T& obj) { TODO(""); }
 
     virtual TypeHandlerAndPtr VisitNext(void* ptr) const override

@@ -24,9 +24,7 @@ concept ConceptEnum = requires(T t)
 template <Stencil::ConceptEnum T> struct Stencil::TypeTraits<T>
 {
     /* Primitive*/
-    constexpr static bool IsIndexable() { return false; }
-    constexpr static bool IsIterable() { return false; }
-    constexpr static bool IsPrimitive() { return true; }
+    using Types = std::tuple<Type::Primitive>;
 };
 
 template <Stencil::ConceptEnum TOut, typename T> struct Stencil::Assign<TOut, std::basic_string_view<T>>

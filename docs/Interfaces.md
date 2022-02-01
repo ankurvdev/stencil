@@ -3,11 +3,12 @@
 ## Overview
 
 Practical Scenarios
+
 * RPC Function calls
 * Web-Services
-    - Object Store (CRUD)
-    - Events (SSE)
-    - REST Apis (JSON)
+  * Object Store (CRUD)
+  * Events (SSE)
+  * REST Apis (JSON)
 * Language Bindings and API projections for Python PHP etc
 
 ## Supported Member Types
@@ -25,9 +26,11 @@ interface Foo {
 ```
 
 Implementation in C++ would have be inheriting from a virtual base class consisting of the following projected function available
+
 ```C++
     void RaiseEvent_Bar(int arg1, std::string const& arg2)
 ```
+
 that can be used to notify clients of the event (along with args)
 
 Client will use event handler registration / de-registration apis to recieve these notifications

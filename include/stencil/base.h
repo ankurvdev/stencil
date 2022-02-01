@@ -23,9 +23,6 @@
 #include <uuid.h>
 #include <vector>
 
-// TODO: Get rid of this
-using timestamp = decltype(std::chrono::system_clock::now());
-
 namespace Stencil
 {
 struct StructMarker
@@ -35,6 +32,30 @@ struct VariantMarker
 struct InterfaceMarker
 {};
 
+template <typename T> struct TypeTraits;
+
+struct Type
+{
+    struct Primitive
+    {};
+
+    struct Iterable
+    {};
+
+    struct Indexable
+    {};
+
+    template <typename U, typename... T> static constexpr bool _TypeTupleContains(std::tuple<T...>)
+    {
+        return (std::is_same_v<U, T> || ...);
+    }
+
+    template <typename T> static constexpr bool IsIndexable() { return _TypeTupleContains<Indexable>(typename TypeTraits<T>::Types{}); }
+    template <typename T> static constexpr bool IsIterable() { return _TypeTupleContains<Iterable>(typename TypeTraits<T>::Types{}); }
+    template <typename T> static constexpr bool IsPrimitive() { return _TypeTupleContains<Primitive>(typename TypeTraits<T>::Types{}); }
+};
+
+/*
 enum class Type
 {
     Invalid,
@@ -42,20 +63,19 @@ enum class Type
     Iterable,     // Multiple values can only iterate on values
     Indexable,    // Indexing of values via Atomics
 };
-
-template <typename T> struct TypeTraits;
-
-template <typename T>
-concept ConceptIndexable = TypeTraits<T>::IsIndexable();
+*/
 
 template <typename T>
-concept ConceptIterableOnly = TypeTraits<T>::IsIterable();
+concept ConceptIndexable = Type::IsIndexable<T>();
 
 template <typename T>
-concept ConceptPrimitiveOnly = Stencil::TypeTraits<T>::IsPrimitive();
+concept ConceptIterableOnly = Type::IsIterable<T>();
 
 template <typename T>
-concept ConceptIterableNotIndexable = Stencil::TypeTraits<T>::IsIterable() && !Stencil::TypeTraits<T>::IsIndexable();
+concept ConceptPrimitiveOnly = Type::IsPrimitive<T>();
+
+template <typename T>
+concept ConceptIterableNotIndexable = Type::IsIterable<T>() && !Type::IsIndexable<T>();
 
 template <typename T1, typename T2> struct Assign;
 

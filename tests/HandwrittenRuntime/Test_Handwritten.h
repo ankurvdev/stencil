@@ -56,7 +56,31 @@ struct TestObj
 };
 
 template <> struct Stencil::TypeTraits<FixedSize>
-{};
+{
+    using Types = std::tuple<Stencil::Type::Indexable, Stencil::Type::Iterable>;
+
+    enum class Fields
+    {
+        Invalid,
+        Field_f1,
+        Field_f2,
+        Field_f3,
+        Field_f4,
+        Field_f5,
+        Field_f6,
+        Field_f7,
+        Field_f8,
+        Field_f9,
+        Field_f10,
+        Field_f11,
+        Field_f12,
+        Field_f13
+    };
+
+    using Key = Fields;
+};
+
+static_assert(Stencil::Type::IsIndexable<FixedSize>(), "indexable");
 
 template <> struct Stencil::TypeTraits<WithBlobs>
 {};
@@ -66,13 +90,16 @@ template <> struct Stencil::TypeTraits<Nested>
 
 template <> struct Stencil::TypeTraits<MultiAttributed>
 {
+    using Types = std::tuple<Stencil::Type::Indexable, Stencil::Type::Iterable>;
     enum class Fields
     {
         Invalid  = 0,
         Field_f1 = 1
     };
 
-    using Key        = Fields;
+    using Key = Fields;
+
+    // TODO:
     using ValueTypes = std::tuple<>;
 
     template <typename TLambda> static void VisitKey(MultiAttributed& /*obj*/, Fields f, TLambda&& /*lambda*/)
@@ -84,14 +111,12 @@ template <> struct Stencil::TypeTraits<MultiAttributed>
         default: throw std::logic_error("Invalid field");
         }
     }
-
-    constexpr static bool IsIndexable() { return true; }
-    constexpr static bool IsIterable() { return true; }
-    constexpr static bool IsPrimitive() { return false; }
 };
 
 template <> struct Stencil::TypeTraits<TestObj>
 {
+    using Types = std::tuple<Stencil::Type::Indexable, Stencil::Type::Iterable>;
+
     enum class Fields
     {
         Invalid  = 0,
@@ -110,10 +135,6 @@ template <> struct Stencil::TypeTraits<TestObj>
         default: throw std::logic_error("Invalid field");
         }
     }
-
-    constexpr static bool IsIndexable() { return true; }
-    constexpr static bool IsIterable() { return true; }
-    constexpr static bool IsPrimitive() { return false; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraits<TestObj>::Fields>
