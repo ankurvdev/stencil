@@ -7,12 +7,13 @@ SUPPRESS_WARNINGS_END
 #include <bit>
 #include <cmath>
 #include <cstdint>
+
 struct Value
 {
 
     struct Type
     {
-        enum class Category
+        enum class Category : uint8_t
         {
             Unknown,
             Unsigned,
@@ -29,36 +30,41 @@ struct Value
             W_8
         };
 
-        uint8_t width : 3;       // 00: 0 , 01: 1, 10: 2, 11: 4, 100: 8
-        uint8_t category : 2;    // 00: unknown,  01: unsigned , 2: signed, 3: float
+        uint8_t  width : 3;       // 00: 0 , 01: 1, 10: 2, 11: 4, 100: 8
+        Category category : 2;    // 00: unknown,  01: unsigned , 2: signed, 3: float
 
         private:
         static consteval unsigned _GetWidth(unsigned x) { return x < 2 ? x : 1 + _GetWidth(x >> 1); }
 
         template <uint8_t W, typename T> static constexpr Type _Create()
         {
-            if constexpr (std::is_unsigned<T>::value) { return Type{.width = W, .category = 1}; }
+            if constexpr (std::is_floating_point<T>::value) { return Type{.width = W, .category = Value::Type::Category::Float}; }
+            else if constexpr (std::is_unsigned<T>::value)
+            {
+                return Type{.width = W, .category = Value::Type::Category::Unsigned};
+            }
             else if constexpr (std::is_signed<T>::value)
             {
-                return Type{.width = W, .category = 2};
-            }
-            else if constexpr (std::is_floating_point<T>::value)
-            {
-                return Type{.width = W, .category = 3};
+                return Type{.width = W, .category = Value::Type::Category::Signed};
             }
             else
             {
-                return Type{.width = 0, .category = 0};
+                return Type{.width = 0, .category = Value::Type::Category::Unknown};
             }
         }
 
         public:
         template <typename T> constexpr static Type Of() { return _Create<_GetWidth(sizeof(T)), T>(); }
 
-        static constexpr Type Unknown() { return Type{.width = 0, .category = 0}; }
-        constexpr bool        operator==(Type const& t) { return width == t.width && category == t.category; }
-        constexpr bool        operator!=(Type const& t) { return width != t.width || category != t.category; }
+        static constexpr Type Unknown() { return Type{.width = 0, .category = Category::Unknown}; }
+        static constexpr bool IsFloat(Type t) { return t.category == Category::Float; }
+        static constexpr bool IsSigned(Type t) { return t.category == Category::Signed; }
+        static constexpr bool IsUnsigned(Type t) { return t.category == Category::Unsigned; }
+
+        constexpr bool operator==(Type const& t) { return width == t.width && category == t.category; }
+        constexpr bool operator!=(Type const& t) { return width != t.width || category != t.category; }
     };
+    static_assert(sizeof(Type) == 1);
 
     template <typename TValue> struct ValueTraits
     {
@@ -75,6 +81,7 @@ struct Value
         static constexpr auto ValueType() { return Type::Of<T>(); };
         static void           Assign(Value& obj, T const& val) { obj._iVal = val; }
         static const auto&    Get(const Value& obj) { return obj._iVal; }
+        static T              Convert(int64_t val) { return static_cast<T>(val); }
         // static void Check() { if (obj._iVal < std::numeric_limits<T>::min() || obj.iVal >
         // std::numeric_limits<T>::max()); throw 1; }
     };
@@ -84,6 +91,8 @@ struct Value
         static constexpr auto ValueType() { return Type::Of<T>(); };
         static void           Assign(Value& obj, T const& val) { obj._uVal = val; }
         static const auto&    Get(const Value& obj) { return obj._uVal; }
+        static T              Convert(uint64_t val) { return static_cast<T>(val); }
+
         // static void Check() { if (obj._iVal < std::numeric_limits<T>::min() || obj.iVal >
         // std::numeric_limits<T>::max()); throw 1; }
     };
@@ -94,6 +103,7 @@ struct Value
         static void           Assign(Value& obj, T const& val) { obj._dVal = val; }
         static const auto&    Get(const Value& obj) { return obj._dVal; }
         static void           Check() {}
+        static T              Convert(double val) { return static_cast<T>(val); }
     };
 
     public:
@@ -112,6 +122,60 @@ struct Value
 
     Value() = default;
     Value(std::nullptr_t) {}
+#pragma warning(push, 3)    // TODO : Remove the warning
+#pragma warning(disable : 4244)
+    template <typename T> T cast() const
+    {
+        if (_type.category == ValueTraits<T>::ValueType().category)
+        {
+            switch (_type.category)
+            {
+            case Value::Type::Category::Float: return ValueTraits<T>::Convert(_dVal);
+            case Value::Type::Category::Signed: return ValueTraits<T>::Convert(_iVal);
+            case Value::Type::Category::Unsigned: return ValueTraits<T>::Convert(_uVal);
+            default: throw std::logic_error("Unsupported Cast");
+            }
+        }
+        else
+        {
+            switch (ValueTraits<T>::ValueType().category)
+            {
+            case Value::Type::Category::Float:
+            {
+                switch (_type.category)
+                {
+                case Value::Type::Category::Signed: ValueTraits<T>::Convert(static_cast<double>(_iVal));
+                case Value::Type::Category::Unsigned: ValueTraits<T>::Convert(static_cast<double>(_uVal));
+                default: throw std::logic_error("Unsupported Cast");
+                }
+            }
+            break;
+            case Value::Type::Category::Signed:
+            {
+                switch (_type.category)
+                {
+                case Value::Type::Category::Float: ValueTraits<T>::Convert(static_cast<int64_t>(_dVal));
+                case Value::Type::Category::Unsigned: ValueTraits<T>::Convert(static_cast<int64_t>(_uVal));
+                default: throw std::logic_error("Unsupported Cast");
+                }
+            }
+            break;
+            case Value::Type::Category::Unsigned:
+            {
+                switch (_type.category)
+                {
+                case Value::Type::Category::Float: ValueTraits<T>::Convert(static_cast<uint64_t>(_dVal));
+                case Value::Type::Category::Signed: ValueTraits<T>::Convert(static_cast<uint64_t>(_iVal));
+                default: throw std::logic_error("Unsupported Cast");
+                }
+            }
+            break;
+            default: throw std::logic_error("Unsupported Cast");
+            }
+        }
+    }
+#pragma warning(pop)
+
 #if 0
     static int _doubletoint(double val) { return static_cast<int>(std::round(val)); }
 
@@ -203,13 +267,16 @@ template <> struct Value::ValueTraits<bool> : public Value::UnsignedTraits<bool>
 {};
 template <> struct Value::ValueTraits<double> : public Value::DoubleTraits<double>
 {};
+template <> struct Value::ValueTraits<float> : public Value::DoubleTraits<float>
+{};
 
-template <> struct Value::ValueTraits<std::chrono::time_point<std::chrono::system_clock>>
+template <typename TClock> struct Value::ValueTraits<std::chrono::time_point<TClock>>
 {
-    using time_point = std::chrono::time_point<std::chrono::system_clock>;
-    static constexpr auto ValueType() { return Value::Type{.width = 4, .category = 1}; }
+    using time_point = std::chrono::time_point<TClock>;
+    static constexpr auto ValueType() { return Value::Type{.width = 4, .category = Value::Type::Category::Unsigned}; }
     static void           Assign(Value& obj, time_point& val) { obj._iVal = val.time_since_epoch().count(); }
     static auto           Get(Value const& obj) { return time_point(time_point::duration(obj._iVal)); }
+    static auto           Convert(uint64_t val) { return time_point(time_point::duration(val)); }
 };
 
 inline Value::operator ::size_t() const
@@ -220,7 +287,19 @@ inline Value::operator ::size_t() const
 template <typename T>
 concept ConceptValue = (Value::ValueTraits<T>::ValueType() != Value::Type::Unknown());
 
+template <typename T>
+concept ConceptValueFloat = Value::Type::IsFloat(Value::ValueTraits<T>::ValueType());
+
+template <typename T>
+concept ConceptValueSigned = Value::Type::IsSigned(Value::ValueTraits<T>::ValueType());
+
+template <typename T>
+concept ConceptValueUnsigned = Value::Type::IsUnsigned(Value::ValueTraits<T>::ValueType());
+
 static_assert(ConceptValue<double>);
+static_assert(ConceptValue<float>);
 static_assert(ConceptValue<char>);
 static_assert(ConceptValue<uint16_t>);
 static_assert(ConceptValue<bool>);
+static_assert(!ConceptValueSigned<float>);
+static_assert(ConceptValueFloat<float>);

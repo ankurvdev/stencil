@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <bitset>
 #include <cassert>
+#include <charconv>
 #include <climits>
 #include <ctype.h>
 #include <list>
@@ -20,7 +21,6 @@
 #include <tuple>
 #include <typeinfo>
 #include <unordered_map>
-#include <uuid.h>
 #include <vector>
 
 namespace Stencil
@@ -136,12 +136,70 @@ template <typename T> bool AreEqual(T const& obj1, T const& obj2)
 }
 
 }    // namespace Stencil
-
+#pragma warning(push, 3)
 template <ConceptValue T> struct Stencil::TypeTraits<T>
 {
     using Types = std::tuple<Type::Primitive>;
 };
 
+template <ConceptValue T1> struct Stencil::Assign<T1, Value>
+{
+    void operator()(T1& dst, Value const& val) { dst = val.template cast<T1>(); }
+};
+
+template <ConceptValueFloat T1> struct Stencil::Assign<T1, std::string_view>
+{
+    void operator()(T1& dst, std::string_view const& val) { TODO(""); }
+};
+
+template <ConceptValueSigned T1> struct Stencil::Assign<T1, std::string_view>
+{
+    void operator()(T1& dst, std::string_view const& sv)
+    {
+        if constexpr (std::is_same_v<T1, char>)
+        {
+            if (sv.size() == 1)
+            {
+                dst = sv[0];
+                return;
+            }
+        }
+        int64_t ival;
+        auto    result = std::from_chars(sv.data(), sv.data() + sv.size(), ival);
+        if (result.ec == std::errc::invalid_argument) throw std::logic_error("Cannot convert");
+        if (ival > std::numeric_limits<T1>::max() || ival < std::numeric_limits<T1>::min()) { throw std::logic_error("Out of range"); }
+        dst = static_cast<T1>(ival);
+    }
+};
+
+template <ConceptValueUnsigned T1> struct Stencil::Assign<T1, std::string_view>
+{
+    void operator()(T1& dst, std::string_view const& sv)
+    {
+        uint64_t val;
+        auto     result = std::from_chars(sv.data(), sv.data() + sv.size(), val);
+        if (result.ec == std::errc::invalid_argument) throw std::logic_error("Cannot convert");
+        // TODO : if (val > std::numeric_limits<T1>::max() || val < std::numeric_limits<T1>::min()) { throw std::logic_error("Out of range"); }
+        dst = Value::ValueTraits<T1>::Convert(val);
+    }
+};
+
+template <ConceptValueFloat T1> struct Stencil::Assign<T1, std::wstring_view>
+{
+    void operator()(T1& dst, std::wstring_view const& val) { TODO(""); }
+};
+
+template <ConceptValueSigned T1> struct Stencil::Assign<T1, std::wstring_view>
+{
+    void operator()(T1& dst, std::wstring_view const& val) { TODO(""); }
+};
+
+template <ConceptValueUnsigned T1> struct Stencil::Assign<T1, std::wstring_view>
+{
+    void operator()(T1& dst, std::wstring_view const& val) { TODO(""); }
+};
+
+#pragma warning(pop)
 /*
  * OpenQuestions
  * TypeTraits.Categories Should there be a preferred

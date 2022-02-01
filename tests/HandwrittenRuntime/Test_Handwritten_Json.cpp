@@ -36,12 +36,13 @@ template <typename T> void RunTestCases(std::initializer_list<TestCase> cases)
     std::filesystem::path logfname = Catch::getResultCapture().getCurrentTestName() + ".txt";
     std::filesystem::path reffname = Catch::getResultCapture().getCurrentTestName() + ".txt";
     {
-        std::ofstream logfile(logfname);
-        RunTestCase<T>({"1", "default-1", false}, logfile);
-        RunTestCase<T>({"{}", "default-2", true}, logfile);
-        RunTestCase<T>({"[]", "default-3", false}, logfile);
-        RunTestCase<T>({R"({"mismatched": {}})", "default-4", false}, logfile);
-        for (auto& tc : cases) { RunTestCase<T>(tc, logfile); }
+        std::stringstream ostr;
+        RunTestCase<T>({"1", "default-1", false}, ostr);
+        RunTestCase<T>({"{}", "default-2", true}, ostr);
+        RunTestCase<T>({"[]", "default-3", false}, ostr);
+        RunTestCase<T>({R"({"mismatched": {}})", "default-4", false}, ostr);
+        for (auto& tc : cases) { RunTestCase<T>(tc, ostr); }
+        REQUIRE(ostr.str() == "");
     }
 
     // CompareFileAgainstResource(logfname, reffname.string());
@@ -66,11 +67,11 @@ TEST_CASE("Json", "[Json]")
     std::array<char, 8>     f11;    // Iterable, blob (string) and Value (64-bit)
     std::array<uint16_t, 4> f12;    // Iterable and by value (64 bit)
 
-    uuids::uuid f13;    // iterable , blob (string) or FixedSize buffer
+    uuids::uuid f13;    // iterable , blob (string) or Primitives buffer
     */
-    SECTION("FixedSize")
+    SECTION("Primitives")
     {
-        RunTestCases<FixedSize>({
+        RunTestCases<Primitives64Bit>({
             {R"({"f1": -1})", "int64-1", true},
             {R"({"f2": -1})", "int16-1", true},
             {R"({"f3": 1})", "uint64-1", true},
@@ -80,10 +81,9 @@ TEST_CASE("Json", "[Json]")
             {R"({"f7": true})", "bool-1", true},
             {R"({"f8": "2012-04-23T18:25:43.511Z"})", "time-1", true},
             {R"({"f9": 100})", "time-2", true},
-            {R"({"f10": [0.1, 0.2, 0.3, 0.4]})", "int64-1", true},
-            {R"({"f11": "01234567"})", "chararry-1", true},
-            {R"({"f12": 0x0123456789abcdef})", "intarray-1", true},
-            {R"({"f13": "{01234567-8901-2345-6789-012345678901}"})", "uuid-1", true},
+            //{R"({"f10": "01234567"})", "chararry-1", true},
+            //{R"({"f11": 0x0123456789abcdef})", "intarray-1", true},
+            //{R"({"f13": "{01234567-8901-2345-6789-012345678901}"})", "uuid-1", true},
         });
     }
 

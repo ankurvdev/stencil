@@ -5,7 +5,7 @@
 #include <sstream>
 #include <string>
 
-struct FixedSize
+struct Primitives64Bit
 {
     int64_t  f1;
     int16_t  f2;
@@ -17,12 +17,21 @@ struct FixedSize
 
     std::chrono::time_point<std::chrono::system_clock>          f8;
     std::chrono::time_point<std::chrono::high_resolution_clock> f9;
+};
 
-    std::array<double, 8>   f10;    // Iterable only
-    std::array<char, 8>     f11;    // Iterable, blob (string) and Value (64-bit)
-    std::array<uint16_t, 4> f12;    // Iterable and by value (64 bit)
+struct ComplexPrimitives
+{
+    std::array<char, 8>     f1;    // Iterable, blob (string) and Value (64-bit)
+    std::array<uint16_t, 4> f2;    // Iterable and by value (64 bit)
+    std::array<float, 2>    f3;    // Iterable and by value (64 bit)
+};
 
-    uuids::uuid f13;    // iterable , blob (string) or FixedSize buffer
+struct LargePrimitives
+{
+    std::array<char, 16>    f1;    // Iterable, blob (string) and Value (64-bit)
+    std::array<uint16_t, 8> f2;    // Iterable and by value (64 bit)
+    std::array<float, 4>    f3;    // Iterable and by value (64 bit)
+    uuids::uuid             f4;
 };
 
 struct WithBlobs
@@ -35,11 +44,11 @@ struct WithBlobs
 
 struct Nested
 {
-    FixedSize strctf;
-    WithBlobs strctb;
+    Primitives64Bit strctf;
+    WithBlobs       strctb;
 
-    // std::unique_ptr<FixedSize> uptr;
-    std::shared_ptr<FixedSize> sptr;
+    // std::unique_ptr<Primitives> uptr;
+    std::shared_ptr<Primitives64Bit> sptr;
 
     std::vector<WithBlobs> vec;
     std::vector<double>    vec2;
@@ -55,7 +64,7 @@ struct TestObj
     MultiAttributed f1;
 };
 
-template <> struct Stencil::TypeTraits<FixedSize>
+template <> struct Stencil::TypeTraits<Primitives64Bit>
 {
     using Types = std::tuple<Stencil::Type::Indexable, Stencil::Type::Iterable>;
 
@@ -71,32 +80,24 @@ template <> struct Stencil::TypeTraits<FixedSize>
         Field_f7,
         Field_f8,
         Field_f9,
-        Field_f10,
-        Field_f11,
-        Field_f12,
-        Field_f13
     };
 
     using Key = Fields;
 
     // TODO: Move to visitor
-    template <typename TLambda> static void VisitKey(FixedSize& obj, Fields f, TLambda&& lambda)
+    template <typename TLambda> static void VisitKey(Primitives64Bit& obj, Fields f, TLambda&& lambda)
     {
         switch (f)
         {
-        case Fields::Field_f1:; return lambda(obj.f1);
-        case Fields::Field_f2:; return lambda(obj.f2);
-        case Fields::Field_f3:; return lambda(obj.f3);
-        case Fields::Field_f4:; break;
-        case Fields::Field_f5:; break;
-        case Fields::Field_f6:; break;
-        case Fields::Field_f7:; break;
-        case Fields::Field_f8:; break;
-        case Fields::Field_f9:; break;
-        case Fields::Field_f10:; break;
-        case Fields::Field_f11:; break;
-        case Fields::Field_f12:; break;
-        case Fields::Field_f13:; break;
+        case Fields::Field_f1: return lambda(obj.f1);
+        case Fields::Field_f2: return lambda(obj.f2);
+        case Fields::Field_f3: return lambda(obj.f3);
+        case Fields::Field_f4: return lambda(obj.f4);
+        case Fields::Field_f5: return lambda(obj.f5);
+        case Fields::Field_f6: return lambda(obj.f6);
+        case Fields::Field_f7: return lambda(obj.f7);
+        case Fields::Field_f8: return lambda(obj.f8);
+        case Fields::Field_f9: return lambda(obj.f9);
 
         case Fields::Invalid: [[fallthrough]];
         default: throw std::logic_error("Invalid field");
@@ -104,18 +105,17 @@ template <> struct Stencil::TypeTraits<FixedSize>
     }
 };
 
-template <> struct Stencil::EnumTraits<Stencil::TypeTraits<FixedSize>::Fields>
+template <> struct Stencil::EnumTraits<Stencil::TypeTraits<Primitives64Bit>::Fields>
 {
-    static constexpr std::string_view Names[]
-        = {"Invalid", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12", "f13"};
+    static constexpr std::string_view Names[] = {"Invalid", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9"};
 
-    static Stencil::TypeTraits<FixedSize>::Fields ForIndex(size_t index)
+    static Stencil::TypeTraits<Primitives64Bit>::Fields ForIndex(size_t index)
     {
-        return static_cast<Stencil::TypeTraits<FixedSize>::Fields>(index);
+        return static_cast<Stencil::TypeTraits<Primitives64Bit>::Fields>(index);
     }
 };
 
-static_assert(Stencil::Type::IsIndexable<FixedSize>(), "indexable");
+static_assert(Stencil::Type::IsIndexable<Primitives64Bit>(), "indexable");
 
 template <> struct Stencil::TypeTraits<WithBlobs>
 {};
