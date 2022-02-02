@@ -77,7 +77,9 @@ concept ConceptPrimitiveOnly = Type::IsPrimitive<T>();
 template <typename T>
 concept ConceptIterableNotIndexable = Type::IsIterable<T>() && !Type::IsIndexable<T>();
 
-template <typename T1, typename T2> struct Assign;
+#if defined TODO
+
+template < typename T1, typename T2> struct Assign;
 
 template <typename TInterfaceApi> struct InterfaceApiTraits
 {
@@ -134,7 +136,7 @@ template <typename T> bool AreEqual(T const& obj1, T const& obj2)
 {
     return Functions<T>::AreEqual(obj1, obj2);
 }
-
+#endif
 }    // namespace Stencil
 #pragma warning(push, 3)
 template <ConceptValue T> struct Stencil::TypeTraits<T>

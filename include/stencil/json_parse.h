@@ -6,6 +6,7 @@
 #pragma warning(push, 3)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
+#include <fmt/format.h>
 #include <rapidjson/reader.h>
 #pragma clang diagnostic pop
 #pragma warning(pop)
@@ -34,7 +35,8 @@ template <typename T> struct Tokenizer : public rapidjson::BaseReaderHandler<rap
         _stackvisitor.Start(obj);
         rapidjson::Reader       reader;
         rapidjson::StringStream ss(ctx.data());
-        reader.Parse(ss, *this);
+        auto                    rslt = reader.Parse(ss, *this);
+        if (rslt.IsError()) { throw std::logic_error(fmt::format("Json parse error : Code:{} Offset:{}", rslt.Code(), rslt.Offset())); }
     }
 
     template <typename T> void _Handle(T const& val)

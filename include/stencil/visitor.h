@@ -1,6 +1,7 @@
 #pragma once
 #include "base.h"
 #include "timestamped.h"
+
 namespace Stencil
 {
 // 3 core datatypes

@@ -15,8 +15,8 @@ struct Primitives64Bit
     float    f6;
     bool     f7;
 
-    std::chrono::time_point<std::chrono::system_clock>          f8;
-    std::chrono::time_point<std::chrono::high_resolution_clock> f9;
+    std::chrono::time_point<std::chrono::system_clock> f8;
+    std::chrono::time_point<std::chrono::system_clock> f9;    // TODO High performance clock
 };
 
 struct ComplexPrimitives
@@ -83,11 +83,29 @@ template <> struct Stencil::TypeTraits<Primitives64Bit>
     };
 
     using Key = Fields;
+};
 
-    // TODO: Move to visitor
-    template <typename TLambda> static void VisitKey(Primitives64Bit& obj, Fields f, TLambda&& lambda)
+template <> struct Stencil::EnumTraits<Stencil::TypeTraits<Primitives64Bit>::Fields>
+{
+    using Enum = Stencil::TypeTraits<Primitives64Bit>::Fields;
+
+    static constexpr std::string_view Names[] = {"Invalid", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9"};
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraits<Primitives64Bit>::Fields ForIndex(size_t index)
     {
-        switch (f)
+        return static_cast<Stencil::TypeTraits<Primitives64Bit>::Fields>(index);
+    }
+};
+
+template <> struct Stencil::Visitor<Primitives64Bit> : Stencil::VisitorT<Primitives64Bit>
+{
+    using Fields = TypeTraits<Primitives64Bit>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    {
+        switch (field)
         {
         case Fields::Field_f1: return lambda(obj.f1);
         case Fields::Field_f2: return lambda(obj.f2);
@@ -98,30 +116,24 @@ template <> struct Stencil::TypeTraits<Primitives64Bit>
         case Fields::Field_f7: return lambda(obj.f7);
         case Fields::Field_f8: return lambda(obj.f8);
         case Fields::Field_f9: return lambda(obj.f9);
-
         case Fields::Invalid: [[fallthrough]];
-        default: throw std::logic_error("Invalid field");
+        default: throw std::logic_error("Invalid Key");
         }
     }
-};
 
-template <> struct Stencil::EnumTraits<Stencil::TypeTraits<Primitives64Bit>::Fields>
-{
-    static constexpr std::string_view Names[] = {"Invalid", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9"};
-
-    static Stencil::TypeTraits<Primitives64Bit>::Fields ForIndex(size_t index)
+    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
     {
-        return static_cast<Stencil::TypeTraits<Primitives64Bit>::Fields>(index);
+        lambda(Fields::Field_f1, obj.f1);
+        lambda(Fields::Field_f2, obj.f2);
+        lambda(Fields::Field_f3, obj.f3);
+        lambda(Fields::Field_f4, obj.f4);
+        lambda(Fields::Field_f5, obj.f5);
+        lambda(Fields::Field_f6, obj.f6);
+        lambda(Fields::Field_f7, obj.f7);
+        lambda(Fields::Field_f8, obj.f8);
+        lambda(Fields::Field_f9, obj.f9);
     }
 };
-
-static_assert(Stencil::Type::IsIndexable<Primitives64Bit>(), "indexable");
-
-template <> struct Stencil::TypeTraits<WithBlobs>
-{};
-
-template <> struct Stencil::TypeTraits<Nested>
-{};
 
 template <> struct Stencil::TypeTraits<MultiAttributed>
 {
@@ -133,20 +145,24 @@ template <> struct Stencil::TypeTraits<MultiAttributed>
     };
 
     using Key = Fields;
+};
 
-    // TODO:
-    using ValueTypes = std::tuple<>;
+template <> struct Stencil::EnumTraits<Stencil::TypeTraits<MultiAttributed>::Fields>
+{
+    using Enum = Stencil::TypeTraits<MultiAttributed>::Fields;
 
-    template <typename TLambda> static void VisitKey(MultiAttributed& /*obj*/, Fields f, TLambda&& /*lambda*/)
+    static constexpr std::string_view Names[] = {"Invalid", "f1"};
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraits<MultiAttributed>::Fields ForIndex(size_t index)
     {
-        switch (f)
-        {
-        case Fields::Field_f1:; break;
-        case Fields::Invalid: [[fallthrough]];
-        default: throw std::logic_error("Invalid field");
-        }
+        return static_cast<Stencil::TypeTraits<MultiAttributed>::Fields>(index);
     }
 };
+
+template <> struct Stencil::Visitor<MultiAttributed> : Stencil::VisitorT<MultiAttributed>
+{};
 
 template <> struct Stencil::TypeTraits<TestObj>
 {
@@ -158,60 +174,33 @@ template <> struct Stencil::TypeTraits<TestObj>
         Field_f1 = 1
     };
 
-    using Key        = Fields;
-    using ValueTypes = std::tuple<MultiAttributed>;
-
-    template <typename TLambda> static void VisitKey(TestObj& obj, Fields f, TLambda&& lambda)
-    {
-        switch (f)
-        {
-        case Fields::Field_f1: lambda(obj.f1); break;
-        case Fields::Invalid: [[fallthrough]];
-        default: throw std::logic_error("Invalid field");
-        }
-    }
+    using Key = Fields;
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraits<TestObj>::Fields>
 {
-    static constexpr std::string_view           Names[] = {"Invalid", "f1"};
+    using Enum = Stencil::TypeTraits<TestObj>::Fields;
+
+    static constexpr std::string_view Names[] = {"Invalid", "f1"};
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
     static Stencil::TypeTraits<TestObj>::Fields ForIndex(size_t index) { return static_cast<Stencil::TypeTraits<TestObj>::Fields>(index); }
-};
-
-template <> struct Stencil::EnumTraits<Stencil::TypeTraits<MultiAttributed>::Fields>
-{
-    static constexpr std::string_view                   Names[] = {"Invalid", "f1"};
-    static Stencil::TypeTraits<MultiAttributed>::Fields ForIndex(size_t index)
-    {
-        return static_cast<Stencil::TypeTraits<MultiAttributed>::Fields>(index);
-    }
-};
-
-template <> struct Stencil::Visitor<MultiAttributed> : Stencil::VisitorT<MultiAttributed>
-{
-    Visitor() = default;
-    // Visitor(MultiAttributed& obj) : _ref(&obj) {}
-    CLASS_DELETE_COPY_AND_MOVE(Visitor);
-
-    Stencil::StructFieldEnumVisitor<MultiAttributed> _visitor_key;
-
-    Stencil::VisitorWithParent<MultiAttributed, Stencil::TimestampedT<MultiAttributed>> _visitor_base_b1;
-    Stencil::VisitorWithParent<MultiAttributed, UuidBasedId<MultiAttributed>>           _visitor_base_b2;
-
-    // Stencil::VisitorWithParent<MultiAttributed, decltype(MultiAttributed{}.f1)> _visitor_mem_f1;
-
-    // MultiAttributed* _ref{};
 };
 
 template <> struct Stencil::Visitor<TestObj> : Stencil::VisitorT<TestObj>
 {
-    Visitor() = default;
-    // Visitor(TestObj& obj) : _ref(&obj) {}
-    CLASS_DELETE_COPY_AND_MOVE(Visitor);
+    using Fields = TypeTraits<TestObj>::Fields;
 
-    Stencil::StructFieldEnumVisitor<TestObj> _visitor_key;
+    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_f1: return lambda(obj.f1);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
 
-    Stencil::VisitorWithParent<TestObj, decltype(TestObj{}.f1)> _visitor_mem_f1;
-
-    // TestObj* _ref{};
+    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda) { lambda(Fields::Field_f1, obj.f1); }
 };

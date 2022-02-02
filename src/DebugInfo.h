@@ -1,7 +1,5 @@
 #pragma once
 #pragma warning(push, 3)
-#include <fmt/format.h>
-
 #include <fmt/ostream.h>
 #include <fmt/xchar.h>
 #pragma warning(pop)

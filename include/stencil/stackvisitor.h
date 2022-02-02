@@ -120,7 +120,7 @@ template <typename TOwner, ConceptIndexable T> struct IndexableVisitorTypeHandle
     {
         TypeHandler* handler = nullptr;
         void*        ptr     = nullptr;
-        Traits::VisitKey(obj, std::move(_key), [&](auto& val) {
+        Visitor<T>::VisitKey(obj, std::move(_key), [&](auto& val) {
             using VisitorHandler = VisitorTypeHandler<TOwner, std::remove_reference_t<decltype(val)>>;
             handler              = owner->template FindOrCreateHandler<VisitorHandler>();
             ptr                  = &val;
