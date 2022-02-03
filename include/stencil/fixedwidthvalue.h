@@ -144,8 +144,8 @@ struct Value
             {
                 switch (_type.category)
                 {
-                case Value::Type::Category::Signed: ValueTraits<T>::Convert(static_cast<double>(_iVal));
-                case Value::Type::Category::Unsigned: ValueTraits<T>::Convert(static_cast<double>(_uVal));
+                case Value::Type::Category::Signed: return ValueTraits<T>::Convert(static_cast<double>(_iVal));
+                case Value::Type::Category::Unsigned: return ValueTraits<T>::Convert(static_cast<double>(_uVal));
                 default: throw std::logic_error("Unsupported Cast");
                 }
             }
@@ -154,8 +154,8 @@ struct Value
             {
                 switch (_type.category)
                 {
-                case Value::Type::Category::Float: ValueTraits<T>::Convert(static_cast<int64_t>(_dVal));
-                case Value::Type::Category::Unsigned: ValueTraits<T>::Convert(static_cast<int64_t>(_uVal));
+                case Value::Type::Category::Float: return ValueTraits<T>::Convert(static_cast<int64_t>(_dVal));
+                case Value::Type::Category::Unsigned: return ValueTraits<T>::Convert(static_cast<int64_t>(_uVal));
                 default: throw std::logic_error("Unsupported Cast");
                 }
             }
@@ -164,8 +164,8 @@ struct Value
             {
                 switch (_type.category)
                 {
-                case Value::Type::Category::Float: ValueTraits<T>::Convert(static_cast<uint64_t>(_dVal));
-                case Value::Type::Category::Signed: ValueTraits<T>::Convert(static_cast<uint64_t>(_iVal));
+                case Value::Type::Category::Float: return ValueTraits<T>::Convert(static_cast<uint64_t>(_dVal));
+                case Value::Type::Category::Signed: return ValueTraits<T>::Convert(static_cast<uint64_t>(_iVal));
                 default: throw std::logic_error("Unsupported Cast");
                 }
             }

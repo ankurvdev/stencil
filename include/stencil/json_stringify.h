@@ -72,6 +72,17 @@ template <Stencil::ConceptEnum T> struct _PrimitiveStringifier<T>
         fmt::print(ctx, "\"{}\"", Stencil::EnumTraits<T>::ToString(obj));
     }
 };
+template <ConceptValue T> struct _PrimitiveStringifier<T>
+{
+    template <typename Context> static auto Write(Context& ctx, T const& obj)
+    {
+        if constexpr (std::is_same_v<T, std::chrono::time_point<std::chrono::system_clock>>) { fmt::print(ctx, "\"{:%FT%T%z}\"", obj); }
+        else
+        {
+            fmt::print(ctx, "{}", obj);
+        }
+    }
+};
 
 template <typename TClock> struct _PrimitiveStringifier<std::chrono::time_point<TClock>>
 {

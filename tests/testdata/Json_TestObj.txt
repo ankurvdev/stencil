@@ -1,0 +1,2 @@
+Testcase[struct TestObj]:default-2, Input: {}
+Testcase[struct TestObj]:default-2, Output: {"f1":{}}

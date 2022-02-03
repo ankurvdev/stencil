@@ -42,18 +42,23 @@ inline std::string wstring_to_string(std::wstring_view wstr)
     return out;
 }
 
-inline std::vector<std::string> readlines(std::filesystem::path const& filepath)
+inline std::vector<std::string> readlines(std::istream& istr)
 {
     std::vector<std::string> lines;
-    std::ifstream            file(filepath);
     std::string              line;
 
-    while (std::getline(file, line))
+    while (std::getline(istr, line))
     {
         if (line.length() > 0 && line[line.length() - 1] == '\r') { line.resize(line.length() - 1); }
         lines.push_back(std::move(line));
     }
     return lines;
+}
+
+inline std::vector<std::string> readlines(std::filesystem::path const& path)
+{
+    std::fstream file(path);
+    return readlines(file);
 }
 
 inline void CompareLines(std::vector<std::string> const& actualstring,
@@ -70,7 +75,7 @@ inline void CompareLines(std::vector<std::string> const& actualstring,
         d.printUnifiedFormat();    // print a difference as Unified Format.
         {
             std::ofstream f(std::string(resname) + "_failure.txt");
-            for (auto& l : actualstring) { f << l << std::endl; }
+            for (auto& l : actualstring) { f << l << "\n"; }
             f.flush();
             f.close();
         }
@@ -80,27 +85,29 @@ inline void CompareLines(std::vector<std::string> const& actualstring,
 
 #if defined USE_EMBEDRESOURCE
 
+inline std::string GeneratePrefixFromTestName()
+{
+    auto prefix = Catch::getResultCapture().getCurrentTestName() + "_";
+    for (auto& c : prefix)
+    {
+        if (std::isalpha(c) || std::isdigit(c)) continue;
+        c = '_';
+    }
+    return prefix;
+}
+
 struct ResourceFileManager
 {
-    static std::string _GeneratePrefixFromTestName()
-    {
-        auto prefix = Catch::getResultCapture().getCurrentTestName() + "_";
-        for (auto& c : prefix)
-        {
-            if (std::isalpha(c) || std::isdigit(c)) continue;
-            c = '_';
-        }
-        return prefix;
-    }
 
     ResourceFileManager() = default;
     ~ResourceFileManager()
     {
         for (auto const& [k, v] : _openedfiles) { std::filesystem::remove(v); }
     }
+
     auto load(std::string const& name, std::string const& prefix)
     {
-        auto testresname = _GeneratePrefixFromTestName() + name;
+        auto testresname = GeneratePrefixFromTestName() + name;
 
         auto it = _openedfiles.find(testresname);
         if (it != _openedfiles.end()) { return it->second; }
@@ -125,15 +132,32 @@ struct ResourceFileManager
     std::unordered_map<std::string, std::filesystem::path> _openedfiles;
 };
 
+inline std::vector<std::string> LoadResource(std::string_view const& name)
+{
+    auto testresname = GeneratePrefixFromTestName() + std::string(name) + ".txt";
+
+    auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
+    for (auto const r : resourceCollection)
+    {
+        auto resname = wstring_to_string(r.name());
+        if (resname == testresname || resname == name)
+        {
+            std::string       str(r.string());
+            std::stringstream ss(str);
+            return readlines(ss);
+        }
+    }
+    return std::vector<std::string>();
+}
+
 inline void CheckOutputAgainstResource(std::vector<std::string> const& lines, std::string_view const& resourcename)
 {
-    ResourceFileManager resfiles;
-    CompareLines(lines, readlines(resfiles.load(std::string(resourcename), "res_")), resourcename);
+    CompareLines(lines, LoadResource(resourcename), GeneratePrefixFromTestName() + std::string(resourcename));
 }
 
 inline void CompareBinaryOutputAgainstResource(std::span<const uint8_t> const& actual, std::string_view const& resourcename)
 {
-    auto testresname        = ResourceFileManager::_GeneratePrefixFromTestName() + std::string(resourcename);
+    auto testresname        = GeneratePrefixFromTestName() + std::string(resourcename);
     auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
     for (auto const r : resourceCollection)
     {
@@ -153,6 +177,7 @@ inline void CompareBinaryOutputAgainstResource(std::span<const uint8_t> const& a
     }
     FAIL("Cannot find reference resource" + testresname);
 }
+
 inline void CompareFileAgainstResource(std::filesystem::path const& actualf, std::string_view const& resourcename)
 {
     std::ifstream         instream(actualf, std::ios::in | std::ios::binary);

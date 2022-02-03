@@ -173,20 +173,6 @@ if (BUILD_TESTING)
         add_executable(runtime_tests
             tests/HandwrittenRuntime/Test_Handwritten_CLOpts.cpp
             tests/HandwrittenRuntime/Test_Handwritten_Json.cpp
-
-            #tests/HandwrittenRuntime/Test_Handwritten_Transaction.cpp
-            #tests/HandwrittenRuntime/Test_Handwritten_WebSvc.cpp
-            #tests/HandwrittenRuntime/Test_Handwritten_ObjectStore.cp
-            #tests/HandwrittenRuntime/Test_CommandLineArgsReaderHandler.cpp
-            #tests/HandwrittenRuntime/Test_Database2.cpp
-            #tests/HandwrittenRuntime/Test_Database.cpp
-            #tests/Test_DataHandlerJson.cpp
-            #tests/Test_DataRecorderPlayer.cpp
-            #tests/Test_ObservableOptionalProps.cpp
-            #tests/Test_SerDes.cpp
-            #tests/Test_Transactions.cpp
-            #tests/Test_WebService_Handwritten.cpp
-            #tests/Test_WebService_Autogen.cpp
         )
     
         add_dependencies(runtime_tests codegen)
@@ -197,7 +183,7 @@ if (BUILD_TESTING)
         target_link_libraries (runtime_tests PRIVATE Threads::Threads)
         add_test(NAME runtime_tests COMMAND runtime_tests)
     
-        #target_add_resource(runtime_tests testdata ${resfiles} ${pidlfiles})
+        target_add_resource(runtime_tests testdata ${resfiles} ${pidlfiles})
         target_include_directories(runtime_tests PRIVATE src include tests)
 
     if (FALSE)

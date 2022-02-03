@@ -41,8 +41,13 @@ template <typename T> struct Tokenizer : public rapidjson::BaseReaderHandler<rap
 
     template <typename T> void _Handle(T const& val)
     {
-        if (_modes.back() == Mode::Array) { _stackvisitor.Add(); }
+        if (_modes.back() == Mode::Array)
+        {
+            _modes.push_back(Mode::Array);
+            _stackvisitor.Add();
+        }
         _stackvisitor.Assign(val);
+        _stackvisitor.Pop();
     }
 
     void _StartArray() { _modes.push_back(Mode::Array); }

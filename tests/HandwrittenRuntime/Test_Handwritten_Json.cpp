@@ -9,13 +9,13 @@ struct TestCase
     bool             valid;
 };
 
-template <typename T> void RunTestCase(TestCase const& tc, std::ostream& ostr)
+template <typename T> void RunTestCase(TestCase const& tc, std::vector<std::string>& lines)
 {
     if (!tc.valid)
     {
         if (IsDebuggerPresent()) return;
     }
-    fmt::print(ostr, "Testcase[{}]:{}, Input: {}", typeid(T).name(), tc.desc, tc.json);
+    lines.push_back(fmt::format("Testcase[{}]:{}, Input: {}", typeid(T).name(), tc.desc, tc.json));
     try
     {
 
@@ -24,25 +24,23 @@ template <typename T> void RunTestCase(TestCase const& tc, std::ostream& ostr)
         auto obj2  = Stencil::Json::Parse<T>(jstr1);
         auto jstr2 = Stencil::Json::Stringify<T>(obj2);
         REQUIRE(jstr1 == jstr2);
-        fmt::print(ostr, "Testcase:{}, Output: {}", tc.desc, jstr2);
+        lines.push_back(fmt::format("Testcase[{}]:{}, Output: {}", typeid(T).name(), tc.desc, jstr2));
     } catch (std::exception const& ex)
     {
-        fmt::print(ostr, "Testcase:{}, Exception: {}", ex.what());
+        lines.push_back(fmt::format("Testcase[{}]:{}, Exception: {}", typeid(T).name(), tc.desc, ex.what()));
     }
 }
 
-template <typename T> void RunTestCases(std::initializer_list<TestCase> cases)
+template <typename T> void RunTestCases(std::initializer_list<TestCase> cases, std::string const& name)
 {
-    std::filesystem::path logfname = Catch::getResultCapture().getCurrentTestName() + ".txt";
-    std::filesystem::path reffname = Catch::getResultCapture().getCurrentTestName() + ".txt";
     {
-        std::stringstream ostr;
-        RunTestCase<T>({"1", "default-1", false}, ostr);
-        RunTestCase<T>({"{}", "default-2", true}, ostr);
-        RunTestCase<T>({"[]", "default-3", false}, ostr);
-        RunTestCase<T>({R"({"mismatched": {}})", "default-4", false}, ostr);
-        for (auto& tc : cases) { RunTestCase<T>(tc, ostr); }
-        // REQUIRE(ostr.str() == "");
+        std::vector<std::string> lines;
+        RunTestCase<T>({"1", "default-1", false}, lines);
+        RunTestCase<T>({"{}", "default-2", true}, lines);
+        RunTestCase<T>({"[]", "default-3", false}, lines);
+        RunTestCase<T>({R"({"mismatched": {}})", "default-4", false}, lines);
+        for (auto& tc : cases) { RunTestCase<T>(tc, lines); }
+        CheckOutputAgainstResource(lines, name);
     }
 
     // CompareFileAgainstResource(logfname, reffname.string());
@@ -50,24 +48,20 @@ template <typename T> void RunTestCases(std::initializer_list<TestCase> cases)
 
 TEST_CASE("Json", "[Json]")
 {
-    // SECTION("TestObj") { RunTestCases<TestObj>({}); }
+    SECTION("TestObj") { RunTestCases<TestObj>({}, "TestObj"); }
 
     SECTION("Primitives64Bit")
     {
-        RunTestCases<Primitives64Bit>({
-            {R"({"f1": -1})", "int64-1", true},
-            {R"({"f2": -1})", "int16-1", true},
-            {R"({"f3": 1})", "uint64-1", true},
-            {R"({"f4": "a"})", "char-1", true},
-            {R"({"f5": 0.1})", "double-1", true},
-            {R"({"f6": 0.1})", "float-1", true},
-            {R"({"f7": true})", "bool-1", true},
-            {R"({"f8": "2012-04-23T18:25:43.511Z"})", "time-1", true},
-            {R"({"f9": 100})", "time-2", true},
-            //{R"({"f10": "01234567"})", "chararry-1", true},
-            //{R"({"f11": 0x0123456789abcdef})", "intarray-1", true},
-            //{R"({"f13": "{01234567-8901-2345-6789-012345678901}"})", "uuid-1", true},
-        });
+        RunTestCases<Primitives64Bit>({{R"({"f1": -1})", "int64-1", true},
+                                       {R"({"f2": -1})", "int16-1", true},
+                                       {R"({"f3": 1})", "uint64-1", true},
+                                       {R"({"f4": "a"})", "char-1", true},
+                                       {R"({"f5": 0.1})", "double-1", true},
+                                       {R"({"f6": 0.1})", "float-1", true},
+                                       {R"({"f7": true})", "bool-1", true},
+                                       {R"({"f8": "2012-04-23T18:25:43.511Z"})", "time-1", true},
+                                       {R"({"f9": 100})", "time-2", true}},
+                                      "Primitives64Bit");
     }
 
 #if 0

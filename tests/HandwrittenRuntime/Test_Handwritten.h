@@ -162,7 +162,24 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraits<MultiAttributed>::Fie
 };
 
 template <> struct Stencil::Visitor<MultiAttributed> : Stencil::VisitorT<MultiAttributed>
-{};
+{
+    using Fields = TypeTraits<MultiAttributed>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey(T& /*obj*/, Fields field, TLambda&& /*lambda*/)
+    {
+        switch (field)
+        {
+        case Fields::Field_f1: //return lambda(obj.f1);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAllIndicies(T& /*obj*/, TLambda&& /*lambda*/)
+    {
+        // lambda(Fields::Field_f1, obj.f1);
+    }
+};
 
 template <> struct Stencil::TypeTraits<TestObj>
 {
