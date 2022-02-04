@@ -135,6 +135,59 @@ template <> struct Stencil::Visitor<Primitives64Bit> : Stencil::VisitorT<Primiti
     }
 };
 
+template <> struct Stencil::TypeTraits<ComplexPrimitives>
+{
+    using Types = std::tuple<Stencil::Type::Indexable, Stencil::Type::Iterable>;
+
+    enum class Fields
+    {
+        Invalid,
+        Field_f1,
+        Field_f2,
+        Field_f3,
+    };
+
+    using Key = Fields;
+};
+
+template <> struct Stencil::EnumTraits<Stencil::TypeTraits<ComplexPrimitives>::Fields>
+{
+    using Enum = Stencil::TypeTraits<ComplexPrimitives>::Fields;
+
+    static constexpr std::string_view Names[] = {"Invalid", "f1", "f2", "f3"};
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraits<ComplexPrimitives>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraits<ComplexPrimitives>::Fields>(index);
+    }
+};
+
+template <> struct Stencil::Visitor<ComplexPrimitives> : Stencil::VisitorT<ComplexPrimitives>
+{
+    using Fields = TypeTraits<ComplexPrimitives>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_f1: return lambda(obj.f1);
+        case Fields::Field_f2: return lambda(obj.f2);
+        case Fields::Field_f3: return lambda(obj.f3);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    {
+        lambda(Fields::Field_f1, obj.f1);
+        lambda(Fields::Field_f2, obj.f2);
+        lambda(Fields::Field_f3, obj.f3);
+    }
+};
+
 template <> struct Stencil::TypeTraits<MultiAttributed>
 {
     using Types = std::tuple<Stencil::Type::Indexable, Stencil::Type::Iterable>;
@@ -169,7 +222,7 @@ template <> struct Stencil::Visitor<MultiAttributed> : Stencil::VisitorT<MultiAt
     {
         switch (field)
         {
-        case Fields::Field_f1: //return lambda(obj.f1);
+        case Fields::Field_f1:    // return lambda(obj.f1);
         case Fields::Invalid: [[fallthrough]];
         default: throw std::logic_error("Invalid Key");
         }

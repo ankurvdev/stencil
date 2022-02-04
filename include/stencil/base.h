@@ -79,7 +79,7 @@ concept ConceptIterableNotIndexable = Type::IsIterable<T>() && !Type::IsIndexabl
 
 #if defined TODO
 
-template < typename T1, typename T2> struct Assign;
+template <typename T1, typename T2> struct Assign;
 
 template <typename TInterfaceApi> struct InterfaceApiTraits
 {
@@ -166,11 +166,27 @@ template <ConceptValueSigned T1> struct Stencil::Assign<T1, std::string_view>
                 return;
             }
         }
-        int64_t ival;
-        auto    result = std::from_chars(sv.data(), sv.data() + sv.size(), ival);
-        if (result.ec == std::errc::invalid_argument) throw std::logic_error("Cannot convert");
-        if (ival > std::numeric_limits<T1>::max() || ival < std::numeric_limits<T1>::min()) { throw std::logic_error("Out of range"); }
-        dst = static_cast<T1>(ival);
+        else if constexpr (std::is_same_v<T1, std::array<float, 2>>)
+        {
+            TODO();
+        }
+        else if constexpr (std::is_same_v<T1, std::array<char, 8>>)
+        {
+            TODO();
+        }
+        else if constexpr (std::is_same_v<T1, std::array<uint16_t, 4>>)
+        {
+            TODO();
+        }
+
+        else
+        {
+            int64_t ival;
+            auto    result = std::from_chars(sv.data(), sv.data() + sv.size(), ival);
+            if (result.ec == std::errc::invalid_argument) throw std::logic_error("Cannot convert");
+            if (ival > std::numeric_limits<T1>::max() || ival < std::numeric_limits<T1>::min()) { throw std::logic_error("Out of range"); }
+            dst = static_cast<T1>(ival);
+        }
     }
 };
 
@@ -181,7 +197,8 @@ template <ConceptValueUnsigned T1> struct Stencil::Assign<T1, std::string_view>
         uint64_t val;
         auto     result = std::from_chars(sv.data(), sv.data() + sv.size(), val);
         if (result.ec == std::errc::invalid_argument) throw std::logic_error("Cannot convert");
-        // TODO : if (val > std::numeric_limits<T1>::max() || val < std::numeric_limits<T1>::min()) { throw std::logic_error("Out of range"); }
+        // TODO : if (val > std::numeric_limits<T1>::max() || val < std::numeric_limits<T1>::min()) { throw std::logic_error("Out of
+        // range"); }
         dst = Value::ValueTraits<T1>::Convert(val);
     }
 };

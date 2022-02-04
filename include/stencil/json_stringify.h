@@ -65,6 +65,19 @@ template <Stencil::ConceptPrimitiveOnly T> struct _Stringifier<T>
     template <typename Context> static auto Write(Context& ctx, T const& obj) { return _PrimitiveStringifier<T>::Write(ctx, obj); }
 };
 
+template <size_t N> struct _Stringifier<std::array<char, N>>
+{
+    template <typename Context> static auto Write(Context& /*ctx*/, std::array<char, N> const& /*obj*/) { TODO(""); }
+};
+template <size_t N> struct _Stringifier<std::array<float, N>>
+{
+    template <typename Context> static auto Write(Context& /*ctx*/, std::array<float, N> const& /*obj*/) { TODO(""); }
+};
+template <size_t N> struct _Stringifier<std::array<uint16_t, N>>
+{
+    template <typename Context> static auto Write(Context& /*ctx*/, std::array<uint16_t, N> const& /*obj*/) { TODO(""); }
+};
+
 template <Stencil::ConceptEnum T> struct _PrimitiveStringifier<T>
 {
     template <typename Context> static auto Write(Context& ctx, T const& obj)

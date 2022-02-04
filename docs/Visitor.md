@@ -1,8 +1,15 @@
 # Visitor
 
-The Visitor specialized class provides functions for iterating over Iterables and Indexables
+The Visitor specialized class
+
+```c++
+template<typename T> Stencil::Visitor;
+```
+
+provides functions for iterating over Iterables and Indexables
 
 ## Iterables
+
 ```c++
 template<> Stencil::Visitor<Foo>
 {
@@ -13,6 +20,7 @@ template<> Stencil::Visitor<Foo>
 ```
 
 ## Indexables
+
 ```c++
 template<> Stencil::Visitor<Foo>
 {
@@ -25,4 +33,3 @@ template<> Stencil::Visitor<Foo>
 ## Primitives
 
 Primitives dont really need visitors
-

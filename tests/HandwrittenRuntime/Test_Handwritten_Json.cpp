@@ -64,6 +64,32 @@ TEST_CASE("Json", "[Json]")
                                       "Primitives64Bit");
     }
 
+    SECTION("ComplexPrimitives")
+    {
+        RunTestCases<ComplexPrimitives>(
+            {
+                {R"({"f1": "01234567"})", "char[8]", true},
+                {R"({"f2": 0x0123456789abcdef})", "uint16[4]", true},
+                {R"({"f2": [0,1,2,3]})", "uint16[4]", true},
+                {R"({"f3": [0.1, 0.2])", "float[2]", true},
+            },
+            "ComplexPrimitives");
+    }
+
+    SECTION("LargePrimitives")
+    {
+        RunTestCases<ComplexPrimitives>(
+            {
+                {R"({"f1": "01234567"})", "char[8]", true},
+                {R"({"f2": 0x0123456789abcdef})", "uint16[4]", true},
+                {R"({"f2": [0,1,2,3]})", "uint16[4]", true},
+                {R"({"f3": [0.1, 0.2])", "float[2]", true},
+                {R"({"f4": [0.1, 0.2])", "float[2]", true},
+
+            },
+            "LargePrimitives");
+    }
+
 #if 0
     SECTION("WithBlobs") { RunTestCases<WithBlobs>({}); }
 

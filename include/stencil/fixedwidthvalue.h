@@ -63,6 +63,13 @@ struct Value
 
         constexpr bool operator==(Type const& t) { return width == t.width && category == t.category; }
         constexpr bool operator!=(Type const& t) { return width != t.width || category != t.category; }
+
+        static consteval Type Signed(unsigned n) { return Type{.width = static_cast<uint8_t>(_GetWidth(n)), .category = Category::Signed}; }
+        static consteval Type Unsigned(unsigned n)
+        {
+            return Type{.width = static_cast<uint8_t>(_GetWidth(n)), .category = Category::Unsigned};
+        }
+        static consteval Type Float(unsigned n) { return Type{.width = static_cast<uint8_t>(_GetWidth(n)), .category = Category::Float}; }
     };
     static_assert(sizeof(Type) == 1);
 
@@ -273,10 +280,54 @@ template <> struct Value::ValueTraits<float> : public Value::DoubleTraits<float>
 template <typename TClock> struct Value::ValueTraits<std::chrono::time_point<TClock>>
 {
     using time_point = std::chrono::time_point<TClock>;
-    static constexpr auto ValueType() { return Value::Type{.width = 4, .category = Value::Type::Category::Unsigned}; }
+    static constexpr auto ValueType() { return Value::Type::Unsigned(4); }
     static void           Assign(Value& obj, time_point& val) { obj._iVal = val.time_since_epoch().count(); }
     static auto           Get(Value const& obj) { return time_point(time_point::duration(obj._iVal)); }
     static auto           Convert(uint64_t val) { return time_point(time_point::duration(val)); }
+};
+
+template <size_t N>
+requires(N <= 8) struct Value::ValueTraits<std::array<char, N>>
+{
+    static constexpr auto      ValueType() { return Value::Type::Signed(N); }
+    static void                Assign(Value& /*obj*/, std::array<char, N>& /*val*/) { TODO(""); }
+    static std::array<char, N> Get(Value const& /*obj*/) { TODO(""); }
+    static std::array<char, N> Convert(int64_t /*val*/) { TODO(""); }
+};
+
+template <size_t N>
+requires(N <= 4) struct Value::ValueTraits<std::array<int16_t, N>>
+{
+    static constexpr auto         ValueType() { return Value::Type::Signed(N * 2); }
+    static void                   Assign(Value& /*obj*/, std::array<int16_t, N>& /*val*/) { TODO(""); }
+    static std::array<int16_t, N> Get(Value const& /*obj*/) { TODO(""); }
+    static std::array<int16_t, N> Convert(int64_t /*val*/) { TODO(""); }
+};
+
+template <size_t N>
+requires(N <= 8) struct Value::ValueTraits<std::array<uint8_t, N>>
+{
+    static constexpr auto         ValueType() { return Value::Type::Unsigned(N); }
+    static void                   Assign(Value& /*obj*/, std::array<uint8_t, N>& /*val*/) { TODO(""); }
+    static std::array<uint8_t, N> Get(Value const& /*obj*/) { TODO(""); }
+    static std::array<uint8_t, N> Convert(int64_t /*val*/) { TODO(""); }
+};
+
+template <size_t N>
+requires(N <= 4) struct Value::ValueTraits<std::array<uint16_t, N>>
+{
+    static constexpr auto          ValueType() { return Value::Type::Unsigned(N * 2); }
+    static void                    Assign(Value& /*obj*/, std::array<uint16_t, N>& /*val*/) { TODO(""); }
+    static std::array<uint16_t, N> Get(Value const& /*obj*/) { TODO(""); }
+    static std::array<uint16_t, N> Convert(uint64_t /*val*/) { TODO(""); }
+};
+
+template <> struct Value::ValueTraits<std::array<float, 2>>
+{
+    static constexpr auto       ValueType() { return Value::Type::Unsigned(8); }
+    static void                 Assign(Value& /*obj*/, std::array<float, 2>& /*val*/) { TODO(""); }
+    static uint64_t             Get(Value const& /*obj*/) { TODO(""); }
+    static std::array<float, 2> Convert(uint64_t) { TODO(""); }
 };
 
 inline Value::operator ::size_t() const

@@ -1,8 +1,8 @@
-Spec Keywords/Features
-* object-store using struct/union syntax
-  - Same Object Types but multiple grouping
-  - No need for multiple string types and blobs. Everything can be a blob
+## Spec Keywords/Features
 
+* object-store using struct/union syntax
+  * Same Object Types but multiple grouping
+  * No need for multiple string types and blobs. Everything can be a blob
 
 * Object to ID mapping (auto)
 * Objects
@@ -19,24 +19,23 @@ Spec Keywords/Features
 * Undo / Redo ?
 
 * Merging Of 2 DBs
-  - Preserve modification history (at page level ?)
+  * Preserve modification history (at page level ?)
 
 * Page-encryption / decryption
 
 * Search / Filter
   * Only Query By ID
-  * 
-* Object-Store Backends 
-  - MySQL
-  - JournalledTabled
+  *
+* Object-Store Backends
+  * MySQL
+  * JournalledTabled
 
 * Object Constructors
 * CRUD
-  - ViewT (In-memory view)
-  - EditT (In memory editing)
-  - WireT (Serialization)
+  * ViewT (In-memory view)
+  * EditT (In memory editing)
+  * WireT (Serialization)
 * Custom Layering/Limitations on Object construction
 * Backends
-    - MySQL
-    - Tables
-
+  * MySQL
+  * Tables

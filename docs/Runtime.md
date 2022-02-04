@@ -4,9 +4,8 @@
 
 The stencil runtime provides a reference implementation of the code-generator for some widely-used application
 
-The code-generator itself isnt tied to the runtime, but the built-in templates are.
-
-A user is free to replace the built-in templates with their own custom templates that generate code free from any dependencies on the Stencil runtime.
+The code-generator itself isnt tied to the runtime.
+Support for stencil runtime is provided via built-in templates, which can be easily replaced to have the code-generator generate code free from any dependencies.
 
 The main scenarios that the runtime covers are
 
@@ -97,6 +96,7 @@ template<> struct Stencil::TypeTraits<Foo>
 };
 
 ```
+
 ## [Pending Proposals]
 
 ### PROP1: SubTypes
@@ -118,7 +118,9 @@ template <> struct Stencil::TypeTraits<Foo>
     using SubTypes = std::tuple<Bar>;
 };
 ```
-Pros: 
+
+Pros:
+
 - A TypeTrait should be sufficient to accumulate recursively all the nested types and instantiated visitors on the stack with memory allocation
 - Helps with SAX Parsers like JSON
   - Heaps for Types: Without this the SAX parser would have to create Visitor-Types on demand and as encountered straining the heap
@@ -126,6 +128,7 @@ Pros:
     - What about cycles in Type-Graph
 
 Cons:
+
 - Additional requirement. Not strictly necessary
 - The information is derivable from Visitor Visit Return Types;
 
@@ -135,6 +138,81 @@ No: Eliminates the biggest pro. No point introducing if we can find it everywher
 What about primitives ?
 No: Not needed, it a primitive is exposed as an iterable. Sub-Type is available there
 
+## Visitor
+
+The Visitor specialized class
+
+```c++
+template<typename T> Stencil::Visitor;
+```
+
+provides functions for iterating over Iterables and Indexables
+
+### Iterables
+
+```c++
+template<> Stencil::Visitor<Foo>
+{
+
+    static Iterator VisitStart(Foo& obj) {}
+    static bool VisitNext(Iterator&it, Foo& obj) {}
+};
+```
+
+### Indexables
+
+```c++
+template<> Stencil::Visitor<Foo>
+{
+
+    static void VisitKey(Foo& obj, Stencil::TypeTraits<Foo>::Key const& key, TLambda& lambda) { .. lambda(key, value); ....}
+    static void VisitAllIndicies(Foo& obj,  TLambda& lambda) { ... lambda(key, value); ....}
+};
+```
+
+## Primitives And Protocols
+
+Primitives must rely upon specialization for translations to and from various formats like `String`, `Binary` etc.
+
+Thought
+
+- Protocols
+  - Arent String and Binary Just different "Protocol" ? Protocol-String, Protocol-Binary
+  - Are protocol limitied to Primitives ?
+    - Protocols must cover Indexable and Iterables too ?
+  - How to have the user specify overrides for only the protocols he needs ?
+    - For a custom type if the user is not using Binary, shouldnt really have to provide a specializtion
+    - If the user wants to make a Primitive to a Primitive<64> then that should be all thats really needed
+
+- Stringify
+  - JsonStringify might be different than CLI-Stringify
+  - Sometimes stringified value must be wrapped in "". Depends on the representation
+  - Leverage fmt ? How much
+
+- Binary
+
+- Complex Primtives and Large Primitives
+  - Primitive64Bit class used for common types that can be wrapped in 64 bit
+  - Should there be a Primitive32Bit class and Primitive128Bit ?
+  - Should Primitive be templatized to size ? Primitive<32>, Primitive<64>
+  - We need support for random types and structs. Is there value in specializing Primitive for 32/64/128 ?
+
+### Stringifier
+
+TODO :
+
+```c++
+template <typename T> struct Stringifier {
+    static void Stringify(auto ostr, T const& obj);
+};
+
+```
+
+### StringParse
+
+### BinarySerializer
+
+### BinaryDeserializer
 
 ## Helpers
 
@@ -150,10 +228,6 @@ User can customize the Typing for their enums by specializiung the enum to overr
 
 # TODO
 
-- Multiple Categories
-  - Precedence Order : Untested, possibly while implementing CLI
-- Do we need ElementTypes ? Can we avoid this overhead ?
-
 # Next Steps
 
 - Primitives
@@ -162,5 +236,3 @@ User can customize the Typing for their enums by specializiung the enum to overr
   - Blob
   - String
   - 128 bit values
-
-
