@@ -78,7 +78,7 @@ TEST_CASE("Json", "[Json]")
 
     SECTION("LargePrimitives")
     {
-        RunTestCases<ComplexPrimitives>(
+        RunTestCases<LargePrimitives>(
             {
                 {R"({"f1": "01234567"})", "char[8]", true},
                 {R"({"f2": 0x0123456789abcdef})", "uint16[4]", true},

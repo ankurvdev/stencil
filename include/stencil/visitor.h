@@ -51,6 +51,16 @@ template <typename T> struct Stencil::Visitor<Stencil::TimestampedT<T>>
 template <typename T> struct Stencil::Visitor<UuidBasedId<T>>
 {};
 
+template <typename T, size_t N> struct Stencil::Visitor<std::array<T, N>> : Stencil::VisitorT<std::array<T, N>>
+{
+    template <typename T, typename TLambda> static void VisitKey(T& obj, size_t index, TLambda&& lambda) { lambda(obj.at(index)); }
+
+    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    {
+        for (size_t i = 0; i < N; i++) { lambda(i, obj.at(i)); }
+    }
+};
+
 #if 0
 namespace Stencil
 {

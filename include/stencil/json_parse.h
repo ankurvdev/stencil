@@ -72,7 +72,7 @@ template <typename T> struct Tokenizer : public rapidjson::BaseReaderHandler<rap
     }
 
     // Rapidjson apis
-    bool Null() { RAPIDJSON_CHECK(_Handle(0)); }
+    bool Null() { RAPIDJSON_CHECK(_Handle(std::string_view{})); }
     bool Bool(bool b) { RAPIDJSON_CHECK(_Handle(b)); }
     bool Int(int i) { RAPIDJSON_CHECK(_Handle(i)); }
     bool Uint(unsigned u) { RAPIDJSON_CHECK(_Handle(u)); }

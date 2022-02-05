@@ -252,22 +252,22 @@ struct Value
 
 template <> struct Value::ValueTraits<uint64_t> : public Value::UnsignedTraits<uint64_t>
 {};
-template <> struct Value::ValueTraits<uint32_t> : public Value::UnsignedTraits<uint64_t>
+template <> struct Value::ValueTraits<uint32_t> : public Value::UnsignedTraits<uint32_t>
 {};
-template <> struct Value::ValueTraits<uint16_t> : public Value::UnsignedTraits<uint64_t>
+template <> struct Value::ValueTraits<uint16_t> : public Value::UnsignedTraits<uint16_t>
 {};
-template <> struct Value::ValueTraits<uint8_t> : public Value::UnsignedTraits<uint64_t>
+template <> struct Value::ValueTraits<uint8_t> : public Value::UnsignedTraits<uint8_t>
 {};
 template <> struct Value::ValueTraits<int64_t> : public Value::SignedTraits<int64_t>
 {};
-template <> struct Value::ValueTraits<int32_t> : public Value::SignedTraits<int64_t>
+template <> struct Value::ValueTraits<int32_t> : public Value::SignedTraits<int32_t>
 {};
-template <> struct Value::ValueTraits<int16_t> : public Value::SignedTraits<int64_t>
+template <> struct Value::ValueTraits<int16_t> : public Value::SignedTraits<int16_t>
 {};
-template <> struct Value::ValueTraits<int8_t> : public Value::SignedTraits<int64_t>
+template <> struct Value::ValueTraits<int8_t> : public Value::SignedTraits<int8_t>
 {};
 
-template <> struct Value::ValueTraits<char> : public Value::SignedTraits<int64_t>
+template <> struct Value::ValueTraits<char> : public Value::SignedTraits<char>
 {};
 
 template <> struct Value::ValueTraits<bool> : public Value::UnsignedTraits<bool>
@@ -319,15 +319,16 @@ requires(N <= 4) struct Value::ValueTraits<std::array<uint16_t, N>>
     static constexpr auto          ValueType() { return Value::Type::Unsigned(N * 2); }
     static void                    Assign(Value& /*obj*/, std::array<uint16_t, N>& /*val*/) { TODO(""); }
     static std::array<uint16_t, N> Get(Value const& /*obj*/) { TODO(""); }
-    static std::array<uint16_t, N> Convert(uint64_t /*val*/) { TODO(""); }
-};
-
-template <> struct Value::ValueTraits<std::array<float, 2>>
-{
-    static constexpr auto       ValueType() { return Value::Type::Unsigned(8); }
-    static void                 Assign(Value& /*obj*/, std::array<float, 2>& /*val*/) { TODO(""); }
-    static uint64_t             Get(Value const& /*obj*/) { TODO(""); }
-    static std::array<float, 2> Convert(uint64_t) { TODO(""); }
+    static std::array<uint16_t, N> Convert(uint64_t val)
+    {
+        std::array<uint16_t, N> out;
+        for (size_t i = 0; i < N; i++)
+        {
+            out[i] = static_cast<uint16_t>(val & 0xffff);
+            val    = val >> 16;
+        }
+        return out;
+    }
 };
 
 inline Value::operator ::size_t() const

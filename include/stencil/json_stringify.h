@@ -27,12 +27,10 @@ template <Stencil::ConceptIndexable T> struct _Stringifier<T>
         _WriteTo(ctx, '{');
         bool first = true;
         Visitor<T>::VisitAllIndicies(obj, [&](auto const& k, auto const& v) {
-            using KeyType   = std::remove_cvref_t<decltype(k)>;
-            using ValueType = std::remove_cvref_t<decltype(v)>;
             if (!first) _WriteTo(ctx, ',');
-            _Stringifier<KeyType>::Write(ctx, k);
+            _Stringifier<std::remove_cvref_t<decltype(k)>>::Write(ctx, k);
             _WriteTo(ctx, ':');
-            _Stringifier<ValueType>::Write(ctx, v);
+            _Stringifier<std::remove_cvref_t<decltype(v)>>::Write(ctx, v);
             first = false;
         });
         _WriteTo(ctx, '}');
@@ -45,10 +43,9 @@ template <Stencil::ConceptIterableNotIndexable T> struct _Stringifier<T>
     {
         _WriteTo(ctx, '[');
         bool first = true;
-        Visitor<T>::VisitAll(obj, [&](auto& v) {
-            using ValueType = std::remove_cvref_t<decltype(v)>;
-            if (!first) WriteTo(ctx, ',');
-            _Stringifier<ValueType>::Write(ctx, v);
+        Visitor<T>::VisitAllIndicies(obj, [&](auto, auto& v) {
+            if (!first) _WriteTo(ctx, ',');
+            _Stringifier<std::remove_cvref_t<decltype(v)>>::Write(ctx, v);
             first = false;
         });
         _WriteTo(ctx, ']');
@@ -67,15 +64,45 @@ template <Stencil::ConceptPrimitiveOnly T> struct _Stringifier<T>
 
 template <size_t N> struct _Stringifier<std::array<char, N>>
 {
-    template <typename Context> static auto Write(Context& /*ctx*/, std::array<char, N> const& /*obj*/) { TODO(""); }
+    template <typename Context> static auto Write(Context& ctx, std::array<char, N> const& obj)
+    {
+        auto str       = std::string_view(obj.data(), obj.size());
+        auto nullindex = str.find(char{0}, 0);
+        if (nullindex == str.npos) { fmt::print(ctx, "\"{}\"", str); }
+        else if (nullindex == 0)
+        {
+            fmt::print(ctx, "null");
+        }
+        else
+        {
+            fmt::print(ctx, "\"{}\"", str.substr(0, nullindex));
+        }
+    }
 };
-template <size_t N> struct _Stringifier<std::array<float, N>>
-{
-    template <typename Context> static auto Write(Context& /*ctx*/, std::array<float, N> const& /*obj*/) { TODO(""); }
-};
+
 template <size_t N> struct _Stringifier<std::array<uint16_t, N>>
 {
-    template <typename Context> static auto Write(Context& /*ctx*/, std::array<uint16_t, N> const& /*obj*/) { TODO(""); }
+    template <typename Context> static auto Write(Context& ctx, std::array<uint16_t, N> const& obj)
+    {
+        if constexpr (N <= 4)
+        {
+            uint64_t val = 0;
+            for (size_t i = 0; i < N; i++) { val = (val << 8) | obj.at(i); }
+            _Stringifier<uint64_t>::Write(ctx, val);
+        }
+        else
+        {
+            _WriteTo(ctx, '[');
+            bool first = true;
+            Visitor<std::array<uint16_t, N>>::VisitAllIndicies(obj, [&](auto, auto& v) {
+                using ValueType = std::remove_cvref_t<decltype(v)>;
+                if (!first) _WriteTo(ctx, ',');
+                _Stringifier<ValueType>::Write(ctx, v);
+                first = false;
+            });
+            _WriteTo(ctx, ']');
+        }
+    }
 };
 
 template <Stencil::ConceptEnum T> struct _PrimitiveStringifier<T>
@@ -89,11 +116,12 @@ template <ConceptValue T> struct _PrimitiveStringifier<T>
 {
     template <typename Context> static auto Write(Context& ctx, T const& obj)
     {
-        if constexpr (std::is_same_v<T, std::chrono::time_point<std::chrono::system_clock>>) { fmt::print(ctx, "\"{:%FT%T%z}\"", obj); }
-        else
-        {
-            fmt::print(ctx, "{}", obj);
-        }
+        //        if constexpr (std::is_same_v<T, std::chrono::time_point<std::chrono::system_clock>>) { fmt::print(ctx, "\"{:%FT%T%z}\"",
+        //        obj); }
+        //       else
+        //{
+        fmt::print(ctx, "{}", obj);
+        //}
     }
 };
 

@@ -1,6 +1,8 @@
 #pragma once
 #include "fixedwidthvalue.h"
+#include "todo.h"
 #include "visitor.h"
+
 namespace Stencil
 {
 namespace impl
@@ -193,6 +195,7 @@ template <typename T> struct _StackVisitor
     }
 
     template <typename TVal> void Assign(TVal const& k) { AssignHelper<TVal>{}(_stack.back(), k); }
+
 
     void Pop()
     {
