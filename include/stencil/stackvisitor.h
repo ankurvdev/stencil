@@ -79,12 +79,12 @@ template <typename TOWner, typename... Ts> struct VisitorTypeHandlerPack<std::tu
 #endif
 template <typename TOwner, typename T> struct IterableVisitorTypeHandler
 {
-    template <typename T> void Add(T& /*obj*/) const
+    template <typename T> TypeHandlerAndPtr Add(T& /*obj*/) const
     {
         throw std::logic_error("Add Not supported on non-iterable types");
     }    // namespace impl
-    TypeHandlerAndPtr ElementHandler() const { throw std::logic_error("Not an iterable type"); }
-    TOwner*           owner;
+
+    TOwner* owner;
 };
 
 template <typename TOwner, typename T> struct PrimitiveVisitorTypeHandler
@@ -101,8 +101,8 @@ template <typename TOwner, ConceptPrimitiveOnly T> struct PrimitiveVisitorTypeHa
 
 template <typename TOwner, ConceptIterableNotIndexable T> struct IterableVisitorTypeHandler<TOwner, T>
 {
-    template <typename T> void Add(T& /*obj*/) const { TODO(""); }
-    TOwner*                    owner;
+    template <typename T> TypeHandlerAndPtr Add(T& /*obj*/) const { TODO(""); }
+    TOwner*                                 owner;
 };
 
 template <typename TOwner, typename T> struct IndexableVisitorTypeHandler
@@ -147,8 +147,7 @@ template <typename TOwner, typename T> struct VisitorTypeHandler : TypeHandler
     virtual TypeHandlerAndPtr VisitNext(void* ptr) override
     {
         T& obj = *reinterpret_cast<T*>(ptr);
-        iterable.Add(obj);
-        return iterable.ElementHandler();
+        return iterable.Add(obj);
     }
 
     virtual TypeHandlerAndPtr VisitKey(void* /*ptr*/) override
@@ -195,7 +194,6 @@ template <typename T> struct _StackVisitor
     }
 
     template <typename TVal> void Assign(TVal const& k) { AssignHelper<TVal>{}(_stack.back(), k); }
-
 
     void Pop()
     {
