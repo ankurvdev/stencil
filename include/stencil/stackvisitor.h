@@ -79,10 +79,7 @@ template <typename TOWner, typename... Ts> struct VisitorTypeHandlerPack<std::tu
 #endif
 template <typename TOwner, typename T> struct IterableVisitorTypeHandler
 {
-    template <typename T> TypeHandlerAndPtr Add(T& /*obj*/) const
-    {
-        throw std::logic_error("Add Not supported on non-iterable types");
-    }    // namespace impl
+    template <typename T> TypeHandlerAndPtr VisitNext(T& /*obj*/) const { throw std::logic_error("Not an iterable type"); }
 
     TOwner* owner;
 };
@@ -101,8 +98,35 @@ template <typename TOwner, ConceptPrimitiveOnly T> struct PrimitiveVisitorTypeHa
 
 template <typename TOwner, ConceptIterableNotIndexable T> struct IterableVisitorTypeHandler<TOwner, T>
 {
-    template <typename T> TypeHandlerAndPtr Add(T& /*obj*/) const { TODO(""); }
-    TOwner*                                 owner;
+    template <typename T> TypeHandlerAndPtr VisitNext(T& obj)
+    {
+        if (!valid)
+        {
+            Visitor<T>::IteratorBegin(it, obj);
+            valid = true;
+        }
+        else
+        {
+            Visitor<T>::IteratorMoveNext(it, obj);
+        }
+
+        if (!Visitor<T>::IteratorValid(it, obj)) throw std::runtime_error("Cannot Visit Next Item on the iterable");
+
+        TypeHandler* handler = nullptr;
+        void*        ptr     = nullptr;
+
+        Visitor<T>::Visit(it, obj, [&](auto& val) {
+            using VisitorHandler = VisitorTypeHandler<TOwner, std::remove_reference_t<decltype(val)>>;
+            handler              = owner->template FindOrCreateHandler<VisitorHandler>();
+            ptr                  = &val;
+        });
+
+        return {handler, ptr};
+    }
+
+    bool                 valid = false;
+    Visitor<T>::Iterator it;
+    TOwner*              owner;
 };
 
 template <typename TOwner, typename T> struct IndexableVisitorTypeHandler
@@ -147,7 +171,7 @@ template <typename TOwner, typename T> struct VisitorTypeHandler : TypeHandler
     virtual TypeHandlerAndPtr VisitNext(void* ptr) override
     {
         T& obj = *reinterpret_cast<T*>(ptr);
-        return iterable.Add(obj);
+        return iterable.VisitNext(obj);
     }
 
     virtual TypeHandlerAndPtr VisitKey(void* /*ptr*/) override

@@ -69,9 +69,11 @@ TEST_CASE("Json", "[Json]")
         RunTestCases<ComplexPrimitives>(
             {
                 {R"({"f1": "01234567"})", "char[8]", true},
-                {R"({"f2": 0x0123456789abcdef})", "uint16[4]", true},
+                {R"({"f2": 1})", "uint16[4]", true},
+                {R"({"f2": 65536})", "uint16[4]", true},
+                {R"({"f2": 1234567890123456})", "uint16[4]", true},
                 {R"({"f2": [0,1,2,3]})", "uint16[4]", true},
-                {R"({"f3": [0.1, 0.2])", "float[2]", true},
+                {R"({"f3": [0.1, 0.2]})", "float[2]", true},
             },
             "ComplexPrimitives");
     }

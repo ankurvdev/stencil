@@ -18,9 +18,8 @@ namespace Stencil
 //          [W] Write
 //          [R] Read
 //      Iterable
-//          Token Start()
-//          bool MoveNext(Token)
-//          void VisitAll([&] {})
+//          Iterator Start()
+//          bool MoveNext(Iterator)
 //      Indexable
 //          auto VisitAt(Key k) -> VisitorWithParent
 //          void Add(Key k)     -> VisitorWithParent
@@ -53,14 +52,33 @@ template <typename T> struct Stencil::Visitor<UuidBasedId<T>>
 
 template <typename T, size_t N> struct Stencil::Visitor<std::array<T, N>> : Stencil::VisitorT<std::array<T, N>>
 {
-    template <typename T, typename TLambda> static void VisitKey(T& obj, size_t index, TLambda&& lambda) { lambda(obj.at(index)); }
+    // So that this works for both const and non-const
+    template <typename T1, typename TLambda>
+    requires std::is_same_v<std::remove_const_t<T1>, std::array<T, N>>
+    static void VisitKey(T1& obj, size_t index, TLambda&& lambda) { lambda(obj.at(index)); }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T1, typename TLambda>
+    requires std::is_same_v<std::remove_const_t<T1>, std::array<T, N>>
+    static void VisitAllIndicies(T1& obj, TLambda&& lambda)
     {
         for (size_t i = 0; i < N; i++) { lambda(i, obj.at(i)); }
     }
-};
+    using Iterator = size_t;
 
+    template <typename T1>
+    requires std::is_same_v<std::remove_const_t<T1>, std::array<T, N>>
+    static void IteratorBegin(Iterator& it, T1&) { it = Iterator{}; }
+    template <typename T1>
+    requires std::is_same_v<std::remove_const_t<T1>, std::array<T, N>>
+    static void IteratorMoveNext(Iterator& it, T1&) { ++it; }
+    template <typename T1>
+    requires std::is_same_v<std::remove_const_t<T1>, std::array<T, N>>
+    static bool IteratorValid(Iterator& it, T1&) { return it <= N; }
+
+    template <typename T1, typename TLambda>
+    requires std::is_same_v<std::remove_const_t<T1>, std::array<T, N>>
+    static void Visit(Iterator& it, T1& obj, TLambda&& lambda) { lambda(obj.at(it)); }
+};
 #if 0
 namespace Stencil
 {

@@ -87,7 +87,7 @@ template <size_t N> struct _Stringifier<std::array<uint16_t, N>>
         if constexpr (N <= 4)
         {
             uint64_t val = 0;
-            for (size_t i = 0; i < N; i++) { val = (val << 8) | obj.at(i); }
+            for (size_t i = N; i > 0; i--) { val = (val << 16) | obj.at(i - 1); }
             _Stringifier<uint64_t>::Write(ctx, val);
         }
         else
