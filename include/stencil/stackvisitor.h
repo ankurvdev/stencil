@@ -93,7 +93,8 @@ template <typename TOwner, typename T> struct PrimitiveVisitorTypeHandler
 template <typename TOwner, ConceptPrimitiveOnly T> struct PrimitiveVisitorTypeHandler<TOwner, T>
 {
     template <typename T2> void Assign(T& obj, T2 const& val) const { Stencil::Assign<T, T2>{}(obj, val); }
-    TOwner*                     owner;
+
+    TOwner* owner;
 };
 
 template <typename TOwner, ConceptIterableNotIndexable T> struct IterableVisitorTypeHandler<TOwner, T>

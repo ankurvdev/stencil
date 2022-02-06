@@ -82,18 +82,28 @@ TEST_CASE("Json", "[Json]")
     {
         RunTestCases<LargePrimitives>(
             {
-                {R"({"f1": "01234567"})", "char[8]", true},
-                {R"({"f2": 0x0123456789abcdef})", "uint16[4]", true},
-                {R"({"f2": [0,1,2,3]})", "uint16[4]", true},
-                {R"({"f3": [0.1, 0.2])", "float[2]", true},
-                {R"({"f4": [0.1, 0.2])", "float[2]", true},
+                {R"({"f1": "01234567"})", "char[16]", true},
+                {R"({"f2": [0,1,2,3,4,5,6,7]})", "uint16[8]", true},
+                {R"({"f3": [0.1, 0.2, 0.3, 0.4]})", "float[4]", true},
+                {R"({"f4": "01234567-8901-2345-6789-012345678901"})", "uuid", true},
 
             },
             "LargePrimitives");
     }
 
+    SECTION("WithBlobs")
+    {
+        RunTestCases<WithBlobs>(
+            {
+                {R"({"f1": "01234567"})", "string", true},
+                {R"({"f2":  "abcdef"})", "wstring", true},
+                {R"({"f3": [0.1, 0.2, 0.3, 0.4]})", "vec[double]", true},
+                {R"({"f4": ["abc", "def", "ghi"]})", "vec[string]", true},
+            },
+            "WithBlobs");
+    }
+
 #if 0
-    SECTION("WithBlobs") { RunTestCases<WithBlobs>({}); }
 
     SECTION("Nested") { RunTestCases<Nested>({}); }
 

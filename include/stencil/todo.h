@@ -6,7 +6,10 @@ namespace Stencil
 {
 #if defined TODO
 
-template <typename T1, typename T2> struct Assign;
+template <typename T1, typename T2> struct Assign
+{
+    void operator()(T1&, T2 const&) { throw std::logic_error("Cannot Assign from T2 -> T1. Defined Specialization Assign<T1, T2>"); }
+};
 
 template <typename TInterfaceApi> struct InterfaceApiTraits
 {
@@ -171,12 +174,37 @@ template <> struct Stencil::Assign<uuids::uuid, std::wstring_view>
 
 template <> struct Stencil::Assign<uuids::uuid, std::string_view>
 {
-    void operator()(uuids::uuid& dst, std::string_view const& val) { TODO(""); }
+    void operator()(uuids::uuid& dst, std::string_view const& val)
+    {
+        auto opuuid = uuids::uuid::from_string(val);
+        if (!opuuid.has_value()) { throw std::runtime_error("Invalid Uuid. Cannot parse"); }
+        dst = opuuid.value();
+    }
 };
 
 template <> struct Stencil::Assign<uuids::uuid, Value>
 {
     void operator()(uuids::uuid& dst, Value const& val) { TODO(""); }
+};
+
+template <> struct Stencil::Assign<std::string, std::wstring_view>
+{
+    void operator()(std::string&, std::wstring_view) { TODO(""); }
+};
+
+template <> struct Stencil::Assign<std::wstring, std::wstring_view>
+{
+    void operator()(std::wstring&, std::wstring_view) { TODO(""); }
+};
+
+template <> struct Stencil::Assign<std::string, std::string_view>
+{
+    void operator()(std::string&, std::string_view) { TODO(""); }
+};
+
+template <> struct Stencil::Assign<std::wstring, std::string_view>
+{
+    void operator()(std::wstring&, std::string_view) { TODO(""); }
 };
 
 #pragma warning(pop)

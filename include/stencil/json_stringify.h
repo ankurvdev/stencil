@@ -144,6 +144,16 @@ template <> struct _PrimitiveStringifier<char>
     }
 };
 
+template <> struct _PrimitiveStringifier<std::wstring>
+{
+    template <typename Context> static auto Write(Context& /*ctx*/, std::wstring const& /*obj*/) { TODO(""); }
+};
+
+template <> struct _PrimitiveStringifier<std::wstring_view>
+{
+    template <typename Context> static auto Write(Context& /*ctx*/, std::wstring_view const& /*obj*/) { TODO(""); }
+};
+
 template <typename T> static std::string Stringify(T const& obj)
 {
     std::stringstream sstr;

@@ -79,6 +79,37 @@ template <typename T, size_t N> struct Stencil::Visitor<std::array<T, N>> : Sten
     requires std::is_same_v<std::remove_const_t<T1>, std::array<T, N>>
     static void Visit(Iterator& it, T1& obj, TLambda&& lambda) { lambda(obj.at(it)); }
 };
+
+template <typename T> struct Stencil::Visitor<std::vector<T>> : Stencil::VisitorT<std::vector<T>>
+{
+    // So that this works for both const and non-const
+    template <typename T1, typename TLambda>
+    requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
+    static void VisitKey(T1& obj, size_t index, TLambda&& lambda) { lambda(obj.at(index)); }
+
+    template <typename T1, typename TLambda>
+    requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
+    static void VisitAllIndicies(T1& obj, TLambda&& lambda)
+    {
+        for (size_t i = 0; i < obj.size(); i++) { lambda(i, obj.at(i)); }
+    }
+    using Iterator = size_t;
+
+    template <typename T1>
+    requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
+    static void IteratorBegin(Iterator& it, T1&) { it = Iterator{}; }
+    template <typename T1>
+    requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
+    static void IteratorMoveNext(Iterator& it, T1&) { ++it; }
+    template <typename T1>
+    requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
+    static bool IteratorValid(Iterator& it, T1& obj) { return it <= obj.size(); }
+
+    template <typename T1, typename TLambda>
+    requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
+    static void Visit(Iterator& it, T1& obj, TLambda&& lambda) { lambda(obj.at(it)); }
+};
+
 #if 0
 namespace Stencil
 {

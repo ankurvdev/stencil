@@ -82,6 +82,11 @@ template <typename T, size_t N> struct Stencil::TypeTraits<std::array<T, N>>
     using Types = std::tuple<Stencil::Type::Iterable>;
 };
 
+template <typename T> struct Stencil::TypeTraits<std::vector<T>>
+{
+    using Types = std::tuple<Stencil::Type::Iterable>;
+};
+
 template <size_t N> struct Stencil::TypeTraits<std::array<char, N>>
 {
     using Types = std::tuple<Stencil::Type::Primitive, Stencil::Type::Iterable>;
@@ -98,6 +103,16 @@ template <> struct Stencil::TypeTraits<std::array<uint16_t, 4>>
 };
 
 template <> struct Stencil::TypeTraits<uuids::uuid>
+{
+    using Types = std::tuple<Stencil::Type::Primitive>;
+};
+
+template <> struct Stencil::TypeTraits<std::string>
+{
+    using Types = std::tuple<Stencil::Type::Primitive>;
+};
+
+template <> struct Stencil::TypeTraits<std::wstring>
 {
     using Types = std::tuple<Stencil::Type::Primitive>;
 };

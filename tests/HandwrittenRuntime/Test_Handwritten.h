@@ -36,10 +36,10 @@ struct LargePrimitives
 
 struct WithBlobs
 {
-    std::string              str;
-    std::wstring             wstr;
-    std::vector<double>      dvec;
-    std::vector<std::string> strvec;
+    std::string              f1;
+    std::wstring             f2;
+    std::vector<double>      f3;
+    std::vector<std::string> f4;
 };
 
 struct Nested
@@ -221,6 +221,62 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraits<LargePrimitives>::Fie
 template <> struct Stencil::Visitor<LargePrimitives> : Stencil::VisitorT<LargePrimitives>
 {
     using Fields = TypeTraits<LargePrimitives>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_f1: return lambda(obj.f1);
+        case Fields::Field_f2: return lambda(obj.f2);
+        case Fields::Field_f3: return lambda(obj.f3);
+        case Fields::Field_f4: return lambda(obj.f4);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    {
+        lambda(Fields::Field_f1, obj.f1);
+        lambda(Fields::Field_f2, obj.f2);
+        lambda(Fields::Field_f3, obj.f3);
+        lambda(Fields::Field_f4, obj.f4);
+    }
+};
+
+template <> struct Stencil::TypeTraits<WithBlobs>
+{
+    using Types = std::tuple<Stencil::Type::Indexable, Stencil::Type::Iterable>;
+
+    enum class Fields
+    {
+        Invalid,
+        Field_f1,
+        Field_f2,
+        Field_f3,
+        Field_f4,
+    };
+
+    using Key = Fields;
+};
+
+template <> struct Stencil::EnumTraits<Stencil::TypeTraits<WithBlobs>::Fields>
+{
+    using Enum = Stencil::TypeTraits<WithBlobs>::Fields;
+
+    static constexpr std::string_view Names[] = {"Invalid", "f1", "f2", "f3", "f4"};
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraits<WithBlobs>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraits<WithBlobs>::Fields>(index);
+    }
+};
+
+template <> struct Stencil::Visitor<WithBlobs> : Stencil::VisitorT<WithBlobs>
+{
+    using Fields = TypeTraits<WithBlobs>::Fields;
 
     template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
     {
