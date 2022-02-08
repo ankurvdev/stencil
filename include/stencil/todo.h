@@ -199,12 +199,16 @@ template <> struct Stencil::Assign<std::wstring, std::wstring_view>
 
 template <> struct Stencil::Assign<std::string, std::string_view>
 {
-    void operator()(std::string&, std::string_view) { TODO(""); }
+    void operator()(std::string& l, std::string_view const& r) { l = std::string(r); }
 };
 
 template <> struct Stencil::Assign<std::wstring, std::string_view>
 {
-    void operator()(std::wstring&, std::string_view) { TODO(""); }
+    void operator()(std::wstring& l, std::string_view const& r)
+    {
+        l.resize(r.size());
+        std::transform(r.begin(), r.end(), l.begin(), [](auto c) { return static_cast<wchar_t>(c); });
+    }
 };
 
 #pragma warning(pop)

@@ -77,6 +77,11 @@ concept ConceptPrimitiveOnly = Type::IsPrimitive<T>();
 template <typename T>
 concept ConceptIterableNotIndexable = Type::IsIterable<T>() && !Type::IsIndexable<T>();
 
+template <typename T> struct Stencil::TypeTraits<std::shared_ptr<T>>
+{
+    using Types = typename Stencil::TypeTraits<T>::Types;
+};
+
 template <typename T, size_t N> struct Stencil::TypeTraits<std::array<T, N>>
 {
     using Types = std::tuple<Stencil::Type::Iterable>;

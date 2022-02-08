@@ -50,6 +50,45 @@ template <typename T> struct Stencil::Visitor<Stencil::TimestampedT<T>>
 template <typename T> struct Stencil::Visitor<UuidBasedId<T>>
 {};
 
+template <typename T> struct Stencil::Visitor<std::shared_ptr<T>> : Stencil::VisitorT<std::shared_ptr<T>>
+{
+    using ThisType = std::shared_ptr<T>;
+    // So that this works for both const and non-const
+    template <typename T1, typename TLambda>
+    requires std::is_same_v<std::remove_const_t<T1>, ThisType>
+    static void VisitKey(T1& obj, size_t index, TLambda&& lambda)
+    {
+        Stencil::Visitor<T>::VisitKey(*obj.get(), index, std::forward<TLambda>(lambda));
+    }
+
+    template <typename T1, typename TLambda>
+    requires std::is_same_v<std::remove_const_t<T1>, ThisType>
+    static void VisitAllIndicies(T1& obj, TLambda&& lambda)
+    {
+        Stencil::Visitor<T>::VisitAllIndicies(*obj.get(), std::forward<TLambda>(lambda));
+    }
+#if 0
+    using Iterator = Stencil::Visitor<T>::Iterator;
+
+    template <typename T1>
+    requires std::is_same_v<std::remove_const_t<T1>, ThisType>
+    static void IteratorBegin(Iterator& it, T1& obj) { Stencil::Visitor<T>::IteratorBegin(it, *obj.get()); }
+    template <typename T1>
+    requires std::is_same_v<std::remove_const_t<T1>, ThisType>
+    static void IteratorMoveNext(Iterator& it, T1& obj) { Stencil::Visitor<T>::IteratorMoveNext(it, *obj.get()); }
+    template <typename T1>
+    requires std::is_same_v<std::remove_const_t<T1>, ThisType>
+    static bool IteratorValid(Iterator& it, T1& obj) { return Stencil::Visitor<T>::IteratorValid(it, *obj.get()); }
+
+    template <typename T1, typename TLambda>
+    requires std::is_same_v<std::remove_const_t<T1>, ThisType>
+    static void Visit(Iterator& it, T1& obj, TLambda&& lambda)
+    {
+        Stencil::Visitor<T>::Visit(it, *obj.get(), std::forward<TLambda>(lambda));
+    }
+#endif
+};
+
 template <typename T, size_t N> struct Stencil::Visitor<std::array<T, N>> : Stencil::VisitorT<std::array<T, N>>
 {
     // So that this works for both const and non-const
@@ -107,7 +146,11 @@ template <typename T> struct Stencil::Visitor<std::vector<T>> : Stencil::Visitor
 
     template <typename T1, typename TLambda>
     requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
-    static void Visit(Iterator& it, T1& obj, TLambda&& lambda) { lambda(obj.at(it)); }
+    static void Visit(Iterator& it, T1& obj, TLambda&& lambda)
+    {
+        if (obj.size() == it) { obj.resize(it + 1); }
+        lambda(obj.at(it));
+    }
 };
 
 #if 0

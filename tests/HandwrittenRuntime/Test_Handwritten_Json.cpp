@@ -103,10 +103,9 @@ TEST_CASE("Json", "[Json]")
             "WithBlobs");
     }
 
+    SECTION("Nested") { RunTestCases<Nested>({}, "Nested"); }
+
 #if 0
-
-    SECTION("Nested") { RunTestCases<Nested>({}); }
-
     SECTION("MultiAttributed")
     {
         RunTestCases<MultiAttributed>({
