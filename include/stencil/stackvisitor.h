@@ -199,7 +199,6 @@ template <typename TOwner, typename T> struct VisitorTypeHandler : TypeHandler
 
 template <typename T> struct _StackVisitor
 {
-
     _StackVisitor() = default;
 
     void Start(T& obj)
@@ -213,20 +212,17 @@ template <typename T> struct _StackVisitor
         _stack.push_back({&_handler, _rootObj});
     }
 
-    void AddKey()
+    void AddKey() { _stack.push_back(VisitKey(_stack.back())); }
+
+    void AddValue()
     {
-        _stack.push_back(VisitKey(_stack.back()));
-        _visitingKey = true;
+        _stack.pop_back();
+        _stack.push_back(VisitValueForKey(_stack.back()));
     }
 
     template <typename TVal> void Assign(TVal const& k) { AssignHelper<TVal>{}(_stack.back(), k); }
 
-    void Pop()
-    {
-        _stack.pop_back();
-        if (_visitingKey) { _stack.push_back(VisitValueForKey(_stack.back())); }
-        _visitingKey = false;
-    }
+    void Pop() { _stack.pop_back(); }
 
     void Add() { _stack.push_back(VisitNext(_stack.back())); }
 
@@ -249,7 +245,6 @@ template <typename T> struct _StackVisitor
         return it->second.get();
     }
 
-    bool                                                     _visitingKey = false;
     std::unordered_map<size_t, std::unique_ptr<TypeHandler>> _allhandlers;
     std::vector<TypeHandlerAndPtr>                           _stack;
     VisitorTypeHandler<_StackVisitor<T>, T>                  _handler;

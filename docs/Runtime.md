@@ -1,4 +1,17 @@
 # Runtime
+1. Attribute - 3 days
+2. Variant - 2 days
+3. Maps - 2 days
+4. Object-Initialize / Visitor-Initialize (shared_ptr<>) - 3 days
+
+5. Command Line Parsing - 5 days
+6. Binary Packing / Unpacking - 2 days
+7. String Packing / Unpacking - 2 days
+8. Codegen - 5 days
+
+9. ObjectStore
+10. Transactions
+11. WebService
 
 ## Overview
 
@@ -281,3 +294,6 @@ User can customize the Typing for their enums by specializiung the enum to overr
   - Blob
   - String
   - 128 bit values
+
+- Indexable
+  - Variants
