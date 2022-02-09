@@ -103,7 +103,22 @@ TEST_CASE("Json", "[Json]")
             "WithBlobs");
     }
 
-    SECTION("Nested") { RunTestCases<Nested>({}, "Nested"); }
+    SECTION("Nested")
+    {
+        RunTestCases<Nested>(
+            {
+                {R"({"f1": {}})", "Primitives64Bit", true},
+                {R"({"f1": {"f1": 1234}})", "Primitives64Bit", true},
+                {R"({"f2": {}})", "WithBlobs", true},
+                {R"({"f2": {"f1": "01234567"}})", "WithBlobs", true},
+                {R"({"f3": {}})", "Primitives64Bit", true},
+                {R"({"f3": {"f1": 1234}})", "Primitives64Bit", true},
+                {R"({"f4": []})", "vec[WithBlobs]", true},
+                {R"({"f4": [{}, {}, {}]})", "vec[WithBlobs]", true},
+                {R"({"f4": [{"f1": "01234567"}, {"f1": "890124"}, {}]})", "vec[WithBlobs]", true},
+            },
+            "Nested");
+    }
 
 #if 0
     SECTION("MultiAttributed")

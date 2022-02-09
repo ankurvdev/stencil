@@ -62,8 +62,11 @@ struct TestObj
 
 template <> struct Stencil::TypeTraits<Primitives64Bit>
 {
-    using Types = std::tuple<Stencil::Type::Indexable, Stencil::Type::Iterable>;
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
 
+template <> struct Stencil::TypeTraitsForIndexable<Primitives64Bit>
+{
     enum class Fields
     {
         Invalid,
@@ -81,23 +84,23 @@ template <> struct Stencil::TypeTraits<Primitives64Bit>
     using Key = Fields;
 };
 
-template <> struct Stencil::EnumTraits<Stencil::TypeTraits<Primitives64Bit>::Fields>
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Primitives64Bit>::Fields>
 {
-    using Enum = Stencil::TypeTraits<Primitives64Bit>::Fields;
+    using Enum = Stencil::TypeTraitsForIndexable<Primitives64Bit>::Fields;
 
     static constexpr std::string_view Names[] = {"Invalid", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9"};
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
 
-    static Stencil::TypeTraits<Primitives64Bit>::Fields ForIndex(size_t index)
+    static Stencil::TypeTraitsForIndexable<Primitives64Bit>::Fields ForIndex(size_t index)
     {
-        return static_cast<Stencil::TypeTraits<Primitives64Bit>::Fields>(index);
+        return static_cast<Stencil::TypeTraitsForIndexable<Primitives64Bit>::Fields>(index);
     }
 };
 
 template <> struct Stencil::Visitor<Primitives64Bit> : Stencil::VisitorT<Primitives64Bit>
 {
-    using Fields = TypeTraits<Primitives64Bit>::Fields;
+    using Fields = TypeTraitsForIndexable<Primitives64Bit>::Fields;
 
     template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
     {
@@ -133,8 +136,11 @@ template <> struct Stencil::Visitor<Primitives64Bit> : Stencil::VisitorT<Primiti
 
 template <> struct Stencil::TypeTraits<ComplexPrimitives>
 {
-    using Types = std::tuple<Stencil::Type::Indexable, Stencil::Type::Iterable>;
+    using Categories = std::tuple<Stencil::Category::Indexable, Stencil::Category::Iterable>;
+};
 
+template <> struct Stencil::TypeTraitsForIndexable<ComplexPrimitives>
+{
     enum class Fields
     {
         Invalid,
@@ -146,23 +152,23 @@ template <> struct Stencil::TypeTraits<ComplexPrimitives>
     using Key = Fields;
 };
 
-template <> struct Stencil::EnumTraits<Stencil::TypeTraits<ComplexPrimitives>::Fields>
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<ComplexPrimitives>::Fields>
 {
-    using Enum = Stencil::TypeTraits<ComplexPrimitives>::Fields;
+    using Enum = Stencil::TypeTraitsForIndexable<ComplexPrimitives>::Fields;
 
     static constexpr std::string_view Names[] = {"Invalid", "f1", "f2", "f3"};
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
 
-    static Stencil::TypeTraits<ComplexPrimitives>::Fields ForIndex(size_t index)
+    static Stencil::TypeTraitsForIndexable<ComplexPrimitives>::Fields ForIndex(size_t index)
     {
-        return static_cast<Stencil::TypeTraits<ComplexPrimitives>::Fields>(index);
+        return static_cast<Stencil::TypeTraitsForIndexable<ComplexPrimitives>::Fields>(index);
     }
 };
 
 template <> struct Stencil::Visitor<ComplexPrimitives> : Stencil::VisitorT<ComplexPrimitives>
 {
-    using Fields = TypeTraits<ComplexPrimitives>::Fields;
+    using Fields = TypeTraitsForIndexable<ComplexPrimitives>::Fields;
 
     template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
     {
@@ -186,7 +192,11 @@ template <> struct Stencil::Visitor<ComplexPrimitives> : Stencil::VisitorT<Compl
 
 template <> struct Stencil::TypeTraits<LargePrimitives>
 {
-    using Types = std::tuple<Stencil::Type::Indexable, Stencil::Type::Iterable>;
+    using Categories = std::tuple<Stencil::Category::Indexable, Stencil::Category::Iterable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<LargePrimitives>
+{
 
     enum class Fields
     {
@@ -200,23 +210,23 @@ template <> struct Stencil::TypeTraits<LargePrimitives>
     using Key = Fields;
 };
 
-template <> struct Stencil::EnumTraits<Stencil::TypeTraits<LargePrimitives>::Fields>
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<LargePrimitives>::Fields>
 {
-    using Enum = Stencil::TypeTraits<LargePrimitives>::Fields;
+    using Enum = Stencil::TypeTraitsForIndexable<LargePrimitives>::Fields;
 
     static constexpr std::string_view Names[] = {"Invalid", "f1", "f2", "f3", "f4"};
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
 
-    static Stencil::TypeTraits<LargePrimitives>::Fields ForIndex(size_t index)
+    static Stencil::TypeTraitsForIndexable<LargePrimitives>::Fields ForIndex(size_t index)
     {
-        return static_cast<Stencil::TypeTraits<LargePrimitives>::Fields>(index);
+        return static_cast<Stencil::TypeTraitsForIndexable<LargePrimitives>::Fields>(index);
     }
 };
 
 template <> struct Stencil::Visitor<LargePrimitives> : Stencil::VisitorT<LargePrimitives>
 {
-    using Fields = TypeTraits<LargePrimitives>::Fields;
+    using Fields = TypeTraitsForIndexable<LargePrimitives>::Fields;
 
     template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
     {
@@ -242,8 +252,11 @@ template <> struct Stencil::Visitor<LargePrimitives> : Stencil::VisitorT<LargePr
 
 template <> struct Stencil::TypeTraits<WithBlobs>
 {
-    using Types = std::tuple<Stencil::Type::Indexable, Stencil::Type::Iterable>;
+    using Categories = std::tuple<Stencil::Category::Indexable, Stencil::Category::Iterable>;
+};
 
+template <> struct Stencil::TypeTraitsForIndexable<WithBlobs>
+{
     enum class Fields
     {
         Invalid,
@@ -256,23 +269,23 @@ template <> struct Stencil::TypeTraits<WithBlobs>
     using Key = Fields;
 };
 
-template <> struct Stencil::EnumTraits<Stencil::TypeTraits<WithBlobs>::Fields>
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<WithBlobs>::Fields>
 {
-    using Enum = Stencil::TypeTraits<WithBlobs>::Fields;
+    using Enum = Stencil::TypeTraitsForIndexable<WithBlobs>::Fields;
 
     static constexpr std::string_view Names[] = {"Invalid", "f1", "f2", "f3", "f4"};
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
 
-    static Stencil::TypeTraits<WithBlobs>::Fields ForIndex(size_t index)
+    static Stencil::TypeTraitsForIndexable<WithBlobs>::Fields ForIndex(size_t index)
     {
-        return static_cast<Stencil::TypeTraits<WithBlobs>::Fields>(index);
+        return static_cast<Stencil::TypeTraitsForIndexable<WithBlobs>::Fields>(index);
     }
 };
 
 template <> struct Stencil::Visitor<WithBlobs> : Stencil::VisitorT<WithBlobs>
 {
-    using Fields = TypeTraits<WithBlobs>::Fields;
+    using Fields = TypeTraitsForIndexable<WithBlobs>::Fields;
 
     template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
     {
@@ -298,8 +311,11 @@ template <> struct Stencil::Visitor<WithBlobs> : Stencil::VisitorT<WithBlobs>
 
 template <> struct Stencil::TypeTraits<Nested>
 {
-    using Types = std::tuple<Stencil::Type::Indexable, Stencil::Type::Iterable>;
+    using Categories = std::tuple<Stencil::Category::Indexable, Stencil::Category::Iterable>;
+};
 
+template <> struct Stencil::TypeTraitsForIndexable<Nested>
+{
     enum class Fields
     {
         Invalid,
@@ -312,20 +328,23 @@ template <> struct Stencil::TypeTraits<Nested>
     using Key = Fields;
 };
 
-template <> struct Stencil::EnumTraits<Stencil::TypeTraits<Nested>::Fields>
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Nested>::Fields>
 {
-    using Enum = Stencil::TypeTraits<Nested>::Fields;
+    using Enum = Stencil::TypeTraitsForIndexable<Nested>::Fields;
 
     static constexpr std::string_view Names[] = {"Invalid", "f1", "f2", "f3", "f4"};
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
 
-    static Stencil::TypeTraits<Nested>::Fields ForIndex(size_t index) { return static_cast<Stencil::TypeTraits<Nested>::Fields>(index); }
+    static Stencil::TypeTraitsForIndexable<Nested>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<Nested>::Fields>(index);
+    }
 };
 
 template <> struct Stencil::Visitor<Nested> : Stencil::VisitorT<Nested>
 {
-    using Fields = TypeTraits<Nested>::Fields;
+    using Fields = TypeTraitsForIndexable<Nested>::Fields;
 
     template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
     {
@@ -351,7 +370,11 @@ template <> struct Stencil::Visitor<Nested> : Stencil::VisitorT<Nested>
 
 template <> struct Stencil::TypeTraits<MultiAttributed>
 {
-    using Types = std::tuple<Stencil::Type::Indexable, Stencil::Type::Iterable>;
+    using Categories = std::tuple<Stencil::Category::Indexable, Stencil::Category::Iterable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<MultiAttributed>
+{
     enum class Fields
     {
         Invalid  = 0,
@@ -361,23 +384,23 @@ template <> struct Stencil::TypeTraits<MultiAttributed>
     using Key = Fields;
 };
 
-template <> struct Stencil::EnumTraits<Stencil::TypeTraits<MultiAttributed>::Fields>
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<MultiAttributed>::Fields>
 {
-    using Enum = Stencil::TypeTraits<MultiAttributed>::Fields;
+    using Enum = Stencil::TypeTraitsForIndexable<MultiAttributed>::Fields;
 
     static constexpr std::string_view Names[] = {"Invalid", "f1"};
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
 
-    static Stencil::TypeTraits<MultiAttributed>::Fields ForIndex(size_t index)
+    static Stencil::TypeTraitsForIndexable<MultiAttributed>::Fields ForIndex(size_t index)
     {
-        return static_cast<Stencil::TypeTraits<MultiAttributed>::Fields>(index);
+        return static_cast<Stencil::TypeTraitsForIndexable<MultiAttributed>::Fields>(index);
     }
 };
 
 template <> struct Stencil::Visitor<MultiAttributed> : Stencil::VisitorT<MultiAttributed>
 {
-    using Fields = TypeTraits<MultiAttributed>::Fields;
+    using Fields = TypeTraitsForIndexable<MultiAttributed>::Fields;
 
     template <typename T, typename TLambda> static void VisitKey(T& /*obj*/, Fields field, TLambda&& /*lambda*/)
     {
@@ -397,8 +420,11 @@ template <> struct Stencil::Visitor<MultiAttributed> : Stencil::VisitorT<MultiAt
 
 template <> struct Stencil::TypeTraits<TestObj>
 {
-    using Types = std::tuple<Stencil::Type::Indexable, Stencil::Type::Iterable>;
+    using Categories = std::tuple<Stencil::Category::Indexable, Stencil::Category::Iterable>;
+};
 
+template <> struct Stencil::TypeTraitsForIndexable<TestObj>
+{
     enum class Fields
     {
         Invalid  = 0,
@@ -408,20 +434,23 @@ template <> struct Stencil::TypeTraits<TestObj>
     using Key = Fields;
 };
 
-template <> struct Stencil::EnumTraits<Stencil::TypeTraits<TestObj>::Fields>
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<TestObj>::Fields>
 {
-    using Enum = Stencil::TypeTraits<TestObj>::Fields;
+    using Enum = Stencil::TypeTraitsForIndexable<TestObj>::Fields;
 
     static constexpr std::string_view Names[] = {"Invalid", "f1"};
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
 
-    static Stencil::TypeTraits<TestObj>::Fields ForIndex(size_t index) { return static_cast<Stencil::TypeTraits<TestObj>::Fields>(index); }
+    static Stencil::TypeTraitsForIndexable<TestObj>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<TestObj>::Fields>(index);
+    }
 };
 
 template <> struct Stencil::Visitor<TestObj> : Stencil::VisitorT<TestObj>
 {
-    using Fields = TypeTraits<TestObj>::Fields;
+    using Fields = TypeTraitsForIndexable<TestObj>::Fields;
 
     template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
     {

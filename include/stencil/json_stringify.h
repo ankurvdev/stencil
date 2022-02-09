@@ -57,7 +57,7 @@ template <typename T> struct _PrimitiveStringifier
     template <typename Context> static auto Write(Context& ctx, T const& obj) { fmt::print(ctx, "\"{}\"", obj); }
 };
 
-template <Stencil::ConceptPrimitiveOnly T> struct _Stringifier<T>
+template <Stencil::ConceptPrimitive T> struct _Stringifier<T>
 {
     template <typename Context> static auto Write(Context& ctx, T const& obj) { return _PrimitiveStringifier<T>::Write(ctx, obj); }
 };

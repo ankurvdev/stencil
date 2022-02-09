@@ -16,6 +16,47 @@ The main scenarios that the runtime covers are
 
 ## Type-Traits
 
+## [Pending Proposals]
+
+### PROP1: SubTypes
+
+Current State: Denied : Need more justification.
+
+Enforce Sub-Type declaration in Type-Traits
+
+```c++
+struct Foo
+{
+  Bar bar1;
+  Bar bar2;
+};
+
+template <> struct Stencil::TypeTraits<Foo>
+{
+    // Preferable Precedence order : Indexable > Iterable > Primitive
+    using SubTypes = std::tuple<Bar>;
+};
+```
+
+Pros:
+
+- A TypeTrait should be sufficient to accumulate recursively all the nested types and instantiated visitors on the stack with memory allocation
+- Helps with SAX Parsers like JSON
+  - Heaps for Types: Without this the SAX parser would have to create Visitor-Types on demand and as encountered straining the heap
+  - [Debatable] Determine Max depth: With Type-Hierachy determined at compile-time. Max Stack depth can be potentially determined at compile-time too
+    - What about cycles in Type-Graph
+
+Cons:
+
+- Additional requirement. Not strictly necessary
+- The information is derivable from Visitor Visit Return Types;
+
+Should it be optional ?
+No: Eliminates the biggest pro. No point introducing if we can find it everywhere
+
+What about primitives ?
+No: Not needed, it a primitive is exposed as an iterable. Sub-Type is available there
+
 Most of the concepts below can be found in the runtime base class `stencil/base.h`
 
 All types must be
@@ -52,6 +93,51 @@ template <> struct Stencil::TypeTraits<Foo>
     using Types = std::tuple<Stencil::Type::Indexable, Stencil::Type::Iterable, Stencil::Type::Primitive>
 };
 ```
+
+### PROP2: TypeTraitsForPrimitives, TypeTraitsForIterable and TypeTraitsForIndexable
+
+Current State: Under Investigation
+
+Separate Requirements enforced by Categories (Primitives, Iterables, Indexables) into their own specializations.
+Indexable
+
+- Key
+Iterable
+- ??
+Primitive
+- ??
+
+```c++
+struct Foo
+{
+  Bar bar1;
+  Bar bar2;
+};
+
+template <> struct Stencil::TypeTraits<Foo>
+{
+    using Types = std::tuple<Type::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<Foo>
+{
+    enum class Fields {
+        Invalid,
+        Field_bar1,
+        Field_bar2
+    }
+    // Key is a requirement 
+    using Key = Fields;
+};
+
+```
+
+Pros:
+
+- Helps with Nested(Templated) TypeTraits like std::vector<T>, std::shared_ptr<T>
+  - They can inherit TypeTraits from SubTypes without complex constexprs
+
+Cons:
 
 ### Primitives
 
@@ -96,47 +182,6 @@ template<> struct Stencil::TypeTraits<Foo>
 };
 
 ```
-
-## [Pending Proposals]
-
-### PROP1: SubTypes
-
-Current State: Denied : Need more justification.
-
-Enforce Sub-Type declaration in Type-Traits
-
-```c++
-struct Foo
-{
-  Bar bar1;
-  Bar bar2;
-};
-
-template <> struct Stencil::TypeTraits<Foo>
-{
-    // Preferable Precedence order : Indexable > Iterable > Primitive
-    using SubTypes = std::tuple<Bar>;
-};
-```
-
-Pros:
-
-- A TypeTrait should be sufficient to accumulate recursively all the nested types and instantiated visitors on the stack with memory allocation
-- Helps with SAX Parsers like JSON
-  - Heaps for Types: Without this the SAX parser would have to create Visitor-Types on demand and as encountered straining the heap
-  - [Debatable] Determine Max depth: With Type-Hierachy determined at compile-time. Max Stack depth can be potentially determined at compile-time too
-    - What about cycles in Type-Graph
-
-Cons:
-
-- Additional requirement. Not strictly necessary
-- The information is derivable from Visitor Visit Return Types;
-
-Should it be optional ?
-No: Eliminates the biggest pro. No point introducing if we can find it everywhere
-
-What about primitives ?
-No: Not needed, it a primitive is exposed as an iterable. Sub-Type is available there
 
 ## Visitor
 

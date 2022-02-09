@@ -90,7 +90,7 @@ template <typename TOwner, typename T> struct PrimitiveVisitorTypeHandler
     TOwner*                     owner;
 };
 
-template <typename TOwner, ConceptPrimitiveOnly T> struct PrimitiveVisitorTypeHandler<TOwner, T>
+template <typename TOwner, ConceptPrimitive T> struct PrimitiveVisitorTypeHandler<TOwner, T>
 {
     template <typename T2> void Assign(T& obj, T2 const& val) const { Stencil::Assign<T, T2>{}(obj, val); }
 
@@ -139,7 +139,7 @@ template <typename TOwner, typename T> struct IndexableVisitorTypeHandler
 
 template <typename TOwner, ConceptIndexable T> struct IndexableVisitorTypeHandler<TOwner, T>
 {
-    using Traits = typename Stencil::TypeTraits<T>;
+    using Traits = typename Stencil::TypeTraitsForIndexable<T>;
 
     TypeHandlerAndPtr KeyHandler() { return TypeHandlerAndPtr{&_keyhandler, &_key}; }
 
@@ -156,7 +156,8 @@ template <typename TOwner, ConceptIndexable T> struct IndexableVisitorTypeHandle
     }
     TOwner* owner;
 
-    Traits::Key                                      _key;
+    Traits::Key _key;
+
     VisitorTypeHandler<TOwner, typename Traits::Key> _keyhandler;
 
     // TODO: This is causing me

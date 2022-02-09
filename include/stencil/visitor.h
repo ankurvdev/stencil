@@ -2,6 +2,8 @@
 #include "base.h"
 #include "timestamped.h"
 
+#include <memory>
+
 namespace Stencil
 {
 // 3 core datatypes
@@ -25,6 +27,24 @@ namespace Stencil
 //          void Add(Key k)     -> VisitorWithParent
 //          void VisitAll([&](auto k, auto& v)
 template <typename T> struct Visitor;
+
+template <typename T> struct VisitorForIterable
+{
+    // typename Iterator
+    // static void IteratorBegin(Iterator& it, T[const]& obj);
+    // static void IteratorMoveNext(Iterator& it, T[const]& obj);
+    // static bool IteratorValid(Iterator& it, T[const]& obj);
+    // static void Visit(Iterator& it, T1& obj, T[const]Lambda&& lambda);
+};
+
+template <typename T> struct VisitorForIndexable
+{
+    // typename Key
+    // static void IteratorBegin(Iterator& it, T[const]& obj);
+    // static void IteratorMoveNext(Iterator& it, T[const]& obj);
+    // static bool IteratorValid(Iterator& it, T[const]& obj);
+    // static void Visit(Iterator& it, T1& obj, T[const]Lambda&& lambda);
+};
 
 template <typename TP, typename T> struct VisitorWithParent : Visitor<T>
 {
@@ -50,25 +70,10 @@ template <typename T> struct Stencil::Visitor<Stencil::TimestampedT<T>>
 template <typename T> struct Stencil::Visitor<UuidBasedId<T>>
 {};
 
-template <typename T> struct Stencil::Visitor<std::shared_ptr<T>> : Stencil::VisitorT<std::shared_ptr<T>>
+template <Stencil::ConceptIterable T> struct Stencil::VisitorForIterable<std::shared_ptr<T>>
 {
-    using ThisType = std::shared_ptr<T>;
-    // So that this works for both const and non-const
-    template <typename T1, typename TLambda>
-    requires std::is_same_v<std::remove_const_t<T1>, ThisType>
-    static void VisitKey(T1& obj, size_t index, TLambda&& lambda)
-    {
-        Stencil::Visitor<T>::VisitKey(*obj.get(), index, std::forward<TLambda>(lambda));
-    }
-
-    template <typename T1, typename TLambda>
-    requires std::is_same_v<std::remove_const_t<T1>, ThisType>
-    static void VisitAllIndicies(T1& obj, TLambda&& lambda)
-    {
-        Stencil::Visitor<T>::VisitAllIndicies(*obj.get(), std::forward<TLambda>(lambda));
-    }
-#if 0
     using Iterator = Stencil::Visitor<T>::Iterator;
+    using ThisType = std::shared_ptr<T>;
 
     template <typename T1>
     requires std::is_same_v<std::remove_const_t<T1>, ThisType>
@@ -86,7 +91,61 @@ template <typename T> struct Stencil::Visitor<std::shared_ptr<T>> : Stencil::Vis
     {
         Stencil::Visitor<T>::Visit(it, *obj.get(), std::forward<TLambda>(lambda));
     }
-#endif
+};
+
+template <Stencil::ConceptIndexable T> struct Stencil::VisitorForIndexable<std::shared_ptr<T>>
+{
+    using ThisType = std::shared_ptr<T>;
+};
+
+template <typename T>
+struct Stencil::Visitor<std::shared_ptr<T>> : Stencil::VisitorT<std::shared_ptr<T>>,
+                                              Stencil::VisitorForIterable<std::shared_ptr<T>>,
+                                              Stencil::VisitorForIndexable<std::shared_ptr<T>>
+{
+    using Key = Stencil::TypeTraitsForIndexable<T>::Key;
+
+    using ThisType = std::shared_ptr<T>;
+    // So that this works for both const and non-const
+    template <typename T1, typename TKey, typename TLambda>
+    requires std::is_same_v<std::remove_const_t<T1>, ThisType>
+    static void VisitKey(T1& obj, TKey&& key, TLambda&& lambda)
+    {
+        if (obj.get() == nullptr)
+        {
+            if constexpr (!std::is_const_v<T1>)
+            {
+                // TODO: Should it really auto-create on demand
+                if (obj.get() == nullptr) { obj = std::make_shared<T>(); }
+            }
+            else
+            {
+                return;
+            }
+        }
+
+        Stencil::Visitor<T>::VisitKey(*obj.get(), std::forward<TKey>(key), std::forward<TLambda>(lambda));
+    }
+
+    template <typename T1, typename TLambda>
+    requires std::is_same_v<std::remove_const_t<T1>, ThisType>
+    static void VisitAllIndicies(T1& obj, TLambda&& lambda)
+    {
+        if (obj.get() == nullptr)
+        {
+            if constexpr (!std::is_const_v<T1>)
+            {
+                // TODO: Should it really auto-create on demand
+                if (obj.get() == nullptr) { obj = std::make_shared<T>(); }
+            }
+            else
+            {
+                return;
+            }
+        }
+
+        Stencil::Visitor<T>::VisitAllIndicies(*obj.get(), std::forward<TLambda>(lambda));
+    }
 };
 
 template <typename T, size_t N> struct Stencil::Visitor<std::array<T, N>> : Stencil::VisitorT<std::array<T, N>>

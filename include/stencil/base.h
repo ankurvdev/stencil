@@ -32,9 +32,25 @@ struct VariantMarker
 struct InterfaceMarker
 {};
 
+// Requires typename Categories = std::tuple<...>
 template <typename T> struct TypeTraits;
 
-struct Type
+template <typename T> struct TypeTraitsForPrimitive
+{
+    // Nothing as of yet.
+};
+
+template <typename T> struct TypeTraitsForIterable
+{
+    // Nothing as of yet.
+};
+
+template <typename T> struct TypeTraitsForIndexable
+{
+    // typename Key
+};
+
+struct Category
 {
     struct Primitive
     {};
@@ -50,9 +66,15 @@ struct Type
         return (std::is_same_v<U, T> || ...);
     }
 
-    template <typename T> static constexpr bool IsIndexable() { return _TypeTupleContains<Indexable>(typename TypeTraits<T>::Types{}); }
-    template <typename T> static constexpr bool IsIterable() { return _TypeTupleContains<Iterable>(typename TypeTraits<T>::Types{}); }
-    template <typename T> static constexpr bool IsPrimitive() { return _TypeTupleContains<Primitive>(typename TypeTraits<T>::Types{}); }
+    template <typename T> static constexpr bool IsIndexable()
+    {
+        return _TypeTupleContains<Indexable>(typename TypeTraits<T>::Categories{});
+    }
+    template <typename T> static constexpr bool IsIterable() { return _TypeTupleContains<Iterable>(typename TypeTraits<T>::Categories{}); }
+    template <typename T> static constexpr bool IsPrimitive()
+    {
+        return _TypeTupleContains<Primitive>(typename TypeTraits<T>::Categories{});
+    }
 };
 
 /*
@@ -66,60 +88,74 @@ enum class Type
 */
 
 template <typename T>
-concept ConceptIndexable = Type::IsIndexable<T>();
+concept ConceptIndexable = Category::IsIndexable<T>();
 
 template <typename T>
-concept ConceptIterableOnly = Type::IsIterable<T>();
+concept ConceptIterable = Category::IsIterable<T>();
 
 template <typename T>
-concept ConceptPrimitiveOnly = Type::IsPrimitive<T>();
+concept ConceptPrimitive = Category::IsPrimitive<T>();
 
 template <typename T>
-concept ConceptIterableNotIndexable = Type::IsIterable<T>() && !Type::IsIndexable<T>();
+concept ConceptIterableOnly = Category::IsIterable<T>();
+
+template <typename T>
+concept ConceptIterableNotIndexable = Category::IsIterable<T>() && !Category::IsIndexable<T>();
 
 template <typename T> struct Stencil::TypeTraits<std::shared_ptr<T>>
 {
-    using Types = typename Stencil::TypeTraits<T>::Types;
+    using Categories = typename Stencil::TypeTraits<T>::Categories;
 };
+
+template <ConceptIndexable T> struct Stencil::TypeTraitsForIndexable<std::shared_ptr<T>>
+{
+    using Key = typename Stencil::TypeTraitsForIndexable<T>::Key;
+};
+
+template <ConceptIterable T> struct Stencil::TypeTraitsForIterable<std::shared_ptr<T>>
+{};
+
+template <ConceptPrimitive T> struct Stencil::TypeTraitsForPrimitive<std::shared_ptr<T>>
+{};
 
 template <typename T, size_t N> struct Stencil::TypeTraits<std::array<T, N>>
 {
-    using Types = std::tuple<Stencil::Type::Iterable>;
+    using Categories = std::tuple<Stencil::Category::Iterable>;
 };
 
 template <typename T> struct Stencil::TypeTraits<std::vector<T>>
 {
-    using Types = std::tuple<Stencil::Type::Iterable>;
+    using Categories = std::tuple<Stencil::Category::Iterable>;
 };
 
 template <size_t N> struct Stencil::TypeTraits<std::array<char, N>>
 {
-    using Types = std::tuple<Stencil::Type::Primitive, Stencil::Type::Iterable>;
+    using Categories = std::tuple<Stencil::Category::Primitive, Stencil::Category::Iterable>;
 };
 
 template <> struct Stencil::TypeTraits<std::array<uint16_t, 2>>
 {
-    using Types = std::tuple<Stencil::Type::Primitive, Stencil::Type::Iterable>;
+    using Categories = std::tuple<Stencil::Category::Primitive, Stencil::Category::Iterable>;
 };
 
 template <> struct Stencil::TypeTraits<std::array<uint16_t, 4>>
 {
-    using Types = std::tuple<Stencil::Type::Primitive, Stencil::Type::Iterable>;
+    using Categories = std::tuple<Stencil::Category::Primitive, Stencil::Category::Iterable>;
 };
 
 template <> struct Stencil::TypeTraits<uuids::uuid>
 {
-    using Types = std::tuple<Stencil::Type::Primitive>;
+    using Categories = std::tuple<Stencil::Category::Primitive>;
 };
 
 template <> struct Stencil::TypeTraits<std::string>
 {
-    using Types = std::tuple<Stencil::Type::Primitive>;
+    using Categories = std::tuple<Stencil::Category::Primitive>;
 };
 
 template <> struct Stencil::TypeTraits<std::wstring>
 {
-    using Types = std::tuple<Stencil::Type::Primitive>;
+    using Categories = std::tuple<Stencil::Category::Primitive>;
 };
 
 }    // namespace Stencil

@@ -72,7 +72,7 @@ template <typename T> bool AreEqual(T const& obj1, T const& obj2)
 #pragma warning(push, 3)
 template <ConceptValue T> struct Stencil::TypeTraits<T>
 {
-    using Types = std::tuple<Type::Primitive>;
+    using Categories = std::tuple<Category::Primitive>;
 };
 
 template <ConceptValue T1> struct Stencil::Assign<T1, Value>
