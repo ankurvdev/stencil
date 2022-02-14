@@ -217,16 +217,16 @@ template <typename T> struct Tokenizer : public rapidjson::BaseReaderHandler<rap
     bool Int64(int64_t i) { RAPIDJSON_CHECK(_Handle(i)) }
     bool Uint64(uint64_t u) { RAPIDJSON_CHECK(_Handle(u)) }
     bool Double(double d) { RAPIDJSON_CHECK(_Handle(d)) }
-    bool String(const char* str, rapidjson::SizeType length, bool copy) { RAPIDJSON_CHECK(_Handle(std::string_view(str, length))); }
-    bool StartObject() { RAPIDJSON_CHECK(_StartObject()); }
-    bool Key(const char* str, rapidjson::SizeType length, bool copy) { RAPIDJSON_CHECK(_AddKey(std::string_view(str, length))); }
-    bool EndObject(rapidjson::SizeType memberCount) { RAPIDJSON_CHECK(_EndObject()); }
-    bool StartArray() { RAPIDJSON_CHECK(_StartArray()); }
-    bool EndArray(rapidjson::SizeType elementCount) { RAPIDJSON_CHECK(_EndArray()); }
+    bool String(const char* str, rapidjson::SizeType length, bool /* copy */) { RAPIDJSON_CHECK(_Handle(std::string_view(str, length))) }
+    bool StartObject() { RAPIDJSON_CHECK(_StartObject()) }
+    bool Key(const char* str, rapidjson::SizeType length, bool /* copy */) { RAPIDJSON_CHECK(_AddKey(std::string_view(str, length))) }
+    bool EndObject(rapidjson::SizeType /* memberCount */) { RAPIDJSON_CHECK(_EndObject()) }
+    bool StartArray() { RAPIDJSON_CHECK(_StartArray()) }
+    bool EndArray(rapidjson::SizeType /* elementCount */){RAPIDJSON_CHECK(_EndArray())}
 
     std::vector<Mode> _modes;
-    StackVisitor<T>&  _stackvisitor;
-    T*                _obj{};
+    StackVisitor<T>& _stackvisitor;
+    T*               _obj{};
 };    // namespace Stencil::impl::rapidjson_
 
 #pragma warning(pop)

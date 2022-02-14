@@ -125,9 +125,9 @@ template <typename TOwner, ConceptIterableNotIndexable T> struct IterableVisitor
         return {handler, ptr};
     }
 
-    bool                 valid = false;
-    Visitor<T>::Iterator it;
-    TOwner*              owner;
+    bool                          valid = false;
+    typename Visitor<T>::Iterator it;
+    TOwner*                       owner;
 };
 
 template <typename TOwner, typename T> struct IndexableVisitorTypeHandler
@@ -157,7 +157,7 @@ template <typename TOwner, ConceptIndexable T> struct IndexableVisitorTypeHandle
 
     TOwner* owner;
 
-    Traits::Key _key;
+    typename Traits::Key _key;
 
     VisitorTypeHandler<TOwner, typename Traits::Key> _keyhandler;
 
@@ -169,7 +169,7 @@ template <typename TOwner, typename T> struct VisitorTypeHandler : TypeHandler
 {
     static_assert(std::is_default_constructible_v<Stencil::TypeTraits<T>>, "Specialization of TypeTraits required");
 
-    void Add(T& obj) { TODO(""); }
+    void Add(T& /* obj */) { TODO(""); }
 
     virtual TypeHandlerAndPtr VisitNext(void* ptr) override
     {

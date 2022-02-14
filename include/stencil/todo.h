@@ -79,7 +79,7 @@ template <ConceptValue T> struct Stencil::TypeTraits<T>
 
 template <ConceptValue T1> struct Stencil::Assign<T1, Value>
 {
-    void operator()(T1& /* dst */, Value const& /* val */) { dst = val.template cast<T1>(); }
+    void operator()(T1& dst, Value const& val) { dst = val.template cast<T1>(); }
 };
 
 template <ConceptValueFloat T1> struct Stencil::Assign<T1, std::string_view>
@@ -243,7 +243,7 @@ template <Stencil::ConceptEnum TOut> struct Stencil::Assign<TOut, Value>
 
 template <Stencil::ConceptEnum... TOuts, typename T> struct Stencil::Assign<std::variant<TOuts...>, std::basic_string_view<T>>
 {
-    template <typename T1, typename... Ts, typename T2> bool TryMatch(bool& found, T2& lhs, std::basic_string_view<T> const& rhs)
+    template <typename T1, typename T2> bool TryMatch(bool& found, T2& lhs, std::basic_string_view<T> const& rhs)
     {
         using EnumTrait = typename Stencil::EnumTraits<T1>;
         for (size_t i = 0; i < std::size(EnumTrait::Names); i++)
@@ -257,15 +257,12 @@ template <Stencil::ConceptEnum... TOuts, typename T> struct Stencil::Assign<std:
                 return true;
             }
         }
-
-        if (sizeof...(Ts) > 0) { return TryMatch<Ts...>(found, lhs, rhs); }
-
         return false;
     }
 
     void operator()(std::variant<TOuts...>& lhs, std::basic_string_view<T> const& rhs)
     {
-        bool found = TryMatch<TOuts...>(found, lhs, rhs);
+        bool found = (TryMatch<TOuts>(found, lhs, rhs) || ...);
         if (!found) throw std::invalid_argument("Invalid");
     }
 };

@@ -72,7 +72,7 @@ template <typename T> struct Stencil::Visitor<UuidBasedId<T>>
 
 template <Stencil::ConceptIterable T> struct Stencil::VisitorForIterable<std::shared_ptr<T>>
 {
-    using Iterator = Stencil::Visitor<T>::Iterator;
+    using Iterator = typename Stencil::Visitor<T>::Iterator;
     using ThisType = std::shared_ptr<T>;
 
     template <typename T1>
@@ -103,7 +103,7 @@ struct Stencil::Visitor<std::shared_ptr<T>> : Stencil::VisitorT<std::shared_ptr<
                                               Stencil::VisitorForIterable<std::shared_ptr<T>>,
                                               Stencil::VisitorForIndexable<std::shared_ptr<T>>
 {
-    using Key = Stencil::TypeTraitsForIndexable<T>::Key;
+    using Key = typename Stencil::TypeTraitsForIndexable<T>::Key;
 
     using ThisType = std::shared_ptr<T>;
     // So that this works for both const and non-const
@@ -213,9 +213,7 @@ template <typename T> struct Stencil::Visitor<std::vector<T>> : Stencil::Visitor
 };
 
 template <typename... Ts> struct Stencil::Visitor<std::variant<Ts...>>
-{
-
-};
+{};
 
 #if 0
 namespace Stencil
