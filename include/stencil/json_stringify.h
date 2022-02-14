@@ -3,10 +3,10 @@
 
 #include <deque>
 
-#pragma warning(push, 3)
+SUPPRESS_WARNINGS_START
 #include <fmt/chrono.h>
 #include <fmt/ostream.h>
-#pragma warning(pop)
+SUPPRESS_WARNINGS_END
 
 // Stringify
 namespace Stencil::Json
@@ -167,8 +167,8 @@ template <typename T> static std::string Stringify(T const& obj)
     return sstr.str();
 }
 
-template <typename T, typename TOutCtx> static void StringifyTo(T const& /*obj*/, TOutCtx& /*octx*/)
-{
-    throw std::logic_error("Not Implemented");
-}
+//template <typename T, typename TOutCtx> static void StringifyTo(T const& /*obj*/, TOutCtx& /*octx*/)
+//{
+//    throw std::logic_error("Not Implemented");
+//}
 }    // namespace Stencil::Json

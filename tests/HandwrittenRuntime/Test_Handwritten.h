@@ -71,7 +71,6 @@ struct TestObj
     MultiAttributed f1;
 };
 
-
 template <> struct Stencil::TypeTraits<Primitives64Bit>
 {
     using Categories = std::tuple<Stencil::Category::Indexable>;
@@ -460,8 +459,10 @@ template <> struct Stencil::Visitor<MultiAttributed> : Stencil::VisitorT<MultiAt
 {
     using Key = TypeTraitsForIndexable<MultiAttributed>::Key;
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Key key, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey(T& /* obj */, Key /* key */, TLambda&& /* lambda */)
     {
+        TODO("");
+#if 0
         switch (field)
         {
         case Fields::Field_f1: return lambda(obj.f1);
@@ -470,13 +471,18 @@ template <> struct Stencil::Visitor<MultiAttributed> : Stencil::VisitorT<MultiAt
         case Fields::Invalid: [[fallthrough]];
         default: throw std::logic_error("Invalid Key");
         }
+#endif
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAllIndicies(T& /* obj */, TLambda&& /* lambda */)
     {
+        TODO("");
+#if 0
+
         lambda(Fields::Field_f1, obj.f1);
         lambda(Fields::Field_f2, obj.f2);
         lambda(Fields::Field_f3, obj.f3);
+#endif
     }
 };
 

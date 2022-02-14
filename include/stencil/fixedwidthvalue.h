@@ -1,4 +1,5 @@
 #pragma once
+#include <CommonMacros.h>
 SUPPRESS_WARNINGS_START
 #pragma warning(disable : 4866)    // left to right evaluation not guaranteed
 #include <chrono>
@@ -134,12 +135,34 @@ struct Value
 #pragma warning(disable : 4244)
     template <typename T> T cast() const
     {
-        if (_type.category == ValueTraits<T>::ValueType().category)
+        if constexpr (Value::Type::IsFloat(ValueTraits<T>::ValueType()))
         {
             switch (_type.category)
             {
             case Value::Type::Category::Float: return ValueTraits<T>::Convert(_dVal);
+            case Value::Type::Category::Signed: return ValueTraits<T>::Convert(static_cast<double>(_iVal));
+            case Value::Type::Category::Unsigned: return ValueTraits<T>::Convert(static_cast<double>(_uVal));
+            case Value::Type::Category::Unknown: [[fallthrough]];
+            default: throw std::logic_error("Unsupported Cast");
+            }
+        }
+        else if constexpr (Value::Type::IsSigned(ValueTraits<T>::ValueType()))
+        {
+            switch (_type.category)
+            {
+            case Value::Type::Category::Float: return ValueTraits<T>::Convert(static_cast<int64_t>(_dVal));
+            case Value::Type::Category::Unsigned: return ValueTraits<T>::Convert(static_cast<int64_t>(_uVal));
             case Value::Type::Category::Signed: return ValueTraits<T>::Convert(_iVal);
+            case Value::Type::Category::Unknown: [[fallthrough]];
+            default: throw std::logic_error("Unsupported Cast");
+            }
+        }
+        else if constexpr (Value::Type::IsUnsigned(ValueTraits<T>::ValueType()))
+        {
+            switch (_type.category)
+            {
+            case Value::Type::Category::Float: return ValueTraits<T>::Convert(static_cast<uint64_t>(_dVal));
+            case Value::Type::Category::Signed: return ValueTraits<T>::Convert(static_cast<uint64_t>(_iVal));
             case Value::Type::Category::Unsigned: return ValueTraits<T>::Convert(_uVal);
             case Value::Type::Category::Unknown: [[fallthrough]];
             default: throw std::logic_error("Unsupported Cast");
@@ -147,48 +170,10 @@ struct Value
         }
         else
         {
-            switch (ValueTraits<T>::ValueType().category)
-            {
-            case Value::Type::Category::Float:
-            {
-                switch (_type.category)
-                {
-                case Value::Type::Category::Signed: return ValueTraits<T>::Convert(static_cast<double>(_iVal));
-                case Value::Type::Category::Unsigned: return ValueTraits<T>::Convert(static_cast<double>(_uVal));
-                case Value::Type::Category::Float: [[fallthrough]];
-                case Value::Type::Category::Unknown: [[fallthrough]];
-                default: throw std::logic_error("Unsupported Cast");
-                }
-            }
-            break;
-            case Value::Type::Category::Signed:
-            {
-                switch (_type.category)
-                {
-                case Value::Type::Category::Float: return ValueTraits<T>::Convert(static_cast<int64_t>(_dVal));
-                case Value::Type::Category::Unsigned: return ValueTraits<T>::Convert(static_cast<int64_t>(_uVal));
-                case Value::Type::Category::Signed: [[fallthrough]];
-                case Value::Type::Category::Unknown: [[fallthrough]];
-                default: throw std::logic_error("Unsupported Cast");
-                }
-            }
-            break;
-            case Value::Type::Category::Unsigned:
-            {
-                switch (_type.category)
-                {
-                case Value::Type::Category::Float: return ValueTraits<T>::Convert(static_cast<uint64_t>(_dVal));
-                case Value::Type::Category::Signed: return ValueTraits<T>::Convert(static_cast<uint64_t>(_iVal));
-                case Value::Type::Category::Unsigned: [[fallthrough]];
-                case Value::Type::Category::Unknown: [[fallthrough]];
-                default: throw std::logic_error("Unsupported Cast");
-                }
-            }
-            break;
-            default: throw std::logic_error("Unsupported Cast");
-            }
+            throw std::logic_error("Unknown type");
         }
     }
+
 #pragma warning(pop)
 
 #if 0
@@ -290,8 +275,8 @@ template <typename TClock> struct Value::ValueTraits<std::chrono::time_point<TCl
     using time_point = std::chrono::time_point<TClock>;
     static constexpr auto ValueType() { return Value::Type::Unsigned(4); }
     static void           Assign(Value& obj, time_point& val) { obj._iVal = val.time_since_epoch().count(); }
-    static auto           Get(Value const& obj) { return time_point(time_point::duration(obj._iVal)); }
-    static auto           Convert(uint64_t val) { return time_point(time_point::duration(val)); }
+    static auto           Get(Value const& obj) { return time_point(typename time_point::duration(obj._iVal)); }
+    static auto           Convert(uint64_t val) { return time_point(typename time_point::duration(val)); }
 };
 
 template <size_t N>
