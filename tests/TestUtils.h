@@ -45,7 +45,7 @@ inline std::string wstring_to_string(std::wstring_view wstr)
 #if !defined _WIN32
 inline bool IsDebuggerPresent()
 {
-    return false;
+    return true;
 }
 #endif
 

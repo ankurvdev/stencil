@@ -279,6 +279,7 @@ template <typename TClock> struct Value::ValueTraits<std::chrono::time_point<TCl
     static auto           Convert(uint64_t val) { return time_point(typename time_point::duration(val)); }
 };
 
+#if 0
 template <size_t N>
 requires(N <= 8) struct Value::ValueTraits<std::array<char, N>>
 {
@@ -287,7 +288,7 @@ requires(N <= 8) struct Value::ValueTraits<std::array<char, N>>
     static std::array<char, N> Get(Value const& /*obj*/) { TODO(""); }
     static std::array<char, N> Convert(int64_t /*val*/) { TODO(""); }
 };
-
+#endif
 template <size_t N>
 requires(N <= 4) struct Value::ValueTraits<std::array<int16_t, N>>
 {

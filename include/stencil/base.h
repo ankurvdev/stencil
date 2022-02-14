@@ -5,6 +5,7 @@
 #include "uuidobject.h"
 
 #include <algorithm>
+#include <array>
 #include <bitset>
 #include <cassert>
 #include <charconv>
@@ -33,7 +34,7 @@ struct InterfaceMarker
 {};
 
 // Requires typename Categories = std::tuple<...>
-template <typename T> struct TypeTraits;
+template <typename T, class Enable = void> struct TypeTraits;
 
 template <typename T> struct TypeTraitsForPrimitive
 {
@@ -61,9 +62,13 @@ struct Category
     struct Indexable
     {};
 
-    template <typename U, typename... T> static constexpr bool _TypeTupleContains(std::tuple<T...>)
+    template <typename U, typename T1, typename... Ts> static constexpr bool _TypeTupleContains(std::tuple<T1, Ts...>)
     {
-        return (std::is_same_v<U, T> || ...);
+        if constexpr (sizeof...(Ts) > 0) { return (std::is_same_v<U, T1> || _TypeTupleContains<U>(std::tuple<Ts...>{})); }
+        else
+        {
+            return std::is_same_v<U, T1>;
+        }
     }
 
     template <typename T> static constexpr bool IsIndexable()

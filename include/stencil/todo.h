@@ -8,7 +8,7 @@ namespace Stencil
 {
 #if defined TODO
 
-template <typename T1, typename T2> struct Assign
+template <typename T1, typename T2, typename Enable = void> struct Assign
 {
     void operator()(T1&, T2 const&) { throw std::logic_error("Cannot Assign from T2 -> T1. Defined Specialization Assign<T1, T2>"); }
 };
@@ -72,7 +72,7 @@ template <typename T> bool AreEqual(T const& obj1, T const& obj2)
 }    // namespace Stencil
 
 #pragma warning(push, 3)
-template <ConceptValue T> struct Stencil::TypeTraits<T>
+template <typename T> struct Stencil::TypeTraits<T, typename std::enable_if_t<ConceptValue<T>>>
 {
     using Categories = std::tuple<Category::Primitive>;
 };
@@ -87,7 +87,7 @@ template <ConceptValueFloat T1> struct Stencil::Assign<T1, std::string_view>
     void operator()(T1& /* dst */, std::string_view const& /* val */) { TODO(""); }
 };
 
-template <ConceptValueSigned T1> struct Stencil::Assign<T1, std::string_view>
+template <typename T1> struct Stencil::Assign<T1, std::string_view, typename std::enable_if_t<ConceptValueSigned<T1>>>
 {
     void operator()(T1& dst, std::string_view const& sv)
     {
@@ -123,7 +123,7 @@ template <ConceptValueSigned T1> struct Stencil::Assign<T1, std::string_view>
     }
 };
 
-template <ConceptValueUnsigned T1> struct Stencil::Assign<T1, std::string_view>
+template <typename T1> struct Stencil::Assign<T1, std::string_view, typename std::enable_if_t<ConceptValueUnsigned<T1>>>
 {
     void operator()(T1& dst, std::string_view const& sv)
     {
@@ -136,17 +136,17 @@ template <ConceptValueUnsigned T1> struct Stencil::Assign<T1, std::string_view>
     }
 };
 
-template <ConceptValueFloat T1> struct Stencil::Assign<T1, std::wstring_view>
+template <typename T1> struct Stencil::Assign<T1, std::wstring_view, typename std::enable_if_t<ConceptValueFloat<T1>>>
 {
     void operator()(T1& /* dst */, std::wstring_view const& /* val */) { TODO(""); }
 };
 
-template <ConceptValueSigned T1> struct Stencil::Assign<T1, std::wstring_view>
+template <typename T1> struct Stencil::Assign<T1, std::wstring_view, typename std::enable_if_t<ConceptValueSigned<T1>>>
 {
     void operator()(T1& /* dst */, std::wstring_view const& /* val */) { TODO(""); }
 };
 
-template <ConceptValueUnsigned T1> struct Stencil::Assign<T1, std::wstring_view>
+template <typename T1> struct Stencil::Assign<T1, std::wstring_view, typename std::enable_if_t<ConceptValueUnsigned<T1>>>
 {
     void operator()(T1& /* dst */, std::wstring_view const& /* val */) { TODO(""); }
 };
@@ -196,7 +196,7 @@ template <> struct Stencil::Assign<std::string, std::wstring_view>
 
 template <> struct Stencil::Assign<std::wstring, std::wstring_view>
 {
-   [[noreturn]]  void operator()(std::wstring&, std::wstring_view) { TODO(""); }
+    [[noreturn]] void operator()(std::wstring&, std::wstring_view) { TODO(""); }
 };
 
 template <> struct Stencil::Assign<std::string, std::string_view>
@@ -235,7 +235,7 @@ template <Stencil::ConceptEnum TOut, typename T> struct Stencil::Assign<TOut, st
     }
 };
 
-template <Stencil::ConceptEnum TOut> struct Stencil::Assign<TOut, Value>
+template <typename TOut> struct Stencil::Assign<TOut, Value, typename std::enable_if_t<Stencil::ConceptEnum<TOut>>>
 {
     using EnumTrait = typename Stencil::EnumTraits<TOut>;
     void operator()(TOut& lhs, Value const& rhs) { lhs = EnumTrait::ForIndex(rhs); }
