@@ -154,6 +154,7 @@ template <typename TOwner, ConceptIndexable T> struct IndexableVisitorTypeHandle
         });
         return {handler, ptr};
     }
+
     TOwner* owner;
 
     Traits::Key _key;

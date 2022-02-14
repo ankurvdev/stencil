@@ -212,6 +212,11 @@ template <typename T> struct Stencil::Visitor<std::vector<T>> : Stencil::Visitor
     }
 };
 
+template <typename... Ts> struct Stencil::Visitor<std::variant<Ts...>>
+{
+
+};
+
 #if 0
 namespace Stencil
 {

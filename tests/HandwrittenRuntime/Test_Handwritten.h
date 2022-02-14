@@ -42,6 +42,7 @@ struct WithBlobs
     std::vector<double>      f3;
     std::vector<std::string> f4;
 };
+
 struct Nested
 {
     Primitives64Bit                  f1;
@@ -69,6 +70,7 @@ struct TestObj
 {
     MultiAttributed f1;
 };
+
 
 template <> struct Stencil::TypeTraits<Primitives64Bit>
 {
@@ -383,6 +385,50 @@ template <> struct Stencil::TypeTraits<MultiAttributed>
     using Categories = std::tuple<Stencil::Category::Indexable, Stencil::Category::Iterable>;
 };
 
+enum class Timestamp_Fields
+{
+    Invalid,
+    Field_timestamp
+};
+
+enum class UuidBasedId_Fields
+{
+    Invalid,
+    Field_timestamp
+};
+
+template <typename T> struct Stencil::TypeTraitsForIndexable<Stencil::TimestampedT<T>>
+{
+    using Fields = Timestamp_Fields;
+};
+
+template <typename T> struct Stencil::TypeTraitsForIndexable<UuidBasedId<T>>
+{
+    using Fields = UuidBasedId_Fields;
+};
+
+template <> struct Stencil::EnumTraits<UuidBasedId_Fields>
+{
+    using Enum = UuidBasedId_Fields;
+
+    static constexpr std::string_view Names[] = {"Invalid", "uuid"};
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Enum ForIndex(size_t index) { return static_cast<Enum>(index); }
+};
+
+template <> struct Stencil::EnumTraits<Timestamp_Fields>
+{
+    using Enum = Timestamp_Fields;
+
+    static constexpr std::string_view Names[] = {"Invalid", "timestamp"};
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Enum ForIndex(size_t index) { return static_cast<Enum>(index); }
+};
+
 template <> struct Stencil::TypeTraitsForIndexable<MultiAttributed>
 {
     enum class Fields
@@ -393,7 +439,7 @@ template <> struct Stencil::TypeTraitsForIndexable<MultiAttributed>
         Field_f3
     };
 
-    using Key = Fields;
+    using Key = std::variant<Fields, Timestamp_Fields, UuidBasedId_Fields>;
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<MultiAttributed>::Fields>
@@ -412,9 +458,9 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<MultiAttr
 
 template <> struct Stencil::Visitor<MultiAttributed> : Stencil::VisitorT<MultiAttributed>
 {
-    using Fields = TypeTraitsForIndexable<MultiAttributed>::Fields;
+    using Key = TypeTraitsForIndexable<MultiAttributed>::Key;
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey(T& obj, Key key, TLambda&& lambda)
     {
         switch (field)
         {

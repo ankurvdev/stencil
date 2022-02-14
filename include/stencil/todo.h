@@ -2,6 +2,8 @@
 #include "base.h"
 #include "enums.h"
 
+#include <tuple>
+
 namespace Stencil
 {
 #if defined TODO
@@ -238,6 +240,40 @@ template <Stencil::ConceptEnum TOut> struct Stencil::Assign<TOut, Value>
     using EnumTrait = typename EnumTraits<TOut>;
     void operator()(TOut& lhs, Value const& rhs) { lhs = EnumTrait::ForIndex(rhs); }
 };
+
+template <Stencil::ConceptEnum... TOuts, typename T> struct Stencil::Assign<std::variant<TOuts...>, std::basic_string_view<T>>
+{
+    template <typename T1, typename T2> void TryMatch(bool& found, T2& lhs, std::basic_string_view<T> const& rhs)
+    {
+        if (found) return;
+        using EnumTrait = typename Stencil::EnumTraits<T1>;
+        for (size_t i = 0; i < std::size(EnumTrait::Names); i++)
+        {
+            auto name = EnumTrait::Names[i];
+            if (std::equal(std::begin(rhs), std::end(rhs), std::begin(name), std::end(name), [](auto l, auto r) {
+                    return std::tolower(l) == std::tolower(r);
+                }))
+            {
+                lhs   = EnumTrait::ForIndex(i);
+                found = true;
+            }
+        }
+    }
+    void operator()(std::variant<TOuts...>& lhs, std::basic_string_view<T> const& rhs)
+    {
+        bool found = false;
+
+        std::apply([&](auto... t) { TryMatch<decltype(t)>(found, lhs, rhs); }, std::tuple<TOuts...>());
+        if (!found) throw std::invalid_argument("Invalid");
+    }
+};
+
+template <Stencil::ConceptEnum... TOuts> struct Stencil::Assign<std::variant<TOuts...>, Value>
+{
+    using EnumTrait = typename EnumTraits<std::variant<TOuts...>>;
+    void operator()(std::variant<TOuts...>& lhs, Value const& rhs) { TODO(""); }
+};
+
 /*
  * OpenQuestions
  * TypeTraits.Categories Should there be a preferred
