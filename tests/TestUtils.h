@@ -42,6 +42,13 @@ inline std::string wstring_to_string(std::wstring_view wstr)
     return out;
 }
 
+#if !defined _WIN32
+inline bool IsDebuggerPresent()
+{
+    return false;
+}
+#endif
+
 inline std::vector<std::string> readlines(std::istream& istr)
 {
     std::vector<std::string> lines;

@@ -29,17 +29,17 @@ struct TypeHandler
     virtual void Assign(void* ptr, std::wstring_view const& val) = 0;
 };
 
-auto VisitKey(TypeHandlerAndPtr const& item)
+inline auto VisitKey(TypeHandlerAndPtr const& item)
 {
     return item.handler->VisitKey(item.ptr);
 }
 
-auto VisitValueForKey(TypeHandlerAndPtr const& item)
+inline auto VisitValueForKey(TypeHandlerAndPtr const& item)
 {
     return item.handler->VisitValueForKey(item.ptr);
 }
 
-auto VisitNext(TypeHandlerAndPtr const& item)
+inline auto VisitNext(TypeHandlerAndPtr const& item)
 {
     return item.handler->VisitNext(item.ptr);
 }
@@ -79,7 +79,7 @@ template <typename TOWner, typename... Ts> struct VisitorTypeHandlerPack<std::tu
 #endif
 template <typename TOwner, typename T> struct IterableVisitorTypeHandler
 {
-    template <typename T> TypeHandlerAndPtr VisitNext(T& /*obj*/) const { throw std::logic_error("Not an iterable type"); }
+    template <typename T1> TypeHandlerAndPtr VisitNext(T1& /*obj*/) const { throw std::logic_error("Not an iterable type"); }
 
     TOwner* owner;
 };
@@ -99,7 +99,7 @@ template <typename TOwner, ConceptPrimitive T> struct PrimitiveVisitorTypeHandle
 
 template <typename TOwner, ConceptIterableNotIndexable T> struct IterableVisitorTypeHandler<TOwner, T>
 {
-    template <typename T> TypeHandlerAndPtr VisitNext(T& obj)
+    template <typename T1> TypeHandlerAndPtr VisitNext(T1& obj)
     {
         if (!valid)
         {
@@ -132,9 +132,9 @@ template <typename TOwner, ConceptIterableNotIndexable T> struct IterableVisitor
 
 template <typename TOwner, typename T> struct IndexableVisitorTypeHandler
 {
-    TypeHandlerAndPtr                       KeyHandler() const { throw std::logic_error("Not an indexable type"); }
-    template <typename T> TypeHandlerAndPtr VisitValueForKey(T& /*obj*/) const { throw std::logic_error("Not an indexable type"); }
-    TOwner*                                 owner;
+    TypeHandlerAndPtr                        KeyHandler() const { throw std::logic_error("Not an indexable type"); }
+    template <typename T1> TypeHandlerAndPtr VisitValueForKey(T1& /*obj*/) const { throw std::logic_error("Not an indexable type"); }
+    TOwner*                                  owner;
 };
 
 template <typename TOwner, ConceptIndexable T> struct IndexableVisitorTypeHandler<TOwner, T>
@@ -143,7 +143,7 @@ template <typename TOwner, ConceptIndexable T> struct IndexableVisitorTypeHandle
 
     TypeHandlerAndPtr KeyHandler() { return TypeHandlerAndPtr{&_keyhandler, &_key}; }
 
-    template <typename T> TypeHandlerAndPtr VisitValueForKey(T& obj) const
+    template <typename T1> TypeHandlerAndPtr VisitValueForKey(T1& obj) const
     {
         TypeHandler* handler = nullptr;
         void*        ptr     = nullptr;
@@ -228,13 +228,13 @@ template <typename T> struct _StackVisitor
     void Add() { _stack.push_back(VisitNext(_stack.back())); }
 
     // TODO : Yuck! Revisit and try to convince PROP1
-    template <typename T> TypeHandler* FindOrCreateHandler()
+    template <typename T1> TypeHandler* FindOrCreateHandler()
     {
-        auto hashcode = typeid(T).hash_code();
+        auto hashcode = typeid(T1).hash_code();
         auto it       = _allhandlers.find(hashcode);
         if (it == _allhandlers.end())
         {
-            auto uptr             = std::make_unique<T>();
+            auto uptr             = std::make_unique<T1>();
             uptr->owner           = this;
             uptr->primitive.owner = this;
             uptr->iterable.owner  = this;

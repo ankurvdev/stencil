@@ -134,7 +134,7 @@ endif()
 target_link_libraries(libstencil PRIVATE toml11::toml11 tinyxml2::tinyxml2 tsl::ordered_map fmt::fmt)
 target_link_libraries(libstencil PUBLIC fmt::fmt stduuid)
 
-target_include_directories(libstencil PRIVATE src)
+target_include_directories(libstencil PUBLIC src include/stencil)
 add_executable(stencil src/main.cpp)
 
 file(GLOB public_headers ${CMAKE_CURRENT_LIST_DIR}/include/stencil/*)

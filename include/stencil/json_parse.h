@@ -10,14 +10,14 @@
 #include <rapidjson/reader.h>
 #pragma clang diagnostic pop
 #pragma warning(pop)
-#define RAPIDJSON_CHECK(...) \
-    try                      \
-    {                        \
-        __VA_ARGS__;         \
-        return true;         \
-    } catch (std::exception) \
-    {                        \
-        return false;        \
+#define RAPIDJSON_CHECK(...)        \
+    try                             \
+    {                               \
+        __VA_ARGS__;                \
+        return true;                \
+    } catch (std::exception const&) \
+    {                               \
+        return false;               \
     }
 //#include "json_parse_simdjson.h"
 namespace Stencil::impl::rapidjson_
@@ -188,7 +188,7 @@ template <typename T> struct Tokenizer : public rapidjson::BaseReaderHandler<rap
         // }
     }
 
-    template <typename T> void _Handle(T const& val)
+    template <typename T1> void _Handle(T1 const& val)
     {
         _Start(Mode::Primitive);
         _stackvisitor.Assign(val);
@@ -210,13 +210,13 @@ template <typename T> struct Tokenizer : public rapidjson::BaseReaderHandler<rap
     }
 
     // Rapidjson apis
-    bool Null() { RAPIDJSON_CHECK(_Handle(std::string_view{})); }
-    bool Bool(bool b) { RAPIDJSON_CHECK(_Handle(b)); }
-    bool Int(int i) { RAPIDJSON_CHECK(_Handle(i)); }
-    bool Uint(unsigned u) { RAPIDJSON_CHECK(_Handle(u)); }
-    bool Int64(int64_t i) { RAPIDJSON_CHECK(_Handle(i)); }
-    bool Uint64(uint64_t u) { RAPIDJSON_CHECK(_Handle(u)); }
-    bool Double(double d) { RAPIDJSON_CHECK(_Handle(d)); }
+    bool Null() { RAPIDJSON_CHECK(_Handle(std::string_view{})) }
+    bool Bool(bool b) { RAPIDJSON_CHECK(_Handle(b)) }
+    bool Int(int i) { RAPIDJSON_CHECK(_Handle(i)) }
+    bool Uint(unsigned u) { RAPIDJSON_CHECK(_Handle(u)) }
+    bool Int64(int64_t i) { RAPIDJSON_CHECK(_Handle(i)) }
+    bool Uint64(uint64_t u) { RAPIDJSON_CHECK(_Handle(u)) }
+    bool Double(double d) { RAPIDJSON_CHECK(_Handle(d)) }
     bool String(const char* str, rapidjson::SizeType length, bool copy) { RAPIDJSON_CHECK(_Handle(std::string_view(str, length))); }
     bool StartObject() { RAPIDJSON_CHECK(_StartObject()); }
     bool Key(const char* str, rapidjson::SizeType length, bool copy) { RAPIDJSON_CHECK(_AddKey(std::string_view(str, length))); }

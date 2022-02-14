@@ -12,7 +12,7 @@ template <typename T> struct UuidBasedId
     static UuidBasedId<T> Create()
     {
         UuidBasedId<T> uuid;
-        uuid.guid = uuids::uuid::create();
+        uuid.guid = uuids::uuid_system_generator{}();
         return uuid;
     }
 

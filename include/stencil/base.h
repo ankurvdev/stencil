@@ -101,21 +101,22 @@ concept ConceptIterableOnly = Category::IsIterable<T>();
 
 template <typename T>
 concept ConceptIterableNotIndexable = Category::IsIterable<T>() && !Category::IsIndexable<T>();
+}    // namespace Stencil
 
 template <typename T> struct Stencil::TypeTraits<std::shared_ptr<T>>
 {
     using Categories = typename Stencil::TypeTraits<T>::Categories;
 };
 
-template <ConceptIndexable T> struct Stencil::TypeTraitsForIndexable<std::shared_ptr<T>>
+template <Stencil::ConceptIndexable T> struct Stencil::TypeTraitsForIndexable<std::shared_ptr<T>>
 {
     using Key = typename Stencil::TypeTraitsForIndexable<T>::Key;
 };
 
-template <ConceptIterable T> struct Stencil::TypeTraitsForIterable<std::shared_ptr<T>>
+template <Stencil::ConceptIterable T> struct Stencil::TypeTraitsForIterable<std::shared_ptr<T>>
 {};
 
-template <ConceptPrimitive T> struct Stencil::TypeTraitsForPrimitive<std::shared_ptr<T>>
+template <Stencil::ConceptPrimitive T> struct Stencil::TypeTraitsForPrimitive<std::shared_ptr<T>>
 {};
 
 template <typename T, size_t N> struct Stencil::TypeTraits<std::array<T, N>>
@@ -157,5 +158,3 @@ template <> struct Stencil::TypeTraits<std::wstring>
 {
     using Categories = std::tuple<Stencil::Category::Primitive>;
 };
-
-}    // namespace Stencil

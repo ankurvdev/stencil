@@ -1,8 +1,10 @@
 #pragma once
-#pragma warning(push, 3)
+#include <CommonMacros.h>
+
+SUPPRESS_WARNINGS_START
 #include <fmt/ostream.h>
 #include <fmt/xchar.h>
-#pragma warning(pop)
+SUPPRESS_WARNINGS_END
 
 #include <cassert>
 #include <functional>

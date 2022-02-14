@@ -79,12 +79,12 @@ template <ConceptValue T> struct Stencil::TypeTraits<T>
 
 template <ConceptValue T1> struct Stencil::Assign<T1, Value>
 {
-    void operator()(T1& dst, Value const& val) { dst = val.template cast<T1>(); }
+    void operator()(T1& /* dst */, Value const& /* val */) { dst = val.template cast<T1>(); }
 };
 
 template <ConceptValueFloat T1> struct Stencil::Assign<T1, std::string_view>
 {
-    void operator()(T1& dst, std::string_view const& val) { TODO(""); }
+    void operator()(T1& /* dst */, std::string_view const& /* val */) { TODO(""); }
 };
 
 template <ConceptValueSigned T1> struct Stencil::Assign<T1, std::string_view>
@@ -138,22 +138,22 @@ template <ConceptValueUnsigned T1> struct Stencil::Assign<T1, std::string_view>
 
 template <ConceptValueFloat T1> struct Stencil::Assign<T1, std::wstring_view>
 {
-    void operator()(T1& dst, std::wstring_view const& val) { TODO(""); }
+    void operator()(T1& /* dst */, std::wstring_view const& /* val */) { TODO(""); }
 };
 
 template <ConceptValueSigned T1> struct Stencil::Assign<T1, std::wstring_view>
 {
-    void operator()(T1& dst, std::wstring_view const& val) { TODO(""); }
+    void operator()(T1& /* dst */, std::wstring_view const& /* val */) { TODO(""); }
 };
 
 template <ConceptValueUnsigned T1> struct Stencil::Assign<T1, std::wstring_view>
 {
-    void operator()(T1& dst, std::wstring_view const& val) { TODO(""); }
+    void operator()(T1& /* dst */, std::wstring_view const& /* val */) { TODO(""); }
 };
 
 template <size_t N> struct Stencil::Assign<std::array<char, N>, std::wstring_view>
 {
-    void operator()(std::array<char, N>& dst, std::wstring_view const& val) { TODO(""); }
+    void operator()(std::array<char, N>& /* dst */, std::wstring_view const& /* val */) { TODO(""); }
 };
 
 template <size_t N> struct Stencil::Assign<std::array<char, N>, std::string_view>
@@ -166,12 +166,12 @@ template <size_t N> struct Stencil::Assign<std::array<char, N>, std::string_view
 
 template <size_t N> struct Stencil::Assign<std::array<char, N>, Value>
 {
-    void operator()(std::array<char, N>& dst, Value const& val) { TODO(""); }
+    void operator()(std::array<char, N>& /* dst */, Value const& /* val */) { TODO(""); }
 };
 
 template <> struct Stencil::Assign<uuids::uuid, std::wstring_view>
 {
-    void operator()(uuids::uuid& dst, std::wstring_view const& val) { TODO(""); }
+    void operator()(uuids::uuid& /* dst */, std::wstring_view const& /* val */) { TODO(""); }
 };
 
 template <> struct Stencil::Assign<uuids::uuid, std::string_view>
@@ -186,7 +186,7 @@ template <> struct Stencil::Assign<uuids::uuid, std::string_view>
 
 template <> struct Stencil::Assign<uuids::uuid, Value>
 {
-    void operator()(uuids::uuid& dst, Value const& val) { TODO(""); }
+    void operator()(uuids::uuid& /* dst */, Value const& /* val */) { TODO(""); }
 };
 
 template <> struct Stencil::Assign<std::string, std::wstring_view>
@@ -217,7 +217,7 @@ template <> struct Stencil::Assign<std::wstring, std::string_view>
 
 template <Stencil::ConceptEnum TOut, typename T> struct Stencil::Assign<TOut, std::basic_string_view<T>>
 {
-    using EnumTrait = typename EnumTraits<TOut>;
+    using EnumTrait = typename Stencil::EnumTraits<TOut>;
     void operator()(TOut& lhs, std::basic_string_view<T> const& rhs)
     {
         for (size_t i = 0; i < std::size(EnumTrait::Names); i++)
@@ -237,15 +237,14 @@ template <Stencil::ConceptEnum TOut, typename T> struct Stencil::Assign<TOut, st
 
 template <Stencil::ConceptEnum TOut> struct Stencil::Assign<TOut, Value>
 {
-    using EnumTrait = typename EnumTraits<TOut>;
+    using EnumTrait = typename Stencil::EnumTraits<TOut>;
     void operator()(TOut& lhs, Value const& rhs) { lhs = EnumTrait::ForIndex(rhs); }
 };
 
 template <Stencil::ConceptEnum... TOuts, typename T> struct Stencil::Assign<std::variant<TOuts...>, std::basic_string_view<T>>
 {
-    template <typename T1, typename T2> void TryMatch(bool& found, T2& lhs, std::basic_string_view<T> const& rhs)
+    template <typename T1, typename... Ts, typename T2> bool TryMatch(bool& found, T2& lhs, std::basic_string_view<T> const& rhs)
     {
-        if (found) return;
         using EnumTrait = typename Stencil::EnumTraits<T1>;
         for (size_t i = 0; i < std::size(EnumTrait::Names); i++)
         {
@@ -254,24 +253,27 @@ template <Stencil::ConceptEnum... TOuts, typename T> struct Stencil::Assign<std:
                     return std::tolower(l) == std::tolower(r);
                 }))
             {
-                lhs   = EnumTrait::ForIndex(i);
-                found = true;
+                lhs = EnumTrait::ForIndex(i);
+                return true;
             }
         }
+
+        if (sizeof...(Ts) > 0) { return TryMatch<Ts...>(found, lhs, rhs); }
+
+        return false;
     }
+
     void operator()(std::variant<TOuts...>& lhs, std::basic_string_view<T> const& rhs)
     {
-        bool found = false;
-
-        std::apply([&](auto... t) { TryMatch<decltype(t)>(found, lhs, rhs); }, std::tuple<TOuts...>());
+        bool found = TryMatch<TOuts...>(found, lhs, rhs);
         if (!found) throw std::invalid_argument("Invalid");
     }
 };
 
 template <Stencil::ConceptEnum... TOuts> struct Stencil::Assign<std::variant<TOuts...>, Value>
 {
-    using EnumTrait = typename EnumTraits<std::variant<TOuts...>>;
-    void operator()(std::variant<TOuts...>& lhs, Value const& rhs) { TODO(""); }
+    using EnumTrait = typename Stencil::EnumTraits<std::variant<TOuts...>>;
+    void operator()(std::variant<TOuts...>& /* lhs */, Value const& /* rhs */) { TODO(""); }
 };
 
 /*
