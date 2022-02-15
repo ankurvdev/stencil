@@ -3,7 +3,7 @@
 #include "timestamped.h"
 
 #include <memory>
-
+#include <tuple>
 namespace Stencil
 {
 // 3 core datatypes
@@ -62,13 +62,74 @@ template <typename TP, typename T> struct VisitorWithParentT
 template <typename T> struct StructFieldEnumVisitor
 {};
 
+template <typename T> struct StructFieldsVisitor;
+
+template <typename T, typename... TAttrs> struct StructVisitor
+{
+    using Key = typename Stencil::TypeTraitsForIndexable<T>::Key;
+
+    template <typename T1> using Fields = typename Stencil::TypeTraitsForIndexable<T1>::Fields;
+
+    template <typename T1, typename TLambda> static bool _VisitKeyIfVariantMatches(T1& obj, Key const& key, TLambda&& lambda)
+    {
+        if (!std::holds_alternative<Fields<T1>>(key)) return false;
+        return StructFieldsVisitor<T1>::VisitKey(obj, std::get<Fields<T1>>(key), lambda);
+    }
+
+    template <typename T1, typename TLambda> static void VisitKey(T1& obj, Key const& key, TLambda&& lambda)
+    {
+        bool found = (_VisitKeyIfVariantMatches<TAttrs>(obj, key, lambda) || ...) || _VisitKeyIfVariantMatches<T1>(obj, key, lambda);
+        if (!found) throw std::runtime_error("Key did not match any of the struct fields or attributes");
+    }
+
+    template <typename TAttr, typename T1, typename TLambda> static bool _VisitAllIndiciesHelper(T1& obj, TLambda&& lambda)
+    {
+        StructFieldsVisitor<TAttr>::VisitAllIndicies(obj, lambda);
+        return false;
+    }
+    template <typename T1, typename TLambda> static void VisitAllIndicies(T1& obj, TLambda&& lambda)
+    {
+        (_VisitAllIndiciesHelper<TAttrs>(obj, lambda) || ...);
+        StructFieldsVisitor<T>::VisitAllIndicies(obj, lambda);
+    }
+};
+
 }    // namespace Stencil
 
-template <typename T> struct Stencil::Visitor<Stencil::TimestampedT<T>>
-{};
+template <typename T> struct Stencil::StructFieldsVisitor<Stencil::TimestampedT<T>>
+{
+    using Fields = TypeTraitsForIndexable<Stencil::TimestampedT<T>>::Fields;
+    template <typename T, typename TLambda> static bool VisitKey(T& obj, Fields fields, TLambda&& lambda)
+    {
+        switch (fields)
+        {
+        case Fields::Field_timestamp: lambda(obj.lastmodified); return true;
+        case Fields::Invalid: [[fallthrough]];
+        default: return false;
+        }
+    }
 
-template <typename T> struct Stencil::Visitor<UuidBasedId<T>>
-{};
+    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    {
+        lambda(Fields::Field_timestamp, obj.lastmodified);
+    }
+};
+
+template <typename T> struct Stencil::StructFieldsVisitor<UuidBasedId<T>>
+{
+    using Fields = TypeTraitsForIndexable<UuidBasedId<T>>::Fields;
+    template <typename T, typename TLambda> static bool VisitKey(T& obj, Fields fields, TLambda&& lambda)
+    {
+        switch (fields)
+        {
+        case Fields::Field_uuid: lambda(obj.uuid); return true;
+        case Fields::Invalid: [[fallthrough]];
+        default: return false;
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda) { lambda(Fields::Field_uuid, obj.uuid); }
+};
 
 template <Stencil::ConceptIterable T> struct Stencil::VisitorForIterable<std::shared_ptr<T>>
 {

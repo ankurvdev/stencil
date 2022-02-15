@@ -7,12 +7,14 @@ namespace Stencil
 template <typename T> struct TimestampedT
 {
     using time_point = decltype(std::chrono::system_clock::now());
+#if 0
+
     struct InitArgs
     {};
 
     TimestampedT()
     {
-        created      = std::chrono::system_clock::now();
+        created;
         lastmodified = created;
     }
 
@@ -24,7 +26,9 @@ template <typename T> struct TimestampedT
     void SetLastModified(time_point const& t) { lastmodified = t; }
 
     protected:
-    time_point created;
+    time_point created = std::chrono::system_clock::now();
+#endif
+    public:
     time_point lastmodified;
 };
 

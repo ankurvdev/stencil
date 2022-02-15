@@ -31,7 +31,7 @@ template <typename T> struct UuidBasedId
     public:
     UuidBasedId() = default;
 
-    uuids::uuid guid;
+    uuids::uuid uuid;
 
     static constexpr UuidBasedId<T> Invalid() { return UuidBasedId<T>(); }
     friend UuidObjectT<T>;

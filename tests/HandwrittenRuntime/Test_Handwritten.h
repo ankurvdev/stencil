@@ -393,7 +393,7 @@ enum class Timestamp_Fields
 enum class UuidBasedId_Fields
 {
     Invalid,
-    Field_timestamp
+    Field_uuid
 };
 
 template <typename T> struct Stencil::TypeTraitsForIndexable<Stencil::TimestampedT<T>>
@@ -438,7 +438,10 @@ template <> struct Stencil::TypeTraitsForIndexable<MultiAttributed>
         Field_f3
     };
 
-    using Key = std::variant<Fields, Timestamp_Fields, UuidBasedId_Fields>;
+    using Timestamp_Fields   = typename Stencil::TypeTraitsForIndexable<Stencil::TimestampedT<MultiAttributed>>::Fields;
+    using UuidBasedId_Feilds = typename Stencil::TypeTraitsForIndexable<UuidBasedId<MultiAttributed>>::Fields;
+
+    using Key = std::variant<Fields, Timestamp_Fields, UuidBasedId_Feilds>;
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<MultiAttributed>::Fields>
@@ -455,36 +458,33 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<MultiAttr
     }
 };
 
-template <> struct Stencil::Visitor<MultiAttributed> : Stencil::VisitorT<MultiAttributed>
+template <> struct Stencil::StructFieldsVisitor<MultiAttributed>
 {
-    using Key = TypeTraitsForIndexable<MultiAttributed>::Key;
-
-    template <typename T, typename TLambda> static void VisitKey(T& /* obj */, Key /* key */, TLambda&& /* lambda */)
+    using Fields = TypeTraitsForIndexable<MultiAttributed>::Fields;
+    template <typename T, typename TLambda> static bool VisitKey(T& obj, Fields fields, TLambda&& lambda)
     {
-        TODO("");
-#if 0
-        switch (field)
+        switch (fields)
         {
-        case Fields::Field_f1: return lambda(obj.f1);
-        case Fields::Field_f2: return lambda(obj.f2);
-        case Fields::Field_f3: return lambda(obj.f3);
+        case Fields::Field_f1: lambda(obj.f1); return true;
+        case Fields::Field_f2: lambda(obj.f2); return true;
+        case Fields::Field_f3: lambda(obj.f3); return true;
         case Fields::Invalid: [[fallthrough]];
-        default: throw std::logic_error("Invalid Key");
+        default: return false;
         }
-#endif
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& /* obj */, TLambda&& /* lambda */)
+    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
     {
-        TODO("");
-#if 0
-
         lambda(Fields::Field_f1, obj.f1);
         lambda(Fields::Field_f2, obj.f2);
         lambda(Fields::Field_f3, obj.f3);
-#endif
     }
 };
+
+template <>
+struct Stencil::Visitor<MultiAttributed>
+    : Stencil::StructVisitor<MultiAttributed, Stencil::TimestampedT<MultiAttributed>, UuidBasedId<MultiAttributed>>
+{};
 
 template <> struct Stencil::TypeTraits<TestObj>
 {
