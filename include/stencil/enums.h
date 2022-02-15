@@ -21,6 +21,7 @@ concept ConceptEnum = (std::is_enum_v<T> && std::is_default_constructible_v<Enum
 }    // namespace Stencil
 
 template <typename T> struct Stencil::TypeTraits<T, std::enable_if_t<Stencil::ConceptEnum<T>>>
+//template <Stencil::ConceptEnum T> struct Stencil::TypeTraits<T>
 {
     /* Primitive*/
     using Categories = std::tuple<Category::Primitive>;

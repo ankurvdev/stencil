@@ -98,8 +98,8 @@ template <typename T, typename... TAttrs> struct StructVisitor
 
 template <typename T> struct Stencil::StructFieldsVisitor<Stencil::TimestampedT<T>>
 {
-    using Fields = TypeTraitsForIndexable<Stencil::TimestampedT<T>>::Fields;
-    template <typename T, typename TLambda> static bool VisitKey(T& obj, Fields fields, TLambda&& lambda)
+    using Fields = typename TypeTraitsForIndexable<Stencil::TimestampedT<T>>::Fields;
+    template <typename T1, typename TLambda> static bool VisitKey(T1& obj, Fields fields, TLambda&& lambda)
     {
         switch (fields)
         {
@@ -109,7 +109,7 @@ template <typename T> struct Stencil::StructFieldsVisitor<Stencil::TimestampedT<
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T1, typename TLambda> static void VisitAllIndicies(T1& obj, TLambda&& lambda)
     {
         lambda(Fields::Field_timestamp, obj.lastmodified);
     }
@@ -117,8 +117,8 @@ template <typename T> struct Stencil::StructFieldsVisitor<Stencil::TimestampedT<
 
 template <typename T> struct Stencil::StructFieldsVisitor<UuidBasedId<T>>
 {
-    using Fields = TypeTraitsForIndexable<UuidBasedId<T>>::Fields;
-    template <typename T, typename TLambda> static bool VisitKey(T& obj, Fields fields, TLambda&& lambda)
+    using Fields = typename TypeTraitsForIndexable<UuidBasedId<T>>::Fields;
+    template <typename T1, typename TLambda> static bool VisitKey(T1& obj, Fields fields, TLambda&& lambda)
     {
         switch (fields)
         {
@@ -128,7 +128,10 @@ template <typename T> struct Stencil::StructFieldsVisitor<UuidBasedId<T>>
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda) { lambda(Fields::Field_uuid, obj.uuid); }
+    template <typename T1, typename TLambda> static void VisitAllIndicies(T1& obj, TLambda&& lambda)
+    {
+        lambda(Fields::Field_uuid, obj.uuid);
+    }
 };
 
 template <Stencil::ConceptIterable T> struct Stencil::VisitorForIterable<std::shared_ptr<T>>

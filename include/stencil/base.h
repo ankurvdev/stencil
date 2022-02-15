@@ -26,14 +26,10 @@
 
 namespace Stencil
 {
-struct StructMarker
-{};
-struct VariantMarker
-{};
-struct InterfaceMarker
-{};
 
 // Requires typename Categories = std::tuple<...>
+// TODO : Try again with concepts
+//template <typename T> struct TypeTraits;
 template <typename T, class Enable = void> struct TypeTraits;
 
 template <typename T> struct TypeTraitsForPrimitive
@@ -62,35 +58,23 @@ struct Category
     struct Indexable
     {};
 
-    template <typename U, typename T1, typename... Ts> static constexpr bool _TypeTupleContains(std::tuple<T1, Ts...>)
-    {
-        if constexpr (sizeof...(Ts) > 0) { return (std::is_same_v<U, T1> || _TypeTupleContains<U>(std::tuple<Ts...>{})); }
-        else
-        {
-            return std::is_same_v<U, T1>;
-        }
-    }
+    template <typename T, typename Tuple> struct _HasType;
+
+
+    template <typename T, typename... Us> struct _HasType<T, std::tuple<Us...>> : std::disjunction<std::is_same<T, Us>...>
+    {};
 
     template <typename T> static constexpr bool IsIndexable()
     {
-        return _TypeTupleContains<Indexable>(typename TypeTraits<T>::Categories{});
+        return _HasType<Indexable, typename TypeTraits<T>::Categories>::value;
     }
-    template <typename T> static constexpr bool IsIterable() { return _TypeTupleContains<Iterable>(typename TypeTraits<T>::Categories{}); }
+
+    template <typename T> static constexpr bool IsIterable() { return _HasType<Iterable, typename TypeTraits<T>::Categories>::value; }
     template <typename T> static constexpr bool IsPrimitive()
     {
-        return _TypeTupleContains<Primitive>(typename TypeTraits<T>::Categories{});
+        return _HasType<Primitive, typename TypeTraits<T>::Categories>::value;
     }
 };
-
-/*
-enum class Type
-{
-    Invalid,
-    Primitive,    // Fixed size or blobs
-    Iterable,     // Multiple values can only iterate on values
-    Indexable,    // Indexing of values via Atomics
-};
-*/
 
 template <typename T>
 concept ConceptIndexable = Category::IsIndexable<T>();

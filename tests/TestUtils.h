@@ -81,12 +81,12 @@ inline void CompareLines(std::vector<std::string> const& actualstring,
     {
         d.printUnifiedFormat();    // print a difference as Unified Format.
         {
-            std::ofstream f(std::string(resname) + "_failure.txt");
+            std::ofstream f(std::string(resname) + ".txt");
             for (auto& l : actualstring) { f << l << "\n"; }
             f.flush();
             f.close();
         }
-        FAIL("Comparison Failed: Output: " + std::string(resname) + "_failure.txt");
+        FAIL("Comparison Failed: Output: " + std::string(resname) + ".txt");
     }
 }
 

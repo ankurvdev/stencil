@@ -58,12 +58,12 @@ template <typename T, typename = void> struct Functions
 {
     static bool AreEqual(T const& obj1, T const& obj2) { return std::memcmp(&obj1, &obj2, sizeof(T)) == 0; }
 };
-
+#if 0
 template <typename T> struct Functions<T, std::enable_if_t<std::is_base_of<::Stencil::StructMarker, T>::value>>
 {
     static bool AreEqual(T const& obj1, T const& obj2) { return Stencil::TypeTraits<T>::AreEqual(obj1, obj2); }
 };
-
+#endif
 template <typename T> bool AreEqual(T const& obj1, T const& obj2)
 {
     return Functions<T>::AreEqual(obj1, obj2);
@@ -73,6 +73,7 @@ template <typename T> bool AreEqual(T const& obj1, T const& obj2)
 
 #pragma warning(push, 3)
 template <typename T> struct Stencil::TypeTraits<T, typename std::enable_if_t<ConceptValue<T>>>
+//template <ConceptValue T> struct Stencil::TypeTraits<T>
 {
     using Categories = std::tuple<Category::Primitive>;
 };

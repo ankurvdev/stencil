@@ -9,13 +9,13 @@ struct TestCase
     bool             valid;
 };
 
-template <typename T> void RunTestCase(TestCase const& tc, std::vector<std::string>& lines)
+template <typename T> void RunTestCase(TestCase const& tc, std::vector<std::string>& lines, std::string const& name)
 {
     if (!tc.valid)
     {
         if (IsDebuggerPresent()) return;
     }
-    lines.push_back(fmt::format("Testcase[{}]:{}, Input: {}", typeid(T).name(), tc.desc, tc.json));
+    lines.push_back(fmt::format("Testcase[{}]:{}, Input: {}", name, tc.desc, tc.json));
     try
     {
 
@@ -24,10 +24,10 @@ template <typename T> void RunTestCase(TestCase const& tc, std::vector<std::stri
         auto obj2  = Stencil::Json::Parse<T>(jstr1);
         auto jstr2 = Stencil::Json::Stringify<T>(obj2);
         REQUIRE(jstr1 == jstr2);
-        lines.push_back(fmt::format("Testcase[{}]:{}, Output: {}", typeid(T).name(), tc.desc, jstr2));
+        lines.push_back(fmt::format("Testcase[{}]:{}, Output: {}", name, tc.desc, jstr2));
     } catch (std::exception const& ex)
     {
-        lines.push_back(fmt::format("Testcase[{}]:{}, Exception: {}", typeid(T).name(), tc.desc, ex.what()));
+        lines.push_back(fmt::format("Testcase[{}]:{}, Exception: {}", name, tc.desc, ex.what()));
     }
 }
 
@@ -35,11 +35,11 @@ template <typename T> void RunTestCases(std::initializer_list<TestCase> cases, s
 {
     {
         std::vector<std::string> lines;
-        RunTestCase<T>({"1", "default-1", false}, lines);
-        RunTestCase<T>({"{}", "default-2", true}, lines);
-        RunTestCase<T>({"[]", "default-3", false}, lines);
-        RunTestCase<T>({R"({"mismatched": {}})", "default-4", false}, lines);
-        for (auto& tc : cases) { RunTestCase<T>(tc, lines); }
+        RunTestCase<T>({"1", "default-1", false}, lines, name);
+        RunTestCase<T>({"{}", "default-2", true}, lines, name);
+        RunTestCase<T>({"[]", "default-3", false}, lines, name);
+        RunTestCase<T>({R"({"mismatched": {}})", "default-4", false}, lines, name);
+        for (auto& tc : cases) { RunTestCase<T>(tc, lines, name); }
         CheckOutputAgainstResource(lines, name);
     }
 

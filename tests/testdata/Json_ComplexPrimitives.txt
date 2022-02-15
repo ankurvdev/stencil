@@ -1,14 +1,14 @@
-Testcase[struct ComplexPrimitives]:default-2, Input: {}
-Testcase[struct ComplexPrimitives]:default-2, Output: {"f1":null,"f2":0,"f3":[0,0]}
-Testcase[struct ComplexPrimitives]:char[8], Input: {"f1": "01234567"}
-Testcase[struct ComplexPrimitives]:char[8], Output: {"f1":"01234567","f2":0,"f3":[0,0]}
-Testcase[struct ComplexPrimitives]:uint16[4], Input: {"f2": 1}
-Testcase[struct ComplexPrimitives]:uint16[4], Output: {"f1":null,"f2":1,"f3":[0,0]}
-Testcase[struct ComplexPrimitives]:uint16[4], Input: {"f2": 65536}
-Testcase[struct ComplexPrimitives]:uint16[4], Output: {"f1":null,"f2":65536,"f3":[0,0]}
-Testcase[struct ComplexPrimitives]:uint16[4], Input: {"f2": 1234567890123456}
-Testcase[struct ComplexPrimitives]:uint16[4], Output: {"f1":null,"f2":1234567890123456,"f3":[0,0]}
-Testcase[struct ComplexPrimitives]:uint16[4], Input: {"f2": [0,1,2,3]}
-Testcase[struct ComplexPrimitives]:uint16[4], Output: {"f1":null,"f2":844433520132096,"f3":[0,0]}
-Testcase[struct ComplexPrimitives]:float[2], Input: {"f3": [0.1, 0.2]}
-Testcase[struct ComplexPrimitives]:float[2], Output: {"f1":null,"f2":0,"f3":[0.1,0.2]}
+Testcase[ComplexPrimitives]:default-2, Input: {}
+Testcase[ComplexPrimitives]:default-2, Output: {"f1":null,"f2":0,"f3":[0,0]}
+Testcase[ComplexPrimitives]:char[8], Input: {"f1": "01234567"}
+Testcase[ComplexPrimitives]:char[8], Output: {"f1":"01234567","f2":0,"f3":[0,0]}
+Testcase[ComplexPrimitives]:uint16[4], Input: {"f2": 1}
+Testcase[ComplexPrimitives]:uint16[4], Output: {"f1":null,"f2":1,"f3":[0,0]}
+Testcase[ComplexPrimitives]:uint16[4], Input: {"f2": 65536}
+Testcase[ComplexPrimitives]:uint16[4], Output: {"f1":null,"f2":65536,"f3":[0,0]}
+Testcase[ComplexPrimitives]:uint16[4], Input: {"f2": 1234567890123456}
+Testcase[ComplexPrimitives]:uint16[4], Output: {"f1":null,"f2":1234567890123456,"f3":[0,0]}
+Testcase[ComplexPrimitives]:uint16[4], Input: {"f2": [0,1,2,3]}
+Testcase[ComplexPrimitives]:uint16[4], Output: {"f1":null,"f2":844433520132096,"f3":[0,0]}
+Testcase[ComplexPrimitives]:float[2], Input: {"f3": [0.1, 0.2]}
+Testcase[ComplexPrimitives]:float[2], Output: {"f1":null,"f2":0,"f3":[0.1,0.2]}

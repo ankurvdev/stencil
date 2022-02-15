@@ -1,13 +1,25 @@
 # Runtime
-1. Attribute - 3 days
-2. Variant - 2 days
-3. Maps - 2 days
-4. Object-Initialize / Visitor-Initialize (shared_ptr<>) - 3 days
+- Cleanup - 2 days
+- Variant - 2 days
+- Cleanu - 2 days
+- Maps - 2 days
+- Cleanup - 2 days
+- Object-Initialize / Visitor-Initialize (shared_ptr<>) - 3 days
+- Cleanup - 2 days
 
-5. Command Line Parsing - 5 days
-6. Binary Packing / Unpacking - 2 days
-7. String Packing / Unpacking - 2 days
-8. Codegen - 5 days
+- Command Line Parsing - 5 days
+- Cleanup - 2 days
+- Binary Packing / Unpacking - 2 days
+- Cleanup 2 days
+- String Packing / Unpacking - 2 days
+- Codegen - 5 days
+
+March - 20 
+
+TODOs
+base:
+    Try concepts again with gcc11.2
+    Use enums for Primitives, Indexable, Iterables
 
 9. ObjectStore
 10. Transactions
