@@ -64,19 +64,7 @@ template <typename T> struct AssignHelper<std::basic_string_view<T>>
 };
 
 template <typename TOwner, typename T> struct VisitorTypeHandler;
-#if 0
-template <typename TTup> struct VisitorTypeHandlerPack;
 
-template <> struct VisitorTypeHandlerPack<std::tuple<>>
-{
-    std::tuple<> handlers;
-};
-
-template <typename TOWner, typename... Ts> struct VisitorTypeHandlerPack<std::tuple<Ts...>>
-{
-    std::tuple<VisitorTypeHandler<Ts>...> handlers;
-};
-#endif
 template <typename TOwner, typename T> struct IterableVisitorTypeHandler
 {
     template <typename T1> TypeHandlerAndPtr VisitNext(T1& /*obj*/) const { throw std::logic_error("Not an iterable type"); }

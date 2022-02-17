@@ -1,5 +1,8 @@
 #pragma once
+#include "shared_string.h"
 #include "visitor.h"
+
+#include <span>
 
 namespace Stencil
 {

@@ -1,9 +1,16 @@
 #pragma once
+#include "typetraits.h"
+
 #include <uuid.h>
 
 #include <array>
 #include <chrono>
 #include <compare>
+
+template <> struct Stencil::TypeTraits<uuids::uuid>
+{
+    using Categories = std::tuple<Stencil::Category::Primitive>;
+};
 
 template <typename T> struct UuidObjectT;
 

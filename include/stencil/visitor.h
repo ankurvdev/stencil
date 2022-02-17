@@ -1,9 +1,12 @@
 #pragma once
-#include "base.h"
 #include "timestamped.h"
+#include "typetraits.h"
+#include "uuidobject.h"
 
+#include <CommonMacros.h>
 #include <memory>
 #include <tuple>
+
 namespace Stencil
 {
 // 3 core datatypes
@@ -46,20 +49,7 @@ template <typename T> struct VisitorForIndexable
     // static void Visit(Iterator& it, T1& obj, T[const]Lambda&& lambda);
 };
 
-template <typename TP, typename T> struct VisitorWithParent : Visitor<T>
-{
-    VisitorWithParent() = default;
-    CLASS_DELETE_COPY_AND_MOVE(VisitorWithParent);
-    // auto Parent() const { return _parent; }
-};
-
 template <typename T> struct VisitorT
-{};
-
-template <typename TP, typename T> struct VisitorWithParentT
-{};
-
-template <typename T> struct StructFieldEnumVisitor
 {};
 
 template <typename T> struct StructFieldsVisitor;

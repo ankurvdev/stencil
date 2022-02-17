@@ -1,6 +1,8 @@
 #pragma once
+#include "typetraits_std.h"
 #include "visitor.h"
 
+#include <array>
 #include <deque>
 
 SUPPRESS_WARNINGS_START
@@ -114,15 +116,7 @@ template <Stencil::ConceptEnum T> struct _PrimitiveStringifier<T>
 };
 template <ConceptValue T> struct _PrimitiveStringifier<T>
 {
-    template <typename Context> static auto Write(Context& ctx, T const& obj)
-    {
-        //        if constexpr (std::is_same_v<T, std::chrono::time_point<std::chrono::system_clock>>) { fmt::print(ctx, "\"{:%FT%T%z}\"",
-        //        obj); }
-        //       else
-        //{
-        fmt::print(ctx, "{}", obj);
-        //}
-    }
+    template <typename Context> static auto Write(Context& ctx, T const& obj) { fmt::print(ctx, "{}", obj); }
 };
 
 template <typename TClock> struct _PrimitiveStringifier<std::chrono::time_point<TClock>>
@@ -167,8 +161,4 @@ template <typename T> static std::string Stringify(T const& obj)
     return sstr.str();
 }
 
-//template <typename T, typename TOutCtx> static void StringifyTo(T const& /*obj*/, TOutCtx& /*octx*/)
-//{
-//    throw std::logic_error("Not Implemented");
-//}
 }    // namespace Stencil::Json

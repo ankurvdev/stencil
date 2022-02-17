@@ -1,12 +1,19 @@
 #pragma once
-#include "base.h"
 #include "enums.h"
+#include "typetraits.h"
 
+#include <charconv>
 #include <tuple>
 
 namespace Stencil
 {
 #if defined TODO
+
+template <typename T>
+concept ConceptIterableOnly = Category::IsIterable<T>();
+
+template <typename T>
+concept ConceptIterableNotIndexable = Category::IsIterable<T>() && !Category::IsIndexable<T>();
 
 template <typename T1, typename T2, typename Enable = void> struct Assign
 {
@@ -73,7 +80,7 @@ template <typename T> bool AreEqual(T const& obj1, T const& obj2)
 
 #pragma warning(push, 3)
 template <typename T> struct Stencil::TypeTraits<T, typename std::enable_if_t<ConceptValue<T>>>
-//template <ConceptValue T> struct Stencil::TypeTraits<T>
+// template <ConceptValue T> struct Stencil::TypeTraits<T>
 {
     using Categories = std::tuple<Category::Primitive>;
 };
@@ -239,7 +246,7 @@ template <Stencil::ConceptEnum TOut, typename T> struct Stencil::Assign<TOut, st
 template <typename TOut> struct Stencil::Assign<TOut, Value, typename std::enable_if_t<Stencil::ConceptEnum<TOut>>>
 {
     using EnumTrait = typename Stencil::EnumTraits<TOut>;
-    void operator()(TOut& lhs, Value const& rhs) { lhs = EnumTrait::ForIndex(rhs); }
+    void operator()(TOut& lhs, Value const& rhs) { lhs = EnumTrait::ForIndex(rhs.cast<size_t>()); }
 };
 
 template <Stencil::ConceptEnum... TOuts, typename T> struct Stencil::Assign<std::variant<TOuts...>, std::basic_string_view<T>>

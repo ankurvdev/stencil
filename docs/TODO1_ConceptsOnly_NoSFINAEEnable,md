@@ -1,0 +1,17 @@
+```
+template <typename T, class Enable = void> struct TypeTraits;
+```
+
+Remove after GCC bug 
+
+Current target GCC-12 migration (with Fedora 36)
+https://fedorapeople.org/groups/schedule/f-36/f-36-key-tasks.html
+23	Final Target date #1
+Fedora users plan on this
+Tue 2022-04-26	Tue 2022-04-26	0
+
+
+https://gcc.gnu.org/git/gitweb.cgi?p=gcc.git;h=ce6054a22ae14594a2919d2ad87cd9478e616fb3
+
+https://gcc.gnu.org/bugzilla/show_bug.cgi?id=92944
+https://gcc.gnu.org/bugzilla/show_bug.cgi?id=103678

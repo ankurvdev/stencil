@@ -1,5 +1,5 @@
 #pragma once
-#include "base.h"
+#include "typetraits.h"
 #include "enums.h"
 #include "mutatorsaccessors.h"
 #include "optionalprops.h"

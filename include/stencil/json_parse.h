@@ -181,11 +181,6 @@ template <typename T> struct Tokenizer : public rapidjson::BaseReaderHandler<rap
         _modes.pop_back();
         if (_modes.back() == Mode::Iterable || _modes.back() == Mode::IndexableValue) _stackvisitor.Pop();
         if (_modes.back() == Mode::IndexableValue) _modes.pop_back();
-        // if (_modes.back() == Mode::IndexableValue)
-        //{
-        //     _modes.pop_back();
-        //     _stackvisitor.Pop();
-        // }
     }
 
     template <typename T1> void _Handle(T1 const& val)

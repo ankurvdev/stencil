@@ -123,16 +123,13 @@ struct Value
         if (_type != type) throw 1;
     }
 
-    operator size_t() const;
-
     Type GetType() const { return _type; }
 
     template <typename T> explicit Value(T const& val) : _type(ValueTraits<T>::ValueType()) { ValueTraits<T>::Assign(*this, val); }
 
     Value() = default;
     Value(std::nullptr_t) {}
-#pragma warning(push, 3)    // TODO : Remove the warning
-#pragma warning(disable : 4244)
+
     template <typename T> T cast() const
     {
         if constexpr (Value::Type::IsFloat(ValueTraits<T>::ValueType()))
@@ -173,74 +170,6 @@ struct Value
             throw std::logic_error("Unknown type");
         }
     }
-
-#pragma warning(pop)
-
-#if 0
-    static int _doubletoint(double val) { return static_cast<int>(std::round(val)); }
-
-    Value cast_signed() const
-    {
-        switch (_type)
-        {
-        case Type::Empty: throw UnsupportedCast();
-        case Type::Signed: return Value(_iVal);
-        case Type::Unsigned: return Value(static_cast<int64_t>(_uVal));
-        case Type::Double: return Value(_doubletoint(_dVal));
-        case Type::Unknown: [[fallthrough]];
-
-        default: throw UnsupportedCast();
-        }
-    }
-
-    Value cast_unsigned() const
-    {
-        switch (_type)
-        {
-        case Type::Empty: throw UnsupportedCast();
-        case Type::Signed: return Value(static_cast<uint64_t>(_iVal));
-        case Type::Unsigned: return Value(_uVal);
-        case Type::Double: return Value(_doubletoint(_dVal));
-        case Type::Unknown: [[fallthrough]];
-
-        default: throw UnsupportedCast();
-        }
-    }
-
-    Value cast_double() const
-    {
-        switch (_type)
-        {
-        case Type::Empty: throw UnsupportedCast();
-        case Type::Signed: return Value(static_cast<int64_t>(round(_dVal)));
-        case Type::Unsigned: return Value(static_cast<uint64_t>(round(_dVal)));
-        case Type::Double: return Value(_dVal);
-        case Type::Unknown: [[fallthrough]];
-
-        default: throw UnsupportedCast();
-        }
-    }
-
-    Value cast(Type type) const
-    {
-        switch (type)
-        {
-        case Type::Empty: return Value();
-        case Type::Signed: return cast_signed();
-        case Type::Unsigned: return cast_unsigned();
-        case Type::Double: return cast_double();
-        case Type::Unknown: [[fallthrough]];
-
-        default: throw UnsupportedCast();
-        }
-    }
-
-    template <typename T> T convert() const
-    {
-        auto casted = (*this).cast(ValueTraits<T>::ValueType());
-        return static_cast<T>(ValueTraits<T>::Get(casted));
-    }
-#endif
 };
 
 template <> struct Value::ValueTraits<uint64_t> : public Value::UnsignedTraits<uint64_t>
@@ -325,11 +254,6 @@ requires(N <= 4) struct Value::ValueTraits<std::array<uint16_t, N>>
     }
 };
 
-inline Value::operator ::size_t() const
-{
-    _check(ValueTraits<uint64_t>::ValueType());
-    return static_cast<size_t>(ValueTraits<uint64_t>::Get(*this));
-}
 template <typename T>
 concept ConceptValue = !Value::Type::IsUnknown(Value::ValueTraits<T>::ValueType());
 

@@ -1,5 +1,5 @@
 #pragma once
-#include "base.h"
+#include "typetraits.h"
 
 #include <string_view>
 #include <variant>
