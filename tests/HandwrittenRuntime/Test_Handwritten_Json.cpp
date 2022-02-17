@@ -124,13 +124,13 @@ TEST_CASE("Json", "[Json]")
     {
         RunTestCases<MultiAttributed>(
             {
-                {R"({"f1": {"timestamp": "2020-01-02:03:04:05.600"}})", "multi-attributed-1", true},
-                {R"({"f1": {"timestamp": "bad-timestamp"}})", "multi-attributed-2", false},
-                {R"({"f1": {"uuid": "{01234567-8901-2345-6789-012345678901}"}})", "multi-attributed-3", true},
-                {R"({"f1": {"uuid": "01234567-8901-2345-6789-012345678901"}})", "multi-attributed-3", true},
-                {R"({"f1": {"uuid": 0}})", "multi-attributed-3", false},
-                {R"({"f1": {"f1", {}}})", "multi-attributed-3", true},
-                {R"({"f1": {"timestamp": "2020-01-02:03:04:05.600", "uuid": "01234567-8901-2345-6789-012345678901", "f1", {}}})", "", true},
+                {R"({"timestamp": "2020-01-02:03:04:05.600", "f1": {}})", "multi-attributed-1", true},
+                {R"({"timestamp": "bad-timestamp", "f1": {}})", "multi-attributed-2", false},
+                {R"({"uuid": "{01234567-8901-2345-6789-012345678901}", "f1": {}})", "multi-attributed-3", true},
+                {R"({"uuid": "01234567-8901-2345-6789-012345678901", "f1": {}})", "multi-attributed-3", true},
+                {R"({"uuid": 0})", "multi-attributed-3", false},
+                {R"({"f1": {}})", "multi-attributed-3", true},
+                {R"({"timestamp": "2020-01-02:03:04:05.600", "uuid": "01234567-8901-2345-6789-012345678901", "f1": {}})", "", true},
             },
             "MultiAttributed");
     }
