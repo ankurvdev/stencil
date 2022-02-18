@@ -137,7 +137,7 @@ TEST_CASE("Json", "[Json]")
 
     SECTION("WithVariantAndMaps")
     {
-        RunTestCases<WithVariantAndMaps>(
+        RunTestCases<WithVariant>(
             {
                 {R"({"f1": {}})", "Primitives64Bit", true},
 

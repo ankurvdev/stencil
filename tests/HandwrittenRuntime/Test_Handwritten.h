@@ -58,12 +58,15 @@ struct MultiAttributed : Stencil::TimestampedT<MultiAttributed>, UuidBasedId<Mul
     std::array<Primitives64Bit, 4> f3;
 };
 
-struct WithVariantAndMaps
+struct WithVariant
 {
-    std::variant<MultiAttributed, Nested, WithBlobs, Primitives64Bit> f1;
-    std::variant<int, char, std::string, uuids::uuid>                 f2;
-    std::unordered_map<size_t, std::string>                           f3;
-    std::unordered_map<std::string, Primitives64Bit>                  f4;
+    std::variant<MultiAttributed, Nested, WithBlobs, Primitives64Bit>         f1;
+    std::variant<int, char, std::string, uuids::uuid>                         f2;
+    std::variant<std::variant<double, float>, char, std::string, uuids::uuid> f3;
+    std::variant<double, std::shared_ptr<MultiAttributed>>                    f4;
+
+    // std::unordered_map<size_t, std::string>                           f3;
+    // std::unordered_map<std::string, Primitives64Bit>                  f4;
 };
 
 struct TestObj
@@ -381,7 +384,7 @@ template <> struct Stencil::Visitor<Nested> : Stencil::VisitorT<Nested>
 
 template <> struct Stencil::TypeTraits<MultiAttributed>
 {
-    using Categories = std::tuple<Stencil::Category::Indexable, Stencil::Category::Iterable>;
+    using Categories = std::tuple<Stencil::Category::Indexable>;
 };
 
 enum class Timestamp_Fields
@@ -486,12 +489,12 @@ struct Stencil::Visitor<MultiAttributed>
     : Stencil::StructVisitor<MultiAttributed, Stencil::TimestampedT<MultiAttributed>, UuidBasedId<MultiAttributed>>
 {};
 
-template <> struct Stencil::TypeTraits<WithVariantAndMaps>
+template <> struct Stencil::TypeTraits<WithVariant>
 {
     using Categories = std::tuple<Stencil::Category::Indexable>;
 };
 
-template <> struct Stencil::TypeTraitsForIndexable<WithVariantAndMaps>
+template <> struct Stencil::TypeTraitsForIndexable<WithVariant>
 {
     enum class Fields
     {
@@ -502,29 +505,29 @@ template <> struct Stencil::TypeTraitsForIndexable<WithVariantAndMaps>
         Field_f4
     };
 
-    using Timestamp_Fields   = typename Stencil::TypeTraitsForIndexable<Stencil::TimestampedT<WithVariantAndMaps>>::Fields;
-    using UuidBasedId_Feilds = typename Stencil::TypeTraitsForIndexable<UuidBasedId<WithVariantAndMaps>>::Fields;
+    using Timestamp_Fields   = typename Stencil::TypeTraitsForIndexable<Stencil::TimestampedT<WithVariant>>::Fields;
+    using UuidBasedId_Feilds = typename Stencil::TypeTraitsForIndexable<UuidBasedId<WithVariant>>::Fields;
 
     using Key = std::variant<Fields, Timestamp_Fields, UuidBasedId_Feilds>;
 };
 
-template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<WithVariantAndMaps>::Fields>
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<WithVariant>::Fields>
 {
-    using Enum = Stencil::TypeTraitsForIndexable<WithVariantAndMaps>::Fields;
+    using Enum = Stencil::TypeTraitsForIndexable<WithVariant>::Fields;
 
     static constexpr std::string_view Names[] = {"Invalid", "f1", "f2", "f3", "f4"};
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
 
-    static Stencil::TypeTraitsForIndexable<WithVariantAndMaps>::Fields ForIndex(size_t index)
+    static Stencil::TypeTraitsForIndexable<WithVariant>::Fields ForIndex(size_t index)
     {
-        return static_cast<Stencil::TypeTraitsForIndexable<WithVariantAndMaps>::Fields>(index);
+        return static_cast<Stencil::TypeTraitsForIndexable<WithVariant>::Fields>(index);
     }
 };
 
-template <> struct Stencil::StructFieldsVisitor<WithVariantAndMaps>
+template <> struct Stencil::StructFieldsVisitor<WithVariant>
 {
-    using Fields = TypeTraitsForIndexable<WithVariantAndMaps>::Fields;
+    using Fields = TypeTraitsForIndexable<WithVariant>::Fields;
     template <typename T, typename TLambda> static bool VisitKey(T& obj, Fields fields, TLambda&& lambda)
     {
         switch (fields)
@@ -547,7 +550,7 @@ template <> struct Stencil::StructFieldsVisitor<WithVariantAndMaps>
     }
 };
 
-template <> struct Stencil::Visitor<WithVariantAndMaps> : Stencil::StructVisitor<WithVariantAndMaps>
+template <> struct Stencil::Visitor<WithVariant> : Stencil::StructVisitor<WithVariant>
 {};
 
 template <> struct Stencil::TypeTraits<TestObj>

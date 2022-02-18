@@ -1,5 +1,6 @@
 #pragma once
 #include "typetraits_std.h"
+#include "typetraits_variant.h"
 #include "visitor.h"
 
 #include <array>

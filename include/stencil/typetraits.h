@@ -44,7 +44,6 @@ struct Category
     {};
 
     template <typename T> static constexpr bool IsIndexable() { return _HasType<Indexable, typename TypeTraits<T>::Categories>::value; }
-
     template <typename T> static constexpr bool IsIterable() { return _HasType<Iterable, typename TypeTraits<T>::Categories>::value; }
     template <typename T> static constexpr bool IsPrimitive() { return _HasType<Primitive, typename TypeTraits<T>::Categories>::value; }
 };
