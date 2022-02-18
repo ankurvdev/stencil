@@ -134,4 +134,14 @@ TEST_CASE("Json", "[Json]")
             },
             "MultiAttributed");
     }
+
+    SECTION("WithVariantAndMaps")
+    {
+        RunTestCases<WithVariantAndMaps>(
+            {
+                {R"({"f1": {}})", "Primitives64Bit", true},
+
+            },
+            "WithVariantAndMaps");
+    }
 }

@@ -2,6 +2,7 @@
 - Variant - 2 days
 - Cleanu - 2 days
     - rename Value
+    - Linux Clang + GCC cleanups
 - Maps - 2 days
 - Cleanup - 2 days
 - Object-Initialize / Visitor-Initialize (shared_ptr<>) - 3 days

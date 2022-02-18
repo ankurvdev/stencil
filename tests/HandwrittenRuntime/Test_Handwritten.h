@@ -486,6 +486,70 @@ struct Stencil::Visitor<MultiAttributed>
     : Stencil::StructVisitor<MultiAttributed, Stencil::TimestampedT<MultiAttributed>, UuidBasedId<MultiAttributed>>
 {};
 
+template <> struct Stencil::TypeTraits<WithVariantAndMaps>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<WithVariantAndMaps>
+{
+    enum class Fields
+    {
+        Invalid,
+        Field_f1,
+        Field_f2,
+        Field_f3,
+        Field_f4
+    };
+
+    using Timestamp_Fields   = typename Stencil::TypeTraitsForIndexable<Stencil::TimestampedT<WithVariantAndMaps>>::Fields;
+    using UuidBasedId_Feilds = typename Stencil::TypeTraitsForIndexable<UuidBasedId<WithVariantAndMaps>>::Fields;
+
+    using Key = std::variant<Fields, Timestamp_Fields, UuidBasedId_Feilds>;
+};
+
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<WithVariantAndMaps>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<WithVariantAndMaps>::Fields;
+
+    static constexpr std::string_view Names[] = {"Invalid", "f1", "f2", "f3", "f4"};
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraitsForIndexable<WithVariantAndMaps>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<WithVariantAndMaps>::Fields>(index);
+    }
+};
+
+template <> struct Stencil::StructFieldsVisitor<WithVariantAndMaps>
+{
+    using Fields = TypeTraitsForIndexable<WithVariantAndMaps>::Fields;
+    template <typename T, typename TLambda> static bool VisitKey(T& obj, Fields fields, TLambda&& lambda)
+    {
+        switch (fields)
+        {
+        case Fields::Field_f1: lambda(obj.f1); return true;
+        case Fields::Field_f2: lambda(obj.f2); return true;
+        case Fields::Field_f3: lambda(obj.f3); return true;
+        case Fields::Field_f4: lambda(obj.f4); return true;
+        case Fields::Invalid: [[fallthrough]];
+        default: return false;
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    {
+        lambda(Fields::Field_f1, obj.f1);
+        lambda(Fields::Field_f2, obj.f2);
+        lambda(Fields::Field_f3, obj.f3);
+        lambda(Fields::Field_f4, obj.f4);
+    }
+};
+
+template <> struct Stencil::Visitor<WithVariantAndMaps> : Stencil::StructVisitor<WithVariantAndMaps>
+{};
+
 template <> struct Stencil::TypeTraits<TestObj>
 {
     using Categories = std::tuple<Stencil::Category::Indexable, Stencil::Category::Iterable>;
