@@ -31,8 +31,9 @@ template <typename... Ts> struct Stencil::Visitor<std::variant<Ts...>>
         {
             if (N == key)
             {
-                std::get<N>(obj) = {};
-                lambda(obj);
+                using Type = std::remove_cvref_t<decltype(std::get<N>(obj))>;
+                obj        = Type{};
+                lambda(std::get<N>(obj));
             }
             else
             {
