@@ -21,9 +21,18 @@ template <typename TContext, typename T> void _WriteTo(TContext& ctx, T const& o
     fmt::print(ostr, "{}", obj);
 }
 
-template <typename T> struct _Stringifier;
+struct ProtocolString
+{};
 
-template <Stencil::ConceptIndexable T> struct _Stringifier<T>
+struct ProtocolJsonVal
+{};
+
+struct ProtocolBinary
+{};
+
+template <typename T, typename TProt> struct Serializer;
+
+template <Stencil::ConceptIndexable T> struct Serializer<T, ProtocolJsonVal>
 {
     template <typename Context> static auto Write(Context& ctx, T const& obj)
     {
@@ -31,16 +40,20 @@ template <Stencil::ConceptIndexable T> struct _Stringifier<T>
         bool first = true;
         Visitor<T>::VisitAllIndicies(obj, [&](auto const& k, auto const& v) {
             if (!first) _WriteTo(ctx, ',');
-            _Stringifier<std::remove_cvref_t<decltype(k)>>::Write(ctx, k);
+            Serializer<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ctx, k);
             _WriteTo(ctx, ':');
-            _Stringifier<std::remove_cvref_t<decltype(v)>>::Write(ctx, v);
+            Serializer<std::remove_cvref_t<decltype(v)>, ProtocolJsonVal>::Write(ctx, v);
             first = false;
         });
         _WriteTo(ctx, '}');
     }
 };
+template <Stencil::ConceptIndexable T> struct Serializer<T, ProtocolString>
+{
+    template <typename Context> static auto Write(Context& ctx, T const& obj) { TODO(""); };
+};
 
-template <Stencil::ConceptIterableNotIndexable T> struct _Stringifier<T>
+template <Stencil::ConceptIterableNotIndexable T> struct Serializer<T, ProtocolJsonVal>
 {
     template <typename Context> static auto Write(Context& ctx, T const& obj)
     {
@@ -48,24 +61,35 @@ template <Stencil::ConceptIterableNotIndexable T> struct _Stringifier<T>
         bool first = true;
         Visitor<T>::VisitAllIndicies(obj, [&](auto, auto& v) {
             if (!first) _WriteTo(ctx, ',');
-            _Stringifier<std::remove_cvref_t<decltype(v)>>::Write(ctx, v);
+            Serializer<std::remove_cvref_t<decltype(v)>, ProtocolJsonVal>::Write(ctx, v);
             first = false;
         });
         _WriteTo(ctx, ']');
     }
 };
 
-template <typename T> struct _PrimitiveStringifier
+template <typename T, typename TProt> struct _PrimitiveStringifier
 {
     template <typename Context> static auto Write(Context& ctx, T const& obj) { fmt::print(ctx, "\"{}\"", obj); }
 };
 
-template <Stencil::ConceptPrimitive T> struct _Stringifier<T>
+template <Stencil::ConceptPrimitive T> struct Serializer<T, ProtocolJsonVal>
 {
-    template <typename Context> static auto Write(Context& ctx, T const& obj) { return _PrimitiveStringifier<T>::Write(ctx, obj); }
+    template <typename Context> static auto Write(Context& ctx, T const& obj)
+    {
+        return _PrimitiveStringifier<T, ProtocolJsonVal>::Write(ctx, obj);
+    }
 };
 
-template <size_t N> struct _Stringifier<std::array<char, N>>
+template <Stencil::ConceptPrimitive T> struct Serializer<T, ProtocolString>
+{
+    template <typename Context> static auto Write(Context& ctx, T const& obj)
+    {
+        return _PrimitiveStringifier<T, ProtocolString>::Write(ctx, obj);
+    }
+};
+
+template <size_t N> struct Serializer<std::array<char, N>, ProtocolJsonVal>
 {
     template <typename Context> static auto Write(Context& ctx, std::array<char, N> const& obj)
     {
@@ -83,7 +107,7 @@ template <size_t N> struct _Stringifier<std::array<char, N>>
     }
 };
 
-template <size_t N> struct _Stringifier<std::array<uint16_t, N>>
+template <size_t N> struct Serializer<std::array<uint16_t, N>, ProtocolJsonVal>
 {
     template <typename Context> static auto Write(Context& ctx, std::array<uint16_t, N> const& obj)
     {
@@ -91,7 +115,7 @@ template <size_t N> struct _Stringifier<std::array<uint16_t, N>>
         {
             uint64_t val = 0;
             for (size_t i = N; i > 0; i--) { val = (val << 16) | obj.at(i - 1); }
-            _Stringifier<uint64_t>::Write(ctx, val);
+            Serializer<uint64_t, ProtocolJsonVal>::Write(ctx, val);
         }
         else
         {
@@ -100,7 +124,7 @@ template <size_t N> struct _Stringifier<std::array<uint16_t, N>>
             Visitor<std::array<uint16_t, N>>::VisitAllIndicies(obj, [&](auto, auto& v) {
                 using ValueType = std::remove_cvref_t<decltype(v)>;
                 if (!first) _WriteTo(ctx, ',');
-                _Stringifier<ValueType>::Write(ctx, v);
+                Serializer<ValueType, ProtocolJsonVal>::Write(ctx, v);
                 first = false;
             });
             _WriteTo(ctx, ']');
@@ -108,19 +132,28 @@ template <size_t N> struct _Stringifier<std::array<uint16_t, N>>
     }
 };
 
-template <Stencil::ConceptEnum T> struct _PrimitiveStringifier<T>
+template <Stencil::ConceptEnum T> struct _PrimitiveStringifier<T, ProtocolJsonVal>
 {
     template <typename Context> static auto Write(Context& ctx, T const& obj)
     {
         fmt::print(ctx, "\"{}\"", Stencil::EnumTraits<T>::ToString(obj));
     }
 };
-template <ConceptValue T> struct _PrimitiveStringifier<T>
+
+template <Stencil::ConceptEnum T> struct _PrimitiveStringifier<T, ProtocolString>
+{
+    template <typename Context> static auto Write(Context& ctx, T const& obj)
+    {
+        fmt::print(ctx, "\"{}\"", Stencil::EnumTraits<T>::ToString(obj));
+    }
+};
+
+template <ConceptValue T> struct _PrimitiveStringifier<T, ProtocolJsonVal>
 {
     template <typename Context> static auto Write(Context& ctx, T const& obj) { fmt::print(ctx, "{}", obj); }
 };
 
-template <typename TClock> struct _PrimitiveStringifier<std::chrono::time_point<TClock>>
+template <typename TClock> struct _PrimitiveStringifier<std::chrono::time_point<TClock>, ProtocolJsonVal>
 {
     template <typename Context> static auto Write(Context& ctx, std::chrono::time_point<TClock> const& obj)
     {
@@ -128,7 +161,7 @@ template <typename TClock> struct _PrimitiveStringifier<std::chrono::time_point<
     }
 };
 
-template <> struct _PrimitiveStringifier<char>
+template <> struct _PrimitiveStringifier<char, ProtocolJsonVal>
 {
     template <typename Context> static auto Write(Context& ctx, char const& obj)
     {
@@ -139,18 +172,18 @@ template <> struct _PrimitiveStringifier<char>
     }
 };
 
-template <> struct _PrimitiveStringifier<std::wstring>
+template <> struct _PrimitiveStringifier<std::wstring, ProtocolJsonVal>
 {
     template <typename Context> static auto Write(Context& ctx, std::wstring const& obj)
     {
         std::string str;
         str.resize(obj.size());
         std::transform(obj.begin(), obj.end(), str.begin(), [](auto l) { return static_cast<char>(l); });
-        _PrimitiveStringifier<std::string>::Write(ctx, str);
+        _PrimitiveStringifier<std::string, ProtocolJsonVal>::Write(ctx, str);
     }
 };
 
-template <> struct _PrimitiveStringifier<std::wstring_view>
+template <> struct _PrimitiveStringifier<std::wstring_view, ProtocolJsonVal>
 {
     template <typename Context> static auto Write(Context& /*ctx*/, std::wstring_view const& /*obj*/) { TODO(""); }
 };
@@ -158,7 +191,7 @@ template <> struct _PrimitiveStringifier<std::wstring_view>
 template <typename T> static std::string Stringify(T const& obj)
 {
     std::stringstream sstr;
-    _Stringifier<T>::Write(sstr, obj);
+    Serializer<T, ProtocolJsonVal>::Write(sstr, obj);
     return sstr.str();
 }
 

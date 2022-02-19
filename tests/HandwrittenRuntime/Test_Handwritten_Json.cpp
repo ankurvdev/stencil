@@ -135,13 +135,22 @@ TEST_CASE("Json", "[Json]")
             "MultiAttributed");
     }
 
-    SECTION("WithVariantAndMaps")
+    SECTION("WithVariant")
     {
         RunTestCases<WithVariant>(
             {
-                {R"({"f1": {}})", "Primitives64Bit", true},
-
+                /*   std::variant<MultiAttributed, Nested, WithBlobs, Primitives64Bit>         f1;
+    std::variant<int, char, std::string, uuids::uuid>                         f2;
+    std::variant<std::variant<double, float>, char, std::string, uuids::uuid> f3;
+    std::variant<double, std::shared_ptr<MultiAttributed>>                    f4;
+                */
+                {R"({"f1": {"0": {"f1": {}}}, "f2": {"0": 1}, "f3": {"0": {"1": 0.1}}, "f4": {"0": 2}})", "0", true},
+                {R"({"f1": {"1": {"f1": {}}}, "f2": {"1": "a"}, "f3": {"1": {"1": "d"}}, "f4": {"1": {"f1": {}}})", "1", true},
+                {R"({"f1": {"2": {"f1": {}}}, "f2": {"2": "bcd"}, "f3": {"2": {"2": "efg"}}, "f4": {"0": 3}})", "2", true},
+                {R"({"f1": {"3": {"f1": {}}}, "f2": {"3": "01234567-8901-2345-6789-012345678901"}, "f3": {"3": "{a1234567-8901-2345-6789-012345678901}"}, "f4": {"1": {"f2": {}}}})",
+                 "3",
+                 true},
             },
-            "WithVariantAndMaps");
+            "WithVariant");
     }
 }
