@@ -75,7 +75,7 @@ template <typename T, typename... TAttrs> struct StructVisitor
     template <typename TAttr, typename T1, typename TLambda> static bool _VisitAllIndiciesHelper(T1& obj, TLambda&& lambda)
     {
         StructFieldsVisitor<TAttr>::VisitAllIndicies(obj, lambda);
-        return false;
+        return false ;
     }
     template <typename T1, typename TLambda> static void VisitAllIndicies(T1& obj, TLambda&& lambda)
     {

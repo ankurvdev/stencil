@@ -444,7 +444,7 @@ template <> struct Stencil::TypeTraitsForIndexable<MultiAttributed>
     using Timestamp_Fields   = typename Stencil::TypeTraitsForIndexable<Stencil::TimestampedT<MultiAttributed>>::Fields;
     using UuidBasedId_Feilds = typename Stencil::TypeTraitsForIndexable<UuidBasedId<MultiAttributed>>::Fields;
 
-    using Key = std::variant<Fields, Timestamp_Fields, UuidBasedId_Feilds>;
+    using Key = Stencil::EnumPack<Fields, Timestamp_Fields, UuidBasedId_Feilds>;
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<MultiAttributed>::Fields>
@@ -505,10 +505,7 @@ template <> struct Stencil::TypeTraitsForIndexable<WithVariant>
         Field_f4
     };
 
-    using Timestamp_Fields   = typename Stencil::TypeTraitsForIndexable<Stencil::TimestampedT<WithVariant>>::Fields;
-    using UuidBasedId_Feilds = typename Stencil::TypeTraitsForIndexable<UuidBasedId<WithVariant>>::Fields;
-
-    using Key = std::variant<Fields, Timestamp_Fields, UuidBasedId_Feilds>;
+    using Key = Stencil::EnumPack<Fields>;
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<WithVariant>::Fields>

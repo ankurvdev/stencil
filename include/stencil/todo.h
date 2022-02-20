@@ -243,7 +243,7 @@ template <typename TOut> struct Stencil::Assign<TOut, Primitives64Bit, typename 
     void operator()(TOut& lhs, Primitives64Bit const& rhs) { lhs = EnumTrait::ForIndex(rhs.cast<size_t>()); }
 };
 
-template <Stencil::ConceptEnum... TOuts, typename T> struct Stencil::Assign<std::variant<TOuts...>, std::basic_string_view<T>>
+template <Stencil::ConceptEnum... TOuts, typename T> struct Stencil::Assign<Stencil::EnumPack<TOuts...>, std::basic_string_view<T>>
 {
     template <typename T1, typename T2> bool TryMatch(T2& lhs, std::basic_string_view<T> const& rhs)
     {
@@ -255,24 +255,24 @@ template <Stencil::ConceptEnum... TOuts, typename T> struct Stencil::Assign<std:
                     return std::tolower(l) == std::tolower(r);
                 }))
             {
-                lhs = EnumTrait::ForIndex(i);
+                lhs = Stencil::EnumPack<TOuts...>{EnumTrait::ForIndex(i)};
                 return true;
             }
         }
         return false;
     }
 
-    void operator()(std::variant<TOuts...>& lhs, std::basic_string_view<T> const& rhs)
+    void operator()(Stencil::EnumPack<TOuts...>& lhs, std::basic_string_view<T> const& rhs)
     {
         bool found = (TryMatch<TOuts>(lhs, rhs) || ...);
         if (!found) throw std::invalid_argument("Invalid");
     }
 };
 
-template <Stencil::ConceptEnum... TOuts> struct Stencil::Assign<std::variant<TOuts...>, Primitives64Bit>
+template <Stencil::ConceptEnum... TOuts> struct Stencil::Assign<Stencil::EnumPack<TOuts...>, Primitives64Bit>
 {
-    using EnumTrait = typename Stencil::EnumTraits<std::variant<TOuts...>>;
-    void operator()(std::variant<TOuts...>& /* lhs */, Primitives64Bit const& /* rhs */) { TODO(""); }
+    using EnumTrait = typename Stencil::EnumTraits<Stencil::EnumPack<TOuts...>>;
+    void operator()(Stencil::EnumPack<TOuts...>& /* lhs */, Primitives64Bit const& /* rhs */) { TODO(""); }
 };
 
 /*
