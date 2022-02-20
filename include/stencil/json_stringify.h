@@ -50,7 +50,7 @@ template <Stencil::ConceptIndexable T> struct Serializer<T, ProtocolJsonVal>
 };
 template <Stencil::ConceptIndexable T> struct Serializer<T, ProtocolString>
 {
-    template <typename Context> static auto Write(Context& ctx, T const& obj) { TODO(""); };
+    template <typename Context> static auto Write(Context& /*ctx*/, T const& /*obj*/) { TODO(""); }
 };
 
 template <Stencil::ConceptIterableNotIndexable T> struct Serializer<T, ProtocolJsonVal>

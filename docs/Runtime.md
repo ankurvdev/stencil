@@ -1,6 +1,8 @@
 # Runtime
 - Maps - 2 days
 - Cleanup - 2 days
+    - Rapidjson cmake issue
+    - 
 - Object-Initialize / Visitor-Initialize (shared_ptr<>) - 3 days
 - Cleanup - 2 days
 
