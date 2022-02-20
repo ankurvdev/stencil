@@ -15,7 +15,7 @@
 #include <unordered_map>
 #include <vector>
 
-#define DEFAULT_COPY_AND_MOVE(name)         \
+#define CLASS_DEFAULT_COPY_AND_MOVE(name)         \
     name(name const&) = default;            \
     name(name&&)      = default;            \
     name& operator=(name const&) = default; \

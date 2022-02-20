@@ -1,5 +1,5 @@
 #pragma once
-#include "fixedwidthvalue.h"
+#include "primitives64bit.h"
 #include "todo.h"
 #include "visitor.h"
 
@@ -24,7 +24,7 @@ struct TypeHandler
     virtual TypeHandlerAndPtr VisitKey(void* ptr)         = 0;
     virtual TypeHandlerAndPtr VisitValueForKey(void* ptr) = 0;
 
-    virtual void Assign(void* ptr, Value const& val)             = 0;
+    virtual void Assign(void* ptr, Primitives64Bit const& val)   = 0;
     virtual void Assign(void* ptr, std::string_view const& val)  = 0;
     virtual void Assign(void* ptr, std::wstring_view const& val) = 0;
 };
@@ -45,9 +45,9 @@ inline auto VisitNext(TypeHandlerAndPtr const& item)
 }
 template <typename T> struct AssignHelper;
 
-template <ConceptValue TVal> struct AssignHelper<TVal>
+template <ConceptPrimitives64Bit TVal> struct AssignHelper<TVal>
 {
-    void operator()(TypeHandlerAndPtr const& item, TVal const& val) { return item.handler->Assign(item.ptr, Value(val)); }
+    void operator()(TypeHandlerAndPtr const& item, TVal const& val) { return item.handler->Assign(item.ptr, Primitives64Bit(val)); }
 };
 
 template <typename T> struct AssignHelper<std::span<T const>>
@@ -176,7 +176,7 @@ template <typename TOwner, typename T> struct VisitorTypeHandler : TypeHandler
         return indexable.VisitValueForKey(obj);
     }
 
-    virtual void Assign(void* ptr, Value const& val) override { primitive.Assign(*reinterpret_cast<T*>(ptr), val); }
+    virtual void Assign(void* ptr, Primitives64Bit const& val) override { primitive.Assign(*reinterpret_cast<T*>(ptr), val); }
     virtual void Assign(void* ptr, std::string_view const& val) override { primitive.Assign(*reinterpret_cast<T*>(ptr), val); }
     virtual void Assign(void* ptr, std::wstring_view const& val) override { primitive.Assign(*reinterpret_cast<T*>(ptr), val); }
 

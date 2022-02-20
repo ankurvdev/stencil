@@ -1,6 +1,5 @@
 #pragma once
-
-#include "Logging.h"
+#include "CommonMacros.h"
 
 #include <assert.h>
 #include <bitset>
@@ -19,7 +18,7 @@
 
 namespace Database2
 {
-
+#if 0
 struct BlobDataSizeOutofRange : std::exception
 {
     BlobDataSizeOutofRange(uint32_t typeId, uint64_t recordSize)
@@ -27,12 +26,13 @@ struct BlobDataSizeOutofRange : std::exception
         _buffer << "Database Error: Blob size out of range. TypeId = " << typeId << " RecordSize = " << recordSize;
     }
 
-    DEFAULT_COPY_AND_MOVE(BlobDataSizeOutofRange);
+    CLASS_DEFAULT_COPY_AND_MOVE(BlobDataSizeOutofRange);
 
     const char* what() const noexcept(true) override { return _buffer.data(); }
 
-    ::Logging::PrettyPrintStream _buffer;
+    //    ::Logging::PrettyPrintStream _buffer;
 };
+#endif
 
 template <typename> struct is_tuple : std::false_type
 {};
@@ -56,13 +56,13 @@ template <typename T, typename TTup, size_t I = 0> constexpr size_t tuple_index_
 struct shared_lock : std::unique_lock<std::shared_mutex>
 {
     shared_lock(std::shared_mutex& mutex) : std::unique_lock<std::shared_mutex>(mutex) {}
-    DELETE_COPY_DEFAULT_MOVE(shared_lock);
+    CLASS_DELETE_COPY_DEFAULT_MOVE(shared_lock);
 };
 
 struct exclusive_lock : shared_lock
 {
     exclusive_lock(std::shared_mutex& mutex) : shared_lock(mutex) {}
-    DELETE_COPY_DEFAULT_MOVE(exclusive_lock);
+    CLASS_DELETE_COPY_DEFAULT_MOVE(exclusive_lock);
 };
 
 enum class CompareResult
@@ -203,10 +203,7 @@ struct SerDes
         if (std::filesystem::exists(path))
         {
             auto fstatus = std::filesystem::status(path);
-            if (fstatus.type() != std::filesystem::file_type::regular)
-            {
-                throw ::Logging::TODOCreateException("File is not a regular file");
-            }
+            if (fstatus.type() != std::filesystem::file_type::regular) { throw std::runtime_error("File is not a regular file"); }
             if ((fstatus.permissions() & std::filesystem::perms::owner_write) == std::filesystem::perms::none)
             {
                 AttachStream(std::ifstream(path));
@@ -253,7 +250,7 @@ struct SerDes
 
     public:
     SerDes() = default;
-    DELETE_COPY_AND_MOVE(SerDes);
+    CLASS_DELETE_COPY_AND_MOVE(SerDes);
 
     ~SerDes()
     {
@@ -288,12 +285,12 @@ struct SerDes
     {
         if (_loadedPages.size() == 0)
         {
-            if (_readFrom == nullptr) throw ::Logging::TODOCreateException("No Input file attached");
+            if (_readFrom == nullptr) throw std::runtime_error("No Input file attached");
             _ReadPage(page, index, *_readFrom);
         }
         else
         {
-            if (_readFrom != nullptr) throw ::Logging::TODOCreateException("Invalid State");
+            if (_readFrom != nullptr) throw std::runtime_error("Invalid State");
             page = *_loadedPages[index];
         }
     }
@@ -314,14 +311,14 @@ struct SerDes
     {
         if (_loadedPages.size() == 0)
         {
-            if (_readFrom == nullptr) throw ::Logging::TODOCreateException("No Input file attached");
+            if (_readFrom == nullptr) throw std::runtime_error("No Input file attached");
             _readFrom->seekg(0, std::ios_base::end);
             auto offset = _readFrom->tellg();
             return GetPageIndexFromOffset(offset);
         }
         else
         {
-            if (_readFrom != nullptr) throw ::Logging::TODOCreateException("Invalid State");
+            if (_readFrom != nullptr) throw std::runtime_error("Invalid State");
             return static_cast<uint32_t>(_loadedPages.size());
         }
     }
@@ -373,15 +370,12 @@ struct SerDes
         std::streamoff offsetreq{PageStreamOffset(index)};
         stream.seekg(offsetreq + static_cast<std::streampos>(Page::PageSizeInBytes), std::ios_base::beg);
         auto offsetcur = stream.tellg();
-        if (offsetcur != (offsetreq + static_cast<std::streampos>(Page::PageSizeInBytes)))
-        {
-            throw ::Logging::TODOCreateException("Invalid Page Ref");
-        }
+        if (offsetcur != (offsetreq + static_cast<std::streampos>(Page::PageSizeInBytes))) { throw std::runtime_error("Invalid Page Ref"); }
         stream.seekg(offsetreq, std::ios_base::beg);
         assert(!stream.fail());
         offsetcur = stream.tellg();
         assert(!stream.fail());
-        if (offsetcur != static_cast<std::streampos>(offsetreq)) throw ::Logging::TODOCreateException("Invalid Page Ref");
+        if (offsetcur != static_cast<std::streampos>(offsetreq)) throw std::runtime_error("Invalid Page Ref");
 
         stream.read(reinterpret_cast<char*>(&page), Page::PageSizeInBytes);
         assert(!stream.fail());
@@ -525,7 +519,7 @@ template <size_t RecordSize> struct PageForRecord : public PageForRecordInterfac
         // TODO unit test
     }
 
-    DELETE_COPY_AND_MOVE(PageForRecord);
+    CLASS_DELETE_COPY_AND_MOVE(PageForRecord);
 
     Ref::PageIndex PageIndex() const { return _page._pageIndex; }
 
@@ -607,7 +601,7 @@ template <size_t RecordSize> struct PageForSharedRecord : public PageForRecordIn
         static_assert(sizeof(*_records) + sizeof(*_refCounts) < Page::PageSizeInBytes);
     }
 
-    DELETE_COPY_AND_MOVE(PageForSharedRecord);
+    CLASS_DELETE_COPY_AND_MOVE(PageForSharedRecord);
 
     size_t  GetSlotCount() const override { return SlotCount; }
     bool    ValidSlot(size_t slot) const override { return _refCounts->at(slot) > 0; }
@@ -680,7 +674,7 @@ template <> struct PageForRecord<0> : public PageForRecordInterface
         {
         default:
         case 0x0:
-        case 0x1: throw Database2::BlobDataSizeOutofRange{typeId, _recordSize};
+        case 0x1: throw std::logic_error("Blob data size out of range");
         case 0x2: impl = std::make_unique<PageForRecord<(1 << 0x2)>>(_page); break;
         case 0x3: impl = std::make_unique<PageForRecord<(1 << 0x3)>>(_page); break;
         case 0x4: impl = std::make_unique<PageForRecord<(1 << 0x4)>>(_page); break;
@@ -694,7 +688,7 @@ template <> struct PageForRecord<0> : public PageForRecordInterface
         }
     }
 
-    DELETE_COPY_AND_MOVE(PageForRecord);
+    CLASS_DELETE_COPY_AND_MOVE(PageForRecord);
 
     uint8_t Release(exclusive_lock const& guardscope, Ref::SlotIndex slot) override { return impl->Release(guardscope, slot); }
 
@@ -707,7 +701,7 @@ template <> struct PageForRecord<0> : public PageForRecordInterface
 template <> struct PageForSharedRecord<0> : public PageForRecord<0>
 {
     PageForSharedRecord(PageRuntime& page) : PageForRecord(page) {}
-    DELETE_COPY_AND_MOVE(PageForSharedRecord);
+    CLASS_DELETE_COPY_AND_MOVE(PageForSharedRecord);
 };
 
 struct JournalPage
@@ -726,7 +720,7 @@ struct JournalPage
         ObjTypeId      typeId{0};
     };
 
-    DELETE_COPY_AND_MOVE(JournalPage);
+    CLASS_DELETE_COPY_AND_MOVE(JournalPage);
 
     Ref::PageIndex GetEntryCount() const { return EntryCount; }
 
@@ -772,7 +766,7 @@ struct JournalPage
 
 struct HeaderPage
 {
-    DELETE_COPY_AND_MOVE(HeaderPage);
+    CLASS_DELETE_COPY_AND_MOVE(HeaderPage);
 
     private:
     HeaderPage(PageRuntime&) {}
@@ -784,7 +778,7 @@ struct PageManager
 {
     public:    // Constructor, destructor
     PageManager() = default;
-    DELETE_COPY_AND_MOVE(PageManager);
+    CLASS_DELETE_COPY_AND_MOVE(PageManager);
 
     PageManager(std::filesystem::path const& path)
     {
@@ -951,7 +945,7 @@ template <typename TDb, typename TObj, typename TLock> struct Iterator
 
     auto Get()
     {
-        if (_db == nullptr) { throw Logging::TODOCreateException("Reached the end of iteration"); }
+        if (_db == nullptr) { throw std::runtime_error("Reached the end of iteration"); }
         return this->_db->Get(*this->_lock, this->_current);
     }
 
@@ -1091,7 +1085,7 @@ template <typename TDb> struct DatabaseT
             _end{impl::RefAndObjIterator<TDb, TObj, rlock>::End()}
         {}
 
-        ONLY_MOVE_CONSTRUCT(RangeForViewT);
+        CLASS_DELETE_COPY_DEFAULT_MOVE(RangeForViewT);
 
         rlock& _lock;
 
@@ -1110,7 +1104,7 @@ template <typename TDb> struct DatabaseT
             _end{impl::RefAndObjIterator<TDb, TObj, wlock>::End()}
         {}
 
-        ONLY_MOVE_CONSTRUCT(RangeForEditT);
+        CLASS_DELETE_COPY_DEFAULT_MOVE(RangeForEditT);
 
         wlock& _lock;
 
@@ -1130,7 +1124,8 @@ template <typename TDb> struct DatabaseT
 
     DatabaseT()  = default;
     ~DatabaseT() = default;
-    DEFAULT_COPY_AND_MOVE(DatabaseT);
+    CLASS_DELETE_COPY_DEFAULT_MOVE(DatabaseT);
+
     DatabaseT(InMemoryType) { Init(); }
     DatabaseT(std::filesystem::path const& path) : _pagemgr(std::make_shared<impl::PageManager>(path)) {}
     DatabaseT(std::ofstream&& stream) : _pagemgr(std::make_shared<impl::PageManager>(stream)) {}

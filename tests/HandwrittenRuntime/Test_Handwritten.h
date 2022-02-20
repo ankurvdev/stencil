@@ -6,7 +6,7 @@
 #include <string>
 #include <variant>
 
-struct Primitives64Bit
+struct WithPrimitives64Bit
 {
     int64_t  f1;
     int16_t  f2;
@@ -45,28 +45,28 @@ struct WithBlobs
 
 struct Nested
 {
-    Primitives64Bit                  f1;
-    WithBlobs                        f2;
-    std::shared_ptr<Primitives64Bit> f3;
-    std::vector<WithBlobs>           f4;
+    WithPrimitives64Bit                  f1;
+    WithBlobs                            f2;
+    std::shared_ptr<WithPrimitives64Bit> f3;
+    std::vector<WithBlobs>               f4;
 };
 
 struct MultiAttributed : Stencil::TimestampedT<MultiAttributed>, UuidBasedId<MultiAttributed>
 {
-    Primitives64Bit                f1;
-    std::shared_ptr<WithBlobs>     f2;
-    std::array<Primitives64Bit, 4> f3;
+    WithPrimitives64Bit                f1;
+    std::shared_ptr<WithBlobs>         f2;
+    std::array<WithPrimitives64Bit, 4> f3;
 };
 
 struct WithVariant
 {
-    std::variant<MultiAttributed, Nested, WithBlobs, Primitives64Bit>         f1;
+    std::variant<MultiAttributed, Nested, WithBlobs, WithPrimitives64Bit>     f1;
     std::variant<int, char, std::string, uuids::uuid>                         f2;
     std::variant<std::variant<double, float>, char, std::string, uuids::uuid> f3;
     std::variant<double, std::shared_ptr<MultiAttributed>>                    f4;
 
     // std::unordered_map<size_t, std::string>                           f3;
-    // std::unordered_map<std::string, Primitives64Bit>                  f4;
+    // std::unordered_map<std::string, WithPrimitives64Bit>                  f4;
 };
 
 struct TestObj
@@ -74,12 +74,12 @@ struct TestObj
     MultiAttributed f1;
 };
 
-template <> struct Stencil::TypeTraits<Primitives64Bit>
+template <> struct Stencil::TypeTraits<WithPrimitives64Bit>
 {
     using Categories = std::tuple<Stencil::Category::Indexable>;
 };
 
-template <> struct Stencil::TypeTraitsForIndexable<Primitives64Bit>
+template <> struct Stencil::TypeTraitsForIndexable<WithPrimitives64Bit>
 {
     enum class Fields
     {
@@ -98,23 +98,23 @@ template <> struct Stencil::TypeTraitsForIndexable<Primitives64Bit>
     using Key = Fields;
 };
 
-template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Primitives64Bit>::Fields>
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<WithPrimitives64Bit>::Fields>
 {
-    using Enum = Stencil::TypeTraitsForIndexable<Primitives64Bit>::Fields;
+    using Enum = Stencil::TypeTraitsForIndexable<WithPrimitives64Bit>::Fields;
 
     static constexpr std::string_view Names[] = {"Invalid", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9"};
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
 
-    static Stencil::TypeTraitsForIndexable<Primitives64Bit>::Fields ForIndex(size_t index)
+    static Stencil::TypeTraitsForIndexable<WithPrimitives64Bit>::Fields ForIndex(size_t index)
     {
-        return static_cast<Stencil::TypeTraitsForIndexable<Primitives64Bit>::Fields>(index);
+        return static_cast<Stencil::TypeTraitsForIndexable<WithPrimitives64Bit>::Fields>(index);
     }
 };
 
-template <> struct Stencil::Visitor<Primitives64Bit> : Stencil::VisitorT<Primitives64Bit>
+template <> struct Stencil::Visitor<WithPrimitives64Bit> : Stencil::VisitorT<WithPrimitives64Bit>
 {
-    using Fields = TypeTraitsForIndexable<Primitives64Bit>::Fields;
+    using Fields = TypeTraitsForIndexable<WithPrimitives64Bit>::Fields;
 
     template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
     {

@@ -148,7 +148,7 @@ template <Stencil::ConceptEnum T> struct _PrimitiveStringifier<T, ProtocolString
     }
 };
 
-template <ConceptValue T> struct _PrimitiveStringifier<T, ProtocolJsonVal>
+template <ConceptPrimitives64Bit T> struct _PrimitiveStringifier<T, ProtocolJsonVal>
 {
     template <typename Context> static auto Write(Context& ctx, T const& obj) { fmt::print(ctx, "{}", obj); }
 };

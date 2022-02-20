@@ -50,9 +50,9 @@ TEST_CASE("Json", "[Json]")
 {
     SECTION("TestObj") { RunTestCases<TestObj>({}, "TestObj"); }
 
-    SECTION("Primitives64Bit")
+    SECTION("WithPrimitives64Bit")
     {
-        RunTestCases<Primitives64Bit>({{R"({"f1": -1})", "int64-1", true},
+        RunTestCases<WithPrimitives64Bit>({{R"({"f1": -1})", "int64-1", true},
                                        {R"({"f2": -1})", "int16-1", true},
                                        {R"({"f3": 1})", "uint64-1", true},
                                        {R"({"f4": "a"})", "char-1", true},
@@ -61,7 +61,7 @@ TEST_CASE("Json", "[Json]")
                                        {R"({"f7": true})", "bool-1", true},
                                        {R"({"f8": "2012-04-23T18:25:43.511Z"})", "time-1", true},
                                        {R"({"f9": 100})", "time-2", true}},
-                                      "Primitives64Bit");
+                                      "WithPrimitives64Bit");
     }
 
     SECTION("ComplexPrimitives")
@@ -107,12 +107,12 @@ TEST_CASE("Json", "[Json]")
     {
         RunTestCases<Nested>(
             {
-                {R"({"f1": {}})", "Primitives64Bit", true},
-                {R"({"f1": {"f1": 1234}})", "Primitives64Bit", true},
+                {R"({"f1": {}})", "WithPrimitives64Bit", true},
+                {R"({"f1": {"f1": 1234}})", "WithPrimitives64Bit", true},
                 {R"({"f2": {}})", "WithBlobs", true},
                 {R"({"f2": {"f1": "01234567"}})", "WithBlobs", true},
-                {R"({"f3": {}})", "Primitives64Bit", true},
-                {R"({"f3": {"f1": 1234}})", "Primitives64Bit", true},
+                {R"({"f3": {}})", "WithPrimitives64Bit", true},
+                {R"({"f3": {"f1": 1234}})", "WithPrimitives64Bit", true},
                 {R"({"f4": []})", "vec[WithBlobs]", true},
                 {R"({"f4": [{}, {}, {}]})", "vec[WithBlobs]", true},
                 {R"({"f4": [{"f1": "01234567"}, {"f1": "890124"}, {}]})", "vec[WithBlobs]", true},

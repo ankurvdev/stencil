@@ -7,7 +7,6 @@
 
 namespace Stencil
 {
-#if defined TODO
 
 template <typename T>
 concept ConceptIterableOnly = Category::IsIterable<T>();
@@ -75,27 +74,24 @@ template <typename T> bool AreEqual(T const& obj1, T const& obj2)
 {
     return Functions<T>::AreEqual(obj1, obj2);
 }
-#endif
 }    // namespace Stencil
 
-#pragma warning(push, 3)
-template <typename T> struct Stencil::TypeTraits<T, typename std::enable_if_t<ConceptValue<T>>>
-// template <ConceptValue T> struct Stencil::TypeTraits<T>
+template <typename T> struct Stencil::TypeTraits<T, typename std::enable_if_t<ConceptPrimitives64Bit<T>>>
 {
     using Categories = std::tuple<Category::Primitive>;
 };
 
-template <ConceptValue T1> struct Stencil::Assign<T1, Value>
+template <ConceptPrimitives64Bit T1> struct Stencil::Assign<T1, Primitives64Bit>
 {
-    void operator()(T1& dst, Value const& val) { dst = val.template cast<T1>(); }
+    void operator()(T1& dst, Primitives64Bit const& val) { dst = val.template cast<T1>(); }
 };
 
-template <ConceptValueFloat T1> struct Stencil::Assign<T1, std::string_view>
+template <ConceptPrimitives64BitFloat T1> struct Stencil::Assign<T1, std::string_view>
 {
     void operator()(T1& /* dst */, std::string_view const& /* val */) { TODO(""); }
 };
 
-template <typename T1> struct Stencil::Assign<T1, std::string_view, typename std::enable_if_t<ConceptValueSigned<T1>>>
+template <typename T1> struct Stencil::Assign<T1, std::string_view, typename std::enable_if_t<ConceptPrimitives64BitSigned<T1>>>
 {
     void operator()(T1& dst, std::string_view const& sv)
     {
@@ -131,7 +127,7 @@ template <typename T1> struct Stencil::Assign<T1, std::string_view, typename std
     }
 };
 
-template <typename T1> struct Stencil::Assign<T1, std::string_view, typename std::enable_if_t<ConceptValueUnsigned<T1>>>
+template <typename T1> struct Stencil::Assign<T1, std::string_view, typename std::enable_if_t<ConceptPrimitives64BitUnsigned<T1>>>
 {
     void operator()(T1& dst, std::string_view const& sv)
     {
@@ -140,21 +136,21 @@ template <typename T1> struct Stencil::Assign<T1, std::string_view, typename std
         if (result.ec == std::errc::invalid_argument) throw std::logic_error("Cannot convert");
         // TODO : if (val > std::numeric_limits<T1>::max() || val < std::numeric_limits<T1>::min()) { throw std::logic_error("Out of
         // range"); }
-        dst = Value::ValueTraits<T1>::Convert(val);
+        dst = Primitives64Bit::Traits<T1>::Convert(val);
     }
 };
 
-template <typename T1> struct Stencil::Assign<T1, std::wstring_view, typename std::enable_if_t<ConceptValueFloat<T1>>>
+template <typename T1> struct Stencil::Assign<T1, std::wstring_view, typename std::enable_if_t<ConceptPrimitives64BitFloat<T1>>>
 {
     void operator()(T1& /* dst */, std::wstring_view const& /* val */) { TODO(""); }
 };
 
-template <typename T1> struct Stencil::Assign<T1, std::wstring_view, typename std::enable_if_t<ConceptValueSigned<T1>>>
+template <typename T1> struct Stencil::Assign<T1, std::wstring_view, typename std::enable_if_t<ConceptPrimitives64BitSigned<T1>>>
 {
     void operator()(T1& /* dst */, std::wstring_view const& /* val */) { TODO(""); }
 };
 
-template <typename T1> struct Stencil::Assign<T1, std::wstring_view, typename std::enable_if_t<ConceptValueUnsigned<T1>>>
+template <typename T1> struct Stencil::Assign<T1, std::wstring_view, typename std::enable_if_t<ConceptPrimitives64BitUnsigned<T1>>>
 {
     void operator()(T1& /* dst */, std::wstring_view const& /* val */) { TODO(""); }
 };
@@ -172,9 +168,9 @@ template <size_t N> struct Stencil::Assign<std::array<char, N>, std::string_view
     }
 };
 
-template <size_t N> struct Stencil::Assign<std::array<char, N>, Value>
+template <size_t N> struct Stencil::Assign<std::array<char, N>, Primitives64Bit>
 {
-    [[noreturn]] void operator()(std::array<char, N>& /* dst */, Value const& /* val */) { TODO(""); }
+    [[noreturn]] void operator()(std::array<char, N>& /* dst */, Primitives64Bit const& /* val */) { TODO(""); }
 };
 
 template <> struct Stencil::Assign<uuids::uuid, std::wstring_view>
@@ -192,9 +188,9 @@ template <> struct Stencil::Assign<uuids::uuid, std::string_view>
     }
 };
 
-template <> struct Stencil::Assign<uuids::uuid, Value>
+template <> struct Stencil::Assign<uuids::uuid, Primitives64Bit>
 {
-    [[noreturn]] void operator()(uuids::uuid& /* dst */, Value const& /* val */) { TODO(""); }
+    [[noreturn]] void operator()(uuids::uuid& /* dst */, Primitives64Bit const& /* val */) { TODO(""); }
 };
 
 template <> struct Stencil::Assign<std::string, std::wstring_view>
@@ -221,8 +217,6 @@ template <> struct Stencil::Assign<std::wstring, std::string_view>
     }
 };
 
-#pragma warning(pop)
-
 template <Stencil::ConceptEnum TOut, typename T> struct Stencil::Assign<TOut, std::basic_string_view<T>>
 {
     using EnumTrait = typename Stencil::EnumTraits<TOut>;
@@ -243,10 +237,10 @@ template <Stencil::ConceptEnum TOut, typename T> struct Stencil::Assign<TOut, st
     }
 };
 
-template <typename TOut> struct Stencil::Assign<TOut, Value, typename std::enable_if_t<Stencil::ConceptEnum<TOut>>>
+template <typename TOut> struct Stencil::Assign<TOut, Primitives64Bit, typename std::enable_if_t<Stencil::ConceptEnum<TOut>>>
 {
     using EnumTrait = typename Stencil::EnumTraits<TOut>;
-    void operator()(TOut& lhs, Value const& rhs) { lhs = EnumTrait::ForIndex(rhs.cast<size_t>()); }
+    void operator()(TOut& lhs, Primitives64Bit const& rhs) { lhs = EnumTrait::ForIndex(rhs.cast<size_t>()); }
 };
 
 template <Stencil::ConceptEnum... TOuts, typename T> struct Stencil::Assign<std::variant<TOuts...>, std::basic_string_view<T>>
@@ -275,10 +269,10 @@ template <Stencil::ConceptEnum... TOuts, typename T> struct Stencil::Assign<std:
     }
 };
 
-template <Stencil::ConceptEnum... TOuts> struct Stencil::Assign<std::variant<TOuts...>, Value>
+template <Stencil::ConceptEnum... TOuts> struct Stencil::Assign<std::variant<TOuts...>, Primitives64Bit>
 {
     using EnumTrait = typename Stencil::EnumTraits<std::variant<TOuts...>>;
-    void operator()(std::variant<TOuts...>& /* lhs */, Value const& /* rhs */) { TODO(""); }
+    void operator()(std::variant<TOuts...>& /* lhs */, Primitives64Bit const& /* rhs */) { TODO(""); }
 };
 
 /*

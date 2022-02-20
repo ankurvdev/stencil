@@ -158,7 +158,7 @@ struct CommandLineArgsReader
         {
             Iterator() = default;
             Iterator(std::string_view const& str) : _str(str) { _MoveNext(); }
-            // DEFAULT_COPY_AND_MOVE(Iterator);
+            // CLASS_DEFAULT_COPY_AND_MOVE(Iterator);
 
             bool operator==(Iterator const& it) const
             {
