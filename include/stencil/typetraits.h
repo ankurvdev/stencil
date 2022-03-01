@@ -1,4 +1,5 @@
 #pragma once
+#include "primitives64bit.h"
 
 #include <tuple>
 
@@ -58,3 +59,8 @@ template <typename T>
 concept ConceptPrimitive = Category::IsPrimitive<T>();
 
 }    // namespace Stencil
+
+template <typename T> struct Stencil::TypeTraits<T, typename std::enable_if_t<ConceptPrimitives64Bit<T>>>
+{
+    using Categories = std::tuple<Category::Primitive>;
+};

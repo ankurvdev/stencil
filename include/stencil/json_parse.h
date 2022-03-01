@@ -1,6 +1,6 @@
 #pragma once
+#include "protocol.h"
 #include "stackvisitor.h"
-
 //#if defined USE_SIMDJSON
 
 #pragma warning(push, 3)
@@ -24,7 +24,7 @@ namespace Stencil::impl::rapidjson_
 {
 template <typename T> struct Tokenizer : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, Tokenizer<T>>
 {
-    Tokenizer(StackVisitor<T>& stackvisitor) : _stackvisitor(stackvisitor) {}
+    Tokenizer(Stencil::StackVisitor<Stencil::ProtocolJsonVal, T>& stackvisitor) : _stackvisitor(stackvisitor) {}
     CLASS_DELETE_COPY_AND_MOVE(Tokenizer);
 
     void Parse(T& obj, std::string_view const& ctx)
@@ -97,8 +97,8 @@ template <typename T> struct Tokenizer : public rapidjson::BaseReaderHandler<rap
     bool EndArray(rapidjson::SizeType /* elementCount */){RAPIDJSON_CHECK(_EndArray())}
 
     std::vector<Mode> _modes;
-    StackVisitor<T>& _stackvisitor;
-    T*               _obj{};
+    StackVisitor<Stencil::ProtocolJsonVal, T>& _stackvisitor;
+    T*                                         _obj{};
 };    // namespace Stencil::impl::rapidjson_
 
 }    // namespace Stencil::impl::rapidjson_
@@ -112,8 +112,8 @@ template <typename T> using Tokenizer = Stencil::impl::rapidjson_::Tokenizer<T>;
 
 template <typename T, typename TInCtx> static T Parse(TInCtx const& ictx)
 {
-    T                        obj{};
-    Stencil::StackVisitor<T> stack;
+    T                                         obj{};
+    Stencil::StackVisitor<ProtocolJsonVal, T> stack;
     Tokenizer<T>(stack).Parse(obj, ictx);
     return obj;
 }

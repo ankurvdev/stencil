@@ -150,7 +150,7 @@ template <> struct Stencil::Visitor<WithPrimitives64Bit> : Stencil::VisitorT<Wit
 
 template <> struct Stencil::TypeTraits<ComplexPrimitives>
 {
-    using Categories = std::tuple<Stencil::Category::Indexable, Stencil::Category::Iterable>;
+    using Categories = std::tuple<Stencil::Category::Indexable>;
 };
 
 template <> struct Stencil::TypeTraitsForIndexable<ComplexPrimitives>
@@ -206,7 +206,7 @@ template <> struct Stencil::Visitor<ComplexPrimitives> : Stencil::VisitorT<Compl
 
 template <> struct Stencil::TypeTraits<LargePrimitives>
 {
-    using Categories = std::tuple<Stencil::Category::Indexable, Stencil::Category::Iterable>;
+    using Categories = std::tuple<Stencil::Category::Indexable>;
 };
 
 template <> struct Stencil::TypeTraitsForIndexable<LargePrimitives>
@@ -325,7 +325,7 @@ template <> struct Stencil::Visitor<WithBlobs> : Stencil::VisitorT<WithBlobs>
 
 template <> struct Stencil::TypeTraits<Nested>
 {
-    using Categories = std::tuple<Stencil::Category::Indexable, Stencil::Category::Iterable>;
+    using Categories = std::tuple<Stencil::Category::Indexable>;
 };
 
 template <> struct Stencil::TypeTraitsForIndexable<Nested>
@@ -552,7 +552,7 @@ template <> struct Stencil::Visitor<WithVariant> : Stencil::StructVisitor<WithVa
 
 template <> struct Stencil::TypeTraits<TestObj>
 {
-    using Categories = std::tuple<Stencil::Category::Indexable, Stencil::Category::Iterable>;
+    using Categories = std::tuple<Stencil::Category::Indexable>;
 };
 
 template <> struct Stencil::TypeTraitsForIndexable<TestObj>

@@ -28,7 +28,7 @@ struct TestInterface : public Stencil::InterfaceT<TestInterface>
 
     TestInterface()          = default;
     virtual ~TestInterface() = default;
-    DELETE_COPY_AND_MOVE(TestInterface);
+    CLASS_DELETE_COPY_AND_MOVE(TestInterface);
 
     virtual uint64_t AddNumber(uint64_t num1, uint64_t num2) = 0;
 

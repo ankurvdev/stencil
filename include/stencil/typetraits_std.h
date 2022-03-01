@@ -1,3 +1,4 @@
+#pragma once
 #include "typetraits.h"
 
 #include <memory>
