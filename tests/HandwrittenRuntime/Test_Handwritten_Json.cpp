@@ -9,7 +9,7 @@ struct TestCase
     bool             valid;
 };
 
-template <typename T> void RunTestCase(TestCase const& tc, std::vector<std::string>& lines, std::string const& name)
+template <typename T> static void RunTestCase(TestCase const& tc, std::vector<std::string>& lines, std::string const& name)
 {
     if (!tc.valid)
     {
@@ -31,7 +31,7 @@ template <typename T> void RunTestCase(TestCase const& tc, std::vector<std::stri
     }
 }
 
-template <typename T> void RunTestCases(std::initializer_list<TestCase> cases, std::string const& name)
+template <typename T> static void RunTestCases(std::initializer_list<TestCase> cases, std::string const& name)
 {
     {
         std::vector<std::string> lines;
@@ -53,15 +53,15 @@ TEST_CASE("Json", "[Json]")
     SECTION("WithPrimitives64Bit")
     {
         RunTestCases<WithPrimitives64Bit>({{R"({"f1": -1})", "int64-1", true},
-                                       {R"({"f2": -1})", "int16-1", true},
-                                       {R"({"f3": 1})", "uint64-1", true},
-                                       {R"({"f4": "a"})", "char-1", true},
-                                       {R"({"f5": 0.1})", "double-1", true},
-                                       {R"({"f6": 0.1})", "float-1", true},
-                                       {R"({"f7": true})", "bool-1", true},
-                                       {R"({"f8": "2012-04-23T18:25:43.511Z"})", "time-1", true},
-                                       {R"({"f9": 100})", "time-2", true}},
-                                      "WithPrimitives64Bit");
+                                           {R"({"f2": -1})", "int16-1", true},
+                                           {R"({"f3": 1})", "uint64-1", true},
+                                           {R"({"f4": "a"})", "char-1", true},
+                                           {R"({"f5": 0.1})", "double-1", true},
+                                           {R"({"f6": 0.1})", "float-1", true},
+                                           {R"({"f7": true})", "bool-1", true},
+                                           {R"({"f8": "2012-04-23T18:25:43.511Z"})", "time-1", true},
+                                           {R"({"f9": 100})", "time-2", true}},
+                                          "WithPrimitives64Bit");
     }
 
     SECTION("ComplexPrimitives")

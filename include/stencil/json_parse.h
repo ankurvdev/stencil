@@ -110,7 +110,7 @@ namespace Stencil::Json
 {
 template <typename T> using Tokenizer = Stencil::impl::rapidjson_::Tokenizer<T>;
 
-template <typename T, typename TInCtx> static T Parse(TInCtx const& ictx)
+template <typename T, typename TInCtx> inline T Parse(TInCtx const& ictx)
 {
     T                                         obj{};
     Stencil::StackVisitor<ProtocolJsonVal, T> stack;

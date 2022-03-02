@@ -1,5 +1,5 @@
 #pragma once
-#include "protocol.h"
+#include "protocol_json.h"
 #include "typetraits_std.h"
 #include "typetraits_variant.h"
 #include "visitor.h"
@@ -67,7 +67,7 @@ template <Stencil::ConceptIterable T> struct SerDes<T, ProtocolJsonVal>
 
 namespace Json
 {
-template <typename T> static std::string Stringify(T const& obj)
+template <typename T> inline std::string Stringify(T const& obj)
 {
     std::stringstream sstr;
     SerDes<T, ProtocolJsonVal>::Write(sstr, obj);
