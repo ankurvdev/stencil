@@ -146,6 +146,28 @@ template <typename TClock> struct SerDes<std::chrono::time_point<TClock>, Protoc
     }
 };
 
+template <> struct SerDes<char, ProtocolString>
+{
+    using TObj = char;
+
+    template <typename Context> static auto Write(Context& ctx, TObj const& obj)
+    {
+        if (obj == 0)
+            fmt::print(ctx, "0");
+        else
+            fmt::print(ctx, "{}", obj);
+    }
+    template <typename Context> static auto Read(TObj& obj, Context& ctx)
+    {
+        if (ctx.empty()) { obj = {}; }
+        else
+        {
+            if (ctx.size() > 1) { throw std::logic_error("Invalid value"); }
+            obj = ctx[0];
+        }
+    }
+};
+
 template <size_t N>
 requires(N <= 4) struct SerDes<std::array<uint16_t, N>, ProtocolString>
 {
