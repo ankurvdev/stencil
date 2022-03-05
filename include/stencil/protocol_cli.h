@@ -24,14 +24,14 @@ static_assert(!ConceptHasProtocolString<std::vector<std::string>>, "void");
 
 template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolCLI>
 {
-    template <typename Context> static auto Write(Context& ctx, T const& obj, std::string prefix = "")
+    template <typename Context> static auto Write(Context& ctx, T const& obj)
     {
         Visitor<T>::VisitAllIndicies(obj, [&](auto const& k, auto const& v) {
             using ValType = std::remove_cvref_t<decltype(v)>;
             if constexpr (ConceptHasProtocolString<ValType>)
             {
                 std::stringstream ss;
-                fmt::print(ss, "--{}", prefix);
+                fmt::print(ss, "--");
                 SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
                 fmt::print(ss, "=");
                 SerDes<ValType, ProtocolString>::Write(ss, v);
@@ -42,34 +42,54 @@ template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolCLI>
             else if constexpr (ConceptIndexable<ValType>)
             {
                 std::stringstream ss;
-                fmt::print(ss, prefix);
                 SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
-                fmt::print(ss, ".");
-                SerDes<ValType, ProtocolCLI>::Write(ctx, v, ss.str());
+                ctx.push_back(ss.str());
+                SerDes<ValType, ProtocolCLI>::Write(ctx, v);
                 return;
             }
 
             else if constexpr (ConceptIterable<ValType>)
             {
+                int               type = -1;
                 std::stringstream ss;
-                fmt::print(ss, "--{}", prefix);
-                SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
-                fmt::print(ss, "=");
-                bool foundvalue = false;
 
                 Visitor<ValType>::VisitAllIndicies(v, [&](auto, auto& v1) {
                     if constexpr (ConceptHasProtocolString<std::remove_cvref_t<decltype(v1)>>)
                     {
-                        if (foundvalue) fmt::print(ss, ",");
+                        if (type != -1 && type != 0) throw std::logic_error("Iterable of mixed types unsupported");
+                        if (type == -1)
+                        {
+                            fmt::print(ss, "--");
+                            SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
+                            fmt::print(ss, "=");
+                        }
+                        else
+                        {
+                            fmt::print(ss, ",");
+                        }
+                        type = 0;
                         SerDes<std::remove_cvref_t<decltype(v1)>, ProtocolString>::Write(ss, v1);
-                        foundvalue = true;
+                    }
+                    else if constexpr (ConceptIndexable<std::remove_cvref_t<decltype(v1)>>)
+                    {
+                        // list of indexables
+                        if (type != -1 && type != 1) throw std::logic_error("Iterable of mixed types unsupported");
+                        // Iterable of indexable. Use
+                        SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
+                        ctx.push_back(ss.str());
+                        SerDes<std::remove_cvref_t<decltype(v1)>, ProtocolCLI>::Write(ctx, v1);
+                    }
+                    else if constexpr (ConceptIterable<std::remove_cvref_t<decltype(v1)>>)
+                    {
+                        // Iterables of iterables unsupported
+                        TODO("Iterable of Iterable");
                     }
                     else
                     {
-                        //TODO("");
+                        TODO("Unknown");
                     }
                 });
-                ctx.push_back(ss.str());
+                if (type == 0) ctx.push_back(ss.str());
                 return;
             }
             else
