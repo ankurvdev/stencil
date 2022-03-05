@@ -1,0 +1,14 @@
+Testcase[ComplexPrimitives]: :: default-2
+Testcase[ComplexPrimitives]:default-2, Output,--f1=null	--f2=0	--f3=0,0
+Testcase[ComplexPrimitives]:--f1=01234567 :: char[8]
+Testcase[ComplexPrimitives]:char[8], Output,--f1=null	--f2=0	--f3=0,0
+Testcase[ComplexPrimitives]:--f2=1 :: uint16[4]
+Testcase[ComplexPrimitives]:uint16[4], Output,--f1=null	--f2=0	--f3=0,0
+Testcase[ComplexPrimitives]:--f2=65536 :: uint16[4]
+Testcase[ComplexPrimitives]:uint16[4], Output,--f1=null	--f2=0	--f3=0,0
+Testcase[ComplexPrimitives]:--f2=1234567890123456 :: uint16[4]
+Testcase[ComplexPrimitives]:uint16[4], Output,--f1=null	--f2=0	--f3=0,0
+Testcase[ComplexPrimitives]:--f2=0,1,2,3 :: uint16[4]
+Testcase[ComplexPrimitives]:uint16[4], Output,--f1=null	--f2=0	--f3=0,0
+Testcase[ComplexPrimitives]:--f3=0.1:0.2 :: float[2]
+Testcase[ComplexPrimitives]:float[2], Output,--f1=null	--f2=0	--f3=0,0

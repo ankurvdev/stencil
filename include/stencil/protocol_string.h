@@ -146,10 +146,16 @@ template <typename TClock> struct SerDes<std::chrono::time_point<TClock>, Protoc
     }
 };
 
-template <size_t N> struct SerDes<std::array<uint16_t, N>, ProtocolString>
+template <size_t N>
+requires(N <= 4) struct SerDes<std::array<uint16_t, N>, ProtocolString>
 {
     using TObj = std::array<uint16_t, N>;
-    template <typename Context> static auto Write(Context& /*ctx*/, TObj const& /*obj*/) { TODO(""); }
+    template <typename Context> static auto Write(Context& ctx, TObj const& obj)
+    {
+        uint64_t val = 0;
+        for (size_t i = N; i > 0; i--) { val = (val << 16) | obj.at(i - 1); }
+        SerDes<uint64_t, ProtocolString>::Write(ctx, val);
+    }
     template <typename Context> static auto Read(TObj& /*obj*/, Context& /*ctx*/) { TODO(""); }
 };
 

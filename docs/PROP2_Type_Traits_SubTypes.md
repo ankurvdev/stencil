@@ -12,14 +12,22 @@ struct Foo
   Bar bar2;
 };
 
-template <> struct Stencil::TypeTraits<Foo>
+template <> struct Stencil::TypeTraitsForIndexable<Foo>
 {
-    // Preferable Precedence order : Indexable > Iterable > Primitive
     using SubTypes = std::tuple<Bar>;
 };
+
+template <> struct Stencil::TypeTraitsForIterable<Foo>
+{
+    // Limit Iterables to only one subtype 
+    using SubType = Bar;
+};
+
 ```
 
 Pros:
+
+- Iterable SubType helps with CLI Parsing where a subtype can help determine the type of arg serialization that must be done
 
 - A TypeTrait should be sufficient to accumulate recursively all the nested types and instantiated visitors on the stack with memory allocation
 - Helps with SAX Parsers like JSON

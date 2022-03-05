@@ -55,11 +55,19 @@ template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolCLI>
                 fmt::print(ss, "--{}", prefix);
                 SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
                 fmt::print(ss, "=");
-                bool first = true;
+                bool foundvalue = false;
+
                 Visitor<ValType>::VisitAllIndicies(v, [&](auto, auto& v1) {
-                    if (!first) fmt::print(ss, ",");
-                    SerDes<std::remove_cvref_t<decltype(v1)>, ProtocolString>::Write(ss, v1);
-                    first = false;
+                    if constexpr (ConceptHasProtocolString<std::remove_cvref_t<decltype(v1)>>)
+                    {
+                        if (foundvalue) fmt::print(ss, ",");
+                        SerDes<std::remove_cvref_t<decltype(v1)>, ProtocolString>::Write(ss, v1);
+                        foundvalue = true;
+                    }
+                    else
+                    {
+                        //TODO("");
+                    }
                 });
                 ctx.push_back(ss.str());
                 return;

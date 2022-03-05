@@ -1,0 +1,10 @@
+Testcase[WithBlobs]: :: default-2
+Testcase[WithBlobs]:default-2, Output,--f1=	--f2=	--f3=	--f4=
+Testcase[WithBlobs]:--f1=01234567 :: string
+Testcase[WithBlobs]:string, Output,--f1=	--f2=	--f3=	--f4=
+Testcase[WithBlobs]:--f2=abcdef :: wstring
+Testcase[WithBlobs]:wstring, Output,--f1=	--f2=	--f3=	--f4=
+Testcase[WithBlobs]:--f3=0.1:0.2 --f3=0.3:0.4 :: vec[double]
+Testcase[WithBlobs]:vec[double], Output,--f1=	--f2=	--f3=	--f4=
+Testcase[WithBlobs]:--f4=abc,def,ghi :: vec[string]
+Testcase[WithBlobs]:vec[string], Output,--f1=	--f2=	--f3=	--f4=
