@@ -119,15 +119,15 @@ TEST_CASE("CLI", "[CLI]")
     {
         RunTestCases<Nested>(
             {
-                {{"f1", "{}"}, "WithPrimitives64Bit", true},
-                {{"f1", "f1:1234"}, "WithPrimitives64Bit", true},
-                {{"f2", "{}"}, "WithBlobs", true},
-                {{"f2", "{f1:01234567}"}, "WithBlobs", true},
-                {{"f3", "{}"}, "WithPrimitives64Bit", true},
-                {{"f3", "f1:1234"}, "WithPrimitives64Bit", true},
-                {{"f4", "[]"}, "vec[WithBlobs]", true},
-                {{"f4", "[{}, {}, {}]})"}, "vec[WithBlobs]", true},
-                {{"f4", "f1:01234567", "f1", "890124"}, "vec[WithBlobs]", true},
+                {{"f1"}, "WithPrimitives64Bit", true},
+                {{"f1", "--f1=1234"}, "WithPrimitives64Bit", true},
+                {{"f2"}, "WithBlobs", true},
+                {{"f2", "--f1=01234567}"}, "WithBlobs", true},
+                {{"f3"}, "WithPrimitives64Bit", true},
+                {{"f3", "--f1=1234"}, "WithPrimitives64Bit", true},
+                {{"f4"}, "vec[WithBlobs]", true},
+                {{"f4", "f1", "-", "f1", "-", "f1"}, "vec[WithBlobs]", true},
+                {{"f4", "--f1=01234567", "-", "--f1=890124"}, "vec[WithBlobs]", true},
             },
             "Nested");
     }
@@ -136,13 +136,13 @@ TEST_CASE("CLI", "[CLI]")
     {
         RunTestCases<MultiAttributed>(
             {
-                {{"timestamp", "2020-01-02:03:04:05.600", "f1", "{}"}, "multi-attributed-1", true},
-                {{"timestamp", "bad-timestamp", "f1", "{}"}, "multi-attributed-2", false},
-                {{"uuid", "{01234567-8901-2345-6789-012345678901}", "f1", "{}"}, "multi-attributed-3", true},
-                {{"uuid", "01234567-8901-2345-6789-012345678901", "f1", "{}"}, "multi-attributed-3", true},
+                {{"timestamp", "2020-01-02:03:04:05.600", "f1"}, "multi-attributed-1", true},
+                {{"timestamp", "bad-timestamp", "f1"}, "multi-attributed-2", false},
+                {{"uuid", "{01234567-8901-2345-6789-012345678901}", "f1"}, "multi-attributed-3", true},
+                {{"uuid", "01234567-8901-2345-6789-012345678901", "f1"}, "multi-attributed-3", true},
                 {{"uuid", "0"}, "multi-attributed-3", false},
-                {{"f1", "{}"}, "multi-attributed-3", true},
-                {{"timestamp", "2020-01-02:03:04:05.600", "uuid", "01234567-8901-2345-6789-012345678901", "f1", "{}"}, "", true},
+                {{"f1"}, "multi-attributed-3", true},
+                {{"timestamp", "2020-01-02:03:04:05.600", "uuid", "01234567-8901-2345-6789-012345678901", "f1"}, "", true},
             },
             "MultiAttributed");
     }
