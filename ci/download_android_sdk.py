@@ -150,7 +150,7 @@ def GetJava(path: pathlib.Path) -> pathlib.Path:
     return _download_or_get_Binary('java', path, DownloadJava)
 
 
-def GetJarSigner(path):
+def GetJarSigner(path: pathlib.Path) -> pathlib.Path:
     return _download_or_get_Binary('jarsigner', path, DownloadJava)
 
 
