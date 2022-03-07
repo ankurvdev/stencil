@@ -6,54 +6,49 @@ import os
 import pathlib
 import re
 import shutil
-import ssl
 import stat
 import subprocess
 import sys
 import time
 import urllib.parse
 import urllib.request
-from typing import Callable, Optional
+from typing import Callable, Dict, Optional
 
 
 class HTMLUrlExtractor(html.parser.HTMLParser):
-    def __init__(self, url):
-        text = urllib.request.urlopen(url, timeout=10, context=ssl._create_unverified_context()).read().decode("utf-8")
+    def __init__(self, url: str):
+        text = urllib.request.urlopen(url, timeout=10).read().decode("utf-8")
         self.baseurl = url
-        self.urls = {}
-        self.href = None
-        self.text = None
+        self.urls: Dict[str, str] = {}
+        self.href: Optional[str] = None
+        self.text: Optional[str] = None
         super(HTMLUrlExtractor, self).__init__()
         self.feed(text)
 
-    def handle_starttag(self, tag, attrs):
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]):
         if tag == "a":
             self.text = ""
             self.href = next((urllib.parse.urljoin(self.baseurl, attr[1]) for attr in attrs if attr[0] == "href"), None)
 
-    def handle_endtag(self, tag):
+    def handle_endtag(self, tag: str):
         if self.href is not None:
             # print(self.href, self.text)
-            self.urls[self.href] = self.text
+            self.urls[self.href or ""] = self.text or ""
         self.href = None
         self.text = None
 
-    def handle_data(self, data):
+    def handle_data(self, data: str):
         if self.href is not None:
             self.text = data
 
-    def error(self, _message: str) -> None:
-        pass
 
-
-def _search_filename(path: pathlib.Path, name) -> Optional[pathlib.Path]:
-    for fpath, _dirs, fls in os.walk(path):
-        if name in fls:
-            return pathlib.Path(fpath) / name
+def _search_filename(path: pathlib.Path, name: str) -> Optional[pathlib.Path]:
+    for filepath in path.rglob(f'*{name}*'):
+        return filepath
     return None
 
 
-def _search_exe(bindir: pathlib.Path, binname) -> Optional[pathlib.Path]:
+def _search_exe(bindir: pathlib.Path, binname: str) -> Optional[pathlib.Path]:
     if sys.platform == "win32":
         path = _search_filename(bindir, binname + ".bat") or _search_filename(bindir,
                                                                               binname + ".cmd") or _search_filename(bindir, binname + ".exe")
@@ -64,17 +59,7 @@ def _search_exe(bindir: pathlib.Path, binname) -> Optional[pathlib.Path]:
     return path
 
 
-def _move_up(path: pathlib.Path):
-    for p in os.scandir(path):
-        shutil.move(p.path, path.parent)
-    os.rmdir(path)
-
-
-def _download_or_get_Binary(binname, bindir: pathlib.Path, downloadFn: Callable[[pathlib.Path], None]) -> pathlib.Path:
-    exe = None  # shutil.which(binname)
-    if exe is not None:
-        if sys.platform == "win32" and exe.parent.name != "system32":
-            return exe
+def _download_or_get_Binary(binname: str, bindir: pathlib.Path, downloadFn: Callable[[pathlib.Path], None]) -> pathlib.Path:
     os.makedirs(bindir, exist_ok=True)
     exe = _search_exe(bindir, binname)
     if exe is not None:
