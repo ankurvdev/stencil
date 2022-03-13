@@ -43,14 +43,23 @@ template <ConceptPrimitives64Bit T> struct SerDes<T, ProtocolString>
 
     template <typename Context> static auto Read(T& obj, Context& ctx)
     {
-
-        if constexpr (std::is_same_v<T, bool>) { TODO(""); }
+        if constexpr (std::is_same_v<T, bool>)
+        {
+            obj = false;
+            if (ctx.size() == 0) return;
+            if (ctx[0] == '1' || (ctx[0] == 'o' && ctx[1] == 'n') || (ctx[0] == 'O' && ctx[1] == 'N') || ctx[0] == 't' || ctx[0] == 'T'
+                || ctx[0] == 'y' || ctx[0] == 'Y')
+            {
+                obj = true;
+                return;
+            }
+        }
         else
         {
             T    ival;
             auto result = std::from_chars(ctx.data(), ctx.data() + ctx.size(), ival);
             if (result.ec == std::errc::invalid_argument) throw std::logic_error("Cannot convert");
-            if (ival > std::numeric_limits<T>::max() || ival < std::numeric_limits<T>::min()) { throw std::logic_error("Out of range"); }
+            // if (ival > std::numeric_limits<T>::max() || ival < std::numeric_limits<T>::min()) { throw std::logic_error("Out of range"); }
             obj = static_cast<T>(ival);
             return;
         }
@@ -178,7 +187,17 @@ requires(N <= 4) struct SerDes<std::array<uint16_t, N>, ProtocolString>
         for (size_t i = N; i > 0; i--) { val = (val << 16) | obj.at(i - 1); }
         SerDes<uint64_t, ProtocolString>::Write(ctx, val);
     }
-    template <typename Context> static auto Read(TObj& /*obj*/, Context& /*ctx*/) { TODO(""); }
+
+    template <typename Context> static auto Read(TObj& obj, Context& ctx)
+    {
+        uint64_t val = 0;
+        SerDes<uint64_t, ProtocolString>::Read(val, ctx);
+        for (size_t i = 0; i < N; i++)
+        {
+            obj.at(i) = static_cast<uint16_t>(val & 0xff);
+            val       = (val >> 16);
+        }
+    }
 };
 
 }    // namespace Stencil

@@ -72,7 +72,7 @@ template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolCLI>
                 SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
                 ctx.push_back(ss.str());
                 SerDes<ValType, ProtocolCLI>::Write(ctx, v);
-                ctx.push_back("-");
+                // ctx.push_back("-");
                 return;
             }
 
@@ -111,11 +111,11 @@ template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolCLI>
                         }
 
                         SerDes<std::remove_cvref_t<decltype(v1)>, ProtocolCLI>::Write(ctx, v1);
-                        ctx.push_back("-");
                         type = 1;
                     }
                 });
                 if (type == 0) ctx.push_back(ss.str());
+                if (type != -1) ctx.push_back("-");
                 return;
             }
             else
@@ -124,6 +124,7 @@ template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolCLI>
                 TODO("Unknown");
             }
         });
+        ctx.push_back("-");
     }
 
     template <typename Context> static auto Read(T& obj, Context& ctx)
@@ -145,12 +146,67 @@ template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolCLI>
                 }
                 auto index = token.find('=');
                 if (index == std::string_view::npos) { TODO("Check if bool"); }
-                auto                 keystr = token.substr(2, index - 2);
-                auto                 value  = token.substr(index + 1);
+                auto keystr = token.substr(2, index - 2);
+                auto value  = token.substr(index + 1);
+
                 typename Traits::Key key;
                 SerDes<Traits::Key, ProtocolString>::Read(key, keystr);
+                Visitor<T>::VisitKey(obj, key, [&](auto& val) {
+                    using SubVal = std::remove_cvref_t<decltype(val)>;
+                    if constexpr (ConceptIterable<SubVal>)
+                    {
+                        size_t si = 0;
+                        size_t ei = value.find(',');
+                        if (ei != std::string_view::npos)
+                        {
+                            typename Visitor<SubVal>::Iterator it;
 
-                // Visitor<T>::VisitKey(obj, key, [](auto& val) { TODO("list vs primitive handling"); });
+                            bool valid = false;
+                            while (true)
+                            {
+                                if (!valid)
+                                {
+                                    Visitor<SubVal>::IteratorBegin(it, val);
+                                    valid = true;
+                                }
+                                else
+                                {
+                                    Visitor<SubVal>::IteratorMoveNext(it, val);
+                                }
+
+                                if (!Visitor<SubVal>::IteratorValid(it, val))
+                                {
+                                    throw std::runtime_error("Cannot Visit Next Item on the iterable");
+                                }
+
+                                auto subval = value.substr(si, ei - si);
+
+                                Visitor<SubVal>::Visit(it, val, [&](auto& val2) {
+                                    using SubSubVal = std::remove_cvref_t<decltype(val2)>;
+                                    if constexpr (ConceptHasProtocolString<SubSubVal>)
+                                    {
+                                        SerDes<SubSubVal, ProtocolString>::Read(val2, subval);
+                                    }
+                                    else
+                                    {
+                                        throw std::logic_error("Unsupported type");
+                                    }
+                                });
+
+                                if (ei == std::string_view::npos) break;
+                                si = ei + 1;
+                                ei = value.find(',', si);
+                            }
+
+                            return;
+                        }
+                    }
+                    if constexpr (ConceptHasProtocolString<SubVal>) { SerDes<SubVal, ProtocolString>::Read(val, value); }
+                    else
+                    {
+                        throw std::logic_error("Unsupported type");
+                    }
+                });
             }
             else
             {

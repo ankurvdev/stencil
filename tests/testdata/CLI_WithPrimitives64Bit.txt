@@ -1,20 +1,20 @@
 Testcase[WithPrimitives64Bit]: :: default-2
-Testcase[WithPrimitives64Bit]:default-2, Output,--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800
+Testcase[WithPrimitives64Bit]:default-2, Output,--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800	-
 Testcase[WithPrimitives64Bit]:--f1=-1 :: int64-1
-Testcase[WithPrimitives64Bit]:int64-1, Output,--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800
+Testcase[WithPrimitives64Bit]:int64-1, Output,--f1=-1	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800	-
 Testcase[WithPrimitives64Bit]:--f2=-1 :: int16-1
-Testcase[WithPrimitives64Bit]:int16-1, Output,--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800
+Testcase[WithPrimitives64Bit]:int16-1, Output,--f1=0	--f2=-1	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800	-
 Testcase[WithPrimitives64Bit]:--f3=1 :: uint64-1
-Testcase[WithPrimitives64Bit]:uint64-1, Output,--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800
+Testcase[WithPrimitives64Bit]:uint64-1, Output,--f1=0	--f2=0	--f3=1	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800	-
 Testcase[WithPrimitives64Bit]:--f4=a :: char-1
-Testcase[WithPrimitives64Bit]:char-1, Output,--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800
+Testcase[WithPrimitives64Bit]:char-1, Output,--f1=0	--f2=0	--f3=0	--f4=a	--f5=0	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800	-
 Testcase[WithPrimitives64Bit]:--f5=0.1 :: double-1
-Testcase[WithPrimitives64Bit]:double-1, Output,--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800
+Testcase[WithPrimitives64Bit]:double-1, Output,--f1=0	--f2=0	--f3=0	--f4=0	--f5=0.1	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800	-
 Testcase[WithPrimitives64Bit]:--f6=0.1 :: float-1
-Testcase[WithPrimitives64Bit]:float-1, Output,--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800
+Testcase[WithPrimitives64Bit]:float-1, Output,--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0.1	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800	-
 Testcase[WithPrimitives64Bit]:--f7=true :: bool-1
-Testcase[WithPrimitives64Bit]:bool-1, Output,--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800
+Testcase[WithPrimitives64Bit]:bool-1, Output,--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=true	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800	-
 Testcase[WithPrimitives64Bit]:--f8=2012-04-23T18:25:43.511Z :: time-1
-Testcase[WithPrimitives64Bit]:time-1, Output,--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800
+Testcase[WithPrimitives64Bit]:time-1, Output,--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800	-
 Testcase[WithPrimitives64Bit]:--f9=100 :: time-2
-Testcase[WithPrimitives64Bit]:time-2, Output,--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800
+Testcase[WithPrimitives64Bit]:time-2, Output,--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800	-
