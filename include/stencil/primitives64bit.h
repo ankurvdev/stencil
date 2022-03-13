@@ -6,9 +6,11 @@ SUPPRESS_WARNINGS_START
 #include <chrono>
 SUPPRESS_WARNINGS_END
 
+#include <array>
 #include <bit>
 #include <cmath>
 #include <cstdint>
+#include <stdexcept>
 
 struct Primitives64Bit
 {

@@ -35,7 +35,7 @@ template <size_t N> struct SerDes<std::array<uint16_t, N>, ProtocolJsonVal>
         {
             uint64_t val = 0;
             for (size_t i = N; i > 0; i--) { val = (val << 16) | obj.at(i - 1); }
-            SerDes<uint64_t, ProtocolJsonVal>::Write(ctx, val);
+            SerDes<uint64_t, ProtocolString>::Write(ctx, val);
         }
         else
         {
@@ -44,7 +44,7 @@ template <size_t N> struct SerDes<std::array<uint16_t, N>, ProtocolJsonVal>
             Visitor<std::array<uint16_t, N>>::VisitAllIndicies(obj, [&](auto, auto& v) {
                 using ValueType = std::remove_cvref_t<decltype(v)>;
                 if (!first) fmt::print(ctx, ",");
-                SerDes<ValueType, ProtocolJsonVal>::Write(ctx, v);
+                SerDes<ValueType, ProtocolString>::Write(ctx, v);
                 first = false;
             });
             fmt::print(ctx, "]");

@@ -129,8 +129,8 @@ template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolCLI>
 
     template <typename Context> static auto Read(T& obj, Context& ctx)
     {
-        using Traits = typename Stencil::TypeTraitsForIndexable<T>;
-
+        using Traits    = typename Stencil::TypeTraitsForIndexable<T>;
+        using TraitsKey = typename Traits::Key;
         while (ctx.valid() && !ctx.root_ctx_requested())
         {
             auto token = ctx.move_next();
@@ -149,8 +149,8 @@ template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolCLI>
                 auto keystr = token.substr(2, index - 2);
                 auto value  = token.substr(index + 1);
 
-                typename Traits::Key key;
-                SerDes<Traits::Key, ProtocolString>::Read(key, keystr);
+                TraitsKey key;
+                SerDes<TraitsKey, ProtocolString>::Read(key, keystr);
                 Visitor<T>::VisitKey(obj, key, [&](auto& val) {
                     using SubVal = std::remove_cvref_t<decltype(val)>;
                     if constexpr (ConceptIterable<SubVal>)
@@ -211,8 +211,8 @@ template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolCLI>
             else
             {
                 // Should we suppport key=val ?
-                typename Traits::Key key;
-                SerDes<Traits::Key, ProtocolString>::Read(key, token);
+                TraitsKey key;
+                SerDes<TraitsKey, ProtocolString>::Read(key, token);
 
                 Visitor<T>::VisitKey(obj, key, [&](auto& val) { SerDes<std::remove_cvref_t<decltype(val)>, ProtocolCLI>::Read(val, ctx); });
             }

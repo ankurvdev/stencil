@@ -2,6 +2,7 @@
 #include "primitives64bit.h"
 #include "protocol.h"
 #include <chrono>
+#include <date/date.h>
 
 namespace Stencil
 {
@@ -74,6 +75,14 @@ template <> struct SerDes<std::string, ProtocolString>
     template <typename Context> static auto Read(TObj& obj, Context& ctx) { obj = ctx; }
 };
 
+template <> struct SerDes<std::string_view, ProtocolString>
+{
+    using TObj = std::string;
+
+    template <typename Context> static auto Write(Context& ctx, TObj const& obj) { fmt::print(ctx, "{}", obj); }
+    template <typename Context> static auto Read(TObj& obj, Context& ctx) { obj = ctx; }
+};
+
 template <> struct SerDes<uuids::uuid, ProtocolString>
 {
     using TObj = uuids::uuid;
@@ -112,9 +121,9 @@ template <size_t N> struct SerDes<std::array<char, N>, ProtocolString>
     }
 };
 
-template <> struct SerDes<std::wstring, ProtocolString>
+template <> struct SerDes<std::wstring_view, ProtocolString>
 {
-    using TObj = std::wstring;
+    using TObj = std::wstring_view;
 
     template <typename Context> static auto Write(Context& ctx, TObj const& obj)
     {
@@ -122,6 +131,24 @@ template <> struct SerDes<std::wstring, ProtocolString>
         str.resize(obj.size());
         std::transform(obj.begin(), obj.end(), str.begin(), [](auto l) { return static_cast<char>(l); });
         SerDes<std::string, ProtocolString>::Write(ctx, str);
+    }
+
+    template <typename Context> static auto Read(TObj& obj, Context& ctx)
+    {
+        std::string str;
+        SerDes<std::string, ProtocolString>::Read(str, ctx);
+        if (obj.size() < str.size()) { throw std::logic_error("Not enough room"); }
+        std::transform(str.begin(), str.end(), obj.begin(), [](auto l) { return static_cast<char>(l); });
+    }
+};
+
+template <> struct SerDes<std::wstring, ProtocolString>
+{
+    using TObj = std::wstring;
+
+    template <typename Context> static auto Write(Context& ctx, TObj const& obj)
+    {
+        SerDes<std::wstring_view, ProtocolString>::Write(ctx, obj);
     }
 
     template <typename Context> static auto Read(TObj& obj, Context& ctx)
@@ -146,7 +173,7 @@ template <typename TClock> struct SerDes<std::chrono::time_point<TClock>, Protoc
     template <typename Context> static auto Read(TObj& obj, Context& ctx)
     {
         std::istringstream ss(ctx.data());
-        ss >> std::chrono::parse("%FT%T%z", obj);
+        ss >> date::parse("%FT%T%z", obj);
         // return std::mktime(&tm);
         // TODO("");
         //  uint64_t val;

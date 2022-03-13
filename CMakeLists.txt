@@ -71,6 +71,14 @@ if (NOT fmt_FOUND)
     SupressWarningForTarget(fmt)
 endif()
 
+
+find_package(date QUIET)
+if (NOT date_FOUND)
+    init_submodule(external/date)
+    add_subdirectory(external/date EXCLUDE_FROM_ALL date)
+endif()
+
+
 find_package(RapidJSON QUIET)
 if (NOT RapidJSON_FOUND)
     init_submodule(external/rapidjson)
@@ -131,8 +139,8 @@ if (NOT BUILD_TESTING)
     target_add_resource(libstencil commonheaders ${resfiles})
 endif()
 
-target_link_libraries(libstencil PRIVATE toml11::toml11 tinyxml2::tinyxml2 tsl::ordered_map fmt::fmt)
-target_link_libraries(libstencil PUBLIC fmt::fmt stduuid)
+target_link_libraries(libstencil PRIVATE toml11::toml11 tinyxml2::tinyxml2 tsl::ordered_map)
+target_link_libraries(libstencil PUBLIC  fmt::fmt stduuid date::date)
 
 target_include_directories(libstencil PUBLIC src include/stencil)
 add_executable(stencil src/main.cpp)
