@@ -23,32 +23,32 @@ TEST_CASE("CodeGen::Database2::SaveAndLoad")
 
     // Create New Database and Create Objects
     {
-        UserData::UserData::Data database;
+        UserData::UserData database;
         database.Init(filepath);
-        std::vector<Database2::Ref<UserData::UserData::Data, UserData::RemoteHost::Data>> objs;
+        std::vector<Database2::Ref<UserData::UserData, UserData::RemoteHost>> objs;
 
         size_t i = 0;
 
         auto lock = database.LockForEdit();
         for (i = 0; i < std::size(data); i++)
         {
-            auto [id1, obj1] = database.Create<UserData::Identity::Data>(lock, data[i].name, data[i].uri, L"", L"", L"");
-            auto [id2, obj2] = database.Create<UserData::RemoteHost::Data>(lock, data[i].name, data[i].uri, obj1.id);
+            auto [id1, obj1] = database.Create<UserData::Identity>(lock, data[i].name, data[i].uri, L"", L"", L"");
+            auto [id2, obj2] = database.Create<UserData::RemoteHost>(lock, data[i].name, data[i].uri, obj1.id);
             REQUIRE(id1.Valid());
             REQUIRE(id2.Valid());
-            auto name = obj2.name().Get(lock, database);
-            auto uri  = obj2.uri().Get(lock, database);
+            auto name = obj2.name.Get(lock, database);
+            auto uri  = obj2.uri.Get(lock, database);
             REQUIRE(name == data[i].name);
             REQUIRE(uri == data[i].uri);
         }
 
         // Count objects in the same session
         size_t j = 0;
-        for (auto const [ref, obj] : database.Objects<UserData::RemoteHost::Data>(lock))
+        for (auto const [ref, obj] : database.Objects<UserData::RemoteHost>(lock))
         {
-            REQUIRE(!obj.identity().Empty());
-            auto name = obj.name().Get(lock, database);
-            auto uri  = obj.uri().Get(lock, database);
+            REQUIRE(!obj.identity.Empty());
+            auto name = obj.name.Get(lock, database);
+            auto uri  = obj.uri.Get(lock, database);
             REQUIRE(name == data[j].name);
             REQUIRE(uri == data[j].uri);
             ++j;
@@ -58,17 +58,17 @@ TEST_CASE("CodeGen::Database2::SaveAndLoad")
 
     // Count objects in a new session
     {
-        UserData::UserData::Data database;
+        UserData::UserData database;
         database.Init(filepath);
 
         {
             auto   lock = database.LockForEdit();
             size_t j    = 0;
-            for (auto const [ref, obj] : database.Objects<UserData::RemoteHost::Data>(lock))
+            for (auto const [ref, obj] : database.Objects<UserData::RemoteHost>(lock))
             {
-                REQUIRE(!obj.identity().Empty());
-                auto name = obj.name().Get(lock, database);
-                auto uri  = obj.uri().Get(lock, database);
+                REQUIRE(!obj.identity.Empty());
+                auto name = obj.name.Get(lock, database);
+                auto uri  = obj.uri.Get(lock, database);
                 REQUIRE(name == data[j].name);
                 REQUIRE(uri == data[j].uri);
                 ++j;
@@ -81,12 +81,12 @@ TEST_CASE("CodeGen::Database2::SaveAndLoad")
             auto lock = database.LockForEdit();
             for (auto const& d : data)
             {
-                auto [id1, obj1] = database.Create<UserData::Identity::Data>(lock, d.name, d.uri, L"", L"", L"");
-                auto [id2, obj2] = database.Create<UserData::RemoteHost::Data>(lock, d.name, d.uri, obj1.id);
+                auto [id1, obj1] = database.Create<UserData::Identity>(lock, d.name, d.uri, L"", L"", L"");
+                auto [id2, obj2] = database.Create<UserData::RemoteHost>(lock, d.name, d.uri, obj1.id);
                 REQUIRE(id1.Valid());
                 REQUIRE(id2.Valid());
-                auto name = obj2.name().Get(lock, database);
-                auto uri  = obj2.uri().Get(lock, database);
+                auto name = obj2.name.Get(lock, database);
+                auto uri  = obj2.uri.Get(lock, database);
                 REQUIRE(name == d.name);
                 REQUIRE(uri == d.uri);
             }
@@ -95,10 +95,10 @@ TEST_CASE("CodeGen::Database2::SaveAndLoad")
             auto lock = database.LockForRead();
             // Count of objects should be double now
             size_t j = 0;
-            for (auto const [ref, obj] : database.Objects<UserData::RemoteHost::Data>(lock))
+            for (auto const& [ref, obj] : database.Objects<UserData::RemoteHost>(lock))
             {
-                auto name = obj.name().Get(lock, database);
-                auto uri  = obj.uri().Get(lock, database);
+                auto name = obj.name.Get(lock, database);
+                auto uri  = obj.uri.Get(lock, database);
                 REQUIRE(name == data[j % std::size(data)].name);
                 REQUIRE(uri == data[j % std::size(data)].uri);
                 ++j;

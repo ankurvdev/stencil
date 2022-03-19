@@ -1,4 +1,5 @@
 #pragma once
+#include "comparator.h"
 #include "mutatorsaccessors.h"
 #include "optionalprops.h"
 #include "visitor.h"
@@ -41,21 +42,30 @@ template <typename TObj> struct TransactionT
     bool IsChanged() const { return false; }
 };
 }    // namespace Stencil
-#if 0
-template <typename T> struct Stencil::Transaction<T, std::enable_if_t<Value::Supported<T>::value>> : Stencil::TransactionT<T>
+
+template <Stencil::ConceptPrimitive T> struct Stencil::Transaction<T> : Stencil::TransactionT<T>
 {
     Transaction(T& obj) : Stencil::TransactionT<T>(obj) {}
     void Flush() const {}
     bool IsChanged() const { return false; }
 
-    DELETE_COPY_AND_MOVE(Transaction);
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
 };
 
-template <Stencil::StructConcept T> struct Stencil::TransactionT<T>
+template <> struct Stencil::Transaction<shared_string> : Stencil::TransactionT<shared_string>
+{
+    Transaction(shared_string& obj) : Stencil::TransactionT<shared_string>(obj) {}
+    void Flush() const {}
+    bool IsChanged() const { return false; }
+
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
+};
+
+template <Stencil::ConceptIndexable TObj> struct Stencil::TransactionT<TObj>
 {
     TransactionT(TObj& obj) : _ref(std::ref(obj)) {}
 
-    DELETE_COPY_AND_MOVE(TransactionT);
+    CLASS_DELETE_COPY_AND_MOVE(TransactionT);
 
     TObj& Obj() { return _ref; }
 
@@ -100,7 +110,7 @@ template <Stencil::StructConcept T> struct Stencil::TransactionT<T>
                 return;
             }
         }
-        if (!ReflectionBase::AreEqual(curval, newval)) { _assigntracker.set(static_cast<uint8_t>(field)); }
+        if (!Stencil::AreEqual(curval, newval)) { _assigntracker.set(static_cast<uint8_t>(field)); }
     }
 
     template <typename TEnum> void MarkFieldEdited_(TEnum field) { _edittracker.set(static_cast<uint8_t>(field)); }
@@ -115,14 +125,14 @@ template <Stencil::StructConcept T> struct Stencil::TransactionT<T>
     std::bitset<TObj::FieldCount() + 1> _edittracker;
 };
 
-template <typename TObj> struct Stencil::TransactionT<TObj, std::enable_if_t<Stencil::TypeTraits<TObj&>::Type() == Stencil::DataType::List>>
+template <Stencil::ConceptIterable TObj> struct Stencil::TransactionT<TObj>
 {
     using ListObjType = typename Stencil::TypeTraits<TObj&>::ListObjType;
 
     TransactionT(TObj& obj) : _ref(std::ref(obj)) {}
     ~TransactionT() {}
 
-    DELETE_COPY_AND_MOVE(TransactionT);
+    CLASS_DELETE_COPY_AND_MOVE(TransactionT);
 
     TObj& Obj() { return _ref; }
 
@@ -165,7 +175,8 @@ template <typename TObj> struct Stencil::TransactionT<TObj, std::enable_if_t<Ste
 
     template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
     {
-        return Visit(Value(fieldName).convert<size_t>(), std::forward<TLambda>(lambda));
+        TODO("TODO1");
+        // return Visit(Value(fieldName).convert<size_t>(), std::forward<TLambda>(lambda));
     }
 
     template <typename TLambda> void VisitAll(TLambda&& /* lambda */) { throw std::logic_error("Visit Not supported on Transaction"); }
@@ -211,7 +222,7 @@ template <typename TObj> struct Stencil::TransactionT<TObj, std::enable_if_t<Ste
 };
 
 // Transaction Mutators Accessors
-
+#if defined TODO1
 template <typename T>
 struct Stencil::Mutators<Stencil::Transaction<T>, std::enable_if_t<Stencil::TypeTraits<T&>::Type() == Stencil::DataType::List>>
 {
@@ -221,10 +232,10 @@ struct Stencil::Mutators<Stencil::Transaction<T>, std::enable_if_t<Stencil::Type
     static void  remove(Stencil::Transaction<T>& txn, size_t index) { txn.remove(index); }
     static auto& edit(Stencil::Transaction<T>& txn, size_t index) { return txn.edit(index); }
 };
+#endif
 
-template <typename T, typename _Ts> struct Stencil::Transaction : Stencil::TransactionT<T>
+template <typename T> struct Stencil::Transaction : Stencil::TransactionT<T>
 {
     Transaction(T& obj) : Stencil::TransactionT<T>(obj) {}
-    DELETE_COPY_AND_MOVE(Transaction);
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
 };
-#endif

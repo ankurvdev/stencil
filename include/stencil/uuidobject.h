@@ -40,6 +40,7 @@ template <typename T> struct UuidBasedId
 
     uuids::uuid uuid;
 
+    constexpr bool                  Empty() { return *this == Invalid(); }
     static constexpr UuidBasedId<T> Invalid() { return UuidBasedId<T>(); }
     friend UuidObjectT<T>;
 

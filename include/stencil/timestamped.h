@@ -3,10 +3,10 @@
 
 namespace Stencil
 {
+using Timestamp = decltype(std::chrono::system_clock::now());
 
 template <typename T> struct TimestampedT
 {
-    using time_point = decltype(std::chrono::system_clock::now());
 #if 0
 
     struct InitArgs
@@ -29,7 +29,7 @@ template <typename T> struct TimestampedT
     time_point created = std::chrono::system_clock::now();
 #endif
     public:
-    time_point lastmodified;
+    Timestamp lastmodified;
 };
 
 }    // namespace Stencil

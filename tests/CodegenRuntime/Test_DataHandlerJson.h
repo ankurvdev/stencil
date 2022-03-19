@@ -1,4 +1,4 @@
-#include <stencil/jsonserdes.h>
+#include <stencil/json_parse.h>
 
 #include <assert.h>
 #include <iostream>

@@ -1,8 +1,15 @@
 #pragma once
 #include "primitives64bit.h"
 #include "protocol.h"
+
+SUPPRESS_WARNINGS_START
+#pragma warning(disable : 4866)    // left to right evaluation not guaranteed
+#pragma warning(disable : 4623)    // default constructor was implicitly defined as deleted
+#pragma warning(disable : 4626)    // assignment operator was implicitly defined as deleted
+#pragma warning(disable : 5027)    // move assignment operator was implicitly defined as deleted
 #include <chrono>
 #include <date/date.h>
+SUPPRESS_WARNINGS_END
 
 namespace Stencil
 {

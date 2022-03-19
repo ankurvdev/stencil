@@ -1,5 +1,6 @@
 #include <stencil/stencil.h>
 
+#include <uuid.h>
 std::filesystem::path DbFileName();
 
 namespace Database = Database2;
@@ -14,7 +15,7 @@ struct Simple
 {
 
     static constexpr Database2::ObjTypeId TypeId() { return 1; }
-    Uuid                                  uuid;
+    uuids::uuid                           uuid;
 };
 
 struct Shared
@@ -23,7 +24,7 @@ struct Shared
 
     // static constexpr Database2::ObjTypeId TypeId() { return 2; }
 
-    Uuid uuid;
+    uuids::uuid uuid;
 };
 
 struct Encrypted
@@ -32,7 +33,7 @@ struct Encrypted
 
     // static constexpr Database2::ObjTypeId TypeId() { return 3; }
 
-    Uuid uuid;
+    uuids::uuid uuid;
 };
 
 struct EncryptedAndShared
@@ -41,7 +42,7 @@ struct EncryptedAndShared
 
     // static constexpr Database2::ObjTypeId TypeId() { return 4; }
 
-    Uuid uuid;
+    uuids::uuid uuid;
 };
 
 struct WithSimpleRef
@@ -50,7 +51,7 @@ struct WithSimpleRef
 
     // static constexpr Database2::ObjTypeId     TypeId() { return 5; }
     Database2::ChildRef<Simple>               ref1;
-    Uuid                                      uuid;
+    uuids::uuid                               uuid;
     Database2::ChildRef<Simple>               ref2;
     Database2::ChildRef<Database::ByteString> ref3;
 };
@@ -58,47 +59,48 @@ struct WithSimpleRef
 #if TODO_OBJREF
 struct WithString : Database2::DatabaseObjRef<DataStore, WithString, Database::ByteString>
 {
-    WithString(Uuid const& uuid1, Uuid const& uuid2) :
+    WithString(uuids::uuid const& uuid1, uuids::uuid const& uuid2) :
         Database2::DatabaseObjRef<DataStore, WithString, Database::ByteString>(uuid2), uuid(uuid1)
     {}
-    Uuid uuid;
+    uuids::uuid uuid;
 };
 
 struct WithSharedString : Database::DatabaseObjRef<DataStore, WithSharedString, Database::ByteSharedString>
 {
-    WithSharedString(Uuid const& uuid1, Uuid const& uuid2) :
+    WithSharedString(uuids::uuid const& uuid1, uuids::uuid const& uuid2) :
         Database2::DatabaseObjRef<DataStore, WithSharedString, Database::ByteSharedString>(uuid2), uuid(uuid1)
     {}
-    Uuid uuid;
+    uuids::uuid uuid;
 };
 
 struct WithSharedData : Database::DatabaseObjRef<DataStore, WithSharedData, Shared>
 {
-    WithSharedData(Uuid const& uuid1, Uuid const& uuid2) : Database2::DatabaseObjRef<DataStore, WithSharedData, Shared>(uuid2), uuid(uuid1)
+    WithSharedData(uuids::uuid const& uuid1, uuids::uuid const& uuid2) :
+        Database2::DatabaseObjRef<DataStore, WithSharedData, Shared>(uuid2), uuid(uuid1)
     {}
-    Uuid uuid;
+    uuids::uuid uuid;
 };
 
 struct WithEncryptedString : Database::DatabaseObjRef<DataStore, WithEncryptedString, Database::ByteEncryptedString>
 {
-    WithEncryptedString(Uuid const& uuid1, Uuid const& uuid2) :
+    WithEncryptedString(uuids::uuid const& uuid1, uuids::uuid const& uuid2) :
         Database2::DatabaseObjRef<DataStore, WithEncryptedString, Database::ByteEncryptedString>(uuid2), uuid(uuid1)
     {}
-    Uuid uuid;
+    uuids::uuid uuid;
 };
 
 struct WithEncryptedSharedString : Database::DatabaseObjRef<DataStore, WithEncryptedSharedString, Database::ByteEncryptedSharedString>
 {
-    WithEncryptedSharedString(Uuid const& uuid1, Uuid const& uuid2) :
+    WithEncryptedSharedString(uuids::uuid const& uuid1, uuids::uuid const& uuid2) :
         Database2::DatabaseObjRef<DataStore, WithEncryptedSharedString, Database::ByteEncryptedSharedString>(uuid2), uuid(uuid1)
     {}
-    Uuid uuid;
+    uuids::uuid uuid;
 };
 #endif
 struct DataStore : public Database2::DatabaseT<DataStore>
 {
     template <typename... TArgs> DataStore(TArgs&&... args) : Database2::DatabaseT<DataStore>(std::forward<TArgs>(args)...) {}
-    DELETE_COPY_AND_MOVE(DataStore);
+    CLASS_DELETE_COPY_AND_MOVE(DataStore);
 };
 }    // namespace TestData
 

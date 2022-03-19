@@ -1124,7 +1124,7 @@ template <typename TDb> struct DatabaseT
 
     DatabaseT()  = default;
     ~DatabaseT() = default;
-    CLASS_DELETE_COPY_DEFAULT_MOVE(DatabaseT);
+    CLASS_DEFAULT_COPY_AND_MOVE(DatabaseT);
 
     DatabaseT(InMemoryType) { Init(); }
     DatabaseT(std::filesystem::path const& path) : _pagemgr(std::make_shared<impl::PageManager>(path)) {}

@@ -71,7 +71,7 @@ boolean = "bool"
   NativeType = "shared_wstring"
 
   [FieldTypes.timestamp]
-  NativeType = "timestamp"
+  NativeType = "Stencil::Timestamp"
 
 [Struct]
 NativeType = "::%Program:Name%::%Struct:Name%"

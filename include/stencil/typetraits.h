@@ -58,6 +58,12 @@ concept ConceptIterable = Category::IsIterable<T>();
 template <typename T>
 concept ConceptPrimitive = Category::IsPrimitive<T>();
 
+template <typename T> struct StructT
+{};
+
+template <typename T> struct VariantT
+{};
+
 }    // namespace Stencil
 
 template <typename T> struct Stencil::TypeTraits<T, typename std::enable_if_t<ConceptPrimitives64Bit<T>>>

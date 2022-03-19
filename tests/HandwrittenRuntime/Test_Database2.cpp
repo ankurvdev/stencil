@@ -16,74 +16,74 @@ template <> struct StringMaker<std::filesystem::file_time_type>
 
 using DB = TestData::DataStore;
 
-template <size_t N, typename T> constexpr Uuid TestUuid();
+template <size_t N, typename T> constexpr uuids::uuid TestUuid();
 
-template <> constexpr Uuid TestUuid<0, TestData::Simple>()
+template <> constexpr uuids::uuid TestUuid<0, TestData::Simple>()
 {
-    return Uuid("{00000000-0000-0000-0000-000000000001}");
+    return uuids::uuid::from_string("{00000000-0000-0000-0000-000000000001}").value();
 }
-template <> constexpr Uuid TestUuid<1, TestData::Simple>()
+template <> constexpr uuids::uuid TestUuid<1, TestData::Simple>()
 {
-    return Uuid("{00000000-0000-0000-0000-000000000002}");
-}
-
-template <> constexpr Uuid TestUuid<0, TestData::Shared>()
-{
-    return Uuid("{00000001-0001-0001-0001-000000000000}");
-}
-template <> constexpr Uuid TestUuid<1, TestData::Shared>()
-{
-    return Uuid("{00000001-0001-0001-0001-000000000001}");
+    return uuids::uuid::from_string("{00000000-0000-0000-0000-000000000002}").value();
 }
 
-template <> constexpr Uuid TestUuid<0, TestData::Encrypted>()
+template <> constexpr uuids::uuid TestUuid<0, TestData::Shared>()
 {
-    return Uuid("{00000002-0002-0002-0002-000000000000}");
+    return uuids::uuid::from_string("{00000001-0001-0001-0001-000000000000}").value();
 }
-template <> constexpr Uuid TestUuid<1, TestData::Encrypted>()
+template <> constexpr uuids::uuid TestUuid<1, TestData::Shared>()
 {
-    return Uuid("{00000002-0002-0002-0002-000000000001}");
-}
-
-template <> constexpr Uuid TestUuid<0, TestData::EncryptedAndShared>()
-{
-    return Uuid("{00000003-0003-0003-0003-000000000000}");
+    return uuids::uuid::from_string("{00000001-0001-0001-0001-000000000001}").value();
 }
 
-template <> constexpr Uuid TestUuid<1, TestData::EncryptedAndShared>()
+template <> constexpr uuids::uuid TestUuid<0, TestData::Encrypted>()
 {
-    return Uuid("{00000003-0003-0003-0003-000000000001}");
+    return uuids::uuid::from_string("{00000002-0002-0002-0002-000000000000}").value();
+}
+template <> constexpr uuids::uuid TestUuid<1, TestData::Encrypted>()
+{
+    return uuids::uuid::from_string("{00000002-0002-0002-0002-000000000001}").value();
 }
 
-template <> constexpr Uuid TestUuid<0, TestData::WithSimpleRef>()
+template <> constexpr uuids::uuid TestUuid<0, TestData::EncryptedAndShared>()
 {
-    return Uuid("{00000004-0004-0004-0004-000000000000}");
+    return uuids::uuid::from_string("{00000003-0003-0003-0003-000000000000}").value();
 }
-template <> constexpr Uuid TestUuid<1, TestData::WithSimpleRef>()
+
+template <> constexpr uuids::uuid TestUuid<1, TestData::EncryptedAndShared>()
 {
-    return Uuid("{00000004-0004-0004-0004-000000000001}");
+    return uuids::uuid::from_string("{00000003-0003-0003-0003-000000000001}").value();
+}
+
+template <> constexpr uuids::uuid TestUuid<0, TestData::WithSimpleRef>()
+{
+    return uuids::uuid::from_string("{00000004-0004-0004-0004-000000000000}").value();
+}
+template <> constexpr uuids::uuid TestUuid<1, TestData::WithSimpleRef>()
+{
+    return uuids::uuid::from_string("{00000004-0004-0004-0004-000000000001}").value();
 }
 
 #if TODO_OBJREF
-template <> constexpr Uuid TestUuid<TestData::WithString>()
+template <> constexpr uuids::uuid TestUuid<TestData::WithString>()
 {
-    return Uuid("{00000005-0005-0005-0005-000000000000}");
+    return uuids::uuid("{00000005-0005-0005-0005-000000000000}");
 };
-template <> constexpr Uuid TestUuid<TestData::WithSharedString>()
+template <> constexpr uuids::uuid TestUuid<TestData::WithSharedString>()
 {
-    return Uuid("{00000006-0006-0006-0006-000000000000}");
+    return uuids::uuid("{00000006-0006-0006-0006-000000000000}");
 };
-template <> constexpr Uuid TestUuid<TestData::WithSharedData>()
+template <> constexpr uuids::uuid TestUuid<TestData::WithSharedData>()
 {
-    return Uuid("{00000007-0007-0007-0007-000000000000}");
+    return uuids::uuid("{00000007-0007-0007-0007-000000000000}");
 };
-template <> constexpr Uuid TestUuid<TestData::WithEncryptedString>()
+template <> constexpr uuids::uuid TestUuid<TestData::WithEncryptedString>()
 {
-    return Uuid("{00000008-0008-0008-0008-000000000000}");
+    return uuids::uuid("{00000008-0008-0008-0008-000000000000}");
 };
-template <> constexpr Uuid TestUuid<TestData::WithEncryptedSharedString>()
+template <> constexpr uuids::uuid TestUuid<TestData::WithEncryptedSharedString>()
 {
-    return Uuid("{00000009-0009-0009-0009-000000000000}");
+    return uuids::uuid("{00000009-0009-0009-0009-000000000000}");
 };
 #endif
 

@@ -25,20 +25,29 @@ namespace zzProgram_Namezz
 {
 //<Struct>
 struct zzStruct_Namezz;
-template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzStruct_Namezz>;
 //</Struct>
 
 //<Variant>
 struct zzVariant_Namezz;
-template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzVariant_Namezz>;
 //</Variant>
 
 //<Interface>
 struct zzInterface_Namezz;
+//</Interface>
+}    // namespace zzProgram_Namezz
+
+//<Struct>
+template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzStruct_Namezz>;
+//</Struct>
+
+//<Variant>
+template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzVariant_Namezz>;
+//</Variant>
+
+//<Interface>
 template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz>;
 template <> struct Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz>;
 //</Interface>
-}    // namespace zzProgram_Namezz
 
 #endif
 // SECTION END: DECLARATIONS
@@ -160,90 +169,42 @@ struct zzInterface_Namezz : public Stencil::InterfaceT<zzInterface_Namezz>
 
 template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzStruct_Namezz>
 {
-    enum class FieldType
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>
+{
+    enum class Fields
     {
-        Invalid = 0,
+        Invalid,
         //<Field Join=','>
-        zzNamezz
+        Field_zzNamezz
         //</Field>
     };
 
-    constexpr size_t    FieldIndexForType(FieldType type) { return static_cast<size_t>(type) - 1; }
-    constexpr FieldType FieldTypeForIndex(size_t index) { return static_cast<FieldType>(index) + 1; }
-
-    //<Field>
-    struct zzNamezz
-    {
-        using TStruct    = zzProgram_Namezz::zzStruct_Namezz;
-        using TFieldType = zzFieldType_NativeTypezz;
-
-        static constexpr std::string_view Name() { return "zzNamezz"; }
-
-        static auto& Get(TStruct const& obj) { return obj.zzNamezz; }
-
-        static TStruct& Set(zzFieldType_NativeTypezz&& val)
-        {
-            obj.zzNamezz = std::move(val);
-            return obj;
-        }
-
-        static TStruct& Set(zzFieldType_NativeTypezz const& val)
-        {
-            obj.zzNamezz = val;
-            return obj;
-        }
-
-        static constexpr auto Getter() { return &Get; }
-        static constexpr auto Setter() { return &Set; }
-
-        static constexpr auto AttributeValue(const std::string_view& key)
-        {
-            //<Attribute>
-            if (key == "zzAttribute_Keyzz") return "zzAttribute_Valuezz";
-            //</Attribute>
-            return "<Unknown>";
-        }
-
-        static const ::Stencil::Flags Flags()
-        {
-            return ::Stencil::Flags{//<If HasDefaultValue='true'>
-                                    ::Stencil::Flag::HasDefaultValue,
-                                    //</If>
-                                    //<If IsOptional='true'>
-                                    ::Stencil::Flag::Optional,
-                                    //</If>
-                                    ::Stencil::Flag::Max};
-        }
-    };
-    //</Field>
-
-    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
-    static constexpr std::string_view    Name() { return "zzStruct_Namezz"; }
-    static constexpr std::string_view    AttributeValue(const std::string_view& key)
-    {
-        //<Attribute>
-        if (key == "zzAttribute_Keyzz") return "zzAttribute_Valuezz";
-        //</Attribute>
-        return "<Unknown>";
-    }
-
-    using ThisType = zzProgram_Namezz::zzStruct_Namezz;
-    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
-    {
-        return true
-               //<Field>
-               && Stencil::AreEqual(obj1.zzNamezz(), obj2.zzNamezz())
-            //</Field>
-            ;
-    }
-
-    using Handler = ::ReflectionServices::ReflectedStructHandler<zzProgram_Namezz::zzStruct_Namezz,
-                                                                 //<Field Join=','>
-                                                                 zzNamezz
-                                                                 //</Field>
-                                                                 >;
+    using Key = Fields;
 };
 
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        //<Field Join=','>
+        "zzNamezz"
+        //</Field>
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields>(index);
+    }
+};
+
+#if defined TODO1
 template <> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz> : Stencil::TransactionT<zzProgram_Namezz::zzStruct_Namezz>
 {
     using TData = zzProgram_Namezz::zzStruct_Namezz;
@@ -252,7 +213,7 @@ template <> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz> : Ste
     Transaction<zzFieldType_NativeTypezz> _subtracker_zzNamezz;
     //</Field>
 
-    DELETE_COPY_AND_MOVE(Transaction);
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
     Transaction(TData& ptr) :
         Stencil::TransactionT<zzProgram_Namezz::zzStruct_Namezz>(ptr)
@@ -326,43 +287,31 @@ template <> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz> : Ste
         Stencil::TransactionT<zzProgram_Namezz::zzStruct_Namezz>::Flush_();
     }
 };
+#endif
 
-template <> struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz, void> : Stencil::VisitorT<zzProgram_Namezz::zzStruct_Namezz>
+template <> struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz> : Stencil::VisitorT<zzProgram_Namezz::zzStruct_Namezz>
 {
-    using TData = zzProgram_Namezz::zzStruct_Namezz;
+    using TData  = zzProgram_Namezz::zzStruct_Namezz;
+    using Fields = TypeTraitsForIndexable<TData>::Fields;
 
-    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
     {
-        switch (index)
+        switch (field)
         {
         //<Field>
-        case TData::FieldIndex::zzNamezz: lambda("zzNamezz", _ref.get().zzNamezz()); return;
+        case Fields::Field_zzNamezz: return lambda(obj.zzNamezz);
         //</Field>
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
         }
     }
 
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
-    {
-        switch (index)
-        {
-        //<Field>
-        case TData::FieldIndex::zzNamezz: lambda("zzNamezz", _ref.get().zzNamezz()); return;
-        //</Field>
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> void VisitAll(TLambda&& lambda) const
+    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
     {
         //<Field>
-        lambda("zzNamezz", _ref.get().zzNamezz());
+        lambda(Fields::Field_zzNamezz, obj.zzNamezz);
         //</Field>
     }
-
-    std::reference_wrapper<TData> _ref;
 };
 
 //</Struct>
@@ -486,159 +435,6 @@ template <> struct Stencil::WebServiceHandlerTraits<zzProgram_Namezz::zzInterfac
 //</Interface>
 
 //<Variant>
-
-template <> struct ReflectionServices::EnumTraits<zzVariant_Program_Namezz::zzVariant_Namezz::VariantType>
-{
-    static constexpr const char* EnumStrings[] = {"Invalid",
-                                                  //<Field>
-                                                  "zzField_Namezz",
-                                                  //</Field>
-
-                                                  nullptr};
-
-    using ValueType = uint32_t;
-};
-
-template <> struct ValueTraits<zzVariant_Program_Namezz::zzVariant_Namezz::VariantType>
-{
-    static constexpr auto    ValueType() { return Value::Type::Unsigned; }
-    [[noreturn]] static void Get(Value& /*obj*/) { throw std::logic_error("Not Implemented"); }
-    [[noreturn]] static void Get(const Value& /*obj*/) { throw std::logic_error("Not Implemented"); }
-    [[noreturn]] static void Check() { throw std::logic_error("Not Implemented"); }
-};
-
-template <> struct Stencil::TypeTraits<zzVariant_Program_Namezz::zzVariant_Namezz::VariantType&>
-{
-    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Value; }
-    static constexpr std::string_view    Name() { return "zzVariant_Namezz"; }
-
-    using Handler = ::ReflectionServices::EnumHandler<zzVariant_Program_Namezz::zzVariant_Namezz::VariantType>;
-};
-
-template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzVariant_Namezz&>
-{
-    //<Field>
-    struct Traits_zzNamezz
-    {
-        using TOwner     = zzVariant_Program_Namezz::zzVariant_Namezz;
-        using TFieldType = zzFieldType_NativeTypezz;
-
-        static constexpr std::string_view Name() { return "zzNamezz"; }
-
-        static constexpr auto TPropertyGetter() { return &TOwner::get_zzNamezz; }
-        static constexpr auto TPropertySetter() { return &TOwner::set_zzNamezz; }
-        static constexpr auto TAttributeValue(const std::string_view& key)
-        {
-            return TOwner::FieldAttributeValue(TOwner::FieldIndex::zzField_Namezz, key);
-        }
-
-        static const ::Stencil::Flags Flags()
-        {
-            return ::Stencil::Flags{//<If HasDefaultValue='true'>
-                                    ::Stencil::Flag::HasDefaultValue,
-                                    //</If>
-                                    //<If IsOptional='true'>
-                                    ::Stencil::Flag::Optional,
-                                    //</If>
-                                    ::Stencil::Flag::Max};
-        }
-    };
-    //</Field>
-
-    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
-    static constexpr std::string_view    Name() { return "zzVariant_Namezz"; }
-    static constexpr std::string_view    AttributeValue(const std::string_view& key)
-    {
-        //<Attribute>
-        if (key == "zzAttribute_Keyzz") return "zzAttribute_Valuezz";
-        //</Attribute>
-
-        return ::ReflectionServices::EmptyAttributeValue(key);
-    }
-
-    using ThisType = zzProgram_Namezz::zzVariant_Namezz;
-    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
-    {
-        return true
-               //<Field>
-               && Stencil::AreEqual(obj1.zzNamezz(), obj2.zzNamezz())
-            //</Field>
-            ;
-    }
-
-    using Handler = ::ReflectionServices::ReflectedVariantHandler<zzProgram_Namezz::zzVariant_Namezz,
-                                                                  zzVariant_Program_Namezz::zzVariant_Namezz::VariantType,
-                                                                  //<Field Join=','>
-                                                                  Traits_zzNamezz
-                                                                  //</Field>
-                                                                  >;
-};
-
-template <> struct Stencil::Visitor<zzProgram_Namezz::zzVariant_Namezz, void> : Stencil::VisitorT<zzProgram_Namezz::zzVariant_Namezz>
-{
-    using TData = zzProgram_Namezz::zzVariant_Namezz;
-
-    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
-    {
-        switch (index)
-        {
-        //<Field>
-        case TData::FieldIndex::zzNamezz: lambda("zzNamezz", _ref.get().zzNamezz()); return;
-        //</Field>
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
-    {
-        switch (index)
-        {
-        //<Field>
-        case TData::FieldIndex::zzNamezz: lambda("zzNamezz", _ref.get().zzNamezz()); return;
-        //</Field>
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> void VisitAll(TLambda&& lambda) const
-    {
-        //<Field>
-        lambda("zzNamezz", _ref.get().zzNamezz());
-        //</Field>
-    }
-
-    std::reference_wrapper<TData> _ref;
-};
-
-template <>
-struct Stencil::Visitor<const zzProgram_Namezz::zzVariant_Namezz, void> : Stencil::VisitorT<const zzProgram_Namezz::zzVariant_Namezz>
-{
-    using TData = zzProgram_Namezz::zzVariant_Namezz const;
-
-    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
-    {
-        switch (index)
-        {
-        //<Field>
-        case TData::FieldIndex::zzNamezz: lambda("zzNamezz", _ref.get().zzNamezz()); return;
-        //</Field>
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> void VisitAll(TLambda&& lambda) const
-    {
-        //<Field>
-        lambda("zzNamezz", _ref.get().zzNamezz());
-        //</Field>
-    }
-
-    std::reference_wrapper<TData> _ref;
-};
 
 //</Variant>
 #endif

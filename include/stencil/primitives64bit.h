@@ -1,5 +1,5 @@
 #pragma once
-#include <CommonMacros.h>
+#include "CommonMacros.h"
 
 SUPPRESS_WARNINGS_START
 #pragma warning(disable : 4866)    // left to right evaluation not guaranteed

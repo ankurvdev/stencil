@@ -1,57 +1,24 @@
 # Runtime
-- Protocol 
-    - Read
-        - Primitives/Indexables/Iterables
-        - Should it be read from streams ?
-        - Sometimes reading from buffers is faster than streams due to allowing random access and lookahead
-           - List Examples
-        - String
-            - CLI
-            - Json
-        - Binary
-    - Write
-        - Primitives/Indexables/Iterables
-        - String
-            - Json
-            - CLI
-        - Binary
-    - CLI 
-        - Required args vs optional args
-        - list => variadic args
-        - variants => groups
-        - Nested
-            1. level1_1 level2_1 --key=val --key2=val -- level1_1 level2_1 --key3=val
-                * uplevel (reach root) using --
-                * 
-            2. level1_1.level2_1 --key=val --key2=val level1_1.level2_2 --key3=val level1_1 --l1key=val 
-                * Everything starts at roo
 
-            3. --level1_1.level2_1.key1=
-        - List of nested structs
-            1. level1_1 liststruct --vak  level1_1 liststruct
-        - 
+- Protocol
+  - Read: Should it be read from streams ?
+    - Sometimes reading from buffers is faster than streams due to allowing random access and lookahead
+    - List Examples
+  - Binary
+  - Read/Write overrides for Iterables / Indexables
+- Code-Cleanup : Reduction : Protocol-String Protocol-Json
 
-
-- Cleanup - 2 days
-    - Linux
-    - Protocol String/Json
-    - Primitives Serialize/Deserialize from Their Category Traits
-    - 
-
-- TODOs 
-    - TypeTraits.Indexable.Key : Should FixedSize Structs also be allowed, how about any type ? Do we care ?
-    -  Visitor.Indexable.Key needs key to be a temp object outside data scope . How to get rid of it
-       - Maybe : But we should validate the json array size and it matches the fixed size
-    - StackVisitor: Find a better name
+- TODOs
+  - TypeTraits.Indexable.Key : Should FixedSize Structs also be allowed, how about any type ? Do we care ?
+  - Visitor.Indexable.Key needs key to be a temp object outside data scope . How to get rid of it
+    - Maybe : But we should validate the json array size and it matches the fixed size
+  - StackVisitor: Find a better name
 
 - Maps - 2 days
 - Cleanup - 2 days
-    - Rapidjson cmake issue
-    - 
+  - Rapidjson cmake issue
 - Object-Initialize / Visitor-Initialize (shared_ptr<>) - 3 days
 - Cleanup - 2 days
-
-March - 20 
 
 TODOs
 
@@ -65,60 +32,58 @@ TODOs
 - Indexable
   - Variants
 
-
 9. ObjectStore
 10. Transactions
 11. WebService
 
-/*
- * OpenQuestions
- * Should Structs be assignable via indexable json
- *
- *
- * TypeTraits
- *      Categories(Primitive/Iterable/Indexable)
- *          Can be multiple. Should we denote a preferred ?
- *          Serialiation / Deserialization controlled using Visitors.
- *          StackVisitor might not know which one to select.
- *              Precedence Indexable > Iterable > Primitive doesnt always work
- *                  Iterable > Primitive breaks for GUIDs and std::array<char>
- *                  Indexale > Iterable breaks for ? [OPEN QUESTION]
- *
- * Indexable:
- *      Key :
- *          Justification : [STRONG].
- *              Everyone needs to know what indexable types are allowed
- *          Can only be a primitive ?
- *          What about Types with hash functions
- *          Key Visitor requires storage of temp key object IndexableVisitorTypeHandler<T> has a mutable
- *      ValueTypes:
- *          Justification : [WEAK]
- *          Unique only ?
- *          What about duplicate ? Codegen wont be able to dedup. Templating technique available for auto dedup
- *          Only needed because StackVisitor needs all Type Handlers instantiated . Can we make them ondemand ? [OPEN-QUESTION]
- *
- *      Unhandled Types:
- *          std::unordered_map<std::string, FixedSize>
- *          std::unordered_map<uint64_t, FixedSize>
- *
- * Iterable
- *      Variable size: // Any length allowed
- *      Fixed size : // Validate length (post / pre ?)
- *
- *
- * Primitives
- *      Values (64-Bit)
- *      Blobs (String/Wide-String)
- *      Wht about GUIDs , Crypto-Shas ? 128 Bit ?
- *      Custom Conversion Routines
- *
- * StackVisitor
- *      Rename to something else ?
- *      All TypeHandlers for all nested types are available and instantiated
- *      What about duplicate types ?
- *      TypeTraits
- *
- */
+OpenQuestions
+
+- Should Structs be assignable via indexable json
+
+- TypeTraits
+  - Categories(Primitive/Iterable/Indexable)
+    - Can be multiple. Should we denote a preferred ?
+    - Serialiation / Deserialization controlled using Visitors.
+    - StackVisitor might not know which one to select.
+    - Precedence Indexable > Iterable > Primitive doesnt always work
+      - Iterable > Primitive breaks for GUIDs and std::array<char>
+      - Indexale > Iterable breaks for ? [OPEN QUESTION]
+      -
+- Indexable:
+  - Key :
+  - Justification : [STRONG].
+    - Everyone needs to know what indexable types are allowed
+    - Can only be a primitive ?
+    - What about Types with hash functions
+    - Key Visitor requires storage of temp key object IndexableVisitorTypeHandler<T> has a mutable
+  - ValueTypes:
+    - Justification : [WEAK]
+    - Unique only ?
+    - What about duplicate ? Codegen wont be able to dedup. Templating technique available for auto dedup
+    - Only needed because StackVisitor needs all Type Handlers instantiated . Can we make them ondemand ? [OPEN-QUESTION]
+    -
+  - Unhandled Types:
+    - std::unordered_map<std::string, FixedSize>
+    - std::unordered_map<uint64_t, FixedSize>
+  -
+- Iterable
+  - Variable size: // Any length allowed
+  - Fixed size : // Validate length (post / pre ?)
+  -
+  -
+  - Primitives
+  - Values (64-Bit)
+  - Blobs (String/Wide-String)
+  - Wht about GUIDs , Crypto-Shas ? 128 Bit ?
+  - Custom Conversion Routines
+  -
+- StackVisitor
+  - Rename to something else ?
+  - All TypeHandlers for all nested types are available and instantiated
+  - What about duplicate types ?
+  - TypeTraits
+
+  -
 
 ## Overview
 
@@ -135,7 +100,6 @@ The main scenarios that the runtime covers are
 - JSON / REST Web-Services based on interfaces
 
 ## Type-Traits
-
 
 ### Primitives
 

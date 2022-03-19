@@ -2,12 +2,12 @@
 #include "stencil/Database2.h"
 
 template <>
-struct Database2::ObjTraits<UserData::UserData::Data, UserData::RemoteHost::Data>
-    : Database2::FixedSizeObjTraits<UserData::UserData::Data, UserData::RemoteHost::Data>
+struct Database2::ObjTraits<UserData::UserData, UserData::RemoteHost>
+    : Database2::FixedSizeObjTraits<UserData::UserData, UserData::RemoteHost>
 {
     constexpr static Database2::ObjTypeId TypeId() { return 1; }
     static size_t constexpr StructMemberCount() { return 3; }
-    template <size_t N> static auto& StructMember(UserData::RemoteHost::Data& obj)
+    template <size_t N> static auto& StructMember(UserData::RemoteHost& obj)
     {
         if constexpr (N == 0) return obj.name();
         if constexpr (N == 1) return obj.uri();
@@ -17,12 +17,11 @@ struct Database2::ObjTraits<UserData::UserData::Data, UserData::RemoteHost::Data
     }
 };
 template <>
-struct Database2::ObjTraits<UserData::UserData::Data, UserData::Identity::Data>
-    : Database2::FixedSizeObjTraits<UserData::UserData::Data, UserData::Identity::Data>
+struct Database2::ObjTraits<UserData::UserData, UserData::Identity> : Database2::FixedSizeObjTraits<UserData::UserData, UserData::Identity>
 {
     constexpr static Database2::ObjTypeId TypeId() { return 2; }
     static size_t constexpr StructMemberCount() { return 5; }
-    template <size_t N> static auto& StructMember(UserData::Identity::Data& obj)
+    template <size_t N> static auto& StructMember(UserData::Identity& obj)
     {
         if constexpr (N == 0) return obj.username();
         if constexpr (N == 1) return obj.password();
@@ -35,29 +34,29 @@ struct Database2::ObjTraits<UserData::UserData::Data, UserData::Identity::Data>
 
 #if 0
 template <>
-void ::ReflectionBase::Construct<UserData::UserData::Data>(UserData::UserData::Data *ptr)
+void ::ReflectionBase::Construct<UserData::UserData>(UserData::UserData *ptr)
 {
-    ((Database2::DatabaseT<UserData::UserData::Data>*)ptr)->Init(ptr);
+    ((Database2baseT<UserData::UserData>*)ptr)->Init(ptr);
 }
 
 template <>
-struct Database2::ObjTraits<UserData::UserData::Data, UserData::RemoteHost::Data>
+struct Database2::ObjTraits<UserData::UserData, UserData::RemoteHost>
 {
-    using ViewType = typename UserData::RemoteHost::Data const&;
-    using SerializedType = UserData::RemoteHost::Data;
+    using ViewType = typename UserData::RemoteHost const&;
+    using SerializedType = UserData::RemoteHost;
 
     constexpr static Database2::ObjTypeId TypeId() { return 1; }
     constexpr static bool IsBlob() { return false; }
 
-    static const UserData::RemoteHost::Data& CreateViewFromRawData(SerializedType *ptr) { return *ptr; }
-    static Database2::CompareResult Compare(UserData::UserData::Data &database, const UserData::RemoteHost::Data &obj1, const UserData::RemoteHost::Data &obj2)
+    static const UserData::RemoteHost& CreateViewFromRawData(SerializedType *ptr) { return *ptr; }
+    static Database2::CompareResult Compare(UserData::UserData &database, const UserData::RemoteHost &obj1, const UserData::RemoteHost &obj2)
     {
         return (obj1.name() == obj2.name() && obj1.uri() == obj2.uri() && obj1.identity() == obj2.identity()) ? CompareResult::Equal : CompareResult::Greater;
     }
 
-    static void Create(UserData::UserData::Data &database, void *buffer, const std::wstring_view &name, const std::wstring_view &uri, UserData::Identity::Data::Id identityId = UserData::Identity::Data::Id::Invalid())
+    static void Create(UserData::UserData &database, void *buffer, const std::wstring_view &name, const std::wstring_view &uri, UserData::Identity::Id identityId = UserData::Identity::Id::Invalid())
     {
-        auto host = new (buffer) UserData::RemoteHost::Data();
+        auto host = new (buffer) UserData::RemoteHost();
         host->name(database.Create<shared_wstring>(name));
         host->uri(database.Create<shared_wstring>(uri));
         host->identity(identityId);
@@ -65,16 +64,16 @@ struct Database2::ObjTraits<UserData::UserData::Data, UserData::RemoteHost::Data
 };
 
 template <>
-struct Database2::ObjTraits<UserData::UserData::Data, UserData::Identity::Data>
+struct Database2::ObjTraits<UserData::UserData, UserData::Identity>
 {
-    using ViewType = typename UserData::Identity::Data const&;
-    using SerializedType = UserData::Identity::Data;
+    using ViewType = typename UserData::Identity const&;
+    using SerializedType = UserData::Identity;
 
     constexpr static Database2::ObjTypeId TypeId() { return 2; }
     constexpr static bool IsBlob() { return false; }
 
-    static const UserData::Identity::Data& CreateViewFromRawData(SerializedType *ptr) { return *ptr; }
-    static Database2::CompareResult Compare(UserData::UserData::Data &database, const UserData::Identity::Data &obj1, const UserData::Identity::Data &obj2)
+    static const UserData::Identity& CreateViewFromRawData(SerializedType *ptr) { return *ptr; }
+    static Database2::CompareResult Compare(UserData::UserData &database, const UserData::Identity &obj1, const UserData::Identity &obj2)
     {
         return (
             obj1.username() == obj2.username() &&
@@ -85,9 +84,9 @@ struct Database2::ObjTraits<UserData::UserData::Data, UserData::Identity::Data>
         //return (obj1.name() == obj2.name() && obj1.uri() == obj2.uri() && obj1.identity() == obj2.identity()) ? CompareResult::Equal : CompareResult::Greater;
     }
 
-    static void Create(UserData::UserData::Data &database, void *buffer)
+    static void Create(UserData::UserData &database, void *buffer)
     {
-        auto identity = new (buffer) UserData::Identity::Data();
+        auto identity = new (buffer) UserData::Identity();
     };
 };
 #endif

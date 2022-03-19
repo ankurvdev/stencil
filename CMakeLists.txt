@@ -178,41 +178,37 @@ if (BUILD_TESTING)
                 DEPENDS stencil ${inputs})
     add_custom_target(codegen DEPENDS ${outputs})
 
-        add_executable(runtime_tests
-            tests/HandwrittenRuntime/Test_Handwritten_CLOpts.cpp
-            tests/HandwrittenRuntime/Test_Handwritten_Json.cpp
-        )
-    
-        add_dependencies(runtime_tests codegen)
-        target_include_directories(runtime_tests PRIVATE ${CMAKE_CURRENT_BINARY_DIR} include)
-        target_compile_definitions(runtime_tests PRIVATE USE_NLOHMANN_JSON USE_CPP_HTTPLIB)
-        target_link_libraries(runtime_tests PRIVATE libstencil)
-        target_link_libraries(runtime_tests PRIVATE dtl::dtl rapidjson Catch2::Catch2 cpp_httplib::cpp_httplib fmt)
-        target_link_libraries (runtime_tests PRIVATE Threads::Threads)
-        add_test(NAME runtime_tests COMMAND runtime_tests)
-    
-        target_add_resource(runtime_tests testdata ${resfiles} ${pidlfiles})
-        target_include_directories(runtime_tests PRIVATE src include tests)
+    add_executable(runtime_tests
+        tests/HandwrittenRuntime/Test_Handwritten_CLOpts.cpp
+        tests/HandwrittenRuntime/Test_Handwritten_Json.cpp
+        tests/HandwrittenRuntime/Test_Database.cpp
+        tests/HandwrittenRuntime/Test_Database2.cpp
+        #tests/HandwrittenRuntime/Test_WebService_Handwritten.cpp
+    )
 
-    if (FALSE)
-        add_executable(codegen_runtime_tests
-            tests/Test_CLOpts.cpp
-            tests/Test_DataHandlerJson.cpp
+    add_dependencies(runtime_tests codegen)
+    target_include_directories(runtime_tests PRIVATE ${CMAKE_CURRENT_BINARY_DIR} include)
+    target_compile_definitions(runtime_tests PRIVATE USE_NLOHMANN_JSON USE_CPP_HTTPLIB)
+    target_link_libraries(runtime_tests PRIVATE libstencil)
+    target_link_libraries(runtime_tests PRIVATE dtl::dtl rapidjson Catch2::Catch2 cpp_httplib::cpp_httplib fmt)
+    target_link_libraries (runtime_tests PRIVATE Threads::Threads)
+    add_test(NAME runtime_tests COMMAND runtime_tests)
 
-            tests/Test_CommandLineArgsReaderHandler.cpp
-            tests/Test_Database2.cpp
-            tests/Test_Database.cpp
-            tests/Test_DataRecorderPlayer.cpp
-            tests/Test_ObservableOptionalProps.cpp
-            tests/Test_SerDes.cpp
-            tests/Test_Transactions.cpp
-            tests/Test_WebService_Handwritten.cpp
-            tests/Test_WebService_Autogen.cpp
-        )
-        target_link_libraries(codegen_runtime_tests PRIVATE dtl::dtl Catch2::Catch2 nlohmann_json::nlohmann_json cpp_httplib::cpp_httplib fmt)
-        target_include_directories(codegen_runtime_tests PRIVATE src include tests)
-    endif()
+    target_add_resource(runtime_tests testdata ${resfiles} ${pidlfiles})
+    target_include_directories(runtime_tests PRIVATE src include tests)
+    add_executable(codegen_runtime_tests
+        tests/CodegenRuntime/Test_Codegen_CLOpts.cpp
+        #tests/CodegenRuntime/Test_Codegen_Json.cpp
+        #tests/CodegenRuntime/Test_DataRecorderPlayer.cpp
+        #tests/CodegenRuntime/Test_ObservableOptionalProps.cpp
+        #tests/CodegenRuntime/Test_SerDes.cpp
+        #tests/CodegenRuntime/Test_Transactions.cpp
+        #tests/CodegenRuntime/Test_WebService_Autogen.cpp
+    )
+    add_dependencies(codegen_runtime_tests codegen)
 
+    target_link_libraries(codegen_runtime_tests PRIVATE libstencil dtl::dtl Catch2::Catch2 rapidjson cpp_httplib::cpp_httplib fmt)
+    target_include_directories(codegen_runtime_tests PRIVATE ${CMAKE_CURRENT_BINARY_DIR} src include tests)
 endif()
 
 configure_package_config_file(cmake/stencilConfig.cmake.in

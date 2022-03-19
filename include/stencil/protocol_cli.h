@@ -368,7 +368,7 @@ template <typename T, typename TInCtx> inline T _Parse(ArgsIterator<TInCtx>&& ar
     while (argsIt.valid())
     {
         argsIt.clear_root_ctx_requested();
-        SerDes<T, ProtocolCLI>::Read(obj, argsIt);
+        Stencil::SerDes<T, ProtocolCLI>::Read(obj, argsIt);
     }
     return obj;
 }
@@ -386,7 +386,7 @@ template <typename T, typename TStrArr> inline T Parse(TStrArr const& args)
 template <typename T> inline std::vector<std::string> Stringify(T const& obj)
 {
     std::vector<std::string> args;
-    SerDes<T, ProtocolCLI>::Write(args, obj);
+    Stencil::SerDes<T, ProtocolCLI>::Write(args, obj);
     return args;
 }
 
