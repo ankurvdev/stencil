@@ -9,9 +9,9 @@ struct Database2::ObjTraits<UserData::UserData, UserData::RemoteHost>
     static size_t constexpr StructMemberCount() { return 3; }
     template <size_t N> static auto& StructMember(UserData::RemoteHost& obj)
     {
-        if constexpr (N == 0) return obj.name();
-        if constexpr (N == 1) return obj.uri();
-        if constexpr (N == 2) return obj.identity();
+        if constexpr (N == 0) return obj.name;
+        if constexpr (N == 1) return obj.uri;
+        if constexpr (N == 2) return obj.identity;
 
         static_assert(N < 3);
     }
@@ -23,11 +23,11 @@ struct Database2::ObjTraits<UserData::UserData, UserData::Identity> : Database2:
     static size_t constexpr StructMemberCount() { return 5; }
     template <size_t N> static auto& StructMember(UserData::Identity& obj)
     {
-        if constexpr (N == 0) return obj.username();
-        if constexpr (N == 1) return obj.password();
-        if constexpr (N == 2) return obj.privatekey();
-        if constexpr (N == 3) return obj.clientcert();
-        if constexpr (N == 4) return obj.secretcode();
+        if constexpr (N == 0) return obj.username;
+        if constexpr (N == 1) return obj.password;
+        if constexpr (N == 2) return obj.privatekey;
+        if constexpr (N == 3) return obj.clientcert;
+        if constexpr (N == 4) return obj.secretcode;
         static_assert(N < 5);
     }
 };

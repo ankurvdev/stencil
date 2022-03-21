@@ -1080,14 +1080,14 @@ template <typename TDb> struct DatabaseT
     template <typename TObj> struct RangeForViewT
     {
         RangeForViewT(rlock& lock, DatabaseT<TDb>& db) :
-            _lock(lock),
+            _lock(&lock),
             _begin{impl::RefAndObjIterator<TDb, TObj, rlock>::Begin(&lock, db)},
             _end{impl::RefAndObjIterator<TDb, TObj, rlock>::End()}
         {}
 
         CLASS_DELETE_COPY_DEFAULT_MOVE(RangeForViewT);
 
-        rlock& _lock;
+        rlock* _lock{};
 
         impl::RefAndObjIterator<TDb, TObj, rlock> _begin;
         impl::RefAndObjIterator<TDb, TObj, rlock> _end;
@@ -1099,14 +1099,14 @@ template <typename TDb> struct DatabaseT
     template <typename TObj> struct RangeForEditT
     {
         RangeForEditT(wlock& lock, DatabaseT<TDb>& db) :
-            _lock(lock),
+            _lock(&lock),
             _begin{impl::RefAndObjIterator<TDb, TObj, wlock>::Begin(&lock, db)},
             _end{impl::RefAndObjIterator<TDb, TObj, wlock>::End()}
         {}
 
         CLASS_DELETE_COPY_DEFAULT_MOVE(RangeForEditT);
 
-        wlock& _lock;
+        wlock* _lock{};
 
         impl::RefAndObjIterator<TDb, TObj, wlock> _begin;
         impl::RefAndObjIterator<TDb, TObj, wlock> _end;

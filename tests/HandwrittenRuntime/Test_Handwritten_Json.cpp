@@ -148,4 +148,19 @@ TEST_CASE("Json", "[Json]")
             },
             "WithVariant");
     }
+
+    SECTION("NamedVariant")
+    {
+        RunTestCases<NamedVariant>(
+            {
+                {R"({"f1": {"f1": {}}})", "0", true},
+                {R"({"f2": {"f1": {}}})", "1", true},
+                {R"({"f3": {"f1": {}}})", "2", true},
+                {R"({"f4": {"f1": {}}})", "3", true},
+                {R"({"f5": 0.1234)", "4", true},
+                {R"({"f6": "abcd")", "5", true},
+
+            },
+            "WithVariant");
+    }
 }

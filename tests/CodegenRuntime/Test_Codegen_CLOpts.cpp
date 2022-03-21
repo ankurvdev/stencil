@@ -25,7 +25,7 @@ template <typename TException> struct ExceptionMatcher : public Catch::MatcherBa
 
     const TException* _expected;
 };
-#if defined TODO1
+#if defined                                                              TODO1
 template <typename TStruct, typename TException, typename... TArgs> auto RequireGenerateException(const TException& obj, TArgs&&... args)
 {
     REQUIRE_THROWS_MATCHES(ParseArgs<TStruct>(std::forward<TArgs>(args)...), TException, ExceptionMatcher{obj});
@@ -84,80 +84,80 @@ TEST_CASE("CodeGen::CommandLineArgs::Variants")
     {
         auto options = ParseArgs<::CLOpts2::CommandLineOptions>("install", "productid");
 
-        REQUIRE(options.type == CLOpts2::CommandLineOptions::VariantType::install);
-        REQUIRE(options.install.ProductId == "productid");
-        REQUIRE(options.install.Repair == false);
-        REQUIRE(options.install.TargetVolume.empty());
-        REQUIRE(options.install.User.empty());
+        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::install);
+        REQUIRE(options.install().ProductId == "productid");
+        REQUIRE(options.install().Repair == false);
+        REQUIRE(options.install().TargetVolume.empty());
+        REQUIRE(options.install().User.empty());
     }
     {
         auto options = ParseArgs<::CLOpts2::CommandLineOptions>("install", "productid", "--TargetVolume=/tmp");
 
-        REQUIRE(options.type == CLOpts2::CommandLineOptions::VariantType::install);
-        REQUIRE(options.install.ProductId == (("productid")));
-        REQUIRE(options.install.Repair == false);
-        REQUIRE(options.install.TargetVolume == (("/tmp")));
-        REQUIRE(options.install.User.empty());
+        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::install);
+        REQUIRE(options.install().ProductId == (("productid")));
+        REQUIRE(options.install().Repair == false);
+        REQUIRE(options.install().TargetVolume == (("/tmp")));
+        REQUIRE(options.install().User.empty());
     }
     {
         auto options = ParseArgs<::CLOpts2::CommandLineOptions>("install", "productid", "productid", "--TargetVolume=/tmp", "--User=user1");
 
-        REQUIRE(options.type == CLOpts2::CommandLineOptions::VariantType::install);
-        REQUIRE(options.install.ProductId == (("productid")));
-        REQUIRE(options.install.Repair == false);
-        REQUIRE(options.install.TargetVolume == (("/tmp")));
-        REQUIRE(options.install.User == (("user1")));
+        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::install);
+        REQUIRE(options.install().ProductId == (("productid")));
+        REQUIRE(options.install().Repair == false);
+        REQUIRE(options.install().TargetVolume == (("/tmp")));
+        REQUIRE(options.install().User == (("user1")));
     }
     {
         auto options = ParseArgs<::CLOpts2::CommandLineOptions>("install", "productid", "--TargetVolume=/tmp", "--User=user1", "--Repair");
 
-        REQUIRE(options.type == CLOpts2::CommandLineOptions::VariantType::install);
-        REQUIRE(options.install.ProductId == (("productid")));
-        REQUIRE(options.install.Repair == true);
-        REQUIRE(options.install.TargetVolume == (("/tmp")));
-        REQUIRE(options.install.User == (("user1")));
+        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::install);
+        REQUIRE(options.install().ProductId == (("productid")));
+        REQUIRE(options.install().Repair == true);
+        REQUIRE(options.install().TargetVolume == (("/tmp")));
+        REQUIRE(options.install().User == (("user1")));
     }
     {
         auto options = ParseArgs<::CLOpts2::CommandLineOptions>("queue", "productid");
 
-        REQUIRE(options.type == CLOpts2::CommandLineOptions::VariantType::queue);
-        REQUIRE(options.queue.ProductId == (("productid")));
+        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::queue);
+        REQUIRE(options.queue().ProductId == (("productid")));
     }
     {
         auto options = ParseArgs<::CLOpts2::CommandLineOptions>("pause", "productid");
 
-        REQUIRE(options.type == CLOpts2::CommandLineOptions::VariantType::pause);
-        REQUIRE(options.pause.ProductId == (("productid")));
+        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::pause);
+        REQUIRE(options.pause().ProductId == (("productid")));
     }
     {
         auto options = ParseArgs<::CLOpts2::CommandLineOptions>("cancel", "productid");
 
-        REQUIRE(options.type == CLOpts2::CommandLineOptions::VariantType::cancel);
-        REQUIRE(options.cancel.ProductId == (("productid")));
+        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::cancel);
+        REQUIRE(options.cancel().ProductId == (("productid")));
     }
     {
         auto options = ParseArgs<::CLOpts2::CommandLineOptions>("resume", "productid");
 
-        REQUIRE(options.type == CLOpts2::CommandLineOptions::VariantType::resume);
-        REQUIRE(options.resume.ProductId == (("productid")));
+        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::resume);
+        REQUIRE(options.resume().ProductId == (("productid")));
     }
     {
         auto options = ParseArgs<::CLOpts2::CommandLineOptions>("update", "productid");
 
-        REQUIRE(options.type == CLOpts2::CommandLineOptions::VariantType::update);
-        REQUIRE(options.update.ProductId == (("productid")));
+        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::update);
+        REQUIRE(options.update().ProductId == (("productid")));
     }
     {
         auto options = ParseArgs<::CLOpts2::CommandLineOptions>("update");
 
-        REQUIRE(options.type == CLOpts2::CommandLineOptions::VariantType::update);
-        REQUIRE(options.update.ProductId.empty());
+        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::update);
+        REQUIRE(options.update().ProductId.empty());
     }
     {
         auto options = ParseArgs<::CLOpts2::CommandLineOptions>("hydrate", "productid");
 
-        REQUIRE(options.type == CLOpts2::CommandLineOptions::VariantType::hydrate);
-        REQUIRE(options.hydrate.ProductId == (("productid")));
+        REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::hydrate);
+        REQUIRE(options.hydrate().ProductId == (("productid")));
     }
 }
 #if defined TODO1

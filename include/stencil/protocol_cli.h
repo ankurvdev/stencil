@@ -338,7 +338,7 @@ template <typename TStrArr> struct SpanStr
     TStrArr const* _strList;
 
     const auto& at(size_t index) const { return (*_strList)[index]; }
-    size_t      count() const { return (*_strList).size(); }
+    size_t      count() const { return std::size(*_strList); }
 };
 
 template <typename T> struct ArgsIterator

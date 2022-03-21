@@ -76,18 +76,26 @@ struct zzStruct_Namezz :
 //<Variant>
 struct zzVariant_Namezz : public Stencil::VariantT<zzVariant_Namezz>
 {
+    std::variant<std::monostate,
+                 //<Field Join=','>
+                 zzFieldType_NativeTypezz
+                 //</Field>
+                 >
+        _variant;
+
     enum class VariantType
     {
         Invalid,
         //<Field Join=','>
-        zzField_Namezz
+        zzNamezz
         //</Field>
     };
 
-    VariantType type = VariantType::Invalid;
+    VariantType Type() const { return static_cast<VariantType>(_variant.index()); }
 
     //<Field>
-    zzFieldType_NativeTypezz zzNamezz = zzInitialValuezz;
+    zzFieldType_NativeTypezz&       zzNamezz() { return std::get<zzFieldType_NativeTypezz>(_variant); }
+    zzFieldType_NativeTypezz const& zzNamezz() const { return std::get<zzFieldType_NativeTypezz>(_variant); }
     //</Field>
 };
 //</Variant>
@@ -435,6 +443,72 @@ template <> struct Stencil::WebServiceHandlerTraits<zzProgram_Namezz::zzInterfac
 //</Interface>
 
 //<Variant>
+
+template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzVariant_Namezz>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzVariant_Namezz>
+{
+    using Key    = zzProgram_Namezz::zzVariant_Namezz::VariantType;
+    using Fields = Key;
+};
+
+template <> struct Stencil::EnumTraits<zzProgram_Namezz::zzVariant_Namezz::VariantType>
+{
+    using Enum = zzProgram_Namezz::zzVariant_Namezz::VariantType;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        //<Field Join=','>
+        "zzNamezz"
+        //</Field>
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static zzProgram_Namezz::zzVariant_Namezz::VariantType ForIndex(size_t index)
+    {
+        return static_cast<zzProgram_Namezz::zzVariant_Namezz::VariantType>(index);
+    }
+};
+
+template <> struct Stencil::Visitor<zzProgram_Namezz::zzVariant_Namezz>
+{
+    using Fields = zzProgram_Namezz::zzVariant_Namezz::VariantType;
+
+    template <typename TType, typename TObj, typename TLambda> static void _SetAndVisit(TObj& obj, TLambda&& lambda)
+    {
+        using Type = std::remove_cvref_t<TType>;
+        obj        = Type{};
+        lambda(std::get<Type>(obj));
+    }
+
+    template <typename T, typename TLambda> static bool VisitKey(T& obj, Fields fields, TLambda&& lambda)
+    {
+        switch (fields)
+        {
+            //<Field>
+        case Fields::zzNamezz:
+            _SetAndVisit<zzFieldType_NativeTypezz>(obj._variant, std::forward<TLambda>(lambda));
+            return true;
+
+            //</Field>
+        case Fields::Invalid: [[fallthrough]];
+        default: return false;
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    {
+        auto fieldType = static_cast<Fields>(obj.index());
+        std::visit([&](auto&& arg) { lambda(fieldType, arg); }, obj._variant);
+    }
+};
+
+// template <> struct Stencil::Visitor<zzProgram_Namezz::zzVariant_Namezz> : Stencil::StructVisitor<zzProgram_Namezz::zzVariant_Namezz>
+// {};
 
 //</Variant>
 #endif

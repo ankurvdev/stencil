@@ -25,7 +25,7 @@ template <typename T> struct UuidBasedId
         std::seed_seq                seq(std::begin(seed_data), std::end(seed_data));
         std::mt19937                 generator(seq);
         uuids::uuid_random_generator gen{generator};
-        uuid.guid = gen();
+        uuid.uuid = gen();
         return uuid;
     }
 
@@ -40,7 +40,7 @@ template <typename T> struct UuidBasedId
 
     uuids::uuid uuid;
 
-    constexpr bool                  Empty() { return *this == Invalid(); }
+    constexpr bool                  Empty() const { return uuid == Invalid().uuid; }
     static constexpr UuidBasedId<T> Invalid() { return UuidBasedId<T>(); }
     friend UuidObjectT<T>;
 
