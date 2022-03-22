@@ -198,7 +198,7 @@ if (BUILD_TESTING)
     target_include_directories(runtime_tests PRIVATE src include tests)
     add_executable(codegen_runtime_tests
         tests/CodegenRuntime/Test_Codegen_CLOpts.cpp
-        #tests/CodegenRuntime/Test_Codegen_Json.cpp
+        tests/CodegenRuntime/Test_Codegen_Json.cpp
         #tests/CodegenRuntime/Test_DataRecorderPlayer.cpp
         #tests/CodegenRuntime/Test_ObservableOptionalProps.cpp
         #tests/CodegenRuntime/Test_SerDes.cpp

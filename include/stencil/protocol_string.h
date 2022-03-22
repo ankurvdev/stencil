@@ -47,7 +47,10 @@ template <ConceptEnum T> struct SerDes<T, ProtocolString>
 
 template <ConceptPrimitives64Bit T> struct SerDes<T, ProtocolString>
 {
-    template <typename Context> static auto Write(Context& ctx, T const& obj) { fmt::print(ctx, "{}", obj); }
+    template <typename Context> static auto Write(Context& ctx, T const& obj)
+    {
+        fmt::print(ctx, "{}", Primitives64Bit::Traits<T>::Repr(obj));
+    }
 
     template <typename Context> static auto Read(T& obj, Context& ctx)
     {
@@ -64,11 +67,12 @@ template <ConceptPrimitives64Bit T> struct SerDes<T, ProtocolString>
         }
         else
         {
-            T    ival;
-            auto result = std::from_chars(ctx.data(), ctx.data() + ctx.size(), ival);
+            using TRepr = decltype(Primitives64Bit::Traits<T>::Repr(T{}));
+            TRepr ival;
+            auto  result = std::from_chars(ctx.data(), ctx.data() + ctx.size(), ival);
             if (result.ec == std::errc::invalid_argument) throw std::logic_error("Cannot convert");
             // if (ival > std::numeric_limits<T>::max() || ival < std::numeric_limits<T>::min()) { throw std::logic_error("Out of range"); }
-            obj = static_cast<T>(ival);
+            obj = Primitives64Bit::Traits<T>::Convert(ival);
             return;
         }
     }

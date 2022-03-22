@@ -161,6 +161,6 @@ TEST_CASE("Json", "[Json]")
                 {R"({"f6": "abcd")", "5", true},
 
             },
-            "WithVariant");
+            "NamedVariant");
     }
 }

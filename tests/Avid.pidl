@@ -21,7 +21,7 @@ struct Aircraft
 {
     timestamp   seen;
     uint32      addr;       /* ICAO address */
-    uint8[7]    hexaddr; /* Printable ICAO address */
+    uint8[8]    hexaddr; /* Printable ICAO address */
     char[9]     flight;  /* Flight number */
     int32       altitude;
     int32       groundSpeed;
@@ -33,11 +33,11 @@ struct Aircraft
 
     int32 odd_cprlat;
     int32 odd_cprlon;
-    timestamp odd_cprtime;
+    uint64 odd_cprtime;
 
     int32 even_cprlat;
     int32 even_cprlon;
-    timestamp even_cprtime;
+    uint64 even_cprtime;
 }
 
 struct Traffic

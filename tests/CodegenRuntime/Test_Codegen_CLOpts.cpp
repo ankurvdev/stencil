@@ -11,7 +11,7 @@
 template <typename TStruct, typename... TArgs> TStruct ParseArgs(TArgs&&... args)
 {
     TStruct          data;
-    std::string_view testargv[] = {"test", std::forward<TArgs>(args)...};
+    std::string_view testargv[] = {std::forward<TArgs>(args)...};
     return Stencil::CLI::Parse<TStruct>(testargv);
 }
 
@@ -67,7 +67,7 @@ TEST_CASE("CodeGen::CommandLineArgs::Simplecase", "[CommandLineArgs]")
 
     SECTION("multilibraries")
     {
-        auto options = ParseArgs<::CLOpts1::CommandLineOptions>("--libraries=/abc:/def");
+        auto options = ParseArgs<::CLOpts1::CommandLineOptions>("--libraries=/abc,/def");
 
         REQUIRE(options.workingDirectory.empty());
         REQUIRE(options.libraries.size() == 2);
@@ -82,7 +82,7 @@ TEST_CASE("CodeGen::CommandLineArgs::Simplecase", "[CommandLineArgs]")
 TEST_CASE("CodeGen::CommandLineArgs::Variants")
 {
     {
-        auto options = ParseArgs<::CLOpts2::CommandLineOptions>("install", "productid");
+        auto options = ParseArgs<::CLOpts2::CommandLineOptions>("install", "--productid=productid");
 
         REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::install);
         REQUIRE(options.install().ProductId == "productid");
@@ -91,7 +91,7 @@ TEST_CASE("CodeGen::CommandLineArgs::Variants")
         REQUIRE(options.install().User.empty());
     }
     {
-        auto options = ParseArgs<::CLOpts2::CommandLineOptions>("install", "productid", "--TargetVolume=/tmp");
+        auto options = ParseArgs<::CLOpts2::CommandLineOptions>("install", "--productid=productid", "--TargetVolume=/tmp");
 
         REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::install);
         REQUIRE(options.install().ProductId == (("productid")));
@@ -100,7 +100,7 @@ TEST_CASE("CodeGen::CommandLineArgs::Variants")
         REQUIRE(options.install().User.empty());
     }
     {
-        auto options = ParseArgs<::CLOpts2::CommandLineOptions>("install", "productid", "productid", "--TargetVolume=/tmp", "--User=user1");
+        auto options = ParseArgs<::CLOpts2::CommandLineOptions>("install", "--productid=productid", "--TargetVolume=/tmp", "--User=user1");
 
         REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::install);
         REQUIRE(options.install().ProductId == (("productid")));
@@ -109,7 +109,8 @@ TEST_CASE("CodeGen::CommandLineArgs::Variants")
         REQUIRE(options.install().User == (("user1")));
     }
     {
-        auto options = ParseArgs<::CLOpts2::CommandLineOptions>("install", "productid", "--TargetVolume=/tmp", "--User=user1", "--Repair");
+        auto options = ParseArgs<::CLOpts2::CommandLineOptions>(
+            "install", "--productid=productid", "--TargetVolume=/tmp", "--User=user1", "--Repair=true");
 
         REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::install);
         REQUIRE(options.install().ProductId == (("productid")));
@@ -118,31 +119,31 @@ TEST_CASE("CodeGen::CommandLineArgs::Variants")
         REQUIRE(options.install().User == (("user1")));
     }
     {
-        auto options = ParseArgs<::CLOpts2::CommandLineOptions>("queue", "productid");
+        auto options = ParseArgs<::CLOpts2::CommandLineOptions>("queue", "--productid=productid");
 
         REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::queue);
         REQUIRE(options.queue().ProductId == (("productid")));
     }
     {
-        auto options = ParseArgs<::CLOpts2::CommandLineOptions>("pause", "productid");
+        auto options = ParseArgs<::CLOpts2::CommandLineOptions>("pause", "--productid=productid");
 
         REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::pause);
         REQUIRE(options.pause().ProductId == (("productid")));
     }
     {
-        auto options = ParseArgs<::CLOpts2::CommandLineOptions>("cancel", "productid");
+        auto options = ParseArgs<::CLOpts2::CommandLineOptions>("cancel", "--productid=productid");
 
         REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::cancel);
         REQUIRE(options.cancel().ProductId == (("productid")));
     }
     {
-        auto options = ParseArgs<::CLOpts2::CommandLineOptions>("resume", "productid");
+        auto options = ParseArgs<::CLOpts2::CommandLineOptions>("resume", "--productid=productid");
 
         REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::resume);
         REQUIRE(options.resume().ProductId == (("productid")));
     }
     {
-        auto options = ParseArgs<::CLOpts2::CommandLineOptions>("update", "productid");
+        auto options = ParseArgs<::CLOpts2::CommandLineOptions>("update", "--productid=productid");
 
         REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::update);
         REQUIRE(options.update().ProductId == (("productid")));
@@ -154,7 +155,7 @@ TEST_CASE("CodeGen::CommandLineArgs::Variants")
         REQUIRE(options.update().ProductId.empty());
     }
     {
-        auto options = ParseArgs<::CLOpts2::CommandLineOptions>("hydrate", "productid");
+        auto options = ParseArgs<::CLOpts2::CommandLineOptions>("hydrate", "--productid=productid");
 
         REQUIRE(options.Type() == CLOpts2::CommandLineOptions::VariantType::hydrate);
         REQUIRE(options.hydrate().ProductId == (("productid")));
@@ -184,51 +185,3 @@ TEST_CASE("CodeGen::CommandLineArgs::Help")
     CheckOutputAgainstResource(output, "testdata_output_CLOpts2_Variant_Help.txt");
 }
 #endif
-TEST_CASE("CodeGen::CommandLineArgs::CLOptsTest")
-{
-    SECTION("Positive: Simplecase")
-    {
-        auto options = ParseArgs<::CLOpts1::CLOptsTest>("test",
-                                                        "--key1=str0",
-                                                        "--listofint=1:2:3:4",
-                                                        "--listoflist={1:2}:{3:4}:{5:6}",
-                                                        "--listofobj={str1:str2}:{str3:str4}",
-                                                        "--objoflist",
-                                                        "--field1=1:2:4",
-                                                        "--key2=str5");
-        REQUIRE(options.key1 == "str0");
-        REQUIRE(options.listofint.size() == 4);
-        REQUIRE(options.listofint[3] == 4);
-        REQUIRE(options.listoflist.size() == 3);
-        REQUIRE(options.listoflist[0].size() == 2);
-        REQUIRE(options.listoflist[2].size() == 2);
-        REQUIRE(options.listoflist[2][1] == 6);
-        REQUIRE(options.listoflist[1][1] == 4);
-        REQUIRE(options.listoflist[0][1] == 2);
-        REQUIRE(options.listofobj.size() == 2);
-        REQUIRE(options.listofobj[1].field1 == "str3");
-        REQUIRE(options.listofobj[1].field2 == "str4");
-        REQUIRE(options.objoflist.field1.size() == 3);
-        REQUIRE(options.objoflist.field1[2] == "4");
-        REQUIRE(options.key2 == "str5");
-    }
-
-    SECTION("Negative: Extrabracket")
-    {
-#if defined _WIN32
-        if (IsDebuggerPresent()) { return; }
-#endif
-
-        REQUIRE_THROWS_MATCHES(ParseArgs<::CLOpts1::CLOptsTest>("test",
-                                                                "--key1=str0",
-                                                                "--listofint=1:2:3:4",
-                                                                "--listoflist={1:2}:{3:4}:{5:6}}",
-                                                                "--listofobj={str1:str2}:{str3:str4}",
-                                                                "--objoflist",
-                                                                "--listofint=1:2:4",
-                                                                "--key2=str5"),
-                               CommandLineArgsReader::Exception,
-                               Catch::Message("Error processing args : Illegal Bracket usage\ntest --key1=str0 --listofint=1:2:3:4 \n ==> "
-                                              "--listoflist={1:2}:{3:4}:{5:6}} <== \n"));
-    }
-}

@@ -94,6 +94,12 @@ struct Primitives64Bit
         static void           Assign(Primitives64Bit& obj, T const& val) { obj._iVal = val; }
         static const auto&    Get(const Primitives64Bit& obj) { return obj._iVal; }
         static T              Convert(int64_t val) { return static_cast<T>(val); }
+        static int64_t        Repr(T const& val)
+        {
+            Primitives64Bit obj;
+            Assign(obj, val);
+            return obj._iVal;
+        }
         // static void Check() { if (obj._iVal < std::numeric_limits<T>::min() || obj.iVal >
         // std::numeric_limits<T>::max()); throw 1; }
     };
@@ -104,7 +110,12 @@ struct Primitives64Bit
         static void           Assign(Primitives64Bit& obj, T const& val) { obj._uVal = val; }
         static const auto&    Get(const Primitives64Bit& obj) { return obj._uVal; }
         static T              Convert(uint64_t val) { return static_cast<T>(val); }
-
+        static uint64_t       Repr(T const& val)
+        {
+            Primitives64Bit obj;
+            Assign(obj, val);
+            return obj._uVal;
+        }
         // static void Check() { if (obj._iVal < std::numeric_limits<T>::min() || obj.iVal >
         // std::numeric_limits<T>::max()); throw 1; }
     };
@@ -116,6 +127,12 @@ struct Primitives64Bit
         static const auto&    Get(const Primitives64Bit& obj) { return obj._dVal; }
         static void           Check() {}
         static T              Convert(double val) { return static_cast<T>(val); }
+        static double         Repr(T const& val)
+        {
+            Primitives64Bit obj;
+            Assign(obj, val);
+            return obj._dVal;
+        }
     };
 
     public:
@@ -206,9 +223,15 @@ template <typename TClock> struct Primitives64Bit::Traits<std::chrono::time_poin
 {
     using time_point = std::chrono::time_point<TClock>;
     static constexpr auto Type() { return Primitives64Bit::Type::Unsigned(4); }
-    static void           Assign(Primitives64Bit& obj, time_point& val) { obj._iVal = val.time_since_epoch().count(); }
-    static auto           Get(Primitives64Bit const& obj) { return time_point(typename time_point::duration(obj._iVal)); }
+    static void           Assign(Primitives64Bit& obj, time_point& val) { obj._uVal = val.time_since_epoch().count(); }
+    static auto           Get(Primitives64Bit const& obj) { return time_point(typename time_point::duration(obj._uVal)); }
     static auto           Convert(uint64_t val) { return time_point(typename time_point::duration(val)); }
+    static uint64_t       Repr(time_point const& val)
+    {
+        Primitives64Bit obj;
+        Assign(obj, val);
+        return obj._uVal;
+    }
 };
 
 #if 0
@@ -224,35 +247,67 @@ requires(N <= 8) struct Primitives64Bit::Traits<std::array<char, N>>
 template <size_t N>
 requires(N <= 4) struct Primitives64Bit::Traits<std::array<int16_t, N>>
 {
+    using TObj = std::array<int16_t, N>;
     static constexpr auto         Type() { return Primitives64Bit::Type::Signed(N * 2); }
     static void                   Assign(Primitives64Bit& /*obj*/, std::array<int16_t, N>& /*val*/) { TODO(""); }
     static std::array<int16_t, N> Get(Primitives64Bit const& /*obj*/) { TODO(""); }
     static std::array<int16_t, N> Convert(int64_t /*val*/) { TODO(""); }
+    static uint64_t               Repr(TObj const& val)
+    {
+        Primitives64Bit obj;
+        Assign(obj, val);
+        return obj._iVal;
+    }
 };
 
 template <size_t N>
 requires(N <= 8) struct Primitives64Bit::Traits<std::array<uint8_t, N>>
 {
-    static constexpr auto         Type() { return Primitives64Bit::Type::Unsigned(N); }
-    static void                   Assign(Primitives64Bit& /*obj*/, std::array<uint8_t, N>& /*val*/) { TODO(""); }
-    static std::array<uint8_t, N> Get(Primitives64Bit const& /*obj*/) { TODO(""); }
-    static std::array<uint8_t, N> Convert(int64_t /*val*/) { TODO(""); }
+    using TObj = std::array<uint8_t, N>;
+
+    static constexpr auto Type() { return Primitives64Bit::Type::Unsigned(N); }
+    static void           Assign(Primitives64Bit& obj, TObj const& val) { obj._uVal = Repr(val); }
+    static constexpr TObj Get(Primitives64Bit const& obj) { return Convert(obj._uVal); }
+    static constexpr TObj Convert(uint64_t val)
+    {
+        TObj out;
+        for (size_t i = 0; i < N; i++)
+        {
+            out[i] = static_cast<uint8_t>(val & 0xff);
+            val    = val >> 8;
+        }
+        return out;
+    }
+    static constexpr uint64_t Repr(TObj const& val)
+    {
+        uint64_t out = 0;
+        for (size_t i = N; i > 0; i--) { out = (out << 8) | val.at(i - 1); }
+        return out;
+    }
 };
 
 template <size_t N>
 requires(N <= 4) struct Primitives64Bit::Traits<std::array<uint16_t, N>>
 {
-    static constexpr auto          Type() { return Primitives64Bit::Type::Unsigned(N * 2); }
-    static void                    Assign(Primitives64Bit& /*obj*/, std::array<uint16_t, N>& /*val*/) { TODO(""); }
-    static std::array<uint16_t, N> Get(Primitives64Bit const& /*obj*/) { TODO(""); }
-    static std::array<uint16_t, N> Convert(uint64_t val)
+    using TObj = std::array<uint16_t, N>;
+
+    static constexpr auto Type() { return Primitives64Bit::Type::Unsigned(N * 2); }
+    static void           Assign(Primitives64Bit& obj, TObj const& val) { obj._uVal = Repr(val); }
+    static constexpr TObj Get(Primitives64Bit const& obj) { return Convert(obj._uVal); }
+    static constexpr TObj Convert(uint64_t val)
     {
-        std::array<uint16_t, N> out;
+        TObj out;
         for (size_t i = 0; i < N; i++)
         {
             out[i] = static_cast<uint16_t>(val & 0xffff);
             val    = val >> 16;
         }
+        return out;
+    }
+    static uint64_t Repr(TObj const& val)
+    {
+        uint64_t out = 0;
+        for (size_t i = N; i > 0; i--) { out = (out << 16) | val.at(i - 1); }
         return out;
     }
 };

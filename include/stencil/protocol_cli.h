@@ -1,6 +1,7 @@
 #pragma once
 #include "protocol.h"
 #include "protocol_string.h"
+#include "typetraits_shared_string.h"
 
 #include <chrono>
 #include <span>
@@ -48,83 +49,140 @@ concept ConceptHasProtocolString = is_specialized<Stencil::SerDes<T, Stencil::Pr
 static_assert(ConceptHasProtocolString<std::chrono::time_point<std::chrono::system_clock>>, "Chrono should be defined");
 static_assert(ConceptHasProtocolString<uint64_t>, "uint64_t should be defined");
 static_assert(!ConceptHasProtocolString<std::vector<std::string>>, "void");
+static_assert(ConceptHasProtocolString<shared_string>, "shared_string");
+static_assert(ConceptHasProtocolString<shared_wstring>, "shared_wstring");
 
 template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolCLI>
 {
-    template <typename Context> static auto Write(Context& ctx, T const& obj)
+    template <typename TKey, typename TVal, typename TObj, typename TContext>
+    static void _WriteForKeyValue(TKey const& k, TVal const& v, TObj const& /*obj*/, TContext& ctx)
     {
-        Visitor<T>::VisitAllIndicies(obj, [&](auto const& k, auto const& v) {
-            using ValType = std::remove_cvref_t<decltype(v)>;
-            if constexpr (ConceptHasProtocolString<ValType>)
-            {
-                std::stringstream ss;
-                fmt::print(ss, "--");
-                SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
-                fmt::print(ss, "=");
-                SerDes<ValType, ProtocolString>::Write(ss, v);
-                ctx.push_back(ss.str());
-                return;
-            }
+        if constexpr (ConceptHasProtocolString<TVal>)
+        {
+            std::stringstream ss;
+            fmt::print(ss, "--");
+            SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
+            fmt::print(ss, "=");
+            SerDes<TVal, ProtocolString>::Write(ss, v);
+            ctx.push_back(ss.str());
+            return;
+        }
 
-            else if constexpr (ConceptIndexable<ValType>)
-            {
-                std::stringstream ss;
-                SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
-                ctx.push_back(ss.str());
-                SerDes<ValType, ProtocolCLI>::Write(ctx, v);
-                // ctx.push_back("-");
-                return;
-            }
+        else if constexpr (ConceptIndexable<TVal>)
+        {
+            std::stringstream ss;
+            SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
+            ctx.push_back(ss.str());
+            SerDes<TVal, ProtocolCLI>::Write(ctx, v);
+            // ctx.push_back("-");
+            return;
+        }
 
-            else if constexpr (ConceptIterable<ValType>)
-            {
-                int               type = -1;
-                std::stringstream ss;
+        else if constexpr (ConceptIterable<TVal>)
+        {
+            int               type = -1;
+            std::stringstream ss;
 
-                Visitor<ValType>::VisitAllIndicies(v, [&](auto, auto& v1) {
-                    if constexpr (ConceptHasProtocolString<std::remove_cvref_t<decltype(v1)>>)
+            Visitor<TVal>::VisitAllIndicies(v, [&](auto, auto& v1) {
+                if constexpr (ConceptHasProtocolString<std::remove_cvref_t<decltype(v1)>>)
+                {
+                    // Iterable of Values. Use shorthand
+                    if (type != -1 && type != 0) throw std::logic_error("Iterable of mixed types unsupported");
+                    if (type == -1)
                     {
-                        // Iterable of Values. Use shorthand
-                        if (type != -1 && type != 0) throw std::logic_error("Iterable of mixed types unsupported");
-                        if (type == -1)
-                        {
-                            fmt::print(ss, "--");
-                            SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
-                            fmt::print(ss, "=");
-                        }
-                        else
-                        {
-                            fmt::print(ss, ",");
-                        }
-                        type = 0;
-                        SerDes<std::remove_cvref_t<decltype(v1)>, ProtocolString>::Write(ss, v1);
+                        fmt::print(ss, "--");
+                        SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
+                        fmt::print(ss, "=");
                     }
                     else
                     {
-                        if (type != -1 && type != 1) throw std::logic_error("Iterable of mixed types unsupported");
-                        // For Iterable of Iterable and Iterable of Indexables.
-                        // Just use the recursive Iterable
-                        if (type == -1)
-                        {
-                            SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
-                            ctx.push_back(ss.str());
-                        }
+                        fmt::print(ss, ",");
+                    }
+                    type = 0;
+                    SerDes<std::remove_cvref_t<decltype(v1)>, ProtocolString>::Write(ss, v1);
+                }
+                else
+                {
+                    if (type != -1 && type != 1) throw std::logic_error("Iterable of mixed types unsupported");
+                    // For Iterable of Iterable and Iterable of Indexables.
+                    // Just use the recursive Iterable
+                    if (type == -1)
+                    {
+                        SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
+                        ctx.push_back(ss.str());
+                    }
 
-                        SerDes<std::remove_cvref_t<decltype(v1)>, ProtocolCLI>::Write(ctx, v1);
-                        type = 1;
+                    SerDes<std::remove_cvref_t<decltype(v1)>, ProtocolCLI>::Write(ctx, v1);
+                    type = 1;
+                }
+            });
+            if (type == 0) ctx.push_back(ss.str());
+            if (type != -1) ctx.push_back("-");
+            return;
+        }
+        else
+        {
+            // std::string str = typeid(TVal).name();
+            TODO("Unknown");
+        }
+    }
+
+    template <typename Context> static auto Write(Context& ctx, T const& obj)
+    {
+        Visitor<T>::VisitAllIndicies(obj, [&](auto const& k, auto const& v) { _WriteForKeyValue(k, v, obj, ctx); });
+        ctx.push_back("-");
+    }
+    template <typename TVal, typename TRhs> static void _ReadForIterableValue(TVal& val, TRhs const& value)
+    {
+        if constexpr (ConceptHasProtocolString<TVal>)
+        {
+            SerDes<TVal, ProtocolString>::Read(val, value);
+            return;
+        }
+        else if constexpr (ConceptIterable<TVal>)
+        {
+            size_t si = 0;
+            size_t ei = value.find(',');
+
+            typename Visitor<TVal>::Iterator it;
+
+            bool valid = false;
+            while (true)
+            {
+                if (!valid)
+                {
+                    Visitor<TVal>::IteratorBegin(it, val);
+                    valid = true;
+                }
+                else
+                {
+                    Visitor<TVal>::IteratorMoveNext(it, val);
+                }
+
+                if (!Visitor<TVal>::IteratorValid(it, val)) { throw std::runtime_error("Cannot Visit Next Item on the iterable"); }
+
+                auto subval = value.substr(si, ei - si);
+
+                Visitor<TVal>::Visit(it, val, [&](auto& val2) {
+                    using SubTVal = std::remove_cvref_t<decltype(val2)>;
+                    if constexpr (ConceptHasProtocolString<SubTVal>) { SerDes<SubTVal, ProtocolString>::Read(val2, subval); }
+                    else
+                    {
+                        throw std::logic_error("Unsupported type");
                     }
                 });
-                if (type == 0) ctx.push_back(ss.str());
-                if (type != -1) ctx.push_back("-");
-                return;
+
+                if (ei == std::string_view::npos) break;
+                si = ei + 1;
+                ei = value.find(',', si);
             }
-            else
-            {
-                // std::string str = typeid(ValType).name();
-                TODO("Unknown");
-            }
-        });
-        ctx.push_back("-");
+
+            return;
+        }
+        else
+        {
+            throw std::logic_error("Unsupported type");
+        }
     }
 
     template <typename Context> static auto Read(T& obj, Context& ctx)
@@ -151,62 +209,7 @@ template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolCLI>
 
                 TraitsKey key;
                 SerDes<TraitsKey, ProtocolString>::Read(key, keystr);
-                Visitor<T>::VisitKey(obj, key, [&](auto& val) {
-                    using SubVal = std::remove_cvref_t<decltype(val)>;
-                    if constexpr (ConceptIterable<SubVal>)
-                    {
-                        size_t si = 0;
-                        size_t ei = value.find(',');
-                        if (ei != std::string_view::npos)
-                        {
-                            typename Visitor<SubVal>::Iterator it;
-
-                            bool valid = false;
-                            while (true)
-                            {
-                                if (!valid)
-                                {
-                                    Visitor<SubVal>::IteratorBegin(it, val);
-                                    valid = true;
-                                }
-                                else
-                                {
-                                    Visitor<SubVal>::IteratorMoveNext(it, val);
-                                }
-
-                                if (!Visitor<SubVal>::IteratorValid(it, val))
-                                {
-                                    throw std::runtime_error("Cannot Visit Next Item on the iterable");
-                                }
-
-                                auto subval = value.substr(si, ei - si);
-
-                                Visitor<SubVal>::Visit(it, val, [&](auto& val2) {
-                                    using SubSubVal = std::remove_cvref_t<decltype(val2)>;
-                                    if constexpr (ConceptHasProtocolString<SubSubVal>)
-                                    {
-                                        SerDes<SubSubVal, ProtocolString>::Read(val2, subval);
-                                    }
-                                    else
-                                    {
-                                        throw std::logic_error("Unsupported type");
-                                    }
-                                });
-
-                                if (ei == std::string_view::npos) break;
-                                si = ei + 1;
-                                ei = value.find(',', si);
-                            }
-
-                            return;
-                        }
-                    }
-                    if constexpr (ConceptHasProtocolString<SubVal>) { SerDes<SubVal, ProtocolString>::Read(val, value); }
-                    else
-                    {
-                        throw std::logic_error("Unsupported type");
-                    }
-                });
+                Visitor<T>::VisitKey(obj, key, [&](auto& val) { _ReadForIterableValue(val, value); });
             }
             else
             {

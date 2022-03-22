@@ -1,0 +1,14 @@
+Testcase[NamedVariant]: :: default-2
+Testcase[NamedVariant]:default-2, Output,-
+Testcase[NamedVariant]:f1 f1 --f1=1 :: 0
+Testcase[NamedVariant]:0, Output,f1	--timestamp=1969-12-31T16:00:00-0800	--uuid=00000000-0000-0000-0000-000000000000	f1	--f1=1	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800	-	f2	-	f3	--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800	-	--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800	-	--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800	-	--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800	-	-	-	-
+Testcase[NamedVariant]:f2 f1 --f1=2 :: 1
+Testcase[NamedVariant]:1, Output,f2	f1	--f1=2	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800	-	f2	--f1=	--f2=	-	f3	-	-	-
+Testcase[NamedVariant]:f3 f1 --f1=3 :: 2
+Testcase[NamedVariant]:2, Output,f3	--f1=--f1=3	--f2=	-	-
+Testcase[NamedVariant]:f4 --f1=4 :: 3
+Testcase[NamedVariant]:3, Output,f4	--f1=4	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1969-12-31T16:00:00-0800	--f9=1969-12-31T16:00:00-0800	-	-
+Testcase[NamedVariant]:f5 0.1234 :: 4
+Testcase[NamedVariant]:4, Output,--f5=0.1234	-
+Testcase[NamedVariant]:f6 abcd :: 5
+Testcase[NamedVariant]:5, Output,--f6=abcd	-

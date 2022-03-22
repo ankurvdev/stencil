@@ -178,7 +178,7 @@ TEST_CASE("CLI", "[CLI]")
 
     SECTION("NamedVariant")
     {
-        RunTestCases<WithVariant>(
+        RunTestCases<NamedVariant>(
             {
                 {{"f1", "f1", "--f1=1"}, "0", true},
                 {{"f2", "f1", "--f1=2"}, "1", true},
@@ -188,6 +188,6 @@ TEST_CASE("CLI", "[CLI]")
                 {{"f6", "abcd"}, "5", true},
 
             },
-            "WithVariant");
+            "NamedVariant");
     }
 }
