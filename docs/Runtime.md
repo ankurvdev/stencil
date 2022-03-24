@@ -1,18 +1,19 @@
 # Runtime
 
 - Protocol
-  - Read: Should it be read from streams ?
+  - Binary Protocol for Transactions and Mutators
+  - Reader/Writer/Streams. Ability to allow protocol to dictate whats the preferred medium
     - Sometimes reading from buffers is faster than streams due to allowing random access and lookahead
     - List Examples
-  - Binary
   - Read/Write overrides for Iterables / Indexables
 - Code-Cleanup : Reduction : Protocol-String Protocol-Json
-
+- Primitives32Bit Primitives128Bit
 - TODOs
   - TypeTraits.Indexable.Key : Should FixedSize Structs also be allowed, how about any type ? Do we care ?
   - Visitor.Indexable.Key needs key to be a temp object outside data scope . How to get rid of it
     - Maybe : But we should validate the json array size and it matches the fixed size
   - StackVisitor: Find a better name
+
 
 - Maps - 2 days
 - Cleanup - 2 days
@@ -21,16 +22,6 @@
 - Cleanup - 2 days
 
 TODOs
-
-- Primitives
-  - Assign
-  - Move
-  - Blob
-  - String
-  - 128 bit values
-
-- Indexable
-  - Variants
 
 9. ObjectStore
 10. Transactions
