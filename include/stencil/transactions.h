@@ -2,6 +2,7 @@
 #include "comparator.h"
 #include "mutatorsaccessors.h"
 #include "optionalprops.h"
+#include "typetraits_shared_string.h"
 #include "visitor.h"
 
 #include <algorithm>
@@ -16,9 +17,9 @@
 namespace Stencil
 {
 
-template <typename TObj> struct Transaction;
+template <typename TObj, typename TEnable = void> struct Transaction;
 
-template <typename TObj> struct TransactionT
+template <typename TObj, typename TEnable = void> struct TransactionT
 {
     TransactionT(TObj& /*obj*/) {}
 
@@ -43,7 +44,7 @@ template <typename TObj> struct TransactionT
 };
 }    // namespace Stencil
 
-template <Stencil::ConceptPrimitive T> struct Stencil::Transaction<T> : Stencil::TransactionT<T>
+template <typename T> struct Stencil::Transaction<T, std::enable_if_t<Stencil::ConceptPrimitive<T>>> : Stencil::TransactionT<T>
 {
     Transaction(T& obj) : Stencil::TransactionT<T>(obj) {}
     void Flush() const {}
@@ -61,7 +62,7 @@ template <> struct Stencil::Transaction<shared_string> : Stencil::TransactionT<s
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 };
 
-template <Stencil::ConceptIndexable TObj> struct Stencil::TransactionT<TObj>
+template <typename TObj> struct Stencil::TransactionT<TObj, std::enable_if_t<Stencil::ConceptIndexable<TObj>>>
 {
     TransactionT(TObj& obj) : _ref(std::ref(obj)) {}
 
@@ -125,7 +126,7 @@ template <Stencil::ConceptIndexable TObj> struct Stencil::TransactionT<TObj>
     std::bitset<TObj::FieldCount() + 1> _edittracker;
 };
 
-template <Stencil::ConceptIterable TObj> struct Stencil::TransactionT<TObj>
+template <typename TObj> struct Stencil::TransactionT<TObj, std::enable_if_t<Stencil::ConceptIterable<TObj>>>
 {
     using ListObjType = typename Stencil::TypeTraits<TObj&>::ListObjType;
 
@@ -145,13 +146,13 @@ template <Stencil::ConceptIterable TObj> struct Stencil::TransactionT<TObj>
     void add(ListObjType&& obj)
     {
         RecordMutation_add_(obj);
-        Mutators<TObj>::add(Obj(), std::move(obj));
+        Stencil::Mutators<TObj>::add(Obj(), std::move(obj));
     }
 
     void remove(size_t index)
     {
         RecordMutation_remove_(index);
-        Mutators<TObj>::remove(Obj(), index);
+        Stencil::Mutators<TObj>::remove(Obj(), index);
     }
 
     auto& edit(size_t index)
@@ -173,7 +174,7 @@ template <Stencil::ConceptIterable TObj> struct Stencil::TransactionT<TObj>
         });
     }
 
-    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    template <typename TLambda> auto Visit(std::string_view const& /* fieldName */, TLambda&& /* lambda */)
     {
         TODO("TODO1");
         // return Visit(Value(fieldName).convert<size_t>(), std::forward<TLambda>(lambda));
@@ -234,7 +235,7 @@ struct Stencil::Mutators<Stencil::Transaction<T>, std::enable_if_t<Stencil::Type
 };
 #endif
 
-template <typename T> struct Stencil::Transaction : Stencil::TransactionT<T>
+template <typename T> struct Stencil::Transaction<T> : Stencil::TransactionT<T>
 {
     Transaction(T& obj) : Stencil::TransactionT<T>(obj) {}
     CLASS_DELETE_COPY_AND_MOVE(Transaction);

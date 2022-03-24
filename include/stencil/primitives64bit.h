@@ -252,7 +252,7 @@ requires(N <= 4) struct Primitives64Bit::Traits<std::array<int16_t, N>>
     static void                   Assign(Primitives64Bit& /*obj*/, std::array<int16_t, N>& /*val*/) { TODO(""); }
     static std::array<int16_t, N> Get(Primitives64Bit const& /*obj*/) { TODO(""); }
     static std::array<int16_t, N> Convert(int64_t /*val*/) { TODO(""); }
-    static uint64_t               Repr(TObj const& val)
+    static int64_t                Repr(TObj const& val)
     {
         Primitives64Bit obj;
         Assign(obj, val);

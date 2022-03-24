@@ -95,7 +95,7 @@ TEST_CASE("CodeGen::Database2::SaveAndLoad")
             auto lock = database.LockForRead();
             // Count of objects should be double now
             size_t j = 0;
-            for (auto const& [ref, obj] : database.Objects<UserData::RemoteHost>(lock))
+            for (auto const [ref, obj] : database.Objects<UserData::RemoteHost>(lock))
             {
                 auto name = obj.name.Get(lock, database);
                 auto uri  = obj.uri.Get(lock, database);

@@ -51,6 +51,7 @@ static_assert(ConceptHasProtocolString<uint64_t>, "uint64_t should be defined");
 static_assert(!ConceptHasProtocolString<std::vector<std::string>>, "void");
 static_assert(ConceptHasProtocolString<shared_string>, "shared_string");
 static_assert(ConceptHasProtocolString<shared_wstring>, "shared_wstring");
+static_assert(!ConceptIterable<shared_string>, "shared_string");
 
 template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolCLI>
 {
