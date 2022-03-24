@@ -134,16 +134,21 @@ template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolCLI>
     }
     template <typename TVal, typename TRhs> static void _ReadForIterableValue(TVal& val, TRhs const& value)
     {
-        if constexpr (ConceptHasProtocolString<TVal>)
-        {
-            SerDes<TVal, ProtocolString>::Read(val, value);
-            return;
-        }
-        else if constexpr (ConceptIterable<TVal>)
-        {
-            size_t si = 0;
-            size_t ei = value.find(',');
+        // Value has a comma and Has Protocol String =
+        size_t si = 0;
+        size_t ei = value.find(',');
 
+        if (ei == std::string_view::npos)
+        {
+            if constexpr (ConceptHasProtocolString<TVal>)
+            {
+                SerDes<TVal, ProtocolString>::Read(val, value);
+                return;
+            }
+        }
+
+        if constexpr (ConceptIterable<TVal>)
+        {
             typename Visitor<TVal>::Iterator it;
 
             bool valid = false;

@@ -81,10 +81,10 @@ TEST_CASE("CLI", "[CLI]")
         RunTestCases<ComplexPrimitives>(
             {
                 {{"--f1=01234567"}, "char[8]", true},
-                {{"--f2=1"}, "uint16[4]", true},
-                {{"--f2=65536"}, "uint16[4]", true},
-                {{"--f2=1234567890123456"}, "uint16[4]", true},
-                {{"--f2=0,1,2,3"}, "uint16[4]", true},
+                {{"--f2=1"}, "uint16[4]-1", true},
+                {{"--f2=65536"}, "uint16[4]-2", true},
+                {{"--f2=1234567890123456"}, "uint16[4]-3", true},
+                {{"--f2=0,1,2,3"}, "uint16[4]-4", true},
                 {{"--f3=0.1,0.2"}, "float[2]", true},
             },
             "ComplexPrimitives");

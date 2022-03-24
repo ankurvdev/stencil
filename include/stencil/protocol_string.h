@@ -49,7 +49,11 @@ template <ConceptPrimitives64Bit T> struct SerDes<T, ProtocolString>
 {
     template <typename Context> static auto Write(Context& ctx, T const& obj)
     {
-        fmt::print(ctx, "{}", Primitives64Bit::Traits<T>::Repr(obj));
+        if constexpr (std::is_default_constructible_v<fmt::formatter<T>>) { fmt::print(ctx, "{}", obj); }
+        else
+        {
+            fmt::print(ctx, "{}", Primitives64Bit::Traits<T>::Repr(obj));
+        }
     }
 
     template <typename Context> static auto Read(T& obj, Context& ctx)
