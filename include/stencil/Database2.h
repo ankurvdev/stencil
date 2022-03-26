@@ -179,15 +179,15 @@ struct SlotView
 struct Page
 {
     constexpr static size_t PageSizeInBytes = 8192;
-
     struct Header
     {
-        ObjTypeId typeId = 0;
     } header{};
 
     constexpr static size_t PageDataSize         = PageSizeInBytes - sizeof(Header);
     uint8_t                 buffer[PageDataSize] = {};
 };
+
+static_assert(sizeof(Page) == Page::PageSizeInBytes);
 
 struct SerDes
 {
@@ -410,13 +410,20 @@ struct SerDes
     std::ofstream _ostream;
     std::fstream  _iostream;
 };
-
 // All non-seriazable and tracking objects go here
 struct PageRuntime
 {
     public:
-    ObjTypeId TypeId() const { return _page.header.typeId; }
+    void SetTypeId(ObjTypeId typeId) { _typeId = typeId; }
+    bool Loaded() { return _page != nullptr; }
+    void Load(SerDes& serdes)
+    {
+        _page.reset(new Page());
+        serdes.ReadPage(*_page, _pageIndex);
+    }
 
+    void InitPage() { _page.reset(new Page()); }
+    void WriteTo(SerDes& serdes) { serdes.WritePage(*_page, _pageIndex); }
     void MarkSlotFree(Ref::SlotIndex slot)
     {
         _availableSlot = std::min(slot, _availableSlot);
@@ -427,29 +434,26 @@ struct PageRuntime
     void Flush(SerDes& serdes)
     {
         if (!_flags.test(static_cast<size_t>(Flag::Dirty))) return;
-        serdes.WritePage(_page, _pageIndex);
+        serdes.WritePage(*_page, _pageIndex);
         _flags.reset(static_cast<size_t>(Flag::Dirty));
     }
 
-    PageRuntime(ObjTypeId id, Ref::PageIndex pageIndex)
-    {
-        _page.header.typeId = id;
-        _pageIndex          = pageIndex;
-    }
+    PageRuntime(Ref::PageIndex pageIndex) { _pageIndex = pageIndex; }
+    CLASS_DELETE_COPY_DEFAULT_MOVE(PageRuntime);
 
-    std::span<uint8_t>       RawData() { return _page.buffer; }
-    std::span<uint8_t const> RawData() const { return _page.buffer; }
+    std::span<uint8_t>       RawData() { return _page->buffer; }
+    std::span<uint8_t const> RawData() const { return _page->buffer; }
 
     template <typename T> std::span<T> Get(size_t offset = 0)
     {
-        auto ptr = reinterpret_cast<T*>(_page.buffer + offset);
-        return std::span<T>(ptr, std::size(_page.buffer) - offset);
+        auto ptr = reinterpret_cast<T*>(_page->buffer + offset);
+        return std::span<T>(ptr, std::size(_page->buffer) - offset);
     }
 
     template <typename T> std::span<T const> Get(size_t offset = 0) const
     {
-        auto ptr = reinterpret_cast<T*>(_page.buffer + offset);
-        return std::span<T>(ptr, std::size(_page.buffer) - offset);
+        auto ptr = reinterpret_cast<T*>(_page->buffer + offset);
+        return std::span<T>(ptr, std::size(_page->buffer) - offset);
     }
 
     template <typename TPage> TPage As() { return TPage(*this); }
@@ -464,58 +468,54 @@ struct PageRuntime
 
     using Flags = std::bitset<1>;
 
-    Ref::SlotIndex _availableSlot = 0;
-    Ref::PageIndex _pageIndex     = 0;
-    Flags          _flags{};
-    Page           _page;
-
-    friend struct PageManager;
+    Ref::SlotIndex        _availableSlot = 0;
+    Ref::PageIndex        _pageIndex     = 0;
+    ObjTypeId             _typeId        = 0;
+    Flags                 _flags{};
+    std::unique_ptr<Page> _page{};
 };
 
-struct PageForRecordInterface
+static constexpr size_t GetSlotUInt32s(size_t count)
 {
-    virtual ~PageForRecordInterface() = default;
+    return (((count - 1) | 0x3) + 1) / 4;
+}
+static constexpr size_t AlignToWord(size_t s)
+{
+    return ((s - 1) | (sizeof(void*) - 1)) + 1;
+}
 
-    virtual size_t   GetSlotCount() const                                             = 0;
-    virtual bool     ValidSlot(size_t index) const                                    = 0;
-    virtual SlotView Get(shared_lock const& guardscope, Ref::SlotIndex slot) const    = 0;
-    virtual SlotObj  Get(exclusive_lock const& guardscope, Ref::SlotIndex slot) const = 0;
-
-    virtual uint8_t Release(exclusive_lock const& guardscope, Ref::SlotIndex slot) = 0;
-};
+static constexpr size_t GetSlotCapacity(size_t recordSize)
+{
+    // n slots need n/8 uint8_ts.
+    // n * s + n/8 + 4 = 8192
+    // n = ((8192 - 4) * 8) / (8s + 1);
+    // s = 1    : 8192 = 7278 * 1 + 910 + 4 (0 uint8_ts wasted)
+    // s = 4    : 8192 = 1984 * 4 + 248 + 4 (4 uint8_ts wasted)
+    // s = 128  :
+    // s = 1024 : 8192 = 7 * 1024 + 1 + 4   (1019 uint8_ts wasted)
+    size_t AlignedRecordSize        = AlignToWord(recordSize);
+    size_t SlotsWithoutSlotTracking = (Page::PageSizeInBytes - sizeof(Page::Header)) / AlignedRecordSize;
+    size_t SlotTrackingCost         = AlignToWord(sizeof(uint32_t) * GetSlotUInt32s(SlotsWithoutSlotTracking));
+    size_t SlotsWithSlotTracking    = (Page::PageSizeInBytes - sizeof(Page::Header) - SlotTrackingCost) / AlignedRecordSize;
+    return SlotsWithSlotTracking;
+}
 
 // In memory transformation for temporary computation
-template <size_t RecordSize> struct PageForRecord : public PageForRecordInterface
+template <size_t RecordSize> struct PageForRecord
 {
-    static constexpr auto GetSlotCapacity()
-    {
-        // n slots need n/8 uint8_ts.
-        // n * s + n/8 + 4 = 8192
-        // n = ((8192 - 4) * 8) / (8s + 1);
-        // s = 1    : 8192 = 7278 * 1 + 910 + 4 (0 uint8_ts wasted)
-        // s = 4    : 8192 = 1984 * 4 + 248 + 4 (4 uint8_ts wasted)
-        // s = 128  :
-        // s = 1024 : 8192 = 7 * 1024 + 1 + 4   (1019 uint8_ts wasted)
-        constexpr size_t ApproxSlotCount = ((Page::PageSizeInBytes - sizeof(Page::Header)) * 8) / (8 * RecordSize + 1);
-        constexpr size_t AlignmentCost   = sizeof(std::bitset<ApproxSlotCount>) - ((ApproxSlotCount) / 8);
-        constexpr size_t SlotCount1      = ((Page::PageSizeInBytes - sizeof(Page::Header) - AlignmentCost) * 8) / (8 * RecordSize + 1);
-        constexpr size_t SlotMapSize     = sizeof(std::bitset<SlotCount1>);
-        static_assert(sizeof(Page) == Page::PageSizeInBytes);
-        static_assert(((SlotCount1 * RecordSize) + SlotMapSize + sizeof(Page::Header)) < Page::PageSizeInBytes);
-        return SlotCount1;
-    }
-
-    static constexpr size_t SlotCount = GetSlotCapacity();
+    static constexpr size_t SlotCount = GetSlotCapacity(RecordSize);
 
     PageForRecord(PageRuntime& page) : _page(page)
     {
-        _slots   = reinterpret_cast<decltype(_slots)>(page._page.buffer);
-        _records = reinterpret_cast<decltype(_records)>(page._page.buffer + sizeof(*_slots));
+        static_assert((sizeof(*_slots) + sizeof(Page::Header) + sizeof(*_records)) <= Page::PageSizeInBytes);
+
+        _slots   = reinterpret_cast<decltype(_slots)>(page.RawData().data());
+        _records = reinterpret_cast<decltype(_records)>(page.RawData().data() + sizeof(*_slots));
 
         static_assert(sizeof(*_records) == SlotCount * RecordSize);
         static_assert(sizeof(*_records) + sizeof(*_slots) < Page::PageSizeInBytes);
 
-        while (_page._availableSlot < _slots->size() && _slots->test(_page._availableSlot)) ++_page._availableSlot;
+        while (_page._availableSlot < GetSlotCount() && ValidSlot(_page._availableSlot)) ++_page._availableSlot;
         // TODO unit test
     }
 
@@ -523,26 +523,31 @@ template <size_t RecordSize> struct PageForRecord : public PageForRecordInterfac
 
     Ref::PageIndex PageIndex() const { return _page._pageIndex; }
 
-    size_t GetSlotCount() const override { return SlotCount; }
-    bool   ValidSlot(size_t index) const override { return _slots->test(index); }
-
-    template <typename TLock> bool Full(TLock const& /*guardscope*/) { return _page._availableSlot >= _slots->size(); }
+    size_t GetSlotCount() const { return SlotCount; }
+    bool   ValidSlot(size_t index) const { return (_slots->at(index / 32) & (0x1 << index % 32)) > 0; }
+    void   _FillSlot(size_t index)
+    {
+        auto mask = _slots->at(index / 32);
+        mask |= 0x1 << index % 32;
+        _slots->at(index / 32) = mask;
+    }
+    template <typename TLock> bool Full(TLock const& /*guardscope*/) { return _page._availableSlot >= SlotCount; }
 
     SlotObj Allocate([[maybe_unused]] exclusive_lock const& guardscope)
     {
         assert(!Full(guardscope));
-        assert(!_slots->test(_page._availableSlot));
+        assert(!ValidSlot(_page._availableSlot));
 
         Ref::SlotIndex slot = _page._availableSlot;
         ++_page._availableSlot;
-        _slots->set(slot);
+        _FillSlot(slot);
         auto& rec = _records->at(slot);
         std::fill(rec.begin(), rec.end(), uint8_t{0});
         _page.MarkDirty();
         return SlotObj{slot, rec};
     }
 
-    uint8_t Release(exclusive_lock const& /*guardscope*/, Ref::SlotIndex slot) override
+    uint8_t Release(exclusive_lock const& /*guardscope*/, Ref::SlotIndex slot)
     {
         auto& rec = _records->at(slot);
         std::fill(rec.begin(), rec.end(), uint8_t{0});
@@ -550,61 +555,63 @@ template <size_t RecordSize> struct PageForRecord : public PageForRecordInterfac
         return 0;
     }
 
-    SlotView Get(shared_lock const& /*guardscope*/, Ref::SlotIndex slot) const override
+    SlotView Get(shared_lock const& /*guardscope*/, Ref::SlotIndex slot) const
     {
-        assert(_slots->test(slot));
+        assert(ValidSlot(slot));
         auto& rec = _records->at(slot);
         return SlotView{slot, rec};
     }
 
-    SlotObj Get(exclusive_lock const& /*guardscope*/, Ref::SlotIndex slot) const override
+    SlotObj Get(exclusive_lock const& /*guardscope*/, Ref::SlotIndex slot) const
     {
-        assert(_slots->test(slot));
+        assert(ValidSlot(slot));
         auto& rec = _records->at(slot);
         return SlotObj{slot, rec};
     }
 
-    PageRuntime&            _page;
-    std::bitset<SlotCount>* _slots = nullptr;
+    PageRuntime&                                     _page;
+    std::array<uint32_t, GetSlotUInt32s(SlotCount)>* _slots = nullptr;
     // Warning.. using bitset make this non portable across 32 bit and 64 bit
     std::array<std::array<uint8_t, RecordSize>, SlotCount>* _records = nullptr;
 };
 
-// In memory transformation for temporary computation
-template <size_t RecordSize> struct PageForSharedRecord : public PageForRecordInterface
+static constexpr size_t GetSlotCapacityForSharedRec(size_t recordSize)
 {
-    static constexpr auto GetSlotCapacity()
-    {
-        // n slots need n uint8_ts.
-        // n * s + n + 4 = 8192
-        // n = ((8192 - 4) / (s + 1);
-        // s = 1    : 8192 = 7278 * 1 + 910 + 4 (0 uint8_ts wasted)
-        // s = 4    : 8192 = 1984 * 4 + 248 + 4 (4 uint8_ts wasted)
-        // s = 128  :
-        // s = 1024 : 8192 = 7 * 1024 + 1 + 4   (1019 uint8_ts wasted)
-        constexpr Ref::SlotIndex slotcount   = (Page::PageSizeInBytes - sizeof(Page::Header)) / (RecordSize + 1);
-        constexpr Ref::SlotIndex slotmapsize = slotcount;
-        static_assert(sizeof(Page) == Page::PageSizeInBytes);
-        static_assert(((slotcount * RecordSize) + slotmapsize + sizeof(Page::Header)) <= Page::PageSizeInBytes);
-        return slotcount;
-    }
+    // n slots need n uint8_ts.
+    // n * s + n + 4 = 8192
+    // n = ((8192 - 4) / (s + 1);
+    // s = 1    : 8192 = 7278 * 1 + 910 + 4 (0 uint8_ts wasted)
+    // s = 4    : 8192 = 1984 * 4 + 248 + 4 (4 uint8_ts wasted)
+    // s = 128  :
+    // s = 1024 : 8192 = 7 * 1024 + 1 + 4   (1019 uint8_ts wasted)
+    return (Page::PageSizeInBytes - sizeof(Page::Header)) / (recordSize + 1);
+    static_assert(sizeof(Page) == Page::PageSizeInBytes);
+}
 
-    static constexpr size_t SlotCount = GetSlotCapacity();
+// In memory transformation for temporary computation
+template <size_t RecordSize> struct PageForSharedRecord
+{
+
+    static constexpr size_t SlotCount = GetSlotCapacityForSharedRec(RecordSize);
 
     constexpr PageForSharedRecord(PageRuntime& page) : _page(page)
     {
+        static_assert(
+            ((GetSlotCapacityForSharedRec(RecordSize) * RecordSize) + GetSlotCapacityForSharedRec(RecordSize) + sizeof(Page::Header))
+            <= Page::PageSizeInBytes);
+
         _pageIndex = page._pageIndex;
         // auto& buffer = page->_page.buffer;
-        _refCounts = reinterpret_cast<decltype(_refCounts)>(page._page.buffer);
-        _records   = reinterpret_cast<decltype(_records)>(page._page.buffer + sizeof(*_refCounts));
+        _refCounts = reinterpret_cast<decltype(_refCounts)>(page.RawData().data());
+        _records   = reinterpret_cast<decltype(_records)>(page.RawData().data() + sizeof(*_refCounts));
         static_assert(sizeof(*_records) == SlotCount * RecordSize);
         static_assert(sizeof(*_records) + sizeof(*_refCounts) < Page::PageSizeInBytes);
     }
 
     CLASS_DELETE_COPY_AND_MOVE(PageForSharedRecord);
 
-    size_t  GetSlotCount() const override { return SlotCount; }
-    bool    ValidSlot(size_t slot) const override { return _refCounts->at(slot) > 0; }
+    size_t  GetSlotCount() const { return SlotCount; }
+    bool    ValidSlot(size_t slot) const { return _refCounts->at(slot) > 0; }
     uint8_t GetRefCount(Ref::SlotIndex slot) const { return _refCounts->at(slot); }
     bool    Full(shared_lock const& /* guardscope */) { return _page._availableSlot >= _refCounts->size(); }
 
@@ -621,7 +628,7 @@ template <size_t RecordSize> struct PageForSharedRecord : public PageForRecordIn
         return SlotObj{slot, {rec.size(), rec.data()}};
     }
 
-    uint8_t Release(exclusive_lock const& /*guardscope*/, Ref::SlotIndex slot) override
+    uint8_t Release(exclusive_lock const& /*guardscope*/, Ref::SlotIndex slot)
     {
         assert(_refCounts->at(slot) > 0u);
         _refCounts->at(slot)--;
@@ -634,14 +641,14 @@ template <size_t RecordSize> struct PageForSharedRecord : public PageForRecordIn
         return _refCounts->at(slot);
     }
 
-    SlotView Get(shared_lock const& /*guardscope*/, Ref::SlotIndex slot) const override
+    SlotView Get(shared_lock const& /*guardscope*/, Ref::SlotIndex slot) const
     {
         assert(_refCounts->at(slot) > 0);
         auto& rec = _records->at(slot);
         return SlotView{slot, rec};
     }
 
-    SlotObj Get(exclusive_lock const& /*guardscope*/, Ref::SlotIndex slot) const override
+    SlotObj Get(exclusive_lock const& /*guardscope*/, Ref::SlotIndex slot) const
     {
         assert(_refCounts->at(slot) > 0);
         auto& rec = _records->at(slot);
@@ -656,46 +663,61 @@ template <size_t RecordSize> struct PageForSharedRecord : public PageForRecordIn
     std::array<std::array<uint8_t, RecordSize>, SlotCount>* _records = nullptr;
 };
 
-template <> struct PageForRecord<0> : public PageForRecordInterface
+template <> struct PageForRecord<0>
 {
-    size_t   GetSlotCount() const override { return impl->GetSlotCount(); }
-    bool     ValidSlot(size_t index) const override { return impl->ValidSlot(index); }
-    SlotObj  Get(exclusive_lock const& guardscope, Ref::SlotIndex slot) const override { return impl->Get(guardscope, slot); }
-    SlotView Get(shared_lock const& guardscope, Ref::SlotIndex slot) const override { return impl->Get(guardscope, slot); }
+    void _SetRecordSize(uint16_t recordSize)
+    {
+        _recordSize = recordSize;
+        _slots      = reinterpret_cast<decltype(_slots)>(_page.RawData().data() + sizeof(uint16_t));
+        _records    = reinterpret_cast<decltype(_records)>(_page.RawData().data() + sizeof(uint16_t) + GetSlotCapacity(recordSize));
+    }
+
+    void SetRecordSize(uint16_t recordSize)
+    {
+        auto recordSizePtr = reinterpret_cast<uint16_t*>(_page.RawData().data());
+        assert(*recordSizePtr == 0);
+        *recordSizePtr = recordSize;
+        _SetRecordSize(recordSize);
+        _page.MarkDirty();
+    }
+
+    size_t GetSlotCount() const { return GetSlotCapacity(_recordSize); }
+    bool   ValidSlot(size_t slot) const { return (*(_slots + (slot / 32)) & (0x1 << (slot % 32))) != 0; }
+
+    SlotObj Get(exclusive_lock const& /*guardscope*/, Ref::SlotIndex slot) const
+    {
+        assert(ValidSlot(slot));
+        auto rec = _records + (slot * _recordSize);
+        return SlotObj{slot, {rec, _recordSize}};
+    }
+
+    SlotView Get(shared_lock const& /*guardscope*/, Ref::SlotIndex slot) const
+    {
+        assert(ValidSlot(slot));
+        auto rec = _records + (slot * _recordSize);
+        return SlotView{slot, {rec, _recordSize}};
+    }
 
     PageForRecord(PageRuntime& page) : _page(page)
     {
-        auto typeId = page.TypeId();
-        assert(typeId > 0xff);
-        auto logRecordSize = typeId & 0xff;
-        assert(logRecordSize < 12);
-        _recordSize = size_t{1} << logRecordSize;
-        switch (logRecordSize)
-        {
-        default:
-        case 0x0:
-        case 0x1: throw std::logic_error("Blob data size out of range");
-        case 0x2: impl = std::make_unique<PageForRecord<(1 << 0x2)>>(_page); break;
-        case 0x3: impl = std::make_unique<PageForRecord<(1 << 0x3)>>(_page); break;
-        case 0x4: impl = std::make_unique<PageForRecord<(1 << 0x4)>>(_page); break;
-        case 0x5: impl = std::make_unique<PageForRecord<(1 << 0x5)>>(_page); break;
-        case 0x6: impl = std::make_unique<PageForRecord<(1 << 0x6)>>(_page); break;
-        case 0x7: impl = std::make_unique<PageForRecord<(1 << 0x7)>>(_page); break;
-        case 0x8: impl = std::make_unique<PageForRecord<(1 << 0x8)>>(_page); break;
-        case 0x9: impl = std::make_unique<PageForRecord<(1 << 0x9)>>(_page); break;
-        case 0xa: impl = std::make_unique<PageForRecord<(1 << 0xa)>>(_page); break;
-        case 0xb: impl = std::make_unique<PageForRecord<(1 << 0xb)>>(_page); break;
-        }
+        _recordSize = *reinterpret_cast<uint16_t*>(page.RawData().data());
+        if (_recordSize != 0) { _SetRecordSize(_recordSize); }
     }
 
     CLASS_DELETE_COPY_AND_MOVE(PageForRecord);
 
-    uint8_t Release(exclusive_lock const& guardscope, Ref::SlotIndex slot) override { return impl->Release(guardscope, slot); }
-
-    std::unique_ptr<PageForRecordInterface> impl;
+    uint8_t Release(exclusive_lock const& /*guardscope*/, Ref::SlotIndex slot)
+    {
+        auto ptr = _records + (slot * _recordSize);
+        std::fill(ptr, ptr + _recordSize, uint8_t{0});
+        _page.MarkSlotFree(slot);
+        return 0;
+    }
 
     PageRuntime& _page;
-    size_t       _recordSize = 0;
+    uint16_t     _recordSize{0};
+    uint32_t*    _slots   = nullptr;
+    uint8_t*     _records = nullptr;
 };
 
 template <> struct PageForSharedRecord<0> : public PageForRecord<0>
@@ -807,10 +829,10 @@ struct PageManager
 
     void Flush()
     {
-        for (auto& page : _pages)
+        for (auto& pageRT : _pageRuntimeStates)
         {
-            if (page == nullptr) continue;
-            page->Flush(_serdes);
+            if (pageRT.Loaded()) continue;
+            pageRT.Flush(_serdes);
         }
     }
 
@@ -818,30 +840,26 @@ struct PageManager
     auto LockForEdit() { return exclusive_lock(_mutex); }
 
     public:    // Methods
-    Ref::PageIndex GetPageCount() const { return static_cast<Ref::PageIndex>(_pages.size()); }
-    ObjTypeId      GetPageObjTypeId(Ref::PageIndex pageIndex) const { return _pageTypes[pageIndex]; }
+    Ref::PageIndex GetPageCount() const { return static_cast<Ref::PageIndex>(_pageRuntimeStates.size()); }
+    ObjTypeId      GetPageObjTypeId(Ref::PageIndex pageIndex) const { return _pageRuntimeStates[pageIndex]._typeId; }
 
-    impl::PageRuntime& LoadPage(ObjTypeId id, Ref::PageIndex pageIndex)
+    PageRuntime& LoadPage(Ref::PageIndex pageIndex)
     {
-        auto& page = _pages[pageIndex];
-        if (page != nullptr) { return *page.get(); }
-
-        page = std::make_unique<impl::PageRuntime>(id, pageIndex);
-
-        _serdes.ReadPage(page->_page, pageIndex);
-        return *page.get();
+        auto& pageRT = _pageRuntimeStates[pageIndex];
+        if (pageRT.Loaded()) { return pageRT; }
+        pageRT.Load(_serdes);
+        return pageRT;
     }
 
-    impl::PageRuntime& CreateNewPage(ObjTypeId objTypeId)
+    PageRuntime& CreateNewPage(ObjTypeId objTypeId)
     {
-        auto ptr = new impl::PageRuntime(objTypeId, static_cast<Ref::PageIndex>(_pages.size()));
-        assert(_pages.size() == _pageTypes.size());
-        _pages.push_back(std::unique_ptr<impl::PageRuntime>(ptr));
-        _pageTypes.push_back(objTypeId);
-
-        _serdes.WritePage(ptr->_page, ptr->_pageIndex);
-        if (objTypeId != 0) { _RecordJournalEntry(ptr->_pageIndex, objTypeId); }
-        return *ptr;
+        auto pageIndex = static_cast<impl::Ref::PageIndex>(_pageRuntimeStates.size());
+        _pageRuntimeStates.push_back(PageRuntime{pageIndex});
+        auto& pageRT = _pageRuntimeStates.back();
+        pageRT.InitPage();
+        pageRT.WriteTo(_serdes);
+        if (objTypeId != 0) { _RecordJournalEntry(pageIndex, objTypeId); }
+        return pageRT;
     }
 
     private:    // Methods
@@ -849,19 +867,19 @@ struct PageManager
     {
         auto pageCount = _serdes.GetInputPageCount();
         assert(pageCount >= 2);
-        _pages.resize(pageCount);    // atleast one header page and one journal page
-        _pageTypes.resize(pageCount, 0);
+        _pageRuntimeStates.reserve(pageCount);    // atleast one header page and one journal page
+        _pageRuntimeStates.push_back(PageRuntime{0});
 
         Ref::PageIndex curJournalPage = 1;
+        _pageRuntimeStates.push_back(PageRuntime{0});
         while (curJournalPage != 0)
         {
-            auto journal = LoadPage(0, curJournalPage).As<JournalPage>();
+            auto journal = LoadPage(curJournalPage).As<JournalPage>();
             for (Ref::PageIndex j = 0; j < journal.GetEntryCount(); j++)
             {
                 auto entry = journal.GetJournalEntry(j);
-                if (entry.typeId == 0) { continue; }
-                assert(_pageTypes[entry.pageIndex] == 0);
-                _pageTypes[entry.pageIndex] = entry.typeId;
+                _pageRuntimeStates.push_back(PageRuntime{entry.pageIndex});
+                _pageRuntimeStates.back().SetTypeId(entry.typeId);
             }
             curJournalPage = journal.GetNextJornalPage();
         }
@@ -874,7 +892,7 @@ struct PageManager
     /// <param name="objTypeId"></param>
     void _RecordJournalEntry(Ref::PageIndex pageIndex, ObjTypeId objTypeId)
     {
-        auto journal = LoadPage(0, _journalPageIndex).As<JournalPage>();
+        auto journal = LoadPage(_journalPageIndex).As<JournalPage>();
         if (journal.Full(pageIndex))
         {
             _journalPageIndex = journal.GetNextJornalPage();
@@ -888,7 +906,7 @@ struct PageManager
             }
             else
             {
-                assert(_pageTypes[_journalPageIndex] == 0);
+                assert(_pageRuntimeStates[_journalPageIndex]._typeId == 0);
             }
             _RecordJournalEntry(pageIndex, objTypeId);
         }
@@ -903,8 +921,7 @@ struct PageManager
     impl::SerDes      _serdes;
     Ref::PageIndex    _journalPageIndex = 1;
 
-    std::vector<ObjTypeId>                          _pageTypes;
-    std::vector<std::unique_ptr<impl::PageRuntime>> _pages;
+    std::vector<PageRuntime> _pageRuntimeStates;
 };
 
 template <typename TDb, typename TObj, typename TLock> struct Iterator
@@ -969,7 +986,7 @@ template <typename TDb, typename TObj, typename TLock> struct Iterator
                 if (pagemgr->GetPageObjTypeId(pi) != Traits::TypeId()) { continue; }
             }
 
-            PageForRecord<Traits::RecordSize()> page = pagemgr->LoadPage(Traits::TypeId(), pi);
+            PageForRecord<Traits::RecordSize()> page = pagemgr->LoadPage(pi);
             for (; si != page.GetSlotCount(); ++si)
             {
                 if (page.ValidSlot(si)) { return; }
@@ -1141,7 +1158,7 @@ template <typename TDb> struct DatabaseT
         for (impl::Ref::PageIndex i = _pagemgr->GetPageCount() - 1u; i > 0; i--)
         {
             if (_pagemgr->GetPageObjTypeId(i) != typeId) { continue; }
-            auto& page = _pagemgr->LoadPage(typeId, i);
+            auto& page = _pagemgr->LoadPage(i);
             if (!page.As<impl::PageForRecord<TRecordSize>>().Full(lock)) { return page; }
         }
 
@@ -1265,7 +1282,7 @@ template <typename TDb> struct DatabaseT
     {
         assert(id.Valid());
         assert(id.page < _pagemgr->GetPageCount());
-        impl::PageForRecord<Traits<TObj>::RecordSize()> page(_pagemgr->LoadPage(TypeId<TObj>(), id.page));
+        impl::PageForRecord<Traits<TObj>::RecordSize()> page(_pagemgr->LoadPage(id.page));
 
         auto slot   = page.Get(lock, id.slot);
         auto objptr = reinterpret_cast<WireT<TObj> const*>(slot.data.data());
@@ -1276,7 +1293,7 @@ template <typename TDb> struct DatabaseT
     {
         assert(id.Valid());
         assert(id.page < _pagemgr->GetPageCount());
-        impl::PageForRecord<Traits<TObj>::RecordSize()> page(_pagemgr->LoadPage(TypeId<TObj>(), id.page));
+        impl::PageForRecord<Traits<TObj>::RecordSize()> page(_pagemgr->LoadPage(id.page));
 
         auto slot = page.Get(lock, id.slot);
         page._page.MarkDirty();
@@ -1319,14 +1336,14 @@ template <typename TDb> struct DatabaseT
         //      Mark the page as dirty
         if (Traits<TObj>::GetOwnership() == Ownership::Shared)
         {
-            impl::PageForSharedRecord<Traits<TObj>::RecordSize()> page(_pagemgr->LoadPage(TypeId<TObj>(), id.page));
+            impl::PageForSharedRecord<Traits<TObj>::RecordSize()> page(_pagemgr->LoadPage(id.page));
 
             auto refcount = page.Release(lock, id.slot);
             if (refcount == 0) { _ReleaseChildRefs<TObj>(lock, page.Get(lock, id.slot)); }
         }
         else
         {
-            impl::PageForRecord<Traits<TObj>::RecordSize()> page(_pagemgr->LoadPage(TypeId<TObj>(), id.page));
+            impl::PageForRecord<Traits<TObj>::RecordSize()> page(_pagemgr->LoadPage(id.page));
             page.Release(lock, id.slot);
         }
     }
