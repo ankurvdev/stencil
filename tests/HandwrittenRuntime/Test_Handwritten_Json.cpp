@@ -31,7 +31,7 @@ template <typename T> static void RunTestCase(TestCase const& tc, std::vector<st
     }
 }
 
-template <typename T> static void RunTestCases(std::initializer_list<TestCase> cases, std::string const& name)
+template <typename T> static void RunTestCases(std::vector<TestCase> cases, std::string const& name)
 {
     {
         std::vector<std::string> lines;
