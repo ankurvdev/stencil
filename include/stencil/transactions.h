@@ -17,8 +17,6 @@
 namespace Stencil
 {
 
-template <typename TObj, typename TEnable = void> struct Transaction;
-
 template <typename TObj, typename TEnable = void> struct TransactionT
 {
     TransactionT(TObj& /*obj*/) {}
@@ -42,6 +40,13 @@ template <typename TObj, typename TEnable = void> struct TransactionT
     void Flush() const {}
     bool IsChanged() const { return false; }
 };
+
+template <typename TObj, typename TEnable = void> struct Transaction : Stencil::TransactionT<TObj>
+{
+    Transaction(TObj& obj) : Stencil::TransactionT<TObj>(obj) {}
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
+};
+
 }    // namespace Stencil
 
 template <typename T> struct Stencil::Transaction<T, std::enable_if_t<Stencil::ConceptPrimitive<T>>> : Stencil::TransactionT<T>
@@ -121,14 +126,14 @@ template <typename TObj> struct Stencil::TransactionT<TObj, std::enable_if_t<Ste
         if constexpr (std::is_base_of_v<Stencil::TimestampedT<TObj>, TObj>) { Obj().UpdateTimestamp_(); }
     }
 
-    std::reference_wrapper<TObj>        _ref;
-    std::bitset<TObj::FieldCount() + 1> _assigntracker;
-    std::bitset<TObj::FieldCount() + 1> _edittracker;
+    std::reference_wrapper<TObj> _ref;
+    std::bitset<64>              _assigntracker;    // TODO1
+    std::bitset<64>              _edittracker;      // TODO1
 };
 
-template <typename TObj> struct Stencil::TransactionT<TObj, std::enable_if_t<Stencil::ConceptIterable<TObj>>>
+template <typename ListObjType> struct Stencil::TransactionT<std::vector<ListObjType>>
 {
-    using ListObjType = typename Stencil::TypeTraits<TObj&>::ListObjType;
+    using TObj = std::vector<ListObjType>;
 
     TransactionT(TObj& obj) : _ref(std::ref(obj)) {}
     ~TransactionT() {}
@@ -143,7 +148,7 @@ template <typename TObj> struct Stencil::TransactionT<TObj, std::enable_if_t<Ste
     void RecordMutation_edit_(size_t index) { _changes.push_back({3u, index}); }
     void RecordMutation_assign_(size_t index) { _changes.push_back({0u, index}); }
 
-    void add(ListObjType&& obj)
+    template <typename T> void add(T&& obj)
     {
         RecordMutation_add_(obj);
         Stencil::Mutators<TObj>::add(Obj(), std::move(obj));
@@ -164,10 +169,9 @@ template <typename TObj> struct Stencil::TransactionT<TObj, std::enable_if_t<Ste
 
     template <typename TLambda> auto Visit(size_t fieldIndex, TLambda&& lambda)
     {
-        Visitor<TObj> visitor(_ref.get());
-        visitor.Visit(fieldIndex, [&](auto index, auto& obj) {
+        Visitor<TObj>::VisitKey(Obj(), fieldIndex, [&](auto index, auto& obj) {
             RecordMutation_edit_(index);
-            auto subtxnptr = std::make_unique<Transaction<ListObjType>>(obj);
+            auto subtxnptr = std::make_unique<Transaction<std::remove_cvref_t<decltype(obj)>>>(obj);
             lambda(index, *subtxnptr);
             // TODO : only do it if there was a change;
             _edited.insert(std::make_pair(index, std::move(subtxnptr)));
@@ -223,20 +227,10 @@ template <typename TObj> struct Stencil::TransactionT<TObj, std::enable_if_t<Ste
 };
 
 // Transaction Mutators Accessors
-#if defined TODO1
-template <typename T>
-struct Stencil::Mutators<Stencil::Transaction<T>, std::enable_if_t<Stencil::TypeTraits<T&>::Type() == Stencil::DataType::List>>
+template <typename T> struct Stencil::Mutators<Stencil::Transaction<T>, std::enable_if_t<Stencil::ConceptIterable<T>>>
 {
-    using ListObjType = typename Stencil::TypeTraits<T&>::ListObjType;
+    template <typename TVal> static void add(Stencil::Transaction<T>& txn, TVal&& obj) { txn.add(std::move(obj)); }
 
-    static void  add(Stencil::Transaction<T>& txn, ListObjType&& obj) { txn.add(std::move(obj)); }
     static void  remove(Stencil::Transaction<T>& txn, size_t index) { txn.remove(index); }
     static auto& edit(Stencil::Transaction<T>& txn, size_t index) { return txn.edit(index); }
-};
-#endif
-
-template <typename T> struct Stencil::Transaction<T> : Stencil::TransactionT<T>
-{
-    Transaction(T& obj) : Stencil::TransactionT<T>(obj) {}
-    CLASS_DELETE_COPY_AND_MOVE(Transaction);
 };

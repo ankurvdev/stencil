@@ -14,7 +14,7 @@ struct BinaryTransactionSerDes
     {
         using Traits = Stencil::TypeTraits<T&>;
 
-        if constexpr (Traits::Type() == Stencil::DataType::List)
+        if constexpr (ConceptIterable<T>)
         {
             txn.VisitChanges(
                 [&](auto const& /* name */, auto const& /* type */, uint8_t const& mutator, size_t const& index, auto& subtxn, auto& obj) {
@@ -26,7 +26,7 @@ struct BinaryTransactionSerDes
                     else if (mutator == 0)
                     {
                         Visitor<ObjType const> visitor(obj);
-                        Stencil::BinarySerDes::Serialize(visitor, writer.strm());
+                        Stencil::SerDes<ProtocolBinary>::Serialize(visitor, writer.strm());
                     }
                     else if (mutator == 1)
                     {
@@ -45,7 +45,7 @@ struct BinaryTransactionSerDes
             writer << std::numeric_limits<uint8_t>::max();
         }
 
-        if constexpr (Stencil::TypeTraits<T&>::Type() == Stencil::DataType::Object)
+        if constexpr (ConceptIndexable<T>)
         {
             txn.VisitChanges(
                 [&](auto const& /* name */, auto const& type, auto const& mutator, auto const& /* mutatordata */, auto& subtxn, auto& obj) {
@@ -92,8 +92,7 @@ struct BinaryTransactionSerDes
         static void Apply(Transaction<T>& /* txn */, IStrmReader& /* reader */) { throw std::logic_error("Invalid"); }
     };
 
-    template <typename T>
-    struct _ListApplicator<T, std::enable_if_t<Stencil::TypeTraits<T&>::Type() == Stencil::DataType::List>>
+    template <typename T> struct _ListApplicator<T, std::enable_if_t<ConceptIterable<T>>>
     {
         static void Add(Transaction<T>& txn, size_t /* listindex */, IStrmReader& reader)
         {
@@ -140,8 +139,7 @@ struct BinaryTransactionSerDes
         _ListApplicator<TObj>::Remove(txn, listindex);
     }
 
-    template <typename T>
-    struct _StructApplicator<T, std::enable_if_t<Stencil::TypeTraits<T&>::Type() == Stencil::DataType::Value>>
+    template <typename T> struct _StructApplicator<T, std::enable_if_t<ConceptPrimitive<T>>>
     {
         static void Apply(Transaction<T>& /* txn */, IStrmReader& /* reader */)
         {
@@ -149,8 +147,7 @@ struct BinaryTransactionSerDes
         }
     };
 
-    template <typename T>
-    struct _StructApplicator<T, std::enable_if_t<Stencil::TypeTraits<T&>::Type() == Stencil::DataType::Object>>
+    template <typename T> struct _StructApplicator<T, std::enable_if_t<ConceptIndexable<T>>>
     {
         static void Apply(Transaction<T>& txn, IStrmReader& reader)
         {
@@ -201,10 +198,11 @@ struct BinaryTransactionSerDes
 
     template <typename T> static void _Apply(Transaction<T>& txn, IStrmReader& reader)
     {
-        using Traits = Stencil::TypeTraits<T&>;
-
-        if constexpr (Traits::Type() == Stencil::DataType::List) { _ApplyOnList(txn, reader); }
-        if constexpr (Traits::Type() == Stencil::DataType::Object) { _ApplyOnStruct(txn, reader); }
+        if constexpr (ConceptIterable<T>) { _ApplyOnList(txn, reader); }
+        else if constexpr (ConceptIndexable<T>)
+        {
+            _ApplyOnStruct(txn, reader);
+        }
         return;
     }
 

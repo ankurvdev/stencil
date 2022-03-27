@@ -181,6 +181,7 @@ if (BUILD_TESTING)
     add_executable(runtime_tests
         tests/HandwrittenRuntime/Test_Handwritten_CLOpts.cpp
         tests/HandwrittenRuntime/Test_Handwritten_Json.cpp
+        tests/HandwrittenRuntime/Test_Handwritten_Binary.cpp # TODO1
         tests/HandwrittenRuntime/Test_Database.cpp
         tests/HandwrittenRuntime/Test_Database2.cpp
         #tests/HandwrittenRuntime/Test_WebService_Handwritten.cpp
@@ -199,10 +200,9 @@ if (BUILD_TESTING)
     add_executable(codegen_runtime_tests
         tests/CodegenRuntime/Test_Codegen_CLOpts.cpp
         tests/CodegenRuntime/Test_Codegen_Json.cpp
-        #tests/CodegenRuntime/Test_DataRecorderPlayer.cpp
-        #tests/CodegenRuntime/Test_ObservableOptionalProps.cpp
-        #tests/CodegenRuntime/Test_SerDes.cpp
-        #tests/CodegenRuntime/Test_Transactions.cpp
+        tests/CodegenRuntime/Test_DataRecorderPlayer.cpp
+        tests/CodegenRuntime/Test_ObservableOptionalProps.cpp
+        tests/CodegenRuntime/Test_Transactions.cpp
         #tests/CodegenRuntime/Test_WebService_Autogen.cpp
     )
     add_dependencies(codegen_runtime_tests codegen)

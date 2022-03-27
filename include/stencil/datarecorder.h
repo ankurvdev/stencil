@@ -20,7 +20,7 @@ template <typename... Ts> struct DataPlayerT : std::enable_shared_from_this<Data
     using time_point = std::chrono::system_clock::time_point;
     using clock      = std::chrono::system_clock;
 
-    DELETE_COPY_AND_MOVE(DataPlayerT);
+    CLASS_DELETE_COPY_AND_MOVE(DataPlayerT);
     DataPlayerT(std::filesystem::path const& replayFile, bool repeat = true) : _repeat(repeat), _file(replayFile) { Start(); }
 
     ~DataPlayerT() { _thrd.join(); }
@@ -109,7 +109,7 @@ template <typename... Ts> struct DataRecorder
         return *this;
     }
 
-    DELETE_COPY_DEFAULT_MOVE(DataRecorder);
+    CLASS_DELETE_COPY_DEFAULT_MOVE(DataRecorder);
     DataRecorder(std::filesystem::path const& f)
     {
         if (f.empty()) { return; }

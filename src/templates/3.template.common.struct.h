@@ -46,7 +46,6 @@ template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzVariant_Namezz>;
 
 //<Interface>
 template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz>;
-template <> struct Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz>;
 //</Interface>
 
 #endif
@@ -212,10 +211,10 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram
     }
 };
 
-#if defined TODO1
 template <> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz> : Stencil::TransactionT<zzProgram_Namezz::zzStruct_Namezz>
 {
-    using TData = zzProgram_Namezz::zzStruct_Namezz;
+    using TData  = zzProgram_Namezz::zzStruct_Namezz;
+    using Fields = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields;
 
     //<Field>
     Transaction<zzFieldType_NativeTypezz> _subtracker_zzNamezz;
@@ -227,48 +226,48 @@ template <> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz> : Ste
         Stencil::TransactionT<zzProgram_Namezz::zzStruct_Namezz>(ptr)
         //<Field>
         ,
-        _subtracker_zzNamezz(Obj().zzNamezz())
+        _subtracker_zzNamezz(Obj().zzNamezz)
     //</Field>
     {}
 
     //<Field>
     auto& zzNamezz()
     {
-        MarkFieldEdited_(TData::FieldIndex::zzField_Namezz);
+        MarkFieldEdited_(Fields::Field_zzField_Namezz);
         return _subtracker_zzNamezz;
     }
     //</Field>
     //<Field>
     void set_zzNamezz(zzFieldType_NativeTypezz&& val)
     {
-        MarkFieldAssigned_(TData::FieldIndex::zzNamezz, Obj().zzNamezz(), val);
-        Obj().set_zzNamezz(std::move(val));
+        MarkFieldAssigned_(Fields::Field_zzNamezz, Obj().zzNamezz, val);
+        Obj().zzNamezz = std::move(val);
     }
 
     //<FieldType_Mutator>
     zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz&& args)
     {
-        MarkFieldEdited_(TData::FieldIndex::zzField_Namezz);
+        MarkFieldEdited_(Fields::Field_zzField_Namezz);
         return Stencil::Mutators<std::remove_reference_t<decltype(zzField_Namezz())>>::zzNamezz(zzField_Namezz(), std::move(args));
     }
     //</FieldType_Mutator>
     //</Field>
 
-    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    template <typename TLambda> auto Visit(Fields index, TLambda&& lambda)
     {
         switch (index)
         {
         //<Field>
-        case TData::FieldIndex::zzNamezz: return lambda("zzNamezz", zzNamezz()); return;
+        case Fields::Field_zzNamezz: return lambda("zzNamezz", zzNamezz()); return;
         //</Field>
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        case Fields::Field_Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
 
     template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
     {
         //<Field>
-        if (fieldName == "zzNamezz") { return lambda(TData::FieldIndex::zzNamezz, zzNamezz()); }
+        if (fieldName == "zzNamezz") { return lambda(Fields::Field_zzNamezz, zzNamezz()); }
         //</Field>
         throw std::invalid_argument("Asked to visit invalid field");
     }
@@ -276,7 +275,7 @@ template <> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz> : Ste
     template <typename TLambda> void VisitAll(TLambda&& lambda)
     {
         //<Field>
-        lambda("zzNamezz", TData::FieldIndex::zzNamezz, zzNamezz(), Obj().zzNamezz());
+        lambda("zzNamezz", Fields::Field_zzNamezz, zzNamezz, Obj().zzNamezz());
         //</Field>
     }
 
@@ -285,9 +284,9 @@ template <> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz> : Ste
         //<Field>
         zzNamezz().Flush();
 
-        if (IsFieldEdited(TData::FieldIndex::zzNamezz))
+        if (IsFieldEdited(Fields::Field_zzNamezz))
         {
-            if (!zzNamezz().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::zzNamezz));
+            if (!zzNamezz().IsChanged()) _edittracker.reset(static_cast<uint8_t>(Fields::Field_zzNamezz));
         }
 
         //</Field>
@@ -295,7 +294,6 @@ template <> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz> : Ste
         Stencil::TransactionT<zzProgram_Namezz::zzStruct_Namezz>::Flush_();
     }
 };
-#endif
 
 template <> struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz> : Stencil::VisitorT<zzProgram_Namezz::zzStruct_Namezz>
 {
@@ -307,9 +305,9 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz> : Stencil
         switch (field)
         {
         //<Field>
-        case Fields::Field_zzNamezz: return lambda(obj.zzNamezz);
+        case Fields::Field_Field_zzNamezz: return lambda(obj.zzNamezz);
         //</Field>
-        case Fields::Invalid: [[fallthrough]];
+        case Fields::Field_Invalid: [[fallthrough]];
         default: throw std::logic_error("Invalid Key");
         }
     }
@@ -317,7 +315,7 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz> : Stencil
     template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
     {
         //<Field>
-        lambda(Fields::Field_zzNamezz, obj.zzNamezz);
+        lambda(Fields::Field_Field_zzNamezz, obj.zzNamezz);
         //</Field>
     }
 };
@@ -490,12 +488,12 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzVariant_Namezz>
         switch (fields)
         {
             //<Field>
-        case Fields::zzNamezz:
+        case Fields::Field_zzNamezz:
             _SetAndVisit<zzFieldType_NativeTypezz>(obj._variant, std::forward<TLambda>(lambda));
             return true;
 
             //</Field>
-        case Fields::Invalid: [[fallthrough]];
+        case Fields::Field_Invalid: [[fallthrough]];
         default: return false;
         }
     }

@@ -25,10 +25,12 @@
 
 #include <algorithm>
 #include <string_view>
-#if 0
 #define STENCIL_USING_WEBSERVICE 1
 namespace Stencil
 {
+template <typename T> struct InterfaceTraits;          // TODO1
+template <typename T> struct InterfaceApiTraits;       // TODO1
+template <typename T> struct InterfaceObjectTraits;    // TODO1
 
 template <typename TInterface> struct WebServiceHandlerTraits
 {
@@ -70,7 +72,7 @@ template <WebInterfaceImpl... TImpls> struct WebService
     {};
 
     WebService() = default;
-    DELETE_COPY_AND_MOVE(WebService);
+    CLASS_DELETE_COPY_AND_MOVE(WebService);
 
     void StartOnPort(uint16_t port)
     {
@@ -312,4 +314,3 @@ template <WebInterfaceImpl... TImpls> struct WebService
     std::tuple<TImpls...> _impls;
 };
 }    // namespace Stencil
-#endif
