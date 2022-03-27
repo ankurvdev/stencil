@@ -178,12 +178,8 @@ struct SlotView
 // Keep this always at 8192 uint8_ts to optimize memory usage
 struct Page
 {
-    constexpr static size_t PageSizeInBytes = 8192;
-    struct Header
-    {
-    } header{};
-
-    constexpr static size_t PageDataSize         = PageSizeInBytes - sizeof(Header);
+    constexpr static size_t PageSizeInBytes      = 8192;
+    constexpr static size_t PageDataSize         = PageSizeInBytes;
     uint8_t                 buffer[PageDataSize] = {};
 };
 
@@ -488,39 +484,41 @@ static constexpr size_t GetSlotUInt32s(size_t count)
 }
 static constexpr size_t AlignToWord(size_t s)
 {
-    return ((s - 1) | (sizeof(void*) - 1)) + 1;
-}
-
-static constexpr size_t GetSlotCapacity(size_t recordSize)
-{
-    // n slots need n/8 uint8_ts.
-    // n * s + n/8 + 4 = 8192
-    // n = ((8192 - 4) * 8) / (8s + 1);
-    // s = 1    : 8192 = 7278 * 1 + 910 + 4 (0 uint8_ts wasted)
-    // s = 4    : 8192 = 1984 * 4 + 248 + 4 (4 uint8_ts wasted)
-    // s = 128  :
-    // s = 1024 : 8192 = 7 * 1024 + 1 + 4   (1019 uint8_ts wasted)
-    size_t AlignedRecordSize        = AlignToWord(recordSize);
-    size_t SlotsWithoutSlotTracking = (Page::PageSizeInBytes - sizeof(Page::Header)) / AlignedRecordSize;
-    size_t SlotTrackingCost         = AlignToWord(sizeof(uint32_t) * GetSlotUInt32s(SlotsWithoutSlotTracking));
-    size_t SlotsWithSlotTracking    = (Page::PageSizeInBytes - sizeof(Page::Header) - SlotTrackingCost) / AlignedRecordSize;
-    return SlotsWithSlotTracking;
+    return (((s - 1) | (sizeof(void*) - 1)) + 1);
 }
 
 // In memory transformation for temporary computation
 template <size_t RecordSize> struct PageForRecord
 {
+
+    static constexpr size_t GetSlotCapacity(size_t recordSizeInBytes)
+    {
+        // n slots need n/8 uint8_ts.
+        // n * s + n/8 + 4 = 8192
+        // n = ((8192 - 4) * 8) / (8s + 1);
+        // s = 1    : 8192 = 7278 * 1 + 910 + 4 (0 uint8_ts wasted)
+        // s = 4    : 8192 = 1984 * 4 + 248 + 4 (4 uint8_ts wasted)
+        // s = 128  :
+        // s = 1024 : 8192 = 7 * 1024 + 1 + 4   (1019 uint8_ts wasted)
+        size_t AlignedRecordSize        = AlignToWord(recordSizeInBytes);
+        size_t SlotsWithoutSlotTracking = Page::PageDataSize / AlignedRecordSize;
+        size_t SlotTrackingCost         = AlignToWord(sizeof(uint32_t) * GetSlotUInt32s(SlotsWithoutSlotTracking));
+        size_t SlotsWithSlotTracking    = (Page::PageDataSize - SlotTrackingCost) / AlignedRecordSize;
+        return SlotsWithSlotTracking;
+    }
+
     static constexpr size_t SlotCount = GetSlotCapacity(RecordSize);
 
     PageForRecord(PageRuntime& page) : _page(page)
     {
-        static_assert((sizeof(*_slots) + sizeof(Page::Header) + sizeof(*_records)) <= Page::PageSizeInBytes);
+
+        static_assert((sizeof(*_slots) + sizeof(*_records)) <= Page::PageSizeInBytes);
 
         _slots   = reinterpret_cast<decltype(_slots)>(page.RawData().data());
         _records = reinterpret_cast<decltype(_records)>(page.RawData().data() + sizeof(*_slots));
 
         static_assert(sizeof(*_records) == SlotCount * RecordSize);
-        static_assert(sizeof(*_records) + sizeof(*_slots) < Page::PageSizeInBytes);
+        static_assert(sizeof(*_records) + sizeof(*_slots) <= Page::PageSizeInBytes);
 
         while (_page._availableSlot < GetSlotCount() && ValidSlot(_page._availableSlot)) ++_page._availableSlot;
         // TODO unit test
@@ -591,7 +589,7 @@ static constexpr size_t GetSlotCapacityForSharedRec(size_t recordSize)
     // s = 4    : 8192 = 1984 * 4 + 248 + 4 (4 uint8_ts wasted)
     // s = 128  :
     // s = 1024 : 8192 = 7 * 1024 + 1 + 4   (1019 uint8_ts wasted)
-    return (Page::PageSizeInBytes - sizeof(Page::Header)) / (recordSize + 1);
+    return Page::PageDataSize / (recordSize + 1);
     static_assert(sizeof(Page) == Page::PageSizeInBytes);
 }
 
@@ -603,9 +601,8 @@ template <size_t RecordSize> struct PageForSharedRecord
 
     constexpr PageForSharedRecord(PageRuntime& page) : _page(page)
     {
-        static_assert(
-            ((GetSlotCapacityForSharedRec(RecordSize) * RecordSize) + GetSlotCapacityForSharedRec(RecordSize) + sizeof(Page::Header))
-            <= Page::PageSizeInBytes);
+        static_assert((GetSlotCapacityForSharedRec(RecordSize) * RecordSize) + GetSlotCapacityForSharedRec(RecordSize)
+                      <= Page::PageDataSize);
 
         _pageIndex = page._pageIndex;
         // auto& buffer = page->_page.buffer;
@@ -614,7 +611,6 @@ template <size_t RecordSize> struct PageForSharedRecord
         static_assert(sizeof(*_records) == SlotCount * RecordSize);
         static_assert(sizeof(*_records) + sizeof(*_refCounts) < Page::PageSizeInBytes);
         while (_page._availableSlot < GetSlotCount() && ValidSlot(_page._availableSlot)) ++_page._availableSlot;
-
     }
 
     CLASS_DELETE_COPY_AND_MOVE(PageForSharedRecord);
@@ -674,11 +670,29 @@ template <size_t RecordSize> struct PageForSharedRecord
 
 template <> struct PageForRecord<0>
 {
+
+    static constexpr size_t GetSlotCapacity(size_t recordSizeInBytes)
+    {
+        // n slots need n/8 uint8_ts.
+        // n * s + n/8 + 4 = 8192
+        // n = ((8192 - 4) * 8) / (8s + 1);
+        // s = 1    : 8192 = 7278 * 1 + 910 + 4 (0 uint8_ts wasted)
+        // s = 4    : 8192 = 1984 * 4 + 248 + 4 (4 uint8_ts wasted)
+        // s = 128  :
+        // s = 1024 : 8192 = 7 * 1024 + 1 + 4   (1019 uint8_ts wasted)
+        size_t AlignedRecordSize        = AlignToWord(recordSizeInBytes);
+        size_t SlotsWithoutSlotTracking = (Page::PageDataSize - 2) / AlignedRecordSize;
+        size_t SlotTrackingCost         = AlignToWord(sizeof(uint32_t) * GetSlotUInt32s(SlotsWithoutSlotTracking));
+        size_t SlotsWithSlotTracking    = (Page::PageDataSize - 2 - SlotTrackingCost) / AlignedRecordSize;
+        return SlotsWithSlotTracking;
+    }
+
     void _SetRecordSize(uint16_t recordSize)
     {
         _recordSize = recordSize;
         _slots      = reinterpret_cast<decltype(_slots)>(_page.RawData().data() + sizeof(uint16_t));
-        _records    = reinterpret_cast<decltype(_records)>(_page.RawData().data() + sizeof(uint16_t) + GetSlotCapacity(recordSize));
+        _records    = reinterpret_cast<decltype(_records)>(_page.RawData().data() + sizeof(uint16_t)
+                                                        + (GetSlotUInt32s(GetSlotCapacity(recordSize)) * 4));
         while (_page._availableSlot < GetSlotCount() && ValidSlot(_page._availableSlot)) ++_page._availableSlot;
     }
 
@@ -702,6 +716,7 @@ template <> struct PageForRecord<0>
     {
         assert(ValidSlot(slot));
         auto rec = _records + (slot * _recordSize);
+        assert(((rec + _recordSize) - _page.RawData().data()) <= Page::PageDataSize);
         return SlotObj{slot, {rec, _recordSize}};
     }
 
@@ -709,6 +724,7 @@ template <> struct PageForRecord<0>
     {
         assert(ValidSlot(slot));
         auto rec = _records + (slot * _recordSize);
+        assert(((rec + _recordSize) - _page.RawData().data()) <= Page::PageDataSize);
         return SlotView{slot, {rec, _recordSize}};
     }
 
@@ -730,7 +746,6 @@ template <> struct PageForRecord<0>
     {
         _recordSize = *reinterpret_cast<uint16_t*>(page.RawData().data());
         if (_recordSize != 0) { _SetRecordSize(_recordSize); }
-
     }
 
     CLASS_DELETE_COPY_AND_MOVE(PageForRecord);
