@@ -315,7 +315,7 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz> : Stencil
     template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
     {
         //<Field>
-        lambda(Fields::Field_Field_zzNamezz, obj.zzNamezz);
+        lambda(Fields::Field_zzNamezz, obj.zzNamezz);
         //</Field>
     }
 };
@@ -324,7 +324,7 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz> : Stencil
 
 //<Interface>
 //<InterfaceFunction>
-template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args&>
+template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args>
 {
     //<Args_Field>
 
@@ -346,14 +346,6 @@ template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz_zzIn
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using ThisType = zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args;
-    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
-    {
-        return true
-               //<Args_Field>
-               && Stencil::AreEqual(obj1.get_carg_zzNamezz(), obj2.get_carg_zzNamezz())
-            //</Args_Field>
-            ;
-    }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args
                                                                      //<Args_Field Join=','>
@@ -361,6 +353,19 @@ template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz_zzIn
                                                                  //</Args_Field>
                                                                  >;
 };
+
+template <>
+Stencil::Comparator<zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args,
+                    zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args>{
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2){
+        return true
+               //<Args_Field>
+               && Stencil::AreEqual(obj1.get_carg_zzNamezz(), obj2.get_carg_zzNamezz())
+        //</Args_Field>
+        ;
+}
+}
+;
 //</InterfaceFunction>
 
 template <> struct Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz>

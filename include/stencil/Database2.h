@@ -1477,24 +1477,8 @@ template <typename TDb, typename TObj> struct ObjectT
 template <typename TObj> struct EncryptedT
 {};
 }    // namespace Database2
-#if 0
-template <typename T> struct Stencil::TypeTraits<Database2::ChildRef<T>&>
+
+template <typename T> struct Stencil::TypeTraits<Database2::ChildRef<T>>
 {
-    static constexpr DataType         Type() { return DataType::Value; }
-    static constexpr std::string_view Name() { return "Database2::ChildRef"; }
-    static std::string                Description() { return "Database2::ChildRef"; }
-    static std::string_view           AttributeValue(const std::string_view& /*key*/) { throw std::logic_error("TODO"); }
-
-    template <typename T1, typename T2> static bool AreEqual(T1 const& obj1, T2 const& obj2) { return obj1 == obj2; }
-
-    struct Handler : public ::ReflectionBase::IDataTypeHandler<DataType::Value>
-    {
-        virtual shared_string Description() const override { return AttributeValue("Description"); }
-        virtual shared_string AttributeValue(const std::string_view& /*key*/) const override { throw std::logic_error("TODO"); }
-        virtual shared_string Name() const override { return "Database2::ChildRef"; }
-
-        virtual void  Write(void* /*ptr*/, Value const& /*value*/) const override { throw std::logic_error("TODO"); }
-        virtual Value Read(void* /*ptr*/) const override { throw std::logic_error("TODO"); }
-    };
+    using Categories = std::tuple<Stencil::Category::Primitive>;
 };
-#endif

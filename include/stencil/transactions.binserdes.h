@@ -25,13 +25,12 @@ struct BinaryTransactionSerDes
                     if (mutator == 3) { _DeserializeTo(subtxn, writer); }
                     else if (mutator == 0)
                     {
-                        Visitor<ObjType const> visitor(obj);
-                        Stencil::SerDes<ProtocolBinary>::Serialize(visitor, writer.strm());
+                        // Visitor<ObjType const> visitor(obj);
+                        Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer.strm(), obj);
                     }
                     else if (mutator == 1)
                     {
-                        Visitor<ObjType const> visitor(obj);
-                        Stencil::BinarySerDes::Serialize(visitor, writer.strm());
+                        Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer.strm(), obj);
                     }
                     else if (mutator == 2)
                     {
@@ -56,8 +55,10 @@ struct BinaryTransactionSerDes
 
                     if (mutator == 0)
                     {
-                        Visitor<ObjType const> visitor(obj);
-                        Stencil::BinarySerDes::Serialize(visitor, writer.strm());
+                        //Visitor<ObjType const> visitor(obj);
+                        //Stencil::BinarySerDes::Serialize(visitor, writer.strm());
+                        Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer.strm(), obj);
+
                     }
                     else if (mutator == 3)
                     {
@@ -99,7 +100,7 @@ struct BinaryTransactionSerDes
             typename Stencil::Mutators<T>::ListObj obj;
 
             Visitor<decltype(obj)> visitor(obj);
-            BinarySerDes::Deserialize(visitor, reader.strm());
+            Stencil::SerDes<decltype(obj), ProtocolBinary>::Read(obj, reader.strm());
             txn.add(std::move(obj));
         }
         static void Remove(Transaction<T>& txn, size_t listindex) { txn.remove(listindex); }

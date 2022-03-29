@@ -22,13 +22,14 @@ template <typename T> struct TimestampedT
     time_point const& LastModified() const { return lastmodified; }
     time_point const& Created() const { return created; }
 
-    void UpdateTimestamp_() { lastmodified = std::chrono::system_clock::now(); }
     void SetLastModified(time_point const& t) { lastmodified = t; }
 
     protected:
     time_point created = std::chrono::system_clock::now();
 #endif
     public:
+    void UpdateTimestamp_() { lastmodified = std::chrono::system_clock::now(); }
+
     Timestamp lastmodified;
 };
 

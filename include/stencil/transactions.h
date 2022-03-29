@@ -169,12 +169,12 @@ template <typename ListObjType> struct Stencil::TransactionT<std::vector<ListObj
 
     template <typename TLambda> auto Visit(size_t fieldIndex, TLambda&& lambda)
     {
-        Visitor<TObj>::VisitKey(Obj(), fieldIndex, [&](auto index, auto& obj) {
-            RecordMutation_edit_(index);
+        Visitor<TObj>::VisitKey(Obj(), fieldIndex, [&](auto& obj) {
+            RecordMutation_edit_(fieldIndex);
             auto subtxnptr = std::make_unique<Transaction<std::remove_cvref_t<decltype(obj)>>>(obj);
-            lambda(index, *subtxnptr);
+            lambda(fieldIndex, *subtxnptr);
             // TODO : only do it if there was a change;
-            _edited.insert(std::make_pair(index, std::move(subtxnptr)));
+            _edited.insert(std::make_pair(fieldIndex, std::move(subtxnptr)));
         });
     }
 

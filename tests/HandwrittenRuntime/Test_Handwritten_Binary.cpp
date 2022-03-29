@@ -21,10 +21,10 @@ template <typename T> static void RunTestCase(TestCase const& tc, std::vector<st
     {
 
         auto obj1     = Stencil::Json::Parse<T>(tc.json);
-        auto binDump1 = Stencil::SerDes<Stencil::ProtocolBinary>::Serialize(obj1);
-        auto obj2     = Stencil::SerDes<Stencil::ProtocolBinary, T>::Deserialize(binDump);
+        auto binDump1 = Stencil::SerDes<T, Stencil::ProtocolBinary>::Serialize(obj1);
+        auto obj2     = Stencil::SerDes<T, Stencil::ProtocolBinary>::Deserialize(binDump1);
         auto jstr2    = Stencil::Json::Stringify<T>(obj2);
-        auto binDump2 = Stencil::SerDes<Stencil::ProtocolBinary>::Serialize(obj2);
+        auto binDump2 = Stencil::SerDes<T, Stencil::ProtocolBinary>::Serialize(obj2);
 
         REQUIRE(tc.json == jstr2);
         REQUIRE(binDump1 == binDump2);

@@ -11,7 +11,7 @@ struct TestReplay
 
     void Replay(std::string_view const& txndata, std::string_view const& expectedIn = {})
     {
-        Stencil::Transaction<Transactions::Object::Data> txn(obj1);
+        Stencil::Transaction<Transactions::Object> txn(obj1);
         Stencil::StringTransactionSerDes::Apply(txn, txndata);
         snapshots.push_back(Stencil::Json::Stringify(obj1));
         auto expected = expectedIn.size() == 0 ? txndata : expectedIn;
@@ -51,13 +51,13 @@ struct TestReplay
     std::vector<std::string> snapshots;
     std::vector<std::string> deltatxns;
 
-    Transactions::Object::Data obj1;
-    Transactions::Object::Data obj2;
+    Transactions::Object obj1;
+    Transactions::Object obj2;
 
     std::ofstream binary_txns     = std::ofstream("Transactions.bin", std::ios::binary);
     std::ofstream binary_acc_txns = std::ofstream("Transactions.Accumulated.bin", std::ios::binary);
 
-    Stencil::Transaction<Transactions::Object::Data> txn2;
+    Stencil::Transaction<Transactions::Object> txn2;
 };
 
 TEST_CASE("Transactions", "[transaction]")
@@ -97,14 +97,14 @@ TEST_CASE("Transactions", "[transaction]")
         REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(replay.obj2));
     }
     {
-        Transactions::Object::Data                       obj3;
-        Stencil::Transaction<Transactions::Object::Data> txn3(obj3);
+        Transactions::Object                       obj3;
+        Stencil::Transaction<Transactions::Object> txn3(obj3);
         for (auto& c : replay.changes) { Stencil::StringTransactionSerDes::Apply(txn3, c); }
         REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
     }
     {
-        Transactions::Object::Data                       obj3;
-        Stencil::Transaction<Transactions::Object::Data> txn3(obj3);
+        Transactions::Object                       obj3;
+        Stencil::Transaction<Transactions::Object> txn3(obj3);
         Stencil::StringTransactionSerDes::Apply(txn3, replay.deltatxns.back());
         REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
     }
@@ -114,8 +114,8 @@ TEST_CASE("Transactions", "[transaction]")
 
     // And now binary streams
     {
-        Transactions::Object::Data                       obj3;
-        Stencil::Transaction<Transactions::Object::Data> txn3(obj3);
+        Transactions::Object                       obj3;
+        Stencil::Transaction<Transactions::Object> txn3(obj3);
 
         std::ifstream istrm("Transactions.bin", std::ios::binary);
         istrm.peek();
@@ -128,8 +128,8 @@ TEST_CASE("Transactions", "[transaction]")
         REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
     }
     {
-        Transactions::Object::Data                       obj3;
-        Stencil::Transaction<Transactions::Object::Data> txn3(obj3);
+        Transactions::Object                       obj3;
+        Stencil::Transaction<Transactions::Object> txn3(obj3);
 
         std::ifstream istrm("Transactions.LastAccumulated.bin", std::ios::binary);
         Stencil::BinaryTransactionSerDes::Apply(txn3, istrm);
@@ -147,51 +147,51 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
 
     SECTION("Auto Update On Assign", "Timestamp should automatically update when a field value is assigned")
     {
-        Transactions::Object::Data obj1;
+        Transactions::Object obj1;
 
-        auto t1 = obj1.obj1().LastModified();
+        auto t1 = obj1.obj1.lastmodified;
         auto t2 = t1;
         auto t3 = t1;
         auto t4 = t1;
         {
             // Update only on flush
             // Update on sub-struct edit
-            Stencil::Transaction<Transactions::Object::Data> txn(obj1);
+            Stencil::Transaction<Transactions::Object> txn(obj1);
             txn.obj1().set_val1(1000);
-            t2 = obj1.obj1().LastModified();
+            t2 = obj1.obj1.lastmodified;
             txn.Flush();
 
-            t3 = obj1.obj1().LastModified();
-            t4 = obj1.LastModified();
+            t3 = obj1.obj1.lastmodified;
+            t4 = obj1.lastmodified;
             REQUIRE(t1 == t2);
             REQUIRE(t1 < t3);
             REQUIRE(t1 < t4);
         }
         {
             // No update on false edits
-            Stencil::Transaction<Transactions::Object::Data> txn(obj1);
+            Stencil::Transaction<Transactions::Object> txn(obj1);
             txn.obj1().set_val1(1000);
-            t4 = obj1.obj1().LastModified();
+            t4 = obj1.obj1.lastmodified;
             txn.Flush();
             REQUIRE(t3 == t4);
         }
         {
             // List edits
-            t2 = obj1.LastModified();
-            Stencil::Transaction<Transactions::Object::Data> txn(obj1);
-            Transactions::ListObject::Data                   lobj1, lobj2;
+            t2 = obj1.lastmodified;
+            Stencil::Transaction<Transactions::Object> txn(obj1);
+            Transactions::ListObject                   lobj1, lobj2;
             lobj1.set_value(100);
             txn.list1().add_listobj(std::move(lobj1));
             txn.Flush();
-            t3 = obj1.LastModified();
+            t3 = obj1.lastmodified;
             REQUIRE(t2 < t3);
             txn.list1().edit_listobj(0).set_value(200);
             txn.Flush();
-            t4 = obj1.LastModified();
+            t4 = obj1.lastmodified;
             REQUIRE(t3 < t4);
             txn.Flush();
             // TODO : Bugfix
-            // REQUIRE(t4 == obj1.LastModified());
+            // REQUIRE(t4 == obj1.lastmodified);
         }
     }
 }
@@ -200,9 +200,9 @@ TEST_CASE("Transactions_Bugs", "[transaction]")
 {
     SECTION("List-Edit", "Object sublist edit must propagate up as object edits too")
     {
-        Transactions::Object::Data obj1;
+        Transactions::Object obj1;
         obj1.list1().listobj().push_back({});
-        Stencil::Transaction<Transactions::Object::Data> txn(obj1);
+        Stencil::Transaction<Transactions::Object> txn(obj1);
         txn.list1().edit_listobj(0).obj1().set_val1(1);
         txn.Flush();
         REQUIRE(txn.list1().IsChanged());

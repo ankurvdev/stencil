@@ -30,7 +30,7 @@ TEST_CASE("ObservableProps", "[ObservableProps]")
             REQUIRE(data.IsValid(FieldIndex::Field_climb));
             REQUIRE(ctx.IsFieldChanged(FieldIndex::Field_climb));
             REQUIRE(ctx.CountFieldsChanged() == 1);
-#if TODO1
+#ifdef TODO1
             for (unsigned i = 1; i <= Avid::GPS::FieldCount(); i++)
             {
                 if (ctx.IsFieldChanged(static_cast<Avid::GPS::FieldIndex>(i)))

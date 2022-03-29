@@ -7,11 +7,6 @@
 #include <chrono>
 #include <compare>
 
-template <> struct Stencil::TypeTraits<uuids::uuid>
-{
-    using Categories = std::tuple<Stencil::Category::Primitive>;
-};
-
 template <typename T> struct UuidObjectT;
 
 template <typename T> struct UuidBasedId
@@ -52,4 +47,14 @@ template <typename T> struct UuidObjectT
     using Id = UuidBasedId<T>;
     UuidObjectT() {}
     Id id = Id::Create();
+};
+
+template <> struct Stencil::TypeTraits<uuids::uuid>
+{
+    using Categories = std::tuple<Stencil::Category::Primitive>;
+};
+
+template <typename T> struct Stencil::TypeTraits<UuidBasedId<T>>
+{
+    using Categories = std::tuple<Stencil::Category::Primitive>;
 };

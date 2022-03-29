@@ -206,6 +206,7 @@ if (BUILD_TESTING)
         #tests/CodegenRuntime/Test_WebService_Autogen.cpp
     )
     add_dependencies(codegen_runtime_tests codegen)
+    target_add_resource(codegen_runtime_tests testdata ${resfiles} ${pidlfiles})
 
     target_link_libraries(codegen_runtime_tests PRIVATE libstencil dtl::dtl Catch2::Catch2 rapidjson cpp_httplib::cpp_httplib fmt)
     target_include_directories(codegen_runtime_tests PRIVATE ${CMAKE_CURRENT_BINARY_DIR} src include tests)
