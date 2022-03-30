@@ -1,6 +1,7 @@
 #pragma once
-#include <protocol.h>
-#include <typetraits.h>
+#include "primitives64bit.h"
+#include "protocol.h"
+#include "typetraits.h"
 
 #include <span>
 #include <sstream>
@@ -128,6 +129,7 @@ struct Writer
 
 struct Reader
 {
+    Reader(Writer& w) : _it(std::span<const uint8_t>(w._buffer).begin()) {}
     Reader(ByteIt const& itbeg) : _it(itbeg) {}
 
     template <typename TVal, std::enable_if_t<std::is_trivial<TVal>::value, bool> = true> TVal read()
@@ -155,15 +157,159 @@ struct Reader
 
 struct ProtocolBinary
 {
-    using InType  = std::span<const uint8_t>;
-    using OutType = std::vector<uint8_t>;
+    using InType  = Reader;
+    using OutType = Writer;
 };
 
-template <typename T> struct SerDes<T, ProtocolBinary>
+template <ConceptIndexable T> struct SerDes<T, ProtocolBinary>
 {
-    template <typename Context> static auto Write(Context& /*ctx*/, T const& /*obj*/) { TODO(""); }
+    template <typename Context> static auto Write(Context& ctx, T const& obj)
+    {
+        Visitor<T>::VisitAllIndicies(obj, [&](auto const& key, auto const& val) {
+            SerDes<std::remove_cvref_t<decltype(key)>, ProtocolBinary>::Write(ctx, key);
+            SerDes<std::remove_cvref_t<decltype(val)>, ProtocolBinary>::Write(ctx, val);
+        });
+    }
 
-    template <typename Context> static auto Read(T& /*obj*/, Context& /*ctx*/) { TODO(""); }
+    template <typename Context> static auto Read(T& /*obj*/, Context& /*ctx*/)
+    {
+        TODO("");
+        /*  Visitor<T>::VisitAllIndicies(obj, [&](auto& key, auto& val) {
+            SerDes<std::remove_cvref_t<decltype(key)>, ProtocolBinary>::Read(key, ctx);
+            SerDes<std::remove_cvref_t<decltype(val)>, ProtocolBinary>::Read(val, ctx);
+        });*/
+    }
+};
+
+template <ConceptIterable T> struct SerDes<T, ProtocolBinary>
+{
+    template <typename Context> static auto Write(Context& ctx, T const& obj)
+    {
+        Visitor<T>::VisitAllIndicies(
+            obj, [&](auto& /*key*/, auto& obj) { SerDes<std::remove_cvref_t<decltype(obj)>, ProtocolBinary>::Write(ctx, obj); });
+    }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        Visitor<T>::VisitAllIndicies(
+            obj, [&](auto& /*key*/, auto& obj) { SerDes<std::remove_cvref_t<decltype(obj)>, ProtocolBinary>::Read(obj, ctx); });
+    }
+};
+
+template <ConceptPrimitives64Bit T> struct SerDes<T, ProtocolBinary>
+{
+    template <typename Context> static auto Write(Context& ctx, T const& obj) { ctx << Primitives64Bit::Traits<T>::Repr(obj); }
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        obj = Primitives64Bit::Traits<T>::Convert(ctx.read<decltype(Primitives64Bit::Traits<T>::Repr(obj))>());
+    }
+};
+
+template <ConceptEnum T> struct SerDes<T, ProtocolBinary>
+{
+    template <typename Context> static auto Write(Context& ctx, T const& obj) { ctx << static_cast<uint32_t>(obj); }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx) { obj = static_cast<T>(ctx.read<uint32_t>()); }
+};
+
+template <typename T> struct SerDes<shared_stringT<T>, ProtocolBinary>
+{
+    template <typename Context> static auto Write(Context& ctx, T const& obj) { ctx << obj; }
+    template <typename Context> static auto Read(T& obj, Context& ctx) { obj = ctx.read<T>(); }
 };
 
 }    // namespace Stencil
+#ifdef TODO1
+struct BinarySerDes
+{
+    template <typename T> static void Serialize(Stencil::Visitor<T const>& visitor, std::ostream& strm)
+    {
+        Stencil::OStrmWriter writer(strm);
+        switch (visitor.GetDataTypeHint())
+        {
+        case Stencil::DataType::FixedSize:
+        {
+        }
+        break;
+        case Stencil::DataType::Blob:
+        {
+        }
+        break;
+        case Stencil::DataType::Dictionary:
+        {
+            for (size_t i = 0; visitor.TrySelect(i); i++)
+            {
+                Serialize(visitor, writer.strm());
+                visitor.GoBackUp();
+            }
+        }
+        break;
+        case Stencil::DataType::List:
+        {
+            for (uint32_t i = 0; visitor.TrySelect(i); i++)
+            {
+                writer << i + 1;
+                Serialize(visitor, writer.strm());
+                visitor.GoBackUp();
+            }
+            writer << uint32_t{0};
+        }
+        break;
+        case Stencil::DataType::Invalid: [[fallthrough]]; throw std::runtime_error("Unsupported Data Type");
+        }
+    }
+
+    template <typename TVisitor> static void Deserialize(TVisitor& visitor, std::istream& istrm)
+    {
+        Stencil::IStrmReader reader(istrm);
+
+        switch (visitor.GetDataTypeHint())
+        {
+        case Stencil::DataType::Value:
+        {
+            auto valType = static_cast<Value::Type>(reader.template read<uint8_t>());
+            switch (valType)
+            {
+            case Value::Type::Double: visitor.SetValue(Value{reader.template read<double>()}); break;
+            case Value::Type::Empty: TODO(); break;
+            case Value::Type::Signed: visitor.SetValue(Value{reader.template read<int64_t>()}); break;
+            case Value::Type::String:
+                // TODO : See if this can be removed and renamed Value to Value64Bit
+                // Value::Type::String -> TrivialConstArray
+                visitor.SetValue(Value{reader.read_shared_string()});
+                break;
+            case Value::Type::Unsigned: visitor.SetValue(Value{reader.template read<uint64_t>()}); break;
+            case Value::Type::Unknown: throw std::logic_error("Unknown Value Type");
+            }
+        }
+        break;
+        case Stencil::DataType::List:
+        {
+            auto index = reader.read<uint32_t>();
+            for (size_t i = 0; index != 0; i++)
+            {
+                visitor.Select(i);
+                Deserialize(visitor, reader.strm());
+                visitor.GoBackUp();
+                index = reader.read<uint32_t>();
+            }
+            break;
+        }
+        case Stencil::DataType::Object:
+        {
+
+            for (size_t i = 0; visitor.TrySelect(i); i++)
+            {
+                Deserialize(visitor, reader.strm());
+                visitor.GoBackUp();
+            }
+        }
+        break;
+        case Stencil::DataType::Enum: TODO();
+        case Stencil::DataType::Variant: TODO();
+        case Stencil::DataType::Invalid: [[fallthrough]];
+        case Stencil::DataType::Unknown: throw std::runtime_error("Unsupported Data Type");
+        }
+    }
+};
+#endif

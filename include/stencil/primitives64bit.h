@@ -229,7 +229,7 @@ template <typename TClock> struct Primitives64Bit::Traits<std::chrono::time_poin
     static uint64_t       Repr(time_point const& val)
     {
         Primitives64Bit obj;
-        Assign(obj, val);
+        obj._uVal = static_cast<uint64_t>(val.time_since_epoch().count());
         return obj._uVal;
     }
 };
