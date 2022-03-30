@@ -51,7 +51,7 @@ template <typename T> static void RunTestCases(std::vector<TestCase> cases, std:
     // CompareFileAgainstResource(logfname, reffname.string());
 }
 
-TEST_CASE("Json", "[Json]")
+TEST_CASE("Binary", "[Protocol]")
 {
     SECTION("TestObj") { RunTestCases<TestObj>({}, "TestObj"); }
 

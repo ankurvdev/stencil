@@ -1,7 +1,9 @@
 # Runtime
+- Binary Protocol for Transactions and Mutators
+- Transactions
+
 
 - Protocol
-  - Binary Protocol for Transactions and Mutators
   - Reader/Writer/Streams. Ability to allow protocol to dictate whats the preferred medium
     - Sometimes reading from buffers is faster than streams due to allowing random access and lookahead
     - List Examples
@@ -24,7 +26,6 @@
 TODOs
 
 9. ObjectStore
-10. Transactions
 11. WebService
 
 OpenQuestions

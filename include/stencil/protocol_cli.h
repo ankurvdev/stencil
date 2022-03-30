@@ -73,7 +73,7 @@ concept ConceptHasProtocolString = is_specialized<Stencil::SerDes<T, Stencil::Pr
 
 static_assert(ConceptHasProtocolString<std::chrono::time_point<std::chrono::system_clock>>, "Chrono should be defined");
 static_assert(ConceptHasProtocolString<uint64_t>, "uint64_t should be defined");
-//static_assert(!ConceptHasProtocolString<std::vector<std::string>>, "void");
+static_assert(!ConceptHasProtocolString<std::vector<std::string>>, "void");
 static_assert(ConceptHasProtocolString<shared_string>, "shared_string");
 static_assert(ConceptHasProtocolString<shared_wstring>, "shared_wstring");
 static_assert(!ConceptIterable<shared_string>, "shared_string");

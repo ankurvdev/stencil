@@ -26,11 +26,14 @@ struct ProtocolString
     using OutType = std::string;
 };
 
+#if 0
+// Absense of ProtocolString is being used as constexpr detection for stuff
 template <typename T> struct SerDes<T, ProtocolString>
 {
     template <typename Context> static auto Write(Context& /*ctx*/, T const& /*obj*/) { TODO(""); }
     template <typename Context> static auto Read(T& /*obj*/, Context& /*ctx*/) { TODO(""); }
 };
+#endif
 
 template <ConceptEnumPack T> struct SerDes<T, ProtocolString>
 {
