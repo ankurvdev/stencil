@@ -131,9 +131,9 @@ template <typename TObj> struct Stencil::TransactionT<TObj, std::enable_if_t<Ste
     std::bitset<64>              _edittracker;      // TODO1
 };
 
-template <typename ListObjType> struct Stencil::TransactionT<std::vector<ListObjType>>
+template <Stencil::ConceptIterable TObj> struct Stencil::TransactionT<TObj>
 {
-    using TObj = std::vector<ListObjType>;
+    using ListObjType = typename TObj::value_type;
 
     TransactionT(TObj& obj) : _ref(std::ref(obj)) {}
     ~TransactionT() {}

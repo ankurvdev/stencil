@@ -26,6 +26,12 @@ struct ProtocolString
     using OutType = std::string;
 };
 
+template <typename T> struct SerDes<T, ProtocolString>
+{
+    template <typename Context> static auto Write(Context& /*ctx*/, T const& /*obj*/) { TODO(""); }
+    template <typename Context> static auto Read(T& /*obj*/, Context& /*ctx*/) { TODO(""); }
+};
+
 template <ConceptEnumPack T> struct SerDes<T, ProtocolString>
 {
     template <typename Context> static auto Write(Context& /*ctx*/, T const& /*obj*/) { TODO(""); }

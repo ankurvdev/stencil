@@ -12,8 +12,11 @@
 
 #include "Database2.h"
 #include "cliserdes.h"
-#include "json_parse.h"
-#include "json_stringify.h"
+#include "protocol_binary.h"
+#include "protocol_cli.h"
+#include "protocol_json.h"
+#include "protocol_string.h"
+
 #if defined USE_CPP_HTTPLIB
 #include "WebService.h"
 #endif

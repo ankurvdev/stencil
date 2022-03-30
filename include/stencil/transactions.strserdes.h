@@ -88,7 +88,7 @@ struct StringTransactionSerDes
         static void Add(Transaction<T>& txn, size_t /* listindex */, std::string_view const& rhs)
         {
             typename Stencil::Mutators<T>::ListObj obj;
-            Stencil::SerDes<decltype(obj), ProtocolJsonVal>(obj, rhs);
+            Stencil::SerDes<decltype(obj), ProtocolJsonVal>::Read(obj, rhs);
             txn.add(std::move(obj));
         }
         static void Remove(Transaction<T>& txn, size_t listindex) { txn.remove(listindex); }
@@ -120,9 +120,6 @@ struct StringTransactionSerDes
                     Visitor<T>::VisitKey(txn.Obj(), key, [&](auto& obj) {
                         txn.MarkFieldAssigned_(fieldType);
                         Stencil::SerDes<std::remove_cvref_t<decltype(obj)>, ProtocolJsonVal>::Read(obj, rhs);
-                        // std::string        str(rhs);
-                        // std::istringstream istr(str);
-                        // JsonSerDes::Deserialize(visitor, istr);
                     });
                 });
 

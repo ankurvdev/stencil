@@ -99,7 +99,6 @@ struct BinaryTransactionSerDes
         {
             typename Stencil::Mutators<T>::ListObj obj;
 
-            Visitor<decltype(obj)> visitor(obj);
             Stencil::SerDes<decltype(obj), ProtocolBinary>::Read(obj, reader.strm());
             txn.add(std::move(obj));
         }
@@ -160,9 +159,9 @@ struct BinaryTransactionSerDes
                 if (mutator == 0)    // Set
                 {
                     txn.Visit(fieldEnum, [&](auto /* fieldType */, auto& /* subtxn */) {
-                        Visitor<T>::VisitKey(txn.Obj(), fieldIndex - 1, [&](auto& obj) {
+                        Visitor<T>::VisitKey(txn.Obj(), fieldEnum, [&](auto& obj) {
                             txn.MarkFieldAssigned_(fieldEnum);
-                            Stencil::SerDes<T, ProtocolBinary>::Read(obj, reader.strm());
+                            Stencil::SerDes<std::remove_cvref_t<decltype(obj)>, ProtocolBinary>::Read(obj, reader);
                             // BinarySerDes::Deserialize(visitor, reader.strm());
                         });
                     });

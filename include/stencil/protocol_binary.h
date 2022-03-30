@@ -159,4 +159,11 @@ struct ProtocolBinary
     using OutType = std::vector<uint8_t>;
 };
 
+template <typename T> struct SerDes<T, ProtocolBinary>
+{
+    template <typename Context> static auto Write(Context& /*ctx*/, T const& /*obj*/) { TODO(""); }
+
+    template <typename Context> static auto Read(T& /*obj*/, Context& /*ctx*/) { TODO(""); }
+};
+
 }    // namespace Stencil
