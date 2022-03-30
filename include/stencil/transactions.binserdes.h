@@ -1,4 +1,5 @@
 #pragma once
+#include "protocol_binary.h"
 #include "serdes.h"
 #include "transactions.h"
 
@@ -55,10 +56,9 @@ struct BinaryTransactionSerDes
 
                     if (mutator == 0)
                     {
-                        //Visitor<ObjType const> visitor(obj);
-                        //Stencil::BinarySerDes::Serialize(visitor, writer.strm());
+                        // Visitor<ObjType const> visitor(obj);
+                        // Stencil::BinarySerDes::Serialize(visitor, writer.strm());
                         Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer.strm(), obj);
-
                     }
                     else if (mutator == 3)
                     {
@@ -155,16 +155,16 @@ struct BinaryTransactionSerDes
             for (auto mutator = reader.read<uint8_t>(); mutator != std::numeric_limits<uint8_t>::max(); mutator = reader.read<uint8_t>())
             {
                 auto fieldIndex = reader.read<uint32_t>();
-
-                using FieldIndex = typename T::FieldIndex;
-                auto fieldEnum   = static_cast<FieldIndex>(fieldIndex);
+                using TKey      = typename Stencil::TypeTraitsForIndexable<T>::Key;
+                auto fieldEnum  = static_cast<TKey>(fieldIndex);
                 if (mutator == 0)    // Set
                 {
                     txn.Visit(fieldEnum, [&](auto /* fieldType */, auto& /* subtxn */) {
-                        Visitor<T> visitor(txn.Obj());
-                        visitor.Select(fieldIndex - 1);
-                        txn.MarkFieldAssigned_(fieldEnum);
-                        BinarySerDes::Deserialize(visitor, reader.strm());
+                        Visitor<T>::VisitKey(txn.Obj(), fieldIndex - 1, [&](auto& obj) {
+                            txn.MarkFieldAssigned_(fieldEnum);
+                            Stencil::SerDes<T, ProtocolBinary>::Read(obj, reader.strm());
+                            // BinarySerDes::Deserialize(visitor, reader.strm());
+                        });
                     });
 
                     // txn.Visit(fieldname, [&](auto fieldType, auto& subtxn) { _ApplyJson(subtxn , fieldType, rhs); });

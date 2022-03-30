@@ -4,6 +4,13 @@
 
 namespace Stencil
 {
+
+struct ProtocolJsonVal
+{
+    using InType  = std::string_view;
+    using OutType = std::string;
+};
+
 template <size_t N> struct SerDes<std::array<char, N>, ProtocolJsonVal>
 {
     using TObj = std::array<char, N>;

@@ -115,25 +115,28 @@ struct StringTransactionSerDes
             if (mutator == 0)    // Set
             {
                 txn.Visit(fieldname, [&](auto fieldType, auto& /* subtxn */) {
-                    Visitor<T> visitor(txn.Obj());
-                    visitor.Select(fieldname);
-                    txn.MarkFieldAssigned_(fieldType);
-                    std::string        str(rhs);
-                    std::istringstream istr(str);
-                    JsonSerDes::Deserialize(visitor, istr);
+                    using TKey = Stencil::TypeTraitsForIndexable<T>::Key;
+                    auto key   = Stencil::Deserialize<TKey, Stencil::ProtocolString>(fieldname);
+                    Visitor<T>::VisitKey(txn.Obj(), key, [&](auto& obj) {
+                        txn.MarkFieldAssigned_(fieldType);
+                        Stencil::SerDes<std::remove_cvref_t<decltype(obj)>, ProtocolJsonVal>::Read(obj, rhs);
+                        // std::string        str(rhs);
+                        // std::istringstream istr(str);
+                        // JsonSerDes::Deserialize(visitor, istr);
+                    });
                 });
 
                 // txn.Visit(fieldname, [&](auto fieldType, auto& subtxn) { _ApplyJson(subtxn , fieldType, rhs); });
             }
             else if (mutator == 1)    // List Add
             {
-                txn.Visit(fieldname,
-                          [&](auto /* fieldType */, auto& subtxn) { _ListAdd(subtxn, Value(mutatordata).convert<size_t>(), rhs); });
+                auto listval = Stencil::Deserialize<size_t, Stencil::ProtocolString>(mutatordata);
+                txn.Visit(fieldname, [&](auto /* fieldType */, auto& subtxn) { _ListAdd(subtxn, listval, rhs); });
             }
             else if (mutator == 2)    // List remove
             {
-                txn.Visit(fieldname,
-                          [&](auto /* fieldType */, auto& subtxn) { _ListRemove(subtxn, Value(mutatordata).convert<size_t>()); });
+                auto listval = Stencil::Deserialize<size_t, Stencil::ProtocolString>(mutatordata);
+                txn.Visit(fieldname, [&](auto /* fieldType */, auto& subtxn) { _ListRemove(subtxn, listval); });
             }
             else
             {

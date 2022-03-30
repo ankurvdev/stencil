@@ -180,7 +180,7 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
             t2 = obj1.lastmodified;
             Stencil::Transaction<Transactions::Object> txn(obj1);
             Transactions::ListObject                   lobj1, lobj2;
-            lobj1.set_value(100);
+            lobj1.value = 100;
             txn.list1().add_listobj(std::move(lobj1));
             txn.Flush();
             t3 = obj1.lastmodified;
@@ -201,7 +201,7 @@ TEST_CASE("Transactions_Bugs", "[transaction]")
     SECTION("List-Edit", "Object sublist edit must propagate up as object edits too")
     {
         Transactions::Object obj1;
-        obj1.list1().listobj().push_back({});
+        obj1.list1.listobj.push_back({});
         Stencil::Transaction<Transactions::Object> txn(obj1);
         txn.list1().edit_listobj(0).obj1().set_val1(1);
         txn.Flush();

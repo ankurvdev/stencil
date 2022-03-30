@@ -3,16 +3,29 @@
 #include "protocol.h"
 
 SUPPRESS_WARNINGS_START
+#include <fmt/chrono.h>
+#include <fmt/ostream.h>
+SUPPRESS_WARNINGS_END
+
+SUPPRESS_WARNINGS_START
 #pragma warning(disable : 4866)    // left to right evaluation not guaranteed
 #pragma warning(disable : 4623)    // default constructor was implicitly defined as deleted
 #pragma warning(disable : 4626)    // assignment operator was implicitly defined as deleted
 #pragma warning(disable : 5027)    // move assignment operator was implicitly defined as deleted
+#include <charconv>
 #include <chrono>
 #include <date/date.h>
+
 SUPPRESS_WARNINGS_END
 
 namespace Stencil
 {
+struct ProtocolString
+{
+    using InType  = std::string_view;
+    using OutType = std::string;
+};
+
 template <ConceptEnumPack T> struct SerDes<T, ProtocolString>
 {
     template <typename Context> static auto Write(Context& /*ctx*/, T const& /*obj*/) { TODO(""); }

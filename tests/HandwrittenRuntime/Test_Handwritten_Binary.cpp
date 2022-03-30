@@ -1,6 +1,7 @@
 // TODO1
 #include "Test_Handwritten.h"
-#define CATCH_CONFIG_MAIN
+#include "stencil/protocol_binary.h"
+
 #include "TestUtils.h"
 
 struct TestCase
@@ -19,12 +20,11 @@ template <typename T> static void RunTestCase(TestCase const& tc, std::vector<st
     lines.push_back(fmt::format("Testcase[{}]:{}, Input: {}", name, tc.desc, tc.json));
     try
     {
-
-        auto obj1     = Stencil::Json::Parse<T>(tc.json);
-        auto binDump1 = Stencil::SerDes<T, Stencil::ProtocolBinary>::Serialize(obj1);
-        auto obj2     = Stencil::SerDes<T, Stencil::ProtocolBinary>::Deserialize(binDump1);
+        T    obj1     = Stencil::Json::Parse<T>(tc.json);
+        auto binDump1 = Stencil::Serialize<T, Stencil::ProtocolBinary>(obj1);
+        T    obj2     = Stencil::Deserialize<T, Stencil::ProtocolBinary>(binDump1);
         auto jstr2    = Stencil::Json::Stringify<T>(obj2);
-        auto binDump2 = Stencil::SerDes<T, Stencil::ProtocolBinary>::Serialize(obj2);
+        auto binDump2 = Stencil::Serialize<T, Stencil::ProtocolBinary>(obj2);
 
         REQUIRE(tc.json == jstr2);
         REQUIRE(binDump1 == binDump2);

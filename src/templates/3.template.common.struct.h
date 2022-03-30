@@ -260,7 +260,7 @@ template <> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz> : Ste
         //<Field>
         case Fields::Field_zzNamezz: return lambda("zzNamezz", zzNamezz()); return;
         //</Field>
-        case Fields::Field_Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
 
@@ -275,7 +275,7 @@ template <> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz> : Ste
     template <typename TLambda> void VisitAll(TLambda&& lambda)
     {
         //<Field>
-        lambda("zzNamezz", Fields::Field_zzNamezz, zzNamezz, Obj().zzNamezz());
+        lambda("zzNamezz", Fields::Field_zzNamezz, zzNamezz(), Obj().zzNamezz);
         //</Field>
     }
 
@@ -305,9 +305,9 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz> : Stencil
         switch (field)
         {
         //<Field>
-        case Fields::Field_Field_zzNamezz: return lambda(obj.zzNamezz);
+        case Fields::Field_zzNamezz: return lambda(obj.zzNamezz);
         //</Field>
-        case Fields::Field_Invalid: [[fallthrough]];
+        case Fields::Invalid: [[fallthrough]];
         default: throw std::logic_error("Invalid Key");
         }
     }
@@ -493,12 +493,12 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzVariant_Namezz>
         switch (fields)
         {
             //<Field>
-        case Fields::Field_zzNamezz:
+        case Fields::zzNamezz:
             _SetAndVisit<zzFieldType_NativeTypezz>(obj._variant, std::forward<TLambda>(lambda));
             return true;
 
             //</Field>
-        case Fields::Field_Invalid: [[fallthrough]];
+        case Fields::Invalid: [[fallthrough]];
         default: return false;
         }
     }

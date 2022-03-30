@@ -1,7 +1,7 @@
 #pragma once
-#include "protocol.h"
 #include "protocol_string.h"
 #include "typetraits_shared_string.h"
+#include "typetraits_std.h"
 
 #include <chrono>
 #include <span>
@@ -34,8 +34,33 @@ namespace Stencil
  * Indexable
  *
  */
+
+template <typename T> struct ArgsIterator
+{
+    ArgsIterator(T&& ctx) : _ctx(ctx) {}
+
+    std::string_view move_next()
+    {
+        std::string_view retval(_ctx.at(_current));
+        _current++;
+        return retval;
+    }
+
+    bool valid() const { return _current < _ctx.count(); }
+    bool root_ctx_requested() const { return _root_ctx_requested; }
+    void clear_root_ctx_requested() { _root_ctx_requested = false; }
+    void mark_root_ctx_requested() { _root_ctx_requested = true; }
+
+    bool   _root_ctx_requested{false};
+    size_t _current{0};
+    T      _ctx;
+};
+
 struct ProtocolCLI
-{};
+{
+    using InType  = ArgsIterator<std::string_view>;
+    using OutType = std::vector<std::string>;
+};
 
 template <typename, typename = void> struct is_specialized : std::false_type
 {};
@@ -48,7 +73,7 @@ concept ConceptHasProtocolString = is_specialized<Stencil::SerDes<T, Stencil::Pr
 
 static_assert(ConceptHasProtocolString<std::chrono::time_point<std::chrono::system_clock>>, "Chrono should be defined");
 static_assert(ConceptHasProtocolString<uint64_t>, "uint64_t should be defined");
-static_assert(!ConceptHasProtocolString<std::vector<std::string>>, "void");
+//static_assert(!ConceptHasProtocolString<std::vector<std::string>>, "void");
 static_assert(ConceptHasProtocolString<shared_string>, "shared_string");
 static_assert(ConceptHasProtocolString<shared_wstring>, "shared_wstring");
 static_assert(!ConceptIterable<shared_string>, "shared_string");
@@ -348,27 +373,6 @@ template <typename TStrArr> struct SpanStr
 
     const auto& at(size_t index) const { return (*_strList)[index]; }
     size_t      count() const { return std::size(*_strList); }
-};
-
-template <typename T> struct ArgsIterator
-{
-    ArgsIterator(T&& ctx) : _ctx(ctx) {}
-
-    std::string_view move_next()
-    {
-        std::string_view retval(_ctx.at(_current));
-        _current++;
-        return retval;
-    }
-
-    bool valid() const { return _current < _ctx.count(); }
-    bool root_ctx_requested() const { return _root_ctx_requested; }
-    void clear_root_ctx_requested() { _root_ctx_requested = false; }
-    void mark_root_ctx_requested() { _root_ctx_requested = true; }
-
-    bool   _root_ctx_requested{false};
-    size_t _current{0};
-    T      _ctx;
 };
 
 template <typename T, typename TInCtx> inline T _Parse(ArgsIterator<TInCtx>&& argsIt)
