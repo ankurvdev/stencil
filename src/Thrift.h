@@ -148,43 +148,6 @@ std::shared_ptr<IDL::Variant> CreateVariant(Context& context, Str::Type& name, F
 
 void CreateAttribute(Context& context, Str::Type& name, AttributeComponentList& map);
 
-#if 0
-
-    {
-        std::vector<std::unordered_map<std::string, std::string>> expandedmap;
-        expandedmap.push_back({});
-        for (auto it = map->begin(); it != map->end(); ++it) {
-            auto oldmap = expandedmap;
-            std::vector<std::unordered_map<std::string, std::string>> newmap;
-            for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1) {
-                for (auto it2 = oldmap.begin(); it2 != oldmap.end(); ++it2)
-                {
-                    (*it2)[it->first] = (*it1);
-                    newmap.push_back(*it2);
-                }
-            }
-            expandedmap = newmap;
-        }
-
-        auto def = context.program.Lookup<IDL::AttributeDefinition>(id);
-        for (auto it = expandedmap.begin(); it != expandedmap.end(); ++it)
-        {
-            IDL::ContainerFieldType::ContainerFieldTypeMap fieldmap;
-            for (auto it2 = it->begin(); it2 != it->end(); ++it2) {
-                auto f = fieldmap[it2->first] = context.program.GetFieldTypeName(it2->second);
-                assert(f != nullptr);
-            }
-            for (auto it2 = it->begin(); it2 != it->end(); ++it2)
-            {
-                auto compname = def->getComponentName(it2->first);
-                auto container = context.program.Lookup<IDL::Container>(compname);
-                auto fieldtype = IDL::ContainerFieldType::FindOrCreate(context.program, container, std::move(fieldmap), nullptr, nullptr);
-                auto strct = context.program.Lookup<IDL::Struct>(it2->second);
-            }
-        }
-        return nullptr;
-    }
-#endif
 struct StrValueType : public Binding::ValueT<Binding::Type::String>, public std::enable_shared_from_this<StrValueType>
 {
     StrValueType(Str::Type&& value) : _value(std::move(value)) {}

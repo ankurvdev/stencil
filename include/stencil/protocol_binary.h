@@ -185,14 +185,27 @@ template <ConceptIterable T> struct SerDes<T, ProtocolBinary>
 {
     template <typename Context> static auto Write(Context& ctx, T const& obj)
     {
-        Visitor<T>::VisitAllIndicies(
-            obj, [&](auto& /*key*/, auto& obj) { SerDes<std::remove_cvref_t<decltype(obj)>, ProtocolBinary>::Write(ctx, obj); });
+        // Some iterables can be primitives
+
+        if constexpr (ConceptPrimitives64Bit<T>) { ctx << Primitives64Bit::Traits<T>::Repr(obj); }
+        else
+        {
+            Visitor<T>::VisitAllIndicies(
+                obj, [&](auto& /*key*/, auto& obj) { SerDes<std::remove_cvref_t<decltype(obj)>, ProtocolBinary>::Write(ctx, obj); });
+        }
     }
 
     template <typename Context> static auto Read(T& obj, Context& ctx)
     {
-        Visitor<T>::VisitAllIndicies(
-            obj, [&](auto& /*key*/, auto& obj) { SerDes<std::remove_cvref_t<decltype(obj)>, ProtocolBinary>::Read(obj, ctx); });
+        if constexpr (ConceptPrimitives64Bit<T>)
+        {
+            obj = Primitives64Bit::Traits<T>::Convert(ctx.read<decltype(Primitives64Bit::Traits<T>::Repr(obj))>());
+        }
+        else
+        {
+            Visitor<T>::VisitAllIndicies(
+                obj, [&](auto& /*key*/, auto& obj) { SerDes<std::remove_cvref_t<decltype(obj)>, ProtocolBinary>::Read(obj, ctx); });
+        }
     }
 };
 
@@ -214,10 +227,21 @@ template <ConceptEnum T> struct SerDes<T, ProtocolBinary>
 
 template <typename T> struct SerDes<shared_stringT<T>, ProtocolBinary>
 {
-    template <typename Context> static auto Write(Context& ctx, T const& obj) { ctx << obj; }
-    template <typename Context> static auto Read(T& obj, Context& ctx) { obj = ctx.read<T>(); }
+    template <typename Context> static auto Write(Context& ctx, shared_stringT<T> const& obj) { TODO(""); }
+    template <typename Context> static auto Read(shared_stringT<T>& obj, Context& ctx) { obj = ctx.read<T>(); }
 };
 
+template <> struct SerDes<std::wstring, ProtocolBinary>
+{
+    template <typename Context> static auto Write(Context& /*ctx*/, std::wstring const& /*obj*/) { TODO(""); }
+    template <typename Context> static auto Read(std::wstring& /*obj*/, Context& /*ctx*/) { TODO(""); }
+};
+
+template <> struct SerDes<uuids::uuid, ProtocolBinary>
+{
+    template <typename Context> static auto Write(Context& /*ctx*/, std::wstring const& /*obj*/) { TODO(""); }
+    template <typename Context> static auto Read(std::wstring& /*obj*/, Context& /*ctx*/) { TODO(""); }
+};
 }    // namespace Stencil
 #ifdef TODO1
 struct BinarySerDes

@@ -124,7 +124,7 @@ template <WebInterfaceImpl... TImpls> struct WebService
     template <typename TArgsStruct> auto _CreateArgStruct(httplib::Request const& req)
     {
         TArgsStruct args;
-#if 0
+#ifdef TODO1
         using StateTracker = ReflectionServices::StateTraker<TArgsStruct, void*>;
         StateTracker tracker(&args, nullptr);
         for (auto const& [key, value] : req.params)

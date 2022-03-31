@@ -531,7 +531,7 @@ struct Table
         return lines;
     }
 };
-#if 0
+
 template <typename TStruct> struct CommandLineArgs
 {
     struct Exception
@@ -619,7 +619,7 @@ template <typename TStruct> struct CommandLineArgs
 
             return std::make_shared<CommandLineArgsReader::Definition>("empty", type);
         }
-#if 0
+
         std::unique_ptr<Table> _PrintVariant(const ::ReflectionBase::DataInfo& info)
         {
             std::unique_ptr<Table> table(new Table());
@@ -698,7 +698,7 @@ template <typename TStruct> struct CommandLineArgs
 
             return table;
         }
-#endif
+
         void _RecursivelyAddHelp(std::vector<std::string>&                                lines,
                                  std::deque<std::shared_ptr<::ReflectionBase::DataInfo>>& pending,
                                  int /*depth*/)
@@ -758,5 +758,4 @@ template <typename TStruct> struct CommandLineArgs
 
     std::vector<std::string> _helpInfo;
 };
-#endif
 #endif

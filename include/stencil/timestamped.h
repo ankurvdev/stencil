@@ -7,7 +7,7 @@ using Timestamp = decltype(std::chrono::system_clock::now());
 
 template <typename T> struct TimestampedT
 {
-#if 0
+#ifdef TODO1
 
     struct InitArgs
     {};

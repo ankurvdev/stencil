@@ -58,7 +58,7 @@ struct BinaryTransactionSerDes
                     {
                         // Visitor<ObjType const> visitor(obj);
                         // Stencil::BinarySerDes::Serialize(visitor, writer.strm());
-                        Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer.strm(), obj);
+                        Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer, obj);
                     }
                     else if (mutator == 3)
                     {
@@ -99,7 +99,7 @@ struct BinaryTransactionSerDes
         {
             typename Stencil::Mutators<T>::ListObj obj;
 
-            Stencil::SerDes<decltype(obj), ProtocolBinary>::Read(obj, reader.strm());
+            Stencil::SerDes<decltype(obj), ProtocolBinary>::Read(obj, reader);
             txn.add(std::move(obj));
         }
         static void Remove(Transaction<T>& txn, size_t listindex) { txn.remove(listindex); }
@@ -168,7 +168,7 @@ struct BinaryTransactionSerDes
 
                     // txn.Visit(fieldname, [&](auto fieldType, auto& subtxn) { _ApplyJson(subtxn , fieldType, rhs); });
                 }
-#if 0
+#ifdef TODO1
                 else if (mutator == 1)    // List Add
                 {
                     txn.Visit(fieldEnum, [&](auto /* fieldType */, auto& subtxn) { _ListAdd(subtxn, reader.read<uint32_t>(), reader); });

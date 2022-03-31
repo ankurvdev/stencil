@@ -32,7 +32,7 @@ struct Database2::ObjTraits<UserData::UserData, UserData::Identity> : Database2:
     }
 };
 
-#if 0
+#ifdef TODO1
 template <>
 void ::ReflectionBase::Construct<UserData::UserData>(UserData::UserData *ptr)
 {

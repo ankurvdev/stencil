@@ -18,21 +18,6 @@
 
 namespace Database2
 {
-#if 0
-struct BlobDataSizeOutofRange : std::exception
-{
-    BlobDataSizeOutofRange(uint32_t typeId, uint64_t recordSize)
-    {
-        _buffer << "Database Error: Blob size out of range. TypeId = " << typeId << " RecordSize = " << recordSize;
-    }
-
-    CLASS_DEFAULT_COPY_AND_MOVE(BlobDataSizeOutofRange);
-
-    const char* what() const noexcept(true) override { return _buffer.data(); }
-
-    //    ::Logging::PrettyPrintStream _buffer;
-};
-#endif
 
 template <typename> struct is_tuple : std::false_type
 {};
@@ -1053,35 +1038,6 @@ template <typename TDb, typename TObj> struct Ref : impl::Ref
     Ref() = default;
     Ref(impl::Ref const& val) : impl::Ref(val) {}
 };
-
-#if 0
-struct RefOwnerMarker
-{
-};
-
-template <typename TDb, typename TOwner, typename... TObjs> struct RefOwner : RefOwnerMarker
-{
-    //   template <typename... TArgs> RefOwner(TArgs&&... args) : TData{std::forward<TArgs>(args)...} {}
-    template <typename TObj> using Traits = ObjTraits<TDb, TObj>;
-    template <typename TObj> using WireT  = typename Traits<TObj>::WireType;    // Snapshot of the serilized buffer (no lock)
-    template <typename TObj> using SnapT  = typename Traits<TObj>::SnapType;    // Snapshot of the serilized buffer (no lock)
-    template <typename TObj> using ViewT  = typename Traits<TObj>::ViewType;    // Use the serialized buffer (with read lock)
-    template <typename TObj> using EditT  = typename Traits<TObj>::EditType;    // Edit the serialized buffer (with write lock)
-
-    template <size_t N> using Nth = typename std::tuple_element<N, std::tuple<TObjs...>>::type;
-
-    template <size_t N> struct ChildRef
-    {
-        auto Get(shared_lock const& lock, TDb& db, TOwner& obj) { return db.template Get<Nth<N>>(lock, obj.ref[N]); }
-    };
-
-    static constexpr size_t GetChildRefCount() { return sizeof...(TObjs); }
-
-    template <size_t N> Ref<TDb, Nth<N>> GetRef() { return ref[N]; }
-    template <size_t N> void             SetRef(impl::Ref r) { ref[N] = r; }
-    impl::Ref                            ref[sizeof...(TObjs)];
-};
-#endif
 
 struct ChildRefMarker
 {};
