@@ -78,7 +78,6 @@ struct BinaryTransactionSerDes
                     if (mutator == 3) { _DeserializeTo(subtxn, writer); }
                     else if (mutator == 0)
                     {
-                        // Visitor<ObjType const> visitor(obj);
                         Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer, obj);
                     }
                     else if (mutator == 1)
@@ -106,12 +105,7 @@ struct BinaryTransactionSerDes
                     writer << static_cast<uint8_t>(mutator);
                     writer << static_cast<uint32_t>(type);
 
-                    if (mutator == 0)
-                    {
-                        // Visitor<ObjType const> visitor(obj);
-                        // Stencil::BinarySerDes::Serialize(visitor, writer.strm());
-                        Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer, obj);
-                    }
+                    if (mutator == 0) { Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer, obj); }
                     else if (mutator == 3)
                     {
                         _DeserializeTo(subtxn, writer);
@@ -214,7 +208,6 @@ struct BinaryTransactionSerDes
                         Visitor<T>::VisitKey(txn.Obj(), fieldEnum, [&](auto& obj) {
                             txn.MarkFieldAssigned_(fieldEnum);
                             Stencil::SerDes<std::remove_cvref_t<decltype(obj)>, ProtocolBinary>::Read(obj, reader);
-                            // BinarySerDes::Deserialize(visitor, reader.strm());
                         });
                     });
 

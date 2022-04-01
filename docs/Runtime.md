@@ -1,22 +1,25 @@
 # Runtime
-- StackVisitor: 
+
+- StackVisitor:
 - CLI : Command Help and error messaging
-- WebService : 
-    - DataStores and DataStores in WebService
+- WebService :
+  - DataStores and DataStores in WebService
 - Transactions for Structs with more than 64 fields
 - Timestampd : Created
 - Types
-    - unordered_maps, unordered_sets std::unordered_map<std::string, FixedSize>,  std::unordered_map<uint64_t, FixedSize>
-    - Explicit Initialization
-    - Should structs be iterables ?
-    - What about hetrogeneous keys in indexables ?
-    - Bifurcation of iterables into Fixed-size iterables and growable iterables ?
-- Visitor : Enforces a non-state model. Some visitors do have a state for eg: Variant(keys) or string-key visitors
+  - Iterables : Improve Iteration Visitors
+  - unordered_maps, unordered_sets std::unordered_map<std::string, FixedSize>,  std::unordered_map<uint64_t, FixedSize>
+  - Explicit Initialization
+  - Should structs be iterables ?
+  - What about hetrogeneous keys in indexables ?
+  - Bifurcation of iterables into Fixed-size iterables and growable iterables ?
+- Visitor
+  - Enforces a non-state model. Some visitors do have a state for eg: Variant(keys) or string-key visitors
 - StackVisitor
-    - Find a better name
-    - Type-Handler Maps.Get rid of that. All TypeHandlers for all nested types are available and instantiated
+  - Find a better name
+  - Type-Handler Maps.Get rid of that. All TypeHandlers for all nested types are available and instantiated
 - Protocol
-    - Read/Write to iostreams
+  - Read/Write to iostreams
 
 ## Overview
 
