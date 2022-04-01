@@ -161,10 +161,9 @@ inline void CheckOutputAgainstResource(std::vector<std::string> const& lines, st
 {
     CompareLines(lines, LoadResource(resourcename), GeneratePrefixFromTestName() + std::string(resourcename));
 }
-
-inline void CompareBinaryOutputAgainstResource(std::span<const uint8_t> const& actual, std::string_view const& resourcename)
+template <typename TData> inline void CompareBinaryOutputAgainstResource(TData const& actual, std::string_view const& resourcename)
 {
-    auto testresname        = GeneratePrefixFromTestName() + std::string(resourcename);
+    auto testresname        = GeneratePrefixFromTestName() + std::string(resourcename) + ".bin";
     auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
     for (auto const r : resourceCollection)
     {
@@ -172,12 +171,13 @@ inline void CompareBinaryOutputAgainstResource(std::span<const uint8_t> const& a
         if (resname == testresname || resname == resourcename)
         {
             auto data = r.data<uint8_t>();
+            auto spn  = std::span<const uint8_t>(reinterpret_cast<uint8_t const*>(actual.data()), actual.size());
             INFO("Checking Resource : " + resname)
-            if (data.size() == actual.size() && std::equal(actual.begin(), actual.end(), data.begin())) { return; }
+            if (data.size() == spn.size() && std::equal(spn.begin(), spn.end(), data.begin())) { return; }
             break;
         }
     }
-    std::ofstream f(testresname);
+    std::ofstream f(testresname, std::ios::binary);
     f.write(reinterpret_cast<char const*>(actual.data()), static_cast<std::streamsize>(actual.size()));
     f.flush();
     f.close();
@@ -189,6 +189,6 @@ inline void CompareFileAgainstResource(std::filesystem::path const& actualf, std
     std::ifstream         instream(actualf, std::ios::in | std::ios::binary);
     std::vector<char>     actualdata((std::istreambuf_iterator<char>(instream)), std::istreambuf_iterator<char>());
     std::span<const char> spn = actualdata;
-    CompareBinaryOutputAgainstResource({reinterpret_cast<uint8_t const*>(spn.data()), spn.size()}, resourcename);
+    CompareBinaryOutputAgainstResource(spn, resourcename);
 }
 #endif

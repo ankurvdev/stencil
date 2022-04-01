@@ -41,9 +41,8 @@ struct TestReplay
             REQUIRE(strm1.str() == strm2.str());
         }
         {
-            std::ofstream binary_lastacc_txns("Transactions.LastAccumulated.bin", std::ios::binary);
-            Stencil::BinaryTransactionSerDes::Deserialize(txn2, binary_lastacc_txns);
-            binary_lastacc_txns.close();
+            binary_last_txns.str("");
+            Stencil::BinaryTransactionSerDes::Deserialize(txn2, binary_last_txns);
         }
     }
 
@@ -54,8 +53,9 @@ struct TestReplay
     Transactions::Object obj1;
     Transactions::Object obj2;
 
-    std::ofstream binary_txns     = std::ofstream("Transactions.bin", std::ios::binary);
-    std::ofstream binary_acc_txns = std::ofstream("Transactions.Accumulated.bin", std::ios::binary);
+    std::ostringstream binary_txns;
+    std::ostringstream binary_acc_txns;
+    std::ostringstream binary_last_txns;
 
     Stencil::Transaction<Transactions::Object> txn2;
 };
@@ -109,15 +109,15 @@ TEST_CASE("Transactions", "[transaction]")
         REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
     }
 
-    replay.binary_txns.close();
-    replay.binary_acc_txns.close();
-
+    auto binary_txns      = replay.binary_txns.str();
+    auto binary_acc_txns  = replay.binary_acc_txns.str();
+    auto binary_last_txns = replay.binary_last_txns.str();
     // And now binary streams
     {
         Transactions::Object                       obj3;
         Stencil::Transaction<Transactions::Object> txn3(obj3);
 
-        std::ifstream istrm("Transactions.bin", std::ios::binary);
+        std::istringstream istrm(binary_txns);
         istrm.peek();
         while (istrm.good() && (!istrm.eof()))
         {
@@ -130,16 +130,15 @@ TEST_CASE("Transactions", "[transaction]")
     {
         Transactions::Object                       obj3;
         Stencil::Transaction<Transactions::Object> txn3(obj3);
-
-        std::ifstream istrm("Transactions.LastAccumulated.bin", std::ios::binary);
+        std::istringstream                         istrm(binary_last_txns);
         Stencil::BinaryTransactionSerDes::Apply(txn3, istrm);
         REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
         auto offset = static_cast<unsigned>(istrm.tellg());
-        REQUIRE(offset == std::filesystem::file_size("Transactions.LastAccumulated.bin"));
+        REQUIRE(offset == binary_last_txns.size());
         REQUIRE(!istrm.eof());
     }
-    CompareFileAgainstResource("Transactions.bin", "Transactions.bin");
-    CompareFileAgainstResource("Transactions.LastAccumulated.bin", "Transactions.LastAccumulated.bin");
+    CompareBinaryOutputAgainstResource(binary_txns, "Transactions");
+    CompareBinaryOutputAgainstResource(binary_acc_txns, "LastAccumulated");
 }
 
 TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")

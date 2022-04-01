@@ -15,6 +15,7 @@ SUPPRESS_WARNINGS_END
 #pragma warning(push, 3)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
+#include <rapidjson/memorystream.h>
 #include <rapidjson/reader.h>
 #pragma clang diagnostic pop
 #pragma warning(pop)
@@ -57,7 +58,7 @@ template <typename T> struct Tokenizer : public rapidjson::BaseReaderHandler<rap
         _obj = &obj;
         _stackvisitor.Start(obj);
         rapidjson::Reader       reader;
-        rapidjson::StringStream ss(ctx.data());
+        rapidjson::MemoryStream ss(ctx.data(), ctx.size());
         auto                    rslt = reader.Parse(ss, *this);
         if (rslt.IsError()) { throw std::logic_error(fmt::format("Json parse error : Code:{} Offset:{}", rslt.Code(), rslt.Offset())); }
         if (_modes.size() != 1) { throw std::logic_error("Something is wrong"); }
