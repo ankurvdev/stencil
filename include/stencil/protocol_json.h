@@ -203,7 +203,7 @@ template <> struct SerDes<uuids::uuid, ProtocolJsonVal>
 {
     using TObj = uuids::uuid;
 
-    template <typename Context> static auto Write(Context& ctx, TObj const& obj) { fmt::print(ctx, "\"{}\"", obj); }
+    template <typename Context> static auto Write(Context& ctx, TObj const& obj) { _WriteQuotedString(ctx, obj); }
     template <typename Context> static auto Read(TObj& obj, Context& ctx) { SerDes<uuids::uuid, ProtocolString>::Read(obj, ctx); }
 };
 

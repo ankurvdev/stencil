@@ -123,7 +123,7 @@ template <> struct SerDes<uuids::uuid, ProtocolString>
 {
     using TObj = uuids::uuid;
 
-    template <typename Context> static auto Write(Context& ctx, TObj const& obj) { fmt::print(ctx, "{}", obj); }
+    template <typename Context> static auto Write(Context& ctx, TObj const& obj) { fmt::print(ctx, "{}", uuids::to_string(obj)); }
     template <typename Context> static auto Read(TObj& obj, Context& ctx)
     {
         auto opuuid = uuids::uuid::from_string(ctx);

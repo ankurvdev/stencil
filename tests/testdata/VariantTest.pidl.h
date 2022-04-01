@@ -3,11 +3,15 @@
 
 // SECTION START: DECLARATIONS
 #if true
-namespace VariantTest::Struct1
+
+namespace VariantTest
 {
-struct Data;
-}
-template <> struct Stencil::TypeTraits<VariantTest::Struct1::Data&>;
+struct Struct1;
+struct Variant1;
+}    // namespace VariantTest
+
+template <> struct Stencil::TypeTraits<VariantTest::Struct1>;
+template <> struct Stencil::TypeTraits<VariantTest::Variant1>;
 #endif
 // SECTION END: DECLARATIONS
 
@@ -15,530 +19,250 @@ template <> struct Stencil::TypeTraits<VariantTest::Struct1::Data&>;
 #if true
 namespace VariantTest
 {
-namespace Struct1
+struct Struct1 :
+    public Stencil::StructT<Struct1>
 {
-struct Data;
-}
-namespace Struct1
+    shared_string field1 = {};
+    shared_string field2 = {};
+};
+struct Variant1 : public Stencil::VariantT<Variant1>
 {
+    std::variant<std::monostate,
+                 int32_t
+,                 int32_t
+                 >
+        _variant;
 
-struct Data :
-    public ReflectionBase::ObjMarker
-{
-    /*template <typename...TArgs> Data(TArgs&& ... args)
-    {
-        ReflectionBase::Construct<Data>(this, std::forward<TArgs>(args)...);
-    }*/
-
-    enum class FieldIndex
+    enum class VariantType
     {
         Invalid,
         field1
 ,        field2
     };
 
-    static constexpr size_t FieldCount()
-    {
-        return 0u
-               + 1u
-               + 1u
-            ;
-    }
+    VariantType Type() const { return static_cast<VariantType>(_variant.index()); }
 
-    static constexpr std::string_view FieldAttributeValue(FieldIndex index, const std::string_view& key)
-    {
-        switch (index)
-        {
-        case FieldIndex::field1:
-            return ::ReflectionServices::EmptyAttributeValue(key);
-        case FieldIndex::field2:
-            return ::ReflectionServices::EmptyAttributeValue(key);
-        case FieldIndex::Invalid: break;
-
-        default: break;
-        }
-        return ::ReflectionServices::EmptyAttributeValue(key);
-    }
-
-    private:
-    shared_string _field1 = {};
-
-    public:
-    shared_string&       field1() { return _field1; }
-    const shared_string& field1() const { return _field1; }
-    void                            field1(shared_string&& val) { _field1 = std::move(val); }
-    shared_string&       get_field1() { return _field1; }
-
-    bool isset_field1() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::field1); }
-
-    void set_field1(shared_string&& val)
-    {
-        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::field1, _field1, val);
-        _field1 = std::move(val);
-    }
-    private:
-    shared_string _field2 = {};
-
-    public:
-    shared_string&       field2() { return _field2; }
-    const shared_string& field2() const { return _field2; }
-    void                            field2(shared_string&& val) { _field2 = std::move(val); }
-    shared_string&       get_field2() { return _field2; }
-
-    bool isset_field2() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::field2); }
-
-    void set_field2(shared_string&& val)
-    {
-        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::field2, _field2, val);
-        _field2 = std::move(val);
-    }
+    int32_t&       field1() { return std::get<int32_t>(_variant); }
+    int32_t const& field1() const { return std::get<int32_t>(_variant); }
+    int32_t&       field2() { return std::get<int32_t>(_variant); }
+    int32_t const& field2() const { return std::get<int32_t>(_variant); }
 };
-
-}    // namespace Struct1
-namespace Variant1
-{
-struct Variant;
-}
-namespace Variant1
-{
-enum class VariantType
-{
-    Invalid,
-    field1
-,    field2
-};
-
-struct Data : public ReflectionBase::ObjMarker
-{
-    VariantType _type;
-
-    public:
-    VariantType Type() const { return _type; }
-
-    VariantType& get_Type() { return _type; }
-    void       set_Type(VariantType&& val) { _type = std::move(val); }
-
-    Data() : _type(VariantType::Invalid) {}
-
-    public:
-    enum class FieldIndex
-    {
-        Invalid,
-        field1
-,        field2
-    };
-
-    static constexpr std::string_view FieldAttributeValue(FieldIndex index, const std::string_view& key)
-    {
-        switch (index)
-        {
-        case FieldIndex::field1:
-        {
-            return ::ReflectionServices::EmptyAttributeValue(key);
-        }
-        case FieldIndex::field2:
-        {
-            return ::ReflectionServices::EmptyAttributeValue(key);
-        }
-        case FieldIndex::Invalid: break;
-
-        default: break;
-        }
-        return ::ReflectionServices::EmptyAttributeValue(key);
-    }
-
-    private:
-    int32_t _field1;
-
-    public:
-    int32_t&       field1() { return _field1; }
-    const int32_t& field1() const { return _field1; }
-    void                            field1(const int32_t& val) { _field1 = val; }
-    void                            field1(int32_t&& val) { _field1 = std::move(val); }
-
-    int32_t& get_field1() { return _field1; }
-    void                      set_field1(int32_t&& val) { _field1 = std::move(val); }
-
-    private:
-    int32_t _field2;
-
-    public:
-    int32_t&       field2() { return _field2; }
-    const int32_t& field2() const { return _field2; }
-    void                            field2(const int32_t& val) { _field2 = val; }
-    void                            field2(int32_t&& val) { _field2 = std::move(val); }
-
-    int32_t& get_field2() { return _field2; }
-    void                      set_field2(int32_t&& val) { _field2 = std::move(val); }
-
-};
-}    // namespace Variant1
 }    // namespace VariantTest
 #endif
+
 // SECTION END: Definitions
 
 // SECTION START: Template specializations
 #if true
 
 // SECTION:
-template <> struct Stencil::TypeTraits<VariantTest::Struct1::Data&>
+
+template <> struct Stencil::TypeTraits<VariantTest::Struct1>
 {
-    struct Traits_field1
-    {
-        using TOwner     = VariantTest::Struct1::Data;
-        using TFieldType = shared_string;
-
-        static constexpr std::string_view Name() { return "field1"; }
-
-        static constexpr auto TPropertyGetter() { return &TOwner::get_field1; }
-        static constexpr auto TPropertySetter() { return &TOwner::set_field1; }
-        static constexpr auto TAttributeValue(const std::string_view& key)
-        {
-            return TOwner::FieldAttributeValue(TOwner::FieldIndex::field1, key);
-        }
-
-        static const ::ReflectionBase::Flags Flags()
-        {
-            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
-        }
-    };
-    struct Traits_field2
-    {
-        using TOwner     = VariantTest::Struct1::Data;
-        using TFieldType = shared_string;
-
-        static constexpr std::string_view Name() { return "field2"; }
-
-        static constexpr auto TPropertyGetter() { return &TOwner::get_field2; }
-        static constexpr auto TPropertySetter() { return &TOwner::set_field2; }
-        static constexpr auto TAttributeValue(const std::string_view& key)
-        {
-            return TOwner::FieldAttributeValue(TOwner::FieldIndex::field2, key);
-        }
-
-        static const ::ReflectionBase::Flags Flags()
-        {
-            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
-        }
-    };
-    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
-    static constexpr std::string_view           Name() { return "Struct1"; }
-    static constexpr std::string_view           AttributeValue(const std::string_view& key)
-    {
-        return ::ReflectionServices::EmptyAttributeValue(key);
-    }
-
-    using ThisType = VariantTest::Struct1::Data;
-    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
-    {
-        return true
-               && ReflectionBase::AreEqual(obj1.field1(), obj2.field1())
-               && ReflectionBase::AreEqual(obj1.field2(), obj2.field2())
-            ;
-    }
-
-    using Handler = ::ReflectionServices::ReflectedStructHandler<VariantTest::Struct1::Data,
-                                                                 Traits_field1
-,                                                                 Traits_field2
-                                                                 >;
+    using Categories = std::tuple<Stencil::Category::Indexable>;
 };
 
-template <>
-struct Stencil::Transaction<VariantTest::Struct1::Data> : Stencil::TransactionT<VariantTest::Struct1::Data>
+template <> struct Stencil::TypeTraitsForIndexable<VariantTest::Struct1>
 {
-    using TData = VariantTest::Struct1::Data;
+    enum class Fields
+    {
+        Invalid,
+        Field_field1
+,        Field_field2
+    };
+
+    using Key = Fields;
+};
+
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<VariantTest::Struct1>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<VariantTest::Struct1>::Fields;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        "field1"
+,        "field2"
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraitsForIndexable<VariantTest::Struct1>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<VariantTest::Struct1>::Fields>(index);
+    }
+};
+
+template <> struct Stencil::Transaction<VariantTest::Struct1> : Stencil::TransactionT<VariantTest::Struct1>
+{
+    using TData  = VariantTest::Struct1;
+    using Fields = Stencil::TypeTraitsForIndexable<VariantTest::Struct1>::Fields;
 
     Transaction<shared_string> _subtracker_field1;
     Transaction<shared_string> _subtracker_field2;
-    DELETE_COPY_AND_MOVE(Transaction);
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
     Transaction(TData& ptr) :
-        Stencil::TransactionT<VariantTest::Struct1::Data>(ptr)
+        Stencil::TransactionT<VariantTest::Struct1>(ptr)
         ,
-        _subtracker_field1(Obj().field1())
+        _subtracker_field1(Obj().field1)
         ,
-        _subtracker_field2(Obj().field2())
+        _subtracker_field2(Obj().field2)
     {}
 
     auto& field1()
     {
-        MarkFieldEdited_(TData::FieldIndex::field1);
+        MarkFieldEdited_(Fields::Field_field1);
         return _subtracker_field1;
     }
     auto& field2()
     {
-        MarkFieldEdited_(TData::FieldIndex::field2);
+        MarkFieldEdited_(Fields::Field_field2);
         return _subtracker_field2;
     }
     void set_field1(shared_string&& val)
     {
-        MarkFieldAssigned_(TData::FieldIndex::field1, Obj().field1(), val);
-        Obj().set_field1(std::move(val));
+        MarkFieldAssigned_(Fields::Field_field1, Obj().field1, val);
+        Obj().field1 = std::move(val);
     }
 
     void set_field2(shared_string&& val)
     {
-        MarkFieldAssigned_(TData::FieldIndex::field2, Obj().field2(), val);
-        Obj().set_field2(std::move(val));
+        MarkFieldAssigned_(Fields::Field_field2, Obj().field2, val);
+        Obj().field2 = std::move(val);
     }
 
-    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    template <typename TLambda> auto Visit(Fields index, TLambda&& lambda)
     {
         switch (index)
         {
-        case TData::FieldIndex::field1: return lambda("field1", field1()); return;
-        case TData::FieldIndex::field2: return lambda("field2", field2()); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        case Fields::Field_field1: return lambda("field1", field1()); return;
+        case Fields::Field_field2: return lambda("field2", field2()); return;
+        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
 
     template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
     {
-        if (fieldName == "field1") { return lambda(TData::FieldIndex::field1, field1()); }
-        if (fieldName == "field2") { return lambda(TData::FieldIndex::field2, field2()); }
+        if (fieldName == "field1") { return lambda(Fields::Field_field1, field1()); }
+        if (fieldName == "field2") { return lambda(Fields::Field_field2, field2()); }
         throw std::invalid_argument("Asked to visit invalid field");
     }
 
     template <typename TLambda> void VisitAll(TLambda&& lambda)
     {
-        lambda("field1", TData::FieldIndex::field1, field1(), Obj().field1());
-        lambda("field2", TData::FieldIndex::field2, field2(), Obj().field2());
+        lambda("field1", Fields::Field_field1, field1(), Obj().field1);
+        lambda("field2", Fields::Field_field2, field2(), Obj().field2);
     }
 
     void Flush()
     {
         field1().Flush();
 
-        if (IsFieldEdited(TData::FieldIndex::field1))
+        if (IsFieldEdited(Fields::Field_field1))
         {
-            if (!field1().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::field1));
+            if (!field1().IsChanged()) _edittracker.reset(static_cast<uint8_t>(Fields::Field_field1));
         }
 
         field2().Flush();
 
-        if (IsFieldEdited(TData::FieldIndex::field2))
+        if (IsFieldEdited(Fields::Field_field2))
         {
-            if (!field2().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::field2));
+            if (!field2().IsChanged()) _edittracker.reset(static_cast<uint8_t>(Fields::Field_field2));
         }
 
-        Stencil::TransactionT<VariantTest::Struct1::Data>::Flush_();
+        Stencil::TransactionT<VariantTest::Struct1>::Flush_();
     }
 };
 
-template <>
-struct Stencil::Visitor<VariantTest::Struct1::Data, void> : Stencil::VisitorT<VariantTest::Struct1::Data>
+template <> struct Stencil::Visitor<VariantTest::Struct1> : Stencil::VisitorT<VariantTest::Struct1>
 {
-    using TData = VariantTest::Struct1::Data;
+    using TData  = VariantTest::Struct1;
+    using Fields = TypeTraitsForIndexable<TData>::Fields;
 
-    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
     {
-        switch (index)
+        switch (field)
         {
-        case TData::FieldIndex::field1: lambda("field1", _ref.get().field1()); return;
-        case TData::FieldIndex::field2: lambda("field2", _ref.get().field2()); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        case Fields::Field_field1: return lambda(obj.field1);
+        case Fields::Field_field2: return lambda(obj.field2);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
         }
     }
 
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
     {
-        switch (index)
-        {
-        case TData::FieldIndex::field1: lambda("field1", _ref.get().field1()); return;
-        case TData::FieldIndex::field2: lambda("field2", _ref.get().field2()); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        lambda(Fields::Field_field1, obj.field1);
+        lambda(Fields::Field_field2, obj.field2);
     }
-
-    template <typename TLambda> void VisitAll(TLambda&& lambda) const
-    {
-        lambda("field1", _ref.get().field1());
-        lambda("field2", _ref.get().field2());
-    }
-
-    std::reference_wrapper<TData> _ref;
 };
 
-template <>
-struct Stencil::Visitor<const VariantTest::Struct1::Data, void>
-    : Stencil::VisitorT<const VariantTest::Struct1::Data>
+template <> struct Stencil::TypeTraits<VariantTest::Variant1>
 {
-    using TData = VariantTest::Struct1::Data const;
-
-    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
-    {
-        switch (index)
-        {
-        case TData::FieldIndex::field1: lambda("field1", _ref.get().field1()); return;
-        case TData::FieldIndex::field2: lambda("field2", _ref.get().field2()); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> void VisitAll(TLambda&& lambda) const
-    {
-        lambda("field1", _ref.get().field1());
-        lambda("field2", _ref.get().field2());
-    }
-
-    std::reference_wrapper<TData> _ref;
+    using Categories = std::tuple<Stencil::Category::Indexable>;
 };
 
-template <> struct ReflectionServices::EnumTraits<VariantTest::Variant1::VariantType>
+template <> struct Stencil::TypeTraitsForIndexable<VariantTest::Variant1>
 {
-    static constexpr const char* EnumStrings[] = {"Invalid",
-                                                  "field1",
-                                                  "field2",
-                                                  nullptr};
-
-    using ValueType = uint32_t;
+    using Key    = VariantTest::Variant1::VariantType;
+    using Fields = Key;
 };
 
-template <> struct ValueTraits<VariantTest::Variant1::VariantType>
+template <> struct Stencil::EnumTraits<VariantTest::Variant1::VariantType>
 {
-    static constexpr auto    ValueType() { return Value::Type::Unsigned; }
-    [[noreturn]] static void Get(Value& /*obj*/) { throw std::logic_error("Not Implemented"); }
-    [[noreturn]] static void Get(const Value& /*obj*/) { throw std::logic_error("Not Implemented"); }
-    [[noreturn]] static void Check() { throw std::logic_error("Not Implemented"); }
-};
+    using Enum = VariantTest::Variant1::VariantType;
 
-template <> struct Stencil::TypeTraits<VariantTest::Variant1::VariantType&>
-{
-    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Value; }
-    static constexpr std::string_view           Name() { return "Variant1"; }
-
-    using Handler = ::ReflectionServices::EnumHandler<VariantTest::Variant1::VariantType>;
-};
-
-template <> struct Stencil::TypeTraits<VariantTest::Variant1::Data&>
-{
-    struct Traits_field1
-    {
-        using TOwner     = VariantTest::Variant1::Data;
-        using TFieldType = int32_t;
-
-        static constexpr std::string_view Name() { return "field1"; }
-
-        static constexpr auto TPropertyGetter() { return &TOwner::get_field1; }
-        static constexpr auto TPropertySetter() { return &TOwner::set_field1; }
-        static constexpr auto TAttributeValue(const std::string_view& key)
-        {
-            return TOwner::FieldAttributeValue(TOwner::FieldIndex::field1, key);
-        }
-
-        static const ::ReflectionBase::Flags Flags()
-        {
-            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
-        }
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        "field1"
+,        "field2"
     };
-    struct Traits_field2
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static VariantTest::Variant1::VariantType ForIndex(size_t index)
     {
-        using TOwner     = VariantTest::Variant1::Data;
-        using TFieldType = int32_t;
-
-        static constexpr std::string_view Name() { return "field2"; }
-
-        static constexpr auto TPropertyGetter() { return &TOwner::get_field2; }
-        static constexpr auto TPropertySetter() { return &TOwner::set_field2; }
-        static constexpr auto TAttributeValue(const std::string_view& key)
-        {
-            return TOwner::FieldAttributeValue(TOwner::FieldIndex::field2, key);
-        }
-
-        static const ::ReflectionBase::Flags Flags()
-        {
-            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
-        }
-    };
-    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
-    static constexpr std::string_view           Name() { return "Variant1"; }
-    static constexpr std::string_view           AttributeValue(const std::string_view& key)
-    {
-        return ::ReflectionServices::EmptyAttributeValue(key);
+        return static_cast<VariantTest::Variant1::VariantType>(index);
     }
-
-    using ThisType = VariantTest::Variant1::Data;
-    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
-    {
-        return true
-               && ReflectionBase::AreEqual(obj1.field1(), obj2.field1())
-               && ReflectionBase::AreEqual(obj1.field2(), obj2.field2())
-            ;
-    }
-
-    using Handler = ::ReflectionServices::ReflectedVariantHandler<VariantTest::Variant1::Data,
-                                                                VariantTest::Variant1::VariantType,
-                                                                Traits_field1
-,                                                                Traits_field2
-                                                                >;
 };
 
-template <>
-struct Stencil::Visitor<VariantTest::Variant1::Data, void> : Stencil::VisitorT<VariantTest::Variant1::Data>
+template <> struct Stencil::Visitor<VariantTest::Variant1>
 {
-    using TData = VariantTest::Variant1::Data;
+    using Fields = VariantTest::Variant1::VariantType;
 
-    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
+    template <typename TType, typename TObj, typename TLambda> static void _SetAndVisit(TObj& obj, TLambda&& lambda)
     {
-        switch (index)
+        using Type = std::remove_cvref_t<TType>;
+        obj        = Type{};
+        lambda(std::get<Type>(obj));
+    }
+
+    template <typename T, typename TLambda> static bool VisitKey(T& obj, Fields fields, TLambda&& lambda)
+    {
+        switch (fields)
         {
-        case TData::FieldIndex::field1: lambda("field1", _ref.get().field1()); return;
-        case TData::FieldIndex::field2: lambda("field2", _ref.get().field2()); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        case Fields::field1:
+            _SetAndVisit<int32_t>(obj._variant, std::forward<TLambda>(lambda));
+            return true;
+
+        case Fields::field2:
+            _SetAndVisit<int32_t>(obj._variant, std::forward<TLambda>(lambda));
+            return true;
+
+        case Fields::Invalid: [[fallthrough]];
+        default: return false;
         }
     }
 
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
+    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
     {
-        switch (index)
-        {
-        case TData::FieldIndex::field1: lambda("field1", _ref.get().field1()); return;
-        case TData::FieldIndex::field2: lambda("field2", _ref.get().field2()); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
+        auto fieldType = static_cast<Fields>(obj.index());
+        std::visit([&](auto&& arg) { lambda(fieldType, arg); }, obj._variant);
     }
-
-    template <typename TLambda> void VisitAll(TLambda&& lambda) const
-    {
-        lambda("field1", _ref.get().field1());
-        lambda("field2", _ref.get().field2());
-    }
-
-    std::reference_wrapper<TData> _ref;
 };
 
-template <>
-struct Stencil::Visitor<const VariantTest::Variant1::Data, void>
-    : Stencil::VisitorT<const VariantTest::Variant1::Data>
-{
-    using TData = VariantTest::Variant1::Data const;
-
-    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
-    {
-        switch (index)
-        {
-        case TData::FieldIndex::field1: lambda("field1", _ref.get().field1()); return;
-        case TData::FieldIndex::field2: lambda("field2", _ref.get().field2()); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> void VisitAll(TLambda&& lambda) const
-    {
-        lambda("field1", _ref.get().field1());
-        lambda("field2", _ref.get().field2());
-    }
-
-    std::reference_wrapper<TData> _ref;
-};
+// template <> struct Stencil::Visitor<VariantTest::Variant1> : Stencil::StructVisitor<VariantTest::Variant1>
+// {};
 
 #endif
 // SECTION END: Template specializations

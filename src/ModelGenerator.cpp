@@ -510,7 +510,7 @@ static void ExpandTemplate(tree<Str::Type>&                 codetree,
                                tmplit->rowstart,
                                tmplit->rowend,
                                tmplit->name,
-                               tmplit->body);
+                               tmplit->body->Stringify());
         });
 
         Binding::BindingExpr bexpr;
