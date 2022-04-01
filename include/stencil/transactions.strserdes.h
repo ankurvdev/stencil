@@ -115,7 +115,7 @@ struct StringTransactionSerDes
             if (mutator == 0)    // Set
             {
                 txn.Visit(fieldname, [&](auto fieldType, auto& /* subtxn */) {
-                    using TKey = Stencil::TypeTraitsForIndexable<T>::Key;
+                    using TKey = typename Stencil::TypeTraitsForIndexable<T>::Key;
                     auto key   = Stencil::Deserialize<TKey, Stencil::ProtocolString>(fieldname);
                     Visitor<T>::VisitKey(txn.Obj(), key, [&](auto& obj) {
                         txn.MarkFieldAssigned_(fieldType);
@@ -216,8 +216,6 @@ struct StringTransactionSerDes
 
     template <typename T> static std::ostream& _DeserializeTo(Transaction<T>& txn, std::ostream& ostr, std::vector<std::string>& stack)
     {
-        using Traits = Stencil::TypeTraits<T>;
-
         if constexpr (ConceptIterable<T>)
         {
             txn.VisitChanges(

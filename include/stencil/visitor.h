@@ -50,7 +50,7 @@ template <typename T> struct VisitorForIndexable
 template <typename T> struct VisitorT
 {};
 
-template <typename... Ts> struct Stencil::Visitor<std::variant<Ts...>>
+template <typename... Ts> struct Visitor<std::variant<Ts...>>
 {
 
     template <size_t N, typename TObj, typename TLambda> static void _SetAndVisit(TObj& obj, size_t const& key, TLambda&& lambda)

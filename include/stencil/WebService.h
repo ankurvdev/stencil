@@ -121,7 +121,7 @@ template <WebInterfaceImpl... TImpls> struct WebService
         res.set_content(fmt::format("<p>Error Status: <span style='color:red;'>{}</span></p>", res.status), "text/html");
     }
 
-    template <typename TArgsStruct> auto _CreateArgStruct(httplib::Request const& req)
+    template <typename TArgsStruct> auto _CreateArgStruct(httplib::Request const& /* req */)
     {
         TArgsStruct args;
 #ifdef TODO1

@@ -65,8 +65,6 @@ struct BinaryTransactionSerDes
 {
     template <typename T> static auto& _DeserializeTo(Transaction<T>& txn, OStrmWriter& writer)
     {
-        using Traits = Stencil::TypeTraits<T&>;
-
         if constexpr (ConceptIterable<T>)
         {
             txn.VisitChanges(

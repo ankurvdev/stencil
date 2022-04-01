@@ -701,7 +701,7 @@ template <> struct PageForRecord<0>
     {
         assert(ValidSlot(slot));
         auto rec = _records + (slot * _recordSize);
-        assert(((rec + _recordSize) - _page.RawData().data()) <= Page::PageDataSize);
+        assert(static_cast<size_t>((rec + _recordSize) - _page.RawData().data()) <= Page::PageDataSize);
         return SlotObj{slot, {rec, _recordSize}};
     }
 
@@ -709,7 +709,7 @@ template <> struct PageForRecord<0>
     {
         assert(ValidSlot(slot));
         auto rec = _records + (slot * _recordSize);
-        assert(((rec + _recordSize) - _page.RawData().data()) <= Page::PageDataSize);
+        assert(static_cast<size_t>((rec + _recordSize) - _page.RawData().data()) <= Page::PageDataSize);
         return SlotView{slot, {rec, _recordSize}};
     }
 

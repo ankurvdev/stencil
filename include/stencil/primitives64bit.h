@@ -123,7 +123,7 @@ struct Primitives64Bit
     template <typename T> struct DoubleTraits
     {
         static constexpr auto Type() { return Type::Of<T>(); }
-        static void           Assign(Primitives64Bit& obj, T const& val) { obj._dVal = val; }
+        static void           Assign(Primitives64Bit& obj, T const& val) { obj._dVal = static_cast<double>(val); }
         static const auto&    Get(const Primitives64Bit& obj) { return obj._dVal; }
         static void           Check() {}
         static T              Convert(double val) { return static_cast<T>(val); }

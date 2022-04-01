@@ -124,7 +124,7 @@ template <ConceptPreferIndexable T> struct SerDes<T, ProtocolBinary>
     {
         while (true)
         {
-            auto marker = ctx.read<uint8_t>();
+            auto marker = ctx.template read<uint8_t>();
             if (marker == 0) return;
             if (marker != 1) throw std::logic_error("Invalid marker");
             TKey key;
@@ -139,9 +139,9 @@ template <ConceptPreferIterable T> struct SerDes<T, ProtocolBinary>
     template <typename Context> static auto Write(Context& ctx, T const& obj)
     {
         // Some iterables can be primitives
-        Visitor<T>::VisitAllIndicies(obj, [&](auto& /*key*/, auto& obj) {
+        Visitor<T>::VisitAllIndicies(obj, [&](auto& /*key*/, auto& val) {
             ctx << uint8_t{1};
-            SerDes<std::remove_cvref_t<decltype(obj)>, ProtocolBinary>::Write(ctx, obj);
+            SerDes<std::remove_cvref_t<decltype(val)>, ProtocolBinary>::Write(ctx, val);
         });
         ctx << uint8_t{0};
     }
@@ -153,7 +153,7 @@ template <ConceptPreferIterable T> struct SerDes<T, ProtocolBinary>
         bool valid = false;
         while (true)
         {
-            auto marker = ctx.read<uint8_t>();
+            auto marker = ctx.template read<uint8_t>();
             if (marker == 0) return;
             if (marker != 1) throw std::logic_error("Invalid marker");
             if (!valid)
@@ -178,7 +178,7 @@ template <ConceptPrimitives64Bit T> struct SerDes<T, ProtocolBinary>
     template <typename Context> static auto Write(Context& ctx, T const& obj) { ctx << Primitives64Bit::Traits<T>::Repr(obj); }
     template <typename Context> static auto Read(T& obj, Context& ctx)
     {
-        obj = Primitives64Bit::Traits<T>::Convert(ctx.read<decltype(Primitives64Bit::Traits<T>::Repr(obj))>());
+        obj = Primitives64Bit::Traits<T>::Convert(ctx.template read<decltype(Primitives64Bit::Traits<T>::Repr(obj))>());
     }
 };
 
@@ -186,13 +186,13 @@ template <ConceptEnum T> struct SerDes<T, ProtocolBinary>
 {
     template <typename Context> static auto Write(Context& ctx, T const& obj) { ctx << static_cast<uint32_t>(obj); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx) { obj = static_cast<T>(ctx.read<uint32_t>()); }
+    template <typename Context> static auto Read(T& obj, Context& ctx) { obj = static_cast<T>(ctx.template read<uint32_t>()); }
 };
 
 template <ConceptEnumPack T> struct SerDes<T, ProtocolBinary>
 {
     template <typename Context> static auto Write(Context& ctx, T const& obj) { ctx << T::CastToInt(obj); }
-    template <typename Context> static auto Read(T& obj, Context& ctx) { obj = T::CastFromInt(ctx.read<uint32_t>()); }
+    template <typename Context> static auto Read(T& obj, Context& ctx) { obj = T::CastFromInt(ctx.template read<uint32_t>()); }
 };
 
 template <> struct SerDes<shared_string, ProtocolBinary>
@@ -223,13 +223,13 @@ template <size_t N> struct SerDes<std::array<char, N>, ProtocolBinary>
 {
     using TObj = std::array<char, N>;
     template <typename Context> static auto Write(Context& ctx, TObj const& obj) { ctx << obj; }
-    template <typename Context> static auto Read(TObj& obj, Context& ctx) { obj = ctx.read<TObj>(); }
+    template <typename Context> static auto Read(TObj& obj, Context& ctx) { obj = ctx.template read<TObj>(); }
 };
 
 template <> struct SerDes<uuids::uuid, ProtocolBinary>
 {
     template <typename Context> static auto Write(Context& ctx, uuids::uuid const& obj) { ctx << obj.as_bytes(); }
 
-    template <typename Context> static auto Read(uuids::uuid& obj, Context& ctx) { obj = uuids::uuid{ctx.read<std::array<uint8_t, 16>>()}; }
+    template <typename Context> static auto Read(uuids::uuid& obj, Context& ctx) { obj = uuids::uuid{ctx.template read<std::array<uint8_t, 16>>()}; }
 };
 }    // namespace Stencil

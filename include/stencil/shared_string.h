@@ -39,7 +39,7 @@ template <typename T> struct shared_stringT
     shared_stringT(shared_stringT&& str) noexcept : _str(std::move(str._str)) {}
 
     public:
-    static shared_stringT make(auto... args)
+    static shared_stringT make(auto&&... args)
     {
         shared_stringT obj;
         obj._str = std::make_shared<TString>(args...);

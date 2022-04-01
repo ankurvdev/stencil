@@ -16,7 +16,7 @@ template <typename T, typename TProt> auto Serialize(T const& obj)
     return out;
 }
 
-template <typename T, typename TProt, typename TIn> T Deserialize(typename TIn& input)
+template <typename T, typename TProt, typename TIn> T Deserialize(TIn& input)
 {
     typename TProt::InType in{input};
     T                      obj;
