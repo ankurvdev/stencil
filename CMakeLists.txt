@@ -201,7 +201,7 @@ if (BUILD_TESTING)
         tests/CodegenRuntime/Test_Codegen_CLOpts.cpp
         tests/CodegenRuntime/Test_Codegen_Json.cpp
         tests/CodegenRuntime/Test_DataRecorderPlayer.cpp
-        tests/CodegenRuntime/Test_ObservableOptionalProps.cpp
+        #tests/CodegenRuntime/Test_ObservableOptionalProps.cpp
         tests/CodegenRuntime/Test_Transactions.cpp
         #tests/CodegenRuntime/Test_WebService_Autogen.cpp
     )

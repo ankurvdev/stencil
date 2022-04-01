@@ -64,22 +64,22 @@ TEST_CASE("Transactions", "[transaction]")
 {
     TestReplay replay;
     replay.Replay("obj1.val2 = 1000000;obj1.val2 = 1000000;obj2.val1 = 10000000;obj2.val2 = 10.0000001",
-                  "obj1.val2 = 1000000;obj2.val1 = 1;obj2.val2 = 10.000000");
-    replay.Replay("obj1.val2 = 2000000;obj1.val5 = 20.000000;obj2.val2 = 20000000.000000;");
+                  "obj1.val2 = 1000000;obj2.val1 = true;obj2.val2 = 10.0000001");
+    replay.Replay("obj1.val2 = 2000000;obj1.val5 = 20;obj2.val2 = 20000000;");
     replay.Replay("list1.listobj:add[0] = {\"value\": 100}",
                   "list1.listobj:add[0] = {\"value\":100,\"obj1\":{\"val1\":0,\"val2\":0,"
-                  "\"val3\":0,\"val4\":null,\"val5\":0.000000}}");
+                  "\"val3\":0,\"val4\":null,\"val5\":0}}");
     replay.Replay("list1.listobj:add[1] = {\"value\":200,\"obj1\":{\"val1\":0,\"val2\":0,"
-                  "\"val3\":0,\"val4\":null,\"val5\":0.000000}}");
+                  "\"val3\":0,\"val4\":null,\"val5\":0}}");
 
     replay.Replay("list1.listobj:add[2] = {\"value\":300,\"obj1\":{\"val1\":0,\"val2\":0,"
-                  "\"val3\":0,\"val4\":null,\"val5\":0.000000}}");
+                  "\"val3\":0,\"val4\":null,\"val5\":0}}");
 
     replay.Replay("list1.listobj:add[3] = {\"value\":400,\"obj1\":{\"val1\":0,\"val2\":0,"
-                  "\"val3\":0,\"val4\":null,\"val5\":0.000000}}");
+                  "\"val3\":0,\"val4\":null,\"val5\":0}}");
 
     replay.Replay("list1.listobj:add[4] = {\"value\":500,\"obj1\":{\"val1\":0,\"val2\":0,"
-                  "\"val3\":0,\"val4\":null,\"val5\":0.000000}}");
+                  "\"val3\":0,\"val4\":null,\"val5\":0}}");
 
     replay.Replay("list1.listobj.0.obj1.val2 = 30000001;");
     replay.Replay("list1.listobj.1.obj1.val2 = 30000002;");
@@ -91,8 +91,8 @@ TEST_CASE("Transactions", "[transaction]")
     replay.Replay("obj3.obj1.val1 = 110000000");
     replay.Replay("obj3.obj1.val2 = 222000000");
     {
-        CheckOutputAgainstResource(replay.snapshots, "Transactions_ChangeDataSnapshots.txt");
-        CheckOutputAgainstResource(replay.deltatxns, "Transactions_Deltas.txt");
+        CheckOutputAgainstResource(replay.snapshots, "ChangeDataSnapshots");
+        CheckOutputAgainstResource(replay.deltatxns, "Deltas");
 
         REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(replay.obj2));
     }

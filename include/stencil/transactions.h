@@ -178,10 +178,11 @@ template <Stencil::ConceptIterable TObj> struct Stencil::TransactionT<TObj>
         });
     }
 
-    template <typename TLambda> auto Visit(std::string_view const& /* fieldName */, TLambda&& /* lambda */)
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
     {
-        TODO("TODO1");
-        // return Visit(Value(fieldName).convert<size_t>(), std::forward<TLambda>(lambda));
+        size_t key;
+        SerDes<size_t, ProtocolString>::Read(key, fieldName);
+        return Visit(key, lambda);
     }
 
     template <typename TLambda> void VisitAll(TLambda&& /* lambda */) { throw std::logic_error("Visit Not supported on Transaction"); }

@@ -34,9 +34,6 @@ template <typename T> static void RunTestCase(TestCase const& tc, std::vector<ui
         REQUIRE(jst1 == jst2);
         REQUIRE(bin1 == bin2);
         std::copy(bin1.begin(), bin1.end(), std::back_inserter(data));
-        // TODO1 REQUIRE(binDump1 == binDump2);
-        // TODO1: Dump to binary files and bin compare
-        //lines.push_back(fmt::format("Testcase[{}]:{}, Output: {}", name, tc.desc, jst2));
     } catch (std::exception const& /*ex*/)
     {
         //lines.push_back(fmt::format("Testcase[{}]:{}, Exception: {}", name, tc.desc, ex.what()));
