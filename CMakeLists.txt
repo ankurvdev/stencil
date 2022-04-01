@@ -181,7 +181,7 @@ if (BUILD_TESTING)
     add_executable(runtime_tests
         tests/HandwrittenRuntime/Test_Handwritten_CLOpts.cpp
         tests/HandwrittenRuntime/Test_Handwritten_Json.cpp
-        tests/HandwrittenRuntime/Test_Handwritten_Binary.cpp # TODO1
+        tests/HandwrittenRuntime/Test_Handwritten_Binary.cpp
         tests/HandwrittenRuntime/Test_Database.cpp
         tests/HandwrittenRuntime/Test_Database2.cpp
         #tests/HandwrittenRuntime/Test_WebService_Handwritten.cpp

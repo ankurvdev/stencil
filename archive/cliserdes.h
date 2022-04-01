@@ -1,4 +1,3 @@
-#ifdef TODO1
 #pragma once
 #include "visitor.h"
 
@@ -758,4 +757,3 @@ template <typename TStruct> struct CommandLineArgs
 
     std::vector<std::string> _helpInfo;
 };
-#endif

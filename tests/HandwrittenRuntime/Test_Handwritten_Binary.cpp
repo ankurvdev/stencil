@@ -1,4 +1,3 @@
-// TODO1
 #include "Test_Handwritten.h"
 #include "stencil/protocol_binary.h"
 
@@ -10,6 +9,9 @@ struct TestCase
     std::string_view desc;
     bool             valid;
 };
+
+// TODO1: Combine Json and Binary and CLI so we can use these testcases for all
+// TODO1: Use 3 Type Input, Auto, Comparison
 
 template <typename T> static void RunTestCase(TestCase const& tc, std::vector<uint8_t>& data, std::string const& /*name*/)
 {

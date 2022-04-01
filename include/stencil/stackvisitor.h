@@ -248,6 +248,7 @@ template <typename TProto, typename T> struct _StackVisitor
         return it->second.get();
     }
 
+    // TODO1: Get rid of TypeHandler maps
     std::unordered_map<size_t, std::unique_ptr<TypeHandler>> _allhandlers;
     std::vector<TypeHandlerAndPtr>                           _stack;
     VisitorTypeHandler<TProto, _StackVisitor<TProto, T>, T>  _handler;

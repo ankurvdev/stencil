@@ -1,81 +1,22 @@
 # Runtime
-- Binary Protocol for Transactions and Mutators
-- Transactions
-
-
-- Protocol
-  - Reader/Writer/Streams. Ability to allow protocol to dictate whats the preferred medium
-    - Sometimes reading from buffers is faster than streams due to allowing random access and lookahead
-    - List Examples
-  - Read/Write overrides for Iterables / Indexables
-- Code-Cleanup : Reduction : Protocol-String Protocol-Json
-- Primitives32Bit Primitives128Bit
-- TODOs
-  - TypeTraits.Indexable.Key : Should FixedSize Structs also be allowed, how about any type ? Do we care ?
-  - Visitor.Indexable.Key needs key to be a temp object outside data scope . How to get rid of it
-    - Maybe : But we should validate the json array size and it matches the fixed size
-  - StackVisitor: Find a better name
-
-
-- Maps - 2 days
-- Cleanup - 2 days
-  - Rapidjson cmake issue
-- Object-Initialize / Visitor-Initialize (shared_ptr<>) - 3 days
-- Cleanup - 2 days
-
-TODOs
-
-9. ObjectStore
-11. WebService
-
-OpenQuestions
-
-- Should Structs be assignable via indexable json
-
-- TypeTraits
-  - Categories(Primitive/Iterable/Indexable)
-    - Can be multiple. Should we denote a preferred ?
-    - Serialiation / Deserialization controlled using Visitors.
-    - StackVisitor might not know which one to select.
-    - Precedence Indexable > Iterable > Primitive doesnt always work
-      - Iterable > Primitive breaks for GUIDs and std::array<char>
-      - Indexale > Iterable breaks for ? [OPEN QUESTION]
-      -
-- Indexable:
-  - Key :
-  - Justification : [STRONG].
-    - Everyone needs to know what indexable types are allowed
-    - Can only be a primitive ?
-    - What about Types with hash functions
-    - Key Visitor requires storage of temp key object IndexableVisitorTypeHandler<T> has a mutable
-  - ValueTypes:
-    - Justification : [WEAK]
-    - Unique only ?
-    - What about duplicate ? Codegen wont be able to dedup. Templating technique available for auto dedup
-    - Only needed because StackVisitor needs all Type Handlers instantiated . Can we make them ondemand ? [OPEN-QUESTION]
-    -
-  - Unhandled Types:
-    - std::unordered_map<std::string, FixedSize>
-    - std::unordered_map<uint64_t, FixedSize>
-  -
-- Iterable
-  - Variable size: // Any length allowed
-  - Fixed size : // Validate length (post / pre ?)
-  -
-  -
-  - Primitives
-  - Values (64-Bit)
-  - Blobs (String/Wide-String)
-  - Wht about GUIDs , Crypto-Shas ? 128 Bit ?
-  - Custom Conversion Routines
-  -
+- StackVisitor: 
+- CLI : Command Help and error messaging
+- WebService : 
+    - DataStores and DataStores in WebService
+- Transactions for Structs with more than 64 fields
+- Timestampd : Created
+- Types
+    - unordered_maps, unordered_sets std::unordered_map<std::string, FixedSize>,  std::unordered_map<uint64_t, FixedSize>
+    - Explicit Initialization
+    - Should structs be iterables ?
+    - What about hetrogeneous keys in indexables ?
+    - Bifurcation of iterables into Fixed-size iterables and growable iterables ?
+- Visitor : Enforces a non-state model. Some visitors do have a state for eg: Variant(keys) or string-key visitors
 - StackVisitor
-  - Rename to something else ?
-  - All TypeHandlers for all nested types are available and instantiated
-  - What about duplicate types ?
-  - TypeTraits
-
-  -
+    - Find a better name
+    - Type-Handler Maps.Get rid of that. All TypeHandlers for all nested types are available and instantiated
+- Protocol
+    - Read/Write to iostreams
 
 ## Overview
 

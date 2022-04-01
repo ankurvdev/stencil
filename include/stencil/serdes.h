@@ -8,12 +8,6 @@ namespace Stencil
 {
 
 template <typename T, typename TProt> struct SerDes;
-#if 0
-{
-    template <typename T, typename TIn> static void  Read(T& obj, TIn& in);
-    template <typename T, typename TOut> static void Write(TOut& out, T const& obj);
-};
-#endif
 
 template <typename T, typename TProt> auto Serialize(T const& obj)
 {
