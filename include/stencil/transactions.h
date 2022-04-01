@@ -2,7 +2,7 @@
 #include "comparator.h"
 #include "mutatorsaccessors.h"
 #include "optionalprops.h"
-#include "typetraits_shared_string.h"
+#include "typetraits_builtins.h"
 #include "visitor.h"
 
 #include <algorithm>

@@ -1,6 +1,7 @@
 #pragma once
 #include "primitives64bit.h"
 #include "protocol.h"
+#include "typetraits_builtins.h"
 
 SUPPRESS_WARNINGS_START
 #include <fmt/chrono.h>
@@ -34,6 +35,40 @@ template <typename T> struct SerDes<T, ProtocolString>
     template <typename Context> static auto Read(T& /*obj*/, Context& /*ctx*/) { TODO(""); }
 };
 #endif
+
+template <> struct SerDes<shared_wstring, ProtocolString>
+{
+    using TObj = shared_wstring;
+
+    template <typename Context> static auto Write(Context& ctx, TObj const& obj)
+    {
+        return SerDes<std::wstring, ProtocolString>::Write(ctx, obj.str());
+    }
+
+    template <typename Context> static auto Read(TObj& obj, Context& ctx)
+    {
+        std::wstring str;
+        SerDes<std::wstring, ProtocolString>::Read(str, ctx);
+        obj = shared_wstring::make(std::move(str));
+    }
+};
+
+template <> struct SerDes<shared_string, ProtocolString>
+{
+    using TObj = shared_string;
+
+    template <typename Context> static auto Write(Context& ctx, TObj const& obj)
+    {
+        return SerDes<std::string, ProtocolString>::Write(ctx, obj.str());
+    }
+
+    template <typename Context> static auto Read(TObj& obj, Context& ctx)
+    {
+        std::string str;
+        SerDes<std::string, ProtocolString>::Read(str, ctx);
+        obj = shared_string::make(std::move(str));
+    }
+};
 
 template <ConceptEnumPack T> struct SerDes<T, ProtocolString>
 {

@@ -3,9 +3,6 @@
 #include "protocol_json.h"
 #include "protocol_string.h"
 #include "stackvisitor.h"
-#include "typetraits_shared_string.h"
-#include "typetraits_std.h"
-#include "typetraits_variant.h"
 #include "visitor.h"
 
 SUPPRESS_WARNINGS_START

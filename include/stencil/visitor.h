@@ -1,7 +1,5 @@
 #pragma once
-#include "timestamped.h"
-#include "typetraits.h"
-#include "uuidobject.h"
+#include "typetraits_builtins.h"
 
 #include <CommonMacros.h>
 #include <memory>
@@ -51,6 +49,44 @@ template <typename T> struct VisitorForIndexable
 
 template <typename T> struct VisitorT
 {};
+
+
+template <typename... Ts> struct Stencil::Visitor<std::variant<Ts...>>
+{
+
+    template <size_t N, typename TObj, typename TLambda> static void _SetAndVisit(TObj& obj, size_t const& key, TLambda&& lambda)
+    {
+        if constexpr (N == sizeof...(Ts)) { throw std::runtime_error("Index out of bounds"); }
+        else
+        {
+            if (N == key)
+            {
+                using Type = std::remove_cvref_t<decltype(std::get<N>(obj))>;
+                obj        = Type{};
+                lambda(std::get<N>(obj));
+            }
+            else
+            {
+                _SetAndVisit<N + 1>(obj, key, lambda);
+            }
+        }
+    }
+    template <typename T1, typename TLambda> static void VisitKey(T1& obj, size_t const& key, TLambda&& lambda)
+    {
+        if (obj.index() == key)
+        {
+            std::visit([&](auto&& arg) { lambda(arg); }, obj);
+        }
+        else
+        {
+            _SetAndVisit<0>(obj, key, lambda);
+        }
+    }
+    template <typename T1, typename TLambda> static void VisitAllIndicies(T1& obj, TLambda&& lambda)
+    {
+        std::visit([&](auto&& arg) { lambda(obj.index(), arg); }, obj);
+    }
+};
 
 template <typename T> struct StructFieldsVisitor;
 
