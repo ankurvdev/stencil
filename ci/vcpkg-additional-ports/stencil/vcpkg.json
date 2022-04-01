@@ -12,7 +12,7 @@
         "tinyxml2",
         "cxxopts",
         "cpp-httplib",
-        "nlohmann-json",
+        "rapidjson",
         "fmt"
     ],
     "features": {
