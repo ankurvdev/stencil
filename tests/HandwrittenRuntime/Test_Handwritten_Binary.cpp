@@ -5,9 +5,9 @@
 
 struct TestCase
 {
-    std::string_view json;
-    std::string_view desc;
-    bool             valid;
+    std::string json;
+    std::string desc;
+    bool        valid;
 };
 
 // TODO1: Combine Json and Binary and CLI so we can use these testcases for all
@@ -20,7 +20,7 @@ template <typename T> static void RunTestCase(TestCase const& tc, std::vector<ui
         if (IsDebuggerPresent()) return;
     }
 
-    //lines.push_back(fmt::format("Testcase[{}]:{}, Input: {}", name, tc.desc, tc.json));
+    // lines.push_back(fmt::format("Testcase[{}]:{}, Input: {}", name, tc.desc, tc.json));
     try
     {
         T obj1 = Stencil::Json::Parse<T>(tc.json);
@@ -38,7 +38,7 @@ template <typename T> static void RunTestCase(TestCase const& tc, std::vector<ui
         std::copy(bin1.begin(), bin1.end(), std::back_inserter(data));
     } catch (std::exception const& /*ex*/)
     {
-        //lines.push_back(fmt::format("Testcase[{}]:{}, Exception: {}", name, tc.desc, ex.what()));
+        // lines.push_back(fmt::format("Testcase[{}]:{}, Exception: {}", name, tc.desc, ex.what()));
     }
 }
 

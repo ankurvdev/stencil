@@ -4,9 +4,9 @@
 
 struct TestCase
 {
-    std::string_view json;
-    std::string_view desc;
-    bool             valid;
+    std::string json;
+    std::string desc;
+    bool        valid;
 };
 
 template <typename T> static void RunTestCase(TestCase const& tc, std::vector<std::string>& lines, std::string const& name)
@@ -31,9 +31,10 @@ template <typename T> static void RunTestCase(TestCase const& tc, std::vector<st
     }
 }
 
-template <typename T> static void RunTestCases(std::vector<TestCase> cases, std::string const& name)
+template <typename T> static void RunTestCases(std::initializer_list<TestCase> const& inp, std::string const& name)
 {
     {
+        std::vector<TestCase>    cases(inp);
         std::vector<std::string> lines;
         RunTestCase<T>({"1", "default-1", false}, lines, name);
         RunTestCase<T>({"{}", "default-2", true}, lines, name);

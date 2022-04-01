@@ -3,25 +3,25 @@
 
 #include <stencil/protocol_cli.h>
 
-struct TestCase
+struct TestCaseCLI
 {
     std::vector<std::string> args;
-    std::string_view         desc;
+    std::string              desc;
     bool                     valid;
 };
 
-template <> struct fmt::formatter<TestCase> : fmt::formatter<std::string_view>
+template <> struct fmt::formatter<TestCaseCLI> : fmt::formatter<std::string_view>
 {
 
     // Formats the point p using the parsed format specification (presentation)
     // stored in this formatter.
-    template <typename FormatContext> auto format(const TestCase& tc, FormatContext& ctx)
+    template <typename FormatContext> auto format(const TestCaseCLI& tc, FormatContext& ctx)
     {
         return fmt::format_to(ctx.out(), "{} :: {}", fmt::join(tc.args, " "), tc.desc);
     }
 };
 
-template <typename T> static void RunTestCase(TestCase const& tc, std::vector<std::string>& lines, std::string const& name)
+template <typename T> static void RunTestCase(TestCaseCLI const& tc, std::vector<std::string>& lines, std::string const& name)
 {
     if (!tc.valid)
     {
@@ -44,7 +44,7 @@ template <typename T> static void RunTestCase(TestCase const& tc, std::vector<st
     }
 }
 
-template <typename T> static void RunTestCases(std::initializer_list<TestCase> cases, std::string const& name)
+template <typename T> static void RunTestCases(std::initializer_list<TestCaseCLI> cases, std::string const& name)
 {
     {
         std::vector<std::string> lines;
