@@ -43,7 +43,7 @@ inline std::string wstring_to_string(std::wstring_view wstr)
 }
 
 #if !defined _WIN32
-inline bool IsDebuggerPresent()
+inline bool  IsDebuggerPresent()
 {
     return true;
 }
@@ -174,14 +174,13 @@ inline void CompareBinaryOutputAgainstResource(std::span<const uint8_t> const& a
             auto data = r.data<uint8_t>();
             INFO("Checking Resource : " + resname)
             if (data.size() == actual.size() && std::equal(actual.begin(), actual.end(), data.begin())) { return; }
-            std::ofstream f(resname);
-            f.write(reinterpret_cast<char const*>(actual.data()), static_cast<std::streamsize>(actual.size()));
-            f.flush();
-            f.close();
-            REQUIRE(data.size() == actual.size());
-            REQUIRE(std::equal(actual.begin(), actual.end(), data.begin()));
+            break;
         }
     }
+    std::ofstream f(testresname);
+    f.write(reinterpret_cast<char const*>(actual.data()), static_cast<std::streamsize>(actual.size()));
+    f.flush();
+    f.close();
     FAIL("Cannot find reference resource" + testresname);
 }
 

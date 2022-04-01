@@ -476,7 +476,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<MultiAttr
 template <> struct Stencil::StructFieldsVisitor<MultiAttributed>
 {
     using Fields = TypeTraitsForIndexable<MultiAttributed>::Fields;
-    template <typename T, typename TLambda> static bool VisitKey(T& obj, Fields fields, TLambda&& lambda)
+    template <typename T, typename TLambda> static bool VisitField(T& obj, Fields fields, TLambda&& lambda)
     {
         switch (fields)
         {
@@ -488,7 +488,7 @@ template <> struct Stencil::StructFieldsVisitor<MultiAttributed>
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAllFields(T& obj, TLambda&& lambda)
     {
         lambda(Fields::Field_f1, obj.f1);
         lambda(Fields::Field_f2, obj.f2);
@@ -537,7 +537,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<WithVaria
 template <> struct Stencil::StructFieldsVisitor<WithVariant>
 {
     using Fields = TypeTraitsForIndexable<WithVariant>::Fields;
-    template <typename T, typename TLambda> static bool VisitKey(T& obj, Fields fields, TLambda&& lambda)
+    template <typename T, typename TLambda> static bool VisitField(T& obj, Fields fields, TLambda&& lambda)
     {
         switch (fields)
         {
@@ -550,7 +550,7 @@ template <> struct Stencil::StructFieldsVisitor<WithVariant>
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAllFields(T& obj, TLambda&& lambda)
     {
         lambda(Fields::Field_f1, obj.f1);
         lambda(Fields::Field_f2, obj.f2);
@@ -608,7 +608,7 @@ template <> struct Stencil::StructFieldsVisitor<NamedVariant>
         lambda(std::get<Type>(obj));
     }
 
-    template <typename T, typename TLambda> static bool VisitKey(T& obj, Fields fields, TLambda&& lambda)
+    template <typename T, typename TLambda> static bool VisitField(T& obj, Fields fields, TLambda&& lambda)
     {
         switch (fields)
         {
@@ -623,7 +623,7 @@ template <> struct Stencil::StructFieldsVisitor<NamedVariant>
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAllFields(T& obj, TLambda&& lambda)
     {
         auto fieldType = static_cast<Fields>(obj._variant.index());
         std::visit(

@@ -29,7 +29,7 @@ namespace Stencil
 struct ProtocolJsonVal
 {
     using InType  = std::string_view;
-    using OutType = std::string;
+    using OutType = std::stringstream;
 };
 }    // namespace Stencil
 
@@ -144,6 +144,12 @@ template <typename T, typename TInCtx> inline T Parse(TInCtx const& ictx)
 
 namespace Stencil
 {
+template <typename T, typename TContext> auto _WriteQuotedString(TContext& ctx, T const& obj)
+{
+    fmt::print(ctx, "\"");
+    SerDes<T, ProtocolString>::Write(ctx, obj);
+    fmt::print(ctx, "\"");
+}
 
 template <size_t N> struct SerDes<std::array<char, N>, ProtocolJsonVal>
 {
@@ -154,9 +160,7 @@ template <size_t N> struct SerDes<std::array<char, N>, ProtocolJsonVal>
         if (obj[0] == 0) { fmt::print(ctx, "null"); }
         else
         {
-            fmt::print(ctx, "\"");
-            SerDes<TObj, ProtocolString>::Write(ctx, obj);
-            fmt::print(ctx, "\"");
+            _WriteQuotedString(ctx, obj);
         }
     }
 
@@ -205,12 +209,7 @@ template <> struct SerDes<uuids::uuid, ProtocolJsonVal>
 template <typename TClock> struct SerDes<std::chrono::time_point<TClock>, ProtocolJsonVal>
 {
     using TObj = std::chrono::time_point<TClock>;
-    template <typename Context> static auto Write(Context& ctx, TObj const& obj)
-    {
-        fmt::print(ctx, "\"");
-        SerDes<TObj, ProtocolString>::Write(ctx, obj);
-        fmt::print(ctx, "\"");
-    }
+    template <typename Context> static auto Write(Context& ctx, TObj const& obj) { _WriteQuotedString(ctx, obj); }
     template <typename Context> static auto Read(TObj& obj, Context& ctx) { SerDes<TObj, ProtocolString>::Read(obj, ctx); }
 };
 
@@ -240,23 +239,13 @@ template <> struct SerDes<char, ProtocolJsonVal>
 
 template <ConceptEnumPack T> struct SerDes<T, ProtocolJsonVal>
 {
-    template <typename Context> static auto Write(Context& ctx, T const& obj)
-    {
-        fmt::print(ctx, "\"");
-        SerDes<T, ProtocolString>::Write(ctx, obj);
-        fmt::print(ctx, "\"");
-    }
+    template <typename Context> static auto Write(Context& ctx, T const& obj) { _WriteQuotedString(ctx, obj); }
     template <typename Context> static auto Read(T& obj, Context& ctx) { SerDes<T, ProtocolString>::Read(obj, ctx); }
 };
 
 template <ConceptEnum T> struct SerDes<T, ProtocolJsonVal>
 {
-    template <typename Context> static auto Write(Context& ctx, T const& obj)
-    {
-        fmt::print(ctx, "\"");
-        SerDes<T, ProtocolString>::Write(ctx, obj);
-        fmt::print(ctx, "\"");
-    }
+    template <typename Context> static auto Write(Context& ctx, T const& obj) { _WriteQuotedString(ctx, obj); }
     template <typename Context> static auto Read(T& obj, Context& ctx) { SerDes<T, ProtocolString>::Read(obj, ctx); }
 };
 
@@ -272,9 +261,9 @@ template <> struct SerDes<std::string, ProtocolJsonVal>
 
     template <typename Context> static auto Write(Context& ctx, TObj const& obj)
     {
-        fmt::print(ctx, "\"");
-        SerDes<TObj, ProtocolString>::Write(ctx, obj);
-        fmt::print(ctx, "\"");
+        if (obj.empty()) { fmt::print(ctx, "null"); }
+        else
+            _WriteQuotedString(ctx, obj);
     }
     template <typename Context> static auto Read(TObj& obj, Context& ctx) { SerDes<TObj, ProtocolString>::Read(obj, ctx); }
 };
@@ -285,11 +274,10 @@ template <> struct SerDes<std::wstring, ProtocolJsonVal>
 
     template <typename Context> static auto Write(Context& ctx, TObj const& obj)
     {
-        fmt::print(ctx, "\"");
-        SerDes<TObj, ProtocolString>::Write(ctx, obj);
-        fmt::print(ctx, "\"");
+        if (obj.empty()) { fmt::print(ctx, "null"); }
+        else
+            _WriteQuotedString(ctx, obj);
     }
-
     template <typename Context> static auto Read(TObj& obj, Context& ctx) { SerDes<TObj, ProtocolString>::Read(obj, ctx); }
 };
 
@@ -297,7 +285,12 @@ template <> struct SerDes<std::wstring_view, ProtocolJsonVal>
 {
     using TObj = std::wstring_view;
 
-    template <typename Context> static auto Write(Context& /*ctx*/, TObj const& /*obj*/) { TODO(""); }
+    template <typename Context> static auto Write(Context& ctx, TObj const& obj)
+    {
+        if (obj.empty()) { fmt::print(ctx, "null"); }
+        else
+            _WriteQuotedString(ctx, obj);
+    }
     template <typename Context> static auto Read(TObj& obj, Context& ctx) { return SerDes<TObj, ProtocolString>::Read(obj, ctx); }
 };
 
@@ -305,8 +298,13 @@ template <typename T> struct SerDes<shared_stringT<T>, ProtocolJsonVal>
 {
     using TObj = shared_stringT<T>;
 
-    template <typename Context> static auto Write(Context& /*ctx*/, TObj const& /*obj*/) { TODO(""); }
-    template <typename Context> static auto Read(TObj& /*obj*/, Context& /*ctx*/) { TODO(); }
+    template <typename Context> static auto Write(Context& ctx, TObj const& obj)
+    {
+        if (obj.empty()) { fmt::print(ctx, "null"); }
+        else
+            _WriteQuotedString(ctx, obj);
+    }
+    template <typename Context> static auto Read(TObj& obj, Context& ctx) { return SerDes<TObj, ProtocolString>::Read(obj, ctx); }
 };
 }    // namespace Stencil
 

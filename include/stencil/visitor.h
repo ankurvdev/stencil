@@ -50,7 +50,6 @@ template <typename T> struct VisitorForIndexable
 template <typename T> struct VisitorT
 {};
 
-
 template <typename... Ts> struct Stencil::Visitor<std::variant<Ts...>>
 {
 
@@ -99,7 +98,7 @@ template <typename T, typename... TAttrs> struct StructVisitor
     template <typename T1, typename TLambda> static bool _VisitKeyIfVariantMatches(T1& obj, Key const& key, TLambda&& lambda)
     {
         if (!std::holds_alternative<Fields<T1>>(key)) return false;
-        return StructFieldsVisitor<T1>::VisitKey(obj, std::get<Fields<T1>>(key), lambda);
+        return StructFieldsVisitor<T1>::VisitField(obj, std::get<Fields<T1>>(key), lambda);
     }
 
     template <typename T1, typename TLambda> static void VisitKey(T1& obj, Key const& key, TLambda&& lambda)
@@ -108,15 +107,15 @@ template <typename T, typename... TAttrs> struct StructVisitor
         if (!found) throw std::runtime_error("Key did not match any of the struct fields or attributes");
     }
 
-    template <typename TAttr, typename T1, typename TLambda> static bool _VisitAllIndiciesHelper(T1& obj, TLambda&& lambda)
+    template <typename TAttr, typename T1, typename TLambda> static bool _VisitAllFieldsHelper(T1& obj, TLambda&& lambda)
     {
-        StructFieldsVisitor<TAttr>::VisitAllIndicies(obj, lambda);
-        return false ;
+        StructFieldsVisitor<TAttr>::VisitAllFields(obj, [&](auto&& key, auto&& val) { lambda(Key{key}, val); });
+        return false;
     }
     template <typename T1, typename TLambda> static void VisitAllIndicies(T1& obj, TLambda&& lambda)
     {
-        [[maybe_unused]] bool found = (_VisitAllIndiciesHelper<TAttrs>(obj, lambda) || ...);
-        StructFieldsVisitor<T>::VisitAllIndicies(obj, lambda);
+        [[maybe_unused]] bool found = (_VisitAllFieldsHelper<TAttrs>(obj, lambda) || ...);
+        StructFieldsVisitor<T>::VisitAllFields(obj, [&](auto&& key, auto&& val) { lambda(Key{key}, val); });
     }
 };
 
@@ -125,7 +124,7 @@ template <typename T, typename... TAttrs> struct StructVisitor
 template <typename T> struct Stencil::StructFieldsVisitor<Stencil::TimestampedT<T>>
 {
     using Fields = typename TypeTraitsForIndexable<Stencil::TimestampedT<T>>::Fields;
-    template <typename T1, typename TLambda> static bool VisitKey(T1& obj, Fields fields, TLambda&& lambda)
+    template <typename T1, typename TLambda> static bool VisitField(T1& obj, Fields fields, TLambda&& lambda)
     {
         switch (fields)
         {
@@ -135,7 +134,7 @@ template <typename T> struct Stencil::StructFieldsVisitor<Stencil::TimestampedT<
         }
     }
 
-    template <typename T1, typename TLambda> static void VisitAllIndicies(T1& obj, TLambda&& lambda)
+    template <typename T1, typename TLambda> static void VisitAllFields(T1& obj, TLambda&& lambda)
     {
         lambda(Fields::Field_timestamp, obj.lastmodified);
     }
@@ -144,7 +143,7 @@ template <typename T> struct Stencil::StructFieldsVisitor<Stencil::TimestampedT<
 template <typename T> struct Stencil::StructFieldsVisitor<UuidBasedId<T>>
 {
     using Fields = typename TypeTraitsForIndexable<UuidBasedId<T>>::Fields;
-    template <typename T1, typename TLambda> static bool VisitKey(T1& obj, Fields fields, TLambda&& lambda)
+    template <typename T1, typename TLambda> static bool VisitField(T1& obj, Fields fields, TLambda&& lambda)
     {
         switch (fields)
         {
@@ -154,10 +153,7 @@ template <typename T> struct Stencil::StructFieldsVisitor<UuidBasedId<T>>
         }
     }
 
-    template <typename T1, typename TLambda> static void VisitAllIndicies(T1& obj, TLambda&& lambda)
-    {
-        lambda(Fields::Field_uuid, obj.uuid);
-    }
+    template <typename T1, typename TLambda> static void VisitAllFields(T1& obj, TLambda&& lambda) { lambda(Fields::Field_uuid, obj.uuid); }
 };
 
 template <Stencil::ConceptIterable T> struct Stencil::VisitorForIterable<std::shared_ptr<T>>

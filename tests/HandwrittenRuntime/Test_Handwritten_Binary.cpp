@@ -11,41 +11,50 @@ struct TestCase
     bool             valid;
 };
 
-template <typename T> static void RunTestCase(TestCase const& tc, std::vector<std::string>& lines, std::string const& name)
+template <typename T> static void RunTestCase(TestCase const& tc, std::vector<uint8_t>& data, std::string const& /*name*/)
 {
     if (!tc.valid)
     {
         if (IsDebuggerPresent()) return;
     }
-    lines.push_back(fmt::format("Testcase[{}]:{}, Input: {}", name, tc.desc, tc.json));
+
+    //lines.push_back(fmt::format("Testcase[{}]:{}, Input: {}", name, tc.desc, tc.json));
     try
     {
-        T    obj1     = Stencil::Json::Parse<T>(tc.json);
-        auto binDump1 = Stencil::Serialize<T, Stencil::ProtocolBinary>(obj1);
-        T    obj2     = Stencil::Deserialize<T, Stencil::ProtocolBinary>(binDump1);
-        auto jstr2    = Stencil::Json::Stringify<T>(obj2);
-        auto binDump2 = Stencil::Serialize<T, Stencil::ProtocolBinary>(obj2);
+        T obj1 = Stencil::Json::Parse<T>(tc.json);
 
-        REQUIRE(tc.json == jstr2);
+        auto bin1 = Stencil::Serialize<T, Stencil::ProtocolBinary>(obj1).Reset();
+        auto jst1 = Stencil::Serialize<T, Stencil::ProtocolJsonVal>(obj1).str();
+
+        T obj2 = Stencil::Deserialize<T, Stencil::ProtocolBinary>(bin1);
+
+        auto bin2 = Stencil::Serialize<T, Stencil::ProtocolBinary>(obj2).Reset();
+        auto jst2 = Stencil::Serialize<T, Stencil::ProtocolJsonVal>(obj2).str();
+
+        REQUIRE(jst1 == jst2);
+        REQUIRE(bin1 == bin2);
+        std::copy(bin1.begin(), bin1.end(), std::back_inserter(data));
         // TODO1 REQUIRE(binDump1 == binDump2);
         // TODO1: Dump to binary files and bin compare
-        lines.push_back(fmt::format("Testcase[{}]:{}, Output: {}", name, tc.desc, jstr2));
-    } catch (std::exception const& ex)
+        //lines.push_back(fmt::format("Testcase[{}]:{}, Output: {}", name, tc.desc, jst2));
+    } catch (std::exception const& /*ex*/)
     {
-        lines.push_back(fmt::format("Testcase[{}]:{}, Exception: {}", name, tc.desc, ex.what()));
+        //lines.push_back(fmt::format("Testcase[{}]:{}, Exception: {}", name, tc.desc, ex.what()));
     }
 }
 
 template <typename T> static void RunTestCases(std::vector<TestCase> cases, std::string const& name)
 {
     {
-        std::vector<std::string> lines;
-        RunTestCase<T>({"1", "default-1", false}, lines, name);
-        RunTestCase<T>({"{}", "default-2", true}, lines, name);
-        RunTestCase<T>({"[]", "default-3", false}, lines, name);
-        RunTestCase<T>({R"({"mismatched": {}})", "default-4", false}, lines, name);
-        for (auto& tc : cases) { RunTestCase<T>(tc, lines, name); }
-        CheckOutputAgainstResource(lines, name);
+        std::vector<uint8_t> data;
+        RunTestCase<T>({"1", "default-1", false}, data, name);
+        RunTestCase<T>({"{}", "default-2", true}, data, name);
+        RunTestCase<T>({"[]", "default-3", false}, data, name);
+        RunTestCase<T>({R"({"mismatched": {}})", "default-4", false}, data, name);
+        for (auto& tc : cases) { RunTestCase<T>(tc, data, name); }
+        CompareBinaryOutputAgainstResource(data, name);
+
+        // CheckOutputAgainstResource(lines, name);
     }
 
     // CompareFileAgainstResource(logfname, reffname.string());

@@ -1,41 +1,15 @@
 #pragma once
 #include "protocol.h"
+#include "tuple_utils.h"
 #include "typetraits_builtins.h"
+#include "visitor.h"
 
 #include <span>
 #include <sstream>
 #include <string>
-#include <tuple>
 
 namespace Stencil
 {
-
-template <typename TTup, typename TLambda, size_t TIndex = 0> constexpr void VisitAt(TTup& tup, const size_t idx, TLambda&& lambda)
-{
-    if constexpr (TIndex == std::tuple_size<TTup>::value) { throw std::out_of_range("Exceeded maximum tuple range"); }
-    else
-    {
-        if (TIndex == idx)
-        {
-            lambda(std::get<TIndex>(tup));
-            return;
-        }
-        return VisitAt<TTup, TLambda, TIndex + 1>(tup, idx, std::forward<TLambda>(lambda));
-    }
-}
-
-template <typename TI, typename T, typename... Ts> constexpr size_t IndexOf(size_t index = 0)
-{
-    if constexpr (std::is_same<TI, T>::value) { return index; }
-    else
-    {
-        if constexpr (sizeof...(Ts) == 0) { static_assert(sizeof...(Ts) != 0, "Cannot Match anything in tuple"); }
-        else
-        {
-            return IndexOf<TI, Ts...>(index + 1);
-        }
-    }
-}
 
 using ByteIt = std::span<const uint8_t>::iterator;
 
@@ -49,56 +23,6 @@ template <typename TVal, typename = typename std::enable_if<std::is_trivial<TVal
 {
     return std::span(reinterpret_cast<uint8_t*>(&val), sizeof(TVal));
 }
-struct OStrmWriter
-{
-    OStrmWriter(std::ostream& ostr) : _ostr(ostr) {}
-    CLASS_DELETE_COPY_AND_MOVE(OStrmWriter);
-
-    template <typename TVal, std::enable_if_t<std::is_trivial<TVal>::value, bool> = true> auto& operator<<(TVal const& val)
-    {
-        auto spn = AsCSpan(val);
-        _ostr.write(reinterpret_cast<char const*>(spn.data()), static_cast<std::streamsize>(spn.size()));
-        return *this;
-    }
-
-    auto& strm() { return _ostr; }
-
-    auto& operator<<(shared_string const& val)
-    {
-        *this << val.size();
-        if (val.size() > 0) _ostr.write(reinterpret_cast<char const*>(val.data()), static_cast<std::streamsize>(val.size()));
-        return *this;
-    }
-
-    std::ostream& _ostr;
-};
-
-struct IStrmReader
-{
-    IStrmReader(std::istream& istrm) : _istrm(istrm) {}
-    CLASS_DELETE_COPY_AND_MOVE(IStrmReader);
-
-    bool  isEof() { return !_istrm.good(); }
-    auto& strm() { return _istrm; }
-
-    template <typename TVal, std::enable_if_t<std::is_trivial<TVal>::value, bool> = true> TVal read()
-    {
-        TVal val;
-        auto spn = AsSpan(val);
-        _istrm.read(reinterpret_cast<char*>(spn.data()), static_cast<std::streamsize>(spn.size()));
-        return val;
-    }
-
-    shared_string read_shared_string()
-    {
-        size_t      size = read<size_t>();
-        std::string str(size, 0);
-        _istrm.read(reinterpret_cast<char*>(str.data()), static_cast<std::streamsize>(size));
-        return shared_string::make(std::move(str));
-    }
-
-    std::istream& _istrm;
-};
 
 struct Writer
 {
@@ -111,15 +35,31 @@ struct Writer
         return *this;
     }
 
-    Writer& operator<<(shared_string const& val)
+    Writer& operator<<(std::span<const std::byte> const& bytespn)
     {
-        *this << val.size();
-        auto cursize = _buffer.size();
-        _buffer.resize(_buffer.size() + val.size());
-        auto bufferPos = _buffer.begin() + static_cast<std::vector<uint8_t>::difference_type>(cursize);
-        std::transform(val.begin(), val.end(), bufferPos, [](auto c) { return static_cast<uint8_t>(c); });
+        std::span<uint8_t const> spn(reinterpret_cast<uint8_t const*>(bytespn.data()), bytespn.size());
+        std::copy(spn.begin(), spn.end(), back_inserter(_buffer));
         return *this;
     }
+
+    Writer& operator<<(std::span<const uint8_t> const& spn)
+    {
+        std::copy(spn.begin(), spn.end(), back_inserter(_buffer));
+        return *this;
+    }
+    template <typename TChar, typename TStr> Writer& _WriteStr(TStr const& str)
+    {
+        uint32_t bytesize = static_cast<uint32_t>(str.size() * sizeof(TChar));
+        *this << bytesize;
+        std::span<uint8_t const> spn(reinterpret_cast<uint8_t const*>(str.data()), bytesize);
+        *this << spn;
+        return *this;
+    }
+
+    Writer& operator<<(std::string const& str) { return _WriteStr<char>(str); }
+    Writer& operator<<(std::wstring const& str) { return _WriteStr<wchar_t>(str); }
+    Writer& operator<<(shared_string const& str) { return _WriteStr<char>(str); }
+    Writer& operator<<(shared_wstring const& str) { return _WriteStr<wchar_t>(str); }
 
     std::vector<uint8_t> Reset() { return std::move(_buffer); }
 
@@ -128,7 +68,7 @@ struct Writer
 
 struct Reader
 {
-    Reader(Writer& w) : _it(std::span<const uint8_t>(w._buffer).begin()) {}
+    Reader(std::span<const uint8_t> const& w) : _it(w.begin()) {}
     Reader(ByteIt const& itbeg) : _it(itbeg) {}
 
     template <typename TVal, std::enable_if_t<std::is_trivial<TVal>::value, bool> = true> TVal read()
@@ -140,15 +80,22 @@ struct Reader
         return val;
     }
 
-    shared_string read_shared_string()
+    template <typename TChar, typename TStr> TStr _ReadStr()
     {
-        size_t        size  = read<size_t>();
-        shared_string str   = shared_string::make(std::string(size, 0));
-        auto          endIt = _it + static_cast<ByteIt::difference_type>(size);
-        std::transform(_it, endIt, str.begin(), [](auto c) { return static_cast<char>(c); });
+        size_t bytesize = read<uint32_t>();
+        TStr   str;
+        str.resize(bytesize / sizeof(TChar));
+        std::span<uint8_t> spn(reinterpret_cast<uint8_t*>(str.data()), bytesize);
+        auto               endIt = _it + static_cast<ByteIt::difference_type>(bytesize);
+        std::copy(_it, endIt, spn.begin());
         _it = endIt;
         return str;
     }
+
+    shared_string  read_shared_string() { return _ReadStr<char, shared_string>(); }
+    shared_wstring read_shared_wstring() { return _ReadStr<wchar_t, shared_wstring>(); }
+    std::string    read_string() { return _ReadStr<char, std::string>(); }
+    std::wstring   read_wstring() { return _ReadStr<wchar_t, std::wstring>(); }
 
     auto   GetIterator() { return _it; }
     ByteIt _it;
@@ -162,21 +109,28 @@ struct ProtocolBinary
 
 template <ConceptPreferIndexable T> struct SerDes<T, ProtocolBinary>
 {
+    using TKey = typename Stencil::TypeTraitsForIndexable<T>::Key;
     template <typename Context> static auto Write(Context& ctx, T const& obj)
     {
         Visitor<T>::VisitAllIndicies(obj, [&](auto const& key, auto const& val) {
+            ctx << uint8_t{1};
             SerDes<std::remove_cvref_t<decltype(key)>, ProtocolBinary>::Write(ctx, key);
             SerDes<std::remove_cvref_t<decltype(val)>, ProtocolBinary>::Write(ctx, val);
         });
+        ctx << uint8_t{0};
     }
 
-    template <typename Context> static auto Read(T& /*obj*/, Context& /*ctx*/)
+    template <typename Context> static auto Read(T& obj, Context& ctx)
     {
-        TODO("");
-        /*  Visitor<T>::VisitAllIndicies(obj, [&](auto& key, auto& val) {
-            SerDes<std::remove_cvref_t<decltype(key)>, ProtocolBinary>::Read(key, ctx);
-            SerDes<std::remove_cvref_t<decltype(val)>, ProtocolBinary>::Read(val, ctx);
-        });*/
+        while (true)
+        {
+            auto marker = ctx.read<uint8_t>();
+            if (marker == 0) return;
+            if (marker != 1) throw std::logic_error("Invalid marker");
+            TKey key;
+            SerDes<TKey, ProtocolBinary>::Read(key, ctx);
+            Visitor<T>::VisitKey(obj, key, [&](auto& val) { SerDes<std::remove_cvref_t<decltype(val)>, ProtocolBinary>::Read(val, ctx); });
+        }
     }
 };
 
@@ -185,14 +139,37 @@ template <ConceptPreferIterable T> struct SerDes<T, ProtocolBinary>
     template <typename Context> static auto Write(Context& ctx, T const& obj)
     {
         // Some iterables can be primitives
-        Visitor<T>::VisitAllIndicies(
-            obj, [&](auto& /*key*/, auto& obj) { SerDes<std::remove_cvref_t<decltype(obj)>, ProtocolBinary>::Write(ctx, obj); });
+        Visitor<T>::VisitAllIndicies(obj, [&](auto& /*key*/, auto& obj) {
+            ctx << uint8_t{1};
+            SerDes<std::remove_cvref_t<decltype(obj)>, ProtocolBinary>::Write(ctx, obj);
+        });
+        ctx << uint8_t{0};
     }
 
     template <typename Context> static auto Read(T& obj, Context& ctx)
     {
-        Visitor<T>::VisitAllIndicies(
-            obj, [&](auto& /*key*/, auto& obj) { SerDes<std::remove_cvref_t<decltype(obj)>, ProtocolBinary>::Read(obj, ctx); });
+        typename Visitor<T>::Iterator it;
+
+        bool valid = false;
+        while (true)
+        {
+            auto marker = ctx.read<uint8_t>();
+            if (marker == 0) return;
+            if (marker != 1) throw std::logic_error("Invalid marker");
+            if (!valid)
+            {
+                Visitor<T>::IteratorBegin(it, obj);
+                valid = true;
+            }
+            else
+            {
+                Visitor<T>::IteratorMoveNext(it, obj);
+            }
+
+            if (!Visitor<T>::IteratorValid(it, obj)) { throw std::runtime_error("Cannot Visit Next Item on the iterable"); }
+
+            Visitor<T>::Visit(it, obj, [&](auto& val) { SerDes<std::remove_cvref_t<decltype(val)>, ProtocolBinary>::Read(val, ctx); });
+        }
     }
 };
 
@@ -212,128 +189,47 @@ template <ConceptEnum T> struct SerDes<T, ProtocolBinary>
     template <typename Context> static auto Read(T& obj, Context& ctx) { obj = static_cast<T>(ctx.read<uint32_t>()); }
 };
 
-template <typename T> struct SerDes<shared_stringT<T>, ProtocolBinary>
+template <ConceptEnumPack T> struct SerDes<T, ProtocolBinary>
 {
-    template <typename Context> static auto Write(Context& /*ctx*/, shared_stringT<T> const& /*obj*/) { TODO(""); }
-    template <typename Context> static auto Read(shared_stringT<T>& obj, Context& ctx) { obj = ctx.read_shared_string(); }
+    template <typename Context> static auto Write(Context& ctx, T const& obj) { ctx << T::CastToInt(obj); }
+    template <typename Context> static auto Read(T& obj, Context& ctx) { obj = T::CastFromInt(ctx.read<uint32_t>()); }
+};
+
+template <> struct SerDes<shared_string, ProtocolBinary>
+{
+    template <typename Context> static auto Write(Context& ctx, shared_string const& obj) { ctx << obj; }
+    template <typename Context> static auto Read(shared_string& obj, Context& ctx) { obj = ctx.read_shared_string(); }
+};
+
+template <> struct SerDes<shared_wstring, ProtocolBinary>
+{
+    template <typename Context> static auto Write(Context& ctx, shared_wstring const& obj) { ctx << obj; }
+    template <typename Context> static auto Read(shared_wstring& obj, Context& ctx) { obj = ctx.read_shared_wstring(); }
 };
 
 template <> struct SerDes<std::wstring, ProtocolBinary>
 {
-    template <typename Context> static auto Write(Context& /*ctx*/, std::wstring const& /*obj*/) { TODO(""); }
-    template <typename Context> static auto Read(std::wstring& /*obj*/, Context& /*ctx*/) { TODO(""); }
+    template <typename Context> static auto Write(Context& ctx, std::wstring const& obj) { ctx << obj; }
+    template <typename Context> static auto Read(std::wstring& obj, Context& ctx) { obj = ctx.read_wstring(); }
 };
 
 template <> struct SerDes<std::string, ProtocolBinary>
 {
-    template <typename Context> static auto Write(Context& /*ctx*/, std::string const& /*obj*/) { TODO(""); }
-    template <typename Context> static auto Read(std::string& /*obj*/, Context& /*ctx*/) { TODO(""); }
+    template <typename Context> static auto Write(Context& ctx, std::string const& obj) { ctx << obj; }
+    template <typename Context> static auto Read(std::string& obj, Context& ctx) { obj = ctx.read_string(); }
 };
 
 template <size_t N> struct SerDes<std::array<char, N>, ProtocolBinary>
 {
     using TObj = std::array<char, N>;
-    template <typename Context> static auto Write(Context& /*ctx*/, TObj const& /*obj*/) { TODO(""); }
-    template <typename Context> static auto Read(TObj& /*obj*/, Context& /*ctx*/) { TODO(""); }
+    template <typename Context> static auto Write(Context& ctx, TObj const& obj) { ctx << obj; }
+    template <typename Context> static auto Read(TObj& obj, Context& ctx) { obj = ctx.read<TObj>(); }
 };
 
 template <> struct SerDes<uuids::uuid, ProtocolBinary>
 {
-    template <typename Context> static auto Write(Context& /*ctx*/, uuids::uuid const& /*obj*/) { TODO(""); }
-    template <typename Context> static auto Read(uuids::uuid& /*obj*/, Context& /*ctx*/) { TODO(""); }
+    template <typename Context> static auto Write(Context& ctx, uuids::uuid const& obj) { ctx << obj.as_bytes(); }
+
+    template <typename Context> static auto Read(uuids::uuid& obj, Context& ctx) { obj = uuids::uuid{ctx.read<std::array<uint8_t, 16>>()}; }
 };
 }    // namespace Stencil
-#ifdef TODO1
-struct BinarySerDes
-{
-    template <typename T> static void Serialize(Stencil::Visitor<T const>& visitor, std::ostream& strm)
-    {
-        Stencil::OStrmWriter writer(strm);
-        switch (visitor.GetDataTypeHint())
-        {
-        case Stencil::DataType::FixedSize:
-        {
-        }
-        break;
-        case Stencil::DataType::Blob:
-        {
-        }
-        break;
-        case Stencil::DataType::Dictionary:
-        {
-            for (size_t i = 0; visitor.TrySelect(i); i++)
-            {
-                Serialize(visitor, writer.strm());
-                visitor.GoBackUp();
-            }
-        }
-        break;
-        case Stencil::DataType::List:
-        {
-            for (uint32_t i = 0; visitor.TrySelect(i); i++)
-            {
-                writer << i + 1;
-                Serialize(visitor, writer.strm());
-                visitor.GoBackUp();
-            }
-            writer << uint32_t{0};
-        }
-        break;
-        case Stencil::DataType::Invalid: [[fallthrough]]; throw std::runtime_error("Unsupported Data Type");
-        }
-    }
-
-    template <typename TVisitor> static void Deserialize(TVisitor& visitor, std::istream& istrm)
-    {
-        Stencil::IStrmReader reader(istrm);
-
-        switch (visitor.GetDataTypeHint())
-        {
-        case Stencil::DataType::Value:
-        {
-            auto valType = static_cast<Value::Type>(reader.template read<uint8_t>());
-            switch (valType)
-            {
-            case Value::Type::Double: visitor.SetValue(Value{reader.template read<double>()}); break;
-            case Value::Type::Empty: TODO(); break;
-            case Value::Type::Signed: visitor.SetValue(Value{reader.template read<int64_t>()}); break;
-            case Value::Type::String:
-                // TODO : See if this can be removed and renamed Value to Value64Bit
-                // Value::Type::String -> TrivialConstArray
-                visitor.SetValue(Value{reader.read_shared_string()});
-                break;
-            case Value::Type::Unsigned: visitor.SetValue(Value{reader.template read<uint64_t>()}); break;
-            case Value::Type::Unknown: throw std::logic_error("Unknown Value Type");
-            }
-        }
-        break;
-        case Stencil::DataType::List:
-        {
-            auto index = reader.read<uint32_t>();
-            for (size_t i = 0; index != 0; i++)
-            {
-                visitor.Select(i);
-                Deserialize(visitor, reader.strm());
-                visitor.GoBackUp();
-                index = reader.read<uint32_t>();
-            }
-            break;
-        }
-        case Stencil::DataType::Object:
-        {
-
-            for (size_t i = 0; visitor.TrySelect(i); i++)
-            {
-                Deserialize(visitor, reader.strm());
-                visitor.GoBackUp();
-            }
-        }
-        break;
-        case Stencil::DataType::Enum: TODO();
-        case Stencil::DataType::Variant: TODO();
-        case Stencil::DataType::Invalid: [[fallthrough]];
-        case Stencil::DataType::Unknown: throw std::runtime_error("Unsupported Data Type");
-        }
-    }
-};
-#endif

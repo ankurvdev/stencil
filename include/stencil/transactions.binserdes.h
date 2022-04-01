@@ -9,6 +9,58 @@
 
 namespace Stencil
 {
+
+struct OStrmWriter
+{
+    OStrmWriter(std::ostream& ostr) : _ostr(ostr) {}
+    CLASS_DELETE_COPY_AND_MOVE(OStrmWriter);
+
+    template <typename TVal, std::enable_if_t<std::is_trivial<TVal>::value, bool> = true> auto& operator<<(TVal const& val)
+    {
+        auto spn = AsCSpan(val);
+        _ostr.write(reinterpret_cast<char const*>(spn.data()), static_cast<std::streamsize>(spn.size()));
+        return *this;
+    }
+
+    auto& strm() { return _ostr; }
+
+    auto& operator<<(shared_string const& val)
+    {
+        *this << val.size();
+        if (val.size() > 0) _ostr.write(reinterpret_cast<char const*>(val.data()), static_cast<std::streamsize>(val.size()));
+        return *this;
+    }
+
+    std::ostream& _ostr;
+};
+
+struct IStrmReader
+{
+    IStrmReader(std::istream& istrm) : _istrm(istrm) {}
+    CLASS_DELETE_COPY_AND_MOVE(IStrmReader);
+
+    bool  isEof() { return !_istrm.good(); }
+    auto& strm() { return _istrm; }
+
+    template <typename TVal, std::enable_if_t<std::is_trivial<TVal>::value, bool> = true> TVal read()
+    {
+        TVal val;
+        auto spn = AsSpan(val);
+        _istrm.read(reinterpret_cast<char*>(spn.data()), static_cast<std::streamsize>(spn.size()));
+        return val;
+    }
+
+    shared_string read_shared_string()
+    {
+        size_t      size = read<size_t>();
+        std::string str(size, 0);
+        _istrm.read(reinterpret_cast<char*>(str.data()), static_cast<std::streamsize>(size));
+        return shared_string::make(std::move(str));
+    }
+
+    std::istream& _istrm;
+};
+
 struct BinaryTransactionSerDes
 {
     template <typename T> static auto& _DeserializeTo(Transaction<T>& txn, OStrmWriter& writer)
@@ -27,11 +79,11 @@ struct BinaryTransactionSerDes
                     else if (mutator == 0)
                     {
                         // Visitor<ObjType const> visitor(obj);
-                        Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer.strm(), obj);
+                        Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer, obj);
                     }
                     else if (mutator == 1)
                     {
-                        Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer.strm(), obj);
+                        Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer, obj);
                     }
                     else if (mutator == 2)
                     {

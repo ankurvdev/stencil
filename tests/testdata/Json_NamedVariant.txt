@@ -3,9 +3,9 @@ Testcase[NamedVariant]:default-2, Output: {}
 Testcase[NamedVariant]:0, Input: {"f1": {"f1": {}}}
 Testcase[NamedVariant]:0, Output: {"f1":{"timestamp":"1969-12-31T16:00:00-0800","uuid":"00000000-0000-0000-0000-000000000000","f1":{"f1":0,"f2":0,"f3":0,"f4":null,"f5":0,"f6":0,"f7":false,"f8":"1969-12-31T16:00:00-0800","f9":"1969-12-31T16:00:00-0800"},"f2":{},"f3":[{"f1":0,"f2":0,"f3":0,"f4":null,"f5":0,"f6":0,"f7":false,"f8":"1969-12-31T16:00:00-0800","f9":"1969-12-31T16:00:00-0800"},{"f1":0,"f2":0,"f3":0,"f4":null,"f5":0,"f6":0,"f7":false,"f8":"1969-12-31T16:00:00-0800","f9":"1969-12-31T16:00:00-0800"},{"f1":0,"f2":0,"f3":0,"f4":null,"f5":0,"f6":0,"f7":false,"f8":"1969-12-31T16:00:00-0800","f9":"1969-12-31T16:00:00-0800"},{"f1":0,"f2":0,"f3":0,"f4":null,"f5":0,"f6":0,"f7":false,"f8":"1969-12-31T16:00:00-0800","f9":"1969-12-31T16:00:00-0800"}]}}
 Testcase[NamedVariant]:1, Input: {"f2": {"f1": {}}}
-Testcase[NamedVariant]:1, Output: {"f2":{"f1":{"f1":0,"f2":0,"f3":0,"f4":null,"f5":0,"f6":0,"f7":false,"f8":"1969-12-31T16:00:00-0800","f9":"1969-12-31T16:00:00-0800"},"f2":{"f1":"","f2":"","f3":[],"f4":[]},"f3":{},"f4":[]}}
+Testcase[NamedVariant]:1, Output: {"f2":{"f1":{"f1":0,"f2":0,"f3":0,"f4":null,"f5":0,"f6":0,"f7":false,"f8":"1969-12-31T16:00:00-0800","f9":"1969-12-31T16:00:00-0800"},"f2":{"f1":null,"f2":null,"f3":[],"f4":[]},"f3":{},"f4":[]}}
 Testcase[NamedVariant]:2, Input: {"f3": {"f1": {}}}
-Testcase[NamedVariant]:2, Output: {"f3":{"f1":"","f2":"","f3":[],"f4":[]}}
+Testcase[NamedVariant]:2, Output: {"f3":{"f1":null,"f2":null,"f3":[],"f4":[]}}
 Testcase[NamedVariant]:3, Input: {"f4": {"f1": {}}}
 Testcase[NamedVariant]:3, Output: {"f4":{"f1":0,"f2":0,"f3":0,"f4":null,"f5":0,"f6":0,"f7":false,"f8":"1969-12-31T16:00:00-0800","f9":"1969-12-31T16:00:00-0800"}}
 Testcase[NamedVariant]:4, Input: {"f5": 0.1234}

@@ -1,9 +1,9 @@
 #pragma once
-#include "typetraits.h"
-#include "typetraits_std.h"
-
+#include "enums.h"
 #include "shared_string.h"
 #include "timestamped.h"
+#include "typetraits.h"
+#include "typetraits_std.h"
 #include "uuidobject.h"
 
 template <typename T> struct Stencil::TypeTraits<shared_stringT<T>>

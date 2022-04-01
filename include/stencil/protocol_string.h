@@ -72,8 +72,8 @@ template <> struct SerDes<shared_string, ProtocolString>
 
 template <ConceptEnumPack T> struct SerDes<T, ProtocolString>
 {
-    template <typename Context> static auto Write(Context& /*ctx*/, T const& /*obj*/) { TODO(""); }
-    template <typename Context> static auto Read(T& obj, Context& ctx) { obj = T::FromString(ctx); }
+    template <typename Context> static auto Write(Context& ctx, T const& obj) { fmt::print(ctx, "{}", T::CastToString(obj)); }
+    template <typename Context> static auto Read(T& obj, Context& ctx) { obj = T::CastFromString(ctx); }
 };
 
 template <ConceptEnum T> struct SerDes<T, ProtocolString>
