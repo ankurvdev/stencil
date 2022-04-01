@@ -12,7 +12,6 @@
 #include "visitor.h"
 
 #include "Database2.h"
-#include "cliserdes.h"
 
 #if defined USE_CPP_HTTPLIB
 #include "WebService.h"
