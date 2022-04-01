@@ -1,9 +1,9 @@
 import argparse
 import os
-from os.path import pardir
 import shutil
 import subprocess
 import sys
+from os.path import pardir
 
 if sys.platform == "win32" and not "VSINSTALLDIR" in os.environ.keys():
     subprocess.check_call(['powershell', os.path.join(os.path.dirname(__file__), "run_in_devenv.ps1"), "x64", sys.executable, __file__] + sys.argv[1:])

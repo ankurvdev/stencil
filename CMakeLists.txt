@@ -82,9 +82,10 @@ endif()
 find_package(RapidJSON QUIET)
 if (NOT RapidJSON_FOUND)
     init_submodule(external/rapidjson)
-    add_subdirectory(external/rapidjson EXCLUDE_FROM_ALL rapidjson)
-    SupressWarningForTarget(rapidjson)
-    target_include_directories(rapidjson PUBLIC USE_RAPIDJSON=1)
+    add_library(rapidjson INTERFACE)
+    #SupressWarningForTarget(rapidjson)
+    target_compile_definitions(rapidjson INTERFACE USE_RAPIDJSON=1)
+    target_include_directories(rapidjson INTERFACE external/rapidjson/include)
 endif()
 
 
