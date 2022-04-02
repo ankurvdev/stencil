@@ -38,8 +38,7 @@ apt-get install --yes --no-install-recommends --quiet \
     libc++-${CLANG_VERSION}-dev libc++abi-${CLANG_VERSION}-dev \
     cmake flex bison gettext \
 
-    
-apt remove libstdc++-10-dev
+apt remove libstdc++*-dev
 update-alternatives --install /usr/bin/cc cc /usr/bin/clang-${CLANG_VERSION} 100
 update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-${CLANG_VERSION} 100
 
