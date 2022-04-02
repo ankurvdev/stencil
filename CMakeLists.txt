@@ -150,7 +150,6 @@ file(GLOB public_headers ${CMAKE_CURRENT_LIST_DIR}/include/stencil/*)
 find_file(UUIDHEADER REQUIRED NAMES uuid.h HINTS external/stduuid/include)
 list(APPEND public_headers "${UUIDHEADER}")
 
-
 set_target_properties(stencil PROPERTIES PUBLIC_HEADER "${public_headers}")
 
 target_link_libraries(stencil PRIVATE libstencil cxxopts::cxxopts)
