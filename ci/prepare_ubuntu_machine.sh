@@ -17,8 +17,6 @@ apt-get install --yes --no-install-recommends --quiet \
     lsb-release \
     software-properties-common
 
-CLANG_VERSION=13
-
 UBUNTU_CODENAME=$(lsb_release --codename --short)
 UBUNTU_VERSION=$(lsb_release --release --short)
 
@@ -31,16 +29,16 @@ apt-add-repository "deb http://apt.llvm.org/${UBUNTU_CODENAME}/ llvm-toolchain-$
 wget -q -O - https://apt.kitware.com/keys/kitware-archive-latest.asc | apt-key add -
 apt-add-repository "deb https://apt.kitware.com/ubuntu/ ${UBUNTU_CODENAME} main"
 
+# https://wiki.ubuntu.com/ToolChain
+# Required for providing latest stl headers (libstdc++-)
+add-apt-repository --yes --no-update "ppa:ubuntu-toolchain-r/test"
+
 # Install build pre-requisites.
 apt-get update && \
-apt-get install --yes --no-install-recommends --quiet \
-    clang-${CLANG_VERSION} clang-format-${CLANG_VERSION} \
-    libc++-${CLANG_VERSION}-dev libc++abi-${CLANG_VERSION}-dev \
-    cmake flex bison gettext \
+apt-get install --yes --no-install-recommends --quiet clang-14 gcc-12 cmake flex bison gettext
 
-apt remove libstdc++*-dev
-update-alternatives --install /usr/bin/cc cc /usr/bin/clang-${CLANG_VERSION} 100
-update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-${CLANG_VERSION} 100
+update-alternatives --install /usr/bin/cc cc /usr/bin/clang 100
+update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++ 100
 
 # Print out tool version info
 for tool in cmake cc gcc g++ clang-${CLANG_VERSION} flex bison; do
