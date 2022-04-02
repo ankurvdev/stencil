@@ -77,12 +77,12 @@ jobs:
       x64:
         Arch: x64
   pool:
-    vmImage: 'windows-2019'
-  displayName: 'Build VS2019'
+    vmImage: 'windows-latest'
+  displayName: 'Build MSVC'
   steps:
   - powershell: mkdir -p cmake-build ; mkdir -p vcpkg-build
   - task: Powershell@2
-    displayName: "Build and Test VS2019"
+    displayName: "Build and Test MSVC"
     inputs:
       workingDirectory: 'cmake-build'
       targetType: 'filePath'
