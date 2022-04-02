@@ -32,8 +32,9 @@ def _find_cached_paths(name: str):
 def find_binary(name: str):
     for fn in [_find_cached_paths, _find_from_path, _find_from_vs_win]:
         pth: pathlib.Path = fn(name)
-        if pth.exists():
+        if pth != pathlib.Path():
             CACHED_PATHS[name] = pth.absolute()
+            print(f"{name} => {pth}")
             return pth.absolute().as_posix()
     raise Exception(f"Cannot find {name}")
 
