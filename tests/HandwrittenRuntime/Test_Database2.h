@@ -1,6 +1,5 @@
 #include <stencil/stencil.h>
 
-#include <uuid.h>
 std::filesystem::path DbFileName();
 
 namespace Database = Database2;
