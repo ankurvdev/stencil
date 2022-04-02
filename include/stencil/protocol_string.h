@@ -192,7 +192,7 @@ template <> struct SerDes<std::wstring, ProtocolString>
         std::string str;
         SerDes<std::string, ProtocolString>::Read(str, ctx);
         obj.resize(str.size());
-        std::transform(str.begin(), str.end(), obj.begin(), [](auto l) { return static_cast<char>(l); });
+        std::transform(str.begin(), str.end(), obj.begin(), [](auto l) { return static_cast<wchar_t>(l); });
     }
 };
 

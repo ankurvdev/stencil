@@ -1,7 +1,6 @@
 #pragma once
 #include "typetraits_builtins.h"
 
-#include <CommonMacros.h>
 #include <memory>
 #include <tuple>
 
