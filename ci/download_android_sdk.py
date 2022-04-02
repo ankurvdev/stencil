@@ -43,7 +43,7 @@ class HTMLUrlExtractor(html.parser.HTMLParser):
 
 
 def _search_filename(path: pathlib.Path, name: str) -> Optional[pathlib.Path]:
-    for filepath in path.rglob(f'*{name}*'):
+    for filepath in path.rglob(f'{name}'):
         return filepath
     return None
 
