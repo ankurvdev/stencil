@@ -4,8 +4,8 @@
 #include <array>
 #include <memory>
 #include <string>
-#include <vector>
 #include <variant>
+#include <vector>
 
 template <typename T> struct Stencil::TypeTraits<std::shared_ptr<T>>
 {
@@ -34,8 +34,7 @@ requires(!ConceptPrimitives64Bit<std::array<T, N>>) struct Stencil::TypeTraits<s
     using Categories = std::tuple<Stencil::Category::Iterable>;
 };
 
-template <typename T, size_t N>
-requires(ConceptPrimitives64Bit<std::array<T, N>>) struct Stencil::TypeTraits<std::array<T, N>>
+template <typename T, size_t N> struct Stencil::TypeTraits<std::array<T, N>, std::enable_if_t<ConceptPrimitives64Bit<std::array<T, N>>>>
 {
     using Categories = std::tuple<Stencil::Category::Primitive>;
 };
