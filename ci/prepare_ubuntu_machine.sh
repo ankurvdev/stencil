@@ -19,7 +19,7 @@ apt-get install --yes --no-install-recommends --quiet \
 
 UBUNTU_CODENAME=$(lsb_release --codename --short)
 UBUNTU_VERSION=$(lsb_release --release --short)
-CLANG_VERSION=14
+CLANG_VERSION=13
 
 # Configure package repository for clang toolchain.
 wget -q -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
