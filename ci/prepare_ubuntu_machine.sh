@@ -39,7 +39,7 @@ add-apt-repository --yes --no-update "ppa:ubuntu-toolchain-r/test"
 # Install build pre-requisites.
 apt-get update && \
 apt-get install --yes --no-install-recommends --quiet \
-    gcc-11 clang-${CLANG_VERSION} clang-format-${CLANG_VERSION} \
+    g++-11 clang-${CLANG_VERSION} clang-format-${CLANG_VERSION} \
     libc++-${CLANG_VERSION}-dev libc++abi-${CLANG_VERSION}-dev \
     cmake flex bison gettext \
 
