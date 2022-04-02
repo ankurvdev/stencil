@@ -44,8 +44,8 @@ apt-get install --yes --no-install-recommends --quiet \
     cmake flex bison gettext \
 
 
-update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-11 100
-update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-11 100
+update-alternatives --install /usr/bin/cc cc /usr/bin/clang-${CLANG_VERSION} 100
+update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-${CLANG_VERSION} 100
 
 # Print out tool version info
 for tool in cmake cc gcc g++ clang-${CLANG_VERSION} flex bison; do
