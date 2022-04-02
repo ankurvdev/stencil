@@ -50,8 +50,9 @@ def _search_filename(path: pathlib.Path, name: str) -> Optional[pathlib.Path]:
 
 def _search_exe(bindir: pathlib.Path, binname: str) -> Optional[pathlib.Path]:
     if sys.platform == "win32":
-        path = _search_filename(bindir, binname + ".bat") or _search_filename(bindir,
-                                                                              binname + ".cmd") or _search_filename(bindir, binname + ".exe")
+        path = (_search_filename(bindir, binname + ".bat") or
+                _search_filename(bindir, binname + ".cmd") or
+                _search_filename(bindir, binname + ".exe"))
     elif sys.platform == "linux":
         path = _search_filename(bindir, binname + ".sh") or _search_filename(bindir, binname)
         if path:
@@ -60,7 +61,7 @@ def _search_exe(bindir: pathlib.Path, binname: str) -> Optional[pathlib.Path]:
 
 
 def _download_or_get_Binary(binname: str, bindir: pathlib.Path, downloadFn: Callable[[pathlib.Path], None]) -> pathlib.Path:
-    os.makedirs(bindir, exist_ok=True)
+    bindir.mkdir(exist_ok=True)
     exe = _search_exe(bindir, binname)
     if exe is not None:
         AddToPath(exe.parent)
@@ -80,14 +81,14 @@ def AddToPath(path: pathlib.Path):
 
 
 def DownloadSdkManager(path: pathlib.Path):
-    sdkpath = os.path.join(path, 'sdk')
-    os.makedirs(sdkpath, exist_ok=True)
+    sdkpath = path / 'sdk'
+    sdkpath.mkdir(exist_ok=True)
     urls = HTMLUrlExtractor("https://developer.android.com/studio").urls
     ossuffix = {"linux": "linux", "win32": "win"}[sys.platform]
     pattern = f"https://dl.google.com/android/repository/commandlinetools-{ossuffix}.*.zip"
     url = [u for u in urls if re.match(pattern, u)][0]
-    downloadtofile = os.path.join(path, "downloads", "commandlinetools.zip")
-    if not os.path.exists(downloadtofile):
+    downloadtofile = path / "downloads" / "commandlinetools.zip"
+    if not downloadtofile.exists():
         print(f"Download {url} to {downloadtofile}")
         urllib.request.urlretrieve(url, downloadtofile)
     shutil.unpack_archive(downloadtofile, sdkpath)
@@ -101,16 +102,16 @@ def DownloadAndroidStudio(path: pathlib.Path):
     ossuffix = {"linux": "linux", "win32": "windows"}[sys.platform]
     pattern = f"https://redirector.gvt1.com/edgedl/android/studio/.*/android-studio-.*-{ossuffix}.{ext}"
     url = [u for u in urls if re.match(pattern, u)][0]
-    downloadtofile = os.path.join(path, "downloads", f"studio.{ext}")
-    os.makedirs(os.path.dirname(downloadtofile), exist_ok=True)
-    if not os.path.exists(downloadtofile):
+    downloadtofile = path / "downloads" / f"studio.{ext}"
+    downloadtofile.parent.mkdir(exist_ok=True)
+    if not downloadtofile.exists():
         print(f"Download {url} to {downloadtofile}")
         urllib.request.urlretrieve(url, downloadtofile)
     shutil.unpack_archive(downloadtofile, path)
 
 
 def AcceptSDKLicenses(path: pathlib.Path):
-    sdkpath = os.path.join(path, 'sdk')
+    sdkpath = path / 'sdk'
     cmd = [str(_download_or_get_Binary('sdkmanager', path, DownloadSdkManager)), f"--sdk_root={sdkpath}", '--licenses']
     sys.stderr.write(" ".join(cmd) + "\n")
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)

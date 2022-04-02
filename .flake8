@@ -1,0 +1,10 @@
+[flake8]
+; We exclude .git, pycache, thirdparty scripts
+; because they are outside our control
+; and don't necessarily conform with flake8 rules used in this repo.
+;
+exclude = .git __pycache__ venv thirdparty/* cmake-build*
+
+; Maximum line length for pycodestyle is set to 120. However, this is a soft
+; limit. We set a hard limit here for 140 characters, which will fail code style
+max_line_length = 140
