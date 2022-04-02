@@ -36,10 +36,10 @@ add-apt-repository --yes --no-update "ppa:ubuntu-toolchain-r/ppa"
 
 # Install build pre-requisites.
 apt-get update && \
-apt-get install --yes --no-install-recommends --quiet clang-14 gcc-11 cmake flex bison gettext
+apt-get install --yes --no-install-recommends --quiet clang-${CLANG_VERSION} gcc-11 cmake flex bison gettext
 
-update-alternatives --install /usr/bin/cc cc /usr/bin/clang 100
-update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++ 100
+update-alternatives --install /usr/bin/cc cc /usr/bin/clang-${CLANG_VERSION} 100
+update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-${CLANG_VERSION} 100
 
 # Print out tool version info
 for tool in cmake cc gcc g++ clang-${CLANG_VERSION} flex bison; do
