@@ -32,11 +32,11 @@ apt-add-repository "deb https://apt.kitware.com/ubuntu/ ${UBUNTU_CODENAME} main"
 
 # https://wiki.ubuntu.com/ToolChain
 # Required for providing latest stl headers (libstdc++-)
-add-apt-repository --yes --no-update "ppa:ubuntu-toolchain-r/test"
+add-apt-repository --yes --no-update "ppa:ubuntu-toolchain-r/ppa"
 
 # Install build pre-requisites.
 apt-get update && \
-apt-get install --yes --no-install-recommends --quiet clang-14 gcc-12 cmake flex bison gettext
+apt-get install --yes --no-install-recommends --quiet clang-14 gcc-11 cmake flex bison gettext
 
 update-alternatives --install /usr/bin/cc cc /usr/bin/clang 100
 update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++ 100
