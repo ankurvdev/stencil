@@ -4,14 +4,12 @@
 #include "IDL2.h"
 #include "TemplateFragment.h"
 
-#pragma warning(push, 3)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Weverything"
+SUPPRESS_WARNINGS_START
+SUPPRESS_MSVC_STL_WARNINGS
 #include <tinyxml2.h>
 #include <toml.hpp>
 #include <tsl/ordered_map.h>
-#pragma clang diagnostic pop
-#pragma warning(pop)
+SUPPRESS_WARNINGS_END
 
 #include <EmbeddedResource.h>
 
