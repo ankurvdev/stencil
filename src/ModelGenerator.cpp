@@ -9,7 +9,6 @@ SUPPRESS_MSVC_STL_WARNINGS
 #include <tinyxml2.h>
 #include <toml.hpp>
 #include <tsl/ordered_map.h>
-SUPPRESS_WARNINGS_END
 
 #include <EmbeddedResource.h>
 
@@ -20,6 +19,7 @@ SUPPRESS_WARNINGS_END
 #include <stdexcept>
 #include <string_view>
 #include <vector>
+SUPPRESS_WARNINGS_END
 
 DECLARE_RESOURCE_COLLECTION(templates);
 
