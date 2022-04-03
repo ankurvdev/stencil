@@ -71,16 +71,16 @@ struct ResourceLoader
     ResourceLoader& operator=(ResourceLoader const&) = delete;
     ResourceLoader& operator=(ResourceLoader&&) = delete;
 
-    std::wstring_view          name() const { return std::wstring_view(_info.name.data, _info.name.len); }
-    template <typename T = uint8_t> auto data() const
-    {
-        auto const   ptr  = reinterpret_cast<const T*>(_info.data.data);
-        size_t const size = _info.data.len / sizeof(T);
-        assert(_info.data.len % sizeof(T) == 0);
-        return std::span<const T>(ptr, ptr + size);
-    }
+    std::wstring_view name() const { return std::wstring_view(_info.name.data, _info.name.len); }
+    /* template <typename T auto data() const
+     {
+         auto const   ptr  = reinterpret_cast<const T*>(_info.data.data);
+         size_t const size = _info.data.len / sizeof(T);
+         assert(_info.data.len % sizeof(T) == 0);
+         return std::span<const T>{ptr, ptr + size};
+     }*/
 
-    std::string_view string() const { return std::string_view(data<char>().data(), data<char>().size()); }
+    std::string_view string() const { return std::string_view(reinterpret_cast<const char*>(_info.data.data), _info.data.len); }
 
     EmbeddedResource::ABI::ResourceInfo const _info;
 };

@@ -170,8 +170,8 @@ template <typename TData> inline void CompareBinaryOutputAgainstResource(TData c
         auto resname = wstring_to_string(r.name());
         if (resname == testresname || resname == resourcename)
         {
-            auto data = r.data<uint8_t>();
-            auto spn  = std::span<const uint8_t>(reinterpret_cast<uint8_t const*>(actual.data()), actual.size());
+            auto data = r.string();
+            auto spn  = std::span<const char>(reinterpret_cast<char const*>(actual.data()), actual.size());
             INFO("Checking Resource : " + resname)
             if (data.size() == spn.size() && std::equal(spn.begin(), spn.end(), data.begin())) { return; }
             std::ofstream f(testresname, std::ios::binary);
