@@ -18,4 +18,5 @@ vcpkg_copy_pdbs()
 # Handle copyright
 file(INSTALL ${SOURCE_PATH}/LICENSE DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT} RENAME copyright)
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug")
-vcpkg_cmake_config_fixup()
+file(RENAME "${CURRENT_PACKAGES_DIR}/lib/cmake" "${CURRENT_PACKAGES_DIR}/share/${PORT}/cmake")
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/lib")
