@@ -1,2 +1,7 @@
-[MESSAGES CONTROL]
-disable=missing-function-docstring
+[MASTER]
+disable=
+    C0114, # missing-docstring
+    C0115, # missing-docstring
+    C0116, # missing-docstring
+    invalid-name
+max-line-length=160
