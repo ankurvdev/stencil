@@ -12,6 +12,7 @@ SUPPRESS_WARNINGS_END
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 namespace IDLDebug
 {
