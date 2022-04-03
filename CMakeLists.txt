@@ -197,20 +197,7 @@ if (BUILD_TESTING)
 
     target_add_resource(runtime_tests testdata ${resfiles} ${pidlfiles})
     target_include_directories(runtime_tests PRIVATE src include tests)
-    add_executable(codegen_runtime_tests
-        tests/CodegenRuntime/Test_Codegen_CLOpts.cpp
-        tests/CodegenRuntime/Test_Codegen_Json.cpp
-        tests/CodegenRuntime/Test_DataRecorderPlayer.cpp
-        #tests/CodegenRuntime/Test_ObservableOptionalProps.cpp
-        tests/CodegenRuntime/Test_Transactions.cpp
-        #tests/CodegenRuntime/Test_WebService_Autogen.cpp
-    )
-    add_dependencies(codegen_runtime_tests codegen)
-    target_add_resource(codegen_runtime_tests testdata ${resfiles} ${pidlfiles})
-
-    target_link_libraries(codegen_runtime_tests PRIVATE libstencil dtl::dtl Catch2::Catch2 rapidjson cpp_httplib::cpp_httplib fmt)
-    target_include_directories(codegen_runtime_tests PRIVATE ${CMAKE_CURRENT_BINARY_DIR} src include tests)
-    add_test(NAME codegen_runtime_tests COMMAND codegen_runtime_tests)
+ 
 endif()
 
 configure_package_config_file(cmake/stencilConfig.cmake.in
