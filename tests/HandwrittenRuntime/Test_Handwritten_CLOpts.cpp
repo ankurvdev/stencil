@@ -25,7 +25,8 @@ template <typename T> static void RunTestCase(TestCaseCLI const& tc, std::vector
 {
     if (!tc.valid)
     {
-        if (IsDebuggerPresent()) return;
+        return;
+        // if (IsDebuggerPresent()) return;
     }
 
     lines.push_back(fmt::format("Testcase[{}]:{}", name, tc));

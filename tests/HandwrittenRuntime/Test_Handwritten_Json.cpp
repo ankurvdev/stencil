@@ -13,7 +13,8 @@ template <typename T> static void RunTestCase(TestCase const& tc, std::vector<st
 {
     if (!tc.valid)
     {
-        if (IsDebuggerPresent()) return;
+        return;
+        // if (IsDebuggerPresent()) return;
     }
     lines.push_back(fmt::format("Testcase[{}]:{}, Input: {}", name, tc.desc, tc.json));
     try
