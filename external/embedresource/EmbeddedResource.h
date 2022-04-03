@@ -77,7 +77,7 @@ struct ResourceLoader
         auto const   ptr  = reinterpret_cast<const T*>(_info.data.data);
         size_t const size = _info.data.len / sizeof(T);
         assert(_info.data.len % sizeof(T) == 0);
-        return std::span<const T>{ptr, ptr + size};
+        return std::span<const T>(ptr, ptr + size);
     }
 
     std::string_view string() const { return std::string_view(data<char>().data(), data<char>().size()); }

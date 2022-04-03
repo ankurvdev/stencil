@@ -14,6 +14,7 @@
         "cxxopts",
         "cpp-httplib",
         "rapidjson",
+        "stduuid",
         "fmt"
     ],
     "features": {
