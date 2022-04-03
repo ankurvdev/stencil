@@ -174,14 +174,25 @@ template <typename TData> inline void CompareBinaryOutputAgainstResource(TData c
             auto spn  = std::span<const uint8_t>(reinterpret_cast<uint8_t const*>(actual.data()), actual.size());
             INFO("Checking Resource : " + resname)
             if (data.size() == spn.size() && std::equal(spn.begin(), spn.end(), data.begin())) { return; }
-            break;
+            std::ofstream f(testresname, std::ios::binary);
+            f.write(reinterpret_cast<char const*>(actual.data()), static_cast<std::streamsize>(actual.size()));
+            f.flush();
+            f.close();
+            size_t index = 0;
+            auto   it2   = data.begin();
+            for (auto it = spn.begin(); it != spn.end(); ++it, ++it2, ++index)
+            {
+                if ((*it) == (*it2)) continue;
+                FAIL("Binary comparison failed at : " + std::to_string(index));
+            }
+            return;
         }
     }
     std::ofstream f(testresname, std::ios::binary);
     f.write(reinterpret_cast<char const*>(actual.data()), static_cast<std::streamsize>(actual.size()));
     f.flush();
     f.close();
-    FAIL("Cannot find reference resource" + testresname);
+    FAIL("Cannot find reference resource : " + testresname);
 }
 
 inline void CompareFileAgainstResource(std::filesystem::path const& actualf, std::string_view const& resourcename)

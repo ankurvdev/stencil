@@ -78,11 +78,11 @@ try:
     subprocess.check_call([vcpkgexe, "install", "stencil:" + runtime_triplet], env=myenv)
 except Exception:
     logs = list(pathlib.Path(vcpkgroot / "buildtrees").rglob('*.log'))
+    print(logs)
     for log in logs:
-        if log.parent.parent.name == 'buildtrees':
-            print(f"\n\n ========= START: {log} ===========")
-            print(log.read_text())
-            print(f" ========= END: {log} =========== \n\n")
+        print(f"\n\n ========= START: {log} ===========")
+        print(log.read_text())
+        print(f" ========= END: {log} =========== \n\n")
     raise
 
 
