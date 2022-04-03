@@ -223,14 +223,12 @@ template <typename TClock> struct Primitives64Bit::Traits<std::chrono::time_poin
 {
     using time_point = std::chrono::time_point<TClock>;
     static constexpr auto Type() { return Primitives64Bit::Type::Unsigned(4); }
-    static void           Assign(Primitives64Bit& obj, time_point& val) { obj._uVal = val.time_since_epoch().count(); }
+    static void           Assign(Primitives64Bit& obj, time_point& val) { obj._uVal = Repr(val); }
     static auto           Get(Primitives64Bit const& obj) { return time_point(typename time_point::duration(obj._uVal)); }
-    static auto           Convert(uint64_t val) { return time_point(typename time_point::duration(val)); }
+    static auto           Convert(uint64_t val) { return time_point(std::chrono::microseconds(val)); }
     static uint64_t       Repr(time_point const& val)
     {
-        Primitives64Bit obj;
-        obj._uVal = static_cast<uint64_t>(val.time_since_epoch().count());
-        return obj._uVal;
+        return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(val.time_since_epoch()).count());
     }
 };
 
