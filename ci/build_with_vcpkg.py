@@ -113,7 +113,7 @@ def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str):
     subprocess.check_call(cmd, cwd=testdir.as_posix())
     subprocess.check_call([find_binary("cmake"), "--build", ".", "-j"] + cmakebuildextraargs, cwd=testdir)
     if runtime_triplet == host_triplet:
-        subprocess.check_call([find_binary("ctest"), "."] + ctestextraargs, cwd=testdir)
+        subprocess.check_call([find_binary("ctest"), ".", "--output-on-failure"] + ctestextraargs, cwd=testdir)
 
 
 test_vcpkg_build("Debug", host_triplet, runtime_triplet, )

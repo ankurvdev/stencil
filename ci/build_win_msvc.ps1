@@ -10,4 +10,4 @@ $PSDefaultParameterValues['*:ErrorAction']='Stop'
 
 cmake.exe $PSScriptRoot\.. 
 cmake.exe --build . -j --target package
-ctest.exe -C Debug
+ctest.exe -C Debug --output-on-failure

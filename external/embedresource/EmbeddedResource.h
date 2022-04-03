@@ -72,7 +72,7 @@ struct ResourceLoader
     ResourceLoader& operator=(ResourceLoader&&) = delete;
 
     std::wstring_view          name() const { return std::wstring_view(_info.name.data, _info.name.len); }
-    template <typename T> auto data() const
+    template <typename T = uint8_t> auto data() const
     {
         auto const   ptr  = reinterpret_cast<const T*>(_info.data.data);
         size_t const size = _info.data.len / sizeof(T);
