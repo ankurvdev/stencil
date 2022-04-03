@@ -1198,6 +1198,18 @@ template <typename TDb> struct DatabaseT
         if constexpr ((N + 1) < Count) { _FillParent<N + 1, Count, TObj>(lock, obj, std::forward<TArgs>(args)...); }
     }
 
+    constexpr uint32_t _bit_ceil(uint32_t v) noexcept
+    {
+        v--;
+        v |= v >> 1;
+        v |= v >> 2;
+        v |= v >> 4;
+        v |= v >> 8;
+        v |= v >> 16;
+        v++;
+        return v;
+    }
+
     template <typename TObj, typename... TArgs> RefAndEditT<TObj> Create(wlock const& lock, TArgs&&... args)
     {
         if constexpr (Traits<TObj>::RecordSize() == 0)
@@ -1208,7 +1220,7 @@ template <typename TDb> struct DatabaseT
                 EditT<TObj> obj;
                 return RefAndEditT<TObj>(RefT<TObj>{}, obj);
             }
-            auto recsize       = std::bit_ceil(static_cast<uint32_t>(datasize));
+            auto recsize       = _bit_ceil(static_cast<uint32_t>(datasize));
             auto [ref, buffer] = _Allocate<0>(lock, Traits<TObj>::TypeId(), recsize);
             if constexpr (Traits<TObj>::StructMemberCount() > 0)
             {

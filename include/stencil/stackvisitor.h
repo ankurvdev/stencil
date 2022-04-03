@@ -2,6 +2,8 @@
 #include "primitives64bit.h"
 #include "visitor.h"
 
+#include <unordered_map>
+
 namespace Stencil
 {
 namespace impl
