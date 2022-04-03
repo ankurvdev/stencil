@@ -148,7 +148,7 @@ def DownloadTo(path: pathlib.Path):
     dirs = {''}
     for d in os.scandir(sdkpath):
         dirs.add(d.name)
-    packages = ["ndk-bundle", "ndk;23.0.7599858", "build-tools;31.0.0", "platform-tools", "platforms;android-31"]
+    packages = ["ndk-bundle", "ndk;24.0.8215888", "build-tools;32.0.0", "platform-tools", "platforms;android-32"]
 
     def IsNeeded():
         for p in packages:

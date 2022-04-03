@@ -10,6 +10,18 @@ def _find_from_path(name: str):
     return pathlib.Path(shutil.which(name) or "")
 
 
+def _find_from_vcpkg(name: str):
+    if not VCPKG_EXE.exists():
+        return pathlib.Path()
+    try:
+        if sys.platform == "win32":
+            return pathlib.Path(subprocess.check_output([VCPKG_EXE, "env", f"where {name}"], text=True).splitlines()[0])
+        else:
+            return pathlib.Path(subprocess.check_output([VCPKG_EXE, "env", f"which {name}"], text=True).splitlines()[0])
+    except Exception:
+        return pathlib.Path()
+
+
 def _find_from_vs_win(name: str):
     if sys.platform != "win32":
         return pathlib.Path()
@@ -21,6 +33,7 @@ def _find_from_vs_win(name: str):
 
 
 CACHED_PATHS: dict[str, pathlib.Path] = {}
+VCPKG_EXE = pathlib.Path()
 
 
 def _find_cached_paths(name: str):
@@ -30,7 +43,7 @@ def _find_cached_paths(name: str):
 
 
 def find_binary(name: str):
-    for fn in [_find_cached_paths, _find_from_path, _find_from_vs_win]:
+    for fn in [_find_cached_paths, _find_from_path, _find_from_vcpkg, _find_from_vs_win]:
         pth: pathlib.Path = fn(name)
         if pth != pathlib.Path():
             CACHED_PATHS[name] = pth.absolute()
@@ -69,6 +82,7 @@ if "android" in host_triplet or "android" in runtime_triplet:
     myenv['ANDROID_NDK_HOME'] = paths['ndk'].as_posix()
 subprocess.check_call((vcpkgroot / bootstrapscript).as_posix(), shell=True, cwd=workdir, env=myenv)
 vcpkgexe = pathlib.Path(shutil.which("vcpkg", path=vcpkgroot) or "")
+VCPKG_EXE = vcpkgexe
 try:
     for log in pathlib.Path(vcpkgroot / "buildtrees").rglob('*.log'):
         if log.parent.parent.name == 'buildtrees':
@@ -100,14 +114,14 @@ def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str):
             "-DANDROID_NATIVE_API_LEVEL=21",
         ]
         if sys.platform == "win32":
-            cmakeconfigargs += ["-G", "Ninja"]
+            cmakeconfigargs += ["-G", "Ninja", f"-DCMAKE_MAKE_PROGRAM:FILEPATH={find_binary('ninja')}"]
 
     ctestextraargs = (["-C", config] if sys.platform == "win32" else [])
     cmd: list[str] = [find_binary("cmake"),
-                      "-DCMAKE_BUILD_TYPE=" + config,
-                      "-DVCPKG_ROOT:PATH=" + vcpkgroot.as_posix(),
-                      "-DVCPKG_HOST_TRIPLET=" + host_triplet,
-                      "-DVCPKG_TARGET_TRIPLET=" + runtime_triplet,
+                      f"-DCMAKE_BUILD_TYPE:STR={config}",
+                      f"-DVCPKG_ROOT:PATH={vcpkgroot.as_posix()}",
+                      f"-DVCPKG_HOST_TRIPLET:STR={host_triplet}",
+                      f"-DVCPKG_TARGET_TRIPLET:STR={runtime_triplet}",
                       "-DVCPKG_VERBOSE:BOOL=ON"] + cmakeconfigargs + [
         (scriptdir / "sample").as_posix()]
     subprocess.check_call(cmd, cwd=testdir.as_posix())
