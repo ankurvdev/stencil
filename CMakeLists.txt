@@ -89,11 +89,11 @@ if (NOT RapidJSON_FOUND)
 endif()
 
 
-find_package(simdjson QUIET)
-if (NOT simdjson_FOUND)
-    init_submodule(external/simdjson)
-    add_library(simdjson INTERFACE)
-endif()
+#find_package(simdjson QUIET)
+#if (NOT simdjson_FOUND)
+#    init_submodule(external/simdjson)
+#    add_library(simdjson INTERFACE)
+#endif()
 
 
 if (BUILD_TESTING)
