@@ -1,9 +1,14 @@
 #pragma once
 #include "typetraits.h"
 
-#ifndef __cpp_lib_span
+#if defined(__has_include) && __has_include(<version>)
+#include <version>
+#if defined(__cpp_lib_span) && __cpp_lib_span >= 202002L
+#include <span>
+#endif    // __cpp_lib_span >= 202002L
+#else
 #include <gsl/span>
-#endif
+#endif    //__has_include(<version>)
 
 #include "uuid.h"
 
