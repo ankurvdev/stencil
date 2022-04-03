@@ -110,7 +110,7 @@ TEST_CASE("Binary", "[Protocol]")
             {
                 {R"({"f1": "01234567"})", "string", true},
                 {R"({"f2":  "abcdef"})", "wstring", true},
-                {R"({"f3": [0.1, 0.2, 0.3, 0.4]})", "vec[double]", true},
+                {R"({"f3": [0.0, 0.0, 0.0, 0.0]})", "vec[double]", true},
                 {R"({"f4": ["abc", "def", "ghi"]})", "vec[string]", true},
             },
             "WithBlobs");

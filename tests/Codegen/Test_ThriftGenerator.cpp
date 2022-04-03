@@ -40,10 +40,10 @@ TEST_CASE("CodeGen", "[ThriftGenerator]")
 {
     REQUIRE_NOTHROW(RunTest({"CLOpts1.pidl",
                              "CLOpts2.pidl",
-                             "VariantTest.pidl",
+                             //"VariantTest.pidl",
                              "UserData.pidl",
-                             "SimpleWebService.pidl",
-                             "Metadata.pidl",
-                             "ComplexWebService.pidl",
+                             //"SimpleWebService.pidl",
+                             //"Metadata.pidl",
+                             //"ComplexWebService.pidl",
                              "Avid.pidl"}));
 }
