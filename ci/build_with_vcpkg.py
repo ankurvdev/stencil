@@ -69,8 +69,21 @@ if "android" in host_triplet or "android" in runtime_triplet:
     myenv['ANDROID_NDK_HOME'] = paths['ndk'].as_posix()
 subprocess.check_call((vcpkgroot / bootstrapscript).as_posix(), shell=True, cwd=workdir, env=myenv)
 vcpkgexe = pathlib.Path(shutil.which("vcpkg", path=vcpkgroot) or "")
-subprocess.check_call([vcpkgexe, "install", "stencil:" + host_triplet], env=myenv)
-subprocess.check_call([vcpkgexe, "install", "stencil:" + runtime_triplet], env=myenv)
+try:
+    for log in pathlib.Path(vcpkgroot / "buildtrees").rglob('*.log'):
+        if log.parent.parent.name == 'buildtrees':
+            log.unlink()
+
+    subprocess.check_call([vcpkgexe, "install", "stencil:" + host_triplet], env=myenv)
+    subprocess.check_call([vcpkgexe, "install", "stencil:" + runtime_triplet], env=myenv)
+except Exception:
+    logs = list(pathlib.Path(vcpkgroot / "buildtrees").rglob('*.log'))
+    for log in logs:
+        if log.parent.parent.name == 'buildtrees':
+            print(f"\n\n ========= START: {log} ===========")
+            print(log.read_text())
+            print(f" ========= END: {log} =========== \n\n")
+    raise
 
 
 def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str):
@@ -98,9 +111,9 @@ def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str):
                       "-DVCPKG_VERBOSE:BOOL=ON"] + cmakeconfigargs + [
         (scriptdir / "sample").as_posix()]
     subprocess.check_call(cmd, cwd=testdir.as_posix())
-    subprocess.check_call(["cmake", "--build", ".", "-j"] + cmakebuildextraargs, cwd=testdir)
+    subprocess.check_call([find_binary("cmake"), "--build", ".", "-j"] + cmakebuildextraargs, cwd=testdir)
     if runtime_triplet == host_triplet:
-        subprocess.check_call(["ctest", "."] + ctestextraargs, cwd=testdir)
+        subprocess.check_call([find_binary("ctest"), "."] + ctestextraargs, cwd=testdir)
 
 
 test_vcpkg_build("Debug", host_triplet, runtime_triplet, )
