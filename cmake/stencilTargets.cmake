@@ -153,4 +153,4 @@ macro(add_stencil)
     set(stencil_INCLUDE_PATH "${stencil_INCLUDE_PATH}" CACHE PATH "Stencil include path")
 
     _add_stencil_target(${ARGN})
-endfunction()
+endmacro()
