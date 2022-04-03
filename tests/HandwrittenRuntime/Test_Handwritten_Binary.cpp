@@ -17,7 +17,8 @@ template <typename T> static void RunTestCase(TestCase const& tc, std::vector<ui
 {
     if (!tc.valid)
     {
-        if (IsDebuggerPresent()) return;
+        return;
+        // if (Catch2::isDebuggerActive()) return;
     }
 
     // lines.push_back(fmt::format("Testcase[{}]:{}, Input: {}", name, tc.desc, tc.json));
