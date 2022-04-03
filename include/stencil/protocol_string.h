@@ -202,14 +202,14 @@ template <typename TClock> struct SerDes<std::chrono::time_point<TClock>, Protoc
 
     template <typename Context> static auto Write(Context& ctx, TObj const& obj)
     {
-        fmt::print(ctx, "{:%FT%T%z}", obj);
+        fmt::print(ctx, "{:%FT%T}", obj);
         //    fmt::print(ctx, "{}", obj.time_since_epoch().count());
     }
 
     template <typename Context> static auto Read(TObj& obj, Context& ctx)
     {
         std::istringstream ss(ctx.data());
-        ss >> date::parse("%FT%T%z", obj);
+        ss >> date::parse("%FT%T", obj);
         // return std::mktime(&tm);
         // TODO("");
         //  uint64_t val;
