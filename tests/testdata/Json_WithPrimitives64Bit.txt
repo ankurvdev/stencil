@@ -1,20 +1,20 @@
 Testcase[WithPrimitives64Bit]:default-2, Input: {}
-Testcase[WithPrimitives64Bit]:default-2, Output: {"f1":0,"f2":0,"f3":0,"f4":null,"f5":0,"f6":0,"f7":false,"f8":"1970-01-01T00:00:00.0000000","f9":"1970-01-01T00:00:00.0000000"}
+Testcase[WithPrimitives64Bit]:default-2, Output: {"f1":0,"f2":0,"f3":0,"f4":null,"f5":0,"f6":0,"f7":false,"f8":"1970-01-01T00:00:00.000000","f9":"1970-01-01T00:00:00.000000"}
 Testcase[WithPrimitives64Bit]:int64-1, Input: {"f1": -1}
-Testcase[WithPrimitives64Bit]:int64-1, Output: {"f1":-1,"f2":0,"f3":0,"f4":null,"f5":0,"f6":0,"f7":false,"f8":"1970-01-01T00:00:00.0000000","f9":"1970-01-01T00:00:00.0000000"}
+Testcase[WithPrimitives64Bit]:int64-1, Output: {"f1":-1,"f2":0,"f3":0,"f4":null,"f5":0,"f6":0,"f7":false,"f8":"1970-01-01T00:00:00.000000","f9":"1970-01-01T00:00:00.000000"}
 Testcase[WithPrimitives64Bit]:int16-1, Input: {"f2": -1}
-Testcase[WithPrimitives64Bit]:int16-1, Output: {"f1":0,"f2":-1,"f3":0,"f4":null,"f5":0,"f6":0,"f7":false,"f8":"1970-01-01T00:00:00.0000000","f9":"1970-01-01T00:00:00.0000000"}
+Testcase[WithPrimitives64Bit]:int16-1, Output: {"f1":0,"f2":-1,"f3":0,"f4":null,"f5":0,"f6":0,"f7":false,"f8":"1970-01-01T00:00:00.000000","f9":"1970-01-01T00:00:00.000000"}
 Testcase[WithPrimitives64Bit]:uint64-1, Input: {"f3": 1}
-Testcase[WithPrimitives64Bit]:uint64-1, Output: {"f1":0,"f2":0,"f3":1,"f4":null,"f5":0,"f6":0,"f7":false,"f8":"1970-01-01T00:00:00.0000000","f9":"1970-01-01T00:00:00.0000000"}
+Testcase[WithPrimitives64Bit]:uint64-1, Output: {"f1":0,"f2":0,"f3":1,"f4":null,"f5":0,"f6":0,"f7":false,"f8":"1970-01-01T00:00:00.000000","f9":"1970-01-01T00:00:00.000000"}
 Testcase[WithPrimitives64Bit]:char-1, Input: {"f4": "a"}
-Testcase[WithPrimitives64Bit]:char-1, Output: {"f1":0,"f2":0,"f3":0,"f4":"a","f5":0,"f6":0,"f7":false,"f8":"1970-01-01T00:00:00.0000000","f9":"1970-01-01T00:00:00.0000000"}
+Testcase[WithPrimitives64Bit]:char-1, Output: {"f1":0,"f2":0,"f3":0,"f4":"a","f5":0,"f6":0,"f7":false,"f8":"1970-01-01T00:00:00.000000","f9":"1970-01-01T00:00:00.000000"}
 Testcase[WithPrimitives64Bit]:double-1, Input: {"f5": 0.1}
-Testcase[WithPrimitives64Bit]:double-1, Output: {"f1":0,"f2":0,"f3":0,"f4":null,"f5":0.1,"f6":0,"f7":false,"f8":"1970-01-01T00:00:00.0000000","f9":"1970-01-01T00:00:00.0000000"}
+Testcase[WithPrimitives64Bit]:double-1, Output: {"f1":0,"f2":0,"f3":0,"f4":null,"f5":0.1,"f6":0,"f7":false,"f8":"1970-01-01T00:00:00.000000","f9":"1970-01-01T00:00:00.000000"}
 Testcase[WithPrimitives64Bit]:float-1, Input: {"f6": 0.1}
-Testcase[WithPrimitives64Bit]:float-1, Output: {"f1":0,"f2":0,"f3":0,"f4":null,"f5":0,"f6":0.1,"f7":false,"f8":"1970-01-01T00:00:00.0000000","f9":"1970-01-01T00:00:00.0000000"}
+Testcase[WithPrimitives64Bit]:float-1, Output: {"f1":0,"f2":0,"f3":0,"f4":null,"f5":0,"f6":0.1,"f7":false,"f8":"1970-01-01T00:00:00.000000","f9":"1970-01-01T00:00:00.000000"}
 Testcase[WithPrimitives64Bit]:bool-1, Input: {"f7": true}
-Testcase[WithPrimitives64Bit]:bool-1, Output: {"f1":0,"f2":0,"f3":0,"f4":null,"f5":0,"f6":0,"f7":true,"f8":"1970-01-01T00:00:00.0000000","f9":"1970-01-01T00:00:00.0000000"}
+Testcase[WithPrimitives64Bit]:bool-1, Output: {"f1":0,"f2":0,"f3":0,"f4":null,"f5":0,"f6":0,"f7":true,"f8":"1970-01-01T00:00:00.000000","f9":"1970-01-01T00:00:00.000000"}
 Testcase[WithPrimitives64Bit]:time-1, Input: {"f8": "2012-04-23T18:25:43.511Z"}
-Testcase[WithPrimitives64Bit]:time-1, Output: {"f1":0,"f2":0,"f3":0,"f4":null,"f5":0,"f6":0,"f7":false,"f8":"2012-04-23T18:25:43.5110000","f9":"1970-01-01T00:00:00.0000000"}
+Testcase[WithPrimitives64Bit]:time-1, Output: {"f1":0,"f2":0,"f3":0,"f4":null,"f5":0,"f6":0,"f7":false,"f8":"2012-04-23T18:25:43.511000","f9":"1970-01-01T00:00:00.000000"}
 Testcase[WithPrimitives64Bit]:time-2, Input: {"f9": 100}
-Testcase[WithPrimitives64Bit]:time-2, Output: {"f1":0,"f2":0,"f3":0,"f4":null,"f5":0,"f6":0,"f7":false,"f8":"1970-01-01T00:00:00.0000000","f9":"1970-01-01T00:00:00.0000100"}
+Testcase[WithPrimitives64Bit]:time-2, Output: {"f1":0,"f2":0,"f3":0,"f4":null,"f5":0,"f6":0,"f7":false,"f8":"1970-01-01T00:00:00.000000","f9":"1970-01-01T00:00:00.000010"}
