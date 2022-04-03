@@ -183,7 +183,7 @@ template <typename TData> inline void CompareBinaryOutputAgainstResource(TData c
             for (auto it = spn.begin(); it != spn.end(); ++it, ++it2, ++index)
             {
                 if ((*it) == (*it2)) continue;
-                FAIL("Binary comparison failed at : " + std::to_string(index));
+                FAIL(fmt::format("Binary comparison failed at Index = {} => {} != {}", index, uint32_t{*it1}, uint32_t{*it2}));
             }
             return;
         }

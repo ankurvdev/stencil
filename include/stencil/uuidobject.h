@@ -1,5 +1,10 @@
 #pragma once
 #include "typetraits.h"
+
+#ifndef __cpp_lib_span
+#include <gsl/span>
+#endif
+
 #include "uuid.h"
 
 #include <array>

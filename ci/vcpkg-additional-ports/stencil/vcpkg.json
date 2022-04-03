@@ -15,6 +15,7 @@
         "cpp-httplib",
         "rapidjson",
         "stduuid",
+        "gsl",
         "fmt"
     ],
     "features": {
