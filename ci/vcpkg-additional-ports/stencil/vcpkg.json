@@ -7,12 +7,15 @@
             "name": "stencil",
             "host": true
         },
+        "date",
         "toml11",
         "tsl-ordered-map",
         "tinyxml2",
         "cxxopts",
         "cpp-httplib",
-        "nlohmann-json",
+        "rapidjson",
+        "stduuid",
+        "gsl",
         "fmt"
     ],
     "features": {

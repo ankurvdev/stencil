@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 if(NOT EXISTS "${VCPKG_ROOT}")
-    message(FATAL_ERROR "Please run with -DVCPKG_ROOT=<vcpkg-root>")
+    message(FATAL_ERROR "Please run with -DVCPKG_ROOT=<vcpkg-root> ${VCPKG_ROOT} not found")
 endif()
 
 if (NOT DEFINED VCPKG_TARGET_TRIPLET)

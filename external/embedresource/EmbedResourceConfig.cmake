@@ -42,9 +42,9 @@ endfunction()
 
 function(target_add_resource target name)
     find_or_build()
-    set(outdir ${CMAKE_CURRENT_BINARY_DIR})
+    set(outdir ${CMAKE_CURRENT_BINARY_DIR}/ressource_${target})
     set(out_f ${outdir}/${name}.cpp)
-
+    file(MAKE_DIRECTORY "${outdir}")
     if ("${ARGN}" STREQUAL "")
         message(FATAL_ERROR "No args supplied to embed_Resource")
     endif()
@@ -53,7 +53,7 @@ function(target_add_resource target name)
         get_filename_component(tmp ${f} ABSOLUTE)
         list(APPEND inputs ${tmp})
     endforeach()
-
+    list(REMOVE_DUPLICATES inputs)
     if (TARGET embedresource)
     add_custom_command(OUTPUT ${out_f}
         COMMAND embedresource ${out_f} ${inputs}
@@ -68,4 +68,5 @@ function(target_add_resource target name)
 
     target_sources(${target} PRIVATE ${out_f})
     target_include_directories(${target} PRIVATE "${EMBEDRESOURCE_INCLUDE_DIR}")
+    target_compile_definitions(${target} PRIVATE USE_EMBEDRESOURCE)
 endfunction()

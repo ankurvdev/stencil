@@ -34,7 +34,7 @@ make possible the following core usage scenarios
   - SQLITE (TODO: Broken currently)
   - PageDB (Custom Paged Tabular Records) (FixedSize, Blobs)
 - RPC
-  - REST Web-Service : C++ based REST HTTP Web-service (JSON) based on IDL interface definition. (using cpp-httplib)
+  - [REST Web-Service](Interfaces.md) : C++ based REST HTTP Web-service (JSON) based on IDL interface definition. (using cpp-httplib)
   - [TODO] Bluetooth BLE Services
 - Object Modelling
   - [Transactions](Transactions.md) : Record and Replay of Delta changes into runtime objects
@@ -135,10 +135,10 @@ struct RemoteHost
     uuidref<Identity> identity;
 }
 
-relationship database owner = UserData : object = RemoteHost, Identity
-relationship uuidbasedobject object = RemoteHost, Identity
-relationship encryptedobject object = Identity
-relationship timestamped object = RemoteHost, Identity, UserData
+attribute database owner = UserData : object = RemoteHost, Identity
+attribute uuidbasedobject object = RemoteHost, Identity
+attribute encryptedobject object = Identity
+attribute timestamped object = RemoteHost, Identity, UserData
 ```
 
 C++ Code

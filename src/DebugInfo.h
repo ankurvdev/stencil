@@ -1,23 +1,31 @@
 #pragma once
+#include <CommonMacros.h>
+
+SUPPRESS_WARNINGS_START
+SUPPRESS_MSVC_STL_WARNINGS
+#include <fmt/ostream.h>
+#include <fmt/xchar.h>
+SUPPRESS_WARNINGS_END
+
 #include <cassert>
 #include <functional>
+#include <iostream>
 #include <sstream>
+#include <string>
+#include <vector>
+
 namespace IDLDebug
 {
-using Str = Binding::Str;
 
 struct ErrorAggregator
 {
-    void AddContextInfo(size_t indent, Str::View const& what, Str::View const& str)
+    void AddContextInfo(size_t indent, std::wstring_view const& what, std::wstring_view const& str)
     {
-        std::wstringstream stream;
-        for (size_t i = 0; i < indent; i++) { stream << '\t'; }
-        stream << '[' << what << ']' << '\t' << str.data();
-        _lines.push_back(stream.str());
+        _lines.push_back(fmt::format(L"{:\t>{}}[{}]\t{}", L"", indent, what, str));
     }
     void Clear() { _lines.clear(); }
 
-    Str::Type GetErrors()
+    std::wstring GetErrors()
     {
         std::wstringstream str;
         for (auto& err : _lines) { str << err << std::endl; }
@@ -52,104 +60,44 @@ struct ErrorAggregator
 
     static ErrorAggregator& Get() { return *GetPtr(); }
 
-    size_t                 _indent = 0;
-    std::vector<Str::Type> _lines;
+    size_t                    _indent = 0;
+    std::vector<std::wstring> _lines;
     friend struct ThreadActionContextImpl;
 };
 
 struct ThreadActionContextImpl
 {
-    ThreadActionContextImpl(Str::View const& what, std::function<Str::Type()>&& func) : _what(what), _func(std::move(func)) {}
+    ThreadActionContextImpl(std::wstring_view const& what, std::function<std::wstring()>&& func) : _what(what), _func(std::move(func)) {}
     ~ThreadActionContextImpl()
     {
         if (std::uncaught_exceptions() > 0) { ErrorAggregator::Get().AddContextInfo(_indent, _what, _func()); }
         ErrorAggregator::Get().Decr();
     }
 
-    DELETE_MOVE_AND_COPY_ASSIGNMENT(ThreadActionContextImpl);
-
-    size_t                     _indent = ErrorAggregator::Get().Incr();
-    Str::View                  _what;
-    std::function<Str::Type()> _func;
+    size_t                        _indent = ErrorAggregator::Get().Incr();
+    std::wstring_view             _what;
+    std::function<std::wstring()> _func;
 };
 
-inline auto ThreadActionContext(Str::View const& what, std::function<Str::Type()>&& func)
+inline auto ThreadActionContext(std::wstring_view const& what, std::function<std::wstring()>&& func)
 {
     return ThreadActionContextImpl(what, std::move(func));
 }
 
 struct DebugContext
 {
-    Str::Type context{};
-    Str::Type filename{};
-    size_t    row{}, col{};
+    std::wstring context{};
+    std::wstring filename{};
+    size_t       row{}, col{};
 
-    Str::Type str() const
+    std::wstring str() const
     {
         std::wstringstream strm;
         strm << context.c_str() << L" -- " << filename.c_str() << L" [" << row << L":" << col << L"]";
-        return Str::Type(strm.str());
-    }
-};
-#if 0
-struct ParserContext
-{
-    typedef size_t (&RowGetter)(void* ptr);
-    typedef size_t (&ColGetter)(void* ptr);
-
-    static inline std::vector<ParserContext&> s_current;
-    Str::Type                               _filename;
-    RowGetter                                 _rowGetter;
-    ColGetter                                 _colGetter;
-    void*                                     _ptr;
-    ParserContext(Str::Type const& filename, void* ptr, RowGetter rowGetter, ColGetter colGetter) :
-        _filename(filename), _ptr(ptr), _rowGetter(rowGetter), _colGetter(colGetter)
-    {
-        s_current.push_back(this);
-    }
-
-    ~ParserContext() { s_current.pop_back(); }
-
-    static DebugContext GetCurrentDebugContext(Str::Type const& context)
-    {
-        if (s_current.size() == 0) return DebugContext();
-        ParserContext& parsercontext = s_current.back();
-        return DebugContext{context,
-                            parsercontext._filename,
-                            parsercontext._rowGetter(parsercontext._ptr),
-                            parsercontext._colGetter(parsercontext._ptr)};
+        return std::wstring(strm.str());
     }
 };
 
-struct Exception : public std::exception
-{
-
-    template <typename... TArgs> Exception(const DebugContext& debugcontext, const char& fmt, TArgs&&... args)
-    {
-        snprintf(_msg, 511, fmt, std::forward<TArgs>(args)...);
-        snprintf(_buffer,
-                 1023,
-                 "Error: %s %s [%zu:%zu]\n\t%s",
-                 debugcontext.context.c_str(),
-                 debugcontext.filename.c_str(),
-                 debugcontext.row,
-                 debugcontext.col,
-                 _msg);
-    }
-
-    template <typename... TArgs>
-    Exception(const char& fmt, TArgs... args) : Exception(ParserContext::GetCurrentDebugContext(L""), fmt, args...)
-    {
-    }
-
-    virtual const char& what() const noexcept(true) override { return _buffer; }
-
-    char         _context[512] = {};
-    char         _msg[512]     = {};
-    mutable char _buffer[1024] = {};
-};
-}    // namespace IDLDebug
-#endif
 }    // namespace IDLDebug
 
 #define ACTION_CONTEXT_IMPL1(line, file, fnname, fn) auto actionctxvar_##line = IDLDebug::ThreadActionContextImpl(L##file fnname, (fn))

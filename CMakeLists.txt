@@ -14,8 +14,8 @@ EnableStrictCompilation()
 
 find_package (Threads REQUIRED)
 
-set(LexYacc_DIR          ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc)
-set(EmbedResource_DIR    ${CMAKE_CURRENT_LIST_DIR}/external/embedresource)
+set(LexYacc_DIR       ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc)
+set(EmbedResource_DIR ${CMAKE_CURRENT_LIST_DIR}/external/embedresource)
 
 find_package(LexYacc)
 find_package(EmbedResource)
@@ -54,6 +54,48 @@ if (NOT cxxopts_FOUND)
     target_include_directories(cxxopts INTERFACE external/cxxopts/include)
 endif()
 
+
+find_package(stduuid QUIET)
+if (NOT stduuid_FOUND)
+    init_submodule(external/stduuid)
+    add_library(stduuid INTERFACE)
+    add_library(stduuid::stduuid ALIAS stduuid)
+    target_include_directories(stduuid INTERFACE external/stduuid/include)
+endif()
+
+
+find_package(fmt QUIET)
+if (NOT fmt_FOUND)
+    init_submodule(external/fmt)
+    add_subdirectory(external/fmt EXCLUDE_FROM_ALL fmt)
+    SupressWarningForTarget(fmt)
+endif()
+
+
+find_package(date QUIET)
+if (NOT date_FOUND)
+    init_submodule(external/date)
+    add_subdirectory(external/date EXCLUDE_FROM_ALL date)
+endif()
+
+
+find_package(RapidJSON QUIET)
+if (NOT RapidJSON_FOUND)
+    init_submodule(external/rapidjson)
+    add_library(rapidjson INTERFACE)
+    #SupressWarningForTarget(rapidjson)
+    target_compile_definitions(rapidjson INTERFACE USE_RAPIDJSON=1)
+    target_include_directories(rapidjson INTERFACE external/rapidjson/include)
+endif()
+
+
+#find_package(simdjson QUIET)
+#if (NOT simdjson_FOUND)
+#    init_submodule(external/simdjson)
+#    add_library(simdjson INTERFACE)
+#endif()
+
+
 if (BUILD_TESTING)
     enable_testing()
 
@@ -74,14 +116,6 @@ if (BUILD_TESTING)
     add_library(dtl::dtl ALIAS dtl)
     target_include_directories(dtl INTERFACE "${DTL_INCLUDE_DIRS}")
 
-    find_package(nlohmann_json QUIET)
-    if (NOT nlohmann_json_FOUND)
-        init_submodule(external/json)
-        add_library(nlohmann_json  INTERFACE)
-        add_library(nlohmann_json::nlohmann_json ALIAS nlohmann_json)
-        target_include_directories(nlohmann_json INTERFACE external/json/single_include)
-    endif()
-
     find_path(CPP_HTTPLIB_INCLUDE_DIRS "httplib.h")
     if (NOT EXISTS "${CPP_HTTPLIB_INCLUDE_DIRS}")
         init_submodule(external/cpp-httplib)
@@ -90,14 +124,6 @@ if (BUILD_TESTING)
     add_library(cpp_httplib INTERFACE)
     add_library(cpp_httplib::cpp_httplib ALIAS cpp_httplib)
     target_include_directories(cpp_httplib INTERFACE "${CPP_HTTPLIB_INCLUDE_DIRS}")
-
-    find_package(fmt QUIET)
-    if (NOT fmt_FOUND)
-        init_submodule(external/fmt)
-        add_library(fmt INTERFACE)
-        add_library(fmt::fmt-header-only ALIAS fmt)
-        target_include_directories(fmt INTERFACE external/fmt/include)
-    endif()
 endif()
 
 build_lexyacc()
@@ -115,15 +141,18 @@ if (NOT BUILD_TESTING)
 endif()
 
 target_link_libraries(libstencil PRIVATE toml11::toml11 tinyxml2::tinyxml2 tsl::ordered_map)
-target_include_directories(libstencil PRIVATE src)
+target_link_libraries(libstencil PUBLIC  fmt::fmt stduuid date::date)
+
+target_include_directories(libstencil PUBLIC src include/stencil)
 add_executable(stencil src/main.cpp)
 
 file(GLOB public_headers ${CMAKE_CURRENT_LIST_DIR}/include/stencil/*)
+find_file(UUIDHEADER REQUIRED NAMES uuid.h HINTS external/stduuid/include)
+list(APPEND public_headers "${UUIDHEADER}")
 
 set_target_properties(stencil PROPERTIES PUBLIC_HEADER "${public_headers}")
 
 target_link_libraries(stencil PRIVATE libstencil cxxopts::cxxopts)
-
 
 if (BUILD_TESTING)
     enable_testing()
@@ -132,33 +161,13 @@ if (BUILD_TESTING)
     file(GLOB pidlfiles tests/*.pidl)
 
     add_executable(codegen_tests
-        tests/Test_ThriftGenerator.cpp
+        tests/Codegen/Test_ThriftGenerator.cpp
     )
     add_test(NAME codegen_tests COMMAND codegen_tests)
-
-    target_include_directories(codegen_tests PUBLIC src)
-    target_include_directories(codegen_tests PUBLIC include)
+    target_include_directories(codegen_tests PRIVATE src include tests)
     target_link_libraries(codegen_tests PRIVATE libstencil dtl::dtl Catch2::Catch2)
     target_add_resource(codegen_tests testdata ${resfiles} ${pidlfiles})
-
-    add_executable(runtime_tests
-        tests/Test_CLOpts.cpp
-        tests/Test_CommandLineArgsReaderHandler.cpp
-        tests/Test_Database2.cpp
-        tests/Test_Database.cpp
-        tests/Test_DataHandlerJson.cpp
-        tests/Test_DataRecorderPlayer.cpp
-        tests/Test_ObservableOptionalProps.cpp
-        tests/Test_SerDes.cpp
-        tests/Test_Transactions.cpp
-        tests/Test_WebService_Handwritten.cpp
-        tests/Test_WebService_Autogen.cpp
-    )
-
-    target_add_resource(runtime_tests testdata ${resfiles} ${pidlfiles})
-    target_include_directories(runtime_tests PRIVATE src)
-    target_include_directories(runtime_tests PRIVATE include)
-
+    
     foreach(f ${pidlfiles})
         get_filename_component(fname "${f}" NAME)
         list(APPEND outputs "${CMAKE_CURRENT_BINARY_DIR}/${fname}.h")
@@ -168,14 +177,27 @@ if (BUILD_TESTING)
                 COMMAND stencil --outdir=${CMAKE_CURRENT_BINARY_DIR} ${inputs}
                 DEPENDS stencil ${inputs})
     add_custom_target(codegen DEPENDS ${outputs})
+
+    add_executable(runtime_tests
+        tests/HandwrittenRuntime/Test_Handwritten_CLOpts.cpp
+        tests/HandwrittenRuntime/Test_Handwritten_Json.cpp
+        tests/HandwrittenRuntime/Test_Handwritten_Binary.cpp
+        tests/HandwrittenRuntime/Test_Database.cpp
+        tests/HandwrittenRuntime/Test_Database2.cpp
+        #tests/HandwrittenRuntime/Test_WebService_Handwritten.cpp
+    )
+
     add_dependencies(runtime_tests codegen)
     target_include_directories(runtime_tests PRIVATE ${CMAKE_CURRENT_BINARY_DIR} include)
-    target_compile_definitions(runtime_tests PRIVATE USE_NLOHMANN_JSON)
-    target_compile_definitions(runtime_tests PRIVATE USE_CPP_HTTPLIB)
+    target_compile_definitions(runtime_tests PRIVATE USE_NLOHMANN_JSON USE_CPP_HTTPLIB)
     target_link_libraries(runtime_tests PRIVATE libstencil)
-    target_link_libraries(runtime_tests PRIVATE dtl::dtl Catch2::Catch2 nlohmann_json::nlohmann_json cpp_httplib::cpp_httplib fmt::fmt-header-only)
+    target_link_libraries(runtime_tests PRIVATE dtl::dtl rapidjson Catch2::Catch2 cpp_httplib::cpp_httplib fmt)
     target_link_libraries (runtime_tests PRIVATE Threads::Threads)
     add_test(NAME runtime_tests COMMAND runtime_tests)
+
+    target_add_resource(runtime_tests testdata ${resfiles} ${pidlfiles})
+    target_include_directories(runtime_tests PRIVATE src include tests)
+ 
 endif()
 
 configure_package_config_file(cmake/stencilConfig.cmake.in

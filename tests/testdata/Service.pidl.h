@@ -3,21 +3,25 @@
 
 // SECTION START: DECLARATIONS
 #if true
-namespace Service::MapPoint
+
+namespace Service
 {
-struct Data;
-}
-template <> struct ReflectionBase::TypeTraits<Service::MapPoint::Data&>;
-namespace Service::GeographicalArea
-{
-struct Data;
-}
-template <> struct ReflectionBase::TypeTraits<Service::GeographicalArea::Data&>;
-namespace Service::DigitalAssetInfo
-{
-struct Data;
-}
-template <> struct ReflectionBase::TypeTraits<Service::DigitalAssetInfo::Data&>;
+struct MapPoint;
+struct GeographicalArea;
+struct DigitalAssetInfo;
+struct KeywordS;
+struct Content;
+struct Search;
+struct Store;
+}    // namespace Service
+
+template <> struct Stencil::TypeTraits<Service::MapPoint>;
+template <> struct Stencil::TypeTraits<Service::GeographicalArea>;
+template <> struct Stencil::TypeTraits<Service::DigitalAssetInfo>;
+template <> struct Stencil::TypeTraits<Service::KeywordS>;
+template <> struct Stencil::TypeTraits<Service::Content>;
+template <> struct Stencil::TypeTraits<Service::Search>;
+template <> struct Stencil::TypeTraits<Service::Store>;
 #endif
 // SECTION END: DECLARATIONS
 
@@ -25,361 +29,45 @@ template <> struct ReflectionBase::TypeTraits<Service::DigitalAssetInfo::Data&>;
 #if true
 namespace Service
 {
-namespace MapPoint
-{
-struct Data;
-}
-namespace GeographicalArea
-{
-struct Data;
-}
-namespace DigitalAssetInfo
-{
-struct Data;
-}
 typedef shared_tree<shared_string> Keyword;
 typedef shared_tree<shared_string> Entity;
-typedef std::vector<::Service::MapPoint::Data> AreaPolygon;
-typedef shared_tree<::Service::GeographicalArea::Data> GeographicalLocation;
+typedef std::vector<::Service::MapPoint> AreaPolygon;
+typedef shared_tree<::Service::GeographicalArea> GeographicalLocation;
 typedef std::vector<shared_tree<shared_string>> Keywords;
 typedef std::vector<shared_tree<shared_string>> Entities;
-namespace MapPoint
+struct MapPoint :
+    public Stencil::StructT<MapPoint>
 {
-
-struct Data :
-    public ReflectionBase::ObjMarker
-{
-    /*template <typename...TArgs> Data(TArgs&& ... args)
-    {
-        ReflectionBase::Construct<Data>(this, std::forward<TArgs>(args)...);
-    }*/
-
-    enum class FieldIndex
-    {
-        Invalid,
-        latitude
-,        longitude
-    };
-
-    static constexpr size_t FieldCount()
-    {
-        return 0u
-               + 1u
-               + 1u
-            ;
-    }
-
-    static constexpr std::string_view FieldAttributeValue(FieldIndex index, const std::string_view& key)
-    {
-        switch (index)
-        {
-        case FieldIndex::latitude:
-            return ::ReflectionServices::EmptyAttributeValue(key);
-        case FieldIndex::longitude:
-            return ::ReflectionServices::EmptyAttributeValue(key);
-        case FieldIndex::Invalid: break;
-
-        default: break;
-        }
-        return ::ReflectionServices::EmptyAttributeValue(key);
-    }
-
-    private:
-    int64_t _latitude = {};
-
-    public:
-    int64_t&       latitude() { return _latitude; }
-    const int64_t& latitude() const { return _latitude; }
-    void                            latitude(int64_t&& val) { _latitude = std::move(val); }
-    int64_t&       get_latitude() { return _latitude; }
-
-    bool isset_latitude() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::latitude); }
-
-    void set_latitude(int64_t&& val)
-    {
-        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::latitude, _latitude, val);
-        _latitude = std::move(val);
-    }
-    private:
-    int64_t _longitude = {};
-
-    public:
-    int64_t&       longitude() { return _longitude; }
-    const int64_t& longitude() const { return _longitude; }
-    void                            longitude(int64_t&& val) { _longitude = std::move(val); }
-    int64_t&       get_longitude() { return _longitude; }
-
-    bool isset_longitude() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::longitude); }
-
-    void set_longitude(int64_t&& val)
-    {
-        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::longitude, _longitude, val);
-        _longitude = std::move(val);
-    }
+    int64_t latitude = {};
+    int64_t longitude = {};
 };
-
-}    // namespace MapPoint
-namespace GeographicalArea
+struct GeographicalArea :
+    public Stencil::StructT<GeographicalArea>
 {
-
-struct Data :
-    public ReflectionBase::ObjMarker
-{
-    /*template <typename...TArgs> Data(TArgs&& ... args)
-    {
-        ReflectionBase::Construct<Data>(this, std::forward<TArgs>(args)...);
-    }*/
-
-    enum class FieldIndex
-    {
-        Invalid,
-        type
-,        name
-,        areaPolygon
-    };
-
-    static constexpr size_t FieldCount()
-    {
-        return 0u
-               + 1u
-               + 1u
-               + 1u
-            ;
-    }
-
-    static constexpr std::string_view FieldAttributeValue(FieldIndex index, const std::string_view& key)
-    {
-        switch (index)
-        {
-        case FieldIndex::type:
-            return ::ReflectionServices::EmptyAttributeValue(key);
-        case FieldIndex::name:
-            return ::ReflectionServices::EmptyAttributeValue(key);
-        case FieldIndex::areaPolygon:
-            return ::ReflectionServices::EmptyAttributeValue(key);
-        case FieldIndex::Invalid: break;
-
-        default: break;
-        }
-        return ::ReflectionServices::EmptyAttributeValue(key);
-    }
-
-    private:
-    shared_string _type = {};
-
-    public:
-    shared_string&       type() { return _type; }
-    const shared_string& type() const { return _type; }
-    void                            type(shared_string&& val) { _type = std::move(val); }
-    shared_string&       get_type() { return _type; }
-
-    bool isset_type() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::type); }
-
-    void set_type(shared_string&& val)
-    {
-        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::type, _type, val);
-        _type = std::move(val);
-    }
-    private:
-    shared_string _name = {};
-
-    public:
-    shared_string&       name() { return _name; }
-    const shared_string& name() const { return _name; }
-    void                            name(shared_string&& val) { _name = std::move(val); }
-    shared_string&       get_name() { return _name; }
-
-    bool isset_name() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::name); }
-
-    void set_name(shared_string&& val)
-    {
-        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::name, _name, val);
-        _name = std::move(val);
-    }
-    private:
-    std::vector<::Service::MapPoint::Data> _areaPolygon = {};
-
-    public:
-    std::vector<::Service::MapPoint::Data>&       areaPolygon() { return _areaPolygon; }
-    const std::vector<::Service::MapPoint::Data>& areaPolygon() const { return _areaPolygon; }
-    void                            areaPolygon(std::vector<::Service::MapPoint::Data>&& val) { _areaPolygon = std::move(val); }
-    std::vector<::Service::MapPoint::Data>&       get_areaPolygon() { return _areaPolygon; }
-
-    bool isset_areaPolygon() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::areaPolygon); }
-
-    void set_areaPolygon(std::vector<::Service::MapPoint::Data>&& val)
-    {
-        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::areaPolygon, _areaPolygon, val);
-        _areaPolygon = std::move(val);
-    }
+    shared_string type = {};
+    shared_string name = {};
+    std::vector<::Service::MapPoint> areaPolygon = {};
 };
-
-}    // namespace GeographicalArea
-namespace DigitalAssetInfo
+struct DigitalAssetInfo :
+    public Stencil::StructT<DigitalAssetInfo>
 {
-
-struct Data :
-    public ReflectionBase::ObjMarker
-{
-    /*template <typename...TArgs> Data(TArgs&& ... args)
-    {
-        ReflectionBase::Construct<Data>(this, std::forward<TArgs>(args)...);
-    }*/
-
-    enum class FieldIndex
-    {
-        Invalid,
-        id
-,        keywords
-,        location
-,        md5sum
-,        thumbnailBlob
-,        fileUrl
-    };
-
-    static constexpr size_t FieldCount()
-    {
-        return 0u
-               + 1u
-               + 1u
-               + 1u
-               + 1u
-               + 1u
-               + 1u
-            ;
-    }
-
-    static constexpr std::string_view FieldAttributeValue(FieldIndex index, const std::string_view& key)
-    {
-        switch (index)
-        {
-        case FieldIndex::id:
-            return ::ReflectionServices::EmptyAttributeValue(key);
-        case FieldIndex::keywords:
-            return ::ReflectionServices::EmptyAttributeValue(key);
-        case FieldIndex::location:
-            return ::ReflectionServices::EmptyAttributeValue(key);
-        case FieldIndex::md5sum:
-            return ::ReflectionServices::EmptyAttributeValue(key);
-        case FieldIndex::thumbnailBlob:
-            return ::ReflectionServices::EmptyAttributeValue(key);
-        case FieldIndex::fileUrl:
-            return ::ReflectionServices::EmptyAttributeValue(key);
-        case FieldIndex::Invalid: break;
-
-        default: break;
-        }
-        return ::ReflectionServices::EmptyAttributeValue(key);
-    }
-
-    private:
-    int32_t _id = {};
-
-    public:
-    int32_t&       id() { return _id; }
-    const int32_t& id() const { return _id; }
-    void                            id(int32_t&& val) { _id = std::move(val); }
-    int32_t&       get_id() { return _id; }
-
-    bool isset_id() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::id); }
-
-    void set_id(int32_t&& val)
-    {
-        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::id, _id, val);
-        _id = std::move(val);
-    }
-    private:
-    std::vector<shared_tree<shared_string>> _keywords = {};
-
-    public:
-    std::vector<shared_tree<shared_string>>&       keywords() { return _keywords; }
-    const std::vector<shared_tree<shared_string>>& keywords() const { return _keywords; }
-    void                            keywords(std::vector<shared_tree<shared_string>>&& val) { _keywords = std::move(val); }
-    std::vector<shared_tree<shared_string>>&       get_keywords() { return _keywords; }
-
-    bool isset_keywords() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::keywords); }
-
-    void set_keywords(std::vector<shared_tree<shared_string>>&& val)
-    {
-        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::keywords, _keywords, val);
-        _keywords = std::move(val);
-    }
-    private:
-    shared_tree<::Service::GeographicalArea::Data> _location = {};
-
-    public:
-    shared_tree<::Service::GeographicalArea::Data>&       location() { return _location; }
-    const shared_tree<::Service::GeographicalArea::Data>& location() const { return _location; }
-    void                            location(shared_tree<::Service::GeographicalArea::Data>&& val) { _location = std::move(val); }
-    shared_tree<::Service::GeographicalArea::Data>&       get_location() { return _location; }
-
-    bool isset_location() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::location); }
-
-    void set_location(shared_tree<::Service::GeographicalArea::Data>&& val)
-    {
-        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::location, _location, val);
-        _location = std::move(val);
-    }
-    private:
-    int64_t _md5sum = {};
-
-    public:
-    int64_t&       md5sum() { return _md5sum; }
-    const int64_t& md5sum() const { return _md5sum; }
-    void                            md5sum(int64_t&& val) { _md5sum = std::move(val); }
-    int64_t&       get_md5sum() { return _md5sum; }
-
-    bool isset_md5sum() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::md5sum); }
-
-    void set_md5sum(int64_t&& val)
-    {
-        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::md5sum, _md5sum, val);
-        _md5sum = std::move(val);
-    }
-    private:
-    shared_string _thumbnailBlob = {};
-
-    public:
-    shared_string&       thumbnailBlob() { return _thumbnailBlob; }
-    const shared_string& thumbnailBlob() const { return _thumbnailBlob; }
-    void                            thumbnailBlob(shared_string&& val) { _thumbnailBlob = std::move(val); }
-    shared_string&       get_thumbnailBlob() { return _thumbnailBlob; }
-
-    bool isset_thumbnailBlob() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::thumbnailBlob); }
-
-    void set_thumbnailBlob(shared_string&& val)
-    {
-        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::thumbnailBlob, _thumbnailBlob, val);
-        _thumbnailBlob = std::move(val);
-    }
-    private:
-    shared_string _fileUrl = {};
-
-    public:
-    shared_string&       fileUrl() { return _fileUrl; }
-    const shared_string& fileUrl() const { return _fileUrl; }
-    void                            fileUrl(shared_string&& val) { _fileUrl = std::move(val); }
-    shared_string&       get_fileUrl() { return _fileUrl; }
-
-    bool isset_fileUrl() const { return Stencil::OptionalPropsT<Data>::IsSet(*this, FieldIndex::fileUrl); }
-
-    void set_fileUrl(shared_string&& val)
-    {
-        Stencil::OptionalPropsT<Data>::OnChangeRequested(*this, FieldIndex::fileUrl, _fileUrl, val);
-        _fileUrl = std::move(val);
-    }
+    int32_t id = {};
+    std::vector<shared_tree<shared_string>> keywords = {};
+    shared_tree<::Service::GeographicalArea> location = {};
+    int64_t md5sum = {};
+    shared_string thumbnailBlob = {};
+    shared_string fileUrl = {};
 };
-
-}    // namespace DigitalAssetInfo
-typedef shared_tree<shared_string> Keyword;
-typedef shared_tree<shared_string> Entity;
-typedef std::vector<::Service::MapPoint::Data> AreaPolygon;
-typedef shared_tree<::Service::GeographicalArea::Data> GeographicalLocation;
-typedef std::vector<shared_tree<shared_string>> Keywords;
-typedef std::vector<shared_tree<shared_string>> Entities;
-struct KeywordS : public ReflectionBase::Interface<KeywordS>
+struct KeywordS : public Stencil::InterfaceT<KeywordS>
 {
     public:
+    struct Dummy
+    {};
+    struct ObjectStore;
+
+    struct ObjectStore : Dummy
+    {};
+
     KeywordS()          = default;
     virtual ~KeywordS() = default;
     DELETE_COPY_AND_MOVE(KeywordS);
@@ -405,77 +93,119 @@ struct KeywordS : public ReflectionBase::Interface<KeywordS>
         shared_tree<shared_string> const& parent
         )
         = 0;
-    // static std::unique_ptr<KeywordS> Create();
-};
+    struct Args_Find
+    {
+        shared_tree<shared_string> arg_root{};
+        shared_string arg_query{};
+        shared_string arg_type{};
+    };
 
-struct KeywordSFactory : public ReflectionBase::InterfaceFactory<KeywordS>
+    shared_tree<shared_string> Find(Args_Find const& args)
+    {
+        return this->Find(
+            args.root
+,            args.query
+,            args.type
+        );
+    }
+
+    shared_tree<shared_string> Find(Args_Find&& args)
+    {
+        return this->Find(
+            std::move(args.root)
+,            std::move(args.query)
+,            std::move(args.type)
+        );
+    }
+
+    struct Args_Create
+    {
+        shared_string arg_word{};
+        shared_tree<shared_string> arg_parent{};
+    };
+
+    shared_tree<shared_string> Create(Args_Create const& args)
+    {
+        return this->Create(
+            args.word
+,            args.parent
+        );
+    }
+
+    shared_tree<shared_string> Create(Args_Create&& args)
+    {
+        return this->Create(
+            std::move(args.word)
+,            std::move(args.parent)
+        );
+    }
+
+    struct Args_Delete
+    {
+    };
+
+    int32_t Delete(Args_Delete const& args)
+    {
+        return this->Delete(
+        );
+    }
+
+    int32_t Delete(Args_Delete&& args)
+    {
+        return this->Delete(
+        );
+    }
+
+    struct Args_Modify
+    {
+        shared_string arg_word{};
+    };
+
+    int32_t Modify(Args_Modify const& args)
+    {
+        return this->Modify(
+            args.word
+        );
+    }
+
+    int32_t Modify(Args_Modify&& args)
+    {
+        return this->Modify(
+            std::move(args.word)
+        );
+    }
+
+    struct Args_SetParent
+    {
+        shared_tree<shared_string> arg_parent{};
+    };
+
+    int32_t SetParent(Args_SetParent const& args)
+    {
+        return this->SetParent(
+            args.parent
+        );
+    }
+
+    int32_t SetParent(Args_SetParent&& args)
+    {
+        return this->SetParent(
+            std::move(args.parent)
+        );
+    }
+
+    ObjectStore objects;
+};
+struct Content : public Stencil::InterfaceT<Content>
 {
     public:
-    virtual std::unique_ptr<KeywordS> Activate() = 0;
-    virtual ~KeywordSFactory()                   = default;
-};
+    struct Dummy
+    {};
+    struct ObjectStore;
 
-struct KeywordS_Find_Args
-{
-    KeywordS* instance = nullptr;
+    struct ObjectStore : Dummy
+    {};
 
-    shared_tree<shared_string>        arg_root{};
-    shared_tree<shared_string>&       get_arg_root() { return arg_root; }
-    shared_tree<shared_string> const& get_carg_root() const { return arg_root; }
-    void                            set_arg_root(shared_tree<shared_string>&& value) { arg_root = std::move(value); }
-    shared_string        arg_query{};
-    shared_string&       get_arg_query() { return arg_query; }
-    shared_string const& get_carg_query() const { return arg_query; }
-    void                            set_arg_query(shared_string&& value) { arg_query = std::move(value); }
-    shared_string        arg_type{};
-    shared_string&       get_arg_type() { return arg_type; }
-    shared_string const& get_carg_type() const { return arg_type; }
-    void                            set_arg_type(shared_string&& value) { arg_type = std::move(value); }
-};
-
-struct KeywordS_Create_Args
-{
-    KeywordS* instance = nullptr;
-
-    shared_string        arg_word{};
-    shared_string&       get_arg_word() { return arg_word; }
-    shared_string const& get_carg_word() const { return arg_word; }
-    void                            set_arg_word(shared_string&& value) { arg_word = std::move(value); }
-    shared_tree<shared_string>        arg_parent{};
-    shared_tree<shared_string>&       get_arg_parent() { return arg_parent; }
-    shared_tree<shared_string> const& get_carg_parent() const { return arg_parent; }
-    void                            set_arg_parent(shared_tree<shared_string>&& value) { arg_parent = std::move(value); }
-};
-
-struct KeywordS_Delete_Args
-{
-    KeywordS* instance = nullptr;
-
-};
-
-struct KeywordS_Modify_Args
-{
-    KeywordS* instance = nullptr;
-
-    shared_string        arg_word{};
-    shared_string&       get_arg_word() { return arg_word; }
-    shared_string const& get_carg_word() const { return arg_word; }
-    void                            set_arg_word(shared_string&& value) { arg_word = std::move(value); }
-};
-
-struct KeywordS_SetParent_Args
-{
-    KeywordS* instance = nullptr;
-
-    shared_tree<shared_string>        arg_parent{};
-    shared_tree<shared_string>&       get_arg_parent() { return arg_parent; }
-    shared_tree<shared_string> const& get_carg_parent() const { return arg_parent; }
-    void                            set_arg_parent(shared_tree<shared_string>&& value) { arg_parent = std::move(value); }
-};
-
-struct Content : public ReflectionBase::Interface<Content>
-{
-    public:
     Content()          = default;
     virtual ~Content() = default;
     DELETE_COPY_AND_MOVE(Content);
@@ -487,39 +217,56 @@ struct Content : public ReflectionBase::Interface<Content>
         shared_tree<shared_string> const& keyword
         )
         = 0;
-    // static std::unique_ptr<Content> Create();
-};
+    struct Args_AddKeyword
+    {
+        shared_tree<shared_string> arg_keyword{};
+    };
 
-struct ContentFactory : public ReflectionBase::InterfaceFactory<Content>
+    int32_t AddKeyword(Args_AddKeyword const& args)
+    {
+        return this->AddKeyword(
+            args.keyword
+        );
+    }
+
+    int32_t AddKeyword(Args_AddKeyword&& args)
+    {
+        return this->AddKeyword(
+            std::move(args.keyword)
+        );
+    }
+
+    struct Args_RemoveKeyword
+    {
+        shared_tree<shared_string> arg_keyword{};
+    };
+
+    int32_t RemoveKeyword(Args_RemoveKeyword const& args)
+    {
+        return this->RemoveKeyword(
+            args.keyword
+        );
+    }
+
+    int32_t RemoveKeyword(Args_RemoveKeyword&& args)
+    {
+        return this->RemoveKeyword(
+            std::move(args.keyword)
+        );
+    }
+
+    ObjectStore objects;
+};
+struct Search : public Stencil::InterfaceT<Search>
 {
     public:
-    virtual std::unique_ptr<Content> Activate() = 0;
-    virtual ~ContentFactory()                   = default;
-};
+    struct Dummy
+    {};
+    struct ObjectStore;
 
-struct Content_AddKeyword_Args
-{
-    Content* instance = nullptr;
+    struct ObjectStore : Dummy
+    {};
 
-    shared_tree<shared_string>        arg_keyword{};
-    shared_tree<shared_string>&       get_arg_keyword() { return arg_keyword; }
-    shared_tree<shared_string> const& get_carg_keyword() const { return arg_keyword; }
-    void                            set_arg_keyword(shared_tree<shared_string>&& value) { arg_keyword = std::move(value); }
-};
-
-struct Content_RemoveKeyword_Args
-{
-    Content* instance = nullptr;
-
-    shared_tree<shared_string>        arg_keyword{};
-    shared_tree<shared_string>&       get_arg_keyword() { return arg_keyword; }
-    shared_tree<shared_string> const& get_carg_keyword() const { return arg_keyword; }
-    void                            set_arg_keyword(shared_tree<shared_string>&& value) { arg_keyword = std::move(value); }
-};
-
-struct Search : public ReflectionBase::Interface<Search>
-{
-    public:
     Search()          = default;
     virtual ~Search() = default;
     DELETE_COPY_AND_MOVE(Search);
@@ -532,47 +279,63 @@ struct Search : public ReflectionBase::Interface<Search>
 ,        int64_t const& endDate
         )
         = 0;
-    // static std::unique_ptr<Search> Create();
-};
+    struct Args_SearchByKeywords
+    {
+        std::vector<shared_tree<shared_string>> arg_keywords{};
+    };
 
-struct SearchFactory : public ReflectionBase::InterfaceFactory<Search>
+    std::vector<long> SearchByKeywords(Args_SearchByKeywords const& args)
+    {
+        return this->SearchByKeywords(
+            args.keywords
+        );
+    }
+
+    std::vector<long> SearchByKeywords(Args_SearchByKeywords&& args)
+    {
+        return this->SearchByKeywords(
+            std::move(args.keywords)
+        );
+    }
+
+    struct Args_SearchByDate
+    {
+        int64_t arg_startDate{};
+        int64_t arg_endDate{};
+    };
+
+    std::vector<long> SearchByDate(Args_SearchByDate const& args)
+    {
+        return this->SearchByDate(
+            args.startDate
+,            args.endDate
+        );
+    }
+
+    std::vector<long> SearchByDate(Args_SearchByDate&& args)
+    {
+        return this->SearchByDate(
+            std::move(args.startDate)
+,            std::move(args.endDate)
+        );
+    }
+
+    ObjectStore objects;
+};
+struct Store : public Stencil::InterfaceT<Store>
 {
     public:
-    virtual std::unique_ptr<Search> Activate() = 0;
-    virtual ~SearchFactory()                   = default;
-};
+    struct Dummy
+    {};
+    struct ObjectStore;
 
-struct Search_SearchByKeywords_Args
-{
-    Search* instance = nullptr;
+    struct ObjectStore : Dummy
+    {};
 
-    std::vector<shared_tree<shared_string>>        arg_keywords{};
-    std::vector<shared_tree<shared_string>>&       get_arg_keywords() { return arg_keywords; }
-    std::vector<shared_tree<shared_string>> const& get_carg_keywords() const { return arg_keywords; }
-    void                            set_arg_keywords(std::vector<shared_tree<shared_string>>&& value) { arg_keywords = std::move(value); }
-};
-
-struct Search_SearchByDate_Args
-{
-    Search* instance = nullptr;
-
-    int64_t        arg_startDate{};
-    int64_t&       get_arg_startDate() { return arg_startDate; }
-    int64_t const& get_carg_startDate() const { return arg_startDate; }
-    void                            set_arg_startDate(int64_t&& value) { arg_startDate = std::move(value); }
-    int64_t        arg_endDate{};
-    int64_t&       get_arg_endDate() { return arg_endDate; }
-    int64_t const& get_carg_endDate() const { return arg_endDate; }
-    void                            set_arg_endDate(int64_t&& value) { arg_endDate = std::move(value); }
-};
-
-struct Store : public ReflectionBase::Interface<Store>
-{
-    public:
     Store()          = default;
     virtual ~Store() = default;
     DELETE_COPY_AND_MOVE(Store);
-    virtual ::Service::DigitalAssetInfo::Data Upload(
+    virtual ::Service::DigitalAssetInfo Upload(
         shared_string const& file
         )
         = 0;
@@ -580,53 +343,625 @@ struct Store : public ReflectionBase::Interface<Store>
         long const& content
         )
         = 0;
-    // static std::unique_ptr<Store> Create();
+    struct Args_Upload
+    {
+        shared_string arg_file{};
+    };
+
+    ::Service::DigitalAssetInfo Upload(Args_Upload const& args)
+    {
+        return this->Upload(
+            args.file
+        );
+    }
+
+    ::Service::DigitalAssetInfo Upload(Args_Upload&& args)
+    {
+        return this->Upload(
+            std::move(args.file)
+        );
+    }
+
+    struct Args_Download
+    {
+        long arg_content{};
+    };
+
+    shared_string Download(Args_Download const& args)
+    {
+        return this->Download(
+            args.content
+        );
+    }
+
+    shared_string Download(Args_Download&& args)
+    {
+        return this->Download(
+            std::move(args.content)
+        );
+    }
+
+    ObjectStore objects;
 };
-
-struct StoreFactory : public ReflectionBase::InterfaceFactory<Store>
-{
-    public:
-    virtual std::unique_ptr<Store> Activate() = 0;
-    virtual ~StoreFactory()                   = default;
-};
-
-struct Store_Upload_Args
-{
-    Store* instance = nullptr;
-
-    shared_string        arg_file{};
-    shared_string&       get_arg_file() { return arg_file; }
-    shared_string const& get_carg_file() const { return arg_file; }
-    void                            set_arg_file(shared_string&& value) { arg_file = std::move(value); }
-};
-
-struct Store_Download_Args
-{
-    Store* instance = nullptr;
-
-    long        arg_content{};
-    long&       get_arg_content() { return arg_content; }
-    long const& get_carg_content() const { return arg_content; }
-    void                            set_arg_content(long&& value) { arg_content = std::move(value); }
-};
-
 }    // namespace Service
 #endif
+
 // SECTION END: Definitions
 
 // SECTION START: Template specializations
 #if true
 
 // SECTION:
-template <> struct ReflectionBase::TypeTraits<Service::KeywordS_Find_Args&>
+
+template <> struct Stencil::TypeTraits<Service::MapPoint>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<Service::MapPoint>
+{
+    enum class Fields
+    {
+        Invalid,
+        Field_latitude
+,        Field_longitude
+    };
+
+    using Key = Fields;
+};
+
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Service::MapPoint>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<Service::MapPoint>::Fields;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        "latitude"
+,        "longitude"
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraitsForIndexable<Service::MapPoint>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<Service::MapPoint>::Fields>(index);
+    }
+};
+
+template <> struct Stencil::Transaction<Service::MapPoint> : Stencil::TransactionT<Service::MapPoint>
+{
+    using TData  = Service::MapPoint;
+    using Fields = Stencil::TypeTraitsForIndexable<Service::MapPoint>::Fields;
+
+    Transaction<int64_t> _subtracker_latitude;
+    Transaction<int64_t> _subtracker_longitude;
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
+
+    Transaction(TData& ptr) :
+        Stencil::TransactionT<Service::MapPoint>(ptr)
+        ,
+        _subtracker_latitude(Obj().latitude)
+        ,
+        _subtracker_longitude(Obj().longitude)
+    {}
+
+    auto& latitude()
+    {
+        MarkFieldEdited_(Fields::Field_latitude);
+        return _subtracker_latitude;
+    }
+    auto& longitude()
+    {
+        MarkFieldEdited_(Fields::Field_longitude);
+        return _subtracker_longitude;
+    }
+    void set_latitude(int64_t&& val)
+    {
+        MarkFieldAssigned_(Fields::Field_latitude, Obj().latitude, val);
+        Obj().latitude = std::move(val);
+    }
+
+    void set_longitude(int64_t&& val)
+    {
+        MarkFieldAssigned_(Fields::Field_longitude, Obj().longitude, val);
+        Obj().longitude = std::move(val);
+    }
+
+    template <typename TLambda> auto Visit(Fields index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case Fields::Field_latitude: return lambda("latitude", latitude()); return;
+        case Fields::Field_longitude: return lambda("longitude", longitude()); return;
+        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        if (fieldName == "latitude") { return lambda(Fields::Field_latitude, latitude()); }
+        if (fieldName == "longitude") { return lambda(Fields::Field_longitude, longitude()); }
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    {
+        lambda("latitude", Fields::Field_latitude, latitude(), Obj().latitude);
+        lambda("longitude", Fields::Field_longitude, longitude(), Obj().longitude);
+    }
+
+    void Flush()
+    {
+        latitude().Flush();
+
+        if (IsFieldEdited(Fields::Field_latitude))
+        {
+            if (!latitude().IsChanged()) _edittracker.reset(static_cast<uint8_t>(Fields::Field_latitude));
+        }
+
+        longitude().Flush();
+
+        if (IsFieldEdited(Fields::Field_longitude))
+        {
+            if (!longitude().IsChanged()) _edittracker.reset(static_cast<uint8_t>(Fields::Field_longitude));
+        }
+
+        Stencil::TransactionT<Service::MapPoint>::Flush_();
+    }
+};
+
+template <> struct Stencil::Visitor<Service::MapPoint> : Stencil::VisitorT<Service::MapPoint>
+{
+    using TData  = Service::MapPoint;
+    using Fields = TypeTraitsForIndexable<TData>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_latitude: return lambda(obj.latitude);
+        case Fields::Field_longitude: return lambda(obj.longitude);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    {
+        lambda(Fields::Field_latitude, obj.latitude);
+        lambda(Fields::Field_longitude, obj.longitude);
+    }
+};
+
+template <> struct Stencil::TypeTraits<Service::GeographicalArea>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<Service::GeographicalArea>
+{
+    enum class Fields
+    {
+        Invalid,
+        Field_type
+,        Field_name
+,        Field_areaPolygon
+    };
+
+    using Key = Fields;
+};
+
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Service::GeographicalArea>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<Service::GeographicalArea>::Fields;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        "type"
+,        "name"
+,        "areaPolygon"
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraitsForIndexable<Service::GeographicalArea>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<Service::GeographicalArea>::Fields>(index);
+    }
+};
+
+template <> struct Stencil::Transaction<Service::GeographicalArea> : Stencil::TransactionT<Service::GeographicalArea>
+{
+    using TData  = Service::GeographicalArea;
+    using Fields = Stencil::TypeTraitsForIndexable<Service::GeographicalArea>::Fields;
+
+    Transaction<shared_string> _subtracker_type;
+    Transaction<shared_string> _subtracker_name;
+    Transaction<std::vector<::Service::MapPoint>> _subtracker_areaPolygon;
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
+
+    Transaction(TData& ptr) :
+        Stencil::TransactionT<Service::GeographicalArea>(ptr)
+        ,
+        _subtracker_type(Obj().type)
+        ,
+        _subtracker_name(Obj().name)
+        ,
+        _subtracker_areaPolygon(Obj().areaPolygon)
+    {}
+
+    auto& type()
+    {
+        MarkFieldEdited_(Fields::Field_type);
+        return _subtracker_type;
+    }
+    auto& name()
+    {
+        MarkFieldEdited_(Fields::Field_name);
+        return _subtracker_name;
+    }
+    auto& areaPolygon()
+    {
+        MarkFieldEdited_(Fields::Field_areaPolygon);
+        return _subtracker_areaPolygon;
+    }
+    void set_type(shared_string&& val)
+    {
+        MarkFieldAssigned_(Fields::Field_type, Obj().type, val);
+        Obj().type = std::move(val);
+    }
+
+    void set_name(shared_string&& val)
+    {
+        MarkFieldAssigned_(Fields::Field_name, Obj().name, val);
+        Obj().name = std::move(val);
+    }
+
+    void set_areaPolygon(std::vector<::Service::MapPoint>&& val)
+    {
+        MarkFieldAssigned_(Fields::Field_areaPolygon, Obj().areaPolygon, val);
+        Obj().areaPolygon = std::move(val);
+    }
+
+    template <typename TLambda> auto Visit(Fields index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case Fields::Field_type: return lambda("type", type()); return;
+        case Fields::Field_name: return lambda("name", name()); return;
+        case Fields::Field_areaPolygon: return lambda("areaPolygon", areaPolygon()); return;
+        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        if (fieldName == "type") { return lambda(Fields::Field_type, type()); }
+        if (fieldName == "name") { return lambda(Fields::Field_name, name()); }
+        if (fieldName == "areaPolygon") { return lambda(Fields::Field_areaPolygon, areaPolygon()); }
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    {
+        lambda("type", Fields::Field_type, type(), Obj().type);
+        lambda("name", Fields::Field_name, name(), Obj().name);
+        lambda("areaPolygon", Fields::Field_areaPolygon, areaPolygon(), Obj().areaPolygon);
+    }
+
+    void Flush()
+    {
+        type().Flush();
+
+        if (IsFieldEdited(Fields::Field_type))
+        {
+            if (!type().IsChanged()) _edittracker.reset(static_cast<uint8_t>(Fields::Field_type));
+        }
+
+        name().Flush();
+
+        if (IsFieldEdited(Fields::Field_name))
+        {
+            if (!name().IsChanged()) _edittracker.reset(static_cast<uint8_t>(Fields::Field_name));
+        }
+
+        areaPolygon().Flush();
+
+        if (IsFieldEdited(Fields::Field_areaPolygon))
+        {
+            if (!areaPolygon().IsChanged()) _edittracker.reset(static_cast<uint8_t>(Fields::Field_areaPolygon));
+        }
+
+        Stencil::TransactionT<Service::GeographicalArea>::Flush_();
+    }
+};
+
+template <> struct Stencil::Visitor<Service::GeographicalArea> : Stencil::VisitorT<Service::GeographicalArea>
+{
+    using TData  = Service::GeographicalArea;
+    using Fields = TypeTraitsForIndexable<TData>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_type: return lambda(obj.type);
+        case Fields::Field_name: return lambda(obj.name);
+        case Fields::Field_areaPolygon: return lambda(obj.areaPolygon);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    {
+        lambda(Fields::Field_type, obj.type);
+        lambda(Fields::Field_name, obj.name);
+        lambda(Fields::Field_areaPolygon, obj.areaPolygon);
+    }
+};
+
+template <> struct Stencil::TypeTraits<Service::DigitalAssetInfo>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<Service::DigitalAssetInfo>
+{
+    enum class Fields
+    {
+        Invalid,
+        Field_id
+,        Field_keywords
+,        Field_location
+,        Field_md5sum
+,        Field_thumbnailBlob
+,        Field_fileUrl
+    };
+
+    using Key = Fields;
+};
+
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Service::DigitalAssetInfo>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<Service::DigitalAssetInfo>::Fields;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        "id"
+,        "keywords"
+,        "location"
+,        "md5sum"
+,        "thumbnailBlob"
+,        "fileUrl"
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraitsForIndexable<Service::DigitalAssetInfo>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<Service::DigitalAssetInfo>::Fields>(index);
+    }
+};
+
+template <> struct Stencil::Transaction<Service::DigitalAssetInfo> : Stencil::TransactionT<Service::DigitalAssetInfo>
+{
+    using TData  = Service::DigitalAssetInfo;
+    using Fields = Stencil::TypeTraitsForIndexable<Service::DigitalAssetInfo>::Fields;
+
+    Transaction<int32_t> _subtracker_id;
+    Transaction<std::vector<shared_tree<shared_string>>> _subtracker_keywords;
+    Transaction<shared_tree<::Service::GeographicalArea>> _subtracker_location;
+    Transaction<int64_t> _subtracker_md5sum;
+    Transaction<shared_string> _subtracker_thumbnailBlob;
+    Transaction<shared_string> _subtracker_fileUrl;
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
+
+    Transaction(TData& ptr) :
+        Stencil::TransactionT<Service::DigitalAssetInfo>(ptr)
+        ,
+        _subtracker_id(Obj().id)
+        ,
+        _subtracker_keywords(Obj().keywords)
+        ,
+        _subtracker_location(Obj().location)
+        ,
+        _subtracker_md5sum(Obj().md5sum)
+        ,
+        _subtracker_thumbnailBlob(Obj().thumbnailBlob)
+        ,
+        _subtracker_fileUrl(Obj().fileUrl)
+    {}
+
+    auto& id()
+    {
+        MarkFieldEdited_(Fields::Field_id);
+        return _subtracker_id;
+    }
+    auto& keywords()
+    {
+        MarkFieldEdited_(Fields::Field_keywords);
+        return _subtracker_keywords;
+    }
+    auto& location()
+    {
+        MarkFieldEdited_(Fields::Field_location);
+        return _subtracker_location;
+    }
+    auto& md5sum()
+    {
+        MarkFieldEdited_(Fields::Field_md5sum);
+        return _subtracker_md5sum;
+    }
+    auto& thumbnailBlob()
+    {
+        MarkFieldEdited_(Fields::Field_thumbnailBlob);
+        return _subtracker_thumbnailBlob;
+    }
+    auto& fileUrl()
+    {
+        MarkFieldEdited_(Fields::Field_fileUrl);
+        return _subtracker_fileUrl;
+    }
+    void set_id(int32_t&& val)
+    {
+        MarkFieldAssigned_(Fields::Field_id, Obj().id, val);
+        Obj().id = std::move(val);
+    }
+
+    void set_keywords(std::vector<shared_tree<shared_string>>&& val)
+    {
+        MarkFieldAssigned_(Fields::Field_keywords, Obj().keywords, val);
+        Obj().keywords = std::move(val);
+    }
+
+    void set_location(shared_tree<::Service::GeographicalArea>&& val)
+    {
+        MarkFieldAssigned_(Fields::Field_location, Obj().location, val);
+        Obj().location = std::move(val);
+    }
+
+    void set_md5sum(int64_t&& val)
+    {
+        MarkFieldAssigned_(Fields::Field_md5sum, Obj().md5sum, val);
+        Obj().md5sum = std::move(val);
+    }
+
+    void set_thumbnailBlob(shared_string&& val)
+    {
+        MarkFieldAssigned_(Fields::Field_thumbnailBlob, Obj().thumbnailBlob, val);
+        Obj().thumbnailBlob = std::move(val);
+    }
+
+    void set_fileUrl(shared_string&& val)
+    {
+        MarkFieldAssigned_(Fields::Field_fileUrl, Obj().fileUrl, val);
+        Obj().fileUrl = std::move(val);
+    }
+
+    template <typename TLambda> auto Visit(Fields index, TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case Fields::Field_id: return lambda("id", id()); return;
+        case Fields::Field_keywords: return lambda("keywords", keywords()); return;
+        case Fields::Field_location: return lambda("location", location()); return;
+        case Fields::Field_md5sum: return lambda("md5sum", md5sum()); return;
+        case Fields::Field_thumbnailBlob: return lambda("thumbnailBlob", thumbnailBlob()); return;
+        case Fields::Field_fileUrl: return lambda("fileUrl", fileUrl()); return;
+        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        if (fieldName == "id") { return lambda(Fields::Field_id, id()); }
+        if (fieldName == "keywords") { return lambda(Fields::Field_keywords, keywords()); }
+        if (fieldName == "location") { return lambda(Fields::Field_location, location()); }
+        if (fieldName == "md5sum") { return lambda(Fields::Field_md5sum, md5sum()); }
+        if (fieldName == "thumbnailBlob") { return lambda(Fields::Field_thumbnailBlob, thumbnailBlob()); }
+        if (fieldName == "fileUrl") { return lambda(Fields::Field_fileUrl, fileUrl()); }
+        throw std::invalid_argument("Asked to visit invalid field");
+    }
+
+    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    {
+        lambda("id", Fields::Field_id, id(), Obj().id);
+        lambda("keywords", Fields::Field_keywords, keywords(), Obj().keywords);
+        lambda("location", Fields::Field_location, location(), Obj().location);
+        lambda("md5sum", Fields::Field_md5sum, md5sum(), Obj().md5sum);
+        lambda("thumbnailBlob", Fields::Field_thumbnailBlob, thumbnailBlob(), Obj().thumbnailBlob);
+        lambda("fileUrl", Fields::Field_fileUrl, fileUrl(), Obj().fileUrl);
+    }
+
+    void Flush()
+    {
+        id().Flush();
+
+        if (IsFieldEdited(Fields::Field_id))
+        {
+            if (!id().IsChanged()) _edittracker.reset(static_cast<uint8_t>(Fields::Field_id));
+        }
+
+        keywords().Flush();
+
+        if (IsFieldEdited(Fields::Field_keywords))
+        {
+            if (!keywords().IsChanged()) _edittracker.reset(static_cast<uint8_t>(Fields::Field_keywords));
+        }
+
+        location().Flush();
+
+        if (IsFieldEdited(Fields::Field_location))
+        {
+            if (!location().IsChanged()) _edittracker.reset(static_cast<uint8_t>(Fields::Field_location));
+        }
+
+        md5sum().Flush();
+
+        if (IsFieldEdited(Fields::Field_md5sum))
+        {
+            if (!md5sum().IsChanged()) _edittracker.reset(static_cast<uint8_t>(Fields::Field_md5sum));
+        }
+
+        thumbnailBlob().Flush();
+
+        if (IsFieldEdited(Fields::Field_thumbnailBlob))
+        {
+            if (!thumbnailBlob().IsChanged()) _edittracker.reset(static_cast<uint8_t>(Fields::Field_thumbnailBlob));
+        }
+
+        fileUrl().Flush();
+
+        if (IsFieldEdited(Fields::Field_fileUrl))
+        {
+            if (!fileUrl().IsChanged()) _edittracker.reset(static_cast<uint8_t>(Fields::Field_fileUrl));
+        }
+
+        Stencil::TransactionT<Service::DigitalAssetInfo>::Flush_();
+    }
+};
+
+template <> struct Stencil::Visitor<Service::DigitalAssetInfo> : Stencil::VisitorT<Service::DigitalAssetInfo>
+{
+    using TData  = Service::DigitalAssetInfo;
+    using Fields = TypeTraitsForIndexable<TData>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_id: return lambda(obj.id);
+        case Fields::Field_keywords: return lambda(obj.keywords);
+        case Fields::Field_location: return lambda(obj.location);
+        case Fields::Field_md5sum: return lambda(obj.md5sum);
+        case Fields::Field_thumbnailBlob: return lambda(obj.thumbnailBlob);
+        case Fields::Field_fileUrl: return lambda(obj.fileUrl);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    {
+        lambda(Fields::Field_id, obj.id);
+        lambda(Fields::Field_keywords, obj.keywords);
+        lambda(Fields::Field_location, obj.location);
+        lambda(Fields::Field_md5sum, obj.md5sum);
+        lambda(Fields::Field_thumbnailBlob, obj.thumbnailBlob);
+        lambda(Fields::Field_fileUrl, obj.fileUrl);
+    }
+};
+
+template <> struct Stencil::TypeTraits<Service::KeywordS_Find_Args>
 {
     struct Traits_arg_root
     {
         using TOwner     = Service::KeywordS_Find_Args;
         using TFieldType = shared_tree<shared_string>;
 
-        static constexpr std::string_view    Name() { return "root"; }
-        static const ::ReflectionBase::Flags Flags() { return {}; }
+        static constexpr std::string_view Name() { return "root"; }
+        static const ::Stencil::Flags     Flags() { return {}; }
         static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_root; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_root; }
@@ -636,8 +971,8 @@ template <> struct ReflectionBase::TypeTraits<Service::KeywordS_Find_Args&>
         using TOwner     = Service::KeywordS_Find_Args;
         using TFieldType = shared_string;
 
-        static constexpr std::string_view    Name() { return "query"; }
-        static const ::ReflectionBase::Flags Flags() { return {}; }
+        static constexpr std::string_view Name() { return "query"; }
+        static const ::Stencil::Flags     Flags() { return {}; }
         static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_query; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_query; }
@@ -647,44 +982,46 @@ template <> struct ReflectionBase::TypeTraits<Service::KeywordS_Find_Args&>
         using TOwner     = Service::KeywordS_Find_Args;
         using TFieldType = shared_string;
 
-        static constexpr std::string_view    Name() { return "type"; }
-        static const ::ReflectionBase::Flags Flags() { return {}; }
+        static constexpr std::string_view Name() { return "type"; }
+        static const ::Stencil::Flags     Flags() { return {}; }
         static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_type; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_type; }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
-    static constexpr std::string_view           Name() { return "Find"; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
+    static constexpr std::string_view    Name() { return "Find"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using ThisType = Service::KeywordS_Find_Args;
-    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
-    {
-        return true
-               && ReflectionBase::AreEqual(obj1.get_carg_root(), obj2.get_carg_root())
-               && ReflectionBase::AreEqual(obj1.get_carg_query(), obj2.get_carg_query())
-               && ReflectionBase::AreEqual(obj1.get_carg_type(), obj2.get_carg_type())
-            ;
-    }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<Service::KeywordS_Find_Args
-                                                                 ,
-                                                                 Traits_arg_root
-                                                                 ,
-                                                                 Traits_arg_query
-                                                                 ,
-                                                                 Traits_arg_type
+                                                                     Traits_arg_root
+,                                                                     Traits_arg_query
+,                                                                     Traits_arg_type
                                                                  >;
 };
-template <> struct ReflectionBase::TypeTraits<Service::KeywordS_Create_Args&>
+
+template <>
+Stencil::Comparator<Service::KeywordS_Find_Args,
+                    Service::KeywordS_Find_Args>{
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2){
+        return true
+               && Stencil::AreEqual(obj1.get_carg_root(), obj2.get_carg_root())
+               && Stencil::AreEqual(obj1.get_carg_query(), obj2.get_carg_query())
+               && Stencil::AreEqual(obj1.get_carg_type(), obj2.get_carg_type())
+        ;
+}
+}
+;
+template <> struct Stencil::TypeTraits<Service::KeywordS_Create_Args>
 {
     struct Traits_arg_word
     {
         using TOwner     = Service::KeywordS_Create_Args;
         using TFieldType = shared_string;
 
-        static constexpr std::string_view    Name() { return "word"; }
-        static const ::ReflectionBase::Flags Flags() { return {}; }
+        static constexpr std::string_view Name() { return "word"; }
+        static const ::Stencil::Flags     Flags() { return {}; }
         static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_word; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_word; }
@@ -694,156 +1031,174 @@ template <> struct ReflectionBase::TypeTraits<Service::KeywordS_Create_Args&>
         using TOwner     = Service::KeywordS_Create_Args;
         using TFieldType = shared_tree<shared_string>;
 
-        static constexpr std::string_view    Name() { return "parent"; }
-        static const ::ReflectionBase::Flags Flags() { return {}; }
+        static constexpr std::string_view Name() { return "parent"; }
+        static const ::Stencil::Flags     Flags() { return {}; }
         static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_parent; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_parent; }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
-    static constexpr std::string_view           Name() { return "Create"; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
+    static constexpr std::string_view    Name() { return "Create"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using ThisType = Service::KeywordS_Create_Args;
-    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
-    {
-        return true
-               && ReflectionBase::AreEqual(obj1.get_carg_word(), obj2.get_carg_word())
-               && ReflectionBase::AreEqual(obj1.get_carg_parent(), obj2.get_carg_parent())
-            ;
-    }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<Service::KeywordS_Create_Args
-                                                                 ,
-                                                                 Traits_arg_word
-                                                                 ,
-                                                                 Traits_arg_parent
+                                                                     Traits_arg_word
+,                                                                     Traits_arg_parent
                                                                  >;
 };
-template <> struct ReflectionBase::TypeTraits<Service::KeywordS_Delete_Args&>
+
+template <>
+Stencil::Comparator<Service::KeywordS_Create_Args,
+                    Service::KeywordS_Create_Args>{
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2){
+        return true
+               && Stencil::AreEqual(obj1.get_carg_word(), obj2.get_carg_word())
+               && Stencil::AreEqual(obj1.get_carg_parent(), obj2.get_carg_parent())
+        ;
+}
+}
+;
+template <> struct Stencil::TypeTraits<Service::KeywordS_Delete_Args>
 {
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
-    static constexpr std::string_view           Name() { return "Delete"; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
+    static constexpr std::string_view    Name() { return "Delete"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using ThisType = Service::KeywordS_Delete_Args;
-    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
-    {
-        return true
-            ;
-    }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<Service::KeywordS_Delete_Args
                                                                  >;
 };
-template <> struct ReflectionBase::TypeTraits<Service::KeywordS_Modify_Args&>
+
+template <>
+Stencil::Comparator<Service::KeywordS_Delete_Args,
+                    Service::KeywordS_Delete_Args>{
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2){
+        return true
+        ;
+}
+}
+;
+template <> struct Stencil::TypeTraits<Service::KeywordS_Modify_Args>
 {
     struct Traits_arg_word
     {
         using TOwner     = Service::KeywordS_Modify_Args;
         using TFieldType = shared_string;
 
-        static constexpr std::string_view    Name() { return "word"; }
-        static const ::ReflectionBase::Flags Flags() { return {}; }
+        static constexpr std::string_view Name() { return "word"; }
+        static const ::Stencil::Flags     Flags() { return {}; }
         static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_word; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_word; }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
-    static constexpr std::string_view           Name() { return "Modify"; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
+    static constexpr std::string_view    Name() { return "Modify"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using ThisType = Service::KeywordS_Modify_Args;
-    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
-    {
-        return true
-               && ReflectionBase::AreEqual(obj1.get_carg_word(), obj2.get_carg_word())
-            ;
-    }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<Service::KeywordS_Modify_Args
-                                                                 ,
-                                                                 Traits_arg_word
+                                                                     Traits_arg_word
                                                                  >;
 };
-template <> struct ReflectionBase::TypeTraits<Service::KeywordS_SetParent_Args&>
+
+template <>
+Stencil::Comparator<Service::KeywordS_Modify_Args,
+                    Service::KeywordS_Modify_Args>{
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2){
+        return true
+               && Stencil::AreEqual(obj1.get_carg_word(), obj2.get_carg_word())
+        ;
+}
+}
+;
+template <> struct Stencil::TypeTraits<Service::KeywordS_SetParent_Args>
 {
     struct Traits_arg_parent
     {
         using TOwner     = Service::KeywordS_SetParent_Args;
         using TFieldType = shared_tree<shared_string>;
 
-        static constexpr std::string_view    Name() { return "parent"; }
-        static const ::ReflectionBase::Flags Flags() { return {}; }
+        static constexpr std::string_view Name() { return "parent"; }
+        static const ::Stencil::Flags     Flags() { return {}; }
         static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_parent; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_parent; }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
-    static constexpr std::string_view           Name() { return "SetParent"; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
+    static constexpr std::string_view    Name() { return "SetParent"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using ThisType = Service::KeywordS_SetParent_Args;
-    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
-    {
-        return true
-               && ReflectionBase::AreEqual(obj1.get_carg_parent(), obj2.get_carg_parent())
-            ;
-    }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<Service::KeywordS_SetParent_Args
-                                                                 ,
-                                                                 Traits_arg_parent
+                                                                     Traits_arg_parent
                                                                  >;
 };
-template <> struct ReflectionBase::InterfaceTraits<Service::KeywordS>
+
+template <>
+Stencil::Comparator<Service::KeywordS_SetParent_Args,
+                    Service::KeywordS_SetParent_Args>{
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2){
+        return true
+               && Stencil::AreEqual(obj1.get_carg_parent(), obj2.get_carg_parent())
+        ;
+}
+}
+;
+template <> struct Stencil::InterfaceTraits<Service::KeywordS>
 {
     struct ApiTraits_Find
     {
         using TOwner = Service::KeywordS;
-        static const ::ReflectionBase::Flags Flags() { return {}; }
-        static constexpr std::string_view    Name() { return "Find"; }
-        static constexpr bool                Static = false;
+        static const ::Stencil::Flags     Flags() { return {}; }
+        static constexpr std::string_view Name() { return "Find"; }
+        static constexpr bool             Static = false;
     };
     struct ApiTraits_Create
     {
         using TOwner = Service::KeywordS;
-        static const ::ReflectionBase::Flags Flags() { return {}; }
-        static constexpr std::string_view    Name() { return "Create"; }
-        static constexpr bool                Static = false;
+        static const ::Stencil::Flags     Flags() { return {}; }
+        static constexpr std::string_view Name() { return "Create"; }
+        static constexpr bool             Static = false;
     };
     struct ApiTraits_Delete
     {
         using TOwner = Service::KeywordS;
-        static const ::ReflectionBase::Flags Flags() { return {}; }
-        static constexpr std::string_view    Name() { return "Delete"; }
-        static constexpr bool                Static = false;
+        static const ::Stencil::Flags     Flags() { return {}; }
+        static constexpr std::string_view Name() { return "Delete"; }
+        static constexpr bool             Static = false;
     };
     struct ApiTraits_Modify
     {
         using TOwner = Service::KeywordS;
-        static const ::ReflectionBase::Flags Flags() { return {}; }
-        static constexpr std::string_view    Name() { return "Modify"; }
-        static constexpr bool                Static = false;
+        static const ::Stencil::Flags     Flags() { return {}; }
+        static constexpr std::string_view Name() { return "Modify"; }
+        static constexpr bool             Static = false;
     };
     struct ApiTraits_SetParent
     {
         using TOwner = Service::KeywordS;
-        static const ::ReflectionBase::Flags Flags() { return {}; }
-        static constexpr std::string_view    Name() { return "SetParent"; }
-        static constexpr bool                Static = false;
+        static const ::Stencil::Flags     Flags() { return {}; }
+        static constexpr std::string_view Name() { return "SetParent"; }
+        static constexpr bool             Static = false;
     };
-    using Apis = ::ReflectionBase::InterfaceApiPack<
+    using Apis = std::tuple<
         ApiTraits_Find
 ,        ApiTraits_Create
 ,        ApiTraits_Delete
 ,        ApiTraits_Modify
 ,        ApiTraits_SetParent
         >;
+
+    using Objects = std::tuple<
+        >;
 };
 
-template <>
-struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Service::KeywordS>::ApiTraits_Find>
+template <> struct Stencil::InterfaceApiTraits<Stencil::InterfaceTraits<Service::KeywordS>::ApiTraits_Find>
 {
     using ArgsStruct = Service::KeywordS_Find_Args;
     static constexpr bool             IsStatic() { return false; }
@@ -859,8 +1214,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Servic
     }
 };
 
-template <>
-struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Service::KeywordS>::ApiTraits_Create>
+template <> struct Stencil::InterfaceApiTraits<Stencil::InterfaceTraits<Service::KeywordS>::ApiTraits_Create>
 {
     using ArgsStruct = Service::KeywordS_Create_Args;
     static constexpr bool             IsStatic() { return false; }
@@ -875,8 +1229,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Servic
     }
 };
 
-template <>
-struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Service::KeywordS>::ApiTraits_Delete>
+template <> struct Stencil::InterfaceApiTraits<Stencil::InterfaceTraits<Service::KeywordS>::ApiTraits_Delete>
 {
     using ArgsStruct = Service::KeywordS_Delete_Args;
     static constexpr bool             IsStatic() { return false; }
@@ -889,8 +1242,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Servic
     }
 };
 
-template <>
-struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Service::KeywordS>::ApiTraits_Modify>
+template <> struct Stencil::InterfaceApiTraits<Stencil::InterfaceTraits<Service::KeywordS>::ApiTraits_Modify>
 {
     using ArgsStruct = Service::KeywordS_Modify_Args;
     static constexpr bool             IsStatic() { return false; }
@@ -904,8 +1256,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Servic
     }
 };
 
-template <>
-struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Service::KeywordS>::ApiTraits_SetParent>
+template <> struct Stencil::InterfaceApiTraits<Stencil::InterfaceTraits<Service::KeywordS>::ApiTraits_SetParent>
 {
     using ArgsStruct = Service::KeywordS_SetParent_Args;
     static constexpr bool             IsStatic() { return false; }
@@ -920,96 +1271,114 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Servic
 };
 
 #if ((defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0))
-template <> struct WebServiceHandlerTraits<Service::KeywordS>
+template <> struct Stencil::WebServiceHandlerTraits<Service::KeywordS>
 {
     static constexpr const std::string_view Url() { return std::string_view("KeywordS"); }
+    // Name to api enum
+    // Name to funcptr mapping
+    // Name to argstruct mapping
+    // Invoke api for each arg struct
+    static void HandleRequest(Service::KeywordS& obj,
+                              httplib::Request const&               req,
+                              httplib::Response&                    res,
+                              std::string_view const&               path);
 };
 #endif
 
-template <> struct ReflectionBase::TypeTraits<Service::Content_AddKeyword_Args&>
+template <> struct Stencil::TypeTraits<Service::Content_AddKeyword_Args>
 {
     struct Traits_arg_keyword
     {
         using TOwner     = Service::Content_AddKeyword_Args;
         using TFieldType = shared_tree<shared_string>;
 
-        static constexpr std::string_view    Name() { return "keyword"; }
-        static const ::ReflectionBase::Flags Flags() { return {}; }
+        static constexpr std::string_view Name() { return "keyword"; }
+        static const ::Stencil::Flags     Flags() { return {}; }
         static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_keyword; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_keyword; }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
-    static constexpr std::string_view           Name() { return "AddKeyword"; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
+    static constexpr std::string_view    Name() { return "AddKeyword"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using ThisType = Service::Content_AddKeyword_Args;
-    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
-    {
-        return true
-               && ReflectionBase::AreEqual(obj1.get_carg_keyword(), obj2.get_carg_keyword())
-            ;
-    }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<Service::Content_AddKeyword_Args
-                                                                 ,
-                                                                 Traits_arg_keyword
+                                                                     Traits_arg_keyword
                                                                  >;
 };
-template <> struct ReflectionBase::TypeTraits<Service::Content_RemoveKeyword_Args&>
+
+template <>
+Stencil::Comparator<Service::Content_AddKeyword_Args,
+                    Service::Content_AddKeyword_Args>{
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2){
+        return true
+               && Stencil::AreEqual(obj1.get_carg_keyword(), obj2.get_carg_keyword())
+        ;
+}
+}
+;
+template <> struct Stencil::TypeTraits<Service::Content_RemoveKeyword_Args>
 {
     struct Traits_arg_keyword
     {
         using TOwner     = Service::Content_RemoveKeyword_Args;
         using TFieldType = shared_tree<shared_string>;
 
-        static constexpr std::string_view    Name() { return "keyword"; }
-        static const ::ReflectionBase::Flags Flags() { return {}; }
+        static constexpr std::string_view Name() { return "keyword"; }
+        static const ::Stencil::Flags     Flags() { return {}; }
         static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_keyword; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_keyword; }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
-    static constexpr std::string_view           Name() { return "RemoveKeyword"; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
+    static constexpr std::string_view    Name() { return "RemoveKeyword"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using ThisType = Service::Content_RemoveKeyword_Args;
-    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
-    {
-        return true
-               && ReflectionBase::AreEqual(obj1.get_carg_keyword(), obj2.get_carg_keyword())
-            ;
-    }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<Service::Content_RemoveKeyword_Args
-                                                                 ,
-                                                                 Traits_arg_keyword
+                                                                     Traits_arg_keyword
                                                                  >;
 };
-template <> struct ReflectionBase::InterfaceTraits<Service::Content>
+
+template <>
+Stencil::Comparator<Service::Content_RemoveKeyword_Args,
+                    Service::Content_RemoveKeyword_Args>{
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2){
+        return true
+               && Stencil::AreEqual(obj1.get_carg_keyword(), obj2.get_carg_keyword())
+        ;
+}
+}
+;
+template <> struct Stencil::InterfaceTraits<Service::Content>
 {
     struct ApiTraits_AddKeyword
     {
         using TOwner = Service::Content;
-        static const ::ReflectionBase::Flags Flags() { return {}; }
-        static constexpr std::string_view    Name() { return "AddKeyword"; }
-        static constexpr bool                Static = false;
+        static const ::Stencil::Flags     Flags() { return {}; }
+        static constexpr std::string_view Name() { return "AddKeyword"; }
+        static constexpr bool             Static = false;
     };
     struct ApiTraits_RemoveKeyword
     {
         using TOwner = Service::Content;
-        static const ::ReflectionBase::Flags Flags() { return {}; }
-        static constexpr std::string_view    Name() { return "RemoveKeyword"; }
-        static constexpr bool                Static = false;
+        static const ::Stencil::Flags     Flags() { return {}; }
+        static constexpr std::string_view Name() { return "RemoveKeyword"; }
+        static constexpr bool             Static = false;
     };
-    using Apis = ::ReflectionBase::InterfaceApiPack<
+    using Apis = std::tuple<
         ApiTraits_AddKeyword
 ,        ApiTraits_RemoveKeyword
         >;
+
+    using Objects = std::tuple<
+        >;
 };
 
-template <>
-struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Service::Content>::ApiTraits_AddKeyword>
+template <> struct Stencil::InterfaceApiTraits<Stencil::InterfaceTraits<Service::Content>::ApiTraits_AddKeyword>
 {
     using ArgsStruct = Service::Content_AddKeyword_Args;
     static constexpr bool             IsStatic() { return false; }
@@ -1023,8 +1392,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Servic
     }
 };
 
-template <>
-struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Service::Content>::ApiTraits_RemoveKeyword>
+template <> struct Stencil::InterfaceApiTraits<Stencil::InterfaceTraits<Service::Content>::ApiTraits_RemoveKeyword>
 {
     using ArgsStruct = Service::Content_RemoveKeyword_Args;
     static constexpr bool             IsStatic() { return false; }
@@ -1039,51 +1407,63 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Servic
 };
 
 #if ((defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0))
-template <> struct WebServiceHandlerTraits<Service::Content>
+template <> struct Stencil::WebServiceHandlerTraits<Service::Content>
 {
     static constexpr const std::string_view Url() { return std::string_view("Content"); }
+    // Name to api enum
+    // Name to funcptr mapping
+    // Name to argstruct mapping
+    // Invoke api for each arg struct
+    static void HandleRequest(Service::Content& obj,
+                              httplib::Request const&               req,
+                              httplib::Response&                    res,
+                              std::string_view const&               path);
 };
 #endif
 
-template <> struct ReflectionBase::TypeTraits<Service::Search_SearchByKeywords_Args&>
+template <> struct Stencil::TypeTraits<Service::Search_SearchByKeywords_Args>
 {
     struct Traits_arg_keywords
     {
         using TOwner     = Service::Search_SearchByKeywords_Args;
         using TFieldType = std::vector<shared_tree<shared_string>>;
 
-        static constexpr std::string_view    Name() { return "keywords"; }
-        static const ::ReflectionBase::Flags Flags() { return {}; }
+        static constexpr std::string_view Name() { return "keywords"; }
+        static const ::Stencil::Flags     Flags() { return {}; }
         static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_keywords; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_keywords; }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
-    static constexpr std::string_view           Name() { return "SearchByKeywords"; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
+    static constexpr std::string_view    Name() { return "SearchByKeywords"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using ThisType = Service::Search_SearchByKeywords_Args;
-    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
-    {
-        return true
-               && ReflectionBase::AreEqual(obj1.get_carg_keywords(), obj2.get_carg_keywords())
-            ;
-    }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<Service::Search_SearchByKeywords_Args
-                                                                 ,
-                                                                 Traits_arg_keywords
+                                                                     Traits_arg_keywords
                                                                  >;
 };
-template <> struct ReflectionBase::TypeTraits<Service::Search_SearchByDate_Args&>
+
+template <>
+Stencil::Comparator<Service::Search_SearchByKeywords_Args,
+                    Service::Search_SearchByKeywords_Args>{
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2){
+        return true
+               && Stencil::AreEqual(obj1.get_carg_keywords(), obj2.get_carg_keywords())
+        ;
+}
+}
+;
+template <> struct Stencil::TypeTraits<Service::Search_SearchByDate_Args>
 {
     struct Traits_arg_startDate
     {
         using TOwner     = Service::Search_SearchByDate_Args;
         using TFieldType = int64_t;
 
-        static constexpr std::string_view    Name() { return "startDate"; }
-        static const ::ReflectionBase::Flags Flags() { return {}; }
+        static constexpr std::string_view Name() { return "startDate"; }
+        static const ::Stencil::Flags     Flags() { return {}; }
         static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_startDate; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_startDate; }
@@ -1093,56 +1473,61 @@ template <> struct ReflectionBase::TypeTraits<Service::Search_SearchByDate_Args&
         using TOwner     = Service::Search_SearchByDate_Args;
         using TFieldType = int64_t;
 
-        static constexpr std::string_view    Name() { return "endDate"; }
-        static const ::ReflectionBase::Flags Flags() { return {}; }
+        static constexpr std::string_view Name() { return "endDate"; }
+        static const ::Stencil::Flags     Flags() { return {}; }
         static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_endDate; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_endDate; }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
-    static constexpr std::string_view           Name() { return "SearchByDate"; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
+    static constexpr std::string_view    Name() { return "SearchByDate"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using ThisType = Service::Search_SearchByDate_Args;
-    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
-    {
-        return true
-               && ReflectionBase::AreEqual(obj1.get_carg_startDate(), obj2.get_carg_startDate())
-               && ReflectionBase::AreEqual(obj1.get_carg_endDate(), obj2.get_carg_endDate())
-            ;
-    }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<Service::Search_SearchByDate_Args
-                                                                 ,
-                                                                 Traits_arg_startDate
-                                                                 ,
-                                                                 Traits_arg_endDate
+                                                                     Traits_arg_startDate
+,                                                                     Traits_arg_endDate
                                                                  >;
 };
-template <> struct ReflectionBase::InterfaceTraits<Service::Search>
+
+template <>
+Stencil::Comparator<Service::Search_SearchByDate_Args,
+                    Service::Search_SearchByDate_Args>{
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2){
+        return true
+               && Stencil::AreEqual(obj1.get_carg_startDate(), obj2.get_carg_startDate())
+               && Stencil::AreEqual(obj1.get_carg_endDate(), obj2.get_carg_endDate())
+        ;
+}
+}
+;
+template <> struct Stencil::InterfaceTraits<Service::Search>
 {
     struct ApiTraits_SearchByKeywords
     {
         using TOwner = Service::Search;
-        static const ::ReflectionBase::Flags Flags() { return {}; }
-        static constexpr std::string_view    Name() { return "SearchByKeywords"; }
-        static constexpr bool                Static = false;
+        static const ::Stencil::Flags     Flags() { return {}; }
+        static constexpr std::string_view Name() { return "SearchByKeywords"; }
+        static constexpr bool             Static = false;
     };
     struct ApiTraits_SearchByDate
     {
         using TOwner = Service::Search;
-        static const ::ReflectionBase::Flags Flags() { return {}; }
-        static constexpr std::string_view    Name() { return "SearchByDate"; }
-        static constexpr bool                Static = false;
+        static const ::Stencil::Flags     Flags() { return {}; }
+        static constexpr std::string_view Name() { return "SearchByDate"; }
+        static constexpr bool             Static = false;
     };
-    using Apis = ::ReflectionBase::InterfaceApiPack<
+    using Apis = std::tuple<
         ApiTraits_SearchByKeywords
 ,        ApiTraits_SearchByDate
         >;
+
+    using Objects = std::tuple<
+        >;
 };
 
-template <>
-struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Service::Search>::ApiTraits_SearchByKeywords>
+template <> struct Stencil::InterfaceApiTraits<Stencil::InterfaceTraits<Service::Search>::ApiTraits_SearchByKeywords>
 {
     using ArgsStruct = Service::Search_SearchByKeywords_Args;
     static constexpr bool             IsStatic() { return false; }
@@ -1156,8 +1541,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Servic
     }
 };
 
-template <>
-struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Service::Search>::ApiTraits_SearchByDate>
+template <> struct Stencil::InterfaceApiTraits<Stencil::InterfaceTraits<Service::Search>::ApiTraits_SearchByDate>
 {
     using ArgsStruct = Service::Search_SearchByDate_Args;
     static constexpr bool             IsStatic() { return false; }
@@ -1173,96 +1557,114 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Servic
 };
 
 #if ((defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0))
-template <> struct WebServiceHandlerTraits<Service::Search>
+template <> struct Stencil::WebServiceHandlerTraits<Service::Search>
 {
     static constexpr const std::string_view Url() { return std::string_view("Search"); }
+    // Name to api enum
+    // Name to funcptr mapping
+    // Name to argstruct mapping
+    // Invoke api for each arg struct
+    static void HandleRequest(Service::Search& obj,
+                              httplib::Request const&               req,
+                              httplib::Response&                    res,
+                              std::string_view const&               path);
 };
 #endif
 
-template <> struct ReflectionBase::TypeTraits<Service::Store_Upload_Args&>
+template <> struct Stencil::TypeTraits<Service::Store_Upload_Args>
 {
     struct Traits_arg_file
     {
         using TOwner     = Service::Store_Upload_Args;
         using TFieldType = shared_string;
 
-        static constexpr std::string_view    Name() { return "file"; }
-        static const ::ReflectionBase::Flags Flags() { return {}; }
+        static constexpr std::string_view Name() { return "file"; }
+        static const ::Stencil::Flags     Flags() { return {}; }
         static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_file; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_file; }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
-    static constexpr std::string_view           Name() { return "Upload"; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
+    static constexpr std::string_view    Name() { return "Upload"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using ThisType = Service::Store_Upload_Args;
-    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
-    {
-        return true
-               && ReflectionBase::AreEqual(obj1.get_carg_file(), obj2.get_carg_file())
-            ;
-    }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<Service::Store_Upload_Args
-                                                                 ,
-                                                                 Traits_arg_file
+                                                                     Traits_arg_file
                                                                  >;
 };
-template <> struct ReflectionBase::TypeTraits<Service::Store_Download_Args&>
+
+template <>
+Stencil::Comparator<Service::Store_Upload_Args,
+                    Service::Store_Upload_Args>{
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2){
+        return true
+               && Stencil::AreEqual(obj1.get_carg_file(), obj2.get_carg_file())
+        ;
+}
+}
+;
+template <> struct Stencil::TypeTraits<Service::Store_Download_Args>
 {
     struct Traits_arg_content
     {
         using TOwner     = Service::Store_Download_Args;
         using TFieldType = long;
 
-        static constexpr std::string_view    Name() { return "content"; }
-        static const ::ReflectionBase::Flags Flags() { return {}; }
+        static constexpr std::string_view Name() { return "content"; }
+        static const ::Stencil::Flags     Flags() { return {}; }
         static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
         static constexpr auto TPropertyGetter() { return &TOwner::get_arg_content; }
         static constexpr auto TPropertySetter() { return &TOwner::set_arg_content; }
     };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
-    static constexpr std::string_view           Name() { return "Download"; }
+    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
+    static constexpr std::string_view    Name() { return "Download"; }
     static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
 
     using ThisType = Service::Store_Download_Args;
-    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
-    {
-        return true
-               && ReflectionBase::AreEqual(obj1.get_carg_content(), obj2.get_carg_content())
-            ;
-    }
 
     using Handler = ::ReflectionServices::ReflectedStructHandler<Service::Store_Download_Args
-                                                                 ,
-                                                                 Traits_arg_content
+                                                                     Traits_arg_content
                                                                  >;
 };
-template <> struct ReflectionBase::InterfaceTraits<Service::Store>
+
+template <>
+Stencil::Comparator<Service::Store_Download_Args,
+                    Service::Store_Download_Args>{
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2){
+        return true
+               && Stencil::AreEqual(obj1.get_carg_content(), obj2.get_carg_content())
+        ;
+}
+}
+;
+template <> struct Stencil::InterfaceTraits<Service::Store>
 {
     struct ApiTraits_Upload
     {
         using TOwner = Service::Store;
-        static const ::ReflectionBase::Flags Flags() { return {}; }
-        static constexpr std::string_view    Name() { return "Upload"; }
-        static constexpr bool                Static = false;
+        static const ::Stencil::Flags     Flags() { return {}; }
+        static constexpr std::string_view Name() { return "Upload"; }
+        static constexpr bool             Static = false;
     };
     struct ApiTraits_Download
     {
         using TOwner = Service::Store;
-        static const ::ReflectionBase::Flags Flags() { return {}; }
-        static constexpr std::string_view    Name() { return "Download"; }
-        static constexpr bool                Static = false;
+        static const ::Stencil::Flags     Flags() { return {}; }
+        static constexpr std::string_view Name() { return "Download"; }
+        static constexpr bool             Static = false;
     };
-    using Apis = ::ReflectionBase::InterfaceApiPack<
+    using Apis = std::tuple<
         ApiTraits_Upload
 ,        ApiTraits_Download
         >;
+
+    using Objects = std::tuple<
+        >;
 };
 
-template <>
-struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Service::Store>::ApiTraits_Upload>
+template <> struct Stencil::InterfaceApiTraits<Stencil::InterfaceTraits<Service::Store>::ApiTraits_Upload>
 {
     using ArgsStruct = Service::Store_Upload_Args;
     static constexpr bool             IsStatic() { return false; }
@@ -1276,8 +1678,7 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Servic
     }
 };
 
-template <>
-struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Service::Store>::ApiTraits_Download>
+template <> struct Stencil::InterfaceApiTraits<Stencil::InterfaceTraits<Service::Store>::ApiTraits_Download>
 {
     using ArgsStruct = Service::Store_Download_Args;
     static constexpr bool             IsStatic() { return false; }
@@ -1292,882 +1693,19 @@ struct ReflectionBase::InterfaceApiTraits<ReflectionBase::InterfaceTraits<Servic
 };
 
 #if ((defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0))
-template <> struct WebServiceHandlerTraits<Service::Store>
+template <> struct Stencil::WebServiceHandlerTraits<Service::Store>
 {
     static constexpr const std::string_view Url() { return std::string_view("Store"); }
+    // Name to api enum
+    // Name to funcptr mapping
+    // Name to argstruct mapping
+    // Invoke api for each arg struct
+    static void HandleRequest(Service::Store& obj,
+                              httplib::Request const&               req,
+                              httplib::Response&                    res,
+                              std::string_view const&               path);
 };
 #endif
-
-template <> struct ReflectionBase::TypeTraits<Service::MapPoint::Data&>
-{
-    struct Traits_latitude
-    {
-        using TOwner     = Service::MapPoint::Data;
-        using TFieldType = int64_t;
-
-        static constexpr std::string_view Name() { return "latitude"; }
-
-        static constexpr auto TPropertyGetter() { return &TOwner::get_latitude; }
-        static constexpr auto TPropertySetter() { return &TOwner::set_latitude; }
-        static constexpr auto TAttributeValue(const std::string_view& key)
-        {
-            return TOwner::FieldAttributeValue(TOwner::FieldIndex::latitude, key);
-        }
-
-        static const ::ReflectionBase::Flags Flags()
-        {
-            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
-        }
-    };
-    struct Traits_longitude
-    {
-        using TOwner     = Service::MapPoint::Data;
-        using TFieldType = int64_t;
-
-        static constexpr std::string_view Name() { return "longitude"; }
-
-        static constexpr auto TPropertyGetter() { return &TOwner::get_longitude; }
-        static constexpr auto TPropertySetter() { return &TOwner::set_longitude; }
-        static constexpr auto TAttributeValue(const std::string_view& key)
-        {
-            return TOwner::FieldAttributeValue(TOwner::FieldIndex::longitude, key);
-        }
-
-        static const ::ReflectionBase::Flags Flags()
-        {
-            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
-        }
-    };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
-    static constexpr std::string_view           Name() { return "MapPoint"; }
-    static constexpr std::string_view           AttributeValue(const std::string_view& key)
-    {
-        return ::ReflectionServices::EmptyAttributeValue(key);
-    }
-
-    using ThisType = Service::MapPoint::Data;
-    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
-    {
-        return true
-               && ReflectionBase::AreEqual(obj1.latitude(), obj2.latitude())
-               && ReflectionBase::AreEqual(obj1.longitude(), obj2.longitude())
-            ;
-    }
-
-    using Handler = ::ReflectionServices::ReflectedStructHandler<Service::MapPoint::Data,
-                                                                 Traits_latitude
-,                                                                 Traits_longitude
-                                                                 >;
-};
-
-template <>
-struct Stencil::Transaction<Service::MapPoint::Data> : Stencil::TransactionT<Service::MapPoint::Data>
-{
-    using TData = Service::MapPoint::Data;
-
-    Transaction<int64_t> _subtracker_latitude;
-    Transaction<int64_t> _subtracker_longitude;
-    DELETE_COPY_AND_MOVE(Transaction);
-
-    Transaction(TData& ptr) :
-        Stencil::TransactionT<Service::MapPoint::Data>(ptr)
-        ,
-        _subtracker_latitude(Obj().latitude())
-        ,
-        _subtracker_longitude(Obj().longitude())
-    {}
-
-    auto& latitude()
-    {
-        MarkFieldEdited_(TData::FieldIndex::latitude);
-        return _subtracker_latitude;
-    }
-    auto& longitude()
-    {
-        MarkFieldEdited_(TData::FieldIndex::longitude);
-        return _subtracker_longitude;
-    }
-    void set_latitude(int64_t&& val)
-    {
-        MarkFieldAssigned_(TData::FieldIndex::latitude, Obj().latitude(), val);
-        Obj().set_latitude(std::move(val));
-    }
-
-    void set_longitude(int64_t&& val)
-    {
-        MarkFieldAssigned_(TData::FieldIndex::longitude, Obj().longitude(), val);
-        Obj().set_longitude(std::move(val));
-    }
-
-    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
-    {
-        switch (index)
-        {
-        case TData::FieldIndex::latitude: return lambda("latitude", latitude()); return;
-        case TData::FieldIndex::longitude: return lambda("longitude", longitude()); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
-    {
-        if (fieldName == "latitude") { return lambda(TData::FieldIndex::latitude, latitude()); }
-        if (fieldName == "longitude") { return lambda(TData::FieldIndex::longitude, longitude()); }
-        throw std::invalid_argument("Asked to visit invalid field");
-    }
-
-    template <typename TLambda> void VisitAll(TLambda&& lambda)
-    {
-        lambda("latitude", TData::FieldIndex::latitude, latitude(), Obj().latitude());
-        lambda("longitude", TData::FieldIndex::longitude, longitude(), Obj().longitude());
-    }
-
-    void Flush()
-    {
-        latitude().Flush();
-
-        if (IsFieldEdited(TData::FieldIndex::latitude))
-        {
-            if (!latitude().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::latitude));
-        }
-
-        longitude().Flush();
-
-        if (IsFieldEdited(TData::FieldIndex::longitude))
-        {
-            if (!longitude().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::longitude));
-        }
-
-        Stencil::TransactionT<Service::MapPoint::Data>::Flush_();
-    }
-};
-
-template <>
-struct Stencil::Visitor<Service::MapPoint::Data, void> : Stencil::VisitorT<Service::MapPoint::Data>
-{
-    using TData = Service::MapPoint::Data;
-
-    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
-    {
-        switch (index)
-        {
-        case TData::FieldIndex::latitude: lambda("latitude", _ref.get().latitude()); return;
-        case TData::FieldIndex::longitude: lambda("longitude", _ref.get().longitude()); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
-    {
-        switch (index)
-        {
-        case TData::FieldIndex::latitude: lambda("latitude", _ref.get().latitude()); return;
-        case TData::FieldIndex::longitude: lambda("longitude", _ref.get().longitude()); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> void VisitAll(TLambda&& lambda) const
-    {
-        lambda("latitude", _ref.get().latitude());
-        lambda("longitude", _ref.get().longitude());
-    }
-
-    std::reference_wrapper<TData> _ref;
-};
-
-template <>
-struct Stencil::Visitor<const Service::MapPoint::Data, void>
-    : Stencil::VisitorT<const Service::MapPoint::Data>
-{
-    using TData = Service::MapPoint::Data const;
-
-    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
-    {
-        switch (index)
-        {
-        case TData::FieldIndex::latitude: lambda("latitude", _ref.get().latitude()); return;
-        case TData::FieldIndex::longitude: lambda("longitude", _ref.get().longitude()); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> void VisitAll(TLambda&& lambda) const
-    {
-        lambda("latitude", _ref.get().latitude());
-        lambda("longitude", _ref.get().longitude());
-    }
-
-    std::reference_wrapper<TData> _ref;
-};
-
-template <> struct ReflectionBase::TypeTraits<Service::GeographicalArea::Data&>
-{
-    struct Traits_type
-    {
-        using TOwner     = Service::GeographicalArea::Data;
-        using TFieldType = shared_string;
-
-        static constexpr std::string_view Name() { return "type"; }
-
-        static constexpr auto TPropertyGetter() { return &TOwner::get_type; }
-        static constexpr auto TPropertySetter() { return &TOwner::set_type; }
-        static constexpr auto TAttributeValue(const std::string_view& key)
-        {
-            return TOwner::FieldAttributeValue(TOwner::FieldIndex::type, key);
-        }
-
-        static const ::ReflectionBase::Flags Flags()
-        {
-            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
-        }
-    };
-    struct Traits_name
-    {
-        using TOwner     = Service::GeographicalArea::Data;
-        using TFieldType = shared_string;
-
-        static constexpr std::string_view Name() { return "name"; }
-
-        static constexpr auto TPropertyGetter() { return &TOwner::get_name; }
-        static constexpr auto TPropertySetter() { return &TOwner::set_name; }
-        static constexpr auto TAttributeValue(const std::string_view& key)
-        {
-            return TOwner::FieldAttributeValue(TOwner::FieldIndex::name, key);
-        }
-
-        static const ::ReflectionBase::Flags Flags()
-        {
-            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
-        }
-    };
-    struct Traits_areaPolygon
-    {
-        using TOwner     = Service::GeographicalArea::Data;
-        using TFieldType = std::vector<::Service::MapPoint::Data>;
-
-        static constexpr std::string_view Name() { return "areaPolygon"; }
-
-        static constexpr auto TPropertyGetter() { return &TOwner::get_areaPolygon; }
-        static constexpr auto TPropertySetter() { return &TOwner::set_areaPolygon; }
-        static constexpr auto TAttributeValue(const std::string_view& key)
-        {
-            return TOwner::FieldAttributeValue(TOwner::FieldIndex::areaPolygon, key);
-        }
-
-        static const ::ReflectionBase::Flags Flags()
-        {
-            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
-        }
-    };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
-    static constexpr std::string_view           Name() { return "GeographicalArea"; }
-    static constexpr std::string_view           AttributeValue(const std::string_view& key)
-    {
-        return ::ReflectionServices::EmptyAttributeValue(key);
-    }
-
-    using ThisType = Service::GeographicalArea::Data;
-    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
-    {
-        return true
-               && ReflectionBase::AreEqual(obj1.type(), obj2.type())
-               && ReflectionBase::AreEqual(obj1.name(), obj2.name())
-               && ReflectionBase::AreEqual(obj1.areaPolygon(), obj2.areaPolygon())
-            ;
-    }
-
-    using Handler = ::ReflectionServices::ReflectedStructHandler<Service::GeographicalArea::Data,
-                                                                 Traits_type
-,                                                                 Traits_name
-,                                                                 Traits_areaPolygon
-                                                                 >;
-};
-
-template <>
-struct Stencil::Transaction<Service::GeographicalArea::Data> : Stencil::TransactionT<Service::GeographicalArea::Data>
-{
-    using TData = Service::GeographicalArea::Data;
-
-    Transaction<shared_string> _subtracker_type;
-    Transaction<shared_string> _subtracker_name;
-    Transaction<std::vector<::Service::MapPoint::Data>> _subtracker_areaPolygon;
-    DELETE_COPY_AND_MOVE(Transaction);
-
-    Transaction(TData& ptr) :
-        Stencil::TransactionT<Service::GeographicalArea::Data>(ptr)
-        ,
-        _subtracker_type(Obj().type())
-        ,
-        _subtracker_name(Obj().name())
-        ,
-        _subtracker_areaPolygon(Obj().areaPolygon())
-    {}
-
-    auto& type()
-    {
-        MarkFieldEdited_(TData::FieldIndex::type);
-        return _subtracker_type;
-    }
-    auto& name()
-    {
-        MarkFieldEdited_(TData::FieldIndex::name);
-        return _subtracker_name;
-    }
-    auto& areaPolygon()
-    {
-        MarkFieldEdited_(TData::FieldIndex::areaPolygon);
-        return _subtracker_areaPolygon;
-    }
-    void set_type(shared_string&& val)
-    {
-        MarkFieldAssigned_(TData::FieldIndex::type, Obj().type(), val);
-        Obj().set_type(std::move(val));
-    }
-
-    void set_name(shared_string&& val)
-    {
-        MarkFieldAssigned_(TData::FieldIndex::name, Obj().name(), val);
-        Obj().set_name(std::move(val));
-    }
-
-    void set_areaPolygon(std::vector<::Service::MapPoint::Data>&& val)
-    {
-        MarkFieldAssigned_(TData::FieldIndex::areaPolygon, Obj().areaPolygon(), val);
-        Obj().set_areaPolygon(std::move(val));
-    }
-
-    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
-    {
-        switch (index)
-        {
-        case TData::FieldIndex::type: return lambda("type", type()); return;
-        case TData::FieldIndex::name: return lambda("name", name()); return;
-        case TData::FieldIndex::areaPolygon: return lambda("areaPolygon", areaPolygon()); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
-    {
-        if (fieldName == "type") { return lambda(TData::FieldIndex::type, type()); }
-        if (fieldName == "name") { return lambda(TData::FieldIndex::name, name()); }
-        if (fieldName == "areaPolygon") { return lambda(TData::FieldIndex::areaPolygon, areaPolygon()); }
-        throw std::invalid_argument("Asked to visit invalid field");
-    }
-
-    template <typename TLambda> void VisitAll(TLambda&& lambda)
-    {
-        lambda("type", TData::FieldIndex::type, type(), Obj().type());
-        lambda("name", TData::FieldIndex::name, name(), Obj().name());
-        lambda("areaPolygon", TData::FieldIndex::areaPolygon, areaPolygon(), Obj().areaPolygon());
-    }
-
-    void Flush()
-    {
-        type().Flush();
-
-        if (IsFieldEdited(TData::FieldIndex::type))
-        {
-            if (!type().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::type));
-        }
-
-        name().Flush();
-
-        if (IsFieldEdited(TData::FieldIndex::name))
-        {
-            if (!name().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::name));
-        }
-
-        areaPolygon().Flush();
-
-        if (IsFieldEdited(TData::FieldIndex::areaPolygon))
-        {
-            if (!areaPolygon().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::areaPolygon));
-        }
-
-        Stencil::TransactionT<Service::GeographicalArea::Data>::Flush_();
-    }
-};
-
-template <>
-struct Stencil::Visitor<Service::GeographicalArea::Data, void> : Stencil::VisitorT<Service::GeographicalArea::Data>
-{
-    using TData = Service::GeographicalArea::Data;
-
-    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
-    {
-        switch (index)
-        {
-        case TData::FieldIndex::type: lambda("type", _ref.get().type()); return;
-        case TData::FieldIndex::name: lambda("name", _ref.get().name()); return;
-        case TData::FieldIndex::areaPolygon: lambda("areaPolygon", _ref.get().areaPolygon()); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
-    {
-        switch (index)
-        {
-        case TData::FieldIndex::type: lambda("type", _ref.get().type()); return;
-        case TData::FieldIndex::name: lambda("name", _ref.get().name()); return;
-        case TData::FieldIndex::areaPolygon: lambda("areaPolygon", _ref.get().areaPolygon()); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> void VisitAll(TLambda&& lambda) const
-    {
-        lambda("type", _ref.get().type());
-        lambda("name", _ref.get().name());
-        lambda("areaPolygon", _ref.get().areaPolygon());
-    }
-
-    std::reference_wrapper<TData> _ref;
-};
-
-template <>
-struct Stencil::Visitor<const Service::GeographicalArea::Data, void>
-    : Stencil::VisitorT<const Service::GeographicalArea::Data>
-{
-    using TData = Service::GeographicalArea::Data const;
-
-    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
-    {
-        switch (index)
-        {
-        case TData::FieldIndex::type: lambda("type", _ref.get().type()); return;
-        case TData::FieldIndex::name: lambda("name", _ref.get().name()); return;
-        case TData::FieldIndex::areaPolygon: lambda("areaPolygon", _ref.get().areaPolygon()); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> void VisitAll(TLambda&& lambda) const
-    {
-        lambda("type", _ref.get().type());
-        lambda("name", _ref.get().name());
-        lambda("areaPolygon", _ref.get().areaPolygon());
-    }
-
-    std::reference_wrapper<TData> _ref;
-};
-
-template <> struct ReflectionBase::TypeTraits<Service::DigitalAssetInfo::Data&>
-{
-    struct Traits_id
-    {
-        using TOwner     = Service::DigitalAssetInfo::Data;
-        using TFieldType = int32_t;
-
-        static constexpr std::string_view Name() { return "id"; }
-
-        static constexpr auto TPropertyGetter() { return &TOwner::get_id; }
-        static constexpr auto TPropertySetter() { return &TOwner::set_id; }
-        static constexpr auto TAttributeValue(const std::string_view& key)
-        {
-            return TOwner::FieldAttributeValue(TOwner::FieldIndex::id, key);
-        }
-
-        static const ::ReflectionBase::Flags Flags()
-        {
-            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
-        }
-    };
-    struct Traits_keywords
-    {
-        using TOwner     = Service::DigitalAssetInfo::Data;
-        using TFieldType = std::vector<shared_tree<shared_string>>;
-
-        static constexpr std::string_view Name() { return "keywords"; }
-
-        static constexpr auto TPropertyGetter() { return &TOwner::get_keywords; }
-        static constexpr auto TPropertySetter() { return &TOwner::set_keywords; }
-        static constexpr auto TAttributeValue(const std::string_view& key)
-        {
-            return TOwner::FieldAttributeValue(TOwner::FieldIndex::keywords, key);
-        }
-
-        static const ::ReflectionBase::Flags Flags()
-        {
-            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
-        }
-    };
-    struct Traits_location
-    {
-        using TOwner     = Service::DigitalAssetInfo::Data;
-        using TFieldType = shared_tree<::Service::GeographicalArea::Data>;
-
-        static constexpr std::string_view Name() { return "location"; }
-
-        static constexpr auto TPropertyGetter() { return &TOwner::get_location; }
-        static constexpr auto TPropertySetter() { return &TOwner::set_location; }
-        static constexpr auto TAttributeValue(const std::string_view& key)
-        {
-            return TOwner::FieldAttributeValue(TOwner::FieldIndex::location, key);
-        }
-
-        static const ::ReflectionBase::Flags Flags()
-        {
-            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
-        }
-    };
-    struct Traits_md5sum
-    {
-        using TOwner     = Service::DigitalAssetInfo::Data;
-        using TFieldType = int64_t;
-
-        static constexpr std::string_view Name() { return "md5sum"; }
-
-        static constexpr auto TPropertyGetter() { return &TOwner::get_md5sum; }
-        static constexpr auto TPropertySetter() { return &TOwner::set_md5sum; }
-        static constexpr auto TAttributeValue(const std::string_view& key)
-        {
-            return TOwner::FieldAttributeValue(TOwner::FieldIndex::md5sum, key);
-        }
-
-        static const ::ReflectionBase::Flags Flags()
-        {
-            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
-        }
-    };
-    struct Traits_thumbnailBlob
-    {
-        using TOwner     = Service::DigitalAssetInfo::Data;
-        using TFieldType = shared_string;
-
-        static constexpr std::string_view Name() { return "thumbnailBlob"; }
-
-        static constexpr auto TPropertyGetter() { return &TOwner::get_thumbnailBlob; }
-        static constexpr auto TPropertySetter() { return &TOwner::set_thumbnailBlob; }
-        static constexpr auto TAttributeValue(const std::string_view& key)
-        {
-            return TOwner::FieldAttributeValue(TOwner::FieldIndex::thumbnailBlob, key);
-        }
-
-        static const ::ReflectionBase::Flags Flags()
-        {
-            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
-        }
-    };
-    struct Traits_fileUrl
-    {
-        using TOwner     = Service::DigitalAssetInfo::Data;
-        using TFieldType = shared_string;
-
-        static constexpr std::string_view Name() { return "fileUrl"; }
-
-        static constexpr auto TPropertyGetter() { return &TOwner::get_fileUrl; }
-        static constexpr auto TPropertySetter() { return &TOwner::set_fileUrl; }
-        static constexpr auto TAttributeValue(const std::string_view& key)
-        {
-            return TOwner::FieldAttributeValue(TOwner::FieldIndex::fileUrl, key);
-        }
-
-        static const ::ReflectionBase::Flags Flags()
-        {
-            return ::ReflectionBase::Flags{                                           ::ReflectionBase::Flag::Max};
-        }
-    };
-    static constexpr ::ReflectionBase::DataType Type() { return ::ReflectionBase::DataType::Object; }
-    static constexpr std::string_view           Name() { return "DigitalAssetInfo"; }
-    static constexpr std::string_view           AttributeValue(const std::string_view& key)
-    {
-        return ::ReflectionServices::EmptyAttributeValue(key);
-    }
-
-    using ThisType = Service::DigitalAssetInfo::Data;
-    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
-    {
-        return true
-               && ReflectionBase::AreEqual(obj1.id(), obj2.id())
-               && ReflectionBase::AreEqual(obj1.keywords(), obj2.keywords())
-               && ReflectionBase::AreEqual(obj1.location(), obj2.location())
-               && ReflectionBase::AreEqual(obj1.md5sum(), obj2.md5sum())
-               && ReflectionBase::AreEqual(obj1.thumbnailBlob(), obj2.thumbnailBlob())
-               && ReflectionBase::AreEqual(obj1.fileUrl(), obj2.fileUrl())
-            ;
-    }
-
-    using Handler = ::ReflectionServices::ReflectedStructHandler<Service::DigitalAssetInfo::Data,
-                                                                 Traits_id
-,                                                                 Traits_keywords
-,                                                                 Traits_location
-,                                                                 Traits_md5sum
-,                                                                 Traits_thumbnailBlob
-,                                                                 Traits_fileUrl
-                                                                 >;
-};
-
-template <>
-struct Stencil::Transaction<Service::DigitalAssetInfo::Data> : Stencil::TransactionT<Service::DigitalAssetInfo::Data>
-{
-    using TData = Service::DigitalAssetInfo::Data;
-
-    Transaction<int32_t> _subtracker_id;
-    Transaction<std::vector<shared_tree<shared_string>>> _subtracker_keywords;
-    Transaction<shared_tree<::Service::GeographicalArea::Data>> _subtracker_location;
-    Transaction<int64_t> _subtracker_md5sum;
-    Transaction<shared_string> _subtracker_thumbnailBlob;
-    Transaction<shared_string> _subtracker_fileUrl;
-    DELETE_COPY_AND_MOVE(Transaction);
-
-    Transaction(TData& ptr) :
-        Stencil::TransactionT<Service::DigitalAssetInfo::Data>(ptr)
-        ,
-        _subtracker_id(Obj().id())
-        ,
-        _subtracker_keywords(Obj().keywords())
-        ,
-        _subtracker_location(Obj().location())
-        ,
-        _subtracker_md5sum(Obj().md5sum())
-        ,
-        _subtracker_thumbnailBlob(Obj().thumbnailBlob())
-        ,
-        _subtracker_fileUrl(Obj().fileUrl())
-    {}
-
-    auto& id()
-    {
-        MarkFieldEdited_(TData::FieldIndex::id);
-        return _subtracker_id;
-    }
-    auto& keywords()
-    {
-        MarkFieldEdited_(TData::FieldIndex::keywords);
-        return _subtracker_keywords;
-    }
-    auto& location()
-    {
-        MarkFieldEdited_(TData::FieldIndex::location);
-        return _subtracker_location;
-    }
-    auto& md5sum()
-    {
-        MarkFieldEdited_(TData::FieldIndex::md5sum);
-        return _subtracker_md5sum;
-    }
-    auto& thumbnailBlob()
-    {
-        MarkFieldEdited_(TData::FieldIndex::thumbnailBlob);
-        return _subtracker_thumbnailBlob;
-    }
-    auto& fileUrl()
-    {
-        MarkFieldEdited_(TData::FieldIndex::fileUrl);
-        return _subtracker_fileUrl;
-    }
-    void set_id(int32_t&& val)
-    {
-        MarkFieldAssigned_(TData::FieldIndex::id, Obj().id(), val);
-        Obj().set_id(std::move(val));
-    }
-
-    void set_keywords(std::vector<shared_tree<shared_string>>&& val)
-    {
-        MarkFieldAssigned_(TData::FieldIndex::keywords, Obj().keywords(), val);
-        Obj().set_keywords(std::move(val));
-    }
-
-    void set_location(shared_tree<::Service::GeographicalArea::Data>&& val)
-    {
-        MarkFieldAssigned_(TData::FieldIndex::location, Obj().location(), val);
-        Obj().set_location(std::move(val));
-    }
-
-    void set_md5sum(int64_t&& val)
-    {
-        MarkFieldAssigned_(TData::FieldIndex::md5sum, Obj().md5sum(), val);
-        Obj().set_md5sum(std::move(val));
-    }
-
-    void set_thumbnailBlob(shared_string&& val)
-    {
-        MarkFieldAssigned_(TData::FieldIndex::thumbnailBlob, Obj().thumbnailBlob(), val);
-        Obj().set_thumbnailBlob(std::move(val));
-    }
-
-    void set_fileUrl(shared_string&& val)
-    {
-        MarkFieldAssigned_(TData::FieldIndex::fileUrl, Obj().fileUrl(), val);
-        Obj().set_fileUrl(std::move(val));
-    }
-
-    template <typename TLambda> auto Visit(typename TData::FieldIndex index, TLambda&& lambda)
-    {
-        switch (index)
-        {
-        case TData::FieldIndex::id: return lambda("id", id()); return;
-        case TData::FieldIndex::keywords: return lambda("keywords", keywords()); return;
-        case TData::FieldIndex::location: return lambda("location", location()); return;
-        case TData::FieldIndex::md5sum: return lambda("md5sum", md5sum()); return;
-        case TData::FieldIndex::thumbnailBlob: return lambda("thumbnailBlob", thumbnailBlob()); return;
-        case TData::FieldIndex::fileUrl: return lambda("fileUrl", fileUrl()); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
-    {
-        if (fieldName == "id") { return lambda(TData::FieldIndex::id, id()); }
-        if (fieldName == "keywords") { return lambda(TData::FieldIndex::keywords, keywords()); }
-        if (fieldName == "location") { return lambda(TData::FieldIndex::location, location()); }
-        if (fieldName == "md5sum") { return lambda(TData::FieldIndex::md5sum, md5sum()); }
-        if (fieldName == "thumbnailBlob") { return lambda(TData::FieldIndex::thumbnailBlob, thumbnailBlob()); }
-        if (fieldName == "fileUrl") { return lambda(TData::FieldIndex::fileUrl, fileUrl()); }
-        throw std::invalid_argument("Asked to visit invalid field");
-    }
-
-    template <typename TLambda> void VisitAll(TLambda&& lambda)
-    {
-        lambda("id", TData::FieldIndex::id, id(), Obj().id());
-        lambda("keywords", TData::FieldIndex::keywords, keywords(), Obj().keywords());
-        lambda("location", TData::FieldIndex::location, location(), Obj().location());
-        lambda("md5sum", TData::FieldIndex::md5sum, md5sum(), Obj().md5sum());
-        lambda("thumbnailBlob", TData::FieldIndex::thumbnailBlob, thumbnailBlob(), Obj().thumbnailBlob());
-        lambda("fileUrl", TData::FieldIndex::fileUrl, fileUrl(), Obj().fileUrl());
-    }
-
-    void Flush()
-    {
-        id().Flush();
-
-        if (IsFieldEdited(TData::FieldIndex::id))
-        {
-            if (!id().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::id));
-        }
-
-        keywords().Flush();
-
-        if (IsFieldEdited(TData::FieldIndex::keywords))
-        {
-            if (!keywords().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::keywords));
-        }
-
-        location().Flush();
-
-        if (IsFieldEdited(TData::FieldIndex::location))
-        {
-            if (!location().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::location));
-        }
-
-        md5sum().Flush();
-
-        if (IsFieldEdited(TData::FieldIndex::md5sum))
-        {
-            if (!md5sum().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::md5sum));
-        }
-
-        thumbnailBlob().Flush();
-
-        if (IsFieldEdited(TData::FieldIndex::thumbnailBlob))
-        {
-            if (!thumbnailBlob().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::thumbnailBlob));
-        }
-
-        fileUrl().Flush();
-
-        if (IsFieldEdited(TData::FieldIndex::fileUrl))
-        {
-            if (!fileUrl().IsChanged()) _edittracker.reset(static_cast<uint8_t>(TData::FieldIndex::fileUrl));
-        }
-
-        Stencil::TransactionT<Service::DigitalAssetInfo::Data>::Flush_();
-    }
-};
-
-template <>
-struct Stencil::Visitor<Service::DigitalAssetInfo::Data, void> : Stencil::VisitorT<Service::DigitalAssetInfo::Data>
-{
-    using TData = Service::DigitalAssetInfo::Data;
-
-    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda)
-    {
-        switch (index)
-        {
-        case TData::FieldIndex::id: lambda("id", _ref.get().id()); return;
-        case TData::FieldIndex::keywords: lambda("keywords", _ref.get().keywords()); return;
-        case TData::FieldIndex::location: lambda("location", _ref.get().location()); return;
-        case TData::FieldIndex::md5sum: lambda("md5sum", _ref.get().md5sum()); return;
-        case TData::FieldIndex::thumbnailBlob: lambda("thumbnailBlob", _ref.get().thumbnailBlob()); return;
-        case TData::FieldIndex::fileUrl: lambda("fileUrl", _ref.get().fileUrl()); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
-    {
-        switch (index)
-        {
-        case TData::FieldIndex::id: lambda("id", _ref.get().id()); return;
-        case TData::FieldIndex::keywords: lambda("keywords", _ref.get().keywords()); return;
-        case TData::FieldIndex::location: lambda("location", _ref.get().location()); return;
-        case TData::FieldIndex::md5sum: lambda("md5sum", _ref.get().md5sum()); return;
-        case TData::FieldIndex::thumbnailBlob: lambda("thumbnailBlob", _ref.get().thumbnailBlob()); return;
-        case TData::FieldIndex::fileUrl: lambda("fileUrl", _ref.get().fileUrl()); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> void VisitAll(TLambda&& lambda) const
-    {
-        lambda("id", _ref.get().id());
-        lambda("keywords", _ref.get().keywords());
-        lambda("location", _ref.get().location());
-        lambda("md5sum", _ref.get().md5sum());
-        lambda("thumbnailBlob", _ref.get().thumbnailBlob());
-        lambda("fileUrl", _ref.get().fileUrl());
-    }
-
-    std::reference_wrapper<TData> _ref;
-};
-
-template <>
-struct Stencil::Visitor<const Service::DigitalAssetInfo::Data, void>
-    : Stencil::VisitorT<const Service::DigitalAssetInfo::Data>
-{
-    using TData = Service::DigitalAssetInfo::Data const;
-
-    Visitor(TData& obj) : VisitorT<TData>(obj), _ref(obj) {}
-
-    template <typename TLambda> void Visit(typename TData::FieldIndex index, TLambda&& lambda) const
-    {
-        switch (index)
-        {
-        case TData::FieldIndex::id: lambda("id", _ref.get().id()); return;
-        case TData::FieldIndex::keywords: lambda("keywords", _ref.get().keywords()); return;
-        case TData::FieldIndex::location: lambda("location", _ref.get().location()); return;
-        case TData::FieldIndex::md5sum: lambda("md5sum", _ref.get().md5sum()); return;
-        case TData::FieldIndex::thumbnailBlob: lambda("thumbnailBlob", _ref.get().thumbnailBlob()); return;
-        case TData::FieldIndex::fileUrl: lambda("fileUrl", _ref.get().fileUrl()); return;
-        case TData::FieldIndex::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> void VisitAll(TLambda&& lambda) const
-    {
-        lambda("id", _ref.get().id());
-        lambda("keywords", _ref.get().keywords());
-        lambda("location", _ref.get().location());
-        lambda("md5sum", _ref.get().md5sum());
-        lambda("thumbnailBlob", _ref.get().thumbnailBlob());
-        lambda("fileUrl", _ref.get().fileUrl());
-    }
-
-    std::reference_wrapper<TData> _ref;
-};
 
 #endif
 // SECTION END: Template specializations

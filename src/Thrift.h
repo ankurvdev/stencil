@@ -3,6 +3,8 @@
 #include "IDL2.h"
 
 #include <algorithm>
+#include <variant>
+
 namespace std
 {
 template <typename TStr1, typename TStr2> bool iequals(TStr1 const& str1, TStr2 const& str2)
@@ -17,9 +19,10 @@ namespace IDL::Lang::Thrift
 template <typename T> using StrOps = Binding::StrOps<T>;
 using Str                          = Binding::Str;
 class Context;
-
-struct Function;
 struct Field;
+struct InterfaceFunction;
+struct InterfaceEvent;
+struct InterfaceObjectStore;
 
 using TypeAttribute     = std::pair<Str::Type, Str::Type>;
 using TypeAttributeList = std::shared_ptr<Binding::AttributeMap>;
@@ -27,23 +30,29 @@ using TypeAttributeList = std::shared_ptr<Binding::AttributeMap>;
 using Program   = std::optional<std::shared_ptr<IDL::Program>>;
 using Typedef   = std::optional<std::shared_ptr<IDL::Typedef>>;
 using Struct    = std::optional<std::shared_ptr<IDL::Struct>>;
-using Union     = std::optional<std::shared_ptr<IDL::Union>>;
+using Variant     = std::optional<std::shared_ptr<IDL::Variant>>;
 using Interface = std::optional<std::shared_ptr<IDL::Interface>>;
+
+// using InterfaceFunction    = std::optional<std::shared_ptr<IDL::InterfaceFunction>>;
+// using InterfaceEvent       = std::optional<std::shared_ptr<IDL::InterfaceEvent>>;
+// using InterfaceObjectStore = std::optional<std::shared_ptr<IDL::InterfaceObjectStore>>;
+using InterfaceMember = std::variant<InterfaceFunction, InterfaceEvent, InterfaceObjectStore>;
+
 using FieldType = std::optional<std::shared_ptr<IDLGenerics::IFieldType>>;
 
 using Id = Str::Type;
 
 using ConstValue = std::shared_ptr<IDLGenerics::ConstValue>;
 
-using ConstValueList = std::vector<ConstValue>;
-using ConstValueDict = std::vector<std::pair<ConstValue, ConstValue>>;
-using FunctionList   = std::vector<Function>;
-using FieldList      = std::vector<Field>;
-using FieldTypeList  = std::vector<FieldType>;
-using IdList         = std::vector<Str::Type>;
+using ConstValueList      = std::vector<ConstValue>;
+using ConstValueDict      = std::vector<std::pair<ConstValue, ConstValue>>;
+using InterfaceMemberList = std::vector<InterfaceMember>;
+using FieldList           = std::vector<Field>;
+using FieldTypeList       = std::vector<FieldType>;
+using IdList              = std::vector<Str::Type>;
 
-using RelationshipComponent     = std::pair<Str::Type, std::vector<Str::Type>>;
-using RelationshipComponentList = std::unordered_map<Str::Type, std::vector<Str::Type>>;
+using AttributeComponent     = std::pair<Str::Type, std::vector<Str::Type>>;
+using AttributeComponentList = std::unordered_map<Str::Type, std::vector<Str::Type>>;
 using ComponentList             = std::unordered_map<Str::Type, Str::Type>;
 
 }    // namespace IDL::Lang::Thrift
@@ -93,16 +102,38 @@ struct Field
     {}
 };
 
-struct Function
+struct InterfaceFunction
 {
     Str::Type         m_Name;
     bool              m_isStatic;
     FieldType         m_ReturnType;
     FieldList         m_Fields;
     TypeAttributeList m_Attributes;
-    Function() = default;
-    Function(Str::View const& isStatic, FieldType retType, Str::Type& name, FieldList& fields, TypeAttributeList& map) :
+    InterfaceFunction() = default;
+    InterfaceFunction(Str::View const& isStatic, FieldType retType, Str::Type& name, FieldList& fields, TypeAttributeList& map) :
         m_Name(std::move(name)), m_isStatic(!Str::IsEmpty(isStatic)), m_ReturnType(retType), m_Fields(std::move(fields)), m_Attributes(map)
+    {}
+};
+
+struct InterfaceEvent
+{
+    Str::Type         m_Name;
+    FieldList         m_Fields;
+    TypeAttributeList m_Attributes;
+    InterfaceEvent() = default;
+    InterfaceEvent(Str::Type& name, FieldList& fields, TypeAttributeList& map) :
+        m_Name(std::move(name)), m_Fields(std::move(fields)), m_Attributes(map)
+    {}
+};
+
+struct InterfaceObjectStore
+{
+    FieldType         m_ObjectType;
+    Str::Type         m_Name;
+    TypeAttributeList m_Attributes;
+    InterfaceObjectStore() = default;
+    InterfaceObjectStore(FieldType objectType, Str::Type& name, TypeAttributeList& map) :
+        m_ObjectType(objectType), m_Name(std::move(name)), m_Attributes(map)
     {}
 };
 
@@ -113,47 +144,10 @@ inline std::shared_ptr<IDL::Typedef> CreateTypedef(Context& context, FieldType f
 
 std::shared_ptr<IDL::Struct> CreateStruct(Context& context, Str::Type& name, FieldList& fields, TypeAttributeList& map);
 
-std::shared_ptr<IDL::Union> CreateUnion(Context& context, Str::Type& name, FieldList& fields, TypeAttributeList& map);
+std::shared_ptr<IDL::Variant> CreateVariant(Context& context, Str::Type& name, FieldList& fields, TypeAttributeList& map);
 
-void CreateRelationship(Context& context, Str::Type& name, RelationshipComponentList& map);
+void CreateAttribute(Context& context, Str::Type& name, AttributeComponentList& map);
 
-#if 0
-
-    {
-        std::vector<std::unordered_map<std::string, std::string>> expandedmap;
-        expandedmap.push_back({});
-        for (auto it = map->begin(); it != map->end(); ++it) {
-            auto oldmap = expandedmap;
-            std::vector<std::unordered_map<std::string, std::string>> newmap;
-            for (auto it1 = it->second.begin(); it1 != it->second.end(); ++it1) {
-                for (auto it2 = oldmap.begin(); it2 != oldmap.end(); ++it2)
-                {
-                    (*it2)[it->first] = (*it1);
-                    newmap.push_back(*it2);
-                }
-            }
-            expandedmap = newmap;
-        }
-
-        auto def = context.program.Lookup<IDL::RelationshipDefinition>(id);
-        for (auto it = expandedmap.begin(); it != expandedmap.end(); ++it)
-        {
-            IDL::ContainerFieldType::ContainerFieldTypeMap fieldmap;
-            for (auto it2 = it->begin(); it2 != it->end(); ++it2) {
-                auto f = fieldmap[it2->first] = context.program.GetFieldTypeName(it2->second);
-                assert(f != nullptr);
-            }
-            for (auto it2 = it->begin(); it2 != it->end(); ++it2)
-            {
-                auto compname = def->getComponentName(it2->first);
-                auto container = context.program.Lookup<IDL::Container>(compname);
-                auto fieldtype = IDL::ContainerFieldType::FindOrCreate(context.program, container, std::move(fieldmap), nullptr, nullptr);
-                auto strct = context.program.Lookup<IDL::Struct>(it2->second);
-            }
-        }
-        return nullptr;
-    }
-#endif
 struct StrValueType : public Binding::ValueT<Binding::Type::String>, public std::enable_shared_from_this<StrValueType>
 {
     StrValueType(Str::Type&& value) : _value(std::move(value)) {}
@@ -202,18 +196,46 @@ inline TypeAttributeList CreateAttributeMapEntry(TypeAttributeList ptr, TypeAttr
     return ptr;
 }
 
-inline Interface CreateInterface(Context& context, Str::Type& name, Interface& /*base*/, FunctionList& functions, TypeAttributeList& map)
+inline Interface
+CreateInterface(Context& context, Str::Type& name, Interface& /*base*/, InterfaceMemberList& members, TypeAttributeList& map)
 {
     auto iface = context.program.CreateStorageObject<IDL::Interface>(std::move(name), map);
-    for (auto& f : functions)
+    for (auto& m : members)
     {
-        auto argsstruct = iface->CreateStorageObject<IDL::FunctionArgs>(Str::Copy(f.m_Name), nullptr);
-        for (auto& a : f.m_Fields)
+        switch (m.index())
         {
-            argsstruct->CreateField(a.m_FieldType.value(), std::move(a.m_Id), std::move(a.m_FieldValue), std::move(a.m_AttributeMap));
-        }
+        case 0:    // InterfaceFunction
+        {
+            auto f          = std::get<InterfaceFunction>(m);
+            auto argsstruct = iface->CreateStorageObject<IDL::FunctionArgs>(Str::Copy(f.m_Name), nullptr);
+            for (auto& a : f.m_Fields)
+            {
+                argsstruct->CreateField(a.m_FieldType.value(), std::move(a.m_Id), std::move(a.m_FieldValue), std::move(a.m_AttributeMap));
+            }
 
-        iface->CreateNamedObject<IDL::Function>(std::move(f.m_Name), f.m_ReturnType.value(), std::move(argsstruct));
+            iface->CreateNamedObject<IDL::InterfaceFunction>(std::move(f.m_Name), f.m_ReturnType.value(), std::move(argsstruct));
+        }
+        break;
+        case 1:    // InterfaceEvent
+        {
+            auto e          = std::get<InterfaceEvent>(m);
+            auto argsstruct = iface->CreateStorageObject<IDL::FunctionArgs>(Str::Copy(e.m_Name), nullptr);
+            for (auto& a : e.m_Fields)
+            {
+                argsstruct->CreateField(a.m_FieldType.value(), std::move(a.m_Id), std::move(a.m_FieldValue), std::move(a.m_AttributeMap));
+            }
+
+            iface->CreateNamedObject<IDL::InterfaceEvent>(std::move(e.m_Name), std::move(argsstruct));
+        }
+        break;
+        case 2:    // InterfaceObjectStore
+        {
+            auto o = std::get<InterfaceObjectStore>(m);
+            iface->CreateNamedObject<IDL::InterfaceObjectStore>(o.m_ObjectType.value(), std::move(o.m_Name));
+        }
+        break;
+        default: throw std::logic_error("invalid interface member type");
+        }
     }
     return iface;
 }

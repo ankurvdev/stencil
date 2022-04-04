@@ -59,3 +59,11 @@
     name& operator=(name const&) = delete; \
     name& operator=(name&&) = delete
 #endif
+
+#if !defined             TODO
+[[noreturn]] inline void TodoFunc()
+{
+    throw "Not Implemented:";
+}
+#define TODO(...) TodoFunc()
+#endif

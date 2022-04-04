@@ -1,4 +1,5 @@
 #pragma once
+#include "protocol.h"
 #include "serdes.h"
 #include "visitor.h"
 
@@ -32,30 +33,32 @@ template <typename T> struct Mutators<std::vector<T>>
         }
     }
 
-    template <typename TSerDes = BinarySerDes>
-    static std::vector<uint8_t> GenerateMutationData(uint8_t mutationIndex, std::vector<T> const& /*fieldVal*/, T const& val)
+    template <typename TProtocol = Stencil::ProtocolBinary>
+    static std::vector<uint8_t> GenerateMutationData(uint8_t /* mutationIndex */, std::vector<T> const& /*fieldVal*/, T const& /* val */)
     {
+#ifdef TODO1
         if (mutationIndex == 1)    // add
         {
-            Visitor<T const> visitor(val);
-            Writer           writer;
-            TSerDes::Serialize(visitor, writer);
+            SerDes<T, TProtocol>::Writer writer;
+            SerDes<T, TProtocol>::Write(val, writer);
             return writer.Reset();
         }
+#endif
 
         throw std::logic_error("Whats a mutation");
     }
 
-    template <typename TSerDes = BinarySerDes>
-    static std::vector<uint8_t> GenerateMutationData(uint8_t mutationIndex, std::vector<T> const& /*fieldVal*/, size_t const& val)
+    template <typename TProtocol = Stencil::ProtocolBinary>
+    static std::vector<uint8_t> GenerateMutationData(uint8_t /* mutationIndex */, std::vector<T> const& /*fieldVal*/, size_t const& /* val */)
     {
+#ifdef TODO1
         if (mutationIndex == 2)    // add
         {
-            Visitor<size_t const> visitor(val);
-            Writer                writer;
-            TSerDes::Serialize(visitor, writer);
+            SerDes<T, TProtocol>::Writer writer;
+            SerDes<T, TProtocol>::Write(val, writer);
             return writer.Reset();
         }
+#endif
         throw std::logic_error("Whats a mutation");
     }
 };
@@ -73,13 +76,13 @@ template <typename T, size_t N> struct Mutators<std::array<T, N>>
 
     template <typename TLambda> static void remove_matching(TData& /*arr*/, TLambda&& /*lambda*/) { throw std::logic_error("Invalid"); }
 
-    template <typename TSerDes = BinarySerDes>
+    template <typename TProtocol = Stencil::ProtocolBinary>
     static std::vector<uint8_t> GenerateMutationData(uint8_t /*mutationIndex*/, TData const& /*fieldVal*/, T const& /*val*/)
     {
         throw std::logic_error("Invalid");
     }
 
-    template <typename TSerDes = BinarySerDes>
+    template <typename TProtocol = Stencil::ProtocolBinary>
     static std::vector<uint8_t> GenerateMutationData(uint8_t /*mutationIndex*/, TData const& /*fieldVal*/, size_t const& /*val*/)
     {
         throw std::logic_error("Invalid");

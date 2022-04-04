@@ -1,0 +1,67 @@
+
+struct ImdbInfo {
+    uint64    imdbId;
+
+    uint8     type; // movie , shows, episodes
+    uint8     ratingM10;
+    timestamp   firstReleased;
+    uint64    votes;
+    string      title;
+    string      certificate;
+    string      plot;
+
+    // shows epsiodes
+    uint16    season;
+    uint16    episode;
+
+    // episodes
+    uint64    showId;
+}
+
+struct Directory {
+    string    url;
+    timestamp created;
+    timestamp lastchecked;
+    uint32  maxFrequencyInMins;
+}
+
+struct File {
+    uuidref<Directory>  dirId;
+    uuidref<ImdbInfo>   imdbId;
+
+    string      url;
+    timestamp   created;
+    uint64    fsize;
+    timestamp   modified;
+    timestamp   seen; // For local its viewed. For remote its downloaded
+    bool        queued;
+    bool        pinned;
+}
+
+struct ScanRequest {
+    uuidref<Directory> dirId;
+
+    timestamp     scannedAt;
+    uint32      statusCode;
+    string        statusDesc;
+}
+
+interface Catalog {
+    event Changed(int what);
+
+    objectstore Directory   onlinedir;
+    objectstore File        onlinefile;
+    objectstore ScanRequest onlinescan;
+
+    objectstore Directory   localdir;
+    objectstore File        localfile;
+    objectstore ScanRequest localscan;
+
+    objectstore ImdbInfo    imdbinfo;
+
+    list<File> Search(string query);
+    void RequestDownload(string link);
+}
+
+attribute uuidbasedobject object = Directory, File, ScanRequest, ImdbInfo
+attribute timestamped     object = Directory, File, ScanRequest, ImdbInfo

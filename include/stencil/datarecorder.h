@@ -1,5 +1,6 @@
 #pragma once
 #include "transactions.binserdes.h"
+#include "tuple_utils.h"
 
 #include <chrono>
 #include <condition_variable>
@@ -20,7 +21,7 @@ template <typename... Ts> struct DataPlayerT : std::enable_shared_from_this<Data
     using time_point = std::chrono::system_clock::time_point;
     using clock      = std::chrono::system_clock;
 
-    DELETE_COPY_AND_MOVE(DataPlayerT);
+    CLASS_DELETE_COPY_AND_MOVE(DataPlayerT);
     DataPlayerT(std::filesystem::path const& replayFile, bool repeat = true) : _repeat(repeat), _file(replayFile) { Start(); }
 
     ~DataPlayerT() { _thrd.join(); }
@@ -73,7 +74,7 @@ template <typename... Ts> struct DataPlayerT : std::enable_shared_from_this<Data
             std::this_thread::sleep_for(std::chrono::microseconds{read<std::chrono::microseconds::rep>(_file)});
             {
                 size_t index = read<uint8_t>(_file);
-                VisitAt(_data, index, [&](auto& arg) { ReadChangeDescAndNotify(arg, _file); });
+                TupleVisitAt(_data, index, [&](auto& arg) { ReadChangeDescAndNotify(arg, _file); });
                 {
                     auto lock = std::unique_lock<std::mutex>(_mutex);
                     _counter++;
@@ -109,7 +110,7 @@ template <typename... Ts> struct DataRecorder
         return *this;
     }
 
-    DELETE_COPY_DEFAULT_MOVE(DataRecorder);
+    CLASS_DELETE_COPY_DEFAULT_MOVE(DataRecorder);
     DataRecorder(std::filesystem::path const& f)
     {
         if (f.empty()) { return; }
@@ -129,7 +130,7 @@ template <typename... Ts> struct DataRecorder
         auto deltaus = std::chrono::duration_cast<std::chrono::microseconds>(delta).count();
 
         _lastnotif = now;
-        (*this) << deltaus << static_cast<uint8_t>(IndexOf<T, Ts...>());
+        (*this) << deltaus << static_cast<uint8_t>(TupleIndexOf<T, Ts...>());
         Stencil::BinaryTransactionSerDes::Deserialize(ctx, *_ost);
 
         //<< static_cast<uint16_t>(serializedPatch.size()) << serializedPatch;

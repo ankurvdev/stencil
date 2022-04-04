@@ -1,5 +1,7 @@
 #pragma once
+#if defined USE_EMBEDRESOURCE
 #include <EmbeddedResource.h>
+#endif
 
 #pragma warning(push, 3)
 #pragma warning(disable : 4868)
@@ -14,6 +16,7 @@
 
 #include <catch2/catch.hpp>
 #include <dtl/dtl.hpp>
+#include <fmt/ostream.h>
 
 #pragma clang diagnostic pop
 #pragma warning(pop)
@@ -24,7 +27,10 @@
 #include <string>
 #include <string_view>
 #include <vector>
+
+#if defined USE_EMBEDRESOURCE
 DECLARE_RESOURCE_COLLECTION(testdata);
+#endif
 
 inline std::string wstring_to_string(std::wstring_view wstr)
 {
@@ -36,13 +42,19 @@ inline std::string wstring_to_string(std::wstring_view wstr)
     return out;
 }
 
-inline std::vector<std::string> readlines(std::filesystem::path const& filepath)
+#if !defined _WIN32
+inline bool  IsDebuggerPresent()
+{
+    return true;
+}
+#endif
+
+inline std::vector<std::string> readlines(std::istream& istr)
 {
     std::vector<std::string> lines;
-    std::ifstream            file(filepath);
     std::string              line;
 
-    while (std::getline(file, line))
+    while (std::getline(istr, line))
     {
         if (line.length() > 0 && line[line.length() - 1] == '\r') { line.resize(line.length() - 1); }
         lines.push_back(std::move(line));
@@ -50,18 +62,49 @@ inline std::vector<std::string> readlines(std::filesystem::path const& filepath)
     return lines;
 }
 
+inline std::vector<std::string> readlines(std::filesystem::path const& path)
+{
+    std::fstream file(path);
+    return readlines(file);
+}
+
+inline void CompareLines(std::vector<std::string> const& actualstring,
+                         std::vector<std::string> const& expectedstring,
+                         std::string_view const&         resname = "test")
+{
+
+    dtl::Diff<std::string, std::vector<std::string>> d(expectedstring, actualstring);
+    d.compose();                // construct an edit distance and LCS and SES
+    d.composeUnifiedHunks();    // construct a difference as Unified Format with SES.
+
+    if (actualstring != expectedstring)
+    {
+        d.printUnifiedFormat();    // print a difference as Unified Format.
+        {
+            std::ofstream f(std::string(resname) + ".txt");
+            for (auto& l : actualstring) { f << l << "\n"; }
+            f.flush();
+            f.close();
+        }
+        FAIL("Comparison Failed: Output: " + std::string(resname) + ".txt");
+    }
+}
+
+#if defined USE_EMBEDRESOURCE
+
+inline std::string GeneratePrefixFromTestName()
+{
+    auto prefix = Catch::getResultCapture().getCurrentTestName() + "_";
+    for (auto& c : prefix)
+    {
+        if (std::isalpha(c) || std::isdigit(c)) continue;
+        c = '_';
+    }
+    return prefix;
+}
+
 struct ResourceFileManager
 {
-    static std::string _GeneratePrefixFromTestName()
-    {
-        auto prefix = Catch::getResultCapture().getCurrentTestName() + "_";
-        for (auto& c : prefix)
-        {
-            if (std::isalpha(c) || std::isdigit(c)) continue;
-            c = '_';
-        }
-        return prefix;
-    }
 
     ResourceFileManager() = default;
     ~ResourceFileManager()
@@ -71,7 +114,7 @@ struct ResourceFileManager
 
     auto load(std::string const& name, std::string const& prefix)
     {
-        auto testresname = _GeneratePrefixFromTestName() + name;
+        auto testresname = GeneratePrefixFromTestName() + name;
 
         auto it = _openedfiles.find(testresname);
         if (it != _openedfiles.end()) { return it->second; }
@@ -93,64 +136,70 @@ struct ResourceFileManager
         }
         throw std::logic_error("Cannot find resource : " + testresname);
     }
-
     std::unordered_map<std::string, std::filesystem::path> _openedfiles;
 };
 
-inline void CompareLines(std::vector<std::string> const& actualstring,
-                         std::vector<std::string> const& expectedstring,
-                         std::string_view const&         resname = "test")
+inline std::vector<std::string> LoadResource(std::string_view const& name)
 {
+    auto testresname = GeneratePrefixFromTestName() + std::string(name) + ".txt";
 
-    dtl::Diff<std::string, std::vector<std::string>> d(expectedstring, actualstring);
-    d.compose();                // construct an edit distance and LCS and SES
-    d.composeUnifiedHunks();    // construct a difference as Unified Format with SES.
-
-    if (actualstring != expectedstring)
+    auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
+    for (auto const r : resourceCollection)
     {
-        d.printUnifiedFormat();    // print a difference as Unified Format.
+        auto resname = wstring_to_string(r.name());
+        if (resname == testresname || resname == name)
         {
-            std::ofstream f(std::string(resname) + "_failure.txt");
-            for (auto& l : actualstring) { f << l << std::endl; }
-            f.flush();
-            f.close();
+            std::string       str(r.string());
+            std::stringstream ss(str);
+            return readlines(ss);
         }
-        FAIL("Comparison Failed: Output: " + std::string(resname) + "_failure.txt");
     }
+    return std::vector<std::string>();
 }
 
 inline void CheckOutputAgainstResource(std::vector<std::string> const& lines, std::string_view const& resourcename)
 {
-    ResourceFileManager resfiles;
-    CompareLines(lines, readlines(resfiles.load(std::string(resourcename), "res_")), resourcename);
+    CompareLines(lines, LoadResource(resourcename), GeneratePrefixFromTestName() + std::string(resourcename));
 }
-
-inline void CompareBinaryOutputAgainstResource(std::span<const uint8_t> const& actual, std::string_view const& resourcename)
+template <typename TData> inline void CompareBinaryOutputAgainstResource(TData const& actual, std::string_view const& resourcename)
 {
-    auto testresname        = ResourceFileManager::_GeneratePrefixFromTestName() + std::string(resourcename);
+    auto testresname        = GeneratePrefixFromTestName() + std::string(resourcename) + ".bin";
     auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
     for (auto const r : resourceCollection)
     {
         auto resname = wstring_to_string(r.name());
         if (resname == testresname || resname == resourcename)
         {
-            auto data = r.data<uint8_t>();
+            auto data = r.string();
+            auto spn  = std::span<const char>(reinterpret_cast<char const*>(actual.data()), actual.size());
             INFO("Checking Resource : " + resname)
-            if (data.size() == actual.size() && std::equal(actual.begin(), actual.end(), data.begin())) { return; }
-            std::ofstream f(resname);
+            if (data.size() == spn.size() && std::equal(spn.begin(), spn.end(), data.begin())) { return; }
+            std::ofstream f(testresname, std::ios::binary);
             f.write(reinterpret_cast<char const*>(actual.data()), static_cast<std::streamsize>(actual.size()));
             f.flush();
             f.close();
-            REQUIRE(data.size() == actual.size());
-            REQUIRE(std::equal(actual.begin(), actual.end(), data.begin()));
+            size_t index = 0;
+            auto   it2   = data.begin();
+            for (auto it = spn.begin(); it != spn.end(); ++it, ++it2, ++index)
+            {
+                if ((*it) == (*it2)) continue;
+                FAIL(fmt::format("Binary comparison failed at Index = {} => {} != {}", index, int32_t{*it}, int32_t{*it2}));
+            }
+            return;
         }
     }
-    FAIL("Cannot find reference resource" + testresname);
+    std::ofstream f(testresname, std::ios::binary);
+    f.write(reinterpret_cast<char const*>(actual.data()), static_cast<std::streamsize>(actual.size()));
+    f.flush();
+    f.close();
+    FAIL("Cannot find reference resource : " + testresname);
 }
+
 inline void CompareFileAgainstResource(std::filesystem::path const& actualf, std::string_view const& resourcename)
 {
     std::ifstream         instream(actualf, std::ios::in | std::ios::binary);
     std::vector<char>     actualdata((std::istreambuf_iterator<char>(instream)), std::istreambuf_iterator<char>());
     std::span<const char> spn = actualdata;
-    CompareBinaryOutputAgainstResource({reinterpret_cast<uint8_t const*>(spn.data()), spn.size()}, resourcename);
+    CompareBinaryOutputAgainstResource(spn, resourcename);
 }
+#endif

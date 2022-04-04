@@ -1,0 +1,10 @@
+Testcase[LargePrimitives]:default-2, Input: {}
+Testcase[LargePrimitives]:default-2, Output: {"f1":null,"f2":[0,0,0,0,0,0,0,0],"f3":[0,0,0,0],"f4":"00000000-0000-0000-0000-000000000000"}
+Testcase[LargePrimitives]:char[16], Input: {"f1": "01234567"}
+Testcase[LargePrimitives]:char[16], Output: {"f1":"01234567","f2":[0,0,0,0,0,0,0,0],"f3":[0,0,0,0],"f4":"00000000-0000-0000-0000-000000000000"}
+Testcase[LargePrimitives]:uint16[8], Input: {"f2": [0,1,2,3,4,5,6,7]}
+Testcase[LargePrimitives]:uint16[8], Output: {"f1":null,"f2":[0,1,2,3,4,5,6,7],"f3":[0,0,0,0],"f4":"00000000-0000-0000-0000-000000000000"}
+Testcase[LargePrimitives]:float[4], Input: {"f3": [0.1, 0.2, 0.3, 0.4]}
+Testcase[LargePrimitives]:float[4], Output: {"f1":null,"f2":[0,0,0,0,0,0,0,0],"f3":[0.1,0.2,0.3,0.4],"f4":"00000000-0000-0000-0000-000000000000"}
+Testcase[LargePrimitives]:uuid, Input: {"f4": "01234567-8901-2345-6789-012345678901"}
+Testcase[LargePrimitives]:uuid, Output: {"f1":null,"f2":[0,0,0,0,0,0,0,0],"f3":[0,0,0,0],"f4":"01234567-8901-2345-6789-012345678901"}

@@ -1,26 +1,25 @@
+#include "DebugInfo.h"
 #include "GeneratedCodeFragment.h"
 #include "Generator.h"
 #include "IDL2.h"
 #include "TemplateFragment.h"
 
-#pragma warning(push, 3)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Weverything"
+SUPPRESS_WARNINGS_START
+SUPPRESS_MSVC_STL_WARNINGS
 #include <tinyxml2.h>
 #include <toml.hpp>
 #include <tsl/ordered_map.h>
-#pragma clang diagnostic pop
-#pragma warning(pop)
 
 #include <EmbeddedResource.h>
+
 #include <fstream>
 #include <iostream>
 #include <regex>
 #include <set>
 #include <stdexcept>
 #include <string_view>
-
 #include <vector>
+SUPPRESS_WARNINGS_END
 
 DECLARE_RESOURCE_COLLECTION(templates);
 
@@ -362,7 +361,7 @@ void Generator::_AddTypeDefinitions(std::string_view const& /*name*/, std::strin
             _structDefault.Merge(FieldTypeDeclFromTomlNode(node));
         }
 
-        else if (propname == "Union")
+        else if (propname == "Variant")
         {
             _unionDefault.Merge(FieldTypeDeclFromTomlNode(node));
         }
@@ -388,11 +387,11 @@ void Generator::_AddTypeDefinitions(std::string_view const& /*name*/, std::strin
                 _FindOrInsertContainerDecls(typedecl.name).Merge(std::move(typedecl));
             }
         }
-        else if (propname == "Relationships")
+        else if (propname == "Attributes")
         {
             for (auto [key, node1] : node.as_table())
             {
-                auto& objmap = _relationshipDefs[Str::Convert(key)];
+                auto& objmap = _attributeDefs[Str::Convert(key)];
                 for (auto const& [key1, node2] : node1.as_table()) { objmap[Str::Convert(key1)] = Str::Convert(node2.as_string().str); }
             }
         }
@@ -405,7 +404,7 @@ void Generator::_AddTypeDefinitions(std::string_view const& /*name*/, std::strin
 
 static void CreateTemplateFromNode(tree<TemplateFragment>&          tmpl,
                                    tree<TemplateFragment>::iterator parent,
-                                   std::string_view const&          name,
+                                   std::wstring_view const&         name,
                                    XMLNode const&                   xml)
 {
     auto textNode = xml.ToText();
@@ -503,6 +502,15 @@ static void ExpandTemplate(tree<Str::Type>&                 codetree,
             return std::wstring();
         }());
 
+        auto actionctxvar = IDLDebug::ThreadActionContext(L"", [&]() {
+            return fmt::format(L"Template : {}:{}-{} :: TagName: {}  {}",
+                               tmplit->sourceFileName,
+                               tmplit->rowstart,
+                               tmplit->rowend,
+                               tmplit->name,
+                               tmplit->body->Stringify());
+        });
+
         Binding::BindingExpr bexpr;
         for (size_t i = 0; i < Str::Size(name);)
         {
@@ -538,7 +546,7 @@ static tree<Str::Type> ExpandTemplate(tree<TemplateFragment> const& tmpl, Bindin
 static Template CreateTemplate(XMLElement const& element, std::string_view const& name)
 {
     Template templ;
-    CreateTemplateFromNode(templ.root, templ.root.rootbegin(), name, element);
+    CreateTemplateFromNode(templ.root, templ.root.rootbegin(), Str::Convert(name), element);
     templ.fileName   = Binding::Expression::Create(Str::Convert(element.Attribute("file")), Str::Create(L"zz"), Str::Create(L"zz"), L'_');
     templ.dataSource = Str::Convert(element.Attribute("datasource"));
     return templ;
@@ -548,7 +556,7 @@ static std::wstring AddCDataBegin(std::wstring const& tmplview)
 {
     std::wstringstream    sstr;
     size_t                index = 0;
-    std::wregex           re(L"[ \t]*//(<[^/>]+>)\\s*[\r\n]");
+    std::wregex           re(L"[ \t]*//(<[^/>]+>\\s*[\r\n])");
     std::wsregex_iterator begin(tmplview.begin(), tmplview.end(), re);
     std::wsregex_iterator end;
 
@@ -569,7 +577,7 @@ static std::wstring AddCDataEnd(std::wstring const& tmplview)
 {
     std::wstringstream    sstr;
     size_t                index = 0;
-    std::wregex           re(L"[ \t]*//(</[^>]+>)\\s*[\r\n]");
+    std::wregex           re(L"[ \t]*//(</[^>]+>\\s*[\r\n])");
     std::wsregex_iterator begin(tmplview.begin(), tmplview.end(), re);
     std::wsregex_iterator end;
 
@@ -671,10 +679,7 @@ void Generator::FinalizeTypeDefinitions()
         for (auto& m : v.accessors) { container->AddAccessor(std::move(m)); }
     }
 
-    for (auto& [k, v] : _relationshipDefs)
-    {
-        _program->CreateNamedObject<IDL::RelationshipDefinition>(Str::Create(k), nullptr, std::move(v));
-    }
+    for (auto& [k, v] : _attributeDefs) { _program->CreateNamedObject<IDL::AttributeDefinition>(Str::Create(k), nullptr, std::move(v)); }
 
     std::optional<std::shared_ptr<IDLGenerics::IFieldType>> emptyBaseField;
     _program->CreateFieldTypeObject<IDL::NativeFieldType>(L"default_struct", emptyBaseField, _structDefault.annotationMap);

@@ -106,3 +106,51 @@ function(target_add_stencil target)
     target_include_directories(${target} PUBLIC ${outdir} )
     target_sources(${target} PRIVATE ${inputs} ${outputs})
 endfunction()
+
+function(_add_stencil_target targetName)
+    cmake_parse_arguments(_ "" "TARGET" "SOURCES" ${ARGN})
+    set(outdir ${CMAKE_CURRENT_BINARY_DIR}/stencil_${targetName})
+    file(MAKE_DIRECTORY ${outdir})
+    set(outputs)
+    execute_process(
+        COMMAND ${STENCIL_EXECUTABLE} --dryrun --outdir=${outdir} ${_SOURCES}
+        COMMAND_ERROR_IS_FATAL ANY
+        OUTPUT_VARIABLE files)
+
+    STRING(REGEX REPLACE "\n" ";" files "${files}" )
+    foreach (f ${files})
+        file(TO_CMAKE_PATH "${f}" tmp)
+        list(APPEND outputs ${tmp})
+    endforeach()
+
+    add_custom_command(OUTPUT ${outputs}
+               COMMAND ${STENCIL_EXECUTABLE} --outdir=${outdir} ${_SOURCES}
+               DEPENDS ${STENCIL_EXECUTABLE} ${_SOURCES}
+               COMMENT "Generating IDL code :  ${STENCIL_EXECUTABLE} --outdir=${outdir} ${ARGN}"
+               VERBATIM)
+
+    add_library(${targetName} OBJECT ${inputs} ${outputs})
+
+    target_include_directories(${targetName} PUBLIC ${stencil_INCLUDE_PATH})
+    target_include_directories(${targetName} PUBLIC ${outdir})
+
+endfunction()
+
+# IDL Compiler
+macro(add_stencil)
+    if (NOT EXISTS ${STENCIL_EXECUTABLE})
+        find_program(STENCIL_EXECUTABLE stencil)
+    endif()
+
+    if (NOT EXISTS ${STENCIL_EXECUTABLE})
+        build_stencil()
+    endif()
+
+    if (NOT EXISTS ${STENCIL_EXECUTABLE})
+        message(FATAL_ERROR "Cannot find or build stencil")
+    endif()
+    find_path(stencil_INCLUDE_PATH "stencil/stencil.h" REQUIRED)
+    set(stencil_INCLUDE_PATH "${stencil_INCLUDE_PATH}" CACHE PATH "Stencil include path")
+
+    _add_stencil_target(${ARGN})
+endmacro()

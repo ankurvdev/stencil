@@ -13,7 +13,7 @@ struct TemplateFragment
     std::unordered_map<std::string, std::wstring> attributes;
 
     // Debug Info
-    std::string sourceFileName;
+    std::wstring sourceFileName;
     size_t      rowstart;
     size_t      rowend;
 };

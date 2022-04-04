@@ -1,0 +1,11 @@
+union Variant1
+{
+i32 field1;
+i32 field2;
+}
+
+struct Struct1
+{
+string field1
+string field2
+}

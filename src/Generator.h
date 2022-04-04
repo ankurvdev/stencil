@@ -77,7 +77,7 @@ struct Generator
 
     std::map<StrType, size_t>                               _fieldTypeDeclMap;
     std::map<StrType, size_t>                               _containerDeclMap;
-    std::map<StrType, std::unordered_map<StrType, StrType>> _relationshipDefs;
+    std::map<StrType, std::unordered_map<StrType, StrType>> _attributeDefs;
 
     FieldTypeDecl _structDefault, _interfaceDefault, _unionDefault, _typedefDefault, _fnargsDefault;
 

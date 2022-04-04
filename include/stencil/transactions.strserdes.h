@@ -1,5 +1,5 @@
 #pragma once
-#include "jsonserdes.h"
+#include "protocol_json.h"
 #include "transactions.h"
 
 #include <stdexcept>
@@ -83,15 +83,12 @@ struct StringTransactionSerDes
         static void Remove(Transaction<T>& /* txn */, size_t /* listindex */) { throw std::logic_error("Invalid"); }
     };
 
-    template <typename T>
-    struct _ListApplicator<T, std::enable_if_t<ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::List>>
+    template <typename T> struct _ListApplicator<T, std::enable_if_t<ConceptIterable<T>>>
     {
         static void Add(Transaction<T>& txn, size_t /* listindex */, std::string_view const& rhs)
         {
             typename Stencil::Mutators<T>::ListObj obj;
-
-            Visitor<decltype(obj)> visitor(obj);
-            JsonSerDes::Deserialize(visitor, rhs);
+            Stencil::SerDes<decltype(obj), ProtocolJsonVal>::Read(obj, rhs);
             txn.add(std::move(obj));
         }
         static void Remove(Transaction<T>& txn, size_t listindex) { txn.remove(listindex); }
@@ -107,8 +104,7 @@ struct StringTransactionSerDes
         _ListApplicator<TObj>::Remove(txn, listindex);
     }
 
-    template <typename T>
-    struct _StructApplicator<T, std::enable_if_t<ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Object>>
+    template <typename T> struct _StructApplicator<T, std::enable_if_t<ConceptIndexable<T>>>
     {
         static void Apply(Transaction<T>&         txn,
                           std::string_view const& fieldname,
@@ -119,25 +115,25 @@ struct StringTransactionSerDes
             if (mutator == 0)    // Set
             {
                 txn.Visit(fieldname, [&](auto fieldType, auto& /* subtxn */) {
-                    Visitor<T> visitor(txn.Obj());
-                    visitor.Select(fieldname);
-                    txn.MarkFieldAssigned_(fieldType);
-                    std::string        str(rhs);
-                    std::istringstream istr(str);
-                    JsonSerDes::Deserialize(visitor, istr);
+                    using TKey = typename Stencil::TypeTraitsForIndexable<T>::Key;
+                    auto key   = Stencil::Deserialize<TKey, Stencil::ProtocolString>(fieldname);
+                    Visitor<T>::VisitKey(txn.Obj(), key, [&](auto& obj) {
+                        txn.MarkFieldAssigned_(fieldType);
+                        Stencil::SerDes<std::remove_cvref_t<decltype(obj)>, ProtocolJsonVal>::Read(obj, rhs);
+                    });
                 });
 
                 // txn.Visit(fieldname, [&](auto fieldType, auto& subtxn) { _ApplyJson(subtxn , fieldType, rhs); });
             }
             else if (mutator == 1)    // List Add
             {
-                txn.Visit(fieldname,
-                          [&](auto /* fieldType */, auto& subtxn) { _ListAdd(subtxn, Value(mutatordata).convert<size_t>(), rhs); });
+                auto listval = Stencil::Deserialize<size_t, Stencil::ProtocolString>(mutatordata);
+                txn.Visit(fieldname, [&](auto /* fieldType */, auto& subtxn) { _ListAdd(subtxn, listval, rhs); });
             }
             else if (mutator == 2)    // List remove
             {
-                txn.Visit(fieldname,
-                          [&](auto /* fieldType */, auto& subtxn) { _ListRemove(subtxn, Value(mutatordata).convert<size_t>()); });
+                auto listval = Stencil::Deserialize<size_t, Stencil::ProtocolString>(mutatordata);
+                txn.Visit(fieldname, [&](auto /* fieldType */, auto& subtxn) { _ListRemove(subtxn, listval); });
             }
             else
             {
@@ -220,9 +216,7 @@ struct StringTransactionSerDes
 
     template <typename T> static std::ostream& _DeserializeTo(Transaction<T>& txn, std::ostream& ostr, std::vector<std::string>& stack)
     {
-        using Traits = ReflectionBase::TypeTraits<T&>;
-
-        if constexpr (Traits::Type() == ReflectionBase::DataType::List)
+        if constexpr (ConceptIterable<T>)
         {
             txn.VisitChanges(
                 [&](auto const& /* name */, auto const& /* type */, uint8_t const& mutator, size_t const& index, auto& subtxn, auto& obj) {
@@ -261,7 +255,7 @@ struct StringTransactionSerDes
                 });
         }
 
-        if constexpr (ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Object)
+        if constexpr (ConceptIndexable<T>)
         {
             txn.VisitChanges(
                 [&](auto const& name, auto const& /* type */, auto const& mutator, auto const& /* mutatordata */, auto& subtxn, auto& obj) {

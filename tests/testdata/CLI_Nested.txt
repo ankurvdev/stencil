@@ -1,0 +1,20 @@
+Testcase[Nested]: :: default-2
+Testcase[Nested]:default-2, Output,f1	--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1970-01-01T00:00:00.000000	--f9=1970-01-01T00:00:00.000000	-	f2	--f1=	--f2=	-	f3	-	-
+Testcase[Nested]:f1 :: WithPrimitives64Bit
+Testcase[Nested]:WithPrimitives64Bit, Output,f1	--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1970-01-01T00:00:00.000000	--f9=1970-01-01T00:00:00.000000	-	f2	--f1=	--f2=	-	f3	-	-
+Testcase[Nested]:f1 --f1=1234 :: WithPrimitives64Bit
+Testcase[Nested]:WithPrimitives64Bit, Output,f1	--f1=1234	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1970-01-01T00:00:00.000000	--f9=1970-01-01T00:00:00.000000	-	f2	--f1=	--f2=	-	f3	-	-
+Testcase[Nested]:f2 :: WithBlobs
+Testcase[Nested]:WithBlobs, Output,f1	--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1970-01-01T00:00:00.000000	--f9=1970-01-01T00:00:00.000000	-	f2	--f1=	--f2=	-	f3	-	-
+Testcase[Nested]:f2 --f1=01234567} :: WithBlobs
+Testcase[Nested]:WithBlobs, Output,f1	--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1970-01-01T00:00:00.000000	--f9=1970-01-01T00:00:00.000000	-	f2	--f1=01234567}	--f2=	-	f3	-	-
+Testcase[Nested]:f3 :: WithPrimitives64Bit
+Testcase[Nested]:WithPrimitives64Bit, Output,f1	--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1970-01-01T00:00:00.000000	--f9=1970-01-01T00:00:00.000000	-	f2	--f1=	--f2=	-	f3	-	-
+Testcase[Nested]:f3 --f1=1234 :: WithPrimitives64Bit
+Testcase[Nested]:WithPrimitives64Bit, Output,f1	--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1970-01-01T00:00:00.000000	--f9=1970-01-01T00:00:00.000000	-	f2	--f1=	--f2=	-	f3	--f1=1234	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1970-01-01T00:00:00.000000	--f9=1970-01-01T00:00:00.000000	-	-
+Testcase[Nested]:f4 :: vec[WithBlobs]
+Testcase[Nested]:vec[WithBlobs], Output,f1	--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1970-01-01T00:00:00.000000	--f9=1970-01-01T00:00:00.000000	-	f2	--f1=	--f2=	-	f3	-	-
+Testcase[Nested]:f4 f1 - f1 - f1 :: vec[WithBlobs]
+Testcase[Nested]:vec[WithBlobs], Output,f1	--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1970-01-01T00:00:00.000000	--f9=1970-01-01T00:00:00.000000	-	f2	--f1=	--f2=	-	f3	-	f4	--f1=	--f2=	-	--f1=	--f2=	-	--f1=	--f2=	-	-	-
+Testcase[Nested]:f4 --f1=01234567 - --f1=890124 :: vec[WithBlobs]
+Testcase[Nested]:vec[WithBlobs], Output,f1	--f1=0	--f2=0	--f3=0	--f4=0	--f5=0	--f6=0	--f7=false	--f8=1970-01-01T00:00:00.000000	--f9=1970-01-01T00:00:00.000000	-	f2	--f1=	--f2=	-	f3	-	f4	--f1=	--f2=	-	--f1=	--f2=	-	-	-

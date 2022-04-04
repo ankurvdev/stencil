@@ -1,6 +1,8 @@
 #pragma once
+#include "comparator.h"
 #include "mutatorsaccessors.h"
 #include "optionalprops.h"
+#include "typetraits_builtins.h"
 #include "visitor.h"
 
 #include <algorithm>
@@ -15,9 +17,7 @@
 namespace Stencil
 {
 
-template <typename TObj, typename _Ts = void> struct Transaction;
-
-template <typename TObj, typename _Ts = void> struct TransactionT
+template <typename TObj, typename TEnable = void> struct TransactionT
 {
     TransactionT(TObj& /*obj*/) {}
 
@@ -40,23 +40,38 @@ template <typename TObj, typename _Ts = void> struct TransactionT
     void Flush() const {}
     bool IsChanged() const { return false; }
 };
+
+template <typename TObj, typename TEnable = void> struct Transaction : Stencil::TransactionT<TObj>
+{
+    Transaction(TObj& obj) : Stencil::TransactionT<TObj>(obj) {}
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
+};
+
 }    // namespace Stencil
 
-template <typename T> struct Stencil::Transaction<T, std::enable_if_t<Value::Supported<T>::value>> : Stencil::TransactionT<T>
+template <typename T> struct Stencil::Transaction<T, std::enable_if_t<Stencil::ConceptPrimitive<T>>> : Stencil::TransactionT<T>
 {
     Transaction(T& obj) : Stencil::TransactionT<T>(obj) {}
     void Flush() const {}
     bool IsChanged() const { return false; }
 
-    DELETE_COPY_AND_MOVE(Transaction);
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
 };
 
-template <typename TObj>
-struct Stencil::TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::Object>>
+template <> struct Stencil::Transaction<shared_string> : Stencil::TransactionT<shared_string>
+{
+    Transaction(shared_string& obj) : Stencil::TransactionT<shared_string>(obj) {}
+    void Flush() const {}
+    bool IsChanged() const { return false; }
+
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
+};
+
+template <typename TObj> struct Stencil::TransactionT<TObj, std::enable_if_t<Stencil::ConceptIndexable<TObj>>>
 {
     TransactionT(TObj& obj) : _ref(std::ref(obj)) {}
 
-    DELETE_COPY_AND_MOVE(TransactionT);
+    CLASS_DELETE_COPY_AND_MOVE(TransactionT);
 
     TObj& Obj() { return _ref; }
 
@@ -101,7 +116,7 @@ struct Stencil::TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<T
                 return;
             }
         }
-        if (!ReflectionBase::AreEqual(curval, newval)) { _assigntracker.set(static_cast<uint8_t>(field)); }
+        if (!Stencil::AreEqual(curval, newval)) { _assigntracker.set(static_cast<uint8_t>(field)); }
     }
 
     template <typename TEnum> void MarkFieldEdited_(TEnum field) { _edittracker.set(static_cast<uint8_t>(field)); }
@@ -111,20 +126,19 @@ struct Stencil::TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<T
         if constexpr (std::is_base_of_v<Stencil::TimestampedT<TObj>, TObj>) { Obj().UpdateTimestamp_(); }
     }
 
-    std::reference_wrapper<TObj>        _ref;
-    std::bitset<TObj::FieldCount() + 1> _assigntracker;
-    std::bitset<TObj::FieldCount() + 1> _edittracker;
+    std::reference_wrapper<TObj> _ref;
+    std::bitset<64>              _assigntracker;    // TODO1
+    std::bitset<64>              _edittracker;      // TODO1
 };
 
-template <typename TObj>
-struct Stencil::TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<TObj&>::Type() == ReflectionBase::DataType::List>>
+template <Stencil::ConceptIterable TObj> struct Stencil::TransactionT<TObj>
 {
-    using ListObjType = typename ReflectionBase::TypeTraits<TObj&>::ListObjType;
+    using ListObjType = typename TObj::value_type;
 
     TransactionT(TObj& obj) : _ref(std::ref(obj)) {}
     ~TransactionT() {}
 
-    DELETE_COPY_AND_MOVE(TransactionT);
+    CLASS_DELETE_COPY_AND_MOVE(TransactionT);
 
     TObj& Obj() { return _ref; }
 
@@ -134,16 +148,16 @@ struct Stencil::TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<T
     void RecordMutation_edit_(size_t index) { _changes.push_back({3u, index}); }
     void RecordMutation_assign_(size_t index) { _changes.push_back({0u, index}); }
 
-    void add(ListObjType&& obj)
+    template <typename T> void add(T&& obj)
     {
         RecordMutation_add_(obj);
-        Mutators<TObj>::add(Obj(), std::move(obj));
+        Stencil::Mutators<TObj>::add(Obj(), std::move(obj));
     }
 
     void remove(size_t index)
     {
         RecordMutation_remove_(index);
-        Mutators<TObj>::remove(Obj(), index);
+        Stencil::Mutators<TObj>::remove(Obj(), index);
     }
 
     auto& edit(size_t index)
@@ -155,19 +169,20 @@ struct Stencil::TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<T
 
     template <typename TLambda> auto Visit(size_t fieldIndex, TLambda&& lambda)
     {
-        Visitor<TObj> visitor(_ref.get());
-        visitor.Visit(fieldIndex, [&](auto index, auto& obj) {
-            RecordMutation_edit_(index);
-            auto subtxnptr = std::make_unique<Transaction<ListObjType>>(obj);
-            lambda(index, *subtxnptr);
+        Visitor<TObj>::VisitKey(Obj(), fieldIndex, [&](auto& obj) {
+            RecordMutation_edit_(fieldIndex);
+            auto subtxnptr = std::make_unique<Transaction<std::remove_cvref_t<decltype(obj)>>>(obj);
+            lambda(fieldIndex, *subtxnptr);
             // TODO : only do it if there was a change;
-            _edited.insert(std::make_pair(index, std::move(subtxnptr)));
+            _edited.insert(std::make_pair(fieldIndex, std::move(subtxnptr)));
         });
     }
 
     template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
     {
-        return Visit(Value(fieldName).convert<size_t>(), std::forward<TLambda>(lambda));
+        size_t key;
+        SerDes<size_t, ProtocolString>::Read(key, fieldName);
+        return Visit(key, lambda);
     }
 
     template <typename TLambda> void VisitAll(TLambda&& /* lambda */) { throw std::logic_error("Visit Not supported on Transaction"); }
@@ -213,21 +228,10 @@ struct Stencil::TransactionT<TObj, std::enable_if_t<ReflectionBase::TypeTraits<T
 };
 
 // Transaction Mutators Accessors
-
-template <typename T>
-struct Stencil::Mutators<Stencil::Transaction<T>,
-                         std::enable_if_t<ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::List>>
+template <typename T> struct Stencil::Mutators<Stencil::Transaction<T>, std::enable_if_t<Stencil::ConceptIterable<T>>>
 {
-    using ListObjType = typename ReflectionBase::TypeTraits<T&>::ListObjType;
+    template <typename TVal> static void add(Stencil::Transaction<T>& txn, TVal&& obj) { txn.add(std::move(obj)); }
 
-    static void  add(Stencil::Transaction<T>& txn, ListObjType&& obj) { txn.add(std::move(obj)); }
     static void  remove(Stencil::Transaction<T>& txn, size_t index) { txn.remove(index); }
     static auto& edit(Stencil::Transaction<T>& txn, size_t index) { return txn.edit(index); }
 };
-
-template <typename T, typename _Ts> struct Stencil::Transaction : Stencil::TransactionT<T>
-{
-    Transaction(T& obj) : Stencil::TransactionT<T>(obj) {}
-    DELETE_COPY_AND_MOVE(Transaction);
-};
-

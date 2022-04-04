@@ -1,126 +1,57 @@
 #pragma once
+#include "typetraits.h"
+
+#if defined(__has_include) && __has_include(<version>)
+#include <version>
+#if defined(__cpp_lib_span) && __cpp_lib_span >= 202002L
+#include <span>
+#else
+#include <gsl/span>
+#endif    // __cpp_lib_span >= 202002L
+#else
+#include <gsl/span>
+#endif    //__has_include(<version>)
+
+#include "uuid.h"
+
 #include <array>
 #include <chrono>
 #include <compare>
-
-struct UuidStr
-{
-    static constexpr size_t Size           = 38;
-    char                    str[Size + 1]  = {};
-    wchar_t                 wstr[Size + 1] = {};
-    constexpr UuidStr() {}
-    constexpr UuidStr(const char strin[Size]) : str()
-    {
-        for (size_t i = 0; i < Size; i++)
-        {
-            str[i]  = static_cast<char>(strin[i]);
-            wstr[i] = static_cast<wchar_t>(strin[i]);
-        }
-    }
-    constexpr UuidStr(const wchar_t strin[Size])
-    {
-        for (size_t i = 0; i < Size; i++)
-        {
-            str[i]  = static_cast<char>(strin[i]);
-            wstr[i] = static_cast<wchar_t>(strin[i]);
-        }
-    }
-
-    constexpr UuidStr(const std::string_view strin)
-    {
-        for (size_t i = 0; i < Size; i++)
-        {
-            str[i]  = static_cast<char>(strin[i]);
-            wstr[i] = static_cast<wchar_t>(strin[i]);
-        }
-    }
-    constexpr UuidStr(const std::wstring_view strin)
-    {
-        for (size_t i = 0; i < Size; i++)
-        {
-            str[i]  = static_cast<char>(strin[i]);
-            wstr[i] = static_cast<wchar_t>(strin[i]);
-        }
-    }
-
-    operator std::wstring_view() const { return wstr; }
-    operator std::string_view() const { return str; }
-    // operator wchar_t*() { return wstr; }
-    // operator char*() { return str; }
-};
-
-struct Uuid
-{
-    constexpr Uuid(UuidStr const& str);
-    constexpr Uuid() noexcept {}
-    constexpr Uuid(Uuid const& obj) noexcept { data = obj.data; }
-    constexpr Uuid(Uuid&& obj) noexcept { data = std::move(obj.data); }
-
-    Uuid& operator=(Uuid const& uuid)
-    {
-        data = uuid.data;
-        return *this;
-    }
-
-    auto operator==(Uuid const& r) const { return r.data == data; }
-    auto operator!=(Uuid const& r) const { return r.data != data; }
-
-    UuidStr constexpr ToString() const;
-    static Uuid constexpr FromString(UuidStr const& str) { return Uuid(str); }
-    static Uuid Create();
-
-    std::array<std::uint8_t, 16> data{};
-};
 
 template <typename T> struct UuidObjectT;
 
 template <typename T> struct UuidBasedId
 {
-    static UuidBasedId<T>           Create() { return UuidBasedId<T>(Uuid::Create()); }
-    static constexpr UuidBasedId<T> FromString(UuidStr str) { return UuidBasedId<T>(Uuid::FromString(str)); }
-
-    inline auto operator<=>(const UuidBasedId<T>& r) const = default;
-
-    bool Empty() const { return Uuid{} == _guid; }
-    bool Valid() const { return !Empty(); }
-    void Validate()
+    static UuidBasedId<T> Create()
     {
-        if (!Valid()) { _guid = Uuid::Create(); }
+        UuidBasedId<T>     uuid;
+        std::random_device rd;
+        auto               seed_data = std::array<unsigned, std::mt19937::state_size>{};
+        std::generate(std::begin(seed_data), std::end(seed_data), std::ref(rd));
+        std::seed_seq                seq(std::begin(seed_data), std::end(seed_data));
+        std::mt19937                 generator(seq);
+        uuids::uuid_random_generator gen{generator};
+        uuid.uuid = gen();
+        return uuid;
     }
-    operator UuidStr() { return _guid.ToString(); }
 
-    UuidStr ToString() const { return _guid.ToString(); }
-    UuidBasedId(const UuidBasedId<T>& obj) : _guid(obj._guid) {}
-    UuidBasedId<T>& operator=(const UuidBasedId<T>& obj)
+    template <typename TStr> static constexpr UuidBasedId<T> FromString(TStr const& str)
     {
-        _guid = obj._guid;
-        return *this;
+        UuidBasedId<T> uuid;
+        uuid.guid = uuids::uuid(str);
     }
-    constexpr UuidBasedId(UuidStr str) : _guid(str) {}
-
-    UuidBasedId(Uuid guid) : _guid(guid) {}
-    constexpr UuidBasedId() {}
-
-    private:
-    Uuid _guid;
-
-    operator const Uuid&() const { return _guid; }
 
     public:
+    UuidBasedId() = default;
+
+    uuids::uuid uuid;
+
+    constexpr bool                  Empty() const { return uuid == Invalid().uuid; }
     static constexpr UuidBasedId<T> Invalid() { return UuidBasedId<T>(); }
     friend UuidObjectT<T>;
 
     friend std::hash<UuidBasedId<T>>;
 };
-
-namespace std
-{
-template <typename T> struct hash<UuidBasedId<T>>
-{
-    // TODO: Do a better job here
-    std::size_t operator()(UuidBasedId<T> const& s) const noexcept { return std::hash<std::string_view>{}(s.ToString()); }
-};
-}    // namespace std
 
 template <typename T> struct UuidObjectT
 {
@@ -129,105 +60,12 @@ template <typename T> struct UuidObjectT
     Id id = Id::Create();
 };
 
-#include <random>
-inline Uuid Uuid::Create()
+template <> struct Stencil::TypeTraits<uuids::uuid>
 {
-    Uuid                                    uuid;
-    std::random_device                      r;
-    std::default_random_engine              e1(r());
-    std::uniform_int_distribution<uint16_t> dist(0, 255);
+    using Categories = std::tuple<Stencil::Category::Primitive>;
+};
 
-    for (size_t i = 0; i < uuid.data.size(); i++) { uuid.data[i] = static_cast<uint8_t>(dist(e1)); }
-
-    return uuid;
-}
-
-inline UuidStr constexpr UuidToString(Uuid const& uuid)
+template <typename T> struct Stencil::TypeTraits<UuidBasedId<T>>
 {
-    struct tohex
-    {
-        static constexpr char convert(uint8_t c) { return static_cast<char>(c < 10 ? ('0' + c) : ('a' + (c - 10))); }
-        static constexpr char l(uint8_t c) { return convert(c & 0xfu); }
-        static constexpr char h(uint8_t c) { return convert(static_cast<uint8_t>(c >> 4u)); }
-    };
-
-    char str[] = {'{',
-                  tohex::h(uuid.data[0]),
-                  tohex::l(uuid.data[0]),
-                  tohex::h(uuid.data[1]),
-                  tohex::l(uuid.data[1]),
-                  tohex::h(uuid.data[2]),
-                  tohex::l(uuid.data[2]),
-                  tohex::h(uuid.data[3]),
-                  tohex::l(uuid.data[3]),
-                  '-',
-                  tohex::h(uuid.data[4]),
-                  tohex::l(uuid.data[4]),
-                  tohex::h(uuid.data[5]),
-                  tohex::l(uuid.data[5]),
-                  '-',
-                  tohex::h(uuid.data[6]),
-                  tohex::l(uuid.data[6]),
-                  tohex::h(uuid.data[7]),
-                  tohex::l(uuid.data[7]),
-                  '-',
-                  tohex::h(uuid.data[8]),
-                  tohex::l(uuid.data[8]),
-                  tohex::h(uuid.data[9]),
-                  tohex::l(uuid.data[9]),
-                  '-',
-                  tohex::h(uuid.data[10]),
-                  tohex::l(uuid.data[10]),
-                  tohex::h(uuid.data[11]),
-                  tohex::l(uuid.data[11]),
-                  tohex::h(uuid.data[12]),
-                  tohex::l(uuid.data[12]),
-                  tohex::h(uuid.data[13]),
-                  tohex::l(uuid.data[13]),
-                  tohex::h(uuid.data[14]),
-                  tohex::l(uuid.data[14]),
-                  tohex::h(uuid.data[15]),
-                  tohex::l(uuid.data[15]),
-                  '}',
-                  0};
-
-    return UuidStr(str);
-}
-
-inline UuidStr constexpr Uuid::ToString() const
-{
-    return UuidToString(*this);
-}
-
-inline constexpr Uuid::Uuid(UuidStr const& str)
-{
-    struct tobyte
-    {
-        static constexpr uint8_t convert(char c)
-        {
-            return static_cast<uint8_t>(static_cast<uint8_t>((c < 'a' ? (c - '0') : (c - 'a' + 10))) & 0xfu);
-        }
-        static constexpr uint8_t join(char h, char l) { return static_cast<uint8_t>(convert(h) << 4u | convert(l)); }
-    };
-
-    data[0x0] = tobyte::join(str.str[1], str.str[2]);
-    data[0x1] = tobyte::join(str.str[3], str.str[4]);
-    data[0x2] = tobyte::join(str.str[5], str.str[6]);
-    data[0x3] = tobyte::join(str.str[7], str.str[8]);
-
-    data[0x4] = tobyte::join(str.str[10], str.str[11]);
-    data[0x5] = tobyte::join(str.str[12], str.str[13]);
-
-    data[0x6] = tobyte::join(str.str[15], str.str[16]);
-    data[0x7] = tobyte::join(str.str[17], str.str[18]);
-
-    data[0x8] = tobyte::join(str.str[20], str.str[21]);
-    data[0x9] = tobyte::join(str.str[22], str.str[23]);
-
-    data[0xa] = tobyte::join(str.str[25], str.str[26]);
-    data[0xb] = tobyte::join(str.str[27], str.str[28]);
-    data[0xc] = tobyte::join(str.str[29], str.str[30]);
-    data[0xd] = tobyte::join(str.str[31], str.str[32]);
-    data[0xe] = tobyte::join(str.str[33], str.str[34]);
-    data[0xf] = tobyte::join(str.str[35], str.str[36]);
-}
+    using Categories = std::tuple<Stencil::Category::Primitive>;
+};

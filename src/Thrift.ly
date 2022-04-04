@@ -47,15 +47,17 @@ HEX_D           [a-fA-F0-9]
 
 "const"         { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_const; }
 "datasource"    { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_datasource; }
+"event"         { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_event; }
 "enum"          { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_enum; }
 "exception"     { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_exception; }
 "extends"       { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_extends; }
 "include"       { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_include; }
 "interface"     { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_interface; }
 "namespace"     { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_namespace; }
+"objectstore"   { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_objectstore; }
 "oneway"        { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_oneway; }
 "optional"      { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_optional; }
-"relationship"  { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_relationship; }
+"attribute"  { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_attribute; }
 "required"      { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_required; }
 "static"        { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_static; }
 "struct"        { lval->emplace<Id>(StrOps<Id>::Convert(yytext));    return token::tok_struct; }
@@ -84,14 +86,16 @@ LEXYACC:YACC:START
 %token tok_const
 %token tok_datasource
 %token tok_enum
+%token tok_event
 %token tok_exception
 %token tok_extends
 %token tok_include
 %token tok_interface
 %token tok_namespace
+%token tok_objectstore
 %token tok_oneway
 %token tok_optional
-%token tok_relationship
+%token tok_attribute
 %token tok_required
 %token tok_static
 %token tok_struct
@@ -111,14 +115,16 @@ LEXYACC:YACC:START
 tok_const
 tok_datasource
 tok_enum
+tok_event
 tok_exception
 tok_extends
 tok_include
 tok_interface
 tok_namespace
+tok_objectstore
 tok_oneway
 tok_optional
-tok_relationship
+tok_attribute
 tok_required
 tok_static
 tok_struct
@@ -137,16 +143,19 @@ Static
 %type<int>          tok_int_constant FieldIdentifier
 %type<double>       tok_dub_constant
 
-%type<Typedef>        Typedef
-%type<ConstValue>     ConstValue     FieldValue
-%type<Struct>         Struct
-%type<Union>          Union
-%type<Interface>      Interface
-%type<Interface>      Extends
-%type<Function>       Function
-%type<Field>          Field
-%type<FieldType>      FieldType FunctionType ContainerType ArrayType
-%type<RelationshipComponent>           RelationshipComponent
+%type<Typedef>              Typedef
+%type<ConstValue>           ConstValue     FieldValue
+%type<Struct>               Struct
+%type<Variant>                Variant
+%type<Interface>            Interface
+%type<Interface>            Extends
+%type<InterfaceMember>      InterfaceMember
+%type<InterfaceFunction>    InterfaceFunction
+%type<InterfaceEvent>       InterfaceEvent
+%type<InterfaceObjectStore> InterfaceObjectStore
+%type<Field>                Field
+%type<FieldType>            FieldType FunctionType ContainerType ArrayType
+%type<AttributeComponent>           AttributeComponent
 
 %type<TypeAttribute>  TypeAttribute
 
@@ -154,12 +163,12 @@ Static
 
 %type<FieldTypeList>  ContainerFieldList
 %type<FieldList>      FieldList Throws
-%type<FunctionList>   FunctionList
+%type<InterfaceMemberList>   InterfaceMemberList
 %type<ConstValueList>      ConstListContents
 %type<ConstValueDict>       ConstMapContents
 %type<IdList>            identifierlist
 
-%type<RelationshipComponentList>          RelationshipComponents
+%type<AttributeComponentList>          AttributeComponents
 %type<Program>        Program
 %%
 
@@ -190,8 +199,8 @@ Definition:
 
       Typedef
     | Struct
-    | Relationship
-    | Union
+    | Attribute
+    | Variant
     | Interface
     /*
     | Enum
@@ -240,39 +249,51 @@ ConstMapContents: ConstMapContents ConstValue ':' ConstValue CommaOrSemicolonOpt
 Struct: tok_struct tok_identifier  '{' FieldList '}' TypeAttributes    { $$ = CreateStruct(context, $2, $4, $6); }
 ;
 
-Relationship : tok_relationship tok_identifier RelationshipComponents    { CreateRelationship(context, $2, $3); }
+Attribute : tok_attribute tok_identifier AttributeComponents CommaOrSemicolonOptional { CreateAttribute(context, $2, $3); }
 ;
 
-RelationshipComponents: RelationshipComponents ':' RelationshipComponent { $1[std::move($3.first)] = std::move($3.second); $$ = std::move($1); }
-| RelationshipComponent { $$ = {}; $$[std::move($1.first)] = std::move($1.second); }
+AttributeComponents: AttributeComponents ':' AttributeComponent { $1[std::move($3.first)] = std::move($3.second); $$ = std::move($1); }
+| AttributeComponent { $$ = {}; $$[std::move($1.first)] = std::move($1.second); }
 ;
 
-RelationshipComponent : tok_identifier '=' identifierlist { $$ = std::make_pair(std::move($1), std::move($3)); }
+AttributeComponent : tok_identifier '=' identifierlist { $$ = std::make_pair(std::move($1), std::move($3)); }
 ;
 
 identifierlist : identifierlist ',' tok_identifier { $1.push_back($3); $$ = std::move($1); }
 | tok_identifier { $$.push_back($1); }
 ;
 
-Union:    tok_union  tok_identifier  '{' FieldList '}' TypeAttributes    { $$ = CreateUnion(context, $2, $4, $6); }
+Variant:    tok_union  tok_identifier  '{' FieldList '}' TypeAttributes    { $$ = CreateVariant(context, $2, $4, $6); }
     ;
     /*
 Xception: tok_xception tok_identifier '{' FieldList '}' TypeAttributes { $$ = CreateXception($2, $4, $6); }
     ;
     */
-Interface: tok_interface tok_identifier Extends '{' FlagArgs FunctionList UnflagArgs '}' TypeAttributes { $$ = CreateInterface(context, $2, $3, $6, $9); }
+Interface: tok_interface tok_identifier Extends '{' FlagArgs InterfaceMemberList UnflagArgs '}' TypeAttributes { $$ = CreateInterface(context, $2, $3, $6, $9); }
     ;
 
 Extends: tok_extends tok_identifier { $$ = FindInterface(context, $2); }
     | {}
     ;
 
-FunctionList: FunctionList Function        { $1.push_back($2); $$ = std::move($1); }
+InterfaceMemberList: InterfaceMemberList InterfaceMember        { $1.push_back($2); $$ = std::move($1); }
     | {}
     ;
 
-Function: CaptureDocText Static FunctionType tok_identifier '(' FieldList ')' Throws TypeAttributes
-                CommaOrSemicolonOptional { $$ = Function($2, $3, $4, $6, $9); }
+InterfaceMember: InterfaceFunction { $$ = std::move($1); }
+    | InterfaceEvent { $$ = std::move($1); }
+    | InterfaceObjectStore { $$ = std::move($1); }
+    ;
+
+InterfaceEvent: CaptureDocText tok_event tok_identifier '(' FieldList ')' TypeAttributes
+        CommaOrSemicolonOptional { $$ = InterfaceEvent($3, $5, $7); }
+    ;
+InterfaceObjectStore: CaptureDocText tok_objectstore FieldType tok_identifier TypeAttributes
+        CommaOrSemicolonOptional { $$ = InterfaceObjectStore($3, $4, $5); }
+    ;
+
+InterfaceFunction: CaptureDocText Static FunctionType tok_identifier '(' FieldList ')' Throws TypeAttributes
+                CommaOrSemicolonOptional { $$ = InterfaceFunction($2, $3, $4, $6, $9); }
     ;
 
 Static: tok_static { $$ = std::move($1); }

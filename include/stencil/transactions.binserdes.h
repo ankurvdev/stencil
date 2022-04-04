@@ -1,4 +1,5 @@
 #pragma once
+#include "protocol_binary.h"
 #include "serdes.h"
 #include "transactions.h"
 
@@ -8,13 +9,63 @@
 
 namespace Stencil
 {
+
+struct OStrmWriter
+{
+    OStrmWriter(std::ostream& ostr) : _ostr(ostr) {}
+    CLASS_DELETE_COPY_AND_MOVE(OStrmWriter);
+
+    template <typename TVal, std::enable_if_t<std::is_trivial<TVal>::value, bool> = true> auto& operator<<(TVal const& val)
+    {
+        auto spn = AsCSpan(val);
+        _ostr.write(reinterpret_cast<char const*>(spn.data()), static_cast<std::streamsize>(spn.size()));
+        return *this;
+    }
+
+    auto& strm() { return _ostr; }
+
+    auto& operator<<(shared_string const& val)
+    {
+        *this << val.size();
+        if (val.size() > 0) _ostr.write(reinterpret_cast<char const*>(val.data()), static_cast<std::streamsize>(val.size()));
+        return *this;
+    }
+
+    std::ostream& _ostr;
+};
+
+struct IStrmReader
+{
+    IStrmReader(std::istream& istrm) : _istrm(istrm) {}
+    CLASS_DELETE_COPY_AND_MOVE(IStrmReader);
+
+    bool  isEof() { return !_istrm.good(); }
+    auto& strm() { return _istrm; }
+
+    template <typename TVal, std::enable_if_t<std::is_trivial<TVal>::value, bool> = true> TVal read()
+    {
+        TVal val;
+        auto spn = AsSpan(val);
+        _istrm.read(reinterpret_cast<char*>(spn.data()), static_cast<std::streamsize>(spn.size()));
+        return val;
+    }
+
+    shared_string read_shared_string()
+    {
+        size_t      size = read<size_t>();
+        std::string str(size, 0);
+        _istrm.read(reinterpret_cast<char*>(str.data()), static_cast<std::streamsize>(size));
+        return shared_string::make(std::move(str));
+    }
+
+    std::istream& _istrm;
+};
+
 struct BinaryTransactionSerDes
 {
     template <typename T> static auto& _DeserializeTo(Transaction<T>& txn, OStrmWriter& writer)
     {
-        using Traits = ReflectionBase::TypeTraits<T&>;
-
-        if constexpr (Traits::Type() == ReflectionBase::DataType::List)
+        if constexpr (ConceptIterable<T>)
         {
             txn.VisitChanges(
                 [&](auto const& /* name */, auto const& /* type */, uint8_t const& mutator, size_t const& index, auto& subtxn, auto& obj) {
@@ -25,13 +76,11 @@ struct BinaryTransactionSerDes
                     if (mutator == 3) { _DeserializeTo(subtxn, writer); }
                     else if (mutator == 0)
                     {
-                        Visitor<ObjType const> visitor(obj);
-                        Stencil::BinarySerDes::Serialize(visitor, writer.strm());
+                        Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer, obj);
                     }
                     else if (mutator == 1)
                     {
-                        Visitor<ObjType const> visitor(obj);
-                        Stencil::BinarySerDes::Serialize(visitor, writer.strm());
+                        Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer, obj);
                     }
                     else if (mutator == 2)
                     {
@@ -45,7 +94,7 @@ struct BinaryTransactionSerDes
             writer << std::numeric_limits<uint8_t>::max();
         }
 
-        if constexpr (ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Object)
+        if constexpr (ConceptIndexable<T>)
         {
             txn.VisitChanges(
                 [&](auto const& /* name */, auto const& type, auto const& mutator, auto const& /* mutatordata */, auto& subtxn, auto& obj) {
@@ -54,11 +103,7 @@ struct BinaryTransactionSerDes
                     writer << static_cast<uint8_t>(mutator);
                     writer << static_cast<uint32_t>(type);
 
-                    if (mutator == 0)
-                    {
-                        Visitor<ObjType const> visitor(obj);
-                        Stencil::BinarySerDes::Serialize(visitor, writer.strm());
-                    }
+                    if (mutator == 0) { Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer, obj); }
                     else if (mutator == 3)
                     {
                         _DeserializeTo(subtxn, writer);
@@ -92,15 +137,13 @@ struct BinaryTransactionSerDes
         static void Apply(Transaction<T>& /* txn */, IStrmReader& /* reader */) { throw std::logic_error("Invalid"); }
     };
 
-    template <typename T>
-    struct _ListApplicator<T, std::enable_if_t<ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::List>>
+    template <typename T> struct _ListApplicator<T, std::enable_if_t<ConceptIterable<T>>>
     {
         static void Add(Transaction<T>& txn, size_t /* listindex */, IStrmReader& reader)
         {
             typename Stencil::Mutators<T>::ListObj obj;
 
-            Visitor<decltype(obj)> visitor(obj);
-            BinarySerDes::Deserialize(visitor, reader.strm());
+            Stencil::SerDes<decltype(obj), ProtocolBinary>::Read(obj, reader);
             txn.add(std::move(obj));
         }
         static void Remove(Transaction<T>& txn, size_t listindex) { txn.remove(listindex); }
@@ -140,8 +183,7 @@ struct BinaryTransactionSerDes
         _ListApplicator<TObj>::Remove(txn, listindex);
     }
 
-    template <typename T>
-    struct _StructApplicator<T, std::enable_if_t<ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Value>>
+    template <typename T> struct _StructApplicator<T, std::enable_if_t<ConceptPrimitive<T>>>
     {
         static void Apply(Transaction<T>& /* txn */, IStrmReader& /* reader */)
         {
@@ -149,29 +191,27 @@ struct BinaryTransactionSerDes
         }
     };
 
-    template <typename T>
-    struct _StructApplicator<T, std::enable_if_t<ReflectionBase::TypeTraits<T&>::Type() == ReflectionBase::DataType::Object>>
+    template <typename T> struct _StructApplicator<T, std::enable_if_t<ConceptIndexable<T>>>
     {
         static void Apply(Transaction<T>& txn, IStrmReader& reader)
         {
             for (auto mutator = reader.read<uint8_t>(); mutator != std::numeric_limits<uint8_t>::max(); mutator = reader.read<uint8_t>())
             {
                 auto fieldIndex = reader.read<uint32_t>();
-
-                using FieldIndex = typename T::FieldIndex;
-                auto fieldEnum   = static_cast<FieldIndex>(fieldIndex);
+                using TKey      = typename Stencil::TypeTraitsForIndexable<T>::Key;
+                auto fieldEnum  = static_cast<TKey>(fieldIndex);
                 if (mutator == 0)    // Set
                 {
                     txn.Visit(fieldEnum, [&](auto /* fieldType */, auto& /* subtxn */) {
-                        Visitor<T> visitor(txn.Obj());
-                        visitor.Select(fieldIndex - 1);
-                        txn.MarkFieldAssigned_(fieldEnum);
-                        BinarySerDes::Deserialize(visitor, reader.strm());
+                        Visitor<T>::VisitKey(txn.Obj(), fieldEnum, [&](auto& obj) {
+                            txn.MarkFieldAssigned_(fieldEnum);
+                            Stencil::SerDes<std::remove_cvref_t<decltype(obj)>, ProtocolBinary>::Read(obj, reader);
+                        });
                     });
 
                     // txn.Visit(fieldname, [&](auto fieldType, auto& subtxn) { _ApplyJson(subtxn , fieldType, rhs); });
                 }
-#if 0
+#ifdef TODO1
                 else if (mutator == 1)    // List Add
                 {
                     txn.Visit(fieldEnum, [&](auto /* fieldType */, auto& subtxn) { _ListAdd(subtxn, reader.read<uint32_t>(), reader); });
@@ -201,10 +241,11 @@ struct BinaryTransactionSerDes
 
     template <typename T> static void _Apply(Transaction<T>& txn, IStrmReader& reader)
     {
-        using Traits = ReflectionBase::TypeTraits<T&>;
-
-        if constexpr (Traits::Type() == ReflectionBase::DataType::List) { _ApplyOnList(txn, reader); }
-        if constexpr (Traits::Type() == ReflectionBase::DataType::Object) { _ApplyOnStruct(txn, reader); }
+        if constexpr (ConceptIterable<T>) { _ApplyOnList(txn, reader); }
+        else if constexpr (ConceptIndexable<T>)
+        {
+            _ApplyOnStruct(txn, reader);
+        }
         return;
     }
 

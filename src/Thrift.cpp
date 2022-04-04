@@ -25,9 +25,9 @@ std::shared_ptr<IDL::Struct> CreateStruct(Context& context, Str::Type& id, Field
     return strct;
 }
 
-std::shared_ptr<IDL::Union> CreateUnion(Context& context, Str::Type& id, FieldList& fields, TypeAttributeList& map)
+std::shared_ptr<IDL::Variant> CreateVariant(Context& context, Str::Type& id, FieldList& fields, TypeAttributeList& map)
 {
-    auto strct = context.program.CreateStorageObject<IDL::Union>(std::move(id), map);
+    auto strct = context.program.CreateStorageObject<IDL::Variant>(std::move(id), map);
     for (auto& f : fields) { strct->CreateField(f.m_FieldType.value(), std::move(f.m_Id), f.m_FieldValue, std::move(f.m_AttributeMap)); }
 
     fields.clear();
@@ -37,9 +37,9 @@ std::shared_ptr<IDL::Union> CreateUnion(Context& context, Str::Type& id, FieldLi
 
 static void CreateRelectionshipDefinitionRecursively(Context&                            context,
                                                      Str::Type&&                         name,
-                                                     RelationshipComponentList&          map,
+                                                     AttributeComponentList&          map,
                                                      ComponentList&                      componentmap,
-                                                     RelationshipComponentList::iterator atit)
+                                                     AttributeComponentList::iterator atit)
 {
     TypeAttributeList attributemap;
     for (auto it = atit; it != map.end(); ++it)
@@ -57,7 +57,7 @@ static void CreateRelectionshipDefinitionRecursively(Context&                   
         }
     }
 
-    auto def = context.program.TryLookup<IDL::RelationshipDefinition>(name);
+    auto def = context.program.TryLookup<IDL::AttributeDefinition>(name);
     if (!def.has_value() && componentmap.size() == 1)
     {
         auto  it        = componentmap.begin();
@@ -73,7 +73,7 @@ static void CreateRelectionshipDefinitionRecursively(Context&                   
                 container, std::move(containermap), existing, attributemap);
         }
 
-        strct.CreateNamedObject<IDL::RelationshipTag>(existing.value()->GetFieldName(), def, existing.value());
+        strct.CreateNamedObject<IDL::AttributeTag>(existing.value()->GetFieldName(), def, existing.value());
     }
     else
     {
@@ -96,12 +96,12 @@ static void CreateRelectionshipDefinitionRecursively(Context&                   
                     container, std::move(containermap), existing, attributemap);
             }
 
-            strct.CreateNamedObject<IDL::RelationshipTag>(existing.value()->GetFieldName(), def, existing.value());
+            strct.CreateNamedObject<IDL::AttributeTag>(existing.value()->GetFieldName(), def, existing.value());
         }
     }
 }
 
-void CreateRelationship(Context& context, Str::Type& name, RelationshipComponentList& map)
+void CreateAttribute(Context& context, Str::Type& name, AttributeComponentList& map)
 {
     ComponentList componentmap;
     return CreateRelectionshipDefinitionRecursively(context, std::move(name), map, componentmap, map.begin());

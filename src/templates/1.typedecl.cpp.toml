@@ -71,22 +71,22 @@ boolean = "bool"
   NativeType = "shared_wstring"
 
   [FieldTypes.timestamp]
-  NativeType = "timestamp"
+  NativeType = "Stencil::Timestamp"
 
 [Struct]
-NativeType = "::%Program:Name%::%Struct:Name%::Data"
+NativeType = "::%Program:Name%::%Struct:Name%"
 
 [Interface]
 NativeType = "long"
 
 [FunctionArgs]
-NativeType = "::%Program:Name%::%Struct:Name%::Data"
+NativeType = "::%Program:Name%::%Struct:Name%"
 
 [Typedef]
 NativeType = "%Name%"
 
-[Union]
-NativeType = "::%Program:Name%::Union  "
+[Variant]
+NativeType = "::%Program:Name%::Variant  "
 
 [Containers.array]
 Params = [ "type", "size" ]
@@ -151,8 +151,8 @@ Params = [ "type" ]
 NativeType = "::UuidBasedId<%type:NativeType%>"
 DefaultValue = "::UuidBasedId<%type:NativeType%>::Create()"
 
-[Relationships.optionalprops]
+[Attributes.optionalprops]
 object = "optionalprops"
 
-[Relationships.observableprops]
+[Attributes.observableprops]
 object = "observableprops"

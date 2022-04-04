@@ -1,0 +1,10 @@
+Testcase[WithBlobs]:default-2, Input: {}
+Testcase[WithBlobs]:default-2, Output: {"f1":null,"f2":null,"f3":[],"f4":[]}
+Testcase[WithBlobs]:string, Input: {"f1": "01234567"}
+Testcase[WithBlobs]:string, Output: {"f1":"01234567","f2":null,"f3":[],"f4":[]}
+Testcase[WithBlobs]:wstring, Input: {"f2":  "abcdef"}
+Testcase[WithBlobs]:wstring, Output: {"f1":null,"f2":"abcdef","f3":[],"f4":[]}
+Testcase[WithBlobs]:vec[double], Input: {"f3": [0.1, 0.2, 0.3, 0.4]}
+Testcase[WithBlobs]:vec[double], Output: {"f1":null,"f2":null,"f3":[0.1,0.2,0.3,0.4],"f4":[]}
+Testcase[WithBlobs]:vec[string], Input: {"f4": ["abc", "def", "ghi"]}
+Testcase[WithBlobs]:vec[string], Output: {"f1":null,"f2":null,"f3":[],"f4":["abc","def","ghi"]}
