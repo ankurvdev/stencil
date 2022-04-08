@@ -4,6 +4,7 @@
 #include "typetraits_builtins.h"
 
 SUPPRESS_WARNINGS_START
+SUPPRESS_MSVC_STL_WARNINGS
 #include <fmt/chrono.h>
 #include <fmt/ostream.h>
 SUPPRESS_WARNINGS_END

@@ -14,6 +14,7 @@
         _Pragma("warning(disable : 4625)") /* copy constructor was implicitly defined as deleted*/                           \
         _Pragma("warning(disable : 4626)") /* assignment operator was implicitly defined as deleted*/                        \
         _Pragma("warning(disable : 4668)") /* not defined as a preprocessor macro, replacing with '0' f*/                    \
+        _Pragma("warning(disable : 4868)") /* enforce left-to-right evaluation order in braced initializer li*/              \
         _Pragma("warning(disable : 4840)") /* non-portable use of class as an argument to a variadic function*/              \
         _Pragma("warning(disable : 5027)") /* move assignment operator was implicitly defined as deleted*/                   \
         _Pragma("warning(disable : 5026)") /* move constructor was implicitly defined as deleted*/                           \
