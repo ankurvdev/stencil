@@ -78,5 +78,5 @@ struct Pressure
     double temperature;
 }
 
-attribute optionalprops 	 object = GPS, Pressure
+attribute optionalprops 	object = GPS, Pressure
 attribute timestamped 	 object = GPS, Aircraft, Traffic, Motion, Pressure

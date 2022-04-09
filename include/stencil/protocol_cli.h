@@ -1,6 +1,6 @@
 #pragma once
-#include "visitor.h"
 #include "protocol_string.h"
+#include "visitor.h"
 
 #include <chrono>
 #include <span>
@@ -152,6 +152,8 @@ template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolCLI>
         }
     }
 
+    [[noreturn]] static void _Error() { throw std::logic_error("Unsupported type"); }
+
     template <typename Context> static auto Write(Context& ctx, T const& obj)
     {
         Visitor<T>::VisitAllIndicies(obj, [&](auto const& k, auto const& v) { _WriteForKeyValue(k, v, obj, ctx); });
@@ -211,7 +213,7 @@ template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolCLI>
         }
         else
         {
-            throw std::logic_error("Unsupported type");
+            _Error();
         }
     }
 

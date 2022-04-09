@@ -159,7 +159,11 @@ struct StringTransactionSerDes
             auto name = it.token;
             ++it;
             size_t retval;
+#pragma warning(push, 3)
+#pragma warning(disable : 4702)    // unreachable code
+                                   // Sometime its a bad visit and we throw exceptions for error
             txn.Visit(name, [&](auto /* fieldType */, auto& args) { retval = _Apply(it, args); });
+#pragma warnin(pop)
             return retval;
         }
 

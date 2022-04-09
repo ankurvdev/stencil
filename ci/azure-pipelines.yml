@@ -51,7 +51,7 @@ jobs:
         VMImage: 'windows-latest'
       arm-android-on-linux:
         HostTriplet: x64-linux
-        RuntimeTriplet: arm-android
+        RuntimeTriplet: arm-neon-android
         VMImage: 'ubuntu-latest'
   pool:
     vmImage: $(VMImage)

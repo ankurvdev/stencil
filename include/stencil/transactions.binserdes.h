@@ -26,7 +26,7 @@ struct OStrmWriter
 
     auto& operator<<(shared_string const& val)
     {
-        *this << val.size();
+        *this << static_cast<uint32_t>(val.size());
         if (val.size() > 0) _ostr.write(reinterpret_cast<char const*>(val.data()), static_cast<std::streamsize>(val.size()));
         return *this;
     }
@@ -52,7 +52,7 @@ struct IStrmReader
 
     shared_string read_shared_string()
     {
-        size_t      size = read<size_t>();
+        size_t      size = read<uint32_t>();
         std::string str(size, 0);
         _istrm.read(reinterpret_cast<char*>(str.data()), static_cast<std::streamsize>(size));
         return shared_string::make(std::move(str));

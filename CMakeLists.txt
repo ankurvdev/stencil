@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.12)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/modules)
+set(INIT_SUBMODULE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/external)
 
-include(BuildEnv.cmake)
+include(BuildEnv)
 
 project(stencil VERSION 0.0.3)
 
@@ -19,10 +22,10 @@ set(EmbedResource_DIR ${CMAKE_CURRENT_LIST_DIR}/external/embedresource)
 
 find_package(LexYacc)
 find_package(EmbedResource)
-
 find_package(toml11 QUIET)
+
 if (NOT toml11_FOUND)
-    init_submodule(external/toml11)
+    init_submodule(toml11)
     add_library(toml11 INTERFACE)
     add_library(toml11::toml11 ALIAS toml11)
     target_include_directories(toml11 INTERFACE external/toml11)
@@ -30,7 +33,7 @@ endif()
 
 find_package(tsl-ordered-map QUIET)
 if (NOT tsl-ordered-map_FOUND)
-    init_submodule(external/ordered-map)
+    init_submodule(ordered-map)
     add_library(tsl_ordered_map INTERFACE)
     add_library(tsl::ordered_map ALIAS tsl_ordered_map)
     target_include_directories(tsl_ordered_map INTERFACE external/ordered-map/include)
@@ -38,7 +41,7 @@ endif()
 
 find_package(tinyxml2 QUIET)
 if (NOT tinyxml2_FOUND)
-    init_submodule(external/tinyxml2)
+    init_submodule(tinyxml2)
     add_library(tinyxml2 external/tinyxml2/tinyxml2.cpp external/tinyxml2/tinyxml2.h)
     target_compile_definitions(tinyxml2 PUBLIC $<$<CONFIG:Debug>:TINYXML2_DEBUG>)
     target_include_directories(tinyxml2 PUBLIC external/tinyxml2)
@@ -48,7 +51,7 @@ endif()
 
 find_package(cxxopts QUIET)
 if (NOT cxxopts_FOUND)
-    init_submodule(external/cxxopts)
+    init_submodule(cxxopts)
     add_library(cxxopts INTERFACE)
     add_library(cxxopts::cxxopts ALIAS cxxopts)
     target_include_directories(cxxopts INTERFACE external/cxxopts/include)
@@ -57,41 +60,27 @@ endif()
 
 find_package(stduuid QUIET)
 if (NOT stduuid_FOUND)
-    init_submodule(external/stduuid)
+    init_submodule(stduuid)
     add_library(stduuid INTERFACE)
     add_library(stduuid::stduuid ALIAS stduuid)
     target_include_directories(stduuid INTERFACE external/stduuid/include)
 endif()
 
-
-find_package(fmt QUIET)
-if (NOT fmt_FOUND)
-    init_submodule(external/fmt)
-    add_subdirectory(external/fmt EXCLUDE_FROM_ALL fmt)
-    SupressWarningForTarget(fmt)
-endif()
-
-
-find_package(date QUIET)
-if (NOT date_FOUND)
-    init_submodule(external/date)
-    add_subdirectory(external/date EXCLUDE_FROM_ALL date)
-endif()
-
+find_package(fmt QUIET MODULE REQUIRED)
+find_package(date QUIET MODULE REQUIRED)
 
 find_package(RapidJSON QUIET)
 if (NOT RapidJSON_FOUND)
-    init_submodule(external/rapidjson)
+    init_submodule(rapidjson)
     add_library(rapidjson INTERFACE)
     #SupressWarningForTarget(rapidjson)
     target_compile_definitions(rapidjson INTERFACE USE_RAPIDJSON=1)
     target_include_directories(rapidjson INTERFACE external/rapidjson/include)
 endif()
 
-
 #find_package(simdjson QUIET)
 #if (NOT simdjson_FOUND)
-#    init_submodule(external/simdjson)
+#    init_submodule(simdjson)
 #    add_library(simdjson INTERFACE)
 #endif()
 
@@ -99,26 +88,11 @@ endif()
 if (BUILD_TESTING)
     enable_testing()
 
-    find_package(catch2 QUIET)
-    if (NOT catch2_FOUND)
-        init_submodule(external/Catch2)
-        add_library(catch2 INTERFACE)
-        add_library(Catch2::Catch2 ALIAS catch2)
-        target_include_directories(catch2 INTERFACE external/Catch2/single_include)
-    endif()
-
-    find_path(DTL_INCLUDE_DIRS "dtl/Diff.hpp")
-    if (NOT EXISTS "${DTL_INCLUDE_DIRS}")
-        init_submodule(external/dtl)
-        set(DTL_INCLUDE_DIRS external/dtl)
-    endif()
-    add_library(dtl INTERFACE)
-    add_library(dtl::dtl ALIAS dtl)
-    target_include_directories(dtl INTERFACE "${DTL_INCLUDE_DIRS}")
+    find_package(Catch2 QUIET REQUIRED)
 
     find_path(CPP_HTTPLIB_INCLUDE_DIRS "httplib.h")
     if (NOT EXISTS "${CPP_HTTPLIB_INCLUDE_DIRS}")
-        init_submodule(external/cpp-httplib)
+        init_submodule(cpp-httplib)
         set(CPP_HTTPLIB_INCLUDE_DIRS "external/cpp-httplib")
     endif()
     add_library(cpp_httplib INTERFACE)
@@ -141,7 +115,7 @@ if (NOT BUILD_TESTING)
 endif()
 
 target_link_libraries(libstencil PRIVATE toml11::toml11 tinyxml2::tinyxml2 tsl::ordered_map)
-target_link_libraries(libstencil PUBLIC  fmt::fmt stduuid date::date)
+target_link_libraries(libstencil PUBLIC  fmt::fmt-header-only stduuid)
 
 target_include_directories(libstencil PUBLIC src include/stencil)
 add_executable(stencil src/main.cpp)
@@ -153,6 +127,10 @@ list(APPEND public_headers "${UUIDHEADER}")
 set_target_properties(stencil PROPERTIES PUBLIC_HEADER "${public_headers}")
 
 target_link_libraries(stencil PRIVATE libstencil cxxopts::cxxopts)
+
+if (BUILD_TESTING)
+    include(RuntimeCodegenTests)
+endif()
 
 if (BUILD_TESTING)
     enable_testing()
@@ -167,35 +145,22 @@ if (BUILD_TESTING)
     target_include_directories(codegen_tests PRIVATE src include tests)
     target_link_libraries(codegen_tests PRIVATE libstencil dtl::dtl Catch2::Catch2)
     target_add_resource(codegen_tests testdata ${resfiles} ${pidlfiles})
-    
-    foreach(f ${pidlfiles})
-        get_filename_component(fname "${f}" NAME)
-        list(APPEND outputs "${CMAKE_CURRENT_BINARY_DIR}/${fname}.h")
-        list(APPEND inputs "${f}")
-    endforeach()
-    add_custom_command(OUTPUT ${outputs}
-                COMMAND stencil --outdir=${CMAKE_CURRENT_BINARY_DIR} ${inputs}
-                DEPENDS stencil ${inputs})
-    add_custom_target(codegen DEPENDS ${outputs})
 
     add_executable(runtime_tests
         tests/HandwrittenRuntime/Test_Handwritten_CLOpts.cpp
         tests/HandwrittenRuntime/Test_Handwritten_Json.cpp
         tests/HandwrittenRuntime/Test_Handwritten_Binary.cpp
-        tests/HandwrittenRuntime/Test_Database.cpp
         tests/HandwrittenRuntime/Test_Database2.cpp
         #tests/HandwrittenRuntime/Test_WebService_Handwritten.cpp
     )
 
-    add_dependencies(runtime_tests codegen)
-    target_include_directories(runtime_tests PRIVATE ${CMAKE_CURRENT_BINARY_DIR} include)
     target_compile_definitions(runtime_tests PRIVATE USE_NLOHMANN_JSON USE_CPP_HTTPLIB)
     target_link_libraries(runtime_tests PRIVATE libstencil)
-    target_link_libraries(runtime_tests PRIVATE dtl::dtl rapidjson Catch2::Catch2 cpp_httplib::cpp_httplib fmt)
+    target_link_libraries(runtime_tests PRIVATE dtl::dtl Catch2::Catch2 cpp_httplib::cpp_httplib stencil::runtime)
     target_link_libraries (runtime_tests PRIVATE Threads::Threads)
     add_test(NAME runtime_tests COMMAND runtime_tests)
 
-    target_add_resource(runtime_tests testdata ${resfiles} ${pidlfiles})
+    target_add_resource(runtime_tests testdata ${resfiles})
     target_include_directories(runtime_tests PRIVATE src include tests)
  
 endif()
