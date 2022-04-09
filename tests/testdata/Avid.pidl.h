@@ -401,21 +401,21 @@ template <> struct Stencil::Transaction<Avid::GPS> : Stencil::TransactionT<Avid:
     {
         switch (index)
         {
-        case Fields::Field_heading: return lambda("heading", heading()); return;
-        case Fields::Field_lat: return lambda("lat", lat()); return;
-        case Fields::Field_lon: return lambda("lon", lon()); return;
-        case Fields::Field_speed: return lambda("speed", speed()); return;
-        case Fields::Field_utc: return lambda("utc", utc()); return;
-        case Fields::Field_galt: return lambda("galt", galt()); return;
-        case Fields::Field_climb: return lambda("climb", climb()); return;
-        case Fields::Field_epx: return lambda("epx", epx()); return;
-        case Fields::Field_epy: return lambda("epy", epy()); return;
-        case Fields::Field_epv: return lambda("epv", epv()); return;
-        case Fields::Field_ept: return lambda("ept", ept()); return;
-        case Fields::Field_eps: return lambda("eps", eps()); return;
-        case Fields::Field_epc: return lambda("epc", epc()); return;
-        case Fields::Field_eph: return lambda("eph", eph()); return;
-        case Fields::Field_sep: return lambda("sep", sep()); return;
+        case Fields::Field_heading: return lambda("heading", heading());
+        case Fields::Field_lat: return lambda("lat", lat());
+        case Fields::Field_lon: return lambda("lon", lon());
+        case Fields::Field_speed: return lambda("speed", speed());
+        case Fields::Field_utc: return lambda("utc", utc());
+        case Fields::Field_galt: return lambda("galt", galt());
+        case Fields::Field_climb: return lambda("climb", climb());
+        case Fields::Field_epx: return lambda("epx", epx());
+        case Fields::Field_epy: return lambda("epy", epy());
+        case Fields::Field_epv: return lambda("epv", epv());
+        case Fields::Field_ept: return lambda("ept", ept());
+        case Fields::Field_eps: return lambda("eps", eps());
+        case Fields::Field_epc: return lambda("epc", epc());
+        case Fields::Field_eph: return lambda("eph", eph());
+        case Fields::Field_sep: return lambda("sep", sep());
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
@@ -937,23 +937,23 @@ template <> struct Stencil::Transaction<Avid::Aircraft> : Stencil::TransactionT<
     {
         switch (index)
         {
-        case Fields::Field_seen: return lambda("seen", seen()); return;
-        case Fields::Field_addr: return lambda("addr", addr()); return;
-        case Fields::Field_hexaddr: return lambda("hexaddr", hexaddr()); return;
-        case Fields::Field_flight: return lambda("flight", flight()); return;
-        case Fields::Field_altitude: return lambda("altitude", altitude()); return;
-        case Fields::Field_groundSpeed: return lambda("groundSpeed", groundSpeed()); return;
-        case Fields::Field_track: return lambda("track", track()); return;
-        case Fields::Field_lat: return lambda("lat", lat()); return;
-        case Fields::Field_lon: return lambda("lon", lon()); return;
-        case Fields::Field_verticalRate: return lambda("verticalRate", verticalRate()); return;
-        case Fields::Field_messageCount: return lambda("messageCount", messageCount()); return;
-        case Fields::Field_odd_cprlat: return lambda("odd_cprlat", odd_cprlat()); return;
-        case Fields::Field_odd_cprlon: return lambda("odd_cprlon", odd_cprlon()); return;
-        case Fields::Field_odd_cprtime: return lambda("odd_cprtime", odd_cprtime()); return;
-        case Fields::Field_even_cprlat: return lambda("even_cprlat", even_cprlat()); return;
-        case Fields::Field_even_cprlon: return lambda("even_cprlon", even_cprlon()); return;
-        case Fields::Field_even_cprtime: return lambda("even_cprtime", even_cprtime()); return;
+        case Fields::Field_seen: return lambda("seen", seen());
+        case Fields::Field_addr: return lambda("addr", addr());
+        case Fields::Field_hexaddr: return lambda("hexaddr", hexaddr());
+        case Fields::Field_flight: return lambda("flight", flight());
+        case Fields::Field_altitude: return lambda("altitude", altitude());
+        case Fields::Field_groundSpeed: return lambda("groundSpeed", groundSpeed());
+        case Fields::Field_track: return lambda("track", track());
+        case Fields::Field_lat: return lambda("lat", lat());
+        case Fields::Field_lon: return lambda("lon", lon());
+        case Fields::Field_verticalRate: return lambda("verticalRate", verticalRate());
+        case Fields::Field_messageCount: return lambda("messageCount", messageCount());
+        case Fields::Field_odd_cprlat: return lambda("odd_cprlat", odd_cprlat());
+        case Fields::Field_odd_cprlon: return lambda("odd_cprlon", odd_cprlon());
+        case Fields::Field_odd_cprtime: return lambda("odd_cprtime", odd_cprtime());
+        case Fields::Field_even_cprlat: return lambda("even_cprlat", even_cprlat());
+        case Fields::Field_even_cprlon: return lambda("even_cprlon", even_cprlon());
+        case Fields::Field_even_cprtime: return lambda("even_cprtime", even_cprtime());
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
@@ -1256,7 +1256,7 @@ template <> struct Stencil::Transaction<Avid::Traffic> : Stencil::TransactionT<A
     {
         switch (index)
         {
-        case Fields::Field_aircrafts: return lambda("aircrafts", aircrafts()); return;
+        case Fields::Field_aircrafts: return lambda("aircrafts", aircrafts());
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
@@ -1640,24 +1640,24 @@ template <> struct Stencil::Transaction<Avid::Motion> : Stencil::TransactionT<Av
     {
         switch (index)
         {
-        case Fields::Field_mag_x: return lambda("mag_x", mag_x()); return;
-        case Fields::Field_mag_y: return lambda("mag_y", mag_y()); return;
-        case Fields::Field_mag_z: return lambda("mag_z", mag_z()); return;
-        case Fields::Field_acc_x: return lambda("acc_x", acc_x()); return;
-        case Fields::Field_acc_y: return lambda("acc_y", acc_y()); return;
-        case Fields::Field_acc_z: return lambda("acc_z", acc_z()); return;
-        case Fields::Field_rot_x: return lambda("rot_x", rot_x()); return;
-        case Fields::Field_rot_y: return lambda("rot_y", rot_y()); return;
-        case Fields::Field_rot_z: return lambda("rot_z", rot_z()); return;
-        case Fields::Field_dmag_x: return lambda("dmag_x", dmag_x()); return;
-        case Fields::Field_dmag_y: return lambda("dmag_y", dmag_y()); return;
-        case Fields::Field_dmag_z: return lambda("dmag_z", dmag_z()); return;
-        case Fields::Field_dacc_x: return lambda("dacc_x", dacc_x()); return;
-        case Fields::Field_dacc_y: return lambda("dacc_y", dacc_y()); return;
-        case Fields::Field_dacc_z: return lambda("dacc_z", dacc_z()); return;
-        case Fields::Field_drot_x: return lambda("drot_x", drot_x()); return;
-        case Fields::Field_drot_y: return lambda("drot_y", drot_y()); return;
-        case Fields::Field_drot_z: return lambda("drot_z", drot_z()); return;
+        case Fields::Field_mag_x: return lambda("mag_x", mag_x());
+        case Fields::Field_mag_y: return lambda("mag_y", mag_y());
+        case Fields::Field_mag_z: return lambda("mag_z", mag_z());
+        case Fields::Field_acc_x: return lambda("acc_x", acc_x());
+        case Fields::Field_acc_y: return lambda("acc_y", acc_y());
+        case Fields::Field_acc_z: return lambda("acc_z", acc_z());
+        case Fields::Field_rot_x: return lambda("rot_x", rot_x());
+        case Fields::Field_rot_y: return lambda("rot_y", rot_y());
+        case Fields::Field_rot_z: return lambda("rot_z", rot_z());
+        case Fields::Field_dmag_x: return lambda("dmag_x", dmag_x());
+        case Fields::Field_dmag_y: return lambda("dmag_y", dmag_y());
+        case Fields::Field_dmag_z: return lambda("dmag_z", dmag_z());
+        case Fields::Field_dacc_x: return lambda("dacc_x", dacc_x());
+        case Fields::Field_dacc_y: return lambda("dacc_y", dacc_y());
+        case Fields::Field_dacc_z: return lambda("dacc_z", dacc_z());
+        case Fields::Field_drot_x: return lambda("drot_x", drot_x());
+        case Fields::Field_drot_y: return lambda("drot_y", drot_y());
+        case Fields::Field_drot_z: return lambda("drot_z", drot_z());
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
@@ -1972,8 +1972,8 @@ template <> struct Stencil::Transaction<Avid::Pressure> : Stencil::TransactionT<
     {
         switch (index)
         {
-        case Fields::Field_pressure: return lambda("pressure", pressure()); return;
-        case Fields::Field_temperature: return lambda("temperature", temperature()); return;
+        case Fields::Field_pressure: return lambda("pressure", pressure());
+        case Fields::Field_temperature: return lambda("temperature", temperature());
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }

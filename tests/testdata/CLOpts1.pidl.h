@@ -219,11 +219,11 @@ template <> struct Stencil::Transaction<CLOpts1::CommandLineOptions> : Stencil::
     {
         switch (index)
         {
-        case Fields::Field_workingDirectory: return lambda("workingDirectory", workingDirectory()); return;
-        case Fields::Field_libraries: return lambda("libraries", libraries()); return;
-        case Fields::Field_scan: return lambda("scan", scan()); return;
-        case Fields::Field_httpsPort: return lambda("httpsPort", httpsPort()); return;
-        case Fields::Field_daemon: return lambda("daemon", daemon()); return;
+        case Fields::Field_workingDirectory: return lambda("workingDirectory", workingDirectory());
+        case Fields::Field_libraries: return lambda("libraries", libraries());
+        case Fields::Field_scan: return lambda("scan", scan());
+        case Fields::Field_httpsPort: return lambda("httpsPort", httpsPort());
+        case Fields::Field_daemon: return lambda("daemon", daemon());
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
@@ -395,8 +395,8 @@ template <> struct Stencil::Transaction<CLOpts1::SimpleObj> : Stencil::Transacti
     {
         switch (index)
         {
-        case Fields::Field_field1: return lambda("field1", field1()); return;
-        case Fields::Field_field2: return lambda("field2", field2()); return;
+        case Fields::Field_field1: return lambda("field1", field1());
+        case Fields::Field_field2: return lambda("field2", field2());
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
@@ -534,7 +534,7 @@ template <> struct Stencil::Transaction<CLOpts1::ObjWithList> : Stencil::Transac
     {
         switch (index)
         {
-        case Fields::Field_field1: return lambda("field1", field1()); return;
+        case Fields::Field_field1: return lambda("field1", field1());
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
@@ -771,12 +771,12 @@ template <> struct Stencil::Transaction<CLOpts1::CLOptsTest> : Stencil::Transact
     {
         switch (index)
         {
-        case Fields::Field_key1: return lambda("key1", key1()); return;
-        case Fields::Field_listofint: return lambda("listofint", listofint()); return;
-        case Fields::Field_listoflist: return lambda("listoflist", listoflist()); return;
-        case Fields::Field_listofobj: return lambda("listofobj", listofobj()); return;
-        case Fields::Field_objoflist: return lambda("objoflist", objoflist()); return;
-        case Fields::Field_key2: return lambda("key2", key2()); return;
+        case Fields::Field_key1: return lambda("key1", key1());
+        case Fields::Field_listofint: return lambda("listofint", listofint());
+        case Fields::Field_listoflist: return lambda("listoflist", listoflist());
+        case Fields::Field_listofobj: return lambda("listofobj", listofobj());
+        case Fields::Field_objoflist: return lambda("objoflist", objoflist());
+        case Fields::Field_key2: return lambda("key2", key2());
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }

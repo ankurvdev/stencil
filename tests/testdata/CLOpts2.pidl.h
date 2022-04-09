@@ -248,11 +248,11 @@ template <> struct Stencil::Transaction<CLOpts2::InstallOptions> : Stencil::Tran
     {
         switch (index)
         {
-        case Fields::Field_ProductId: return lambda("ProductId", ProductId()); return;
-        case Fields::Field_Repair: return lambda("Repair", Repair()); return;
-        case Fields::Field_ForceNonSD: return lambda("ForceNonSD", ForceNonSD()); return;
-        case Fields::Field_TargetVolume: return lambda("TargetVolume", TargetVolume()); return;
-        case Fields::Field_User: return lambda("User", User()); return;
+        case Fields::Field_ProductId: return lambda("ProductId", ProductId());
+        case Fields::Field_Repair: return lambda("Repair", Repair());
+        case Fields::Field_ForceNonSD: return lambda("ForceNonSD", ForceNonSD());
+        case Fields::Field_TargetVolume: return lambda("TargetVolume", TargetVolume());
+        case Fields::Field_User: return lambda("User", User());
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
@@ -408,7 +408,7 @@ template <> struct Stencil::Transaction<CLOpts2::QueueOptions> : Stencil::Transa
     {
         switch (index)
         {
-        case Fields::Field_ProductId: return lambda("ProductId", ProductId()); return;
+        case Fields::Field_ProductId: return lambda("ProductId", ProductId());
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
@@ -520,7 +520,7 @@ template <> struct Stencil::Transaction<CLOpts2::PauseOptions> : Stencil::Transa
     {
         switch (index)
         {
-        case Fields::Field_ProductId: return lambda("ProductId", ProductId()); return;
+        case Fields::Field_ProductId: return lambda("ProductId", ProductId());
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
@@ -632,7 +632,7 @@ template <> struct Stencil::Transaction<CLOpts2::CancelOptions> : Stencil::Trans
     {
         switch (index)
         {
-        case Fields::Field_ProductId: return lambda("ProductId", ProductId()); return;
+        case Fields::Field_ProductId: return lambda("ProductId", ProductId());
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
@@ -744,7 +744,7 @@ template <> struct Stencil::Transaction<CLOpts2::ResumeOptions> : Stencil::Trans
     {
         switch (index)
         {
-        case Fields::Field_ProductId: return lambda("ProductId", ProductId()); return;
+        case Fields::Field_ProductId: return lambda("ProductId", ProductId());
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
@@ -856,7 +856,7 @@ template <> struct Stencil::Transaction<CLOpts2::UpdateOptions> : Stencil::Trans
     {
         switch (index)
         {
-        case Fields::Field_ProductId: return lambda("ProductId", ProductId()); return;
+        case Fields::Field_ProductId: return lambda("ProductId", ProductId());
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
@@ -968,7 +968,7 @@ template <> struct Stencil::Transaction<CLOpts2::HydrateOptions> : Stencil::Tran
     {
         switch (index)
         {
-        case Fields::Field_ProductId: return lambda("ProductId", ProductId()); return;
+        case Fields::Field_ProductId: return lambda("ProductId", ProductId());
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
@@ -1063,40 +1063,33 @@ template <> struct Stencil::Visitor<CLOpts2::CommandLineOptions>
         lambda(std::get<Type>(obj));
     }
 
-    template <typename T, typename TLambda> static bool VisitKey(T& obj, Fields fields, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields fields, TLambda&& lambda)
     {
         switch (fields)
         {
         case Fields::install:
             _SetAndVisit<::CLOpts2::InstallOptions>(obj._variant, std::forward<TLambda>(lambda));
-            return true;
-
+            break;
         case Fields::queue:
             _SetAndVisit<::CLOpts2::QueueOptions>(obj._variant, std::forward<TLambda>(lambda));
-            return true;
-
+            break;
         case Fields::pause:
             _SetAndVisit<::CLOpts2::PauseOptions>(obj._variant, std::forward<TLambda>(lambda));
-            return true;
-
+            break;
         case Fields::cancel:
             _SetAndVisit<::CLOpts2::CancelOptions>(obj._variant, std::forward<TLambda>(lambda));
-            return true;
-
+            break;
         case Fields::resume:
             _SetAndVisit<::CLOpts2::ResumeOptions>(obj._variant, std::forward<TLambda>(lambda));
-            return true;
-
+            break;
         case Fields::update:
             _SetAndVisit<::CLOpts2::UpdateOptions>(obj._variant, std::forward<TLambda>(lambda));
-            return true;
-
+            break;
         case Fields::hydrate:
             _SetAndVisit<::CLOpts2::HydrateOptions>(obj._variant, std::forward<TLambda>(lambda));
-            return true;
-
+            break;
         case Fields::Invalid: [[fallthrough]];
-        default: return false;
+        default: break;
         }
     }
 

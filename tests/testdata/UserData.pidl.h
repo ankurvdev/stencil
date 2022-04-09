@@ -141,8 +141,8 @@ template <> struct Stencil::Transaction<UserData::UserData> : Stencil::Transacti
     {
         switch (index)
         {
-        case Fields::Field_modified: return lambda("modified", modified()); return;
-        case Fields::Field_creation: return lambda("creation", creation()); return;
+        case Fields::Field_modified: return lambda("modified", modified());
+        case Fields::Field_creation: return lambda("creation", creation());
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
@@ -329,11 +329,11 @@ template <> struct Stencil::Transaction<UserData::Identity> : Stencil::Transacti
     {
         switch (index)
         {
-        case Fields::Field_username: return lambda("username", username()); return;
-        case Fields::Field_password: return lambda("password", password()); return;
-        case Fields::Field_privatekey: return lambda("privatekey", privatekey()); return;
-        case Fields::Field_clientcert: return lambda("clientcert", clientcert()); return;
-        case Fields::Field_secretcode: return lambda("secretcode", secretcode()); return;
+        case Fields::Field_username: return lambda("username", username());
+        case Fields::Field_password: return lambda("password", password());
+        case Fields::Field_privatekey: return lambda("privatekey", privatekey());
+        case Fields::Field_clientcert: return lambda("clientcert", clientcert());
+        case Fields::Field_secretcode: return lambda("secretcode", secretcode());
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
@@ -521,9 +521,9 @@ template <> struct Stencil::Transaction<UserData::RemoteHost> : Stencil::Transac
     {
         switch (index)
         {
-        case Fields::Field_name: return lambda("name", name()); return;
-        case Fields::Field_uri: return lambda("uri", uri()); return;
-        case Fields::Field_identity: return lambda("identity", identity()); return;
+        case Fields::Field_name: return lambda("name", name());
+        case Fields::Field_uri: return lambda("uri", uri());
+        case Fields::Field_identity: return lambda("identity", identity());
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }

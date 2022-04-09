@@ -11,6 +11,7 @@ SUPPRESS_WARNINGS_END
 #include <cmath>
 #include <cstdint>
 #include <stdexcept>
+#include <type_traits>
 
 struct Primitives64Bit
 {
@@ -41,7 +42,12 @@ struct Primitives64Bit
 
         template <uint8_t W, typename T> static constexpr Type _Create()
         {
-            if constexpr (std::is_floating_point<T>::value) { return Type{.width = W, .category = Primitives64Bit::Type::Category::Float}; }
+            // Apparently chars can be signed or unsigned
+            if constexpr (std::is_same_v<T, char>) { return Type{.width = W, .category = Primitives64Bit::Type::Category::Signed}; }
+            else if constexpr (std::is_floating_point<T>::value)
+            {
+                return Type{.width = W, .category = Primitives64Bit::Type::Category::Float};
+            }
             else if constexpr (std::is_unsigned<T>::value)
             {
                 return Type{.width = W, .category = Primitives64Bit::Type::Category::Unsigned};
@@ -331,3 +337,4 @@ static_assert(ConceptPrimitives64Bit<bool>);
 static_assert(!ConceptPrimitives64BitSigned<float>);
 static_assert(ConceptPrimitives64BitFloat<float>);
 static_assert(ConceptPrimitives64Bit<uint64_t>);
+static_assert(ConceptPrimitives64BitSigned<char>); // Apparently chars can be signed or unsigned. We treat then as signed

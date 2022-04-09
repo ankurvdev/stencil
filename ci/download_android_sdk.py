@@ -43,16 +43,18 @@ class HTMLUrlExtractor(html.parser.HTMLParser):
 
 
 def _search_filename(path: pathlib.Path, name: str) -> Optional[pathlib.Path]:
-    for filepath in path.rglob(f'{name}'):
+    for filepath in path.rglob(f"{name}"):
         return filepath
     return None
 
 
 def _search_exe(bindir: pathlib.Path, binname: str) -> Optional[pathlib.Path]:
     if sys.platform == "win32":
-        path = (_search_filename(bindir, binname + ".bat") or
-                _search_filename(bindir, binname + ".cmd") or
-                _search_filename(bindir, binname + ".exe"))
+        path = (
+            _search_filename(bindir, binname + ".bat")
+            or _search_filename(bindir, binname + ".cmd")
+            or _search_filename(bindir, binname + ".exe")
+        )
     elif sys.platform == "linux":
         path = _search_filename(bindir, binname + ".sh") or _search_filename(bindir, binname)
         if path:
@@ -76,12 +78,12 @@ def _download_or_get_Binary(binname: str, bindir: pathlib.Path, downloadFn: Call
 
 def AddToPath(path: pathlib.Path):
     path = path.absolute()
-    if path not in os.environ['PATH'].split(os.pathsep):
-        os.environ['PATH'] = os.pathsep.join([str(path), os.environ['PATH']])
+    if path not in os.environ["PATH"].split(os.pathsep):
+        os.environ["PATH"] = os.pathsep.join([str(path), os.environ["PATH"]])
 
 
 def DownloadSdkManager(path: pathlib.Path):
-    sdkpath = path / 'sdk'
+    sdkpath = path / "sdk"
     sdkpath.mkdir(exist_ok=True)
     urls = HTMLUrlExtractor("https://developer.android.com/studio").urls
     ossuffix = {"linux": "linux", "win32": "win"}[sys.platform]
@@ -121,11 +123,11 @@ def AcceptSDKLicenses(path: pathlib.Path):
 
 
 def GetAndroidSdkManager(path: pathlib.Path) -> pathlib.Path:
-    return _download_or_get_Binary('sdkmanager', path, DownloadSdkManager)
+    return _download_or_get_Binary("sdkmanager", path, DownloadSdkManager)
 
 
 def GetAndroidStudio(path: pathlib.Path) -> pathlib.Path:
-    return _download_or_get_Binary('studio', path, DownloadAndroidStudio)
+    return _download_or_get_Binary("studio", path, DownloadAndroidStudio)
 
 
 def DownloadJava(path: pathlib.Path):
@@ -133,40 +135,47 @@ def DownloadJava(path: pathlib.Path):
 
 
 def GetJava(path: pathlib.Path) -> pathlib.Path:
-    return _download_or_get_Binary('java', path, DownloadJava)
+    return _download_or_get_Binary("java", path, DownloadJava)
 
 
 def GetJarSigner(path: pathlib.Path) -> pathlib.Path:
-    return _download_or_get_Binary('jarsigner', path, DownloadJava)
+    return _download_or_get_Binary("jarsigner", path, DownloadJava)
 
 
 def DownloadTo(path: pathlib.Path):
     java = GetJava(path)
     sdkmanager = GetAndroidSdkManager(path)
-    sdkpath = path / 'sdk'
-    os.environ["PATH"] = os.pathsep.join([str(java.parent), str(sdkmanager.parent), os.environ["PATH"]])
-    dirs = {''}
+    sdkpath = path / "sdk"
+    os.environ["PATH"] = os.pathsep.join(
+        [str(java.parent), str(sdkmanager.parent), os.environ["PATH"]]
+    )
+    dirs = {""}
     for d in os.scandir(sdkpath):
         dirs.add(d.name)
-    packages = ["ndk-bundle", "ndk;24.0.8215888", "build-tools;32.0.0", "platform-tools", "platforms;android-32"]
+    packages = [
+        "ndk-bundle",
+        "ndk;24.0.8215888",
+        "build-tools;32.0.0",
+        "platform-tools",
+        "platforms;android-32",
+    ]
 
     def IsNeeded():
         for p in packages:
-            if not p.split(';', maxsplit=1)[0] in dirs:
+            if not p.split(";", maxsplit=1)[0] in dirs:
                 return True
         return False
-    retval = {
-        "ndk": (sdkpath / "ndk-bundle").absolute(),
+
+    if IsNeeded():
+        cmd = [str(sdkmanager), f"--sdk_root={sdkpath}"] + packages
+        sys.stderr.write(" ".join(cmd) + "\n")
+        subprocess.check_call(cmd)
+        AcceptSDKLicenses(path)
+    return {
+        "ndk": (sorted(list((sdkpath / "ndk").glob("*")))[-1]).absolute(),
         "java_home": java.parent.parent,
-        "sdk_root": sdkpath
+        "sdk_root": sdkpath,
     }
-    if not IsNeeded():
-        return retval
-    cmd = [str(sdkmanager), f"--sdk_root={sdkpath}"] + packages
-    sys.stderr.write(" ".join(cmd) + "\n")
-    subprocess.check_call(cmd)
-    AcceptSDKLicenses(path)
-    return retval
 
 
 if __name__ == "__main__":

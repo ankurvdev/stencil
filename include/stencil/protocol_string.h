@@ -4,8 +4,7 @@
 #include "typetraits_builtins.h"
 
 SUPPRESS_WARNINGS_START
-#include <fmt/chrono.h>
-#include <fmt/ostream.h>
+
 SUPPRESS_WARNINGS_END
 
 SUPPRESS_WARNINGS_START
@@ -13,9 +12,15 @@ SUPPRESS_WARNINGS_START
 #pragma warning(disable : 4623)    // default constructor was implicitly defined as deleted
 #pragma warning(disable : 4626)    // assignment operator was implicitly defined as deleted
 #pragma warning(disable : 5027)    // move assignment operator was implicitly defined as deleted
+#pragma warning(disable : 5219)    // date.h implicit conversion from 'unsigned int64 to long double
+#pragma warning(disable : 4365)    // fmt: initializing conversion signed/unsigned mismatch
+#include <fmt/chrono.h>
+#include <fmt/ostream.h>
 #include <charconv>
 #include <chrono>
 #include <date/date.h>
+#include <sstream>
+#include <string_view>
 
 SUPPRESS_WARNINGS_END
 
@@ -93,9 +98,11 @@ template <ConceptPrimitives64Bit T> struct SerDes<T, ProtocolString>
         else
         {
             using TRepr = decltype(Primitives64Bit::Traits<T>::Repr(T{}));
-            TRepr ival;
-            auto  result = std::from_chars(ctx.data(), ctx.data() + ctx.size(), ival);
-            if (result.ec == std::errc::invalid_argument) throw std::logic_error("Cannot convert");
+            TRepr              ival;
+            std::string        str(ctx);
+            std::istringstream iss(str);
+            iss >> ival;
+            if (!iss.eof() || iss.fail()) throw std::logic_error("Cannot convert");
             // if (ival > std::numeric_limits<T>::max() || ival < std::numeric_limits<T>::min()) { throw std::logic_error("Out of range"); }
             obj = Primitives64Bit::Traits<T>::Convert(ival);
             return;
@@ -209,12 +216,7 @@ template <typename TClock> struct SerDes<std::chrono::time_point<TClock>, Protoc
     template <typename Context> static auto Read(TObj& obj, Context& ctx)
     {
         std::istringstream ss(ctx.data());
-        ss >> date::parse("%FT%T", obj);
-        // return std::mktime(&tm);
-        // TODO("");
-        //  uint64_t val;
-        //  SerDes<uint64_t, ProtocolJsonVal>::Read(val, ctx);
-        //  obj = std::chrono::time_point<TClock>(typename std::chrono::time_point<TClock>::duration(val));
+        date::from_stream(ss, "%FT%T", obj);
     }
 };
 

@@ -108,14 +108,23 @@ def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str):
     cmakebuildextraargs = (["--config", config] if sys.platform == "win32" else [])
     cmakeconfigargs: list[str] = []
     if "android" in runtime_triplet:
+        subprocess.check_call([vcpkgexe, "install", "catch2:" + runtime_triplet], env=myenv)
+        subprocess.check_call([vcpkgexe, "install", "dtl:" + runtime_triplet], env=myenv)
+
         cmakeconfigargs += [
             "-DCMAKE_TOOLCHAIN_FILE:PATH=" + myenv['ANDROID_NDK_HOME'] + "/build/cmake/android.toolchain.cmake",
             "-DANDROID=1",
             "-DANDROID_NATIVE_API_LEVEL=21",
+            "-DANDROID_ABI=arm64-v8a"
         ]
+        if runtime_triplet == "arm64-android":
+            cmakeconfigargs += ["-DANDROID_ABI=arm64-v8a"]
+        else:
+            cmakeconfigargs += ["-DANDROID_ABI=armeabi-v7a"]
         if sys.platform == "win32":
             cmakeconfigargs += ["-G", "Ninja", f"-DCMAKE_MAKE_PROGRAM:FILEPATH={find_binary('ninja')}"]
-
+    if "windows" in runtime_triplet:
+        cmakeconfigargs += ["-G", "Visual Studio 17 2022", "-A", ("Win32" if "x86" in runtime_triplet else "x64")]
     ctestextraargs = (["-C", config] if sys.platform == "win32" else [])
     cmd: list[str] = [find_binary("cmake"),
                       f"-DCMAKE_BUILD_TYPE:STR={config}",

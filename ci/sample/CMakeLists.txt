@@ -14,8 +14,9 @@ endif()
 if (NOT DEFINED VCPKG_HOST_TRIPLET)
     set(VCPKG_HOST_TRIPLET ${VCPKG_TARGET_TRIPLET})
 endif()
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../../cmake)
 
-include(${CMAKE_CURRENT_LIST_DIR}/../../BuildEnv.cmake)
+include(BuildEnv)
 include(${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
 message(STATUS " 
     CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}
@@ -28,9 +29,9 @@ message(STATUS "
 
 project(stencil-test VERSION 0.0.1)
 
-EnableStrictCompilation()
 set(CMAKE_CXX_STANDARD 20)
-#set(CMAKE_FIND_DEBUG_MODE TRUE)
+EnableStrictCompilation()
+set(CMAKE_FIND_DEBUG_MODE TRUE)
 
 if (NOT "${VCPKG_HOST_TRIPLET}" STREQUAL "${VCPKG_TARGET_TRIPLET}")
     find_program(STENCIL_HOST_EXECUTABLE stencil REQUIRED NO_DEFAULT_PATH PATHS ${VCPKG_ROOT}/installed/${VCPKG_HOST_TRIPLET}/tools)
@@ -48,25 +49,12 @@ if (NOT "${VCPKG_HOST_TRIPLET}" STREQUAL "${VCPKG_TARGET_TRIPLET}")
 endif()
 
 find_package(stencil REQUIRED)
-
-file(GLOB pidlfiles ${CMAKE_CURRENT_LIST_DIR}/../../tests/*.pidl)
-if ( "${pidlfiles}" STREQUAL "")
-    message(FATAL_ERROR "Cannot find any pidl files to include in ${CMAKE_CURRENT_LIST_DIR}/../../tests")
-endif()
-
 set(srcfile ${CMAKE_CURRENT_BINARY_DIR}/main.cpp)
 file(WRITE ${srcfile} "")
 add_executable(stencil_vcpkg_test ${srcfile})
-foreach(f ${pidlfiles})
-    get_filename_component(fname ${f} NAME)
-    file(APPEND ${srcfile} "#include <${fname}.h>\n")
-    target_add_stencil(stencil_vcpkg_test ${f})
-endforeach()
 
 target_add_lexyacc(stencil_vcpkg_test ${CMAKE_CURRENT_LIST_DIR}/WavefrontObj.ly)
-target_include_directories(stencil_vcpkg_test PRIVATE ${CMAKE_CURRENT_LIST_DIR})
-
-target_add_resource(stencil_vcpkg_test testdata ${pidlfiles})
+target_include_directories(stencil_vcpkg_test PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
 
 file(APPEND ${srcfile} "
 #include<WavefrontObj.ly.h>
@@ -87,3 +75,5 @@ int main() {
 enable_testing()
 add_test(NAME stencil_vcpkg_test COMMAND stencil_vcpkg_test)
 
+include(${CMAKE_CURRENT_LIST_DIR}/../../cmake/RuntimeCodegenTests.cmake)
+target_link_libraries(stencil_vcpkg_test PRIVATE codegen testdata)

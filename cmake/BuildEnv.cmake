@@ -179,18 +179,22 @@ macro (SupressWarningForTarget targetName)
     endif()
 endmacro()
 
-function(init_submodule path)
-    if ((IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${path}"))
-        file(GLOB files "${CMAKE_CURRENT_SOURCE_DIR}/${path}/*")
-        if (NOT "${files}" STREQUAL "")
-            return()
+if (DEFINED INIT_SUBMODULE_DIRECTORY)
+    function(init_submodule path)
+        set(srcdir "${INIT_SUBMODULE_DIRECTORY}")
+        if ((IS_DIRECTORY "${srcdir}/${path}"))
+            file(GLOB files "${srcdir}/${path}/*")
+            if (NOT "${files}" STREQUAL "")
+                return()
+            endif()
         endif()
-    endif()
-    message(STATUS "Submodule Update: ${CMAKE_CURRENT_SOURCE_DIR}/${path}")
-    find_package(Git QUIET REQUIRED)
-    execute_process(
-        COMMAND "${GIT_EXECUTABLE}" submodule update --init --recursive --single-branch "${path}"
-        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-        COMMAND_ERROR_IS_FATAL ANY
-    )
-endfunction()
+        message(STATUS "Submodule Update: ${srcdir}/${path}")
+        find_package(Git QUIET REQUIRED)
+        execute_process(
+            COMMAND "${GIT_EXECUTABLE}" submodule update --init --recursive --single-branch "${path}"
+            WORKING_DIRECTORY "${srcdir}"
+            COMMAND_ERROR_IS_FATAL ANY
+        )
+    endfunction()
+
+endif()
