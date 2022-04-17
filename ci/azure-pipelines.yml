@@ -33,6 +33,10 @@ jobs:
 - job: VCPKG_Workflow
   strategy:
     matrix:
+      x64-uwp-static-md:
+        HostTriplet: x86-windows-static
+        RuntimeTriplet: x64-uwp-static-md
+        VMImage: 'windows-latest'
       x86_windows_static:
         HostTriplet: x86-windows-static
         RuntimeTriplet: x86-windows-static

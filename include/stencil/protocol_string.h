@@ -9,11 +9,13 @@ SUPPRESS_WARNINGS_END
 
 SUPPRESS_WARNINGS_START
 #pragma warning(disable : 4866)    // left to right evaluation not guaranteed
+#pragma warning(disable : 4868)    // left to right evaluation not guaranteed
 #pragma warning(disable : 4623)    // default constructor was implicitly defined as deleted
 #pragma warning(disable : 4626)    // assignment operator was implicitly defined as deleted
 #pragma warning(disable : 5027)    // move assignment operator was implicitly defined as deleted
 #pragma warning(disable : 5219)    // date.h implicit conversion from 'unsigned int64 to long double
 #pragma warning(disable : 4365)    // fmt: initializing conversion signed/unsigned mismatch
+#include <fmt/format.h>
 #include <fmt/chrono.h>
 #include <fmt/ostream.h>
 #include <charconv>

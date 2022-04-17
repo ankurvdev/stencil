@@ -142,7 +142,10 @@ def GetJarSigner(path: pathlib.Path) -> pathlib.Path:
     return _download_or_get_Binary("jarsigner", path, DownloadJava)
 
 
-def DownloadTo(path: pathlib.Path):
+AndroidNDKVersion = "24.0.8215888"
+
+
+def DownloadTo(path: pathlib.Path) -> dict[str, str | pathlib.Path]:
     java = GetJava(path)
     sdkmanager = GetAndroidSdkManager(path)
     sdkpath = path / "sdk"
@@ -154,7 +157,7 @@ def DownloadTo(path: pathlib.Path):
         dirs.add(d.name)
     packages = [
         "ndk-bundle",
-        "ndk;24.0.8215888",
+        f"ndk;{AndroidNDKVersion}",
         "build-tools;32.0.0",
         "platform-tools",
         "platforms;android-32",
@@ -173,6 +176,8 @@ def DownloadTo(path: pathlib.Path):
         AcceptSDKLicenses(path)
     return {
         "ndk": (sorted(list((sdkpath / "ndk").glob("*")))[-1]).absolute(),
+        "ndk_version": AndroidNDKVersion,
+        "sdk_version": "32",
         "java_home": java.parent.parent,
         "sdk_root": sdkpath,
     }
