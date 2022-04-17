@@ -63,8 +63,8 @@ vcpkgroot = (workdir / "vcpkg")
 androidroot = (workdir / "android")
 
 if not vcpkgroot.exists():
-    subprocess.check_call([find_binary("git"), "clone", "-q", "https://github.com/ankurverma85/vcpkg.git",
-                          "--branch", "ankurv/stencil", "--depth", "1"], cwd=workdir.as_posix())
+    subprocess.check_call([find_binary("git"), "clone", "-q", "https://github.com/ankurvdev/vcpkg.git",
+                          "--branch", "lkg_patched", "--depth", "1"], cwd=workdir.as_posix())
 
 scriptdir = pathlib.Path(__file__).parent.absolute()
 bootstrapscript = "bootstrap-vcpkg.bat" if sys.platform == "win32" else "bootstrap-vcpkg.sh"

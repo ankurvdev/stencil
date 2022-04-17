@@ -5,11 +5,6 @@
 #include "stackvisitor.h"
 #include "visitor.h"
 
-SUPPRESS_WARNINGS_START
-#include <fmt/chrono.h>
-#include <fmt/format.h>
-#include <fmt/ostream.h>
-SUPPRESS_WARNINGS_END
 //#if defined USE_SIMDJSON
 
 #pragma warning(push, 3)

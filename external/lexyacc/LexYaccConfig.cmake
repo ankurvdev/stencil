@@ -63,7 +63,7 @@ function(find_bison)
             return()
         endif()
     endif()
-    find_package(BISON 3.5 QUIET)
+    find_package(BISON  QUIET)
     if ((EXISTS ${BISON_EXECUTABLE}) AND ("${BISON_VERSION}" GREATER_EQUAL "3.5"))
         message(STATUS "Found Bison ${BISON_EXECUTABLE}:${BISON_VERSION}")
         return()
@@ -210,14 +210,16 @@ function(target_add_lexyacc target lyfile)
     endif()
 
     if (${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
+        target_compile_options(${target} PRIVATE /W3 /WX-)
+
         # 4244 return type conversion possible loss of data
         # 4365 signed unsigned mismatch
         # 4626 assignment operator implicitly defined as deleted
         # 4625 copy constructor implicitly defined as deleted
         # 5027 move assignment operator implicitly defined as deleted
         # 4668 is not defined as a preprocessor macro, replacing with '0' for '#if/#elif'
-        set_source_files_properties(${lc} PROPERTIES COMPILE_FLAGS "-wd4005 -wd4065 -wd4244 -wd4365 -wd4626 -wd4625 -wd4668 -wd5027")
-        set_source_files_properties(${yc} PROPERTIES COMPILE_FLAGS "-wd4065 -wd4127 -wd4244 -wd4365 -wd4626 -wd4625 -wd4668 -wd5027")
+        set_source_files_properties("$lc}" PROPERTIES COMPILE_FLAGS "/W3")
+        set_source_files_properties("$yc}" PROPERTIES COMPILE_FLAGS "/W3")
     elseif((${CMAKE_CXX_COMPILER_ID} STREQUAL GNU) OR (${CMAKE_CXX_COMPILER_ID} STREQUAL Clang))
         set_source_files_properties(${lc} PROPERTIES COMPILE_FLAGS "-Wno-everything")
         set_source_files_properties(${yc} PROPERTIES COMPILE_FLAGS "-Wno-everything")

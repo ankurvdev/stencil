@@ -13,7 +13,6 @@
 #pragma clang diagnostic ignored "-Weverything"
 #pragma GCC diagnostics  push
 #pragma GCC diagnostic   ignored "-Wmaybe-uninitialized"
-#include <fmt/format.h>
 
 #include <limits.h>
 
