@@ -88,6 +88,14 @@ NativeType = "%Name%"
 [Variant]
 NativeType = "::%Program:Name%::Variant  "
 
+[Containers.ref]
+Params = [ "type"]
+NativeType = "Stencil::Ref<%type:NativeType%>"
+
+[Containers.refmap]
+Params = [ "type"]
+NativeType = "Stencil::RefMap<%type:NativeType%>"
+
 [Containers.array]
 Params = [ "type", "size" ]
 NativeType = "std::array<%type:NativeType%, %size%>"

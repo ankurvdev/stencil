@@ -12,6 +12,8 @@
 #include "visitor.h"
 
 #include "Database2.h"
+#include "ref.h"
+#include "shared_tree.h"
 
 #if defined USE_CPP_HTTPLIB
 #include "WebService.h"

@@ -35,7 +35,7 @@ template <typename T> struct shared_stringT
     shared_stringT(std::nullptr_t) {}
 
     shared_stringT(std::shared_ptr<TString>& str) : _str(str) {}
-    shared_stringT(const shared_stringT& str) : _str(str) {}
+    shared_stringT(const shared_stringT& str) : _str(std::make_shared<TString>(str)) {}
     shared_stringT(shared_stringT&& str) noexcept : _str(std::move(str._str)) {}
 
     public:
@@ -71,10 +71,7 @@ template <typename T> struct shared_stringT
         {
             if (_str.get() == nullptr) { *this = str; }
         }
-        else
-        {
-            (*_str.get() += *str.get());
-        }
+        else { (*_str.get() += *str.get()); }
 
         return *this;
     }

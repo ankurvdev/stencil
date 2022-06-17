@@ -81,20 +81,24 @@ function(_add_stencil_target)
     set(outdir "${CMAKE_CURRENT_BINARY_DIR}/stencil_${targetName}")
     file(MAKE_DIRECTORY ${outdir})
     set(outputs)
-    if (EXISTS "${STENCIL_EXECUTABLE}")
+    if(TARGET "${STENCIL_EXECUTABLE}")
+        foreach(f ${_IDLS})
+            get_filename_component(fname "${f}" NAME)
+            list(APPEND outputs "${outdir}/${fname}.h")
+        endforeach()
+    elseif (EXISTS "${STENCIL_EXECUTABLE}")
         execute_process(
-            COMMAND ${STENCIL_EXECUTABLE} --dryrun --outdir=${outdir} ${_IDLS}
-            COMMAND_ERROR_IS_FATAL ANY
+            COMMAND "${STENCIL_EXECUTABLE}" --dryrun --outdir=${outdir} ${_IDLS}
+            COMMAND_ECHO STDOUT
+            RESULT_VARIABLE rslt
             OUTPUT_VARIABLE files)
+        if (NOT rslt STREQUAL 0)
+            message(FATAL_ERROR "${rslt}::${files}")
+        endif()
         STRING(REGEX REPLACE "\n" ";" files "${files}" )
         foreach (f ${files})
             file(TO_CMAKE_PATH "${f}" tmp)
             list(APPEND outputs ${tmp})
-        endforeach()
-    elseif(TARGET "${STENCIL_EXECUTABLE}")
-        foreach(f ${_IDLS})
-            get_filename_component(fname "${f}" NAME)
-            list(APPEND outputs "${outdir}/${fname}.h")
         endforeach()
     else()
         message(FATAL_ERROR "Cannot find stencil executable or target ${STENCIL_EXECUTABLE}")
