@@ -244,7 +244,7 @@ template <> struct Stencil::Transaction<CLOpts2::InstallOptions> : Stencil::Tran
         Obj().User = std::move(val);
     }
 
-    template <typename TLambda> auto Visit(Fields index, TLambda&& lambda)
+    template <typename TLambda> auto Visit(Fields index, [[maybe_unused]] TLambda&& lambda)
     {
         switch (index)
         {
@@ -257,7 +257,7 @@ template <> struct Stencil::Transaction<CLOpts2::InstallOptions> : Stencil::Tran
         }
     }
 
-    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    template <typename TLambda> auto Visit([[maybe_unused]] std::string_view const& fieldName, [[maybe_unused]] TLambda&& lambda)
     {
         if (fieldName == "ProductId") { return lambda(Fields::Field_ProductId, ProductId()); }
         if (fieldName == "Repair") { return lambda(Fields::Field_Repair, Repair()); }
@@ -267,7 +267,7 @@ template <> struct Stencil::Transaction<CLOpts2::InstallOptions> : Stencil::Tran
         throw std::invalid_argument("Asked to visit invalid field");
     }
 
-    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
     {
         lambda("ProductId", Fields::Field_ProductId, ProductId(), Obj().ProductId);
         lambda("Repair", Fields::Field_Repair, Repair(), Obj().Repair);
@@ -322,7 +322,7 @@ template <> struct Stencil::Visitor<CLOpts2::InstallOptions> : Stencil::VisitorT
     using TData  = CLOpts2::InstallOptions;
     using Fields = TypeTraitsForIndexable<TData>::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
         switch (field)
         {
@@ -336,7 +336,7 @@ template <> struct Stencil::Visitor<CLOpts2::InstallOptions> : Stencil::VisitorT
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_ProductId, obj.ProductId);
         lambda(Fields::Field_Repair, obj.Repair);
@@ -404,7 +404,7 @@ template <> struct Stencil::Transaction<CLOpts2::QueueOptions> : Stencil::Transa
         Obj().ProductId = std::move(val);
     }
 
-    template <typename TLambda> auto Visit(Fields index, TLambda&& lambda)
+    template <typename TLambda> auto Visit(Fields index, [[maybe_unused]] TLambda&& lambda)
     {
         switch (index)
         {
@@ -413,13 +413,13 @@ template <> struct Stencil::Transaction<CLOpts2::QueueOptions> : Stencil::Transa
         }
     }
 
-    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    template <typename TLambda> auto Visit([[maybe_unused]] std::string_view const& fieldName, [[maybe_unused]] TLambda&& lambda)
     {
         if (fieldName == "ProductId") { return lambda(Fields::Field_ProductId, ProductId()); }
         throw std::invalid_argument("Asked to visit invalid field");
     }
 
-    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
     {
         lambda("ProductId", Fields::Field_ProductId, ProductId(), Obj().ProductId);
     }
@@ -442,7 +442,7 @@ template <> struct Stencil::Visitor<CLOpts2::QueueOptions> : Stencil::VisitorT<C
     using TData  = CLOpts2::QueueOptions;
     using Fields = TypeTraitsForIndexable<TData>::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
         switch (field)
         {
@@ -452,7 +452,7 @@ template <> struct Stencil::Visitor<CLOpts2::QueueOptions> : Stencil::VisitorT<C
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_ProductId, obj.ProductId);
     }
@@ -516,7 +516,7 @@ template <> struct Stencil::Transaction<CLOpts2::PauseOptions> : Stencil::Transa
         Obj().ProductId = std::move(val);
     }
 
-    template <typename TLambda> auto Visit(Fields index, TLambda&& lambda)
+    template <typename TLambda> auto Visit(Fields index, [[maybe_unused]] TLambda&& lambda)
     {
         switch (index)
         {
@@ -525,13 +525,13 @@ template <> struct Stencil::Transaction<CLOpts2::PauseOptions> : Stencil::Transa
         }
     }
 
-    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    template <typename TLambda> auto Visit([[maybe_unused]] std::string_view const& fieldName, [[maybe_unused]] TLambda&& lambda)
     {
         if (fieldName == "ProductId") { return lambda(Fields::Field_ProductId, ProductId()); }
         throw std::invalid_argument("Asked to visit invalid field");
     }
 
-    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
     {
         lambda("ProductId", Fields::Field_ProductId, ProductId(), Obj().ProductId);
     }
@@ -554,7 +554,7 @@ template <> struct Stencil::Visitor<CLOpts2::PauseOptions> : Stencil::VisitorT<C
     using TData  = CLOpts2::PauseOptions;
     using Fields = TypeTraitsForIndexable<TData>::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
         switch (field)
         {
@@ -564,7 +564,7 @@ template <> struct Stencil::Visitor<CLOpts2::PauseOptions> : Stencil::VisitorT<C
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_ProductId, obj.ProductId);
     }
@@ -628,7 +628,7 @@ template <> struct Stencil::Transaction<CLOpts2::CancelOptions> : Stencil::Trans
         Obj().ProductId = std::move(val);
     }
 
-    template <typename TLambda> auto Visit(Fields index, TLambda&& lambda)
+    template <typename TLambda> auto Visit(Fields index, [[maybe_unused]] TLambda&& lambda)
     {
         switch (index)
         {
@@ -637,13 +637,13 @@ template <> struct Stencil::Transaction<CLOpts2::CancelOptions> : Stencil::Trans
         }
     }
 
-    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    template <typename TLambda> auto Visit([[maybe_unused]] std::string_view const& fieldName, [[maybe_unused]] TLambda&& lambda)
     {
         if (fieldName == "ProductId") { return lambda(Fields::Field_ProductId, ProductId()); }
         throw std::invalid_argument("Asked to visit invalid field");
     }
 
-    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
     {
         lambda("ProductId", Fields::Field_ProductId, ProductId(), Obj().ProductId);
     }
@@ -666,7 +666,7 @@ template <> struct Stencil::Visitor<CLOpts2::CancelOptions> : Stencil::VisitorT<
     using TData  = CLOpts2::CancelOptions;
     using Fields = TypeTraitsForIndexable<TData>::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
         switch (field)
         {
@@ -676,7 +676,7 @@ template <> struct Stencil::Visitor<CLOpts2::CancelOptions> : Stencil::VisitorT<
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_ProductId, obj.ProductId);
     }
@@ -740,7 +740,7 @@ template <> struct Stencil::Transaction<CLOpts2::ResumeOptions> : Stencil::Trans
         Obj().ProductId = std::move(val);
     }
 
-    template <typename TLambda> auto Visit(Fields index, TLambda&& lambda)
+    template <typename TLambda> auto Visit(Fields index, [[maybe_unused]] TLambda&& lambda)
     {
         switch (index)
         {
@@ -749,13 +749,13 @@ template <> struct Stencil::Transaction<CLOpts2::ResumeOptions> : Stencil::Trans
         }
     }
 
-    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    template <typename TLambda> auto Visit([[maybe_unused]] std::string_view const& fieldName, [[maybe_unused]] TLambda&& lambda)
     {
         if (fieldName == "ProductId") { return lambda(Fields::Field_ProductId, ProductId()); }
         throw std::invalid_argument("Asked to visit invalid field");
     }
 
-    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
     {
         lambda("ProductId", Fields::Field_ProductId, ProductId(), Obj().ProductId);
     }
@@ -778,7 +778,7 @@ template <> struct Stencil::Visitor<CLOpts2::ResumeOptions> : Stencil::VisitorT<
     using TData  = CLOpts2::ResumeOptions;
     using Fields = TypeTraitsForIndexable<TData>::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
         switch (field)
         {
@@ -788,7 +788,7 @@ template <> struct Stencil::Visitor<CLOpts2::ResumeOptions> : Stencil::VisitorT<
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_ProductId, obj.ProductId);
     }
@@ -852,7 +852,7 @@ template <> struct Stencil::Transaction<CLOpts2::UpdateOptions> : Stencil::Trans
         Obj().ProductId = std::move(val);
     }
 
-    template <typename TLambda> auto Visit(Fields index, TLambda&& lambda)
+    template <typename TLambda> auto Visit(Fields index, [[maybe_unused]] TLambda&& lambda)
     {
         switch (index)
         {
@@ -861,13 +861,13 @@ template <> struct Stencil::Transaction<CLOpts2::UpdateOptions> : Stencil::Trans
         }
     }
 
-    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    template <typename TLambda> auto Visit([[maybe_unused]] std::string_view const& fieldName, [[maybe_unused]] TLambda&& lambda)
     {
         if (fieldName == "ProductId") { return lambda(Fields::Field_ProductId, ProductId()); }
         throw std::invalid_argument("Asked to visit invalid field");
     }
 
-    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
     {
         lambda("ProductId", Fields::Field_ProductId, ProductId(), Obj().ProductId);
     }
@@ -890,7 +890,7 @@ template <> struct Stencil::Visitor<CLOpts2::UpdateOptions> : Stencil::VisitorT<
     using TData  = CLOpts2::UpdateOptions;
     using Fields = TypeTraitsForIndexable<TData>::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
         switch (field)
         {
@@ -900,7 +900,7 @@ template <> struct Stencil::Visitor<CLOpts2::UpdateOptions> : Stencil::VisitorT<
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_ProductId, obj.ProductId);
     }
@@ -964,7 +964,7 @@ template <> struct Stencil::Transaction<CLOpts2::HydrateOptions> : Stencil::Tran
         Obj().ProductId = std::move(val);
     }
 
-    template <typename TLambda> auto Visit(Fields index, TLambda&& lambda)
+    template <typename TLambda> auto Visit(Fields index, [[maybe_unused]] TLambda&& lambda)
     {
         switch (index)
         {
@@ -973,13 +973,13 @@ template <> struct Stencil::Transaction<CLOpts2::HydrateOptions> : Stencil::Tran
         }
     }
 
-    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    template <typename TLambda> auto Visit([[maybe_unused]] std::string_view const& fieldName, [[maybe_unused]] TLambda&& lambda)
     {
         if (fieldName == "ProductId") { return lambda(Fields::Field_ProductId, ProductId()); }
         throw std::invalid_argument("Asked to visit invalid field");
     }
 
-    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
     {
         lambda("ProductId", Fields::Field_ProductId, ProductId(), Obj().ProductId);
     }
@@ -1002,7 +1002,7 @@ template <> struct Stencil::Visitor<CLOpts2::HydrateOptions> : Stencil::VisitorT
     using TData  = CLOpts2::HydrateOptions;
     using Fields = TypeTraitsForIndexable<TData>::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
         switch (field)
         {
@@ -1012,7 +1012,7 @@ template <> struct Stencil::Visitor<CLOpts2::HydrateOptions> : Stencil::VisitorT
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_ProductId, obj.ProductId);
     }

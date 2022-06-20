@@ -35,10 +35,8 @@ static void add_remote_content(Database2::exclusive_lock&    lock,
     src.type         = 'r';
 }
 
-void scan_source(Database2::exclusive_lock&           lock,
-                 Catalog::DataStore&                  datastore,
-                 Stencil::Ref<Catalog::Source> const& ref,
-                 Catalog::Source&                     src)
+static void
+scan_source(Database2::exclusive_lock& lock, Catalog::DataStore& datastore, Stencil::Ref<Catalog::Source> const& ref, Catalog::Source& src)
 {
     src.last_checked = Stencil::Timestamp::clock::now();
     auto spath       = std::filesystem::path(src.path.str());
