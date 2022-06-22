@@ -88,6 +88,7 @@ macro(EnableStrictCompilation)
             /wd4746  # volatile access of 'b' is subject to /volatile:<iso|ms>
             # TODO : Revisit with later cmake release. This causes cmake autodetect HAVE_STRUCT_TIMESPEC to fail
             /wd4255  # The compiler did not find an explicit list of arguments to a function. This warning is for the C compiler only.
+	    /wd5246  # MSVC Bug VS2022 :  the initialization of a subobject should be wrapped in braces
         )
 
         set(exclusions "[-/]W[a-zA-Z1-9]+" "[-/]permissive?")
