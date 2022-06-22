@@ -193,7 +193,7 @@ function(init_submodule path)
     if (DEFINED _SUBDMODULE_DIRECTORY)
         set(srcdir "${_SUBDMODULE_DIRECTORY}")
     elseif (DEFINED INIT_SUBMODULE_DIRECTORY)
-        set(srcdir ${INIT_SUBMODULE_DIRECTORY})
+        set(srcdir "${INIT_SUBMODULE_DIRECTORY}")
     endif()
     if ((IS_DIRECTORY "${srcdir}/${path}"))
         file(GLOB files "${srcdir}/${path}/*")
@@ -201,8 +201,8 @@ function(init_submodule path)
             return()
         endif()
     endif()
-    message(STATUS "Submodule Update: ${srcdir}/${path}")
     find_package(Git QUIET REQUIRED)
+    message(STATUS "Submodule Update: ${srcdir}/${path}")
     execute_process(
         COMMAND "${GIT_EXECUTABLE}" submodule update --init --recursive --single-branch "${path}"
         WORKING_DIRECTORY "${srcdir}"
