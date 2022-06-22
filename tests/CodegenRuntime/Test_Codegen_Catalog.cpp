@@ -127,6 +127,7 @@ TEST_CASE("CodeGen::Catalog::Simplecase", "[Database]")
             copy.modified = Stencil::Timestamp{};
             lines.push_back(Stencil::Json::Stringify(copy));
         }
+        std::sort(lines.begin(), lines.end());
         CheckOutputAgainstResource(lines, "ContentInfo");
     }
 }
