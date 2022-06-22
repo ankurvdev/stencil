@@ -135,7 +135,7 @@ struct Ref
     constexpr Ref(PageIndex pageIn, SlotIndex slotIn) : page(pageIn), slot(slotIn) {}
 
     template <typename T>
-    constexpr Ref(Stencil::Ref<T> ref) : page(static_cast<uint16_t>(ref.objId >> 16)), slot(static_cast<uint16_t>(ref.objId & 0xff))
+    constexpr Ref(Stencil::Ref<T> ref) : page(static_cast<uint16_t>(ref.objId >> 16)), slot(static_cast<uint16_t>(ref.objId & 0xffff))
     {}
 
     Ref(Ref const& val)            = default;
