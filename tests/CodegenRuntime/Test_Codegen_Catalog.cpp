@@ -104,6 +104,8 @@ TEST_CASE("CodeGen::Catalog::Simplecase", "[Database]")
         {
             auto copy  = obj;
             copy.added = Stencil::Timestamp{};
+            if (copy.type == 'l')
+                copy.path = shared_string(std::filesystem::relative(std::filesystem::path(copy.path.str()), srcdir).string());
             lines.push_back(Stencil::Json::Stringify(copy));
         }
         CheckOutputAgainstResource(lines, "Sources");
