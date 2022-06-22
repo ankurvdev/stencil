@@ -66,8 +66,8 @@ TEST_CASE("CodeGen::Catalog::Simplecase", "[Database]")
     {
         if (!std::filesystem::is_regular_file(f))
         {
-            std::ofstream of(f);
-            of << "\n";
+            std::ofstream of(f, std::ios::binary | std::ios::trunc);
+            of << "a";
         }
     }
 
