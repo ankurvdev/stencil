@@ -19,6 +19,7 @@ add_executable(codegen_runtime_tests
     "${CMAKE_CURRENT_LIST_DIR}/../tests/CodegenRuntime/Test_DataRecorderPlayer.cpp"
     # TODO1 "${CMAKE_CURRENT_LIST_DIR}/../tests/CodegenRuntime/Test_ObservableOptionalProps.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../tests/CodegenRuntime/Test_Transactions.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/../tests/CodegenRuntime/Test_Codegen_Catalog.cpp"
     # TODO1 "${CMAKE_CURRENT_LIST_DIR}/../tests/CodegenRuntime/Test_WebService_Autogen.cpp"
 )
 

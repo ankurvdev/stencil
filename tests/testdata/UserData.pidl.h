@@ -137,7 +137,7 @@ template <> struct Stencil::Transaction<UserData::UserData> : Stencil::Transacti
         Obj().creation = std::move(val);
     }
 
-    template <typename TLambda> auto Visit(Fields index, TLambda&& lambda)
+    template <typename TLambda> auto Visit(Fields index, [[maybe_unused]] TLambda&& lambda)
     {
         switch (index)
         {
@@ -147,14 +147,14 @@ template <> struct Stencil::Transaction<UserData::UserData> : Stencil::Transacti
         }
     }
 
-    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    template <typename TLambda> auto Visit([[maybe_unused]] std::string_view const& fieldName, [[maybe_unused]] TLambda&& lambda)
     {
         if (fieldName == "modified") { return lambda(Fields::Field_modified, modified()); }
         if (fieldName == "creation") { return lambda(Fields::Field_creation, creation()); }
         throw std::invalid_argument("Asked to visit invalid field");
     }
 
-    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
     {
         lambda("modified", Fields::Field_modified, modified(), Obj().modified);
         lambda("creation", Fields::Field_creation, creation(), Obj().creation);
@@ -185,7 +185,7 @@ template <> struct Stencil::Visitor<UserData::UserData> : Stencil::VisitorT<User
     using TData  = UserData::UserData;
     using Fields = TypeTraitsForIndexable<TData>::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
         switch (field)
         {
@@ -196,7 +196,7 @@ template <> struct Stencil::Visitor<UserData::UserData> : Stencil::VisitorT<User
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_modified, obj.modified);
         lambda(Fields::Field_creation, obj.creation);
@@ -325,7 +325,7 @@ template <> struct Stencil::Transaction<UserData::Identity> : Stencil::Transacti
         Obj().secretcode = std::move(val);
     }
 
-    template <typename TLambda> auto Visit(Fields index, TLambda&& lambda)
+    template <typename TLambda> auto Visit(Fields index, [[maybe_unused]] TLambda&& lambda)
     {
         switch (index)
         {
@@ -338,7 +338,7 @@ template <> struct Stencil::Transaction<UserData::Identity> : Stencil::Transacti
         }
     }
 
-    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    template <typename TLambda> auto Visit([[maybe_unused]] std::string_view const& fieldName, [[maybe_unused]] TLambda&& lambda)
     {
         if (fieldName == "username") { return lambda(Fields::Field_username, username()); }
         if (fieldName == "password") { return lambda(Fields::Field_password, password()); }
@@ -348,7 +348,7 @@ template <> struct Stencil::Transaction<UserData::Identity> : Stencil::Transacti
         throw std::invalid_argument("Asked to visit invalid field");
     }
 
-    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
     {
         lambda("username", Fields::Field_username, username(), Obj().username);
         lambda("password", Fields::Field_password, password(), Obj().password);
@@ -403,7 +403,7 @@ template <> struct Stencil::Visitor<UserData::Identity> : Stencil::VisitorT<User
     using TData  = UserData::Identity;
     using Fields = TypeTraitsForIndexable<TData>::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
         switch (field)
         {
@@ -417,7 +417,7 @@ template <> struct Stencil::Visitor<UserData::Identity> : Stencil::VisitorT<User
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_username, obj.username);
         lambda(Fields::Field_password, obj.password);
@@ -517,7 +517,7 @@ template <> struct Stencil::Transaction<UserData::RemoteHost> : Stencil::Transac
         Obj().identity = std::move(val);
     }
 
-    template <typename TLambda> auto Visit(Fields index, TLambda&& lambda)
+    template <typename TLambda> auto Visit(Fields index, [[maybe_unused]] TLambda&& lambda)
     {
         switch (index)
         {
@@ -528,7 +528,7 @@ template <> struct Stencil::Transaction<UserData::RemoteHost> : Stencil::Transac
         }
     }
 
-    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    template <typename TLambda> auto Visit([[maybe_unused]] std::string_view const& fieldName, [[maybe_unused]] TLambda&& lambda)
     {
         if (fieldName == "name") { return lambda(Fields::Field_name, name()); }
         if (fieldName == "uri") { return lambda(Fields::Field_uri, uri()); }
@@ -536,7 +536,7 @@ template <> struct Stencil::Transaction<UserData::RemoteHost> : Stencil::Transac
         throw std::invalid_argument("Asked to visit invalid field");
     }
 
-    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
     {
         lambda("name", Fields::Field_name, name(), Obj().name);
         lambda("uri", Fields::Field_uri, uri(), Obj().uri);
@@ -575,7 +575,7 @@ template <> struct Stencil::Visitor<UserData::RemoteHost> : Stencil::VisitorT<Us
     using TData  = UserData::RemoteHost;
     using Fields = TypeTraitsForIndexable<TData>::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
         switch (field)
         {
@@ -587,7 +587,7 @@ template <> struct Stencil::Visitor<UserData::RemoteHost> : Stencil::VisitorT<Us
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_name, obj.name);
         lambda(Fields::Field_uri, obj.uri);

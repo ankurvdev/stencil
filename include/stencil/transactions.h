@@ -102,6 +102,7 @@ template <typename TObj> struct Stencil::TransactionT<TObj, std::enable_if_t<Ste
     }
 
     template <typename TEnum> void MarkFieldAssigned_(TEnum field) { _assigntracker.set(static_cast<uint8_t>(field)); }
+    void Flush() { TODO(""); }
 
     protected:
     // template <typename TEnum> void MarkFieldAssigned_(TEnum field) { _assigntracker.set(static_cast<uint8_t>(field)); }
@@ -125,6 +126,7 @@ template <typename TObj> struct Stencil::TransactionT<TObj, std::enable_if_t<Ste
     {
         if constexpr (std::is_base_of_v<Stencil::TimestampedT<TObj>, TObj>) { Obj().UpdateTimestamp_(); }
     }
+
 
     std::reference_wrapper<TObj> _ref;
     std::bitset<64>              _assigntracker;    // TODO1

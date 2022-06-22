@@ -197,7 +197,7 @@ template <size_t N> struct ObjTester<N, Database2::ByteString>
     template <typename TLock> bool CreateObj(TLock const& lock, DB& db)
     {
         auto [ref1, obj] = db.Create<Database2::ByteString>(lock, TestValue<N, Database2::ByteString>());
-        ref              = ref1;
+        this->ref        = ref1;
         auto obj1        = db.Get(lock, ref);
         REQUIRE(obj == TestValue<N, Database2::ByteString>());
         REQUIRE(obj1 == TestValue<N, Database2::ByteString>());
@@ -205,13 +205,13 @@ template <size_t N> struct ObjTester<N, Database2::ByteString>
     }
     template <typename TLock> bool VerifyObj(TLock const& lock, DB& db)
     {
-        auto obj = db.Get(lock, ref);
+        auto obj = db.Get(lock, this->ref);
         REQUIRE(obj == TestValue<N, Database2::ByteString>());
         return true;
     }
 
-    size_t                                    iteration;
-    Database2::Ref<DB, Database2::ByteString> ref{};
+    size_t                                iteration;
+    Database2::Ref<Database2::ByteString> ref{};
 };
 
 template <size_t N> struct ObjTester<N, TestData::WithSimpleRef>
@@ -225,7 +225,7 @@ template <size_t N> struct ObjTester<N, TestData::WithSimpleRef>
                                                               TestUuid<N, TestData::WithSimpleRef>(),
                                                               TestUuid<N, TestData::Simple>(),
                                                               TestValue<N, Database2::ByteString>());
-        ref              = ref1;
+        this->ref        = ref1;
         auto obj1        = db.Get(lock, ref);
         REQUIRE(obj.uuid == TestUuid<N, Type>());
         REQUIRE(obj1.uuid == TestUuid<N, Type>());
@@ -234,15 +234,15 @@ template <size_t N> struct ObjTester<N, TestData::WithSimpleRef>
 
     template <typename TLock> bool VerifyObj(TLock const& lock, DB& db)
     {
-        auto obj = db.Get(lock, ref);
+        auto obj = db.Get(lock, this->ref);
         REQUIRE(obj.uuid == TestUuid<N, Type>());
         // auto subobj = obj.ref1.Get(lock.shared(), db, obj);
         // REQUIRE(subobj.uuid == TestUuid<TestData::Simple>());
         return true;
     }
 
-    size_t                   iteration;
-    Database2::Ref<DB, Type> ref;
+    size_t               iteration;
+    Database2::Ref<Type> ref;
 };
 
 template <typename TObj> void TestCaseForObj()
@@ -259,8 +259,11 @@ template <typename TObj> void TestCaseForObj()
     std::filesystem::remove(dbFileName);
 }
 
-#define TEST_CASE_FOR_OBJTYPE(type) \
-    TEST_CASE("CodeGen::Database2::" #type, "[Unit]") { TestCaseForObj<type>(); }
+#define TEST_CASE_FOR_OBJTYPE(type)                   \
+    TEST_CASE("CodeGen::Database2::" #type, "[Unit]") \
+    {                                                 \
+        TestCaseForObj<type>();                       \
+    }
 
 //#define TEST_CASE_FOR_(type, ...) TEST_CASE_FOR_OBJTYPE(type) TEST_CASE_FOR_(__VA_ARGS__)
 //#define TEST_CASE_FOR__(arg) TEST_CASE_FOR_ arg
@@ -396,8 +399,7 @@ TEST_CASE("CodeGen::Database2::UniqueSharedAndSelf", "[Database2]")
         {
             auto lock           = store.LockForEdit();
             auto [ref, objstr1] = store.Create<Database2::ByteString>(lock, TestValue<0, Database2::ByteString>());
-            REQUIRE(ref.page > 0);
-            REQUIRE(ref.slot >= 0);
+            REQUIRE(ref.Valid());
             REQUIRE(objstr1 == TestValue<0, Database2::ByteString>());
         }
         {

@@ -25,7 +25,7 @@ TEST_CASE("CodeGen::Database2::SaveAndLoad")
     {
         UserData::UserData database;
         database.Init(filepath);
-        std::vector<Database2::Ref<UserData::UserData, UserData::RemoteHost>> objs;
+        std::vector<Database2::Ref<UserData::RemoteHost>> objs;
 
         size_t i = 0;
 

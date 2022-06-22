@@ -1,6 +1,9 @@
 #pragma once
 #include "CommonMacros.h"
 
+#include "ref.h"
+#include "uuidobject.h"
+
 #include <assert.h>
 #include <bitset>
 #include <filesystem>
@@ -31,10 +34,7 @@ template <typename T, typename TTup, size_t I = 0> constexpr size_t tuple_index_
     else
     {
         if constexpr (std::is_same_v<std::tuple_element_t<I, TTup>, T>) { return I; }
-        else
-        {
-            return tuple_index_of<T, TTup, I + 1>();
-        }
+        else { return tuple_index_of<T, TTup, I + 1>(); }
     }
 }
 
@@ -77,11 +77,11 @@ enum class Ownership
 };
 
 typedef uint32_t ObjTypeId;
+template <typename T> using Ref = Stencil::Ref<T>;
 
 template <typename TDb> struct DatabaseT;
 template <typename TDb> struct PageLoaderTraits;
 template <typename TDb, typename TObj> struct ObjTraits;
-template <typename TDb, typename TObj> struct Ref;
 template <typename TDb, typename TOwner, typename TObj> struct RefContainer;
 
 template <typename TDb, typename TObj> struct FixedSizeObjTraits
@@ -134,11 +134,22 @@ struct Ref
     constexpr Ref() = default;
     constexpr Ref(PageIndex pageIn, SlotIndex slotIn) : page(pageIn), slot(slotIn) {}
 
-    Ref(Ref const& val) = default;
+    template <typename T>
+    constexpr Ref(Stencil::Ref<T> ref) : page(static_cast<uint16_t>(ref.objId >> 16)), slot(static_cast<uint16_t>(ref.objId & 0xffff))
+    {}
+
+    Ref(Ref const& val)            = default;
     Ref& operator=(Ref const& val) = default;
+
+    template <typename T> operator Stencil::Ref<T>() const { return Stencil::Ref<T>{(uint32_t{page} << 16) | uint32_t{slot}}; }
 
     static Ref Invalid() { return Ref{}; }
     bool       Valid() const { return page >= 2 && slot < 1000; }
+    Ref&       IncrementSlot()
+    {
+        slot++;
+        return *this;
+    }
 
     static auto FromUInt(uint32_t value)
     {
@@ -189,15 +200,9 @@ struct SerDes
             {
                 AttachStream(std::ifstream(path));
             }
-            else
-            {
-                AttachStream(std::fstream(path, std::fstream::binary | std::fstream::in | std::fstream::out));
-            }
+            else { AttachStream(std::fstream(path, std::fstream::binary | std::fstream::in | std::fstream::out)); }
         }
-        else
-        {
-            AttachStream(std::fstream(path, std::fstream::binary | std::fstream::in | std::fstream::out | std::fstream::trunc));
-        }
+        else { AttachStream(std::fstream(path, std::fstream::binary | std::fstream::in | std::fstream::out | std::fstream::trunc)); }
     }
 
     void AttachStream(std::fstream&& stream)
@@ -933,16 +938,10 @@ struct PageManager
                 journal.SetNextJornalPage(page._pageIndex);
                 _journalPageIndex = page._pageIndex;
             }
-            else
-            {
-                assert(_pageRuntimeStates[_journalPageIndex]._typeId == 0);
-            }
+            else { assert(_pageRuntimeStates[_journalPageIndex]._typeId == 0); }
             _RecordJournalEntry(pageIndex, objTypeId, pageRecDataSize);
         }
-        else
-        {
-            journal.RecordJournalEntry(pageIndex, {objTypeId, pageRecDataSize});
-        }
+        else { journal.RecordJournalEntry(pageIndex, {objTypeId, pageRecDataSize}); }
     }
 
     private:    // Members
@@ -956,8 +955,9 @@ template <typename TDb, typename TObj, typename TLock> struct Iterator
 {
     public:
     using Database = Database2::DatabaseT<TDb>;
-    using Ref      = Database2::Ref<TDb, TObj>;
+    using Ref      = Stencil::Ref<TObj>;
     using Traits   = Database2::ObjTraits<TDb, TObj>;
+
     struct Range
     {
         Iterator begin;
@@ -981,7 +981,7 @@ template <typename TDb, typename TObj, typename TLock> struct Iterator
     bool      operator!=(Iterator const& rhs) const { return !(*this == rhs); }
     Iterator& operator++()
     {
-        _current.slot++;
+        _current = impl::Ref(_current).IncrementSlot();
         _MoveToValidSlot();
         return *this;
     }
@@ -998,8 +998,10 @@ template <typename TDb, typename TObj, typename TLock> struct Iterator
     {
         if (_db == nullptr) { return; }
 
-        auto& pi      = _current.page;
-        auto& si      = _current.slot;
+        auto dbId = impl::Ref(_current);
+
+        auto& pi      = dbId.page;
+        auto& si      = dbId.slot;
         auto& pagemgr = _db->_pagemgr;
 
         for (; pi < pagemgr->GetPageCount(); pi++, si = 0)
@@ -1010,9 +1012,14 @@ template <typename TDb, typename TObj, typename TLock> struct Iterator
             PageForRecord<Traits::RecordSize()> page = pagemgr->LoadPage(pi);
             for (; si != page.GetSlotCount(); ++si)
             {
-                if (page.ValidSlot(si)) { return; }
+                if (page.ValidSlot(si))
+                {
+                    _current = dbId;
+                    return;
+                }
             }
         }
+
         *this = End();
     }
 
@@ -1021,7 +1028,7 @@ template <typename TDb, typename TObj, typename TLock> struct Iterator
 
     TLock*    _lock = nullptr;
     Database* _db   = nullptr;
-    Ref       _current{impl::Ref::Invalid()};
+    Ref       _current{Ref::Invalid()};
 };
 
 template <typename TDb, typename TObj, typename TLock> struct RefAndObjIterator : public Iterator<TDb, TObj, TLock>
@@ -1033,11 +1040,7 @@ template <typename TDb, typename TObj, typename TLock> struct RefAndObjIterator 
 
 namespace Database2
 {
-template <typename TDb, typename TObj> struct Ref : impl::Ref
-{
-    Ref() = default;
-    Ref(impl::Ref const& val) : impl::Ref(val) {}
-};
+template <typename T> using Ref = Stencil::Ref<T>;
 
 struct ChildRefMarker
 {};
@@ -1049,16 +1052,16 @@ template <typename TObj> struct ChildRef : ChildRefMarker
     {
         if (ref == impl::Ref::Invalid())
         {
-            decltype(db.Get(lock, static_cast<Ref<TDb, TObj>>(ref))) obj;
+            decltype(db.Get(lock, static_cast<Ref<TObj>>(ref))) obj;
             return obj;
         }
-        return db.Get(lock, Ref<TDb, TObj>{ref});
+        return db.Get(lock, Ref<TObj>(ref));
     }
     template <typename TLock, typename TDb> void Release(TLock const& lock, TDb& db)
     {
         if (ref.Valid())
         {
-            db.Delete(lock, Ref<TDb, TObj>{ref});
+            db.Delete(lock, Ref<TObj>(ref));
             ref = impl::Ref{0, 0};
         }
     }
@@ -1077,7 +1080,7 @@ template <typename TDb> struct DatabaseT
     using rlock = shared_lock;
     using wlock = exclusive_lock;
 
-    template <typename TObj> using RefT        = Ref<TDb, TObj>;
+    template <typename TObj> using RefT        = Ref<TObj>;
     template <typename TObj> using Traits      = ObjTraits<TDb, TObj>;
     template <typename TObj> using WireT       = typename Traits<TObj>::WireType;    // Snapshot of the serilized buffer (no lock)
     template <typename TObj> using SnapT       = typename Traits<TObj>::SnapType;    // Snapshot of the serilized buffer (no lock)
@@ -1178,10 +1181,7 @@ template <typename TDb> struct DatabaseT
             {
                 std::apply([&](auto... args) { ptr.ref = std::get<0>(Create<typename Nth::Obj>(lock, args...)); }, std::forward<TArg>(arg));
             }
-            else
-            {
-                ptr.ref = std::get<0>(Create<typename Nth::Obj>(lock, std::forward<TArg>(arg)));
-            }
+            else { ptr.ref = std::get<0>(Create<typename Nth::Obj>(lock, std::forward<TArg>(arg))); }
         }
         else
         {
@@ -1227,7 +1227,7 @@ template <typename TDb> struct DatabaseT
                 // auto wireobj = new (buffer) WireT<TObj>();
                 // static_assert(sizeof...(args) == Traits<TObj>::StructMemberCount());
                 //_FillParent<sizeof...(args)>(lock, *wireobj, std::forward<TArgs>(args)...);
-                // return RefAndEditT<TObj>(RefT<TObj>{ref}, *wireobj);
+                // return RefAndEditT<TObj>(RefT<TObj>(ref), *wireobj);
 
                 // The first arg is for base
                 // Next N args are for N child objects
@@ -1238,7 +1238,7 @@ template <typename TDb> struct DatabaseT
             else
             {
                 auto editptr = new (buffer.data.data()) WireT<TObj>{recsize, std::forward<TArgs>(args)...};
-                return RefAndEditT<TObj>(RefT<TObj>{ref}, *editptr);
+                return RefAndEditT<TObj>(RefT<TObj>(ref), *editptr);
             }
         }
         else
@@ -1255,14 +1255,14 @@ template <typename TDb> struct DatabaseT
                 auto wireobj = new (buffer) WireT<TObj>();
                 static_assert(sizeof...(args) == Traits<TObj>::StructMemberCount());
                 _FillParent<0, sizeof...(args), TObj>(lock, *wireobj, std::forward<TArgs>(args)...);
-                return RefAndEditT<TObj>(RefT<TObj>{ref}, *wireobj);
+                return RefAndEditT<TObj>(RefT<TObj>(ref), *wireobj);
 
                 // return lambda(std::forward<TArgs>(args)...);
             }
             else
             {
                 auto editptr = new (buffer) WireT<TObj>{std::forward<TArgs>(args)...};
-                return RefAndEditT<TObj>(RefT<TObj>{ref}, *editptr);
+                return RefAndEditT<TObj>(RefT<TObj>(ref), *editptr);
             }
         }
     }
@@ -1272,10 +1272,12 @@ template <typename TDb> struct DatabaseT
     template <typename TObj> ViewT<TObj> Get(rlock const& lock, RefT<TObj> const& id)
     {
         assert(id.Valid());
-        assert(id.page < _pagemgr->GetPageCount());
-        impl::PageForRecord<Traits<TObj>::RecordSize()> page(_pagemgr->LoadPage(id.page));
+        impl::Ref dbId = id;
 
-        auto slot   = page.Get(lock, id.slot);
+        assert(dbId.page < _pagemgr->GetPageCount());
+        impl::PageForRecord<Traits<TObj>::RecordSize()> page(_pagemgr->LoadPage(dbId.page));
+
+        auto slot   = page.Get(lock, dbId.slot);
         auto objptr = reinterpret_cast<WireT<TObj> const*>(slot.data.data());
         return *objptr;
     }
@@ -1283,10 +1285,11 @@ template <typename TDb> struct DatabaseT
     template <typename TObj> EditT<TObj> Get(wlock const& lock, RefT<TObj> const& id)
     {
         assert(id.Valid());
-        assert(id.page < _pagemgr->GetPageCount());
-        impl::PageForRecord<Traits<TObj>::RecordSize()> page(_pagemgr->LoadPage(id.page));
+        impl::Ref dbId = id;
+        assert(dbId.page < _pagemgr->GetPageCount());
+        impl::PageForRecord<Traits<TObj>::RecordSize()> page(_pagemgr->LoadPage(dbId.page));
 
-        auto slot = page.Get(lock, id.slot);
+        auto slot = page.Get(lock, dbId.slot);
         page._page.MarkDirty();
         EditT<TObj> editobj(*reinterpret_cast<WireT<TObj>*>(slot.data.data()));
         page._page.MarkDirty();    // TODO : test
@@ -1319,6 +1322,8 @@ template <typename TDb> struct DatabaseT
 
     template <typename TObj> void Delete(wlock const& lock, RefT<TObj> const& id)
     {
+        assert(id.Valid());
+        impl::Ref dbId = id;
         // If ownership == shared, Decrease ref count
         // If ownership == unique or ref count == 0
         //      Iterate over all sub-objects.
@@ -1327,22 +1332,31 @@ template <typename TDb> struct DatabaseT
         //      Mark the page as dirty
         if (Traits<TObj>::GetOwnership() == Ownership::Shared)
         {
-            impl::PageForSharedRecord<Traits<TObj>::RecordSize()> page(_pagemgr->LoadPage(id.page));
+            impl::PageForSharedRecord<Traits<TObj>::RecordSize()> page(_pagemgr->LoadPage(dbId.page));
 
-            auto refcount = page.Release(lock, id.slot);
-            if (refcount == 0) { _ReleaseChildRefs<TObj>(lock, page.Get(lock, id.slot)); }
+            auto refcount = page.Release(lock, dbId.slot);
+            if (refcount == 0) { _ReleaseChildRefs<TObj>(lock, page.Get(lock, dbId.slot)); }
         }
         else
         {
-            impl::PageForRecord<Traits<TObj>::RecordSize()> page(_pagemgr->LoadPage(id.page));
-            page.Release(lock, id.slot);
+            impl::PageForRecord<Traits<TObj>::RecordSize()> page(_pagemgr->LoadPage(dbId.page));
+            page.Release(lock, dbId.slot);
         }
     }
 
-    void Init(std::filesystem::path const& path) { _pagemgr->Init(path); }
-    void Init() { _pagemgr->Init(); }
+    void Init(std::filesystem::path const& path)
+    {
+        _pagemgr->Init(path);
+    }
+    void Init()
+    {
+        _pagemgr->Init();
+    }
 
-    void Flush(exclusive_lock const& /*guardscope*/) { _pagemgr->Flush(); }
+    void Flush(exclusive_lock const& /*guardscope*/)
+    {
+        _pagemgr->Flush();
+    }
 
     private:
     // std::shared_mutex _mutex;
@@ -1431,9 +1445,9 @@ namespace Database2
 
 template <typename TDb, typename TObj> struct OwnerT : public virtual DatabaseT<TDb>
 {
-    OwnerT()              = default;
-    ~OwnerT()             = default;
-    OwnerT(const OwnerT&) = default;
+    OwnerT()                         = default;
+    ~OwnerT()                        = default;
+    OwnerT(const OwnerT&)            = default;
     OwnerT& operator=(OwnerT const&) = default;
     OwnerT(OwnerT&&) { throw std::logic_error("Not Impl"); }
     OwnerT& operator=(OwnerT&&) { throw std::logic_error("Not Impl"); }

@@ -1,0 +1,5 @@
+{"type":"l","source":131072,"folder":0,"path":"test1.txt","size":1,"added":"1970-01-01T00:00:00.000000","modified":"1970-01-01T00:00:00.000000","status_info":null}
+{"type":"l","source":131072,"folder":0,"path":"test2.txt","size":1,"added":"1970-01-01T00:00:00.000000","modified":"1970-01-01T00:00:00.000000","status_info":null}
+{"type":"r","source":131073,"folder":0,"path":"http://foo.com/1.txt","size":0,"added":"1970-01-01T00:00:00.000000","modified":"1970-01-01T00:00:00.000000","status_info":null}
+{"type":"r","source":131073,"folder":0,"path":"http://foo.com/2.txt","size":0,"added":"1970-01-01T00:00:00.000000","modified":"1970-01-01T00:00:00.000000","status_info":null}
+{"type":"r","source":131073,"folder":0,"path":"http://foo.com/3.txt","size":0,"added":"1970-01-01T00:00:00.000000","modified":"1970-01-01T00:00:00.000000","status_info":null}

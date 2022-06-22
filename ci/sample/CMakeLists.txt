@@ -15,6 +15,7 @@ if (NOT DEFINED VCPKG_HOST_TRIPLET)
     set(VCPKG_HOST_TRIPLET ${VCPKG_TARGET_TRIPLET})
 endif()
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../../cmake)
+set(INIT_SUBMODULE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../external)
 
 include(BuildEnv)
 include(${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)

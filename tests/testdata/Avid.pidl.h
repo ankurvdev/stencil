@@ -397,7 +397,7 @@ template <> struct Stencil::Transaction<Avid::GPS> : Stencil::TransactionT<Avid:
         Obj().sep = std::move(val);
     }
 
-    template <typename TLambda> auto Visit(Fields index, TLambda&& lambda)
+    template <typename TLambda> auto Visit(Fields index, [[maybe_unused]] TLambda&& lambda)
     {
         switch (index)
         {
@@ -420,7 +420,7 @@ template <> struct Stencil::Transaction<Avid::GPS> : Stencil::TransactionT<Avid:
         }
     }
 
-    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    template <typename TLambda> auto Visit([[maybe_unused]] std::string_view const& fieldName, [[maybe_unused]] TLambda&& lambda)
     {
         if (fieldName == "heading") { return lambda(Fields::Field_heading, heading()); }
         if (fieldName == "lat") { return lambda(Fields::Field_lat, lat()); }
@@ -440,7 +440,7 @@ template <> struct Stencil::Transaction<Avid::GPS> : Stencil::TransactionT<Avid:
         throw std::invalid_argument("Asked to visit invalid field");
     }
 
-    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
     {
         lambda("heading", Fields::Field_heading, heading(), Obj().heading);
         lambda("lat", Fields::Field_lat, lat(), Obj().lat);
@@ -575,7 +575,7 @@ template <> struct Stencil::Visitor<Avid::GPS> : Stencil::VisitorT<Avid::GPS>
     using TData  = Avid::GPS;
     using Fields = TypeTraitsForIndexable<TData>::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
         switch (field)
         {
@@ -599,7 +599,7 @@ template <> struct Stencil::Visitor<Avid::GPS> : Stencil::VisitorT<Avid::GPS>
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_heading, obj.heading);
         lambda(Fields::Field_lat, obj.lat);
@@ -933,7 +933,7 @@ template <> struct Stencil::Transaction<Avid::Aircraft> : Stencil::TransactionT<
         Obj().even_cprtime = std::move(val);
     }
 
-    template <typename TLambda> auto Visit(Fields index, TLambda&& lambda)
+    template <typename TLambda> auto Visit(Fields index, [[maybe_unused]] TLambda&& lambda)
     {
         switch (index)
         {
@@ -958,7 +958,7 @@ template <> struct Stencil::Transaction<Avid::Aircraft> : Stencil::TransactionT<
         }
     }
 
-    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    template <typename TLambda> auto Visit([[maybe_unused]] std::string_view const& fieldName, [[maybe_unused]] TLambda&& lambda)
     {
         if (fieldName == "seen") { return lambda(Fields::Field_seen, seen()); }
         if (fieldName == "addr") { return lambda(Fields::Field_addr, addr()); }
@@ -980,7 +980,7 @@ template <> struct Stencil::Transaction<Avid::Aircraft> : Stencil::TransactionT<
         throw std::invalid_argument("Asked to visit invalid field");
     }
 
-    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
     {
         lambda("seen", Fields::Field_seen, seen(), Obj().seen);
         lambda("addr", Fields::Field_addr, addr(), Obj().addr);
@@ -1131,7 +1131,7 @@ template <> struct Stencil::Visitor<Avid::Aircraft> : Stencil::VisitorT<Avid::Ai
     using TData  = Avid::Aircraft;
     using Fields = TypeTraitsForIndexable<TData>::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
         switch (field)
         {
@@ -1157,7 +1157,7 @@ template <> struct Stencil::Visitor<Avid::Aircraft> : Stencil::VisitorT<Avid::Ai
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_seen, obj.seen);
         lambda(Fields::Field_addr, obj.addr);
@@ -1252,7 +1252,7 @@ template <> struct Stencil::Transaction<Avid::Traffic> : Stencil::TransactionT<A
         MarkFieldEdited_(Fields::Field_aircrafts);
         return Stencil::Mutators<std::remove_reference_t<decltype(aircrafts())>>::edit(aircrafts(), std::move(args));
     }
-    template <typename TLambda> auto Visit(Fields index, TLambda&& lambda)
+    template <typename TLambda> auto Visit(Fields index, [[maybe_unused]] TLambda&& lambda)
     {
         switch (index)
         {
@@ -1261,13 +1261,13 @@ template <> struct Stencil::Transaction<Avid::Traffic> : Stencil::TransactionT<A
         }
     }
 
-    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    template <typename TLambda> auto Visit([[maybe_unused]] std::string_view const& fieldName, [[maybe_unused]] TLambda&& lambda)
     {
         if (fieldName == "aircrafts") { return lambda(Fields::Field_aircrafts, aircrafts()); }
         throw std::invalid_argument("Asked to visit invalid field");
     }
 
-    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
     {
         lambda("aircrafts", Fields::Field_aircrafts, aircrafts(), Obj().aircrafts);
     }
@@ -1290,7 +1290,7 @@ template <> struct Stencil::Visitor<Avid::Traffic> : Stencil::VisitorT<Avid::Tra
     using TData  = Avid::Traffic;
     using Fields = TypeTraitsForIndexable<TData>::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
         switch (field)
         {
@@ -1300,7 +1300,7 @@ template <> struct Stencil::Visitor<Avid::Traffic> : Stencil::VisitorT<Avid::Tra
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_aircrafts, obj.aircrafts);
     }
@@ -1636,7 +1636,7 @@ template <> struct Stencil::Transaction<Avid::Motion> : Stencil::TransactionT<Av
         Obj().drot_z = std::move(val);
     }
 
-    template <typename TLambda> auto Visit(Fields index, TLambda&& lambda)
+    template <typename TLambda> auto Visit(Fields index, [[maybe_unused]] TLambda&& lambda)
     {
         switch (index)
         {
@@ -1662,7 +1662,7 @@ template <> struct Stencil::Transaction<Avid::Motion> : Stencil::TransactionT<Av
         }
     }
 
-    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    template <typename TLambda> auto Visit([[maybe_unused]] std::string_view const& fieldName, [[maybe_unused]] TLambda&& lambda)
     {
         if (fieldName == "mag_x") { return lambda(Fields::Field_mag_x, mag_x()); }
         if (fieldName == "mag_y") { return lambda(Fields::Field_mag_y, mag_y()); }
@@ -1685,7 +1685,7 @@ template <> struct Stencil::Transaction<Avid::Motion> : Stencil::TransactionT<Av
         throw std::invalid_argument("Asked to visit invalid field");
     }
 
-    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
     {
         lambda("mag_x", Fields::Field_mag_x, mag_x(), Obj().mag_x);
         lambda("mag_y", Fields::Field_mag_y, mag_y(), Obj().mag_y);
@@ -1844,7 +1844,7 @@ template <> struct Stencil::Visitor<Avid::Motion> : Stencil::VisitorT<Avid::Moti
     using TData  = Avid::Motion;
     using Fields = TypeTraitsForIndexable<TData>::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
         switch (field)
         {
@@ -1871,7 +1871,7 @@ template <> struct Stencil::Visitor<Avid::Motion> : Stencil::VisitorT<Avid::Moti
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_mag_x, obj.mag_x);
         lambda(Fields::Field_mag_y, obj.mag_y);
@@ -1968,7 +1968,7 @@ template <> struct Stencil::Transaction<Avid::Pressure> : Stencil::TransactionT<
         Obj().temperature = std::move(val);
     }
 
-    template <typename TLambda> auto Visit(Fields index, TLambda&& lambda)
+    template <typename TLambda> auto Visit(Fields index, [[maybe_unused]] TLambda&& lambda)
     {
         switch (index)
         {
@@ -1978,14 +1978,14 @@ template <> struct Stencil::Transaction<Avid::Pressure> : Stencil::TransactionT<
         }
     }
 
-    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    template <typename TLambda> auto Visit([[maybe_unused]] std::string_view const& fieldName, [[maybe_unused]] TLambda&& lambda)
     {
         if (fieldName == "pressure") { return lambda(Fields::Field_pressure, pressure()); }
         if (fieldName == "temperature") { return lambda(Fields::Field_temperature, temperature()); }
         throw std::invalid_argument("Asked to visit invalid field");
     }
 
-    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
     {
         lambda("pressure", Fields::Field_pressure, pressure(), Obj().pressure);
         lambda("temperature", Fields::Field_temperature, temperature(), Obj().temperature);
@@ -2016,7 +2016,7 @@ template <> struct Stencil::Visitor<Avid::Pressure> : Stencil::VisitorT<Avid::Pr
     using TData  = Avid::Pressure;
     using Fields = TypeTraitsForIndexable<TData>::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
         switch (field)
         {
@@ -2027,7 +2027,7 @@ template <> struct Stencil::Visitor<Avid::Pressure> : Stencil::VisitorT<Avid::Pr
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_pressure, obj.pressure);
         lambda(Fields::Field_temperature, obj.temperature);

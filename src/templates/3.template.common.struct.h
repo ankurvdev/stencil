@@ -253,7 +253,7 @@ template <> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz> : Ste
     //</FieldType_Mutator>
     //</Field>
 
-    template <typename TLambda> auto Visit(Fields index, TLambda&& lambda)
+    template <typename TLambda> auto Visit(Fields index, [[maybe_unused]] TLambda&& lambda)
     {
         switch (index)
         {
@@ -264,7 +264,7 @@ template <> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz> : Ste
         }
     }
 
-    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    template <typename TLambda> auto Visit([[maybe_unused]] std::string_view const& fieldName, [[maybe_unused]] TLambda&& lambda)
     {
         //<Field>
         if (fieldName == "zzNamezz") { return lambda(Fields::Field_zzNamezz, zzNamezz()); }
@@ -272,7 +272,7 @@ template <> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz> : Ste
         throw std::invalid_argument("Asked to visit invalid field");
     }
 
-    template <typename TLambda> void VisitAll(TLambda&& lambda)
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
     {
         //<Field>
         lambda("zzNamezz", Fields::Field_zzNamezz, zzNamezz(), Obj().zzNamezz);
@@ -300,7 +300,7 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz> : Stencil
     using TData  = zzProgram_Namezz::zzStruct_Namezz;
     using Fields = TypeTraitsForIndexable<TData>::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
         switch (field)
         {
@@ -312,7 +312,7 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz> : Stencil
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         //<Field>
         lambda(Fields::Field_zzNamezz, obj.zzNamezz);
