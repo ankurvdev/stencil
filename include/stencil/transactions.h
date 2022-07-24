@@ -172,17 +172,10 @@ template <Stencil::ConceptIterable TObj> struct Stencil::TransactionT<TObj>
     {
         Visitor<TObj>::VisitKey(Obj(), fieldIndex, [&](auto& obj) {
             RecordMutation_edit_(fieldIndex);
-
-            auto it = _edited.find(fieldIndex);
-            if (it != _edited.end())
-            {
-                lambda(fieldIndex, *it->second.get());
-                return;
-            }
             auto subtxnptr = std::make_unique<Transaction<std::remove_cvref_t<decltype(obj)>>>(obj);
             lambda(fieldIndex, *subtxnptr);
             // TODO : only do it if there was a change;
-            _edited.insert(std::make_pair(fieldIndex, std::move(subtxnptr)));
+            _changes.push_back({3u, fieldIndex, std::move(subtxnptr)});
         });
     }
 
@@ -208,15 +201,10 @@ template <Stencil::ConceptIterable TObj> struct Stencil::TransactionT<TObj>
                 if (c1.mutationtype == 2u && c1.index < index) { index--; }
                 if (c1.mutationtype == 1u && c1.index < index) { index++; }
             }
-
             // TODO : Fix me. This is horrible
             auto& obj = Obj()[index];
-            auto  it  = _edited.find(index);
-            if (it == _edited.end())
-            {
-                it = _edited.insert(std::make_pair(c.index, std::make_unique<Transaction<ListObjType>>(obj))).first;
-            }
-            lambda(nullptr, nullptr, c.mutationtype, c.index, *it->second, obj);
+            if (c.txn.get() == nullptr) { c.txn = std::make_unique<Transaction<ListObjType>>(obj); }
+            lambda(nullptr, nullptr, c.mutationtype, c.index, *c.txn.get(), obj);
         }
     }
 
@@ -227,9 +215,9 @@ template <Stencil::ConceptIterable TObj> struct Stencil::TransactionT<TObj>
     {
         uint8_t mutationtype;
         size_t  index;
-    };
 
-    std::unordered_map<size_t, std::unique_ptr<Transaction<ListObjType>>> _edited;
+        std::unique_ptr<Transaction<ListObjType>> txn;
+    };
 
     std::vector<_Record>         _changes;
     std::reference_wrapper<TObj> _ref;
