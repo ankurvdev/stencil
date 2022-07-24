@@ -102,7 +102,7 @@ template <typename TObj> struct Stencil::TransactionT<TObj, std::enable_if_t<Ste
     }
 
     template <typename TEnum> void MarkFieldAssigned_(TEnum field) { _assigntracker.set(static_cast<uint8_t>(field)); }
-    void Flush() { TODO(""); }
+    void                           Flush() { TODO(""); }
 
     protected:
     // template <typename TEnum> void MarkFieldAssigned_(TEnum field) { _assigntracker.set(static_cast<uint8_t>(field)); }
@@ -127,7 +127,6 @@ template <typename TObj> struct Stencil::TransactionT<TObj, std::enable_if_t<Ste
         if constexpr (std::is_base_of_v<Stencil::TimestampedT<TObj>, TObj>) { Obj().UpdateTimestamp_(); }
     }
 
-
     std::reference_wrapper<TObj> _ref;
     std::bitset<64>              _assigntracker;    // TODO1
     std::bitset<64>              _edittracker;      // TODO1
@@ -144,11 +143,11 @@ template <Stencil::ConceptIterable TObj> struct Stencil::TransactionT<TObj>
 
     TObj& Obj() { return _ref; }
 
-    template <typename TArg> void RecordMutation_add_(TArg&) { _changes.push_back({1u, Obj().size()}); }
+    template <typename TArg> void RecordMutation_add_(TArg&) { _changes.push_back({1u, Obj().size(), nullptr}); }
 
-    void RecordMutation_remove_(size_t index) { _changes.push_back({2u, index}); }
-    void RecordMutation_edit_(size_t index) { _changes.push_back({3u, index}); }
-    void RecordMutation_assign_(size_t index) { _changes.push_back({0u, index}); }
+    void RecordMutation_remove_(size_t index) { _changes.push_back({2u, index, nullptr}); }
+    void RecordMutation_edit_(size_t /* index */) {}
+    void RecordMutation_assign_(size_t index) { _changes.push_back({0u, index, nullptr}); }
 
     template <typename T> void add(T&& obj)
     {
@@ -176,7 +175,7 @@ template <Stencil::ConceptIterable TObj> struct Stencil::TransactionT<TObj>
             auto subtxnptr = std::make_unique<Transaction<std::remove_cvref_t<decltype(obj)>>>(obj);
             lambda(fieldIndex, *subtxnptr);
             // TODO : only do it if there was a change;
-            _edited.insert(std::make_pair(fieldIndex, std::move(subtxnptr)));
+            _changes.push_back({3u, fieldIndex, std::move(subtxnptr)});
         });
     }
 
@@ -202,15 +201,10 @@ template <Stencil::ConceptIterable TObj> struct Stencil::TransactionT<TObj>
                 if (c1.mutationtype == 2u && c1.index < index) { index--; }
                 if (c1.mutationtype == 1u && c1.index < index) { index++; }
             }
-
             // TODO : Fix me. This is horrible
             auto& obj = Obj()[index];
-            auto  it  = _edited.find(index);
-            if (it == _edited.end())
-            {
-                it = _edited.insert(std::make_pair(c.index, std::make_unique<Transaction<ListObjType>>(obj))).first;
-            }
-            lambda(nullptr, nullptr, c.mutationtype, c.index, *it->second, obj);
+            if (c.txn.get() == nullptr) { c.txn = std::make_unique<Transaction<ListObjType>>(obj); }
+            lambda(nullptr, nullptr, c.mutationtype, c.index, *c.txn.get(), obj);
         }
     }
 
@@ -221,9 +215,9 @@ template <Stencil::ConceptIterable TObj> struct Stencil::TransactionT<TObj>
     {
         uint8_t mutationtype;
         size_t  index;
-    };
 
-    std::unordered_map<size_t, std::unique_ptr<Transaction<ListObjType>>> _edited;
+        std::unique_ptr<Transaction<ListObjType>> txn;
+    };
 
     std::vector<_Record>         _changes;
     std::reference_wrapper<TObj> _ref;
