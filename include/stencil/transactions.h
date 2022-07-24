@@ -143,11 +143,11 @@ template <Stencil::ConceptIterable TObj> struct Stencil::TransactionT<TObj>
 
     TObj& Obj() { return _ref; }
 
-    template <typename TArg> void RecordMutation_add_(TArg&) { _changes.push_back({1u, Obj().size()}); }
+    template <typename TArg> void RecordMutation_add_(TArg&) { _changes.push_back({1u, Obj().size(), nullptr}); }
 
-    void RecordMutation_remove_(size_t index) { _changes.push_back({2u, index}); }
-    void RecordMutation_edit_(size_t index) { _changes.push_back({3u, index}); }
-    void RecordMutation_assign_(size_t index) { _changes.push_back({0u, index}); }
+    void RecordMutation_remove_(size_t index) { _changes.push_back({2u, index, nullptr}); }
+    void RecordMutation_edit_(size_t /* index */) {}
+    void RecordMutation_assign_(size_t index) { _changes.push_back({0u, index, nullptr}); }
 
     template <typename T> void add(T&& obj)
     {
