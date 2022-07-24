@@ -102,7 +102,6 @@ template <typename TObj> struct Stencil::TransactionT<TObj, std::enable_if_t<Ste
     }
 
     template <typename TEnum> void MarkFieldAssigned_(TEnum field) { _assigntracker.set(static_cast<uint8_t>(field)); }
-    void Flush() { TODO(""); }
 
     protected:
     // template <typename TEnum> void MarkFieldAssigned_(TEnum field) { _assigntracker.set(static_cast<uint8_t>(field)); }
@@ -126,7 +125,6 @@ template <typename TObj> struct Stencil::TransactionT<TObj, std::enable_if_t<Ste
     {
         if constexpr (std::is_base_of_v<Stencil::TimestampedT<TObj>, TObj>) { Obj().UpdateTimestamp_(); }
     }
-
 
     std::reference_wrapper<TObj> _ref;
     std::bitset<64>              _assigntracker;    // TODO1
@@ -173,6 +171,13 @@ template <Stencil::ConceptIterable TObj> struct Stencil::TransactionT<TObj>
     {
         Visitor<TObj>::VisitKey(Obj(), fieldIndex, [&](auto& obj) {
             RecordMutation_edit_(fieldIndex);
+
+            auto it = _edited.find(fieldIndex);
+            if (it != _edited.end())
+            {
+                lambda(fieldIndex, *it->second.get());
+                return;
+            }
             auto subtxnptr = std::make_unique<Transaction<std::remove_cvref_t<decltype(obj)>>>(obj);
             lambda(fieldIndex, *subtxnptr);
             // TODO : only do it if there was a change;

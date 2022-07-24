@@ -63,10 +63,7 @@ template <typename... Ts> struct Visitor<std::variant<Ts...>>
                 obj        = Type{};
                 lambda(std::get<N>(obj));
             }
-            else
-            {
-                _SetAndVisit<N + 1>(obj, key, lambda);
-            }
+            else { _SetAndVisit<N + 1>(obj, key, lambda); }
         }
     }
     template <typename T1, typename TLambda> static void VisitKey(T1& obj, size_t const& key, TLambda&& lambda)
@@ -75,10 +72,7 @@ template <typename... Ts> struct Visitor<std::variant<Ts...>>
         {
             std::visit([&](auto&& arg) { lambda(arg); }, obj);
         }
-        else
-        {
-            _SetAndVisit<0>(obj, key, lambda);
-        }
+        else { _SetAndVisit<0>(obj, key, lambda); }
     }
     template <typename T1, typename TLambda> static void VisitAllIndicies(T1& obj, TLambda&& lambda)
     {
@@ -203,10 +197,7 @@ struct Stencil::Visitor<std::shared_ptr<T>> : Stencil::VisitorT<std::shared_ptr<
                 // TODO: Should it really auto-create on demand
                 if (obj.get() == nullptr) { obj = std::make_shared<T>(); }
             }
-            else
-            {
-                return;
-            }
+            else { return; }
         }
 
         Stencil::Visitor<T>::VisitKey(*obj.get(), std::forward<TKey>(key), std::forward<TLambda>(lambda));
@@ -223,10 +214,7 @@ struct Stencil::Visitor<std::shared_ptr<T>> : Stencil::VisitorT<std::shared_ptr<
                 // TODO: Should it really auto-create on demand
                 if (obj.get() == nullptr) { obj = std::make_shared<T>(); }
             }
-            else
-            {
-                return;
-            }
+            else { return; }
         }
 
         Stencil::Visitor<T>::VisitAllIndicies(*obj.get(), std::forward<TLambda>(lambda));
