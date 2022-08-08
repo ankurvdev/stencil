@@ -1,4 +1,11 @@
 #pragma once
+#pragma warning(push, 3)
+#pragma clang diagnostic push
+#pragma GCC diagnostic   push
+
+#pragma clang diagnostic ignored "-Weverything"
+#pragma GCC diagnostic   ignored "-Wmaybe-uninitialized"
+
 #include <cassert>
 #include <cstddef>
 #include <functional>
@@ -7,6 +14,10 @@
 #include <stdexcept>
 #include <string_view>
 #include <type_traits>
+
+#pragma GCC diagnostic   pop
+#pragma clang diagnostic pop
+#pragma warning(pop)
 
 #if defined(_MSC_VER)    // compiling with VisualStudio
 #if defined(EMBEDDED_RESOURCE_EXPORTED_API_IMPL)
@@ -64,12 +75,12 @@ typedef Data<GetCollectionResourceInfo> GetCollectionResourceInfoTable();
 struct ResourceLoader
 {
     ResourceLoader(EmbeddedResource::ABI::ResourceInfo info) : _info(info) {}
-    ~ResourceLoader()                     = default;
-    ResourceLoader()                      = delete;
-    ResourceLoader(ResourceLoader const&) = delete;
-    ResourceLoader(ResourceLoader&&)      = delete;
+    ~ResourceLoader()                                = default;
+    ResourceLoader()                                 = delete;
+    ResourceLoader(ResourceLoader const&)            = delete;
+    ResourceLoader(ResourceLoader&&)                 = delete;
     ResourceLoader& operator=(ResourceLoader const&) = delete;
-    ResourceLoader& operator=(ResourceLoader&&) = delete;
+    ResourceLoader& operator=(ResourceLoader&&)      = delete;
 
     std::wstring_view name() const { return std::wstring_view(_info.name.data, _info.name.len); }
     /* template <typename T auto data() const
@@ -102,12 +113,12 @@ struct CollectionLoader
     };
 
     CollectionLoader(EmbeddedResource::ABI::Data<EmbeddedResource::ABI::GetCollectionResourceInfo*> collection) : _collection(collection) {}
-    ~CollectionLoader()                       = default;
-    CollectionLoader()                        = delete;
-    CollectionLoader(CollectionLoader const&) = delete;
-    CollectionLoader(CollectionLoader&&)      = delete;
+    ~CollectionLoader()                                  = default;
+    CollectionLoader()                                   = delete;
+    CollectionLoader(CollectionLoader const&)            = delete;
+    CollectionLoader(CollectionLoader&&)                 = delete;
     CollectionLoader& operator=(CollectionLoader const&) = delete;
-    CollectionLoader& operator=(CollectionLoader&&) = delete;
+    CollectionLoader& operator=(CollectionLoader&&)      = delete;
 
     Iterator begin() { return Iterator{this, 0}; }
     Iterator end() { return Iterator{this, _collection.len}; }

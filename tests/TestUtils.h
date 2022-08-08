@@ -13,6 +13,7 @@
 #pragma warning(disable : 5039)    // pointer or reference to potentially throwing function passed to 'extern)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 
 #include <catch2/catch.hpp>
 #include <dtl/dtl.hpp>

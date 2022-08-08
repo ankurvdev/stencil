@@ -4,7 +4,7 @@ import pathlib
 import shutil
 import subprocess
 import sys
-
+import pprint
 
 def _find_from_path(name: str):
     return pathlib.Path(shutil.which(name) or "")
@@ -87,9 +87,14 @@ try:
     for log in pathlib.Path(vcpkgroot / "buildtrees").rglob('*.log'):
         if log.parent.parent.name == 'buildtrees':
             log.unlink()
-
-    subprocess.check_call([vcpkgexe, "install", "stencil:" + host_triplet], env=myenv)
-    subprocess.check_call([vcpkgexe, "install", "stencil:" + runtime_triplet], env=myenv)
+    pprint.pprint(myenv)
+    cmd1 = [vcpkgexe.as_posix(), f"--host-triplet={host_triplet}", "install", "stencil:" + host_triplet]
+    cmd2 = [vcpkgexe.as_posix(), f"--host-triplet={host_triplet}", "install", "stencil:" + runtime_triplet]
+    print(f"VCPKG_ROOT = {vcpkgroot}")
+    print(" ".join(cmd1))
+    print(" ".join(cmd2))
+    subprocess.check_call(cmd1, env=myenv, cwd=vcpkgroot)
+    subprocess.check_call(cmd2, env=myenv, cwd=vcpkgroot)
 except Exception:
     logs = list(pathlib.Path(vcpkgroot / "buildtrees").rglob('*.log'))
     for log in logs:
@@ -108,8 +113,8 @@ def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str):
     cmakebuildextraargs = (["--config", config] if sys.platform == "win32" else [])
     cmakeconfigargs: list[str] = []
     if "android" in runtime_triplet:
-        subprocess.check_call([vcpkgexe, "install", "catch2:" + runtime_triplet], env=myenv)
-        subprocess.check_call([vcpkgexe, "install", "dtl:" + runtime_triplet], env=myenv)
+        subprocess.check_call([vcpkgexe, "install", "catch2:" + runtime_triplet], env=myenv, cwd=vcpkgroot)
+        subprocess.check_call([vcpkgexe, "install", "dtl:" + runtime_triplet], env=myenv, cwd=vcpkgroot)
 
         cmakeconfigargs += [
             "-DCMAKE_TOOLCHAIN_FILE:PATH=" + myenv['ANDROID_NDK_HOME'] + "/build/cmake/android.toolchain.cmake",

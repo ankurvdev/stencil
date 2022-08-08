@@ -113,11 +113,16 @@ macro(EnableStrictCompilation)
             -pedantic
             -pedantic-errors
             -pthread
+            # Remove unused code
+            -ffunction-sections
+            -fdata-sections
+            -Wl,--gc-sections
         )
         set(extracxxflags
             -std=c++20
             -fvisibility-inlines-hidden
         )
+
         if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL Clang)
             list(APPEND extraflags
                 -Weverything
@@ -138,6 +143,10 @@ macro(EnableStrictCompilation)
                 -Wno-reserved-identifier # Allow names starting with underscore
                 -Wno-reserved-id-macro
                 )
+        endif()
+
+        if (WIN32 OR (CMAKE_SYSTEM_NAME STREQUAL "MSYS"))
+            list(APPEND extracxxflags -O1 -Wa,-mbig-obj)
         endif()
 
         list(APPEND extracxxflags

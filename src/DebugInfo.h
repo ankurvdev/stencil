@@ -3,9 +3,9 @@
 
 SUPPRESS_WARNINGS_START
 SUPPRESS_MSVC_STL_WARNINGS
+SUPPRESS_STL_WARNINGS
 #include <fmt/ostream.h>
 #include <fmt/xchar.h>
-SUPPRESS_WARNINGS_END
 
 #include <cassert>
 #include <functional>
@@ -13,6 +13,8 @@ SUPPRESS_WARNINGS_END
 #include <sstream>
 #include <string>
 #include <vector>
+
+SUPPRESS_WARNINGS_END
 
 namespace IDLDebug
 {
@@ -102,7 +104,7 @@ struct DebugContext
 
 #define ACTION_CONTEXT_IMPL1(line, file, fnname, fn) auto actionctxvar_##line = IDLDebug::ThreadActionContextImpl(L##file fnname, (fn))
 #define ACTION_CONTEXT_IMPL2(line, file, fnname, fn) ACTION_CONTEXT_IMPL1(line, file, fnname, fn)
-#ifdef _WIN32
+#ifdef _MSC_VER
 #define ACTION_CONTEXT(fn) ACTION_CONTEXT_IMPL2(__LINE__, __FILE__, __FUNCTION__, fn)
 #else
 #define ACTION_CONTEXT(fn) ACTION_CONTEXT_IMPL2(__LINE__, __FILE__, "", fn)
