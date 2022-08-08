@@ -148,27 +148,23 @@ template <ConceptPreferIterable T> struct SerDes<T, ProtocolBinary>
 
     template <typename Context> static auto Read(T& obj, Context& ctx)
     {
-        typename Visitor<T>::Iterator it;
-
-        bool valid = false;
-        while (true)
         {
             auto marker = ctx.template read<uint8_t>();
             if (marker == 0) return;
             if (marker != 1) throw std::logic_error("Invalid marker");
-            if (!valid)
-            {
-                Visitor<T>::IteratorBegin(it, obj);
-                valid = true;
-            }
-            else
-            {
-                Visitor<T>::IteratorMoveNext(it, obj);
-            }
+        }
+        typename Visitor<T>::Iterator it;
+        Visitor<T>::IteratorBegin(it, obj);
 
+        while (true)
+        {
             if (!Visitor<T>::IteratorValid(it, obj)) { throw std::runtime_error("Cannot Visit Next Item on the iterable"); }
-
             Visitor<T>::Visit(it, obj, [&](auto& val) { SerDes<std::remove_cvref_t<decltype(val)>, ProtocolBinary>::Read(val, ctx); });
+            auto marker = ctx.template read<uint8_t>();
+            if (marker == 0) return;
+            if (marker != 1) throw std::logic_error("Invalid marker");
+
+            Visitor<T>::IteratorMoveNext(it, obj);
         }
     }
 };
@@ -230,6 +226,9 @@ template <> struct SerDes<uuids::uuid, ProtocolBinary>
 {
     template <typename Context> static auto Write(Context& ctx, uuids::uuid const& obj) { ctx << obj.as_bytes(); }
 
-    template <typename Context> static auto Read(uuids::uuid& obj, Context& ctx) { obj = uuids::uuid{ctx.template read<std::array<uint8_t, 16>>()}; }
+    template <typename Context> static auto Read(uuids::uuid& obj, Context& ctx)
+    {
+        obj = uuids::uuid{ctx.template read<std::array<uint8_t, 16>>()};
+    }
 };
 }    // namespace Stencil

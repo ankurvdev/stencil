@@ -11,9 +11,10 @@
 #else
 #include <gsl/span>
 #endif    //__has_include(<version>)
-
+SUPPRESS_WARNINGS_START
+SUPPRESS_STL_WARNINGS
 #include "uuid.h"
-
+SUPPRESS_WARNINGS_END
 #include <array>
 #include <chrono>
 #include <compare>
