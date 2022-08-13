@@ -20,6 +20,8 @@ find_package (Threads REQUIRED)
 set(LexYacc_DIR       ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc)
 set(EmbedResource_DIR ${CMAKE_CURRENT_LIST_DIR}/external/embedresource)
 
+file(GLOB public_headers ${CMAKE_CURRENT_LIST_DIR}/include/stencil/*)
+
 find_package(LexYacc)
 find_package(EmbedResource)
 find_package(toml11 QUIET)
@@ -64,6 +66,8 @@ if (NOT stduuid_FOUND)
     add_library(stduuid INTERFACE)
     add_library(stduuid::stduuid ALIAS stduuid)
     target_include_directories(stduuid INTERFACE external/stduuid/include)
+    find_file(UUIDHEADER REQUIRED NAMES uuid.h HINTS external/stduuid/include)
+    list(APPEND public_headers "${UUIDHEADER}")
 endif()
 
 find_package(fmt QUIET MODULE REQUIRED)
@@ -122,10 +126,6 @@ target_link_libraries(libstencil PUBLIC  fmt::fmt-header-only stduuid)
 
 target_include_directories(libstencil PUBLIC src include/stencil)
 add_executable(stencil src/main.cpp)
-
-file(GLOB public_headers ${CMAKE_CURRENT_LIST_DIR}/include/stencil/*)
-find_file(UUIDHEADER REQUIRED NAMES uuid.h HINTS external/stduuid/include)
-list(APPEND public_headers "${UUIDHEADER}")
 
 set_target_properties(stencil PROPERTIES PUBLIC_HEADER "${public_headers}")
 
