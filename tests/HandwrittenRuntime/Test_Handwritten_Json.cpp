@@ -1,5 +1,4 @@
 #include "Test_Handwritten.h"
-#define CATCH_CONFIG_MAIN
 #include "TestUtils.h"
 
 struct TestCase

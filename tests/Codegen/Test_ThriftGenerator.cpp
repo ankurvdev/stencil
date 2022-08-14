@@ -1,5 +1,3 @@
-#define CATCH_CONFIG_MAIN
-
 #include "TestUtils.h"
 DECLARE_RESOURCE_COLLECTION(testdata);
 #include "Generator.h"
