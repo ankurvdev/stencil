@@ -55,7 +55,10 @@ template <typename T> struct Tokenizer : public rapidjson::BaseReaderHandler<rap
         rapidjson::Reader       reader;
         rapidjson::MemoryStream ss(ctx.data(), ctx.size());
         auto                    rslt = reader.Parse(ss, *this);
-        if (rslt.IsError()) { throw std::logic_error(fmt::format("Json parse error : Code:{} Offset:{}", rslt.Code(), rslt.Offset())); }
+        if (rslt.IsError())
+        {
+            throw std::logic_error(fmt::format("Json parse error : Code:{} Offset:{}", static_cast<uint32_t>(rslt.Code()), rslt.Offset()));
+        }
         if (_modes.size() != 1) { throw std::logic_error("Something is wrong"); }
     }
 
@@ -154,10 +157,7 @@ template <size_t N> struct SerDes<std::array<char, N>, ProtocolJsonVal>
     template <typename Context> static auto Write(Context& ctx, TObj const& obj)
     {
         if (obj[0] == 0) { fmt::print(ctx, "null"); }
-        else
-        {
-            _WriteQuotedString(ctx, obj);
-        }
+        else { _WriteQuotedString(ctx, obj); }
     }
 
     template <typename Context> static auto Read(TObj& obj, Context& ctx)

@@ -14,6 +14,7 @@ template <typename TStruct, typename... TArgs> TStruct ParseArgs(TArgs&&... args
     std::string_view testargv[] = {std::forward<TArgs>(args)...};
     return Stencil::CLI::Parse<TStruct>(testargv);
 }
+#if defined                                                              TODO1
 
 template <typename TException> struct ExceptionMatcher : public Catch::MatcherBase<TException>
 {
@@ -25,7 +26,6 @@ template <typename TException> struct ExceptionMatcher : public Catch::MatcherBa
 
     const TException* _expected;
 };
-#if defined                                                              TODO1
 template <typename TStruct, typename TException, typename... TArgs> auto RequireGenerateException(const TException& obj, TArgs&&... args)
 {
     REQUIRE_THROWS_MATCHES(ParseArgs<TStruct>(std::forward<TArgs>(args)...), TException, ExceptionMatcher{obj});
