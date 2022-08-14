@@ -13,8 +13,8 @@ elseif (DEFINED ENV{VCPKG_USE_STENCIL_GIT_REPO} AND NOT "$ENV{VCPKG_USE_STENCIL_
 else()
     # sha512sum can be obtained using
     # wget -O - -q  https://github.com/ankurverma85/stencil/archive/b6429f8b92947273a5e66d5f10210b960616a89d.tar.gz | sha512sum 
-    set(commitId 940eb82e7c560123e9d5aa92cb5670dd087918fb)
-    set(sha512 ced9fa9822298c6934d2e303f2695415881b9bec619a9cc8cd3338aa11bdb3b04a0ed4e9d4c29c979fe83568cc0b876fdc1342244aaff43f156091701a5fa575)
+    set(commitId 91817114bf4f2a92422e9867364e0b0f3fa032e0)
+    set(sha512 b43be4e5ec20d480d48b3c38e88c39a4b3a22cd054c6db96523b69c4b1f95c17a9e27d9a76c1e0a6ad27d7e6ad93071f1da795d5789a370e9f56a616000aa49a)
     vcpkg_from_github(
         OUT_SOURCE_PATH SOURCE_PATH
         REPO ankurvdev/stencil

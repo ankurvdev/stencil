@@ -13,9 +13,9 @@
 #pragma warning(disable : 5039)    // pointer or reference to potentially throwing function passed to 'extern)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#pragma GCC diagnostic   ignored "-Wmaybe-uninitialized"
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <dtl/dtl.hpp>
 #include <fmt/ostream.h>
 
@@ -175,7 +175,7 @@ template <typename TData> inline void CompareBinaryOutputAgainstResource(TData c
         {
             auto data = r.string();
             auto spn  = std::span<const char>(reinterpret_cast<char const*>(actual.data()), actual.size());
-            INFO("Checking Resource : " + resname)
+            INFO("Checking Resource : " + resname);
             if (data.size() == spn.size() && std::equal(spn.begin(), spn.end(), data.begin())) { return; }
             std::ofstream f(testresname, std::ios::binary);
             f.write(reinterpret_cast<char const*>(actual.data()), static_cast<std::streamsize>(actual.size()));
