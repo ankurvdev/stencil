@@ -1,6 +1,7 @@
 find_package(Catch2 CONFIG QUIET)
 if (NOT TARGET Catch2::Catch2)
     if (COMMAND init_submodule)
+        init_submodule(Catch2)
         add_subdirectory(${INIT_SUBMODULE_DIRECTORY}/Catch2 Catch2)
         SupressWarningForTarget(Catch2)
         SupressWarningForTarget(Catch2WithMain)
