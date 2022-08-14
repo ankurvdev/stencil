@@ -4,7 +4,6 @@
 #include "stencil/stencil.h"
 #include <stencil/protocol_cli.h>
 
-#define CATCH_CONFIG_MAIN
 #include "TestUtils.h"
 #include <iterator>
 
