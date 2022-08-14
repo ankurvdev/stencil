@@ -4,6 +4,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/modules)
 set(INIT_SUBMODULE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/external)
 
 include(BuildEnv)
+set(CMAKE_CXX_STANDARD 20)
 
 project(stencil VERSION 0.0.3)
 
