@@ -1,16 +1,6 @@
 #pragma once
 #include "typetraits.h"
-
-#if defined(__has_include) && __has_include(<version>)
-#include <version>
-#if defined(__cpp_lib_span) && __cpp_lib_span >= 202002L
 #include <span>
-#else
-#include <gsl/span>
-#endif    // __cpp_lib_span >= 202002L
-#else
-#include <gsl/span>
-#endif    //__has_include(<version>)
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
 #include "uuid.h"
