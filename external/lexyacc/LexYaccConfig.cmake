@@ -123,27 +123,24 @@ function(build_lexyacc)
     if (TARGET lexyacc)
         return()
     endif()
-    add_executable(lexyacc ${LexYacc_DIR}/LexYacc.cpp)
+    add_executable(lexyacc "${LexYacc_DIR}/LexYacc.cpp")
 endfunction()
 
-function(find_or_create_lexyacc)
-    if (TARGET lexyacc)
-        return()
-    endif()
-    if (EXISTS ${LEXYACC_EXECUTABLE})
-        return()
-    endif()
-    find_program(LEXYACC_EXECUTABLE lexyacc)
-    if (EXISTS ${LEXYACC_EXECUTABLE})
-        return()
-    endif()
-endfunction()
-
-function(target_add_lexyacc target lyfile)
+macro(target_add_lexyacc target lyfile)
     find_bison()
     find_flex()
-    find_or_create_lexyacc()
-    get_filename_component(lyfile ${lyfile} ABSOLUTE)
+    find_program(LEXYACC_EXECUTABLE lexyacc)
+
+    cmake_parse_arguments(lexyacc "" "NAME" "" ${ARGN})
+
+    if (NOT lexyacc_NAME)
+        get_filename_component(lexyacc_NAME "${lyfile}" NAME_WE)
+    endif()
+    _target_add_lexyacc(${target} "${lyfile}" ${lexyacc_NAME})
+endmacro()
+
+function(_target_add_lexyacc target lyfile lexyacc_NAME)
+    get_filename_component(lyfile "${lyfile}" ABSOLUTE)
 
     if (NOT EXISTS "${FLEX_INCLUDE_DIR}")
         get_filename_component(bindir "${FLEX_EXECUTABLE}" DIRECTORY)
@@ -154,49 +151,43 @@ function(target_add_lexyacc target lyfile)
         endif()
     endif()
 
-    cmake_parse_arguments(lexyacc "" "NAME" "" ${ARGN})
-
-    if (NOT lexyacc_NAME)
-        get_filename_component(lexyacc_NAME ${lyfile} NAME_WE)
-    endif()
-
-    get_filename_component(srcdir ${lyfile} DIRECTORY)
+    get_filename_component(srcdir "${lyfile}" DIRECTORY)
 
     set(lytgt ${target}_lexyacc_${lexyacc_NAME})
-    set(outdir ${CMAKE_CURRENT_BINARY_DIR}/${lytgt})
+    set(outdir "${CMAKE_CURRENT_BINARY_DIR}/${lytgt}")
 
     file(MAKE_DIRECTORY ${outdir})
-    set(yh ${outdir}/${lexyacc_NAME}.yacc.h)
-    set(yc ${outdir}/${lexyacc_NAME}.yacc.cpp)
-    set(lc ${outdir}/${lexyacc_NAME}.flex.cpp)
-    set(yy ${outdir}/${lexyacc_NAME}.y)
-    set(ll ${outdir}/${lexyacc_NAME}.l)
-    set(hh ${outdir}/${lexyacc_NAME}.ly.h)
+    set(yh "${outdir}/${lexyacc_NAME}.yacc.h")
+    set(yc "${outdir}/${lexyacc_NAME}.yacc.cpp")
+    set(lc "${outdir}/${lexyacc_NAME}.flex.cpp")
+    set(yy "${outdir}/${lexyacc_NAME}.y")
+    set(ll "${outdir}/${lexyacc_NAME}.l")
+    set(hh "${outdir}/${lexyacc_NAME}.ly.h")
 
-    set(outputs ${yy} ${yh} ${yc} ${ll} ${lc} ${hh})
-    if (TARGET lexyacc)
+    set(outputs "${yy}" "${yh}" "${yc}" "${ll}" "${lc}" "${hh}")
+    if (NOT EXISTS "${LEXYACC_EXECUTABLE}")
         add_custom_command(
-            OUTPUT  ${yy} ${ll}
-            COMMAND lexyacc ${lyfile} --outdir ${outdir} --prefix ${lexyacc_NAME}
-            DEPENDS lexyacc ${lyfile}
+            OUTPUT  "${yy}" "${ll}"
+            COMMAND lexyacc "${lyfile}" --outdir "${outdir}" --prefix ${lexyacc_NAME}
+            DEPENDS lexyacc "${lyfile}"
         )
     else()
         add_custom_command(
-            OUTPUT  ${yy} ${ll}
-            COMMAND ${LEXYACC_EXECUTABLE} ${lyfile} --outdir ${outdir} --prefix ${lexyacc_NAME}
-            DEPENDS ${LEXYACC_EXECUTABLE} ${lyfile}
+            OUTPUT  "${yy}" "${ll}"
+            COMMAND "${LEXYACC_EXECUTABLE}" "${lyfile}" --outdir "${outdir}" --prefix ${lexyacc_NAME}
+            DEPENDS "${LEXYACC_EXECUTABLE}" "${lyfile}"
         )
     endif()
 
     add_custom_command(
-        OUTPUT  ${yh} ${yc} ${lc} ${hh}
-        COMMAND ${BISON_EXECUTABLE} -o ${yc} --name-prefix=${lexyacc_NAME} --language=c++ --defines=${yh} ${yy}
-        COMMAND ${FLEX_EXECUTABLE} -o${lc} --c++ --prefix=${lexyacc_NAME} ${ll}
-        DEPENDS ${BISON_EXECUTABLE} ${FLEX_EXECUTABLE} ${ll} ${yy}
+        OUTPUT  "${yh}" "${yc}" "${lc}" "${hh}"
+        COMMAND "${BISON_EXECUTABLE}" -o "${yc}" --name-prefix=${lexyacc_NAME} --language=c++ --defines="${yh}" "${yy}"
+        COMMAND "${FLEX_EXECUTABLE}" -o"${lc}" --c++ --prefix=${lexyacc_NAME} "${ll}"
+        DEPENDS "${BISON_EXECUTABLE}" "${FLEX_EXECUTABLE}" "${ll}" "${yy}"
     )
 
-    target_sources(${target} PRIVATE ${lyfile} ${outputs})
-    target_include_directories(${target} PRIVATE ${outdir})
+    target_sources(${target} PRIVATE "${lyfile}" ${outputs})
+    target_include_directories(${target} PRIVATE "${outdir}")
     if (DEFINED FLEX_INCLUDE_DIRS)
         set(FLEX_INCLUDE_DIR ${FLEX_INCLUDE_DIRS} CACHE PATH "Flex Include dir" FORCE)
     endif()
@@ -225,3 +216,10 @@ function(target_add_lexyacc target lyfile)
         set_source_files_properties(${yc} PROPERTIES COMPILE_FLAGS "-Wno-everything")
     endif()
 endfunction()
+
+
+macro(add_lexyacc_library)
+    cmake_parse_arguments("" "" "TARGET;NAME" "LYFILE" ${ARGN})
+    add_library(${_TARGET} OBJECT)
+    target_add_lexyacc(${_TARGET} ${_TARGET} "${_LYFILE}" ${_NAME})
+endmacro()

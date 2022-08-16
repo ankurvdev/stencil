@@ -1,10 +1,11 @@
 import argparse
 import os
 import pathlib
+import pprint
 import shutil
 import subprocess
 import sys
-import pprint
+
 
 def _find_from_path(name: str):
     return pathlib.Path(shutil.which(name) or "")
@@ -76,6 +77,7 @@ myenv = os.environ.copy()
 myenv['VCPKG_OVERLAY_PORTS'] = (scriptdir / 'vcpkg-additional-ports').as_posix()
 myenv['VCPKG_KEEP_ENV_VARS'] = 'VCPKG_USE_STENCIL_SRC_DIR;ANDROID_NDK_HOME'
 myenv['VCPKG_USE_STENCIL_SRC_DIR'] = scriptdir.parent.as_posix()
+myenv['VERBOSE'] = "1"
 if "android" in host_triplet or "android" in runtime_triplet:
     import download_android_sdk
     paths = download_android_sdk.DownloadTo((workdir / "android"))
