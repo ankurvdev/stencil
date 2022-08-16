@@ -24,5 +24,5 @@ add_executable(codegen_runtime_tests
 )
 
 target_include_directories(codegen_runtime_tests PRIVATE "${CMAKE_CURRENT_LIST_DIR}/../tests" ${DTL_INCLUDE_DIRS})
-target_link_libraries(codegen_runtime_tests PRIVATE codegen testdata Catch2::Catch2 Catch2::Catch2WithMain)
+target_link_libraries(codegen_runtime_tests PRIVATE codegen testdata Catch2::Catch2WithMain)
 add_test(NAME codegen_runtime_tests COMMAND codegen_runtime_tests)

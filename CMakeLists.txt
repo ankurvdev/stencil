@@ -146,7 +146,7 @@ if (BUILD_TESTING)
     )
     add_test(NAME codegen_tests COMMAND codegen_tests)
     target_include_directories(codegen_tests PRIVATE src include tests)
-    target_link_libraries(codegen_tests PRIVATE libstencil dtl::dtl Catch2::Catch2 Catch2::Catch2WithMain)
+    target_link_libraries(codegen_tests PRIVATE libstencil dtl::dtl Catch2::Catch2WithMain)
     target_add_resource(codegen_tests testdata ${resfiles} ${pidlfiles})
 
     add_executable(runtime_tests
@@ -159,7 +159,7 @@ if (BUILD_TESTING)
 
     target_compile_definitions(runtime_tests PRIVATE USE_NLOHMANN_JSON USE_CPP_HTTPLIB)
     target_link_libraries(runtime_tests PRIVATE libstencil)
-    target_link_libraries(runtime_tests PRIVATE dtl::dtl Catch2::Catch2 Catch2::Catch2WithMain cpp_httplib::cpp_httplib stencil::runtime)
+    target_link_libraries(runtime_tests PRIVATE dtl::dtl Catch2::Catch2WithMain cpp_httplib::cpp_httplib stencil::runtime)
     target_link_libraries (runtime_tests PRIVATE Threads::Threads)
     add_test(NAME runtime_tests COMMAND runtime_tests)
 
