@@ -40,3 +40,6 @@
 [submodule "external/date"]
 	path = external/date
 	url = https://github.com/HowardHinnant/date
+[submodule "external/embedresource"]
+	path = external/embedresource
+	url = https://github.com/ankurvdev/embedresource
