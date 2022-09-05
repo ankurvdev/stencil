@@ -3,17 +3,6 @@ if(NOT EXISTS "${VCPKG_ROOT}")
     message(FATAL_ERROR "Please run with -DVCPKG_ROOT=<vcpkg-root> ${VCPKG_ROOT} not found")
 endif()
 
-if (NOT DEFINED VCPKG_TARGET_TRIPLET)
-    if (WIN32)
-        set(VCPKG_TARGET_TRIPLET x86-windows)
-    else()
-        set(VCPKG_TARGET_TRIPLET x64-linux)
-    endif()
-endif()
-
-if (NOT DEFINED VCPKG_HOST_TRIPLET)
-    set(VCPKG_HOST_TRIPLET ${VCPKG_TARGET_TRIPLET})
-endif()
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../../cmake)
 set(INIT_SUBMODULE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../external)
 
