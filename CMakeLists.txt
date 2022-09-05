@@ -24,10 +24,6 @@ file(GLOB public_headers ${CMAKE_CURRENT_LIST_DIR}/include/stencil/*)
 find_package(LexYacc)
 
 find_package(EmbedResource)
-if (NOT EmbedResource_FOUND)
-    init_submodule(embedresource)
-    add_subdirectory(external/embedresource)
-endif()
 
 find_package(toml11 QUIET)
 if (NOT toml11_FOUND)

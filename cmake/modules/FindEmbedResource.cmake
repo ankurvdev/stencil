@@ -1,0 +1,7 @@
+find_package(EmbedResource CONFIG QUIET)
+if (NOT EmbedResource_FOUND)
+    if (NOT TARGET embedresource)
+        init_submodule(embedresource)
+        add_subdirectory(${INIT_SUBMODULE_DIRECTORY}/embedresource embedresource)
+    endif()
+endif()
