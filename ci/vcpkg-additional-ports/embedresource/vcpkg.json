@@ -1,0 +1,11 @@
+{
+    "name": "embedresource",
+    "version": "0.0.4",
+    "description": "Cross Platform Resource Embedding",
+    "dependencies": [
+        {
+            "name": "embedresource",
+            "host": true
+        }
+    ]
+}

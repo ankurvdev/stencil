@@ -18,14 +18,14 @@ EnableStrictCompilation()
 find_package (Threads REQUIRED)
 
 set(LexYacc_DIR       ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc)
-set(EmbedResource_DIR ${CMAKE_CURRENT_LIST_DIR}/external/embedresource)
 
 file(GLOB public_headers ${CMAKE_CURRENT_LIST_DIR}/include/stencil/*)
 
 find_package(LexYacc)
-find_package(EmbedResource)
-find_package(toml11 QUIET)
 
+find_package(EmbedResource)
+
+find_package(toml11 QUIET)
 if (NOT toml11_FOUND)
     init_submodule(toml11)
     add_library(toml11 INTERFACE)
@@ -108,7 +108,6 @@ if (BUILD_TESTING)
 endif()
 
 build_lexyacc()
-build_embedresource()
 
 file(GLOB resfiles src/templates/*)
 
@@ -189,12 +188,10 @@ install(FILES
 )
 
 if(STENCIL_INSTALL_BUILDTOOLS)
-    install(TARGETS embedresource EXPORT embedresourceTargets)
     install(TARGETS lexyacc       EXPORT lexyaccTargets)
     install(FILES
         ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc/FlexLexer.h
         ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc/LexYaccConfig.cmake
-        ${CMAKE_CURRENT_LIST_DIR}/external/embedresource/EmbedResourceConfig.cmake
         DESTINATION share/stencil
     )
 endif()

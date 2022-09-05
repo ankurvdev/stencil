@@ -2,7 +2,7 @@
 
 ## Overview
 
-![Build status](https://dev.azure.com/ankurverma0037/ankurverma/_apis/build/status/ankurverma85.stencil)
+[![Build Status](https://dev.azure.com/ankurv/stencil/_apis/build/status/ankurvdev.stencil?branchName=main)](https://dev.azure.com/ankurv/stencil/_build/latest?definitionId=8&branchName=main)
 
 A code generation tool that is inspired by
 [Model-Template-View](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93viewmodel) architectural patterns that

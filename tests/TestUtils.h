@@ -1,5 +1,5 @@
 #pragma once
-#if defined USE_EMBEDRESOURCE
+#if defined HAVE_EMBEDRESOURCE
 #include <EmbeddedResource.h>
 #endif
 
@@ -31,7 +31,7 @@
 #include <unordered_map>
 #include <vector>
 
-#if defined USE_EMBEDRESOURCE
+#if defined HAVE_EMBEDRESOURCE
 DECLARE_RESOURCE_COLLECTION(testdata);
 #endif
 
@@ -93,7 +93,7 @@ inline void CompareLines(std::vector<std::string> const& actualstring,
     }
 }
 
-#if defined USE_EMBEDRESOURCE
+#if defined HAVE_EMBEDRESOURCE
 
 inline std::string GeneratePrefixFromTestName()
 {
