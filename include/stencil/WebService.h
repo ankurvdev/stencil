@@ -8,6 +8,7 @@
 #pragma warning(disable : 4702)    // Unreachable code
 #pragma warning(disable : 4668)    // not defined as a preprocessor macro
 #pragma warning(disable : 5039)    // pointer or reference to potentially throwing function passed to 'extern)
+#pragma warning(disable : 4191)    // type cast': unsafe conversion
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
