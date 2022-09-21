@@ -44,6 +44,8 @@ class HTMLUrlExtractor(html.parser.HTMLParser):
 
 def _search_filename(path: pathlib.Path, name: str) -> Optional[pathlib.Path]:
     for filepath in path.rglob(f"{name}"):
+        if filepath.is_dir():
+            continue
         return filepath
     return None
 
@@ -142,7 +144,7 @@ def GetJarSigner(path: pathlib.Path) -> pathlib.Path:
     return _download_or_get_Binary("jarsigner", path, DownloadJava)
 
 
-AndroidNDKVersion = "24.0.8215888"
+AndroidNDKVersion = "25.0.8775105"
 
 
 def DownloadTo(path: pathlib.Path) -> dict[str, str | pathlib.Path]:
@@ -158,9 +160,9 @@ def DownloadTo(path: pathlib.Path) -> dict[str, str | pathlib.Path]:
     packages = [
         "ndk-bundle",
         f"ndk;{AndroidNDKVersion}",
-        "build-tools;32.0.0",
+        "build-tools;33.0.0",
         "platform-tools",
-        "platforms;android-32",
+        "platforms;android-33",
     ]
 
     def IsNeeded():
