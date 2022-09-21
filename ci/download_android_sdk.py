@@ -80,8 +80,8 @@ def _download_or_get_Binary(binname: str, bindir: pathlib.Path, downloadFn: Call
 
 def AddToPath(path: pathlib.Path):
     path = path.absolute()
-    if path not in os.environ["PATH"].split(os.pathsep):
-        os.environ["PATH"] = os.pathsep.join([str(path), os.environ["PATH"]])
+    if path.as_posix() not in os.environ["PATH"].split(os.pathsep):
+        os.environ["PATH"] = os.pathsep.join([path.as_posix(), os.environ["PATH"]])
 
 
 def DownloadSdkManager(path: pathlib.Path):
@@ -144,7 +144,7 @@ def GetJarSigner(path: pathlib.Path) -> pathlib.Path:
     return _download_or_get_Binary("jarsigner", path, DownloadJava)
 
 
-AndroidNDKVersion = "25.0.8775105"
+AndroidNDKVersion = "25.1.8937393"
 
 
 def DownloadTo(path: pathlib.Path) -> dict[str, str | pathlib.Path]:
@@ -179,7 +179,7 @@ def DownloadTo(path: pathlib.Path) -> dict[str, str | pathlib.Path]:
     return {
         "ndk": (sorted(list((sdkpath / "ndk").glob("*")))[-1]).absolute(),
         "ndk_version": AndroidNDKVersion,
-        "sdk_version": "32",
+        "sdk_version": "33",
         "java_home": java.parent.parent,
         "sdk_root": sdkpath,
     }
