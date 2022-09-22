@@ -1,28 +1,14 @@
-if (DEFINED ENV{VCPKG_USE_SRC_DIR} AND EXISTS "$ENV{VCPKG_USE_SRC_DIR}")
-    get_filename_component(srcpath "$ENV{VCPKG_USE_SRC_DIR}" ABSOLUTE)
-    set(SOURCE_PATH "${srcpath}")
-elseif (DEFINED ENV{VCPKG_USE_GIT_REPO} AND NOT "$ENV{VCPKG_USE_GIT_REPO}" STREQUAL "")
-    set(gitinfo "$ENV{VCPKG_USE_GIT_REPO}")
-    list(GET gitinfo 0 giturl)
-    list(GET gitinfo 1 commitId)
-    vcpkg_from_git(
-        OUT_SOURCE_PATH SOURCE_PATH
-        URL ${giturl}
-        REF ${commitId}
-    )
-else()
-    # sha512sum can be obtained using
-    # wget -O - -q  https://github.com/ankurdev/embedresource/archive/b6429f8b92947273a5e66d5f10210b960616a89d.tar.gz | sha512sum 
-    set(commitId fab682fdc383a5a2639323ee7c75d911c98129c1)
-    set(sha512 9b07782d3cc842e183857e48bfc77a3437c6a4c7fd18e3a550d72afdb4445863b4f3488edbe1481bebfe94034f79f9fd84c3be9fa1c2c5b3ce3752f936f24ead)
-    vcpkg_from_github(
-        OUT_SOURCE_PATH SOURCE_PATH
-        REPO ankurvdev/embedresource
-        REF ${commitId}
-        SHA512 ${sha512}
-        HEAD_REF master)
-endif()
-# Dont use these these are older version
+# sha512sum can be obtained using
+# wget -O - -q  https://github.com/ankurdev/embedresource/archive/b6429f8b92947273a5e66d5f10210b960616a89d.tar.gz | sha512sum 
+set(commitId 7090d1033ab179e81ab169bcd3f55e5ecfc2f955)
+set(sha512 67d31d4314d712a58f5c022c6fbabd37f1126216826d476a7741d7255888d92e1e78400522433576a541d88ba29d68ed8c0c8aed9f652a7df49ef5a96ec06401)
+vcpkg_from_github(
+    OUT_SOURCE_PATH SOURCE_PATH
+    REPO ankurvdev/embedresource
+    REF ${commitId}
+    SHA512 ${sha512}
+    HEAD_REF master)
+
 if(NOT TARGET_TRIPLET STREQUAL HOST_TRIPLET)
     vcpkg_add_to_path(PREPEND "${CURRENT_HOST_INSTALLED_DIR}/tools")
 endif()
