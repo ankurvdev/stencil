@@ -3,6 +3,12 @@ include(GenerateExportHeader)
 #set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
+
+if (MINGW)
+set(CMAKE_C_USE_RESPONSE_FILE_FOR_INCLUDES   OFF)
+set(CMAKE_CXX_USE_RESPONSE_FILE_FOR_INCLUDES OFF)
+endif()
+
 set(BuildEnvCMAKE_LOCATION "${CMAKE_CURRENT_LIST_DIR}")
 if (UNIX AND NOT ANDROID)
     set(LINUX 1)
@@ -65,7 +71,7 @@ macro(EnableStrictCompilation)
         set(extraflags
             /Wall   # Enable all errors
             /WX     # All warnings as errors
-            /await
+            # /await
             /permissive- # strict compilation
             /DWIN32
             /D_WINDOWS
@@ -76,6 +82,7 @@ macro(EnableStrictCompilation)
             /std:c++20
             /Zc:__cplusplus
             #suppression list
+            /wd4619  # pragma warning: there is no warning number
             /wd4068  # unknown pragma
             /wd4514  # unreferenced inline function has been removed
             /wd4820  # bytes padding added after data member in struct
@@ -145,8 +152,14 @@ macro(EnableStrictCompilation)
                 )
         endif()
 
-        if (WIN32 OR (CMAKE_SYSTEM_NAME STREQUAL "MSYS"))
-            list(APPEND extracxxflags -O1 -Wa,-mbig-obj)
+        if (MINGW)
+            # TODO GCC Bug: Compiling with -O1 can sometimes result errors
+            # due to running out of string slots (file too big)
+            list(APPEND extraflags -O1)
+
+            list(APPEND extraflags -Wa,-mbig-obj)
+            list(APPEND extraflags -DWIN32=1 -D_WINDOWS=1 -DWIN32_LEAN_AND_MEAN=1)
+            list(APPEND extracxxflags -DNOMINMAX=1)
         endif()
 
         list(APPEND extracxxflags

@@ -1,30 +1,17 @@
-if (DEFINED ENV{VCPKG_USE_STENCIL_SRC_DIR} AND EXISTS "$ENV{VCPKG_USE_STENCIL_SRC_DIR}")
-    get_filename_component(srcpath "$ENV{VCPKG_USE_STENCIL_SRC_DIR}" ABSOLUTE)
-    set(SOURCE_PATH "${srcpath}")
-elseif (DEFINED ENV{VCPKG_USE_STENCIL_GIT_REPO} AND NOT "$ENV{VCPKG_USE_STENCIL_GIT_REPO}" STREQUAL "")
-    set(gitinfo "$ENV{VCPKG_USE_STENCIL_GIT_REPO}")
-    list(GET gitinfo 0 giturl)
-    list(GET gitinfo 1 commitId)
-    vcpkg_from_git(
-        OUT_SOURCE_PATH SOURCE_PATH
-        URL ${giturl}
-        REF ${commitId}
-    )
-else()
-    # sha512sum can be obtained using
-    # wget -O - -q  https://github.com/ankurdev/stencil/archive/b6429f8b92947273a5e66d5f10210b960616a89d.tar.gz | sha512sum 
-    set(commitId 91817114bf4f2a92422e9867364e0b0f3fa032e0)
-    set(sha512 b43be4e5ec20d480d48b3c38e88c39a4b3a22cd054c6db96523b69c4b1f95c17a9e27d9a76c1e0a6ad27d7e6ad93071f1da795d5789a370e9f56a616000aa49a)
-    vcpkg_from_github(
-        OUT_SOURCE_PATH SOURCE_PATH
-        REPO ankurvdev/stencil
-        REF ${commitId}
-        SHA512 ${sha512}
-        HEAD_REF master)
-endif()
-# Dont use these these are older version
+# sha512sum can be obtained using
+# wget -O - -q  https://github.com/ankurdev/stencil/archive/b6429f8b92947273a5e66d5f10210b960616a89d.tar.gz | sha512sum
+set(commitId 00d49a92b08259abe14503a3db9d26159fa130f0)
+set(sha512 756cfb2c2db11cb16b9a48a51bbd0322cceca504d34c6c792e9c08fa19b8def96eedc34a2b5f3c8a07096e8cf490dffdf306e68b94dd1e3739ec639508373390)
+vcpkg_from_github(
+    OUT_SOURCE_PATH SOURCE_PATH
+    REPO ankurvdev/stencil
+    REF ${commitId}
+    SHA512 ${sha512}
+    HEAD_REF master)
+
 vcpkg_find_acquire_program(FLEX)
 vcpkg_find_acquire_program(BISON)
+
 if(NOT TARGET_TRIPLET STREQUAL HOST_TRIPLET)
     vcpkg_add_to_path(PREPEND "${CURRENT_HOST_INSTALLED_DIR}/tools")
 endif()

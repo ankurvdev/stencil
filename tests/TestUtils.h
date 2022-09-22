@@ -11,6 +11,8 @@
 #pragma warning(disable : 5204)    // class has virtual functions, but its trivial destructor is not virtual
 #pragma warning(disable : 4668)    // not defined as a preprocessor macro
 #pragma warning(disable : 5039)    // pointer or reference to potentially throwing function passed to 'extern)
+#pragma warning(disable : 5262)    /* Use [[fallthrough]] when break intentionally omitted */
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
 #pragma GCC diagnostic   ignored "-Wmaybe-uninitialized"
