@@ -69,6 +69,7 @@ macro(EnableStrictCompilation)
 
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
         set(extraflags
+            /external:W3
             /Wall   # Enable all errors
             /WX     # All warnings as errors
             # /await
@@ -81,6 +82,7 @@ macro(EnableStrictCompilation)
             /guard:cf
             /std:c++20
             /Zc:__cplusplus
+
             #suppression list
             /wd4619  # pragma warning: there is no warning number
             /wd4068  # unknown pragma
@@ -88,6 +90,8 @@ macro(EnableStrictCompilation)
             /wd4820  # bytes padding added after data member in struct
             /wd5039  #  pointer or reference to potentially throwing function passed to 'extern "C"' function under -EHc.
             /wd5045  # Spectre mitigation insertion
+            /wd5264  # const variable is not used
+
             # TODO : Revisit these with newer VS Releases
             /wd4710  # Function not inlined. VS2019 CRT throws this
             /wd4711  # Function selected for automatic inline. VS2019 CRT throws this
