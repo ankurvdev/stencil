@@ -71,7 +71,7 @@ macro(EnableStrictCompilation)
         set(extraflags
             /Wall   # Enable all errors
             /WX     # All warnings as errors
-            /await
+            # /await
             /permissive- # strict compilation
             /DWIN32
             /D_WINDOWS
