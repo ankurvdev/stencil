@@ -82,6 +82,7 @@ macro(EnableStrictCompilation)
             /std:c++20
             /Zc:__cplusplus
             #suppression list
+            /wd4619  # pragma warning: there is no warning number
             /wd4068  # unknown pragma
             /wd4514  # unreferenced inline function has been removed
             /wd4820  # bytes padding added after data member in struct
