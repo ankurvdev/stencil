@@ -69,7 +69,7 @@ macro(EnableStrictCompilation)
 
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
         set(extraflags
-            /external:W3
+            /external:W3 /external:anglebrackets /external:templates-
             /Wall   # Enable all errors
             /WX     # All warnings as errors
             # /await
