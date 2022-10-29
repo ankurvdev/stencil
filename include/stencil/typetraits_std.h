@@ -4,6 +4,7 @@
 #include <array>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <variant>
 #include <vector>
 
@@ -83,6 +84,15 @@ template <typename... Ts> struct Stencil::TypeTraits<std::variant<Ts...>>
 };
 
 template <typename... Ts> struct Stencil::TypeTraitsForIndexable<std::variant<Ts...>>
+{
+    using Key = size_t;
+};
+
+template <typename K, typename V> struct Stencil::TypeTraits<std::unordered_map<K, V>>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+template <typename K, typename V> struct Stencil::TypeTraitsForIndexable<std::unordered_map<K, V>>
 {
     using Key = size_t;
 };

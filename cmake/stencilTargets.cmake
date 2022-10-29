@@ -11,7 +11,7 @@ if (NOT TARGET stencil_runtime)
     find_package(stduuid QUIET)
     find_package(fmt QUIET)
     find_package(RapidJSON QUIET)
-    find_package(date QUIET)
+    find_package(date REQUIRED QUIET)
 
     if (TARGET stduuid)
         target_link_libraries(stencil_runtime INTERFACE stduuid)
@@ -110,6 +110,7 @@ function(_add_stencil_target)
                COMMENT "Generating IDL code :  ${STENCIL_EXECUTABLE} --outdir=${outdir} ${ARGN}"
                VERBATIM)
 
+    find_package(date REQUIRED)
     add_library(${targetName} INTERFACE ${outputs})
     target_include_directories(${targetName} INTERFACE ${stencil_INCLUDE_PATH})
     target_include_directories(${targetName} INTERFACE ${outdir})

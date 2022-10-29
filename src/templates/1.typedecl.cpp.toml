@@ -138,7 +138,7 @@ NativeType = "shared_tree<%type:NativeType%>"
 Params = [ "key", "value" ]
 NativeType = "std::map<%key:NativeType%, %value:NativeType%>"
 
-[Containers.hashtable]
+[Containers.dict]
 Params = [ "key", "value" ]
 NativeType = "std::unordered_map<%key:NativeType%, %value:NativeType%>"
 

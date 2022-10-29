@@ -132,6 +132,34 @@ template <typename TObj> struct Stencil::TransactionT<TObj, std::enable_if_t<Ste
     std::bitset<64>              _edittracker;      // TODO1
 };
 
+template <typename TKey, typename TVal> struct Stencil::Transaction<std::unordered_map<TKey, TVal>>
+{
+    using TObj = std::unordered_map<TKey, TVal>;
+
+    Transaction(TObj& obj) : _ref(std::ref(obj)) {}
+    void  Flush();
+    TObj& Obj() { return _ref; }
+    bool  IsChanged() const;
+
+    void remove(TKey const&);
+    void add(TKey&&, TVal&&);
+
+    Stencil::Transaction<TVal>& at(TKey const&);
+
+    std::tuple<bool, Stencil::Transaction<TVal>&> find_or_add(TKey const&);
+
+    template <typename TLambda> auto Visit(TKey const& key, TLambda&& lambda) { lambda(at(key)); }
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    {
+        TKey key;
+        SerDes<TKey, ProtocolString>::Read(key, fieldName);
+        lambda(key, at(key));
+    }
+    template <typename TLambda> void VisitChanges(TLambda&& lambda);
+
+    std::reference_wrapper<TObj> _ref;
+};
+
 template <Stencil::ConceptIterable TObj> struct Stencil::TransactionT<TObj>
 {
     using ListObjType = typename TObj::value_type;

@@ -114,11 +114,11 @@ struct StringTransactionSerDes
         {
             if (mutator == 0)    // Set
             {
-                txn.Visit(fieldname, [&](auto fieldType, auto& /* subtxn */) {
+                txn.Visit(fieldname, [&](auto /* fieldType */, auto& /* subtxn */) {
                     using TKey = typename Stencil::TypeTraitsForIndexable<T>::Key;
                     auto key   = Stencil::Deserialize<TKey, Stencil::ProtocolString>(fieldname);
                     Visitor<T>::VisitKey(txn.Obj(), key, [&](auto& obj) {
-                        txn.MarkFieldAssigned_(fieldType);
+                        // TODO: txn.MarkFieldAssigned_(fieldType);
                         Stencil::SerDes<std::remove_cvref_t<decltype(obj)>, ProtocolJsonVal>::Read(obj, rhs);
                     });
                 });
@@ -135,10 +135,7 @@ struct StringTransactionSerDes
                 auto listval = Stencil::Deserialize<size_t, Stencil::ProtocolString>(mutatordata);
                 txn.Visit(fieldname, [&](auto /* fieldType */, auto& subtxn) { _ListRemove(subtxn, listval); });
             }
-            else
-            {
-                throw std::logic_error("Unknown Mutator");
-            }
+            else { throw std::logic_error("Unknown Mutator"); }
         }
     };
 
@@ -186,14 +183,8 @@ struct StringTransactionSerDes
                 it.token      = {};
             }
             if (mutatorname == "add") { mutator = 1; }
-            else if (mutatorname == "remove")
-            {
-                mutator = 2;
-            }
-            else
-            {
-                throw std::logic_error("Invalid Mutator");
-            }
+            else if (mutatorname == "remove") { mutator = 2; }
+            else { throw std::logic_error("Invalid Mutator"); }
         }
         size_t i = it.startIndex + it.token.size() + 1;
         while (i < it.data.size() && it.data[i] == ' ') i++;
@@ -243,19 +234,9 @@ struct StringTransactionSerDes
                         // Assign
                         ostr << "." << index << " = " << Stencil::Json::Stringify(obj) << ";";
                     }
-                    else if (mutator == 1)
-                    {
-
-                        ostr << ":add[" << index << "] = " << Stencil::Json::Stringify(obj) << ";";
-                    }
-                    else if (mutator == 2)
-                    {
-                        ostr << ":remove[" << index << "] = {};";
-                    }
-                    else
-                    {
-                        throw std::logic_error("Unknown mutator");
-                    }
+                    else if (mutator == 1) { ostr << ":add[" << index << "] = " << Stencil::Json::Stringify(obj) << ";"; }
+                    else if (mutator == 2) { ostr << ":remove[" << index << "] = {};"; }
+                    else { throw std::logic_error("Unknown mutator"); }
                 });
         }
 
@@ -274,10 +255,7 @@ struct StringTransactionSerDes
                         _DeserializeTo(subtxn, ostr, stack);
                         stack.pop_back();
                     }
-                    else
-                    {
-                        throw std::logic_error("Unknown mutator");
-                    }
+                    else { throw std::logic_error("Unknown mutator"); }
                 });
         }
         return ostr;
