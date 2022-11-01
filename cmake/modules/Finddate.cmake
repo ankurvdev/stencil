@@ -1,4 +1,4 @@
-find_package(date CONFIG QUIET REQUIRED)
+find_package(date CONFIG QUIET)
 if (NOT TARGET date::date)
     if (COMMAND init_submodule)
         init_submodule(date)

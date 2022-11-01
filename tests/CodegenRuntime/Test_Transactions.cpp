@@ -1,5 +1,5 @@
+#include "Objects.pidl.h"
 #include "TestUtils.h"
-#include "Transactions.pidl.h"
 
 #include "stencil/transactions.binserdes.h"
 #include "stencil/transactions.strserdes.h"
@@ -11,7 +11,7 @@ struct TestReplay
 
     void Replay(std::string_view const& txndata, std::string_view const& expectedIn = {})
     {
-        Stencil::Transaction<Transactions::Object> txn(obj1);
+        Stencil::Transaction<Objects::NestedObject> txn(obj1);
         Stencil::StringTransactionSerDes::Apply(txn, txndata);
         snapshots.push_back(Stencil::Json::Stringify(obj1));
         auto expected = expectedIn.size() == 0 ? txndata : expectedIn;
@@ -20,10 +20,7 @@ struct TestReplay
 
         changes.push_back(delta);
         if (expected[expected.size() - 1] == ';') { REQUIRE(delta == expected); }
-        else
-        {
-            REQUIRE(delta.substr(0, delta.size() - 1) == expected);
-        }
+        else { REQUIRE(delta.substr(0, delta.size() - 1) == expected); }
         Stencil::StringTransactionSerDes::Apply(txn2, txndata);
         deltatxns.push_back(Stencil::StringTransactionSerDes::Deserialize(txn2));
 
@@ -50,14 +47,14 @@ struct TestReplay
     std::vector<std::string> snapshots;
     std::vector<std::string> deltatxns;
 
-    Transactions::Object obj1;
-    Transactions::Object obj2;
+    Objects::NestedObject obj1;
+    Objects::NestedObject obj2;
 
     std::ostringstream binary_txns;
     std::ostringstream binary_acc_txns;
     std::ostringstream binary_last_txns;
 
-    Stencil::Transaction<Transactions::Object> txn2;
+    Stencil::Transaction<Objects::NestedObject> txn2;
 };
 
 TEST_CASE("Transactions", "[transaction]")
@@ -97,14 +94,14 @@ TEST_CASE("Transactions", "[transaction]")
         REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(replay.obj2));
     }
     {
-        Transactions::Object                       obj3;
-        Stencil::Transaction<Transactions::Object> txn3(obj3);
+        Objects::NestedObject                       obj3;
+        Stencil::Transaction<Objects::NestedObject> txn3(obj3);
         for (auto& c : replay.changes) { Stencil::StringTransactionSerDes::Apply(txn3, c); }
         REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
     }
     {
-        Transactions::Object                       obj3;
-        Stencil::Transaction<Transactions::Object> txn3(obj3);
+        Objects::NestedObject                       obj3;
+        Stencil::Transaction<Objects::NestedObject> txn3(obj3);
         Stencil::StringTransactionSerDes::Apply(txn3, replay.deltatxns.back());
         REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
     }
@@ -114,8 +111,8 @@ TEST_CASE("Transactions", "[transaction]")
     auto binary_last_txns = replay.binary_last_txns.str();
     // And now binary streams
     {
-        Transactions::Object                       obj3;
-        Stencil::Transaction<Transactions::Object> txn3(obj3);
+        Objects::NestedObject                       obj3;
+        Stencil::Transaction<Objects::NestedObject> txn3(obj3);
 
         std::istringstream istrm(binary_txns);
         istrm.peek();
@@ -128,9 +125,9 @@ TEST_CASE("Transactions", "[transaction]")
         REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
     }
     {
-        Transactions::Object                       obj3;
-        Stencil::Transaction<Transactions::Object> txn3(obj3);
-        std::istringstream                         istrm(binary_last_txns);
+        Objects::NestedObject                       obj3;
+        Stencil::Transaction<Objects::NestedObject> txn3(obj3);
+        std::istringstream                          istrm(binary_last_txns);
         Stencil::BinaryTransactionSerDes::Apply(txn3, istrm);
         REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
         auto offset = static_cast<unsigned>(istrm.tellg());
@@ -146,7 +143,7 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
 
     SECTION("Auto Update On Assign", "Timestamp should automatically update when a field value is assigned")
     {
-        Transactions::Object obj1;
+        Objects::NestedObject obj1;
 
         auto t1 = obj1.obj1.lastmodified;
         auto t2 = t1;
@@ -155,7 +152,7 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
         {
             // Update only on flush
             // Update on sub-struct edit
-            Stencil::Transaction<Transactions::Object> txn(obj1);
+            Stencil::Transaction<Objects::NestedObject> txn(obj1);
             txn.obj1().set_val1(1000);
             t2 = obj1.obj1.lastmodified;
             txn.Flush();
@@ -168,7 +165,7 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
         }
         {
             // No update on false edits
-            Stencil::Transaction<Transactions::Object> txn(obj1);
+            Stencil::Transaction<Objects::NestedObject> txn(obj1);
             txn.obj1().set_val1(1000);
             t4 = obj1.obj1.lastmodified;
             txn.Flush();
@@ -177,8 +174,8 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
         {
             // List edits
             t2 = obj1.lastmodified;
-            Stencil::Transaction<Transactions::Object> txn(obj1);
-            Transactions::ListObject                   lobj1, lobj2;
+            Stencil::Transaction<Objects::NestedObject> txn(obj1);
+            Objects::ListObject                         lobj1, lobj2;
             lobj1.value = 100;
             txn.list1().add_listobj(std::move(lobj1));
             txn.Flush();
@@ -199,9 +196,9 @@ TEST_CASE("Transactions_Bugs", "[transaction]")
 {
     SECTION("List-Edit", "Object sublist edit must propagate up as object edits too")
     {
-        Transactions::Object obj1;
+        Objects::NestedObject obj1;
         obj1.list1.listobj.push_back({});
-        Stencil::Transaction<Transactions::Object> txn(obj1);
+        Stencil::Transaction<Objects::NestedObject> txn(obj1);
         txn.list1().edit_listobj(0).obj1().set_val1(1);
         txn.Flush();
         REQUIRE(txn.list1().IsChanged());

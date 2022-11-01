@@ -213,50 +213,49 @@ struct StringTransactionSerDes
     {
         if constexpr (ConceptIterable<T>)
         {
-            txn.VisitChanges(
-                [&](auto const& /* name */, auto const& /* type */, uint8_t const& mutator, size_t const& index, auto& subtxn, auto& obj) {
-                    if (mutator == 3)
-                    {
-                        stack.push_back(std::to_string(index));
-                        _DeserializeTo(subtxn, ostr, stack);
-                        stack.pop_back();
-                        return;
-                    }
-                    bool first = true;
-                    for (auto& s : stack)
-                    {
-                        if (!first) ostr << ".";
-                        first = false;
-                        ostr << s;
-                    }
-                    if (mutator == 0)
-                    {
-                        // Assign
-                        ostr << "." << index << " = " << Stencil::Json::Stringify(obj) << ";";
-                    }
-                    else if (mutator == 1) { ostr << ":add[" << index << "] = " << Stencil::Json::Stringify(obj) << ";"; }
-                    else if (mutator == 2) { ostr << ":remove[" << index << "] = {};"; }
-                    else { throw std::logic_error("Unknown mutator"); }
-                });
+            txn.VisitChanges([&](size_t const& index, uint8_t const& mutator, auto const& /* mutatordata */, auto& subtxn, auto& obj) {
+                if (mutator == 3)
+                {
+                    stack.push_back(std::to_string(index));
+                    _DeserializeTo(subtxn, ostr, stack);
+                    stack.pop_back();
+                    return;
+                }
+                bool first = true;
+                for (auto& s : stack)
+                {
+                    if (!first) ostr << ".";
+                    first = false;
+                    ostr << s;
+                }
+                if (mutator == 0)
+                {
+                    // Assign
+                    ostr << "." << index << " = " << Stencil::Json::Stringify(obj) << ";";
+                }
+                else if (mutator == 1) { ostr << ":add[" << index << "] = " << Stencil::Json::Stringify(obj) << ";"; }
+                else if (mutator == 2) { ostr << ":remove[" << index << "] = {};"; }
+                else { throw std::logic_error("Unknown mutator"); }
+            });
         }
 
         if constexpr (ConceptIndexable<T>)
         {
-            txn.VisitChanges(
-                [&](auto const& name, auto const& /* type */, auto const& mutator, auto const& /* mutatordata */, auto& subtxn, auto& obj) {
-                    if (mutator == 0)
-                    {
-                        for (auto& s : stack) { ostr << s << "."; }
-                        ostr << name << " = " << Stencil::Json::Stringify(obj) << ";";
-                    }
-                    else if (mutator == 3)
-                    {
-                        stack.push_back(name);
-                        _DeserializeTo(subtxn, ostr, stack);
-                        stack.pop_back();
-                    }
-                    else { throw std::logic_error("Unknown mutator"); }
-                });
+            txn.VisitChanges([&](auto const& key, auto const& mutator, auto const& /* mutatordata */, auto& subtxn, auto& obj) {
+                auto name = Stencil::Json::Stringify(key);
+                if (mutator == 0)
+                {
+                    for (auto& s : stack) { ostr << s << "."; }
+                    ostr << name << " = " << Stencil::Json::Stringify(obj) << ";";
+                }
+                else if (mutator == 3)
+                {
+                    stack.push_back(name);
+                    _DeserializeTo(subtxn, ostr, stack);
+                    stack.pop_back();
+                }
+                else { throw std::logic_error("Unknown mutator"); }
+            });
         }
         return ostr;
     }

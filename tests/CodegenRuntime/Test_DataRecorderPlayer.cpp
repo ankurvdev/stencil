@@ -1,5 +1,5 @@
 
-#include "Avid.pidl.h"
+#include "Objects.pidl.h"
 
 #include "TestUtils.h"
 
@@ -11,6 +11,7 @@
 #include <functional>
 #include <span>
 
+#if 0
 static void RecordTrafficAdd(Avid::Traffic& data, std::filesystem::path const& recordlog, uint8_t hexaddr)
 {
     Stencil::DataRecorder<Avid::Traffic> recorder(recordlog);
@@ -181,3 +182,4 @@ TEST_CASE("DataRecorder", "[DataRecorder]")
 
     std::filesystem::remove(recordlog);
 }
+#endif

@@ -13,6 +13,11 @@ struct ListObject
     SimpleObject1 obj1;
 }
 
+struct DictObject
+{
+    dict<uint32, SimpleObject1> dictobj;
+}
+
 struct List
 {
     list<ListObject> listobj;
@@ -20,17 +25,25 @@ struct List
 
 struct SimpleObject2
 {
-    bool    val1;
-    double  val2;
+    bool        val1;
+    double      val2;
+    char[8]     val3;
+    timestamp   val4;
+    uint64      val5;
+    int64       val6;
+    uint16      val7;
+    int16       val8;
+    
 }
 
-struct Object
+struct NestedObject
 {
     SimpleObject1   obj1;
     SimpleObject2   obj2;
     ListObject      obj3;
+    DictObject      obj4;
     List            list1;
 }
 
 attribute optionalprops  object = SimpleObject1, SimpleObject2
-attribute timestamped    object = Object, SimpleObject1, ListObject, List, SimpleObject2
+attribute timestamped    object = NestedObject, SimpleObject1, ListObject, List, SimpleObject2

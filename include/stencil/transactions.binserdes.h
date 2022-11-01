@@ -67,52 +67,35 @@ struct BinaryTransactionSerDes
     {
         if constexpr (ConceptIterable<T>)
         {
-            txn.VisitChanges(
-                [&](auto const& /* name */, auto const& /* type */, uint8_t const& mutator, size_t const& index, auto& subtxn, auto& obj) {
-                    using ObjType = std::remove_reference_t<decltype(obj)>;
-                    writer << static_cast<uint8_t>(mutator);
-                    writer << static_cast<uint32_t>(index);
+            txn.VisitChanges([&](size_t const& index, uint8_t const& mutator, auto const& /* mutatordata */, auto& subtxn, auto& obj) {
+                using ObjType = std::remove_reference_t<decltype(obj)>;
+                writer << static_cast<uint8_t>(mutator);
+                writer << static_cast<uint32_t>(index);
 
-                    if (mutator == 3) { _DeserializeTo(subtxn, writer); }
-                    else if (mutator == 0)
-                    {
-                        Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer, obj);
-                    }
-                    else if (mutator == 1)
-                    {
-                        Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer, obj);
-                    }
-                    else if (mutator == 2)
-                    {
-                        // Nothing else needed
-                    }
-                    else
-                    {
-                        throw std::logic_error("Unknown mutator");
-                    }
-                });
+                if (mutator == 3) { _DeserializeTo(subtxn, writer); }
+                else if (mutator == 0) { Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer, obj); }
+                else if (mutator == 1) { Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer, obj); }
+                else if (mutator == 2)
+                {
+                    // Nothing else needed
+                }
+                else { throw std::logic_error("Unknown mutator"); }
+            });
             writer << std::numeric_limits<uint8_t>::max();
         }
 
         if constexpr (ConceptIndexable<T>)
         {
-            txn.VisitChanges(
-                [&](auto const& /* name */, auto const& type, auto const& mutator, auto const& /* mutatordata */, auto& subtxn, auto& obj) {
-                    using ObjType = std::remove_reference_t<decltype(obj)>;
+            txn.VisitChanges([&](auto const& key, auto const& mutator, auto const& /* mutatordata */, auto& subtxn, auto& obj) {
+                using ObjType = std::remove_reference_t<decltype(obj)>;
+                using KeyType = std::remove_cvref_t<decltype(key)>;
 
-                    writer << static_cast<uint8_t>(mutator);
-                    writer << static_cast<uint32_t>(type);
-
-                    if (mutator == 0) { Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer, obj); }
-                    else if (mutator == 3)
-                    {
-                        _DeserializeTo(subtxn, writer);
-                    }
-                    else
-                    {
-                        throw std::logic_error("Unknown mutator");
-                    }
-                });
+                writer << static_cast<uint8_t>(mutator);
+                Stencil::SerDes<KeyType, ProtocolBinary>::Write(writer, key);
+                if (mutator == 0) { Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer, obj); }
+                else if (mutator == 3) { _DeserializeTo(subtxn, writer); }
+                else { throw std::logic_error("Unknown mutator"); }
+            });
             writer << std::numeric_limits<uint8_t>::max();
         }
         return writer;
@@ -165,10 +148,7 @@ struct BinaryTransactionSerDes
                 {
                     txn.Visit(index, [&](auto /* fieldType */, auto& subtxn) { _Apply(subtxn, reader); });
                 }
-                else
-                {
-                    throw std::logic_error("invalid mutator");
-                }
+                else { throw std::logic_error("invalid mutator"); }
             }
         }
     };
@@ -204,7 +184,7 @@ struct BinaryTransactionSerDes
                 {
                     txn.Visit(fieldEnum, [&](auto /* fieldType */, auto& /* subtxn */) {
                         Visitor<T>::VisitKey(txn.Obj(), fieldEnum, [&](auto& obj) {
-                            txn.MarkFieldAssigned_(fieldEnum);
+                            // txn.MarkFieldAssigned_(fieldEnum);
                             Stencil::SerDes<std::remove_cvref_t<decltype(obj)>, ProtocolBinary>::Read(obj, reader);
                         });
                     });
@@ -228,24 +208,24 @@ struct BinaryTransactionSerDes
                     txn.Visit(fieldEnum, [&](auto /* fieldType */, auto& subtxn) { _Apply(subtxn, reader); });
                     // throw std::logic_error("Unknown Mutator");
                 }
-                else
-                {
-                    throw std::logic_error("invalid mutator");
-                }
+                else { throw std::logic_error("invalid mutator"); }
             }
         }
     };
 
-    template <typename T> static void _ApplyOnStruct(Transaction<T>& txn, IStrmReader& reader) { _StructApplicator<T>::Apply(txn, reader); }
-    template <typename T> static void _ApplyOnList(Transaction<T>& txn, IStrmReader& reader) { _ListApplicator<T>::Apply(txn, reader); }
+    template <typename T> static void _ApplyOnStruct(Transaction<T>& txn, IStrmReader& reader)
+    {
+        _StructApplicator<T>::Apply(txn, reader);
+    }
+    template <typename T> static void _ApplyOnList(Transaction<T>& txn, IStrmReader& reader)
+    {
+        _ListApplicator<T>::Apply(txn, reader);
+    }
 
     template <typename T> static void _Apply(Transaction<T>& txn, IStrmReader& reader)
     {
         if constexpr (ConceptIterable<T>) { _ApplyOnList(txn, reader); }
-        else if constexpr (ConceptIndexable<T>)
-        {
-            _ApplyOnStruct(txn, reader);
-        }
+        else if constexpr (ConceptIndexable<T>) { _ApplyOnStruct(txn, reader); }
         return;
     }
 

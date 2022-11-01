@@ -95,9 +95,9 @@ template <typename TObj> struct Stencil::TransactionT<TObj, std::enable_if_t<Ste
 
     template <typename TLambda> void VisitChanges(TLambda&& lambda)
     {
-        _GetTransactionObj().VisitAll([&](auto const& name, auto const& type, auto& subtxn, auto& obj) {
-            if (IsFieldAssigned(type)) lambda(name, type, 0, 0, subtxn, obj);
-            if (IsFieldEdited(type)) lambda(name, type, 3, 0, subtxn, obj);
+        _GetTransactionObj().VisitAll([&](auto const& /* name */, auto const& type, auto& subtxn, auto& obj) {
+            if (IsFieldAssigned(type)) lambda(type, 0, 0, subtxn, obj);
+            if (IsFieldEdited(type)) lambda(type, 3, 0, subtxn, obj);
         });
     }
 
@@ -137,27 +137,38 @@ template <typename TKey, typename TVal> struct Stencil::Transaction<std::unorder
     using TObj = std::unordered_map<TKey, TVal>;
 
     Transaction(TObj& obj) : _ref(std::ref(obj)) {}
-    void  Flush();
+    void  Flush() { TODO("DoNotCommit"); }
     TObj& Obj() { return _ref; }
-    bool  IsChanged() const;
+    bool  IsChanged() const { TODO("DoNotCommit"); }
 
-    void remove(TKey const&);
-    void add(TKey&&, TVal&&);
+    void remove(TKey const&) { TODO("DoNotCommit"); }
+    void add(TKey&&, TVal&&) { TODO("DoNotCommit"); }
 
-    Stencil::Transaction<TVal>& at(TKey const&);
+    Stencil::Transaction<TVal>& at(TKey const&) { TODO("DoNotCommit"); }
 
     std::tuple<bool, Stencil::Transaction<TVal>&> find_or_add(TKey const&);
 
-    template <typename TLambda> auto Visit(TKey const& key, TLambda&& lambda) { lambda(at(key)); }
+    template <typename TLambda> auto Visit(TKey const& key, TLambda&& lambda) { lambda(key, at(key)); }
     template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
     {
         TKey key;
         SerDes<TKey, ProtocolString>::Read(key, fieldName);
         lambda(key, at(key));
     }
-    template <typename TLambda> void VisitChanges(TLambda&& lambda);
 
-    std::reference_wrapper<TObj> _ref;
+    template <typename TLambda> void VisitChanges(TLambda&& lambda)
+    {
+        // for (auto const& removed : _removed_keys) { lambda(nullptr, nullptr, 0, 0, this, Obj()); }
+        for (auto& [k, v] : _add_subtxns) { lambda(k, 0, 0, *v.get(), v->Obj()); }
+        for (auto& [k, v] : _edit_subtxns) { lambda(k, 0, 0, *v.get(), v->Obj()); }
+
+        // lambda(auto const& name, auto const& /* type */, auto const& mutator, auto const& /* mutatordata */, auto& subtxn, auto& obj)
+    }
+
+    std::unordered_map<TKey, std::unique_ptr<Stencil::Transaction<TVal>>> _edit_subtxns;
+    std::unordered_map<TKey, std::unique_ptr<Stencil::Transaction<TVal>>> _add_subtxns;
+    std::vector<TKey>                                                     _removed_keys;
+    std::reference_wrapper<TObj>                                          _ref;
 };
 
 template <Stencil::ConceptIterable TObj> struct Stencil::TransactionT<TObj>
@@ -232,7 +243,7 @@ template <Stencil::ConceptIterable TObj> struct Stencil::TransactionT<TObj>
             // TODO : Fix me. This is horrible
             auto& obj = Obj()[index];
             if (c.txn.get() == nullptr) { c.txn = std::make_unique<Transaction<ListObjType>>(obj); }
-            lambda(nullptr, nullptr, c.mutationtype, c.index, *c.txn.get(), obj);
+            lambda(c.index, c.mutationtype, 0, *c.txn.get(), obj);
         }
     }
 
