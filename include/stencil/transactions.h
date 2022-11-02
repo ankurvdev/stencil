@@ -17,9 +17,9 @@
 namespace Stencil
 {
 
-template <typename TObj, typename TEnable = void> struct TransactionT
+template <typename TObj, typename TEnable = void> struct Transaction
 {
-    TransactionT(TObj& /*obj*/) {}
+    Transaction(TObj& /*obj*/) {}
 
     template <typename TLambda> auto Visit(size_t /* fieldIndex */, TLambda&& /* lambda */)
     {
@@ -33,54 +33,59 @@ template <typename TObj, typename TEnable = void> struct TransactionT
 
     template <typename TLambda> void VisitAll(TLambda&& /* lambda */) { throw std::logic_error("Visit Not supported on Transaction"); }
 
-    TObj& Obj() { throw std::logic_error("Obj Not supported on Transaction"); }
+    TObj const& Obj() const { throw std::logic_error("Obj Not supported on Transaction"); }
 
-    void Flush_() const { throw std::logic_error("Flush not supported on transaction"); }
-
-    void Flush() const {}
     bool IsChanged() const { return false; }
 };
 
-template <typename TObj, typename TEnable = void> struct Transaction : Stencil::TransactionT<TObj>
-{
-    Transaction(TObj& obj) : Stencil::TransactionT<TObj>(obj) {}
-    CLASS_DELETE_COPY_AND_MOVE(Transaction);
-};
+template <typename TObj, typename TEnable = void> struct StructTransactionT;
 
 }    // namespace Stencil
 
-template <typename T> struct Stencil::Transaction<T, std::enable_if_t<Stencil::ConceptPrimitive<T>>> : Stencil::TransactionT<T>
+template <typename T> struct Stencil::Transaction<T, std::enable_if_t<Stencil::ConceptPreferPrimitive<T>>>
 {
-    Transaction(T& obj) : Stencil::TransactionT<T>(obj) {}
-    void Flush() const {}
+    Transaction(T& /*obj*/) {}
+
+    template <typename TKey, typename TLambda> auto Edit(TKey const& /*key*/, TLambda const& /*lambda*/)
+    {
+        throw std::logic_error("Obj Not supported on Transaction");
+    }
+
+    T const& Obj() const { throw std::logic_error("Obj Not supported on Transaction"); }
+
     bool IsChanged() const { return false; }
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 };
 
-template <> struct Stencil::Transaction<shared_string> : Stencil::TransactionT<shared_string>
+template <> struct Stencil::Transaction<shared_string>
 {
-    Transaction(shared_string& obj) : Stencil::TransactionT<shared_string>(obj) {}
-    void Flush() const {}
-    bool IsChanged() const { return false; }
+    Transaction(shared_string& /*obj*/) {}
+    bool                 IsChanged() const { return false; }
+    shared_string const& Obj() const { throw std::logic_error("Obj Not supported on Transaction"); }
+
+    template <typename TKey, typename TLambda> auto Edit(TKey const& /*key*/, TLambda const& /*lambda*/)
+    {
+        throw std::logic_error("Obj Not supported on Transaction");
+    }
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 };
 
-template <typename TObj> struct Stencil::TransactionT<TObj, std::enable_if_t<Stencil::ConceptIndexable<TObj>>>
+template <typename TObj> struct Stencil::StructTransactionT<TObj, std::enable_if_t<Stencil::ConceptPreferIndexable<TObj>>>
 {
-    TransactionT(TObj& obj) : _ref(std::ref(obj)) {}
+    StructTransactionT(TObj& obj) : _ref(std::ref(obj)) {}
 
-    CLASS_DELETE_COPY_AND_MOVE(TransactionT);
+    CLASS_DELETE_COPY_AND_MOVE(StructTransactionT);
 
-    TObj& Obj() { return _ref; }
+    TObj const& Obj() const { return _ref; }
 
     private:
     using TTransaction = Transaction<TObj>;
 
     auto& _GetTransactionObj()
     {
-        static_assert(std::is_base_of_v<TransactionT<TObj>, TTransaction>, "Transaction<TObj> must derive TransactionT<TObj>");
+        static_assert(std::is_base_of_v<StructTransactionT<TObj>, TTransaction>, "Transaction<TObj> must derive TransactionT<TObj>");
         return *static_cast<TTransaction*>(this);
     }
 
@@ -95,17 +100,17 @@ template <typename TObj> struct Stencil::TransactionT<TObj, std::enable_if_t<Ste
 
     template <typename TLambda> void VisitChanges(TLambda&& lambda)
     {
-        _GetTransactionObj().VisitAll([&](auto const& /* name */, auto const& type, auto& subtxn, auto& obj) {
-            if (IsFieldAssigned(type)) lambda(type, 0, 0, subtxn, obj);
-            if (IsFieldEdited(type)) lambda(type, 3, 0, subtxn, obj);
+        _GetTransactionObj().VisitAll([&](auto const& /* name */, auto const& type, auto& subtxn, auto& /* obj */) {
+            if (IsFieldAssigned(type)) lambda(type, 0, 0, subtxn);
+            if (IsFieldEdited(type)) lambda(type, 3, 0, subtxn);
         });
     }
 
     template <typename TEnum> void MarkFieldAssigned_(TEnum field) { _assigntracker.set(static_cast<uint8_t>(field)); }
-    void                           Flush() { TODO(""); }
 
     protected:
     // template <typename TEnum> void MarkFieldAssigned_(TEnum field) { _assigntracker.set(static_cast<uint8_t>(field)); }
+    TObj& StructObj_() { return _ref; }
 
     template <typename TEnum, typename TVal> void MarkFieldAssigned_(TEnum field, TVal const& curval, TVal const& newval)
     {
@@ -137,30 +142,63 @@ template <typename TKey, typename TVal> struct Stencil::Transaction<std::unorder
     using TObj = std::unordered_map<TKey, TVal>;
 
     Transaction(TObj& obj) : _ref(std::ref(obj)) {}
-    void  Flush() { TODO("DoNotCommit"); }
-    TObj& Obj() { return _ref; }
-    bool  IsChanged() const { TODO("DoNotCommit"); }
+    TObj const& Obj() const { return _ref; }
+    bool        IsChanged() const { TODO("DoNotCommit"); }
 
-    void remove(TKey const&) { TODO("DoNotCommit"); }
-    void add(TKey&&, TVal&&) { TODO("DoNotCommit"); }
+    template <typename TLambda> void Edit(TKey const& key, TLambda&& lambda) { lambda(_edit_txn_at(key)); }
+    template <typename TLambda> auto Assign(TKey const& key, TVal&& val)
+    {
+        TObj& obj = _ref;
+        obj[key]  = std::move(val);
+        return _assign_txn_at(key);
+    }
 
-    Stencil::Transaction<TVal>& at(TKey const&) { TODO("DoNotCommit"); }
+    Stencil::Transaction<TVal>& _edit_txn_at(TKey const& key)
+    {
+        {
+            auto it = _add_subtxns.find(key);
+            if (it != _add_subtxns.end()) { return *it->second.get(); }
+        }
+        {
+            auto it = _edit_subtxns.find(key);
+            if (it != _edit_subtxns.end()) { return *it->second.get(); }
+        }
+        TObj& obj = _ref;
+        auto  it  = obj.find(key);
+        if (it == obj.end()) { throw std::logic_error("Object not found"); }
+        auto txn           = std::make_unique<Stencil::Transaction<TVal>>(it->second);
+        auto txnptr        = txn.get();
+        _edit_subtxns[key] = std::move(txn);
+        return *txnptr;
+    }
 
-    std::tuple<bool, Stencil::Transaction<TVal>&> find_or_add(TKey const&);
+    Stencil::Transaction<TVal>& _assign_txn_at(TKey const& key)
+    {
+        {
+            auto it = _edit_subtxns.find(key);
+            if (it != _edit_subtxns.end()) { _edit_subtxns.erase(it); }
+        }
+        {
+            auto it = _add_subtxns.find(key);
+            if (it != _add_subtxns.end()) { return *it.second.get(); }
+        }
+        TObj& obj = _ref;
+        auto  it  = obj.find(key);
+        if (it == obj.end()) { throw std::logic_error("Object not found"); }
+        auto txn           = std::make_unique<Stencil::Transaction<TVal>>(it.second);
+        auto txnptr        = txn.get();
+        _edit_subtxns[key] = std::move(txn);
+        return *txnptr;
+    }
 
     template <typename TLambda> auto Visit(TKey const& key, TLambda&& lambda) { lambda(key, at(key)); }
-    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
-    {
-        TKey key;
-        SerDes<TKey, ProtocolString>::Read(key, fieldName);
-        lambda(key, at(key));
-    }
+    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda) {}
 
     template <typename TLambda> void VisitChanges(TLambda&& lambda)
     {
         // for (auto const& removed : _removed_keys) { lambda(nullptr, nullptr, 0, 0, this, Obj()); }
-        for (auto& [k, v] : _add_subtxns) { lambda(k, 0, 0, *v.get(), v->Obj()); }
-        for (auto& [k, v] : _edit_subtxns) { lambda(k, 0, 0, *v.get(), v->Obj()); }
+        for (auto& [k, v] : _add_subtxns) { lambda(k, 0, 0, *v.get()); }
+        for (auto& [k, v] : _edit_subtxns) { lambda(k, 0, 0, *v.get()); }
 
         // lambda(auto const& name, auto const& /* type */, auto const& mutator, auto const& /* mutatordata */, auto& subtxn, auto& obj)
     }
@@ -171,18 +209,18 @@ template <typename TKey, typename TVal> struct Stencil::Transaction<std::unorder
     std::reference_wrapper<TObj>                                          _ref;
 };
 
-template <Stencil::ConceptIterable TObj> struct Stencil::TransactionT<TObj>
+template <typename TObj> struct Stencil::Transaction<TObj, std::enable_if_t<Stencil::ConceptPreferIterable<TObj>>>
 {
     using ListObjType = typename TObj::value_type;
 
-    TransactionT(TObj& obj) : _ref(std::ref(obj)) {}
-    ~TransactionT() {}
+    Transaction(TObj& obj) : _ref(std::ref(obj)) {}
+    ~Transaction() {}
 
-    CLASS_DELETE_COPY_AND_MOVE(TransactionT);
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
-    TObj& Obj() { return _ref; }
+    TObj const& Obj() const { return _ref; }
 
-    template <typename TArg> void RecordMutation_add_(TArg&) { _changes.push_back({1u, Obj().size(), nullptr}); }
+    template <typename TArg> void RecordMutation_add_(TArg&) { _changes.push_back({1u, _ref.get().size(), nullptr}); }
 
     void RecordMutation_remove_(size_t index) { _changes.push_back({2u, index, nullptr}); }
     void RecordMutation_edit_(size_t /* index */) {}
@@ -191,25 +229,25 @@ template <Stencil::ConceptIterable TObj> struct Stencil::TransactionT<TObj>
     template <typename T> void add(T&& obj)
     {
         RecordMutation_add_(obj);
-        Stencil::Mutators<TObj>::add(Obj(), std::move(obj));
+        Stencil::Mutators<TObj>::add(_ref, std::move(obj));
     }
 
-    void remove(size_t index)
+    void Remove(size_t index)
     {
         RecordMutation_remove_(index);
-        Stencil::Mutators<TObj>::remove(Obj(), index);
+        Stencil::Mutators<TObj>::remove(_ref, index);
     }
 
     auto& edit(size_t index)
     {
         Transaction<ListObjType>* ptr = nullptr;
-        Visit(index, [&](auto /* fieldIndex */, auto& txn) { ptr = &txn; });
+        Edit(index, [&](auto /* fieldIndex */, auto& txn) { ptr = &txn; });
         return *ptr;
     }
 
-    template <typename TLambda> auto Visit(size_t fieldIndex, TLambda&& lambda)
+    template <typename TLambda> auto Edit(size_t fieldIndex, TLambda&& lambda)
     {
-        Visitor<TObj>::VisitKey(Obj(), fieldIndex, [&](auto& obj) {
+        Visitor<TObj>::VisitKey(_ref.get(), fieldIndex, [&](auto& obj) {
             RecordMutation_edit_(fieldIndex);
             auto subtxnptr = std::make_unique<Transaction<std::remove_cvref_t<decltype(obj)>>>(obj);
             lambda(fieldIndex, *subtxnptr);
@@ -218,12 +256,14 @@ template <Stencil::ConceptIterable TObj> struct Stencil::TransactionT<TObj>
         });
     }
 
-    template <typename TLambda> auto Visit(std::string_view const& fieldName, TLambda&& lambda)
+    template <typename TLambda> auto Edit(std::string_view const& fieldName, TLambda&& lambda)
     {
         size_t key;
         SerDes<size_t, ProtocolString>::Read(key, fieldName);
-        return Visit(key, lambda);
+        return Edit(key, lambda);
     }
+
+    void Assign(TObj&& /* obj */) { throw std::logic_error("Self-Assignment not allowed"); }
 
     template <typename TLambda> void VisitAll(TLambda&& /* lambda */) { throw std::logic_error("Visit Not supported on Transaction"); }
     template <typename TLambda> void VisitChanges(TLambda&& lambda)
@@ -241,13 +281,12 @@ template <Stencil::ConceptIterable TObj> struct Stencil::TransactionT<TObj>
                 if (c1.mutationtype == 1u && c1.index < index) { index++; }
             }
             // TODO : Fix me. This is horrible
-            auto& obj = Obj()[index];
+            auto& obj = _ref.get()[index];
             if (c.txn.get() == nullptr) { c.txn = std::make_unique<Transaction<ListObjType>>(obj); }
-            lambda(c.index, c.mutationtype, 0, *c.txn.get(), obj);
+            lambda(c.index, c.mutationtype, 0, *c.txn.get());
         }
     }
 
-    void Flush() {}
     bool IsChanged() { return _changes.size() > 0; }
 
     struct _Record
@@ -267,6 +306,99 @@ template <typename T> struct Stencil::Mutators<Stencil::Transaction<T>, std::ena
 {
     template <typename TVal> static void add(Stencil::Transaction<T>& txn, TVal&& obj) { txn.add(std::move(obj)); }
 
-    static void  remove(Stencil::Transaction<T>& txn, size_t index) { txn.remove(index); }
+    static void  remove(Stencil::Transaction<T>& txn, size_t index) { txn.Remove(index); }
     static auto& edit(Stencil::Transaction<T>& txn, size_t index) { return txn.edit(index); }
+};
+
+template <typename T> struct Stencil::TypeTraits<Stencil::Transaction<T>>
+{
+    using Categories = typename Stencil::TypeTraits<T>::Categories;
+};
+
+template <Stencil::ConceptIndexable T> struct Stencil::TypeTraitsForIndexable<Stencil::Transaction<T>>
+{
+    using Key = typename Stencil::TypeTraitsForIndexable<T>::Key;
+};
+
+template <Stencil::ConceptIterable T> struct Stencil::TypeTraitsForIterable<Stencil::Transaction<T>>
+{};
+
+template <Stencil::ConceptPrimitive T> struct Stencil::TypeTraitsForPrimitive<Stencil::Transaction<T>>
+{};
+
+template <Stencil::ConceptIterable T> struct Stencil::VisitorForIterable<Stencil::Transaction<T>>
+{
+    using Iterator = typename Stencil::Visitor<T>::Iterator;
+    using ThisType = Stencil::Transaction<T>;
+
+    template <typename T1>
+    requires std::is_same_v<std::remove_const_t<T1>, ThisType>
+    static void IteratorBegin(Iterator& /*it*/, T1& /*obj*/) { TODO("DoNotCommit: Stencil::Visitor<T>::IteratorBegin(it, *obj.get());"); }
+
+    template <typename T1>
+    requires std::is_same_v<std::remove_const_t<T1>, ThisType>
+    static void IteratorMoveNext(Iterator& /*it*/, T1& /*obj*/) { TODO("DoNotCommit: Stencil::Visitor<T>::IteratorMoveNext(it, *obj.get());"); }
+
+    template <typename T1>
+    requires std::is_same_v<std::remove_const_t<T1>, ThisType>
+    static bool IteratorValid(Iterator& /*it*/, T1& /*obj*/) { TODO("DoNotCommit: return Stencil::Visitor<T>::IteratorValid(it, *obj.get());"); }
+
+    template <typename T1, typename TLambda>
+    requires std::is_same_v<std::remove_const_t<T1>, ThisType>
+    static void Visit(Iterator& /*it*/, T1& /*obj*/, TLambda&& /*lambda*/)
+    {
+        TODO("DoNotCommit: Stencil::Visitor<T>::Visit(it, *obj.get(), std::forward<TLambda>(lambda));");
+    }
+};
+
+template <Stencil::ConceptIndexable T> struct Stencil::VisitorForIndexable<Stencil::Transaction<T>>
+{
+    using ThisType = Stencil::Transaction<T>;
+};
+
+template <typename T>
+struct Stencil::Visitor<Stencil::Transaction<T>> : Stencil::VisitorT<Stencil::Transaction<T>>,
+                                                   Stencil::VisitorForIterable<Stencil::Transaction<T>>,
+                                                   Stencil::VisitorForIndexable<Stencil::Transaction<T>>
+{
+    using ThisType = Stencil::Transaction<T>;
+
+    // So that this works for both const and non-const
+    template <typename TKey, typename TLambda> static void VisitKey(ThisType& obj, TKey&& key, TLambda&& lambda)
+    {
+        obj.Edit(std::forward<TKey>(key), std::forward<TLambda>(lambda));
+    }
+
+    template <typename TLambda> static void VisitAllIndicies(ThisType& obj, TLambda&& lambda)
+    {
+        obj.VisitAll(std::forward<TLambda>(lambda));
+    }
+};
+
+template <ConceptPrimitives64Bit T, typename TProtocol> struct Stencil::SerDes<Stencil::Transaction<T>, TProtocol>
+{
+    template <typename Context> static auto Write(Context& ctx, Stencil::Transaction<T> const& txn)
+    {
+        Stencil::SerDes<T, TProtocol>::Write(ctx, txn.Obj());
+    }
+
+    template <typename Context> static auto Read(Stencil::Transaction<T>& /*obj*/, Context& /*ctx*/)
+    {
+        TODO("DoNotCommit");
+        // TODO: DoNotCommit
+    }
+};
+
+template <typename TProtocol> struct Stencil::SerDes<Stencil::Transaction<shared_string>, TProtocol>
+{
+    template <typename Context> static auto Write(Context& /*ctx*/, Stencil::Transaction<shared_string> const& /*txn*/)
+    {
+        TODO("DoNotCommit");
+    }
+
+    template <typename Context> static auto Read(Stencil::Transaction<shared_string>& /*obj*/, Context& /*ctx*/)
+    {
+        TODO("DoNotCommit");
+        // TODO: DoNotCommit
+    }
 };

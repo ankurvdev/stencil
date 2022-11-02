@@ -151,7 +151,7 @@ template <typename TProto, typename TOwner, ConceptIndexable T> struct Indexable
 
     TOwner* owner;
 
-    typename Traits::Key _key;
+    typename Traits::Key _key{};
 
     VisitorTypeHandler<TProto, TOwner, typename Traits::Key> _keyhandler;
 

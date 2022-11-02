@@ -81,6 +81,8 @@ if (NOT RapidJSON_FOUND)
     target_compile_definitions(rapidjson INTERFACE USE_RAPIDJSON=1)
     target_include_directories(rapidjson INTERFACE external/rapidjson/include)
 endif()
+find_package(CommonMacros QUIET MODULE REQUIRED)
+list(APPEND public_headers "${COMMONMACROS_INCLUDE_FILE}")
 
 #find_package(simdjson QUIET)
 #if (NOT simdjson_FOUND)
@@ -111,19 +113,41 @@ build_lexyacc()
 
 file(GLOB resfiles src/templates/*)
 
-add_library(libstencil OBJECT src/ModelGenerator.cpp src/Thrift.cpp)
+add_library(libstencil OBJECT
+    src/ModelGenerator.cpp
+    src/Thrift.cpp
+    src/Binding.h
+    src/DebugInfo.h
+    src/GeneratedCodeFragment.h
+    src/Generator.h
+    src/IDL2.h
+    src/IDL3Generics.h
+    src/TemplateFragment.h
+    src/Thrift.h
+    src/tree.h
+)
+target_include_directories(libstencil PUBLIC src)
+
 target_add_lexyacc(libstencil src/Thrift.ly)
 target_add_resource(libstencil templates ${resfiles})
-
-file(GLOB resfiles include/stencil/*)
+list(APPEND resfiles ${public_headers})
 if (NOT BUILD_TESTING)
     target_add_resource(libstencil commonheaders ${resfiles})
 endif()
 
-target_link_libraries(libstencil PRIVATE toml11::toml11 tinyxml2::tinyxml2 tsl::ordered_map)
-target_link_libraries(libstencil PUBLIC  fmt::fmt-header-only stduuid)
+target_link_libraries(libstencil PUBLIC
+    toml11::toml11
+    tinyxml2::tinyxml2
+    tsl::ordered_map
+    fmt::fmt-header-only
+    CommonMacros
+)
 
-target_include_directories(libstencil PUBLIC src include/stencil)
+set(stencil_INCLUDE_PATH "${CMAKE_CURRENT_LIST_DIR}/include" CACHE PATH "Stencil include path")
+include(stencilTargets)
+
+target_link_libraries(stencil_runtime INTERFACE CommonMacros)
+
 add_executable(stencil src/main.cpp)
 
 set_target_properties(stencil PROPERTIES PUBLIC_HEADER "${public_headers}")
@@ -136,7 +160,7 @@ endif()
 
 if (BUILD_TESTING)
     enable_testing()
-
+    find_package(TestCommon REQUIRED MODULE)
     file(GLOB resfiles tests/testdata/*)
     file(GLOB pidlfiles tests/*.pidl)
 
@@ -145,7 +169,7 @@ if (BUILD_TESTING)
     )
     add_test(NAME codegen_tests COMMAND codegen_tests)
     target_include_directories(codegen_tests PRIVATE src include tests)
-    target_link_libraries(codegen_tests PRIVATE libstencil dtl::dtl Catch2::Catch2WithMain)
+    target_link_libraries(codegen_tests PRIVATE libstencil TestCommon)
     target_add_resource(codegen_tests testdata ${resfiles} ${pidlfiles})
 
     add_executable(runtime_tests
@@ -156,9 +180,9 @@ if (BUILD_TESTING)
         #tests/HandwrittenRuntime/Test_WebService_Handwritten.cpp
     )
 
-    target_compile_definitions(runtime_tests PRIVATE USE_NLOHMANN_JSON USE_CPP_HTTPLIB)
-    target_link_libraries(runtime_tests PRIVATE libstencil)
-    target_link_libraries(runtime_tests PRIVATE dtl::dtl Catch2::Catch2WithMain cpp_httplib::cpp_httplib stencil::runtime)
+    target_compile_definitions(runtime_tests PRIVATE HAVE_NLOHMANN_JSON HAVE_CPP_HTTPLIB)
+    target_link_libraries(runtime_tests PRIVATE stencil_runtime)
+    target_link_libraries(runtime_tests PRIVATE TestCommon cpp_httplib::cpp_httplib stencil::runtime)
     target_link_libraries (runtime_tests PRIVATE Threads::Threads)
     add_test(NAME runtime_tests COMMAND runtime_tests)
 

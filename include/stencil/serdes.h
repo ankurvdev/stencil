@@ -24,4 +24,14 @@ template <typename T, typename TProt, typename TIn> T Deserialize(TIn& input)
     return obj;
 }
 
+template <typename TProt, typename TObj, typename TVal> void SerDesRead(TObj& obj, TVal& val)
+{
+    SerDes<TObj, TProt>::Read(obj, val);
+}
+
+template <typename TProt, typename TObj, typename TVal> void SerDesWrite(TObj& obj, TVal& val)
+{
+    SerDes<TObj, TProt>::Write(obj, val);
+}
+
 }    // namespace Stencil

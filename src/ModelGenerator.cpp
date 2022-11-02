@@ -4,13 +4,13 @@
 #include "IDL2.h"
 #include "TemplateFragment.h"
 
+#include <EmbeddedResource.h>
+
 SUPPRESS_WARNINGS_START
-SUPPRESS_MSVC_STL_WARNINGS
+SUPPRESS_STL_WARNINGS
 #include <tinyxml2.h>
 #include <toml.hpp>
 #include <tsl/ordered_map.h>
-
-#include <EmbeddedResource.h>
 
 #include <fstream>
 #include <iostream>
@@ -59,19 +59,13 @@ void Generator::FieldTypeDecl::Merge(FieldTypeDecl&& decl)
     if (!decl.name.empty())
     {
         if (name.empty()) { name = std::move(decl.name); }
-        else if (name != decl.name)
-        {
-            throw std::logic_error("Cannot merge differently name FieldTypes");
-        }
+        else if (name != decl.name) { throw std::logic_error("Cannot merge differently name FieldTypes"); }
     }
 
     if (!decl.baseField.empty())
     {
         if (baseField.empty()) { baseField = std::move(decl.baseField); }
-        else if (baseField != decl.baseField)
-        {
-            throw std::logic_error("Can only have 1 base field");
-        }
+        else if (baseField != decl.baseField) { throw std::logic_error("Can only have 1 base field"); }
     }
 
     if (decl.annotationMap != nullptr)
@@ -132,10 +126,7 @@ template <> struct convert<std::vector<Generator::MutatorAccessorDefinition>>
                     }
                 }
             }
-            else
-            {
-                throw std::invalid_argument("Args not found for :" + it->first.as<std::string>());
-            }
+            else { throw std::invalid_argument("Args not found for :" + it->first.as<std::string>()); }
             valarr.push_back(std::move(val));
         }
 
@@ -156,14 +147,8 @@ template <> struct convert<Generator::FieldTypeDecl>
         {
             auto propname = it1->first.as<std::wstring>();
             if (propname == L"Mutators") { val.mutators = it1->second.as<std::vector<Generator::MutatorAccessorDefinition>>(); }
-            else if (propname == L"Accessors")
-            {
-                val.accessors = it1->second.as<std::vector<Generator::MutatorAccessorDefinition>>();
-            }
-            else if (propname == L"Inherits")
-            {
-                val.baseField = it1->second.as<std::wstring>();
-            }
+            else if (propname == L"Accessors") { val.accessors = it1->second.as<std::vector<Generator::MutatorAccessorDefinition>>(); }
+            else if (propname == L"Inherits") { val.baseField = it1->second.as<std::wstring>(); }
             else
             {
                 auto annotationMap
@@ -190,18 +175,9 @@ template <> struct convert<Generator::ContainerTypeDecl>
         {
             auto propname = it1->first.as<std::wstring>();
             if (propname == L"Mutators") { val.mutators = it1->second.as<std::vector<Generator::MutatorAccessorDefinition>>(); }
-            else if (propname == L"Accessors")
-            {
-                val.accessors = it1->second.as<std::vector<Generator::MutatorAccessorDefinition>>();
-            }
-            else if (propname == L"Inherits")
-            {
-                val.baseField = it1->second.as<std::wstring>();
-            }
-            else if (propname == L"Params")
-            {
-                val.args = it1->second.as<std::vector<std::wstring>>();
-            }
+            else if (propname == L"Accessors") { val.accessors = it1->second.as<std::vector<Generator::MutatorAccessorDefinition>>(); }
+            else if (propname == L"Inherits") { val.baseField = it1->second.as<std::wstring>(); }
+            else if (propname == L"Params") { val.args = it1->second.as<std::vector<std::wstring>>(); }
             else
             {
                 auto annotationMap
@@ -282,14 +258,8 @@ template <typename TTableNode> static Generator::ContainerTypeDecl ContainerType
     {
         auto propname = Str::Convert(key);
         if (propname == L"Mutators") { val.mutators = ParseMutatorAccessorDefinitionArrFromTomlNode(value); }
-        else if (propname == L"Accessors")
-        {
-            val.accessors = ParseMutatorAccessorDefinitionArrFromTomlNode(value);
-        }
-        else if (propname == L"Inherits")
-        {
-            val.baseField = Str::Convert(value.as_string().str);
-        }
+        else if (propname == L"Accessors") { val.accessors = ParseMutatorAccessorDefinitionArrFromTomlNode(value); }
+        else if (propname == L"Inherits") { val.baseField = Str::Convert(value.as_string().str); }
         else if (propname == L"Params")
         {
             for (auto const& sub : (value.as_array())) { val.args.push_back(Str::Convert(sub.as_string().str)); }
@@ -319,14 +289,8 @@ template <typename TTableNode> static Generator::FieldTypeDecl FieldTypeDeclFrom
     {
         auto propname = Str::Convert(key);
         if (propname == L"Mutators") { val.mutators = ParseMutatorAccessorDefinitionArrFromTomlNode(value); }
-        else if (propname == L"Accessors")
-        {
-            val.accessors = ParseMutatorAccessorDefinitionArrFromTomlNode(value);
-        }
-        else if (propname == L"Inherits")
-        {
-            val.baseField = Str::Convert(value.as_string().str);
-        }
+        else if (propname == L"Accessors") { val.accessors = ParseMutatorAccessorDefinitionArrFromTomlNode(value); }
+        else if (propname == L"Inherits") { val.baseField = Str::Convert(value.as_string().str); }
         else
         {
             auto annotationMap
@@ -356,28 +320,13 @@ void Generator::_AddTypeDefinitions(std::string_view const& /*name*/, std::strin
                 _FindOrInsertFieldTypeDecl(fieldTypeDecl.name).Merge(std::move(fieldTypeDecl));
             }
         }
-        else if (propname == "Struct")
-        {
-            _structDefault.Merge(FieldTypeDeclFromTomlNode(node));
-        }
+        else if (propname == "Struct") { _structDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
 
-        else if (propname == "Variant")
-        {
-            _unionDefault.Merge(FieldTypeDeclFromTomlNode(node));
-        }
+        else if (propname == "Variant") { _unionDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
 
-        else if (propname == "Interface")
-        {
-            _interfaceDefault.Merge(FieldTypeDeclFromTomlNode(node));
-        }
-        else if (propname == "FunctionArgs")
-        {
-            _fnargsDefault.Merge(FieldTypeDeclFromTomlNode(node));
-        }
-        else if (propname == "Typedef")
-        {
-            _typedefDefault.Merge(FieldTypeDeclFromTomlNode(node));
-        }
+        else if (propname == "Interface") { _interfaceDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
+        else if (propname == "FunctionArgs") { _fnargsDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
+        else if (propname == "Typedef") { _typedefDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
         else if (propname == "Containers")
         {
             for (auto [key, node1] : node.as_table())
@@ -395,10 +344,7 @@ void Generator::_AddTypeDefinitions(std::string_view const& /*name*/, std::strin
                 for (auto const& [key1, node2] : node1.as_table()) { objmap[Str::Convert(key1)] = Str::Convert(node2.as_string().str); }
             }
         }
-        else
-        {
-            throw std::logic_error("Unrecognized type");
-        }
+        else { throw std::logic_error("Unrecognized type"); }
     }
 }
 
@@ -619,10 +565,7 @@ void Generator::_AddTemplate(std::string_view const& name, std::string_view cons
 void Generator::_AddContent(std::string_view const& name, std::string_view const& text)
 {
     if (name.find("typedecl") != std::string_view ::npos) { _AddTypeDefinitions(name, text); }
-    else if (name.find("template") != std::string_view ::npos)
-    {
-        _AddTemplate(name, text);
-    }
+    else if (name.find("template") != std::string_view ::npos) { _AddTemplate(name, text); }
 }
 
 void Generator::_RegisterFieldDefForProgram(Generator::FieldTypeDecl& v)

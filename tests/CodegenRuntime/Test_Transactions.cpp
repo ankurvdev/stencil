@@ -155,7 +155,7 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
             Stencil::Transaction<Objects::NestedObject> txn(obj1);
             txn.obj1().set_val1(1000);
             t2 = obj1.obj1.lastmodified;
-            txn.Flush();
+            // txn.Flush();
 
             t3 = obj1.obj1.lastmodified;
             t4 = obj1.lastmodified;
@@ -168,7 +168,7 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
             Stencil::Transaction<Objects::NestedObject> txn(obj1);
             txn.obj1().set_val1(1000);
             t4 = obj1.obj1.lastmodified;
-            txn.Flush();
+            // txn.Flush();
             REQUIRE(t3 == t4);
         }
         {
@@ -178,14 +178,14 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
             Objects::ListObject                         lobj1, lobj2;
             lobj1.value = 100;
             txn.list1().add_listobj(std::move(lobj1));
-            txn.Flush();
+            // txn.Flush();
             t3 = obj1.lastmodified;
             REQUIRE(t2 < t3);
             txn.list1().edit_listobj(0).set_value(200);
-            txn.Flush();
+            // txn.Flush();
             t4 = obj1.lastmodified;
             REQUIRE(t3 < t4);
-            txn.Flush();
+            // txn.Flush();
             // TODO : Bugfix
             // REQUIRE(t4 == obj1.lastmodified);
         }
@@ -200,7 +200,7 @@ TEST_CASE("Transactions_Bugs", "[transaction]")
         obj1.list1.listobj.push_back({});
         Stencil::Transaction<Objects::NestedObject> txn(obj1);
         txn.list1().edit_listobj(0).obj1().set_val1(1);
-        txn.Flush();
+        // txn.Flush();
         REQUIRE(txn.list1().IsChanged());
         REQUIRE(txn.IsChanged());
     }

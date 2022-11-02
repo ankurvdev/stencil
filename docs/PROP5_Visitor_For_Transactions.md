@@ -32,5 +32,5 @@ Easier to manage.
 
 Cleaner
     The transaction class becomes more of a marker
-
+We can serialize / deserialize directly into transactions because Visitors are now symmetrical.
 Easier to have a unified transaction stream

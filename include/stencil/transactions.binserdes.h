@@ -65,35 +65,20 @@ struct BinaryTransactionSerDes
 {
     template <typename T> static auto& _DeserializeTo(Transaction<T>& txn, OStrmWriter& writer)
     {
-        if constexpr (ConceptIterable<T>)
+        if constexpr (ConceptPreferIterable<T> || ConceptPreferIndexable<T>)
         {
-            txn.VisitChanges([&](size_t const& index, uint8_t const& mutator, auto const& /* mutatordata */, auto& subtxn, auto& obj) {
-                using ObjType = std::remove_reference_t<decltype(obj)>;
+            txn.VisitChanges([&](auto const& key, uint8_t const& mutator, auto const& /* mutatordata */, auto& subtxn) {
+                using ObjType = std::remove_cvref_t<decltype(subtxn.Obj())>;
                 writer << static_cast<uint8_t>(mutator);
-                writer << static_cast<uint32_t>(index);
+                Stencil::SerDes<std::remove_cvref_t<decltype(key)>, ProtocolBinary>::Write(writer, key);
 
                 if (mutator == 3) { _DeserializeTo(subtxn, writer); }
-                else if (mutator == 0) { Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer, obj); }
-                else if (mutator == 1) { Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer, obj); }
+                // TODO: DoNotCommit else if (mutator == 0) { Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer, obj); }
+                // TODO: DoNotCommit else if (mutator == 1) { Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer, obj); }
                 else if (mutator == 2)
                 {
                     // Nothing else needed
                 }
-                else { throw std::logic_error("Unknown mutator"); }
-            });
-            writer << std::numeric_limits<uint8_t>::max();
-        }
-
-        if constexpr (ConceptIndexable<T>)
-        {
-            txn.VisitChanges([&](auto const& key, auto const& mutator, auto const& /* mutatordata */, auto& subtxn, auto& obj) {
-                using ObjType = std::remove_reference_t<decltype(obj)>;
-                using KeyType = std::remove_cvref_t<decltype(key)>;
-
-                writer << static_cast<uint8_t>(mutator);
-                Stencil::SerDes<KeyType, ProtocolBinary>::Write(writer, key);
-                if (mutator == 0) { Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer, obj); }
-                else if (mutator == 3) { _DeserializeTo(subtxn, writer); }
                 else { throw std::logic_error("Unknown mutator"); }
             });
             writer << std::numeric_limits<uint8_t>::max();
@@ -120,16 +105,15 @@ struct BinaryTransactionSerDes
         static void Apply(Transaction<T>& /* txn */, IStrmReader& /* reader */) { throw std::logic_error("Invalid"); }
     };
 
-    template <typename T> struct _ListApplicator<T, std::enable_if_t<ConceptIterable<T>>>
+    template <typename T> struct _ListApplicator<T, std::enable_if_t<ConceptPreferIterable<T>>>
     {
         static void Add(Transaction<T>& txn, size_t /* listindex */, IStrmReader& reader)
         {
             typename Stencil::Mutators<T>::ListObj obj;
-
-            Stencil::SerDes<decltype(obj), ProtocolBinary>::Read(obj, reader);
+            Stencil::SerDesRead<ProtocolBinary>(obj, reader);
             txn.add(std::move(obj));
         }
-        static void Remove(Transaction<T>& txn, size_t listindex) { txn.remove(listindex); }
+        static void Remove(Transaction<T>& txn, size_t listindex) { txn.Remove(listindex); }
 
         static void Apply(Transaction<T>& txn, IStrmReader& reader)
         {
@@ -146,7 +130,7 @@ struct BinaryTransactionSerDes
                 }
                 else if (mutator == 3)    // Edit
                 {
-                    txn.Visit(index, [&](auto /* fieldType */, auto& subtxn) { _Apply(subtxn, reader); });
+                    TODO("DoNotCommit txn.Visit(index, [&](auto /* fieldType */, auto& subtxn) {_Apply(subtxn, reader); });");
                 }
                 else { throw std::logic_error("invalid mutator"); }
             }
@@ -182,11 +166,11 @@ struct BinaryTransactionSerDes
                 auto fieldEnum  = static_cast<TKey>(fieldIndex);
                 if (mutator == 0)    // Set
                 {
-                    txn.Visit(fieldEnum, [&](auto /* fieldType */, auto& /* subtxn */) {
-                        Visitor<T>::VisitKey(txn.Obj(), fieldEnum, [&](auto& obj) {
-                            // txn.MarkFieldAssigned_(fieldEnum);
-                            Stencil::SerDes<std::remove_cvref_t<decltype(obj)>, ProtocolBinary>::Read(obj, reader);
-                        });
+                    txn.Edit(fieldEnum, [&](auto& /*subtxn*/) {
+                        // Visitor<T>::VisitKey(txn.Obj(), fieldEnum, [&](auto& obj) {
+                        //     txn.MarkFieldAssigned_(fieldEnum);
+                        // TODO: DoNotCommit Stencil::SerDes<std::remove_cvref_t<decltype(subtxn)>, ProtocolBinary>::Read(subtxn, reader);
+                        // });
                     });
 
                     // txn.Visit(fieldname, [&](auto fieldType, auto& subtxn) { _ApplyJson(subtxn , fieldType, rhs); });
@@ -205,7 +189,7 @@ struct BinaryTransactionSerDes
 #endif
                 else if (mutator == 3)    // edit
                 {
-                    txn.Visit(fieldEnum, [&](auto /* fieldType */, auto& subtxn) { _Apply(subtxn, reader); });
+                    txn.Edit(fieldEnum, [&](auto& subtxn) { _Apply(subtxn, reader); });
                     // throw std::logic_error("Unknown Mutator");
                 }
                 else { throw std::logic_error("invalid mutator"); }

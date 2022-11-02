@@ -6,14 +6,11 @@
 #include "visitor.h"
 
 //#if defined USE_SIMDJSON
-
-#pragma warning(push, 3)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Weverything"
+SUPPRESS_WARNINGS_START
+#pragma warning(disable : 4061) /* Not all labels are EXPLICITLY handled in switch */
 #include <rapidjson/memorystream.h>
 #include <rapidjson/reader.h>
-#pragma clang diagnostic pop
-#pragma warning(pop)
+SUPPRESS_WARNINGS_END
 
 #include <array>
 #include <deque>

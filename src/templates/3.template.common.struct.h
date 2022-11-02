@@ -211,7 +211,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram
     }
 };
 
-template <> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz> : Stencil::TransactionT<zzProgram_Namezz::zzStruct_Namezz>
+template <> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz> : Stencil::StructTransactionT<zzProgram_Namezz::zzStruct_Namezz>
 {
     using TData  = zzProgram_Namezz::zzStruct_Namezz;
     using Fields = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields;
@@ -223,10 +223,10 @@ template <> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz> : Ste
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
     Transaction(TData& ptr) :
-        Stencil::TransactionT<zzProgram_Namezz::zzStruct_Namezz>(ptr)
+        Stencil::StructTransactionT<zzProgram_Namezz::zzStruct_Namezz>(ptr)
         //<Field>
         ,
-        _subtracker_zzNamezz(Obj().zzNamezz)
+        _subtracker_zzNamezz(StructObj_().zzNamezz)
     //</Field>
     {}
 
@@ -240,8 +240,8 @@ template <> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz> : Ste
     //<Field>
     void set_zzNamezz(zzFieldType_NativeTypezz&& val)
     {
-        MarkFieldAssigned_(Fields::Field_zzNamezz, Obj().zzNamezz, val);
-        Obj().zzNamezz = std::move(val);
+        MarkFieldAssigned_(Fields::Field_zzNamezz, StructObj_().zzNamezz, val);
+        StructObj_().zzNamezz = std::move(val);
     }
 
     //<FieldType_Mutator>
@@ -253,21 +253,21 @@ template <> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz> : Ste
     //</FieldType_Mutator>
     //</Field>
 
-    template <typename TLambda> auto Visit(Fields index, [[maybe_unused]] TLambda&& lambda)
+    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
     {
         switch (index)
         {
         //<Field>
-        case Fields::Field_zzNamezz: return lambda("zzNamezz", zzNamezz());
+        case Fields::Field_zzNamezz: return lambda(zzNamezz());
         //</Field>
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
 
-    template <typename TLambda> auto Visit([[maybe_unused]] std::string_view const& fieldName, [[maybe_unused]] TLambda&& lambda)
+    template <typename TLambda> auto Edit([[maybe_unused]] std::string_view const& fieldName, [[maybe_unused]] TLambda&& lambda)
     {
         //<Field>
-        if (fieldName == "zzNamezz") { return lambda(Fields::Field_zzNamezz, zzNamezz()); }
+        if (fieldName == "zzNamezz") { return lambda(zzNamezz()); }
         //</Field>
         throw std::invalid_argument("Asked to visit invalid field");
     }
@@ -279,6 +279,9 @@ template <> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz> : Ste
         //</Field>
     }
 
+    void Assign(TData&& /* obj */) { throw std::logic_error("Self-Assignment not allowed"); }
+
+#if 0
     void Flush()
     {
         //<Field>
@@ -291,8 +294,9 @@ template <> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz> : Ste
 
         //</Field>
 
-        Stencil::TransactionT<zzProgram_Namezz::zzStruct_Namezz>::Flush_();
+        Stencil::StructTransactionT<zzProgram_Namezz::zzStruct_Namezz>::Flush_();
     }
+#endif
 };
 
 template <> struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz> : Stencil::VisitorT<zzProgram_Namezz::zzStruct_Namezz>

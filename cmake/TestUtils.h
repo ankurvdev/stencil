@@ -3,26 +3,16 @@
 #include <EmbeddedResource.h>
 #endif
 
-#pragma warning(push, 3)
-#pragma warning(disable : 4868)
-#pragma warning(disable : 4738)
-#pragma warning(disable : 4365)    // signed unsigned mismatch
-#pragma warning(disable : 5219)    // implicit conversion from 'uint64_t' to 'double', possible loss of data
-#pragma warning(disable : 5204)    // class has virtual functions, but its trivial destructor is not virtual
-#pragma warning(disable : 4668)    // not defined as a preprocessor macro
-#pragma warning(disable : 5039)    // pointer or reference to potentially throwing function passed to 'extern)
-#pragma warning(disable : 5262)    /* Use [[fallthrough]] when break intentionally omitted */
+#include "CommonMacros.h"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Weverything"
-#pragma GCC diagnostic   ignored "-Wmaybe-uninitialized"
-
+SUPPRESS_WARNINGS_START
+SUPPRESS_STL_WARNINGS
+SUPPRESS_FMT_WARNINGS
+#pragma warning(disable : 4388)    // signed / unsigned mismatch (Catch2)
 #include <catch2/catch_all.hpp>
 #include <dtl/dtl.hpp>
 #include <fmt/ostream.h>
-
-#pragma clang diagnostic pop
-#pragma warning(pop)
+SUPPRESS_WARNINGS_END
 
 #include <filesystem>
 #include <fstream>
@@ -124,7 +114,7 @@ struct ResourceFileManager
         auto it = _openedfiles.find(testresname);
         if (it != _openedfiles.end()) { return it->second; }
         auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
-        for (auto const r : resourceCollection)
+        for (auto const& r : resourceCollection)
         {
             auto resname = wstring_to_string(r.name());
             if (resname == testresname || resname == name)
@@ -149,7 +139,7 @@ inline std::vector<std::string> LoadResource(std::string_view const& name)
     auto testresname = GeneratePrefixFromTestName() + std::string(name) + ".txt";
 
     auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
-    for (auto const r : resourceCollection)
+    for (auto const& r : resourceCollection)
     {
         auto resname = wstring_to_string(r.name());
         if (resname == testresname || resname == name)
@@ -170,7 +160,7 @@ template <typename TData> inline void CompareBinaryOutputAgainstResource(TData c
 {
     auto testresname        = GeneratePrefixFromTestName() + std::string(resourcename) + ".bin";
     auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
-    for (auto const r : resourceCollection)
+    for (auto const& r : resourceCollection)
     {
         auto resname = wstring_to_string(r.name());
         if (resname == testresname || resname == resourcename)

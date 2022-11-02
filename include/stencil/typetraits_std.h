@@ -94,5 +94,5 @@ template <typename K, typename V> struct Stencil::TypeTraits<std::unordered_map<
 };
 template <typename K, typename V> struct Stencil::TypeTraitsForIndexable<std::unordered_map<K, V>>
 {
-    using Key = size_t;
+    using Key = K;
 };

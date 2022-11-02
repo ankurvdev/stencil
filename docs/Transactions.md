@@ -116,7 +116,7 @@ auto txn = StringTransactionSerDes::Apply(foo, "child1.val1 = 1;child1.val2 = \"
 
 struct MyType{}
 
-template <> struct Transaction<MyType> : TransactionT<MyType>
+template <> struct Transaction<MyType> : StructTransactionT<MyType>
 {
 
 // lambda is a auto lambda

@@ -83,7 +83,7 @@ struct StringTransactionSerDes
         static void Remove(Transaction<T>& /* txn */, size_t /* listindex */) { throw std::logic_error("Invalid"); }
     };
 
-    template <typename T> struct _ListApplicator<T, std::enable_if_t<ConceptIterable<T>>>
+    template <typename T> struct _ListApplicator<T, std::enable_if_t<ConceptPreferIterable<T>>>
     {
         static void Add(Transaction<T>& txn, size_t /* listindex */, std::string_view const& rhs)
         {
@@ -91,7 +91,7 @@ struct StringTransactionSerDes
             Stencil::SerDes<decltype(obj), ProtocolJsonVal>::Read(obj, rhs);
             txn.add(std::move(obj));
         }
-        static void Remove(Transaction<T>& txn, size_t listindex) { txn.remove(listindex); }
+        static void Remove(Transaction<T>& txn, size_t listindex) { txn.Remove(listindex); }
     };
 
     template <typename TObj> static void _ListAdd(Transaction<TObj>& txn, size_t listindex, std::string_view const& rhs)
@@ -112,28 +112,24 @@ struct StringTransactionSerDes
                           std::string_view const& mutatordata,
                           std::string_view const& rhs)
         {
+            using TKey = Stencil::TypeTraitsForIndexable<T>::Key;
+            TKey key   = Stencil::Deserialize<TKey, ProtocolString>(fieldname);
+
             if (mutator == 0)    // Set
             {
-                txn.Visit(fieldname, [&](auto /* fieldType */, auto& /* subtxn */) {
-                    using TKey = typename Stencil::TypeTraitsForIndexable<T>::Key;
-                    auto key   = Stencil::Deserialize<TKey, Stencil::ProtocolString>(fieldname);
-                    Visitor<T>::VisitKey(txn.Obj(), key, [&](auto& obj) {
-                        // TODO: txn.MarkFieldAssigned_(fieldType);
-                        Stencil::SerDes<std::remove_cvref_t<decltype(obj)>, ProtocolJsonVal>::Read(obj, rhs);
-                    });
-                });
+                txn.Edit(key, [&](auto& subtxn) { Stencil::SerDesRead<ProtocolJsonVal>(subtxn, rhs); });
 
                 // txn.Visit(fieldname, [&](auto fieldType, auto& subtxn) { _ApplyJson(subtxn , fieldType, rhs); });
             }
             else if (mutator == 1)    // List Add
             {
                 auto listval = Stencil::Deserialize<size_t, Stencil::ProtocolString>(mutatordata);
-                txn.Visit(fieldname, [&](auto /* fieldType */, auto& subtxn) { _ListAdd(subtxn, listval, rhs); });
+                txn.Edit(key, [&](auto& subtxn) { _ListAdd(subtxn, listval, rhs); });
             }
             else if (mutator == 2)    // List remove
             {
                 auto listval = Stencil::Deserialize<size_t, Stencil::ProtocolString>(mutatordata);
-                txn.Visit(fieldname, [&](auto /* fieldType */, auto& subtxn) { _ListRemove(subtxn, listval); });
+                txn.Edit(key, [&](auto& subtxn) { _ListRemove(subtxn, listval); });
             }
             else { throw std::logic_error("Unknown Mutator"); }
         }
@@ -153,15 +149,21 @@ struct StringTransactionSerDes
     {
         if (!(it.delimiter == ':' || it.delimiter == ' ' || it.delimiter == '='))
         {
-            auto name = it.token;
-            ++it;
-            size_t retval;
+            if constexpr (Stencil::ConceptIndexable<T>)
+            {
+                auto name  = it.token;
+                using TKey = Stencil::TypeTraitsForIndexable<T>::Key;
+                TKey key   = Stencil::Deserialize<TKey, ProtocolString>(name);
+                ++it;
+                size_t retval;
 #pragma warning(push, 3)
 #pragma warning(disable : 4702)    // unreachable code
                                    // Sometime its a bad visit and we throw exceptions for error
-            txn.Visit(name, [&](auto /* fieldType */, auto& args) { retval = _Apply(it, args); });
+                txn.Edit(key, [&](auto& args) { retval = _Apply(it, args); });
 #pragma warnin(pop)
-            return retval;
+                return retval;
+            }
+            else { throw std::logic_error("Unable to indirect into a non-indexable"); }
         }
 
         auto name = it.token;
@@ -211,9 +213,9 @@ struct StringTransactionSerDes
 
     template <typename T> static std::ostream& _DeserializeTo(Transaction<T>& txn, std::ostream& ostr, std::vector<std::string>& stack)
     {
-        if constexpr (ConceptIterable<T>)
+        if constexpr (ConceptPreferIterable<T>)
         {
-            txn.VisitChanges([&](size_t const& index, uint8_t const& mutator, auto const& /* mutatordata */, auto& subtxn, auto& obj) {
+            txn.VisitChanges([&](size_t const& index, uint8_t const& mutator, auto const& /* mutatordata */, auto& subtxn) {
                 if (mutator == 3)
                 {
                     stack.push_back(std::to_string(index));
@@ -231,9 +233,9 @@ struct StringTransactionSerDes
                 if (mutator == 0)
                 {
                     // Assign
-                    ostr << "." << index << " = " << Stencil::Json::Stringify(obj) << ";";
+                    ostr << "." << index << " = " << Stencil::Json::Stringify(subtxn.Obj()) << ";";
                 }
-                else if (mutator == 1) { ostr << ":add[" << index << "] = " << Stencil::Json::Stringify(obj) << ";"; }
+                else if (mutator == 1) { ostr << ":add[" << index << "] = " << Stencil::Json::Stringify(subtxn.Obj()) << ";"; }
                 else if (mutator == 2) { ostr << ":remove[" << index << "] = {};"; }
                 else { throw std::logic_error("Unknown mutator"); }
             });
@@ -241,12 +243,12 @@ struct StringTransactionSerDes
 
         if constexpr (ConceptIndexable<T>)
         {
-            txn.VisitChanges([&](auto const& key, auto const& mutator, auto const& /* mutatordata */, auto& subtxn, auto& obj) {
+            txn.VisitChanges([&](auto const& key, auto const& mutator, auto const& /* mutatordata */, auto& subtxn) {
                 auto name = Stencil::Json::Stringify(key);
                 if (mutator == 0)
                 {
                     for (auto& s : stack) { ostr << s << "."; }
-                    ostr << name << " = " << Stencil::Json::Stringify(obj) << ";";
+                    ostr << name << " = " << Stencil::Json::Stringify(subtxn.Obj()) << ";";
                 }
                 else if (mutator == 3)
                 {

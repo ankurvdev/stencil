@@ -1,10 +1,7 @@
 include(${CMAKE_CURRENT_LIST_DIR}/stencilTargets.cmake)
 set(stencil_INCLUDE_PATH "${CMAKE_CURRENT_LIST_DIR}/../include" CACHE PATH "Stencil include path")
 
-find_package(dtl REQUIRED MODULE)
-find_package(Catch2 REQUIRED)
-
-find_package(EmbedResource REQUIRED)
+find_package(TestCommon REQUIRED MODULE)
 
 file(GLOB resfiles "${CMAKE_CURRENT_LIST_DIR}/../tests/testdata/*")
 file(GLOB pidlfiles "${CMAKE_CURRENT_LIST_DIR}/../tests/*.pidl")
@@ -23,6 +20,5 @@ add_executable(codegen_runtime_tests
     # TODO1 "${CMAKE_CURRENT_LIST_DIR}/../tests/CodegenRuntime/Test_WebService_Autogen.cpp"
 )
 
-target_include_directories(codegen_runtime_tests PRIVATE "${CMAKE_CURRENT_LIST_DIR}/../tests" ${DTL_INCLUDE_DIRS})
-target_link_libraries(codegen_runtime_tests PRIVATE codegen testdata Catch2::Catch2WithMain)
+target_link_libraries(codegen_runtime_tests PRIVATE codegen testdata TestCommon)
 add_test(NAME codegen_runtime_tests COMMAND codegen_runtime_tests)
