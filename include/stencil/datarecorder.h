@@ -120,7 +120,7 @@ template <typename... Ts> struct DataRecorder
     }
 
     // void OnChanged(LockT const& /*lock*/, TransactionT const& /*ctx*/, T const& /*data*/) override { TODO(); }
-    template <typename T> void Record(Transaction<T>& ctx)
+    template <ConceptTransaction T> void Record(T& ctx)
     {
         if (!ctx.IsChanged()) { return; }
 

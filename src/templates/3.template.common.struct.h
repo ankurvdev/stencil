@@ -211,44 +211,68 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram
     }
 };
 
-template <> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz> : Stencil::StructTransactionT<zzProgram_Namezz::zzStruct_Namezz>
+template <typename TOwner>
+struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TOwner>
+    : Stencil::StructTransactionT<Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TOwner>>
 {
+    using TThis = Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TOwner>;
+    using TBase = Stencil::StructTransactionT<TThis>;
+
     using TData  = zzProgram_Namezz::zzStruct_Namezz;
     using Fields = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields;
 
     //<Field>
-    Transaction<zzFieldType_NativeTypezz> _subtracker_zzNamezz;
+    using Transaction_zzNamezz = Stencil::Transaction<zzFieldType_NativeTypezz, TThis>;
     //</Field>
 
-    CLASS_DELETE_COPY_AND_MOVE(Transaction);
-
-    Transaction(TData& ptr) :
-        Stencil::StructTransactionT<zzProgram_Namezz::zzStruct_Namezz>(ptr)
+    struct State
+    {
         //<Field>
-        ,
-        _subtracker_zzNamezz(StructObj_().zzNamezz)
+        Transaction_zzNamezz::State zzNamezz{};
+        //</Field>
+
+    } _state;
+
+    typedef zzProgram_Namezz::zzStruct_Namezz&(AccessorFn)(TOwner&, State&);
+
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
+    Transaction(State& state, TOwner& owner, AccessorFn* fn) : _owner(owner), _fn(fn)
+    //<Field>
+    //,_subtracker_zzNamezz(this, [](TThis* obj) -> zzFieldType_NativeTypezz* { return &obj->_StructObj().zzNamezz; })
     //</Field>
     {}
 
+    public:
+    TData const& Obj() const { return _fn(_owner, _state); }
+
+    private:
+    TOwner&     _owner{};
+    AccessorFn* _fn{};
+    TData&      _StructObj() { return _fn(_owner, _state); }
+
+    public:
     //<Field>
-    auto& zzNamezz()
+    static zzFieldType_NativeTypezz& _AccessorFn_zzNamezz(TThis& owner, Transaction_zzNamezz::State& /*state*/)
     {
-        MarkFieldEdited_(Fields::Field_zzField_Namezz);
-        return _subtracker_zzNamezz;
+        return owner._StructObj().zzNamezz;
     }
+
+    auto zzNamezz() { return Stencil::CreateTransaction<Transaction_zzNamezz>(_state.zzNamezz, *this, &_AccessorFn_zzNamezz); }
+
     //</Field>
     //<Field>
     void set_zzNamezz(zzFieldType_NativeTypezz&& val)
     {
-        MarkFieldAssigned_(Fields::Field_zzNamezz, StructObj_().zzNamezz, val);
-        StructObj_().zzNamezz = std::move(val);
+        TBase::MarkFieldAssigned_(Fields::Field_zzNamezz, _StructObj().zzNamezz, val);
+        _StructObj().zzNamezz = std::move(val);
     }
 
     //<FieldType_Mutator>
     zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz&& args)
     {
-        MarkFieldEdited_(Fields::Field_zzField_Namezz);
-        return Stencil::Mutators<std::remove_reference_t<decltype(zzField_Namezz())>>::zzNamezz(zzField_Namezz(), std::move(args));
+        TBase::MarkFieldEdited_(Fields::Field_zzField_Namezz);
+        auto txn = zzField_Namezz();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::zzNamezz(txn, std::move(args));
     }
     //</FieldType_Mutator>
     //</Field>
@@ -258,27 +282,26 @@ template <> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz> : Ste
         switch (index)
         {
         //<Field>
-        case Fields::Field_zzNamezz: return lambda(zzNamezz());
+        case Fields::Field_zzNamezz:
+        {
+            auto txn = zzNamezz();
+            return lambda(txn);
+        }
         //</Field>
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
-
-    template <typename TLambda> auto Edit([[maybe_unused]] std::string_view const& fieldName, [[maybe_unused]] TLambda&& lambda)
-    {
-        //<Field>
-        if (fieldName == "zzNamezz") { return lambda(zzNamezz()); }
-        //</Field>
-        throw std::invalid_argument("Asked to visit invalid field");
-    }
-
+#if 0
     template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
     {
         //<Field>
-        lambda("zzNamezz", Fields::Field_zzNamezz, zzNamezz(), Obj().zzNamezz);
+        {
+            auto txn = zzNamezz();
+            lambda("zzNamezz", Fields::Field_zzNamezz, txn, TBase::Obj().zzNamezz);
+        }
         //</Field>
     }
-
+#endif
     void Assign(TData&& /* obj */) { throw std::logic_error("Self-Assignment not allowed"); }
 
 #if 0

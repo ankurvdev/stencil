@@ -23,7 +23,8 @@
         _Pragma("warning(disable : 5026)") /* move constructor was implicitly defined as deleted*/                            \
         _Pragma("warning(disable : 5204)") /* class has virtual functions, but its trivial destructor is not virtual;*/       \
         _Pragma("warning(disable : 5246)") /* initialization of a subobject should be wrapped in braces */                    \
-        _Pragma("warning(disable : 5220)") /* a non-static data member with a volatile qualified type no longer implies*/
+        _Pragma("warning(disable : 5220)") /* a non-static data member with a volatile qualified type no longer implies*/     \
+        _Pragma("warning(disable : 5262)") /* xlocale(2010, 13):implicit fall - through occurs here; */
 
 #define SUPPRESS_FMT_WARNINGS                                                                                                \
     _Pragma("warning(disable : 4061)")     /* Not all labels are EXPLICITLY handled in switch */                             \

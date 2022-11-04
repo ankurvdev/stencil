@@ -44,7 +44,7 @@ set(srcfile ${CMAKE_CURRENT_BINARY_DIR}/main.cpp)
 file(WRITE ${srcfile} "")
 add_executable(stencil_vcpkg_test ${srcfile})
 
-target_add_lexyacc(stencil_vcpkg_test ${CMAKE_CURRENT_LIST_DIR}/WavefrontObj.ly)
+add_lexyacc_library(TARGET WavefrontObjly LYFILE ${CMAKE_CURRENT_LIST_DIR}/WavefrontObj.ly)
 target_include_directories(stencil_vcpkg_test PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
 
 file(APPEND ${srcfile} "

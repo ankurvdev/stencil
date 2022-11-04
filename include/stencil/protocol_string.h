@@ -4,10 +4,7 @@
 #include "typetraits_builtins.h"
 
 SUPPRESS_WARNINGS_START
-
-SUPPRESS_WARNINGS_END
-
-SUPPRESS_WARNINGS_START
+SUPPRESS_STL_WARNINGS
 SUPPRESS_FMT_WARNINGS
 #pragma warning(disable : 5219)    // implicit conversion (int to double), possible loss of data
 #include <charconv>

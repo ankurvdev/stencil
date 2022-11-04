@@ -115,7 +115,6 @@ file(GLOB resfiles src/templates/*)
 
 add_library(libstencil OBJECT
     src/ModelGenerator.cpp
-    src/Thrift.cpp
     src/Binding.h
     src/DebugInfo.h
     src/GeneratedCodeFragment.h
@@ -127,8 +126,11 @@ add_library(libstencil OBJECT
     src/tree.h
 )
 target_include_directories(libstencil PUBLIC src)
+add_lexyacc_library(TARGET Thrift LYFILE src/Thrift.ly SOURCES src/Thrift.cpp)
+target_include_directories(Thrift PUBLIC src)
+target_link_libraries(Thrift PUBLIC CommonMacros fmt::fmt-header-only)
 
-target_add_lexyacc(libstencil src/Thrift.ly)
+target_link_libraries(libstencil PUBLIC Thrift)
 target_add_resource(libstencil templates ${resfiles})
 list(APPEND resfiles ${public_headers})
 if (NOT BUILD_TESTING)
@@ -152,7 +154,7 @@ add_executable(stencil src/main.cpp)
 
 set_target_properties(stencil PROPERTIES PUBLIC_HEADER "${public_headers}")
 
-target_link_libraries(stencil PRIVATE libstencil cxxopts::cxxopts)
+target_link_libraries(stencil PRIVATE libstencil Thrift cxxopts::cxxopts)
 
 if (BUILD_TESTING)
     include(RuntimeCodegenTests)
@@ -169,7 +171,7 @@ if (BUILD_TESTING)
     )
     add_test(NAME codegen_tests COMMAND codegen_tests)
     target_include_directories(codegen_tests PRIVATE src include tests)
-    target_link_libraries(codegen_tests PRIVATE libstencil TestCommon)
+    target_link_libraries(codegen_tests PRIVATE libstencil Thrift TestCommon)
     target_add_resource(codegen_tests testdata ${resfiles} ${pidlfiles})
 
     add_executable(runtime_tests

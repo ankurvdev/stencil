@@ -1,17 +1,24 @@
 #include "Objects.pidl.h"
+
 #include "TestUtils.h"
 
 #include "stencil/transactions.binserdes.h"
 #include "stencil/transactions.strserdes.h"
+Stencil::Transaction<Objects::NestedObject, size_t> CreateNestedObjectTransaction(Objects::NestedObject& obj)
+{
+    TODO("DoNotCommit");
+    // return Stencil::Transaction<Objects::NestedObject, size_t>(reinterpret_cast<void*>(&obj),
+    //                                                         [](void* ptr) { return reinterpret_cast<Objects::NestedObject*>(ptr); });
+}
 
 struct TestReplay
 {
-    TestReplay() : txn2(obj2) {}
+    TestReplay() : txn2(CreateNestedObjectTransaction(obj2)) {}
     CLASS_DELETE_COPY_AND_MOVE(TestReplay);
 
     void Replay(std::string_view const& txndata, std::string_view const& expectedIn = {})
     {
-        Stencil::Transaction<Objects::NestedObject> txn(obj1);
+        auto txn = CreateNestedObjectTransaction(obj1);
         Stencil::StringTransactionSerDes::Apply(txn, txndata);
         snapshots.push_back(Stencil::Json::Stringify(obj1));
         auto expected = expectedIn.size() == 0 ? txndata : expectedIn;
@@ -54,7 +61,7 @@ struct TestReplay
     std::ostringstream binary_acc_txns;
     std::ostringstream binary_last_txns;
 
-    Stencil::Transaction<Objects::NestedObject> txn2;
+    Stencil::Transaction<Objects::NestedObject, size_t> txn2;
 };
 
 TEST_CASE("Transactions", "[transaction]")
@@ -94,14 +101,14 @@ TEST_CASE("Transactions", "[transaction]")
         REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(replay.obj2));
     }
     {
-        Objects::NestedObject                       obj3;
-        Stencil::Transaction<Objects::NestedObject> txn3(obj3);
+        Objects::NestedObject obj3;
+        auto                  txn3 = CreateNestedObjectTransaction(obj3);
         for (auto& c : replay.changes) { Stencil::StringTransactionSerDes::Apply(txn3, c); }
         REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
     }
     {
-        Objects::NestedObject                       obj3;
-        Stencil::Transaction<Objects::NestedObject> txn3(obj3);
+        Objects::NestedObject obj3;
+        auto                  txn3 = CreateNestedObjectTransaction(obj3);
         Stencil::StringTransactionSerDes::Apply(txn3, replay.deltatxns.back());
         REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
     }
@@ -111,8 +118,8 @@ TEST_CASE("Transactions", "[transaction]")
     auto binary_last_txns = replay.binary_last_txns.str();
     // And now binary streams
     {
-        Objects::NestedObject                       obj3;
-        Stencil::Transaction<Objects::NestedObject> txn3(obj3);
+        Objects::NestedObject obj3;
+        auto                  txn3 = CreateNestedObjectTransaction(obj3);
 
         std::istringstream istrm(binary_txns);
         istrm.peek();
@@ -125,9 +132,9 @@ TEST_CASE("Transactions", "[transaction]")
         REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
     }
     {
-        Objects::NestedObject                       obj3;
-        Stencil::Transaction<Objects::NestedObject> txn3(obj3);
-        std::istringstream                          istrm(binary_last_txns);
+        Objects::NestedObject obj3;
+        auto                  txn3 = CreateNestedObjectTransaction(obj3);
+        std::istringstream    istrm(binary_last_txns);
         Stencil::BinaryTransactionSerDes::Apply(txn3, istrm);
         REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
         auto offset = static_cast<unsigned>(istrm.tellg());
@@ -152,7 +159,7 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
         {
             // Update only on flush
             // Update on sub-struct edit
-            Stencil::Transaction<Objects::NestedObject> txn(obj1);
+            auto txn = CreateNestedObjectTransaction(obj1);
             txn.obj1().set_val1(1000);
             t2 = obj1.obj1.lastmodified;
             // txn.Flush();
@@ -165,7 +172,7 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
         }
         {
             // No update on false edits
-            Stencil::Transaction<Objects::NestedObject> txn(obj1);
+            auto txn = CreateNestedObjectTransaction(obj1);
             txn.obj1().set_val1(1000);
             t4 = obj1.obj1.lastmodified;
             // txn.Flush();
@@ -173,9 +180,9 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
         }
         {
             // List edits
-            t2 = obj1.lastmodified;
-            Stencil::Transaction<Objects::NestedObject> txn(obj1);
-            Objects::ListObject                         lobj1, lobj2;
+            t2                      = obj1.lastmodified;
+            auto                txn = CreateNestedObjectTransaction(obj1);
+            Objects::ListObject lobj1, lobj2;
             lobj1.value = 100;
             txn.list1().add_listobj(std::move(lobj1));
             // txn.Flush();
@@ -198,7 +205,7 @@ TEST_CASE("Transactions_Bugs", "[transaction]")
     {
         Objects::NestedObject obj1;
         obj1.list1.listobj.push_back({});
-        Stencil::Transaction<Objects::NestedObject> txn(obj1);
+        auto txn = CreateNestedObjectTransaction(obj1);
         txn.list1().edit_listobj(0).obj1().set_val1(1);
         // txn.Flush();
         REQUIRE(txn.list1().IsChanged());

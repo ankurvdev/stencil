@@ -63,9 +63,9 @@ struct IStrmReader
 
 struct BinaryTransactionSerDes
 {
-    template <typename T> static auto& _DeserializeTo(Transaction<T>& txn, OStrmWriter& writer)
+    template <ConceptTransaction T> static auto& _DeserializeTo(T& txn, OStrmWriter& writer)
     {
-        if constexpr (ConceptPreferIterable<T> || ConceptPreferIndexable<T>)
+        if constexpr (ConceptTransactionForIndexable<T> || ConceptTransactionForIterable<T>)
         {
             txn.VisitChanges([&](auto const& key, uint8_t const& mutator, auto const& /* mutatordata */, auto& subtxn) {
                 using ObjType = std::remove_cvref_t<decltype(subtxn.Obj())>;
@@ -86,36 +86,37 @@ struct BinaryTransactionSerDes
         return writer;
     }
 
-    template <typename T> static std::ostream& Deserialize(Transaction<T>& txn, std::ostream& ostr)
+    template <ConceptTransaction T> static std::ostream& Deserialize(T& txn, std::ostream& ostr)
     {
         OStrmWriter writer(ostr);
         _DeserializeTo(txn, writer);
         return ostr;
     }
 
-    template <typename T, typename F = void> struct _StructApplicator
+    template <ConceptTransaction T, typename F = void> struct _StructApplicator
     {
-        static void Apply(Transaction<T>& /* txn */, IStrmReader& /* reader */) { throw std::logic_error("Invalid"); }
+        static void Apply(T& /* txn */, IStrmReader& /* reader */) { throw std::logic_error("Invalid"); }
     };
 
-    template <typename T, typename F = void> struct _ListApplicator
+    template <ConceptTransaction T, typename F = void> struct _ListApplicator
     {
-        static void Add(Transaction<T>& /* txn */, size_t /* listindex */, IStrmReader& /* reader */) { throw std::logic_error("Invalid"); }
-        static void Remove(Transaction<T>& /* txn */, size_t /* listindex */) { throw std::logic_error("Invalid"); }
-        static void Apply(Transaction<T>& /* txn */, IStrmReader& /* reader */) { throw std::logic_error("Invalid"); }
+        static void Add(T& /* txn */, size_t /* listindex */, IStrmReader& /* reader */) { throw std::logic_error("Invalid"); }
+        static void Remove(T& /* txn */, size_t /* listindex */) { throw std::logic_error("Invalid"); }
+        static void Apply(T& /* txn */, IStrmReader& /* reader */) { throw std::logic_error("Invalid"); }
     };
 
-    template <typename T> struct _ListApplicator<T, std::enable_if_t<ConceptPreferIterable<T>>>
+    template <ConceptTransactionForIterable T> struct _ListApplicator<T>
     {
-        static void Add(Transaction<T>& txn, size_t /* listindex */, IStrmReader& reader)
+        static void Add(T& txn, size_t /* listindex */, IStrmReader& reader)
         {
-            typename Stencil::Mutators<T>::ListObj obj;
+            using TObj = typename Stencil::TransactionTraits<T>::Obj;
+            typename Stencil::Mutators<TObj>::ListObj obj;
             Stencil::SerDesRead<ProtocolBinary>(obj, reader);
             txn.add(std::move(obj));
         }
-        static void Remove(Transaction<T>& txn, size_t listindex) { txn.Remove(listindex); }
+        static void Remove(T& txn, size_t listindex) { txn.Remove(listindex); }
 
-        static void Apply(Transaction<T>& txn, IStrmReader& reader)
+        static void Apply(T& txn, IStrmReader& reader)
         {
             for (auto mutator = reader.read<uint8_t>(); mutator != std::numeric_limits<uint8_t>::max(); mutator = reader.read<uint8_t>())
             {
@@ -137,32 +138,37 @@ struct BinaryTransactionSerDes
         }
     };
 
-    template <typename TObj> static void _ListAdd(Transaction<TObj>& txn, size_t listindex, IStrmReader& reader)
+    template <ConceptTransaction T> static void _ListAdd(T& txn, size_t listindex, IStrmReader& reader)
     {
-        _ListApplicator<TObj>::Add(txn, listindex, reader);
+        _ListApplicator<T>::Add(txn, listindex, reader);
     }
 
-    template <typename TObj> static void _ListRemove(Transaction<TObj>& txn, size_t listindex)
-    {
-        _ListApplicator<TObj>::Remove(txn, listindex);
-    }
+    template <ConceptTransaction T> static void _ListRemove(T& txn, size_t listindex) { _ListApplicator<T>::Remove(txn, listindex); }
 
-    template <typename T> struct _StructApplicator<T, std::enable_if_t<ConceptPrimitive<T>>>
-    {
-        static void Apply(Transaction<T>& /* txn */, IStrmReader& /* reader */)
-        {
-            // throw std::logic_error("Invalid");
-        }
-    };
+    //template <ConceptTransactionForIterable T> struct _StructApplicator<T>
+    //{
+    //    static void Apply(T& /* txn */, IStrmReader& /* reader */)
+    //    {
+    //        // throw std::logic_error("Invalid");
+    //    }
+    //};
 
-    template <typename T> struct _StructApplicator<T, std::enable_if_t<ConceptIndexable<T>>>
+    //template <ConceptTransactionForPrimitive T> struct _StructApplicator<T>
+    //{
+    //    static void Apply(T& /* txn */, IStrmReader& /* reader */)
+    //    {
+    //        // throw std::logic_error("Invalid");
+    //    }
+    //};
+
+    template <ConceptTransactionForIndexable T> struct _StructApplicator<T>
     {
-        static void Apply(Transaction<T>& txn, IStrmReader& reader)
+        static void Apply(T& txn, IStrmReader& reader)
         {
             for (auto mutator = reader.read<uint8_t>(); mutator != std::numeric_limits<uint8_t>::max(); mutator = reader.read<uint8_t>())
             {
                 auto fieldIndex = reader.read<uint32_t>();
-                using TKey      = typename Stencil::TypeTraitsForIndexable<T>::Key;
+                using TKey      = typename Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::Obj>::Key;
                 auto fieldEnum  = static_cast<TKey>(fieldIndex);
                 if (mutator == 0)    // Set
                 {
@@ -197,24 +203,18 @@ struct BinaryTransactionSerDes
         }
     };
 
-    template <typename T> static void _ApplyOnStruct(Transaction<T>& txn, IStrmReader& reader)
-    {
-        _StructApplicator<T>::Apply(txn, reader);
-    }
-    template <typename T> static void _ApplyOnList(Transaction<T>& txn, IStrmReader& reader)
-    {
-        _ListApplicator<T>::Apply(txn, reader);
-    }
+    template <ConceptTransaction T> static void _ApplyOnStruct(T& txn, IStrmReader& reader) { _StructApplicator<T>::Apply(txn, reader); }
+    template <ConceptTransaction T> static void _ApplyOnList(T& txn, IStrmReader& reader) { _ListApplicator<T>::Apply(txn, reader); }
 
-    template <typename T> static void _Apply(Transaction<T>& txn, IStrmReader& reader)
+    template <ConceptTransaction T> static void _Apply(T& txn, IStrmReader& reader)
     {
-        if constexpr (ConceptIterable<T>) { _ApplyOnList(txn, reader); }
-        else if constexpr (ConceptIndexable<T>) { _ApplyOnStruct(txn, reader); }
+        if constexpr (ConceptTransactionForIterable<T>) { _ApplyOnList(txn, reader); }
+        else if constexpr (ConceptTransactionForIndexable<T>) { _ApplyOnStruct(txn, reader); }
         return;
     }
 
     public:
-    template <typename T> static std::istream& Apply(Transaction<T>& txn, std::istream& strm)
+    template <ConceptTransaction T> static std::istream& Apply(T& txn, std::istream& strm)
     {
         IStrmReader reader(strm);
         _Apply(txn, reader);

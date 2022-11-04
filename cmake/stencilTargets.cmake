@@ -122,6 +122,7 @@ function(_add_stencil_target)
 
     find_package(date REQUIRED)
     add_library(${targetName} INTERFACE ${outputs})
+    target_sources(${targetName} INTERFACE ${outputs} ${_IDLS})
     target_include_directories(${targetName} INTERFACE ${outdir})
     target_link_libraries(${targetName} INTERFACE stencil::runtime date::date fmt::fmt-header-only)
 endfunction()

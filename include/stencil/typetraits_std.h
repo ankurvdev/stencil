@@ -1,12 +1,15 @@
 #pragma once
 #include "typetraits.h"
 
+SUPPRESS_WARNINGS_START
+SUPPRESS_STL_WARNINGS
 #include <array>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <variant>
 #include <vector>
+SUPPRESS_WARNINGS_END
 
 template <typename T> struct Stencil::TypeTraits<std::shared_ptr<T>>
 {
