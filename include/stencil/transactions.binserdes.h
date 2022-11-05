@@ -68,7 +68,7 @@ struct BinaryTransactionSerDes
         if constexpr (ConceptTransactionForIndexable<T> || ConceptTransactionForIterable<T>)
         {
             txn.VisitChanges([&](auto const& key, uint8_t const& mutator, auto const& /* mutatordata */, auto& subtxn) {
-                using ObjType = std::remove_cvref_t<decltype(subtxn.Obj())>;
+                // using ObjType = std::remove_cvref_t<decltype(subtxn.Obj())>;
                 writer << static_cast<uint8_t>(mutator);
                 Stencil::SerDes<std::remove_cvref_t<decltype(key)>, ProtocolBinary>::Write(writer, key);
 
@@ -145,21 +145,21 @@ struct BinaryTransactionSerDes
 
     template <ConceptTransaction T> static void _ListRemove(T& txn, size_t listindex) { _ListApplicator<T>::Remove(txn, listindex); }
 
-    //template <ConceptTransactionForIterable T> struct _StructApplicator<T>
+    // template <ConceptTransactionForIterable T> struct _StructApplicator<T>
     //{
-    //    static void Apply(T& /* txn */, IStrmReader& /* reader */)
-    //    {
-    //        // throw std::logic_error("Invalid");
-    //    }
-    //};
+    //     static void Apply(T& /* txn */, IStrmReader& /* reader */)
+    //     {
+    //         // throw std::logic_error("Invalid");
+    //     }
+    // };
 
-    //template <ConceptTransactionForPrimitive T> struct _StructApplicator<T>
+    // template <ConceptTransactionForPrimitive T> struct _StructApplicator<T>
     //{
-    //    static void Apply(T& /* txn */, IStrmReader& /* reader */)
-    //    {
-    //        // throw std::logic_error("Invalid");
-    //    }
-    //};
+    //     static void Apply(T& /* txn */, IStrmReader& /* reader */)
+    //     {
+    //         // throw std::logic_error("Invalid");
+    //     }
+    // };
 
     template <ConceptTransactionForIndexable T> struct _StructApplicator<T>
     {
@@ -203,8 +203,14 @@ struct BinaryTransactionSerDes
         }
     };
 
-    template <ConceptTransaction T> static void _ApplyOnStruct(T& txn, IStrmReader& reader) { _StructApplicator<T>::Apply(txn, reader); }
-    template <ConceptTransaction T> static void _ApplyOnList(T& txn, IStrmReader& reader) { _ListApplicator<T>::Apply(txn, reader); }
+    template <ConceptTransaction T> static void _ApplyOnStruct(T& txn, IStrmReader& reader)
+    {
+        _StructApplicator<T>::Apply(txn, reader);
+    }
+    template <ConceptTransaction T> static void _ApplyOnList(T& txn, IStrmReader& reader)
+    {
+        _ListApplicator<T>::Apply(txn, reader);
+    }
 
     template <ConceptTransaction T> static void _Apply(T& txn, IStrmReader& reader)
     {

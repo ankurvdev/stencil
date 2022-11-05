@@ -61,7 +61,7 @@ struct StringTransactionSerDes
         }
     };
 
-    template <ConceptTransaction T> struct _StructApplicator
+    template <typename T> struct _StructApplicator
     {
         static void Apply(T& /* txn */,
                           std::string_view const& /* fieldname */,
@@ -73,7 +73,7 @@ struct StringTransactionSerDes
         }
     };
 
-    template <ConceptTransaction T> struct _ListApplicator
+    template <typename T> struct _ListApplicator
     {
         static void Add(T& /* txn */, size_t /* listindex */, std::string_view const& /* rhs */) { throw std::logic_error("Invalid"); }
 
@@ -146,7 +146,7 @@ struct StringTransactionSerDes
                 using TKey = Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::Obj>::Key;
                 TKey key   = Stencil::Deserialize<TKey, ProtocolString>(name);
                 ++it;
-                size_t retval;
+                size_t retval = 0;
 #pragma warning(push, 3)
 #pragma warning(disable : 4702)    // unreachable code
                                    // Sometime its a bad visit and we throw exceptions for error

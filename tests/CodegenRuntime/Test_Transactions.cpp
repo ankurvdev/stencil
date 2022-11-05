@@ -7,11 +7,6 @@
 using RootTransaction = Stencil::RootTransactionOwner<Objects::NestedObject>;
 
 using TransactionNestObject = Stencil::Transaction<Objects::NestedObject, RootTransaction>;
-Objects::NestedObject& AccessorFn(RootTransaction& owner, TransactionNestObject::State const& state)
-{
-    return owner.obj;
-}
-
 TransactionNestObject CreateNestedObjectTransaction(Objects::NestedObject& obj)
 {
 

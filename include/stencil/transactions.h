@@ -17,7 +17,10 @@
 namespace Stencil
 {
 
-template <typename TObj, typename TOwner> struct Transaction;
+template <typename TObj, typename TOwner = TObj> struct Transaction;
+
+// template <typename T> struct Transaction<T, T>
+//{};
 
 template <typename TObj> struct RootTransactionOwner
 {
@@ -329,7 +332,7 @@ template <Stencil::ConceptPreferIterable TObj, typename TOwner> struct Stencil::
     template <typename TLambda> auto Edit(size_t fieldIndex, TLambda&& lambda)
     {
         TObj& obj = _obj;
-        Visitor<TObj>::VisitKey(obj, fieldIndex, [&](auto& /*obj*/) {
+        Stencil::Visitor<TObj>::VisitKey(obj, fieldIndex, [&](auto& /*obj*/) {
             RecordMutation_edit_(fieldIndex);
             auto subtxnptr = std::make_unique<TValTransactionState>();
             lambda(fieldIndex, *subtxnptr);
@@ -341,7 +344,7 @@ template <Stencil::ConceptPreferIterable TObj, typename TOwner> struct Stencil::
     template <typename TLambda> auto Edit(std::string_view const& fieldName, TLambda&& lambda)
     {
         size_t key;
-        SerDes<size_t, ProtocolString>::Read(key, fieldName);
+        Stencil::SerDes<size_t, Stencil::ProtocolString>::Read(key, fieldName);
         return Edit(key, lambda);
     }
 
