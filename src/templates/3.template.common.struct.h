@@ -211,7 +211,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram
     }
 };
 
-template <typename TOwner>
+template <Stencil::ConceptTransaction TOwner>
 struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TOwner>
     : Stencil::StructTransactionT<Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TOwner>>
 {
@@ -220,6 +220,10 @@ struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TOwner>
 
     using TData  = zzProgram_Namezz::zzStruct_Namezz;
     using Fields = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields;
+    struct ContainerState
+    {};
+
+    using TOwnerContainerState = typename TOwner::ContainerState;
 
     //<Field>
     using Transaction_zzNamezz = Stencil::Transaction<zzFieldType_NativeTypezz, TThis>;
@@ -227,16 +231,17 @@ struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TOwner>
 
     struct State
     {
+        TOwnerContainerState owner{};
         //<Field>
         Transaction_zzNamezz::State zzNamezz{};
         //</Field>
 
-    } _state;
+    } & _state;
 
-    typedef zzProgram_Namezz::zzStruct_Namezz&(AccessorFn)(TOwner&, State&);
+    typedef zzProgram_Namezz::zzStruct_Namezz&(AccessorFn)(TOwner&, State const&);
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
-    Transaction(State& state, TOwner& owner, AccessorFn* fn) : _owner(owner), _fn(fn)
+    Transaction(State& state, TOwner& owner, AccessorFn* fn) : _state(state), _owner(owner), _fn(fn)
     //<Field>
     //,_subtracker_zzNamezz(this, [](TThis* obj) -> zzFieldType_NativeTypezz* { return &obj->_StructObj().zzNamezz; })
     //</Field>
@@ -252,7 +257,7 @@ struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TOwner>
 
     public:
     //<Field>
-    static zzFieldType_NativeTypezz& _AccessorFn_zzNamezz(TThis& owner, Transaction_zzNamezz::State& /*state*/)
+    static zzFieldType_NativeTypezz& _AccessorFn_zzNamezz(TThis& owner, Transaction_zzNamezz::State const& /*state*/)
     {
         return owner._StructObj().zzNamezz;
     }
@@ -291,17 +296,17 @@ struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TOwner>
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
-#if 0
+
     template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
     {
         //<Field>
         {
             auto txn = zzNamezz();
-            lambda("zzNamezz", Fields::Field_zzNamezz, txn, TBase::Obj().zzNamezz);
+            lambda(Fields::Field_zzNamezz, txn, Obj().zzNamezz);
         }
         //</Field>
     }
-#endif
+
     void Assign(TData&& /* obj */) { throw std::logic_error("Self-Assignment not allowed"); }
 
 #if 0

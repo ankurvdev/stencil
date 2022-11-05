@@ -126,19 +126,6 @@ function(build_lexyacc)
     add_executable(lexyacc "${LexYacc_DIR}/LexYacc.cpp")
 endfunction()
 
-macro(_target_add_lexyacc target lyfile)
-    find_bison()
-    find_flex()
-    find_program(LEXYACC_EXECUTABLE lexyacc)
-
-    cmake_parse_arguments(lexyacc "" "NAME" "" ${ARGN})
-
-    if (NOT lexyacc_NAME)
-        get_filename_component(lexyacc_NAME "${lyfile}" NAME_WE)
-    endif()
-    _target_add_lexyacc(${target} "${lyfile}" ${lexyacc_NAME})
-endmacro()
-
 function(_target_add_lexyacc target lyfile lexyacc_NAME)
     get_filename_component(lyfile "${lyfile}" ABSOLUTE)
 
@@ -219,8 +206,10 @@ endfunction()
 
 
 macro(add_lexyacc_library)
+    find_flex()
+    find_bison()
     cmake_parse_arguments("" "" "TARGET" "LYFILE;SOURCES" ${ARGN})
     #message(FATAL_ERROR "${ARGN} :: ${_TARGET} ::${_LYFILE}")
-    add_library(${_TARGET} OBJECT "${_SOURCES}")
+    add_library(${_TARGET} OBJECT ${_SOURCES})
     _target_add_lexyacc(${_TARGET} "${_LYFILE}" ${_TARGET})
 endmacro()

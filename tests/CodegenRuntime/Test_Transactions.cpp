@@ -4,7 +4,9 @@
 
 #include "stencil/transactions.binserdes.h"
 #include "stencil/transactions.strserdes.h"
-Stencil::Transaction<Objects::NestedObject, size_t> CreateNestedObjectTransaction(Objects::NestedObject& obj)
+using TransactionNestObject = Stencil::Transaction<Objects::NestedObject, Stencil::RootTransactionOwner>;
+
+TransactionNestObject CreateNestedObjectTransaction(Objects::NestedObject& obj)
 {
     TODO("DoNotCommit");
     // return Stencil::Transaction<Objects::NestedObject, size_t>(reinterpret_cast<void*>(&obj),
@@ -61,7 +63,7 @@ struct TestReplay
     std::ostringstream binary_acc_txns;
     std::ostringstream binary_last_txns;
 
-    Stencil::Transaction<Objects::NestedObject, size_t> txn2;
+    TransactionNestObject txn2;
 };
 
 TEST_CASE("Transactions", "[transaction]")
