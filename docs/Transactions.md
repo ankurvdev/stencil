@@ -95,13 +95,37 @@ Foo foo;
     - What to do for lists
 5. Serializing /deserializing into patches via protocol ( json, string, binary)
 
-### Question
+# Proposals
 
-#### `Transaction<T, TOwner> + Transaction<...>::State`
+# Owner and State
 
-- `Constructor`: 
-  - `Transaction(TOwner& owner, State& state, Accessor fn)`
-  - `Transaction(State& state, Accessor fn)`
+## [APPROVED] Owner: `Transaction<T, TOwner>`
+
+- `Constructor`:
+  - `Transaction(... TOwner& owner ...)`
+
+## [Approved] State: `Transaction<...>::State`
+
+- `Constructor`:
+  - `Transaction(... State& state...)`
+
+## [REJECTED] ~~AccessorFn~~
+
+### Reason
+
+- The overhead cost of function pointers everywhere isnt worth it
+- Access to its object from transaction becomes incredibly hard.
+- Requires maintaining accessibility state in the Containerized Object (index/key)
+- Unordered_maps and vectors will suffer from perf impact due to repeated searches (accessor invocation)
+- Since Transactions are no longer storable types the worry about unstable pointer from owner-containers isnt valid anymore.
+
+### Details
+
+- `Constructor`:
+  - `Transaction(... AccessorFn *fn...)`
+    - Accessor fn is how the transaction accesses its object
+    - No more direct access.
+    -
 
 - `TObj& Obj()` : fn(owner, state) -> TObj&
   - `vector` : State contains index which can be used to dereference into the object
@@ -109,7 +133,7 @@ Foo foo;
   - `primitives` : State is empty
   - `struct`:
 
-##### How to access object from the Transaction
+### How to access object from the Transaction
 
 A Transaction doesnt directly have access to the object.
 Reason: The object could be a managed object and so parents could move pointer around for no apparent reason (containers, vector, unordered_map)
@@ -119,13 +143,15 @@ Vector/List: AccessorFn is uniform so some obj-state must be provided
 
 The AccessorFn will need some identifier to identify the exact object
 
-
 - Vectors/List
   - This will provide access to the vector or the list (Container)
-  - How does a sub-transaction get access to the contained value.
-    - 
 
-##### Overview
+- How does a sub-transaction get access to the contained value
+
+  -
+
+#### Overview
+
 - Pros
   - Simplifies ser des. Assists with visitor pattern.
   - Establishes parent relationship. Provides up navigability which is important for Feature(2)

@@ -4,13 +4,20 @@
 
 #include "stencil/transactions.binserdes.h"
 #include "stencil/transactions.strserdes.h"
-using TransactionNestObject = Stencil::Transaction<Objects::NestedObject, Stencil::RootTransactionOwner>;
+using RootTransaction = Stencil::RootTransactionOwner<Objects::NestedObject>;
+
+using TransactionNestObject = Stencil::Transaction<Objects::NestedObject, RootTransaction>;
+Objects::NestedObject& AccessorFn(RootTransaction& owner, TransactionNestObject::State const& state)
+{
+    return owner.obj;
+}
 
 TransactionNestObject CreateNestedObjectTransaction(Objects::NestedObject& obj)
 {
-    TODO("DoNotCommit");
-    // return Stencil::Transaction<Objects::NestedObject, size_t>(reinterpret_cast<void*>(&obj),
-    //                                                         [](void* ptr) { return reinterpret_cast<Objects::NestedObject*>(ptr); });
+
+    RootTransaction              root{obj};
+    TransactionNestObject::State state{};
+    return Stencil::CreateTransaction<TransactionNestObject>(state, root, obj);
 }
 
 struct TestReplay

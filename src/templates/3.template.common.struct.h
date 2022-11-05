@@ -235,34 +235,27 @@ struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TOwner>
         //<Field>
         Transaction_zzNamezz::State zzNamezz{};
         //</Field>
-
-    } & _state;
-
-    typedef zzProgram_Namezz::zzStruct_Namezz&(AccessorFn)(TOwner&, State const&);
+    };
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
-    Transaction(State& state, TOwner& owner, AccessorFn* fn) : _state(state), _owner(owner), _fn(fn)
+    Transaction(State& state, TOwner& owner, TData& obj) : _state(state), _owner(owner), _obj(obj)
     //<Field>
     //,_subtracker_zzNamezz(this, [](TThis* obj) -> zzFieldType_NativeTypezz* { return &obj->_StructObj().zzNamezz; })
     //</Field>
     {}
 
     public:
-    TData const& Obj() const { return _fn(_owner, _state); }
+    TData const& Obj() const { return _obj; }
 
     private:
-    TOwner&     _owner{};
-    AccessorFn* _fn{};
-    TData&      _StructObj() { return _fn(_owner, _state); }
+    State&  _state{};
+    TOwner& _owner{};
+    TData&  _obj;
+    TData&  _StructObj() { return _obj; }
 
     public:
     //<Field>
-    static zzFieldType_NativeTypezz& _AccessorFn_zzNamezz(TThis& owner, Transaction_zzNamezz::State const& /*state*/)
-    {
-        return owner._StructObj().zzNamezz;
-    }
-
-    auto zzNamezz() { return Stencil::CreateTransaction<Transaction_zzNamezz>(_state.zzNamezz, *this, &_AccessorFn_zzNamezz); }
+    auto zzNamezz() { return Stencil::CreateTransaction<Transaction_zzNamezz>(_state.zzNamezz, *this, _obj.zzNamezz); }
 
     //</Field>
     //<Field>
