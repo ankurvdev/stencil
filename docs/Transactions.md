@@ -1,5 +1,3 @@
-# Transactions
-
 ## Overview
 
 Transactions can be used for the following scenarios, mainly to deal with sparse changes to object models.
@@ -95,23 +93,38 @@ Foo foo;
     - What to do for lists
 5. Serializing /deserializing into patches via protocol ( json, string, binary)
 
-# Proposals
+## Proposals: Containers and State
 
-# Owner and State
+Primitives dont have state for perf reasons
+Primitives rely on owner to maintain state
+    - This is useful because the bool changed can not be a bitfield in parent.
+However if we have no state in transaction then the owner needs to provide some context so it understands which child transaction is requesting the callback
 
-## [APPROVED] Owner: `Transaction<T, TOwner>`
-
-- `Constructor`:
-  - `Transaction(... TOwner& owner ...)`
-
-## [Approved] State: `Transaction<...>::State`
+### [APPROVED] Container: `Transaction<T, TContainer>`
 
 - `Constructor`:
-  - `Transaction(... State& state...)`
+  - `Transaction(... TContainer& container ...)`
 
-## [REJECTED] ~~AccessorFn~~
+### [Approved] ElementState: `Transaction<...>::ElementState`
 
-### Reason
+- `Constructor`: `Transaction(... ElementState& elemState...)`
+- `struct`: `ElementState` contans bitfields
+- `iterables`: List of change records
+- `indexables`: List of additions edits removals
+- `primitives`: `struct {/*Empty*/}`
+
+### [Testing] ContainerState: `Transaction<T, TContainer>::TContainer::ContainerState`
+
+- `Constructor`: `Transaction(... TContainer::ContainerState& containerState, ...)`
+- `struct`: `struct ContainerState { Field key; }`
+  - Not persistent
+  - Provided at txn construction for context on callbacks to owner
+  - Owner `ElementState` contains bitfields that use the key to trigger based on callbacks
+- `iterables`: `struct ContainerState { Iterator it; }`
+- `indexables`: `struct ContainerState { Key key; }`
+- `primitives`: Invalid
+
+### [REJECTED] ~~AccessorFn~~
 
 - The overhead cost of function pointers everywhere isnt worth it
 - Access to its object from transaction becomes incredibly hard.
@@ -119,38 +132,26 @@ Foo foo;
 - Unordered_maps and vectors will suffer from perf impact due to repeated searches (accessor invocation)
 - Since Transactions are no longer storable types the worry about unstable pointer from owner-containers isnt valid anymore.
 
-### Details
+- ~~`Constructor`:`Transaction(... AccessorFn *fn...)`~~
+  - ~~Accessor fn is how the transaction accesses its object~~
+  - ~~No more direct access.~~
 
-- `Constructor`:
-  - `Transaction(... AccessorFn *fn...)`
-    - Accessor fn is how the transaction accesses its object
-    - No more direct access.
-    -
+- ~~`TObj& Obj()` : fn(owner, state) -> TObj&~~
+  - ~~`vector` : State contains index which can be used to dereference into the object~~
+  - ~~`unordered_map` : State contains key~~
+  - ~~`primitives` : State is empty~~
+  - ~~`struct`:~~
 
-- `TObj& Obj()` : fn(owner, state) -> TObj&
-  - `vector` : State contains index which can be used to dereference into the object
-  - `unordered_map` : State contains key
-  - `primitives` : State is empty
-  - `struct`:
+~~__How to access object from the Transaction__~~
 
-### How to access object from the Transaction
-
-A Transaction doesnt directly have access to the object.
+~~A Transaction doesnt directly have access to the object.
 Reason: The object could be a managed object and so parents could move pointer around for no apparent reason (containers, vector, unordered_map)
 So Access to the object is granted by an accessorfn provided by the parent
 Within a Transaction AccessorFn can be called by providing an Owner object and will provide access to the object
 Vector/List: AccessorFn is uniform so some obj-state must be provided
+The AccessorFn will need some identifier to identify the exact object~~
 
-The AccessorFn will need some identifier to identify the exact object
-
-- Vectors/List
-  - This will provide access to the vector or the list (Container)
-
-- How does a sub-transaction get access to the contained value
-
-  -
-
-#### Overview
+### Pros-Cons
 
 - Pros
   - Simplifies ser des. Assists with visitor pattern.
@@ -166,7 +167,7 @@ The AccessorFn will need some identifier to identify the exact object
     - Makes the transaction object itself a temporary object.
   - Requires separation of state for feature (2)
 
-#### `Visitor<Transaction<...>>`
+## Proposals: Visitors for Transactions
 
 - Makes feature (5) simpler
 
