@@ -29,8 +29,7 @@ struct TestReplay
         if (expected[expected.size() - 1] == ';') { REQUIRE(delta == expected); }
         else { REQUIRE(delta.substr(0, delta.size() - 1) == expected); }
         Stencil::StringTransactionSerDes::Apply(txn2, txndata);
-        deltatxns.push_back(fmt::format("Change = {}", txndata));
-        deltatxns.push_back(fmt::format("Output = {}", Stencil::StringTransactionSerDes::Deserialize(txn2)));
+        deltatxns.push_back(Stencil::StringTransactionSerDes::Deserialize(txn2));
 
         Stencil::BinaryTransactionSerDes::Deserialize(txn, binary_txns);
         Stencil::BinaryTransactionSerDes::Deserialize(txn2, binary_acc_txns);
