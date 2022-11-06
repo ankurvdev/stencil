@@ -74,23 +74,26 @@ struct BinaryTransactionSerDes
                 Stencil::SerDes<std::remove_cvref_t<decltype(key)>, ProtocolBinary>::Write(writer, key);
                 switch (mutator)
                 {
-                case 0:    // Assign
+                case 0u:    // Assign
                 {
                     using Valype = std::remove_cvref_t<decltype(subtxn.Elem())>;
                     Stencil::SerDes<Valype, ProtocolBinary>::Write(writer, subtxn.Elem());
                     break;
                 }
-                case 1:    // List Add
+                case 1u:    // List Add
                 {
+                    Stencil::SerDes<uint32_t, ProtocolBinary>::Write(writer, mutatordata);
                     using Valype = std::remove_cvref_t<decltype(subtxn.Elem())>;
                     Stencil::SerDes<Valype, ProtocolBinary>::Write(writer, subtxn.Elem());
                     break;
                 }
-                case 2:    // List Remove
+                case 2u:    // List Remove
                 {
+                    Stencil::SerDes<uint32_t, ProtocolBinary>::Write(writer, mutatordata);
                     // No additional information needs to be serialized in
                 }
-                case 3:    // Edit
+                break;
+                case 3u:    // Edit
                     _DeserializeTo(subtxn, writer);
                     break;
                 default: throw std::logic_error("Unknown mutator");
@@ -122,33 +125,50 @@ struct BinaryTransactionSerDes
 
     template <ConceptTransactionForIterable T> struct _ListApplicator<T>
     {
-        static void Add(T& txn, size_t /* listindex */, IStrmReader& reader)
+        static void Add(T& txn, uint32_t /* listindex */, IStrmReader& reader)
         {
-            using TObj = typename Stencil::TransactionTraits<T>::ElemType;
-            typename Stencil::Mutators<TObj>::ListObj obj;
+            using ElemType = typename Stencil::TransactionTraits<T>::ElemType;
+            typename Stencil::Mutators<ElemType>::ListObj obj;
             Stencil::SerDesRead<ProtocolBinary>(obj, reader);
             txn.Add(std::move(obj));
         }
-        static void Remove(T& txn, size_t listindex) { txn.Remove(listindex); }
+        static void Remove(T& txn, uint32_t listindex) { txn.Remove(listindex); }
 
         static void Apply(T& txn, IStrmReader& reader)
         {
             for (auto mutator = reader.read<uint8_t>(); mutator != std::numeric_limits<uint8_t>::max(); mutator = reader.read<uint8_t>())
             {
-                auto index = reader.read<uint32_t>();
-                if (mutator == 1)    // List Add
+                uint32_t key;
+                Stencil::SerDes<uint32_t, ProtocolBinary>::Read(key, reader);
+                switch (mutator)
                 {
-                    Add(txn, index, reader);
-                }
-                else if (mutator == 2)    // List remove
+                case 0:    // Assign
                 {
-                    Remove(txn, index);
+                    txn.Edit(key, [&](auto& subtxn) { Stencil::SerDesRead<ProtocolBinary>(subtxn, reader); });
                 }
-                else if (mutator == 3)    // Edit
+                break;
+                case 1:    // List-Add
                 {
-                    TODO("DoNotCommit txn.Visit(index, [&](auto /* fieldType */, auto& subtxn) {_Apply(subtxn, reader); });");
+
+                    uint32_t mutatordata;
+                    Stencil::SerDes<uint32_t, ProtocolBinary>::Read(mutatordata, reader);
+                    _ListApplicator<T>::Add(txn, key, reader);
                 }
-                else { throw std::logic_error("invalid mutator"); }
+                break;
+                case 2:    // List-remove
+                {
+                    uint32_t mutatordata;
+                    Stencil::SerDes<uint32_t, ProtocolBinary>::Read(mutatordata, reader);
+                    _ListApplicator<T>::Remove(txn, key);
+                }
+                break;
+                case 3:    // Edit
+                {
+                    txn.Edit(key, [&](auto& subtxn) { _Apply(subtxn, reader); });
+                }
+                break;
+                default: throw std::logic_error("invalid mutator");
+                }
             }
         }
     };
@@ -182,39 +202,44 @@ struct BinaryTransactionSerDes
         {
             for (auto mutator = reader.read<uint8_t>(); mutator != std::numeric_limits<uint8_t>::max(); mutator = reader.read<uint8_t>())
             {
-                auto fieldIndex = reader.read<uint32_t>();
-                using TKey      = typename Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::ElemType>::Key;
-                auto fieldEnum  = static_cast<TKey>(fieldIndex);
-                if (mutator == 0)    // Set
-                {
-                    txn.Edit(fieldEnum, [&](auto& /*subtxn*/) {
-                        // Visitor<T>::VisitKey(txn.Obj(), fieldEnum, [&](auto& obj) {
-                        //     txn.MarkFieldAssigned_(fieldEnum);
-                        // TODO: DoNotCommit Stencil::SerDes<std::remove_cvref_t<decltype(subtxn)>, ProtocolBinary>::Read(subtxn,
-                        // reader);
-                        // });
-                    });
+                using ElemType = typename Stencil::TransactionTraits<T>::ElemType;
+                using TKey     = typename Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::ElemType>::Key;
+                TKey key;
+                Stencil::SerDes<TKey, ProtocolBinary>::Read(key, reader);
+                txn.Edit(key, [&](auto& subtxn) {
+                    using Txn = std::remove_cvref_t<decltype(subtxn)>;
 
-                    // txn.Visit(fieldname, [&](auto fieldType, auto& subtxn) { _ApplyJson(subtxn , fieldType, rhs); });
-                }
-#ifdef TODO1
-                else if (mutator == 1)    // List Add
-                {
-                    txn.Visit(fieldEnum, [&](auto /* fieldType */, auto& subtxn) { _ListAdd(subtxn, reader.read<uint32_t>(), reader); });
-                }
-                else if (mutator == 2)    // List remove
-                {
-                    txn.Visit(fieldEnum, [&](auto /* fieldType */, auto& subtxn) {
-                        _ListRemove(subtxn, Value(reader.read<uint32_t>()).convert<size_t>());
-                    });
-                }
-#endif
-                else if (mutator == 3)    // edit
-                {
-                    txn.Edit(fieldEnum, [&](auto& subtxn) { _Apply(subtxn, reader); });
-                    // throw std::logic_error("Unknown Mutator");
-                }
-                else { throw std::logic_error("invalid mutator"); }
+                    switch (mutator)
+                    {
+                    case 0:    // Assign
+                    {
+                        Stencil::SerDesRead<ProtocolBinary>(subtxn, reader);
+                    }
+                    break;
+                    case 1:    // List-Add
+                    {
+                        TODO("DoNotCommit");
+                        // uint32_t mutatordata;
+                        // Stencil::SerDes<uint32_t, ProtocolBinary>::Read(mutatordata, reader);
+                        // _ListApplicator<Txn>::Add(subtxn, mutatordata, reader);
+                    }
+                    break;
+                    case 2:    // List-remove
+                    {
+                        TODO("DoNotCommit");
+                        // uint32_t mutatordata;
+                        // Stencil::SerDes<uint32_t, ProtocolBinary>::Read(mutatordata, reader);
+                        // _ListApplicator<Txn>::Remove(subtxn, mutatordata);
+                    }
+                    break;
+                    case 3:    // Edit
+                    {
+                        _Apply(subtxn, reader);
+                    }
+                    break;
+                    default: throw std::logic_error("invalid mutator");
+                    }
+                });
             }
         }
     };

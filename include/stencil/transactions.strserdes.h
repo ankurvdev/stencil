@@ -82,22 +82,22 @@ struct StringTransactionSerDes
 
     template <ConceptTransactionForIterable T> struct _ListApplicator<T>
     {
-        static void Add(T& txn, size_t /* listindex */, std::string_view const& rhs)
+        static void Add(T& txn, uint32_t /* listindex */, std::string_view const& rhs)
         {
             using ElemType = typename Stencil::TypeTraitsForIterable<typename TransactionTraits<T>::ElemType>::ElementType;
             ElemType obj;
             Stencil::SerDes<decltype(obj), ProtocolJsonVal>::Read(obj, rhs);
             txn.Add(std::move(obj));
         }
-        static void Remove(T& txn, size_t listindex) { txn.Remove(listindex); }
+        static void Remove(T& txn, uint32_t listindex) { txn.Remove(listindex); }
     };
 
-    template <ConceptTransaction T> static void _ListAdd(T& txn, size_t listindex, std::string_view const& rhs)
+    template <ConceptTransaction T> static void _ListAdd(T& txn, uint32_t listindex, std::string_view const& rhs)
     {
         _ListApplicator<T>::Add(txn, listindex, rhs);
     }
 
-    template <ConceptTransaction T> static void _ListRemove(T& txn, size_t listindex) { _ListApplicator<T>::Remove(txn, listindex); }
+    template <ConceptTransaction T> static void _ListRemove(T& txn, uint32_t listindex) { _ListApplicator<T>::Remove(txn, listindex); }
 
     template <ConceptTransactionForIndexable T> struct _StructApplicator<T>
     {
@@ -115,12 +115,12 @@ struct StringTransactionSerDes
             }
             else if (mutator == 1)    // List Add
             {
-                auto listval = Stencil::Deserialize<size_t, Stencil::ProtocolString>(mutatordata);
+                auto listval = Stencil::Deserialize<uint32_t, Stencil::ProtocolString>(mutatordata);
                 txn.Edit(key, [&](auto& subtxn) { _ListAdd(subtxn, listval, rhs); });
             }
             else if (mutator == 2)    // List remove
             {
-                auto listval = Stencil::Deserialize<size_t, Stencil::ProtocolString>(mutatordata);
+                auto listval = Stencil::Deserialize<uint32_t, Stencil::ProtocolString>(mutatordata);
                 txn.Edit(key, [&](auto& subtxn) { _ListRemove(subtxn, listval); });
             }
             else { throw std::logic_error("Unknown Mutator"); }
@@ -158,7 +158,7 @@ struct StringTransactionSerDes
             else if constexpr (Stencil::ConceptTransactionForIterable<T>)
             {
                 auto   keystr = it.token;
-                size_t key    = Stencil::Deserialize<size_t, ProtocolString>(keystr);
+                uint32_t key    = Stencil::Deserialize<uint32_t, ProtocolString>(keystr);
                 ++it;
                 size_t retval = 0;
                 // Sometime its a bad visit and we throw exceptions for error

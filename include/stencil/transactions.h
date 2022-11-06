@@ -203,13 +203,13 @@ template <typename TContainer, typename TKey, typename TVal> struct Stencil::Tra
         for (auto& [k, v] : _elemState.add_subtxns)
         {
             auto txn = Stencil::CreateTransaction<ValTxn>(v->elem, v->container, *this, _elem[k]);
-            lambda(k, 0, 0, txn);
+            lambda(k, uint8_t{1u}, uint32_t{0u}, txn);
         }
 
         for (auto& [k, v] : _elemState.edit_subtxns)
         {
             auto txn = Stencil::CreateTransaction<ValTxn>(v->elem, v->container, *this, _elem[k]);
-            lambda(k, 0, 0, txn);
+            lambda(k, uint8_t{3u}, uint32_t{0u}, txn);
         }
 
         // lambda(auto const& name, auto const& /* type */, auto const& mutator, auto const& /* mutatordata */, auto& subtxn, auto& elem)
@@ -264,8 +264,8 @@ template <Stencil::ConceptPreferIterable TElem, typename TContainer> struct Sten
 {
     struct ElemTxnState
     {
-        uint8_t mutationtype;
-        size_t  index;
+        uint8_t  mutationtype;
+        uint32_t index;
     };
 
     using ElemType          = TElem;
@@ -274,7 +274,7 @@ template <Stencil::ConceptPreferIterable TElem, typename TContainer> struct Sten
     using ValTxn            = Transaction<ValType, Txn>;
     using ValTxnState       = typename ValTxn::TxnState;
     using ContainerTxnState = typename TContainer::ElemTxnState;
-    using IteratorType      = size_t;    // TODO: Use Iterators ?
+    using IteratorType      = uint32_t;    // TODO: Use Iterators ?
 
     struct CombinedTxnState
     {
@@ -304,7 +304,7 @@ template <Stencil::ConceptPreferIterable TElem, typename TContainer> struct Sten
 
     template <typename TArg> void RecordMutation_add_(TArg&)
     {
-        _elemState.changes.push_back(CombinedTxnState{.elemState{1u, Elem().size()}, .valState{}});
+        _elemState.changes.push_back(CombinedTxnState{.elemState{1u, static_cast<uint32_t>(Elem().size())}, .valState{}});
     }
 
     void RecordMutation_remove_(IteratorType it) { _elemState.changes.push_back(CombinedTxnState{.elemState{2u, it}, .valState{}}); }
@@ -317,7 +317,7 @@ template <Stencil::ConceptPreferIterable TElem, typename TContainer> struct Sten
         Stencil::Mutators<ElemType>::add(_elem, std::move(val));
     }
 
-    void Remove(size_t key)
+    void Remove(uint32_t key)
     {
         RecordMutation_remove_(key);
         Stencil::Mutators<ElemType>::remove(_elem, key);
@@ -341,6 +341,7 @@ template <Stencil::ConceptPreferIterable TElem, typename TContainer> struct Sten
             lambda(txn);
         });
     }
+
     void NotifyElementEdited_(ElemTxnState const& /*elemTxnState*/)
     { /* Do nothing for now. The change is already pushed at 328
         TODO("DoNotCommit");*/
@@ -367,7 +368,7 @@ template <Stencil::ConceptPreferIterable TElem, typename TContainer> struct Sten
             //  auto& elem = (*_fn(_container))[index];
             // if (c.txn.get() == nullptr) { c.txn = std::make_unique<TValTransaction>(this, nullptr); }
             auto txn = CreateTransaction<ValTxn>(c.valState, c.elemState, *this, _elem.at(index));
-            lambda(c.elemState.index, c.elemState.mutationtype, 0u, txn);
+            lambda(c.elemState.index, c.elemState.mutationtype, uint32_t{0u}, txn);
         }
     }
 
@@ -387,8 +388,8 @@ template <Stencil::ConceptTransactionForIterable TTxn> struct Stencil::Mutators<
     // TODO: DoNotCommit
     template <typename TVal> static void add(TTxn& txn, TVal&& elem) { txn.Add(std::move(elem)); }
 
-    static void remove(TTxn& txn, size_t index) { txn.Remove(index); }
-    static auto edit(TTxn& txn, size_t index) { return txn.edit(index); }
+    static void remove(TTxn& txn, size_t index) { txn.Remove(static_cast<uint32_t>(index)); }
+    static auto edit(TTxn& txn, size_t index) { return txn.edit(static_cast<uint32_t>(index)); }
 };
 
 template <Stencil::ConceptTransaction TTxn> struct Stencil::TypeTraits<TTxn>

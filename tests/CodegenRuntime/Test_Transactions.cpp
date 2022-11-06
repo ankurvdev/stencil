@@ -48,6 +48,7 @@ struct TestReplay
             binary_last_txns.str("");
             Stencil::BinaryTransactionSerDes::Deserialize(txn2, binary_last_txns);
         }
+        REQUIRE(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj2));
     }
 
     std::vector<std::string> changes;

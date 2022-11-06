@@ -276,16 +276,30 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
         if (_IsFieldAssigned(Fields::Field_zzField_Namezz))
         {
             auto txn = zzNamezz();
-            lambda(Fields::Field_zzField_Namezz, 0, 0, txn);
+            lambda(Fields::Field_zzField_Namezz, uint8_t{0u}, uint32_t{0u}, txn);
         }
         else if (_IsFieldEdited(Fields::Field_zzField_Namezz))
         {
             auto txn = zzNamezz();
-            lambda(Fields::Field_zzField_Namezz, 3, 0, txn);
+            lambda(Fields::Field_zzField_Namezz, uint8_t{3u}, uint32_t{0u}, txn);
         }
         //</Field>
     }
-
+    void Assign(Fields key, ElemType&& elem)
+    {
+        _MarkFieldAssigned(key);
+        switch (key)
+        {
+        //<Field>
+        case Fields::Field_zzNamezz:
+        {
+            _elem.zzNamezz = std::move(elem);
+            break;
+        }
+        //</Field>
+        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
     void Assign(ElemType&& /* elem */) { TODO("DoNotCommit"); }
     void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
     void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
