@@ -254,6 +254,8 @@ struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TContainer>
 
     ElemType const& Elem() const { return _elem; }
 
+    void NotifyElementAssign_(ElemTxnState const& elemTxnState) { TBase::_state.assigntracker.set(static_cast<uint8_t>(elemTxnState.field)); }
+
     private:
     TxnStateForElem    _txnStateForElem{};
     TxnState&          _elemState;
@@ -265,7 +267,6 @@ struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TContainer>
     //<Field>
     auto zzNamezz()
     {
-
         return Stencil::CreateTransaction<Transaction_zzNamezz>(_elemState.zzNamezz, _txnStateForElem.zzNamezz, *this, _elem.zzNamezz);
     }
 

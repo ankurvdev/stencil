@@ -64,6 +64,7 @@ template <typename TTxn> struct StructTransactionT
     using ElemType      = typename TransactionTraits<TTxn>::ElemType;
     using ContainerType = typename TransactionTraits<TTxn>::ContainerType;
     using KeyType       = typename Stencil::TypeTraitsForIndexable<ElemType>::Fields;
+
     struct TxnState
     {
         std::bitset<64> assigntracker;    // TODO1
@@ -94,11 +95,12 @@ template <typename TTxn> struct StructTransactionT
         });
     }
 
+    void Assign(ElemType&& /* elem */) { throw std::logic_error("Self-Assignment not allowed"); }
+    void Assign(ElemType const& /* elem */) { throw std::logic_error("Self-Assignment not allowed"); }
+
     void MarkFieldAssigned_(KeyType key) { _state.assigntracker.set(static_cast<uint8_t>(key)); }
 
     protected:
-    // template <typename TEnum> void MarkFieldAssigned_(TEnum field) { _state.assigntracker.set(static_cast<uint8_t>(field)); }
-
     template <typename TElem> void MarkFieldAssigned_(KeyType key, TElem const& curval, TElem const& newval)
     {
         if constexpr (std::is_base_of_v<Stencil::OptionalPropsT<ElemType>, ElemType>)
@@ -172,7 +174,19 @@ template <Stencil::ConceptPreferPrimitive TElem, typename TContainer> struct Ste
         throw std::logic_error("Elem Not supported on Transaction");
     }
 
-    void MarkEdited() { TODO("DoNotCommit"); }
+    void Assign(ElemType&& elem)
+    {
+        _elem = elem;
+        _container.NotifyElementAssign_(_containerState);
+    }
+
+    void Assign(ElemType const& elem)
+    {
+        auto elem1 = elem;
+        Assign(std::move(elem1));
+    }
+
+    //   void MarkEdited() { TODO("DoNotCommit"); }
 
     TxnState&          _elemState;
     ContainerTxnState& _containerState;
@@ -490,6 +504,7 @@ template <Stencil::ConceptTransactionForPrimitive TTxn, typename TProtocol> stru
     {
         auto val = txn.Elem();
         Stencil::SerDes<ElemType, TProtocol>::Read(val, ctx);
-        txn.MarkEdited();
+        txn.Assign(val);
+        // txn.MarkEdited();
     }
 };
