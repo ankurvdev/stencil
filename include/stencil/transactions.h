@@ -102,10 +102,7 @@ template <Stencil::ConceptPreferPrimitive TElem, typename TContainer> struct Ste
         _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
     {}
 
-    ~Transaction()
-    {
-        if (IsChanged()) _container.NotifyElementEdited_(_containerState);
-    }
+    ~Transaction() {}
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
@@ -117,8 +114,10 @@ template <Stencil::ConceptPreferPrimitive TElem, typename TContainer> struct Ste
     }
 
     bool IsChanged() { return false; }    // TODO: DoNotCommit
+
     void Assign(ElemType&& elem)
     {
+        if (Stencil::AreEqual(_elem, elem)) return;
         _elem = elem;
         _container.NotifyElementAssigned_(_containerState);
     }
@@ -130,8 +129,6 @@ template <Stencil::ConceptPreferPrimitive TElem, typename TContainer> struct Ste
     }
     void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
     void Remove(size_t /* key */) { std::logic_error("Invalid operation"); }
-
-    //   void MarkEdited() { TODO("DoNotCommit"); }
 
     TxnState&          _elemState;
     ContainerTxnState& _containerState;

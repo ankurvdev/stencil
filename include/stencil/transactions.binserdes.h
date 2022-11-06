@@ -218,18 +218,12 @@ struct BinaryTransactionSerDes
                     break;
                     case 1:    // List-Add
                     {
-                        TODO("DoNotCommit");
-                        // uint32_t mutatordata;
-                        // Stencil::SerDes<uint32_t, ProtocolBinary>::Read(mutatordata, reader);
-                        // _ListApplicator<Txn>::Add(subtxn, mutatordata, reader);
+                        throw std::logic_error("invalid mutator");
                     }
                     break;
                     case 2:    // List-remove
                     {
-                        TODO("DoNotCommit");
-                        // uint32_t mutatordata;
-                        // Stencil::SerDes<uint32_t, ProtocolBinary>::Read(mutatordata, reader);
-                        // _ListApplicator<Txn>::Remove(subtxn, mutatordata);
+                        throw std::logic_error("invalid mutator");
                     }
                     break;
                     case 3:    // Edit

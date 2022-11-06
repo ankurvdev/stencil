@@ -250,7 +250,11 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
 
     ~Transaction()
     {
-        if (IsChanged()) _container.NotifyElementEdited_(_containerState);
+        if (IsChanged())
+        {
+            if constexpr (std::is_base_of_v<Stencil::TimestampedT<ElemType>, ElemType>) { _elem.UpdateTimestamp_(); }
+            _container.NotifyElementEdited_(_containerState);
+        }
     }
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
@@ -265,7 +269,19 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
 
     size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
 
-    void NotifyElementAssigned_(ElemTxnState const& elemTxnState) { _MarkFieldAssigned(elemTxnState.field); }
+    void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
+    {
+        _MarkFieldAssigned(elemTxnState.field);
+        if constexpr (std::is_base_of_v<Stencil::OptionalPropsT<ElemType>, ElemType>)
+        {
+            if (!_elem.IsValid(elemTxnState.field))
+            {
+                _elem.MarkValid(elemTxnState.field);
+                return;
+            }
+        }
+    }
+
     void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
 
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
@@ -300,6 +316,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
+
     void Assign(ElemType&& /* elem */) { TODO("DoNotCommit"); }
     void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
     void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
