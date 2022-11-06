@@ -211,9 +211,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram
     }
 };
 
-template <Stencil::ConceptTransaction TContainer>
-struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TContainer>
-    : Stencil::StructTransactionT<Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TContainer>>
+template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TContainer>
 {
     using Fields = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields;
 
@@ -233,14 +231,14 @@ struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TContainer>
     using ElemType          = zzProgram_Namezz::zzStruct_Namezz;
     using ContainerTxnState = typename TContainer::ElemTxnState;
 
-    using TBase = Stencil::StructTransactionT<Txn>;
     //<Field>
     using Transaction_zzNamezz = Stencil::Transaction<zzFieldType_NativeTypezz, Txn>;
     //</Field>
 
     struct TxnState
     {
-        TBase::TxnState state;
+        std::bitset<64> assigntracker;    // TODO1
+        std::bitset<64> edittracker;      // TODO1
         //<Field>
         typename Transaction_zzNamezz::TxnState zzNamezz{};
         //</Field>
@@ -249,12 +247,47 @@ struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TContainer>
     Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
         _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
     {}
-    ~Transaction() = default;
+
+    ~Transaction()
+    {
+        if (IsChanged()) _container.NotifyElementEdited_(_containerState);
+    }
+
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
     ElemType const& Elem() const { return _elem; }
 
-    void NotifyElementAssign_(ElemTxnState const& elemTxnState) { TBase::_state.assigntracker.set(static_cast<uint8_t>(elemTxnState.field)); }
+    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+
+    void NotifyElementAssigned_(ElemTxnState const& elemTxnState) { _MarkFieldAssigned(elemTxnState.field); }
+    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+
+    bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges(TLambda&& lambda)
+    {
+        //<Field>
+        if (_IsFieldAssigned(Fields::Field_zzField_Namezz))
+        {
+            auto txn = zzNamezz();
+            lambda(Fields::Field_zzField_Namezz, 0, 0, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_zzField_Namezz))
+        {
+            auto txn = zzNamezz();
+            lambda(Fields::Field_zzField_Namezz, 3, 0, txn);
+        }
+        //</Field>
+    }
+
+    void Assign(ElemType&& /* elem */) { throw std::logic_error("Self-Assignment not allowed"); }
+    void Assign(ElemType const& /* elem */) { throw std::logic_error("Self-Assignment not allowed"); }
 
     private:
     TxnStateForElem    _txnStateForElem{};
@@ -274,14 +307,14 @@ struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TContainer>
     //<Field>
     void set_zzNamezz(zzFieldType_NativeTypezz&& val)
     {
-        TBase::MarkFieldAssigned_(Fields::Field_zzNamezz, _elem.zzNamezz, val);
+        _MarkFieldAssigned(Fields::Field_zzNamezz);
         _elem.zzNamezz = std::move(val);
     }
 
     //<FieldType_Mutator>
     zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz&& args)
     {
-        TBase::MarkFieldEdited_(Fields::Field_zzField_Namezz);
+        _MarkFieldEdited(Fields::Field_zzField_Namezz);
         auto txn = zzField_Namezz();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::zzNamezz(txn, std::move(args));
     }
@@ -312,25 +345,6 @@ struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TContainer>
         }
         //</Field>
     }
-
-    void Assign(ElemType&& /* obj */) { throw std::logic_error("Self-Assignment not allowed"); }
-
-#if 0
-    void Flush()
-    {
-        //<Field>
-        zzNamezz().Flush();
-
-        if (IsFieldEdited(Fields::Field_zzNamezz))
-        {
-            if (!zzNamezz().IsChanged()) _edittracker.reset(static_cast<uint8_t>(Fields::Field_zzNamezz));
-        }
-
-        //</Field>
-
-        Stencil::StructTransactionT<zzProgram_Namezz::zzStruct_Namezz>::Flush_();
-    }
-#endif
 };
 
 template <> struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz> : Stencil::VisitorT<zzProgram_Namezz::zzStruct_Namezz>

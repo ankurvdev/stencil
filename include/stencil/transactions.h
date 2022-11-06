@@ -31,6 +31,7 @@ struct RootTransaction
     {};
     struct ElemTxnState
     {};
+    void NotifyElementEdited_(ElemTxnState const& /*elemTxnState*/) {}
 };
 
 template <typename TTxn>
@@ -57,70 +58,6 @@ template <typename TElem, typename TContainer> struct TransactionTraits<Transact
 {
     using ElemType      = TElem;
     using ContainerType = TContainer;
-};
-
-template <typename TTxn> struct StructTransactionT
-{
-    using ElemType      = typename TransactionTraits<TTxn>::ElemType;
-    using ContainerType = typename TransactionTraits<TTxn>::ContainerType;
-    using KeyType       = typename Stencil::TypeTraitsForIndexable<ElemType>::Fields;
-
-    struct TxnState
-    {
-        std::bitset<64> assigntracker;    // TODO1
-        std::bitset<64> edittracker;      // TODO1
-    };
-
-    private:
-    TTxn& _Txn()
-    {
-        static_assert(std::is_base_of_v<StructTransactionT<TTxn>, TTxn>, "TTxn must derive StructTransactionT<TTxn>");
-        return *static_cast<TTxn*>(this);
-    }
-
-    public:
-    bool IsChanged() const { return (_state.assigntracker | _state.edittracker).any(); }
-
-    bool IsFieldAssigned(KeyType key) const { return _state.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool IsFieldEdited(KeyType key) const { return _state.edittracker.test(static_cast<uint8_t>(key)); }
-    bool IsFieldChanged(KeyType key) const { return IsFieldAssigned(key) || IsFieldEdited(key); }
-
-    size_t CountFieldsChanged() const { return (_state.assigntracker | _state.edittracker).count(); }
-
-    template <typename TLambda> void VisitChanges(TLambda&& lambda)
-    {
-        _Txn().VisitAll([&](auto const& key, auto& subtxn, auto& /* elem */) {
-            if (IsFieldAssigned(key)) lambda(key, 0, 0, subtxn);
-            if (IsFieldEdited(key)) lambda(key, 3, 0, subtxn);
-        });
-    }
-
-    void Assign(ElemType&& /* elem */) { throw std::logic_error("Self-Assignment not allowed"); }
-    void Assign(ElemType const& /* elem */) { throw std::logic_error("Self-Assignment not allowed"); }
-
-    void MarkFieldAssigned_(KeyType key) { _state.assigntracker.set(static_cast<uint8_t>(key)); }
-
-    protected:
-    template <typename TElem> void MarkFieldAssigned_(KeyType key, TElem const& curval, TElem const& newval)
-    {
-        if constexpr (std::is_base_of_v<Stencil::OptionalPropsT<ElemType>, ElemType>)
-        {
-            if (!_Txn().Elem().IsValid(key))
-            {
-                _state.assigntracker.set(static_cast<uint8_t>(key));
-                return;
-            }
-        }
-        if (!Stencil::AreEqual(curval, newval)) { _state.assigntracker.set(static_cast<uint8_t>(key)); }
-    }
-
-    void MarkFieldEdited_(KeyType key) { _state.edittracker.set(static_cast<uint8_t>(key)); }
-
-    void Flush_()
-    {
-        if constexpr (std::is_base_of_v<Stencil::TimestampedT<ElemType>, ElemType>) { TTxn::Elem().UpdateTimestamp_(); }
-    }
-    TxnState _state;
 };
 
 template <typename TTxn, typename TContainer, typename TElem>
@@ -177,7 +114,7 @@ template <Stencil::ConceptPreferPrimitive TElem, typename TContainer> struct Ste
     void Assign(ElemType&& elem)
     {
         _elem = elem;
-        _container.NotifyElementAssign_(_containerState);
+        _container.NotifyElementAssigned_(_containerState);
     }
 
     void Assign(ElemType const& elem)
@@ -261,6 +198,8 @@ template <typename TContainer, typename TKey, typename TVal> struct Stencil::Tra
 
         // lambda(auto const& name, auto const& /* type */, auto const& mutator, auto const& /* mutatordata */, auto& subtxn, auto& elem)
     }
+
+    void NotifyElementEdited_(ElemTxnState const& /*elemTxnState*/) { TODO("DoNotCommit"); }
 
     private:
     auto& _edit_txn_at(TKey const& key)
@@ -380,7 +319,7 @@ template <Stencil::ConceptPreferIterable TElem, typename TContainer> struct Sten
             lambda(it, txn);
         });
     }
-
+    void NotifyElementEdited_(ElemTxnState const& /*elemTxnState*/) { TODO("DoNotCommit"); }
     void Assign(ElemType&& /* elem */) { throw std::logic_error("Self-Assignment not allowed"); }
 
     template <typename TLambda> void VisitAll(TLambda&& /* lambda */) { throw std::logic_error("Visit Not supported on Transaction"); }
@@ -449,25 +388,28 @@ template <Stencil::ConceptTransactionForIterable TTxn> struct Stencil::VisitorFo
     using Iterator = typename Stencil::Visitor<ElemType>::Iterator;
 
     template <typename T1>
-    requires std::is_same_v<std::remove_const_t<T1>, TTxn>
-    static void IteratorBegin(Iterator& /*it*/, T1& /*elem*/) { TODO("DoNotCommit: Stencil::Visitor<T>::IteratorBegin(it, *elem.get());"); }
+        requires std::is_same_v<std::remove_const_t<T1>, TTxn>
+    static void IteratorBegin(Iterator& /*it*/, T1& /*elem*/)
+    {
+        TODO("DoNotCommit: Stencil::Visitor<T>::IteratorBegin(it, *elem.get());");
+    }
 
     template <typename T1>
-    requires std::is_same_v<std::remove_const_t<T1>, TTxn>
+        requires std::is_same_v<std::remove_const_t<T1>, TTxn>
     static void IteratorMoveNext(Iterator& /*it*/, T1& /*elem*/)
     {
         TODO("DoNotCommit: Stencil::Visitor<T>::IteratorMoveNext(it, *elem.get());");
     }
 
     template <typename T1>
-    requires std::is_same_v<std::remove_const_t<T1>, TTxn>
+        requires std::is_same_v<std::remove_const_t<T1>, TTxn>
     static bool IteratorValid(Iterator& /*it*/, T1& /*elem*/)
     {
         TODO("DoNotCommit: return Stencil::Visitor<T>::IteratorValid(it, *elem.get());");
     }
 
     template <typename T1, typename TLambda>
-    requires std::is_same_v<std::remove_const_t<T1>, TTxn>
+        requires std::is_same_v<std::remove_const_t<T1>, TTxn>
     static void Visit(Iterator& /*it*/, T1& /*elem*/, TLambda&& /*lambda*/)
     {
         TODO("DoNotCommit: Stencil::Visitor<T>::Visit(it, *elem.get(), std::forward<TLambda>(lambda));");
