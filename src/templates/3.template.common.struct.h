@@ -286,8 +286,10 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
         //</Field>
     }
 
-    void Assign(ElemType&& /* elem */) { throw std::logic_error("Self-Assignment not allowed"); }
-    void Assign(ElemType const& /* elem */) { throw std::logic_error("Self-Assignment not allowed"); }
+    void Assign(ElemType&& /* elem */) { TODO("DoNotCommit"); }
+    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
+    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
+    void Remove(size_t /* key */) { std::logic_error("Invalid operation"); }
 
     private:
     TxnStateForElem    _txnStateForElem{};

@@ -87,7 +87,7 @@ struct StringTransactionSerDes
             using ElemType = typename Stencil::TypeTraitsForIterable<typename TransactionTraits<T>::ElemType>::ElementType;
             ElemType obj;
             Stencil::SerDes<decltype(obj), ProtocolJsonVal>::Read(obj, rhs);
-            txn.add(std::move(obj));
+            txn.Add(std::move(obj));
         }
         static void Remove(T& txn, size_t listindex) { txn.Remove(listindex); }
     };
@@ -143,9 +143,9 @@ struct StringTransactionSerDes
         {
             if constexpr (Stencil::ConceptTransactionForIndexable<T>)
             {
-                auto name  = it.token;
-                using TKey = Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::ElemType>::Key;
-                TKey key   = Stencil::Deserialize<TKey, ProtocolString>(name);
+                auto keystr = it.token;
+                using TKey  = Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::ElemType>::Key;
+                TKey key    = Stencil::Deserialize<TKey, ProtocolString>(keystr);
                 ++it;
                 size_t retval = 0;
 #pragma warning(push, 3)
@@ -155,6 +155,17 @@ struct StringTransactionSerDes
 #pragma warnin(pop)
                 return retval;
             }
+            else if constexpr (Stencil::ConceptTransactionForIterable<T>)
+            {
+                auto   keystr = it.token;
+                size_t key    = Stencil::Deserialize<size_t, ProtocolString>(keystr);
+                ++it;
+                size_t retval = 0;
+                // Sometime its a bad visit and we throw exceptions for error
+                txn.Edit(key, [&](auto& args) { retval = _Apply(it, args); });
+                return retval;
+            }
+
             else { throw std::logic_error("Unable to indirect into a non-indexable"); }
         }
 
@@ -236,7 +247,7 @@ struct StringTransactionSerDes
         if constexpr (ConceptTransactionForIndexable<T>)
         {
             txn.VisitChanges([&](auto const& key, auto const& mutator, auto const& /* mutatordata */, auto& subtxn) {
-                auto name = Stencil::Json::Stringify(key);
+                auto name = Stencil::Serialize<Stencil::ProtocolString>(key).str();
                 if (mutator == 0)
                 {
                     for (auto& s : stack) { ostr << s << "."; }

@@ -23,7 +23,7 @@ namespace Stencil
 struct ProtocolString
 {
     using InType  = std::string_view;
-    using OutType = std::string;
+    using OutType = std::stringstream;
 };
 
 // Absense of ProtocolString is being used as constexpr detection for stuff
@@ -45,7 +45,6 @@ template <ConceptEnum T> struct SerDes<T, ProtocolString>
 
     template <typename Context> static auto Read(T& obj, Context& ctx)
     {
-
         using EnumTrait = typename Stencil::EnumTraits<T>;
 
         for (size_t i = 0; i < std::size(EnumTrait::Names); i++)
@@ -228,7 +227,8 @@ template <> struct SerDes<char, ProtocolString>
 };
 
 template <size_t N>
-requires(N <= 4) struct SerDes<std::array<uint16_t, N>, ProtocolString>
+    requires(N <= 4)
+struct SerDes<std::array<uint16_t, N>, ProtocolString>
 {
     using TObj = std::array<uint16_t, N>;
     template <typename Context> static auto Write(Context& ctx, TObj const& obj)

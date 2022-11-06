@@ -101,7 +101,12 @@ template <Stencil::ConceptPreferPrimitive TElem, typename TContainer> struct Ste
     Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
         _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
     {}
-    ~Transaction() = default;
+
+    ~Transaction()
+    {
+        if (IsChanged()) _container.NotifyElementEdited_(_containerState);
+    }
+
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
     ElemType const& Elem() const { return _elem; }
@@ -111,6 +116,7 @@ template <Stencil::ConceptPreferPrimitive TElem, typename TContainer> struct Ste
         throw std::logic_error("Elem Not supported on Transaction");
     }
 
+    bool IsChanged() { return false; }    // TODO: DoNotCommit
     void Assign(ElemType&& elem)
     {
         _elem = elem;
@@ -122,6 +128,8 @@ template <Stencil::ConceptPreferPrimitive TElem, typename TContainer> struct Ste
         auto elem1 = elem;
         Assign(std::move(elem1));
     }
+    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
+    void Remove(size_t /* key */) { std::logic_error("Invalid operation"); }
 
     //   void MarkEdited() { TODO("DoNotCommit"); }
 
@@ -159,7 +167,12 @@ template <typename TContainer, typename TKey, typename TVal> struct Stencil::Tra
     Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
         _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
     {}
-    ~Transaction() = default;
+
+    ~Transaction()
+    {
+        if (IsChanged()) _container.NotifyElementEdited_(_containerState);
+    }
+
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
     ElemType const& Elem() const { return _elem; }
@@ -178,6 +191,9 @@ template <typename TContainer, typename TKey, typename TVal> struct Stencil::Tra
         _elem[key] = std::move(val);
         return _assign_txn_at(key);
     }
+    void Assign(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
+    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
+    void Remove(size_t /* key */) { std::logic_error("Invalid operation"); }
 
     template <typename TLambda> auto Visit(TKey const& key, TLambda&& lambda) { lambda(key, at(key)); }
 
@@ -276,7 +292,12 @@ template <Stencil::ConceptPreferIterable TElem, typename TContainer> struct Sten
     Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
         _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
     {}
-    ~Transaction() = default;
+
+    ~Transaction()
+    {
+        if (IsChanged()) _container.NotifyElementEdited_(_containerState);
+    }
+
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
     ElemType const& Elem() const { return _elem; }
@@ -290,20 +311,21 @@ template <Stencil::ConceptPreferIterable TElem, typename TContainer> struct Sten
     void RecordMutation_edit_(IteratorType /* index */) {}
     void RecordMutation_assign_(IteratorType it) { _elemState.changes.push_back(CombinedTxnState{.elemState{1u, it}, .valState{}}); }
 
-    void add(ValType&& val)
+    void Add(ValType&& val)
     {
         RecordMutation_add_(val);
         Stencil::Mutators<ElemType>::add(_elem, std::move(val));
     }
 
-    void Remove(IteratorType it)
+    void Remove(size_t key)
     {
-        RecordMutation_remove_(it);
-        Stencil::Mutators<ElemType>::remove(_elem, it);
+        RecordMutation_remove_(key);
+        Stencil::Mutators<ElemType>::remove(_elem, key);
     }
 
     auto edit(IteratorType it)
     {
+        // TODO: DoNotCommit  Use NotifyElementEdited to store it permanently
         _elemState.changes.push_back(CombinedTxnState{.elemState{3u, it}, .valState{}});
         auto& change = _elemState.changes.back();
         return CreateTransaction<ValTxn>(change.valState, change.elemState, *this, _elem.at(it));
@@ -316,10 +338,14 @@ template <Stencil::ConceptPreferIterable TElem, typename TContainer> struct Sten
             _elemState.changes.push_back(CombinedTxnState{.elemState{3u, it}, .valState{}});
             auto& change = _elemState.changes.back();
             auto  txn    = CreateTransaction<ValTxn>(change.valState, change.elemState, *this, _elem.at(it));
-            lambda(it, txn);
+            lambda(txn);
         });
     }
-    void NotifyElementEdited_(ElemTxnState const& /*elemTxnState*/) { TODO("DoNotCommit"); }
+    void NotifyElementEdited_(ElemTxnState const& /*elemTxnState*/)
+    { /* Do nothing for now. The change is already pushed at 328
+        TODO("DoNotCommit");*/
+    }
+
     void Assign(ElemType&& /* elem */) { throw std::logic_error("Self-Assignment not allowed"); }
 
     template <typename TLambda> void VisitAll(TLambda&& /* lambda */) { throw std::logic_error("Visit Not supported on Transaction"); }
@@ -341,7 +367,7 @@ template <Stencil::ConceptPreferIterable TElem, typename TContainer> struct Sten
             //  auto& elem = (*_fn(_container))[index];
             // if (c.txn.get() == nullptr) { c.txn = std::make_unique<TValTransaction>(this, nullptr); }
             auto txn = CreateTransaction<ValTxn>(c.valState, c.elemState, *this, _elem.at(index));
-            lambda(c.elemState.index, c.elemState.mutationtype, 0, txn);
+            lambda(c.elemState.index, c.elemState.mutationtype, 0u, txn);
         }
     }
 
@@ -358,7 +384,8 @@ template <Stencil::ConceptTransactionForIterable TTxn> struct Stencil::Mutators<
 {
     using ElemType = typename Stencil::TransactionTraits<TTxn>::ElemType;
 
-    template <typename TVal> static void add(TTxn& txn, TVal&& elem) { txn.add(std::move(elem)); }
+    // TODO: DoNotCommit
+    template <typename TVal> static void add(TTxn& txn, TVal&& elem) { txn.Add(std::move(elem)); }
 
     static void remove(TTxn& txn, size_t index) { txn.Remove(index); }
     static auto edit(TTxn& txn, size_t index) { return txn.edit(index); }

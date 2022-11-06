@@ -67,19 +67,34 @@ struct BinaryTransactionSerDes
     {
         if constexpr (ConceptTransactionForIndexable<T> || ConceptTransactionForIterable<T>)
         {
-            txn.VisitChanges([&](auto const& key, uint8_t const& mutator, auto const& /* mutatordata */, auto& subtxn) {
-                // using ObjType = std::remove_cvref_t<decltype(subtxn.Obj())>;
+            using ElemType = typename Stencil::TransactionTraits<T>::ElemType;
+
+            txn.VisitChanges([&](auto const& key, uint8_t const& mutator, [[maybe_unused]] auto const& mutatordata, auto& subtxn) {
                 writer << static_cast<uint8_t>(mutator);
                 Stencil::SerDes<std::remove_cvref_t<decltype(key)>, ProtocolBinary>::Write(writer, key);
-
-                if (mutator == 3) { _DeserializeTo(subtxn, writer); }
-                // TODO: DoNotCommit else if (mutator == 0) { Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer, obj); }
-                // TODO: DoNotCommit else if (mutator == 1) { Stencil::SerDes<ObjType, ProtocolBinary>::Write(writer, obj); }
-                else if (mutator == 2)
+                switch (mutator)
                 {
-                    // Nothing else needed
+                case 0:    // Assign
+                {
+                    using Valype = std::remove_cvref_t<decltype(subtxn.Elem())>;
+                    Stencil::SerDes<Valype, ProtocolBinary>::Write(writer, subtxn.Elem());
+                    break;
                 }
-                else { throw std::logic_error("Unknown mutator"); }
+                case 1:    // List Add
+                {
+                    using Valype = std::remove_cvref_t<decltype(subtxn.Elem())>;
+                    Stencil::SerDes<Valype, ProtocolBinary>::Write(writer, subtxn.Elem());
+                    break;
+                }
+                case 2:    // List Remove
+                {
+                    // No additional information needs to be serialized in
+                }
+                case 3:    // Edit
+                    _DeserializeTo(subtxn, writer);
+                    break;
+                default: throw std::logic_error("Unknown mutator");
+                }
             });
             writer << std::numeric_limits<uint8_t>::max();
         }
@@ -112,7 +127,7 @@ struct BinaryTransactionSerDes
             using TObj = typename Stencil::TransactionTraits<T>::ElemType;
             typename Stencil::Mutators<TObj>::ListObj obj;
             Stencil::SerDesRead<ProtocolBinary>(obj, reader);
-            txn.add(std::move(obj));
+            txn.Add(std::move(obj));
         }
         static void Remove(T& txn, size_t listindex) { txn.Remove(listindex); }
 
@@ -175,7 +190,8 @@ struct BinaryTransactionSerDes
                     txn.Edit(fieldEnum, [&](auto& /*subtxn*/) {
                         // Visitor<T>::VisitKey(txn.Obj(), fieldEnum, [&](auto& obj) {
                         //     txn.MarkFieldAssigned_(fieldEnum);
-                        // TODO: DoNotCommit Stencil::SerDes<std::remove_cvref_t<decltype(subtxn)>, ProtocolBinary>::Read(subtxn, reader);
+                        // TODO: DoNotCommit Stencil::SerDes<std::remove_cvref_t<decltype(subtxn)>, ProtocolBinary>::Read(subtxn,
+                        // reader);
                         // });
                     });
 
@@ -203,14 +219,8 @@ struct BinaryTransactionSerDes
         }
     };
 
-    template <ConceptTransaction T> static void _ApplyOnStruct(T& txn, IStrmReader& reader)
-    {
-        _StructApplicator<T>::Apply(txn, reader);
-    }
-    template <ConceptTransaction T> static void _ApplyOnList(T& txn, IStrmReader& reader)
-    {
-        _ListApplicator<T>::Apply(txn, reader);
-    }
+    template <ConceptTransaction T> static void _ApplyOnStruct(T& txn, IStrmReader& reader) { _StructApplicator<T>::Apply(txn, reader); }
+    template <ConceptTransaction T> static void _ApplyOnList(T& txn, IStrmReader& reader) { _ListApplicator<T>::Apply(txn, reader); }
 
     template <ConceptTransaction T> static void _Apply(T& txn, IStrmReader& reader)
     {

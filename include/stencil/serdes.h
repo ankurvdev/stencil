@@ -9,7 +9,7 @@ namespace Stencil
 
 template <typename T, typename TProt> struct SerDes;
 
-template <typename T, typename TProt> auto Serialize(T const& obj)
+template <typename TProt, typename T> auto Serialize(T const& obj)
 {
     typename TProt::OutType out;
     Stencil::SerDes<T, TProt>::Write(out, obj);

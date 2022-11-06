@@ -26,13 +26,13 @@ template <typename T> static void RunTestCase(TestCase const& tc, std::vector<ui
     {
         T obj1 = Stencil::Json::Parse<T>(tc.json);
 
-        auto bin1 = Stencil::Serialize<T, Stencil::ProtocolBinary>(obj1).Reset();
-        auto jst1 = Stencil::Serialize<T, Stencil::ProtocolJsonVal>(obj1).str();
+        auto bin1 = Stencil::Serialize<Stencil::ProtocolBinary>(obj1).Reset();
+        auto jst1 = Stencil::Serialize<Stencil::ProtocolJsonVal>(obj1).str();
 
         T obj2 = Stencil::Deserialize<T, Stencil::ProtocolBinary>(bin1);
 
-        auto bin2 = Stencil::Serialize<T, Stencil::ProtocolBinary>(obj2).Reset();
-        auto jst2 = Stencil::Serialize<T, Stencil::ProtocolJsonVal>(obj2).str();
+        auto bin2 = Stencil::Serialize<Stencil::ProtocolBinary>(obj2).Reset();
+        auto jst2 = Stencil::Serialize<Stencil::ProtocolJsonVal>(obj2).str();
 
         REQUIRE(jst1 == jst2);
         REQUIRE(bin1 == bin2);
@@ -63,7 +63,10 @@ template <typename T> static void RunTestCases(std::vector<TestCase> cases, std:
 
 TEST_CASE("Binary", "[Protocol]")
 {
-    SECTION("TestObj") { RunTestCases<TestObj>({}, "TestObj"); }
+    SECTION("TestObj")
+    {
+        RunTestCases<TestObj>({}, "TestObj");
+    }
 
     SECTION("WithPrimitives64Bit")
     {
