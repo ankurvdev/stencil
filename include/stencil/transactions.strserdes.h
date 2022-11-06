@@ -84,7 +84,8 @@ struct StringTransactionSerDes
     {
         static void Add(T& txn, size_t /* listindex */, std::string_view const& rhs)
         {
-            typename Stencil::Mutators<T>::ListObj obj;
+            using ElemType = typename Stencil::TypeTraitsForIterable<typename TransactionTraits<T>::ElemType>::ElementType;
+            ElemType obj;
             Stencil::SerDes<decltype(obj), ProtocolJsonVal>::Read(obj, rhs);
             txn.add(std::move(obj));
         }
@@ -103,7 +104,7 @@ struct StringTransactionSerDes
         static void
         Apply(T& txn, std::string_view const& fieldname, uint8_t mutator, std::string_view const& mutatordata, std::string_view const& rhs)
         {
-            using TKey = Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::Obj>::Key;
+            using TKey = Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::ElemType>::Key;
             TKey key   = Stencil::Deserialize<TKey, ProtocolString>(fieldname);
 
             if (mutator == 0)    // Set
@@ -143,7 +144,7 @@ struct StringTransactionSerDes
             if constexpr (Stencil::ConceptTransactionForIndexable<T>)
             {
                 auto name  = it.token;
-                using TKey = Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::Obj>::Key;
+                using TKey = Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::ElemType>::Key;
                 TKey key   = Stencil::Deserialize<TKey, ProtocolString>(name);
                 ++it;
                 size_t retval = 0;
@@ -224,9 +225,9 @@ struct StringTransactionSerDes
                 if (mutator == 0)
                 {
                     // Assign
-                    ostr << "." << index << " = " << Stencil::Json::Stringify(subtxn.Obj()) << ";";
+                    ostr << "." << index << " = " << Stencil::Json::Stringify(subtxn.Elem()) << ";";
                 }
-                else if (mutator == 1) { ostr << ":add[" << index << "] = " << Stencil::Json::Stringify(subtxn.Obj()) << ";"; }
+                else if (mutator == 1) { ostr << ":add[" << index << "] = " << Stencil::Json::Stringify(subtxn.Elem()) << ";"; }
                 else if (mutator == 2) { ostr << ":remove[" << index << "] = {};"; }
                 else { throw std::logic_error("Unknown mutator"); }
             });
@@ -239,7 +240,7 @@ struct StringTransactionSerDes
                 if (mutator == 0)
                 {
                     for (auto& s : stack) { ostr << s << "."; }
-                    ostr << name << " = " << Stencil::Json::Stringify(subtxn.Obj()) << ";";
+                    ostr << name << " = " << Stencil::Json::Stringify(subtxn.Elem()) << ";";
                 }
                 else if (mutator == 3)
                 {

@@ -109,7 +109,7 @@ struct BinaryTransactionSerDes
     {
         static void Add(T& txn, size_t /* listindex */, IStrmReader& reader)
         {
-            using TObj = typename Stencil::TransactionTraits<T>::Obj;
+            using TObj = typename Stencil::TransactionTraits<T>::ElemType;
             typename Stencil::Mutators<TObj>::ListObj obj;
             Stencil::SerDesRead<ProtocolBinary>(obj, reader);
             txn.add(std::move(obj));
@@ -168,7 +168,7 @@ struct BinaryTransactionSerDes
             for (auto mutator = reader.read<uint8_t>(); mutator != std::numeric_limits<uint8_t>::max(); mutator = reader.read<uint8_t>())
             {
                 auto fieldIndex = reader.read<uint32_t>();
-                using TKey      = typename Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::Obj>::Key;
+                using TKey      = typename Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::ElemType>::Key;
                 auto fieldEnum  = static_cast<TKey>(fieldIndex);
                 if (mutator == 0)    // Set
                 {

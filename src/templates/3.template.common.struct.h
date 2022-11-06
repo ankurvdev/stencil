@@ -211,58 +211,70 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram
     }
 };
 
-template <Stencil::ConceptTransaction TOwner>
-struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TOwner>
-    : Stencil::StructTransactionT<Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TOwner>>
+template <Stencil::ConceptTransaction TContainer>
+struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TContainer>
+    : Stencil::StructTransactionT<Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TContainer>>
 {
-    using TThis = Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TOwner>;
-    using TBase = Stencil::StructTransactionT<TThis>;
-
-    using TData  = zzProgram_Namezz::zzStruct_Namezz;
     using Fields = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields;
-    struct ContainerState
-    {};
 
-    using TOwnerContainerState = typename TOwner::ContainerState;
-
-    //<Field>
-    using Transaction_zzNamezz = Stencil::Transaction<zzFieldType_NativeTypezz, TThis>;
-    //</Field>
-
-    struct State
+    struct ElemTxnState
     {
-        TOwnerContainerState owner{};
+        Fields field;
+    };
+
+    struct TxnStateForElem
+    {
         //<Field>
-        Transaction_zzNamezz::State zzNamezz{};
+        ElemTxnState zzNamezz = {Fields::Field_zzField_Namezz};
         //</Field>
     };
 
-    CLASS_DELETE_COPY_AND_MOVE(Transaction);
-    Transaction(State& state, TOwner& owner, TData& obj) : _state(state), _owner(owner), _obj(obj)
-    //<Field>
-    //,_subtracker_zzNamezz(this, [](TThis* obj) -> zzFieldType_NativeTypezz* { return &obj->_StructObj().zzNamezz; })
-    //</Field>
-    {}
+    using Txn               = Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TContainer>;
+    using ElemType          = zzProgram_Namezz::zzStruct_Namezz;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
 
-    public:
-    TData const& Obj() const { return _obj; }
+    using TBase = Stencil::StructTransactionT<Txn>;
+    //<Field>
+    using Transaction_zzNamezz = Stencil::Transaction<zzFieldType_NativeTypezz, Txn>;
+    //</Field>
+
+    struct TxnState
+    {
+        TBase::TxnState state;
+        //<Field>
+        typename Transaction_zzNamezz::TxnState zzNamezz{};
+        //</Field>
+    };
+
+    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+    ~Transaction() = default;
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
+
+    ElemType const& Elem() const { return _elem; }
 
     private:
-    State&  _state{};
-    TOwner& _owner{};
-    TData&  _obj;
-    TData&  _StructObj() { return _obj; }
+    TxnStateForElem    _txnStateForElem{};
+    TxnState&          _elemState;
+    ContainerTxnState& _containerState;
+    TContainer&        _container;
+    ElemType&          _elem;
 
     public:
     //<Field>
-    auto zzNamezz() { return Stencil::CreateTransaction<Transaction_zzNamezz>(_state.zzNamezz, *this, _obj.zzNamezz); }
+    auto zzNamezz()
+    {
+
+        return Stencil::CreateTransaction<Transaction_zzNamezz>(_elemState.zzNamezz, _txnStateForElem.zzNamezz, *this, _elem.zzNamezz);
+    }
 
     //</Field>
     //<Field>
     void set_zzNamezz(zzFieldType_NativeTypezz&& val)
     {
-        TBase::MarkFieldAssigned_(Fields::Field_zzNamezz, _StructObj().zzNamezz, val);
-        _StructObj().zzNamezz = std::move(val);
+        TBase::MarkFieldAssigned_(Fields::Field_zzNamezz, _elem.zzNamezz, val);
+        _elem.zzNamezz = std::move(val);
     }
 
     //<FieldType_Mutator>
@@ -295,12 +307,12 @@ struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TOwner>
         //<Field>
         {
             auto txn = zzNamezz();
-            lambda(Fields::Field_zzNamezz, txn, Obj().zzNamezz);
+            lambda(Fields::Field_zzNamezz, txn, Elem().zzNamezz);
         }
         //</Field>
     }
 
-    void Assign(TData&& /* obj */) { throw std::logic_error("Self-Assignment not allowed"); }
+    void Assign(ElemType&& /* obj */) { throw std::logic_error("Self-Assignment not allowed"); }
 
 #if 0
     void Flush()

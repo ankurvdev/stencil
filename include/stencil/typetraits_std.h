@@ -22,7 +22,9 @@ template <Stencil::ConceptIndexable T> struct Stencil::TypeTraitsForIndexable<st
 };
 
 template <Stencil::ConceptIterable T> struct Stencil::TypeTraitsForIterable<std::shared_ptr<T>>
-{};
+{
+    using ElementType = typename Stencil::TypeTraitsForIndexable<T>::ElementType;
+};
 
 template <Stencil::ConceptPrimitive T> struct Stencil::TypeTraitsForPrimitive<std::shared_ptr<T>>
 {};
@@ -47,10 +49,19 @@ template <typename T> struct Stencil::TypeTraits<std::vector<T>>
 {
     using Categories = std::tuple<Stencil::Category::Iterable>;
 };
+template <typename T> struct Stencil::TypeTraitsForIterable<std::vector<T>>
+{
+    using ElementType = T;
+};
 
 template <size_t N> struct Stencil::TypeTraits<std::array<char, N>>
 {
     using Categories = std::tuple<Stencil::Category::Primitive, Stencil::Category::Iterable>;
+};
+
+template <typename T, size_t N> struct Stencil::TypeTraitsForIterable<std::array<T, N>>
+{
+    using ElementType = T;
 };
 
 template <> struct Stencil::TypeTraits<std::array<uint16_t, 2>>

@@ -32,7 +32,9 @@ template <Stencil::ConceptIndexable T> struct Stencil::TypeTraitsForIndexable<St
 };
 
 template <Stencil::ConceptIterable T> struct Stencil::TypeTraitsForIterable<Stencil::Ref<T>>
-{};
+{
+    using ElementType = typename Stencil::TypeTraitsForIterable<T>::ElementType;
+};
 
 template <Stencil::ConceptPrimitive T> struct Stencil::TypeTraitsForPrimitive<Stencil::Ref<T>>
 {};

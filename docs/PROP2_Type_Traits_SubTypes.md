@@ -1,7 +1,9 @@
 
 ### PROP1: SubTypes
 
-Current State: Denied : Need more justification.
+Current State: Partially Denied : Need more justification.
+Under consideration for Iterables
+Cannot be done for Indexables as Struct is considered an indexable for now
 
 Enforce Sub-Type declaration in Type-Traits
 
@@ -20,7 +22,7 @@ template <> struct Stencil::TypeTraitsForIndexable<Foo>
 template <> struct Stencil::TypeTraitsForIterable<Foo>
 {
     // Limit Iterables to only one subtype 
-    using SubType = Bar;
+    using ElementType = Bar;
 };
 
 ```

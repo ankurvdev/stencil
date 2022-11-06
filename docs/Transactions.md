@@ -1,3 +1,5 @@
+[[TOC]]
+
 ## Overview
 
 Transactions can be used for the following scenarios, mainly to deal with sparse changes to object models.

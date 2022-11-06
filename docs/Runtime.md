@@ -51,11 +51,14 @@ template <typename T> struct TypeTraitsForPrimitives
 ### Iterable
 
 Iterables are required to specialize the visitor class for providing access to their iterable items
-There are no Type-Trait requirements
+Iterable are currently presumed to be homogenous and must provide an ElementType.
+This is currently used for Transactions and Visitors. This restriction may be removed in future.
+use with caution
 
 ```C++
 template <typename T> struct TypeTraitsForIterable
 {
+    typename ElementType;
     // Nothing as of yet.
 };
 ```

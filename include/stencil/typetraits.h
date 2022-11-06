@@ -19,7 +19,7 @@ template <typename T> struct TypeTraitsForPrimitive
 
 template <typename T> struct TypeTraitsForIterable
 {
-    // Nothing as of yet.
+    // typename ElementType; // Maybe removed in future. Not sure. Use with caution
 };
 
 template <typename T> struct TypeTraitsForIndexable
