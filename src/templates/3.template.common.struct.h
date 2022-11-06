@@ -340,8 +340,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
     //<Field>
     void set_zzNamezz(zzFieldType_NativeTypezz&& val)
     {
-        _MarkFieldAssigned(Fields::Field_zzNamezz);
-        _elem.zzNamezz = std::move(val);
+        auto subtxn = zzNamezz();
+        subtxn.Assign(std::forward<zzFieldType_NativeTypezz>(val));
     }
 
     //<FieldType_Mutator>

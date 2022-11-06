@@ -151,7 +151,7 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
 
     SECTION("Auto Update On Assign", "Timestamp should automatically update when a field value is assigned")
     {
-        Objects::NestedObject obj1;
+        Objects::NestedObject obj1{};
 
         auto t1 = obj1.obj1.lastmodified;
         auto t2 = t1;
@@ -160,42 +160,47 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
         {
             // Update only on flush
             // Update on sub-struct edit
-            auto txn = CreateNestedObjectTransaction(obj1);
-            txn.obj1().set_val1(1000);
-            t2 = obj1.obj1.lastmodified;
-            // txn.Flush();
-
-            t3 = obj1.obj1.lastmodified;
+            {
+                auto txn = CreateNestedObjectTransaction(obj1);
+                {
+                    auto subtxn  = txn.obj1();
+                    auto subtxn1 = subtxn.val1();
+                    subtxn1.Assign(1000);
+                    t2 = obj1.obj1.lastmodified;
+                }
+                t3 = obj1.obj1.lastmodified;
+            }
             t4 = obj1.lastmodified;
             REQUIRE(t1 == t2);
             REQUIRE(t1 < t3);
             REQUIRE(t1 < t4);
-        }
-        {
-            // No update on false edits
-            auto txn = CreateNestedObjectTransaction(obj1);
-            txn.obj1().set_val1(1000);
+            REQUIRE(t3 < t4);
+
+            {
+                // No update on false edits
+                auto txn = CreateNestedObjectTransaction(obj1);
+                txn.obj1().set_val1(1000);
+            }
             t4 = obj1.obj1.lastmodified;
-            // txn.Flush();
             REQUIRE(t3 == t4);
         }
         {
             // List edits
             t2                      = obj1.lastmodified;
-            auto                txn = CreateNestedObjectTransaction(obj1);
-            Objects::ListObject lobj1, lobj2;
-            lobj1.value = 100;
-            txn.list1().add_listobj(std::move(lobj1));
-            // txn.Flush();
+            {
+                auto                txn = CreateNestedObjectTransaction(obj1);
+                Objects::ListObject lobj1, lobj2;
+                lobj1.value = 100;
+                txn.list1().add_listobj(std::move(lobj1));
+            }
             t3 = obj1.lastmodified;
             REQUIRE(t2 < t3);
-            txn.list1().edit_listobj(0).set_value(200);
-            // txn.Flush();
+            {
+                auto txn = CreateNestedObjectTransaction(obj1);
+                txn.list1().edit_listobj(0).set_value(200);
+            }
             t4 = obj1.lastmodified;
             REQUIRE(t3 < t4);
-            // txn.Flush();
-            // TODO : Bugfix
-            // REQUIRE(t4 == obj1.lastmodified);
         }
     }
 }

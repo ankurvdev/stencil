@@ -51,7 +51,7 @@ template <typename T> struct shared_stringT
         return std::equal(str.begin(), str.end(), _str->begin(), _str->end(), [](char a, char b) { return tolower(a) == tolower(b); });
     }
 
-    bool operator==(const shared_stringT& str) const { return *(_str.get()) == *str.get(); }
+    bool operator==(const shared_stringT& str) const { return *(_str.get()) == *(str._str.get()); }
     bool operator==(const TStringView& str) const { return *(_str.get()) == str; }
 
     template <size_t N> bool operator==(T const (&str)[N]) const { return *(_str.get()) == str; }

@@ -74,6 +74,8 @@ template <typename TElem> struct Transaction<TElem, void> : Transaction<TElem, R
     using Txn = Transaction<TElem, RootTransaction>;
 
     Transaction(TElem& elem) : Txn(elemState, containerState, container, elem) {}
+    ~Transaction() = default;
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
     RootTransaction               container;
     typename Txn::TxnState        elemState;
