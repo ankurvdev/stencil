@@ -186,7 +186,7 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
         }
         {
             // List edits
-            t2                      = obj1.lastmodified;
+            t2 = obj1.lastmodified;
             {
                 auto                txn = CreateNestedObjectTransaction(obj1);
                 Objects::ListObject lobj1, lobj2;
@@ -203,6 +203,54 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
             REQUIRE(t3 < t4);
         }
     }
+}
+
+TEST_CASE("Transactions_unordered_map", "[transaction]")
+{
+    TestReplay            replay;
+    Objects::NestedObject obj;
+    SECTION("DictOfValues")
+    {
+        auto txn = CreateNestedObjectTransaction(obj);
+        {
+            auto subtxn = txn.dict1();
+        }
+    }
+
+    // Dict of values
+    // Dict of structs
+    //
+    // Dict of values: Simple Create edit destroy (empty initial)
+    // insert dict value k::v
+    // assign dict value k::v1
+    // remove dict key k
+    // Loop 10 times
+    //
+    // Dict of values : Create-edit-destroy with few values inserted
+    // insert dict value k1:v1, k2:v2, k3:v3
+    // insert dict value k::v
+    // assign dict value k::v1
+    // remove dict key k
+    // Loop 10 times
+    // remove k1, k2, k3
+
+    // Dict of structs : Create edit-assign destroy with empty initial
+    // insert dict value k::v
+    // edit dict value k::v1
+    // assign edit dict value k::v1
+    // remove dict key k
+    // Loop 10 times
+    //
+    // Dict of structs : Create assign edit destroy with empty initial
+    // Dict of structs : Create Create Create assign edit destroy
+    // Dict of struct  : remove remove remove all the way to empty
+
+    // Dict timestamp updated with edits
+    // Dict timestamp updated with remove
+    // Dict timestamp update with assign
+
+    // Dict repeated insertion overwrites
+    //
 }
 
 TEST_CASE("Transactions_Bugs", "[transaction]")

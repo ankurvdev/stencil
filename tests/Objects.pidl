@@ -16,6 +16,8 @@ struct ListObject
 struct DictObject
 {
     dict<uint32, SimpleObject1> dictobj;
+    dict<string, timestamp>     dictval;
+    dict<uint32, dict<uint32, SimpleObject1>> dictdict;
 }
 
 struct List
@@ -41,7 +43,7 @@ struct NestedObject
     SimpleObject1   obj1;
     SimpleObject2   obj2;
     ListObject      obj3;
-    DictObject      obj4;
+    DictObject      dict1;
     List            list1;
 }
 

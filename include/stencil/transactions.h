@@ -115,7 +115,7 @@ template <Stencil::ConceptPreferPrimitive TElem, typename TContainer> struct Ste
         throw std::logic_error("Elem Not supported on Transaction");
     }
 
-    bool IsChanged() { return false; }    // TODO: DoNotCommit
+    bool IsChanged() { return false; } // What about doing AreEqual in the destructor ?
 
     void Assign(ElemType&& elem)
     {
