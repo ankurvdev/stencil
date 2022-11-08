@@ -74,14 +74,52 @@ inline void CompareLines(std::vector<std::string> const& actualstring,
 
     if (actualstring != expectedstring)
     {
-        d.printUnifiedFormat();    // print a difference as Unified Format.
+
+        if (actualstring.size() == expectedstring.size())
         {
-            std::ofstream f(std::string(resname) + ".txt");
+            for (size_t i = 0; i < actualstring.size(); i++)
+            {
+                if (actualstring[i] != expectedstring[i])
+                {
+                    dtl::Diff<char, std::string> ld(expectedstring[i], actualstring[i]);
+                    ld.compose();
+                    auto                     ses      = ld.getSes().getSequence();
+                    int                      lasttype = 0;
+                    std::string              merged;
+                    std::vector<std::string> deltas;
+                    for (auto& sesobj : ses)
+                    {
+                        if (sesobj.second.type != lasttype)
+                        {
+                            if (lasttype == dtl::SES_COMMON) { merged = fmt::format("[{}:{}]", i, sesobj.second.afterIdx); }
+                            merged += (sesobj.second.type == dtl::SES_ADD ? '+' : '-');
+                        }
+                        if (sesobj.second.type == dtl::SES_COMMON)
+                        {
+                            if (merged.size() > 0) deltas.push_back(std::move(merged));
+                        }
+                        else { merged += sesobj.first; }
+                        lasttype = sesobj.second.type;
+                    }
+                    if (merged.size() > 0) deltas.push_back(std::move(merged));
+                    for (auto& delta : deltas) { std::cout << delta << " "; }
+                    std::cout << std::endl;
+                }
+            }
+        }
+        else
+        {
+            d.printUnifiedFormat();    // print a difference as Unified Format.
+        }
+        auto outf = std::filesystem::absolute(std::string(resname) + ".txt");
+
+        {
+            std::ofstream f(outf);
             for (auto& l : actualstring) { f << l << "\n"; }
             f.flush();
             f.close();
         }
-        FAIL("Comparison Failed: Output: " + std::string(resname) + ".txt");
+        FAIL(fmt::format("Comparison Failed: Output: \n{}", outf.string()));
     }
 }
 

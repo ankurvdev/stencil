@@ -115,7 +115,7 @@ template <Stencil::ConceptPreferPrimitive TElem, typename TContainer> struct Ste
         throw std::logic_error("Elem Not supported on Transaction");
     }
 
-    bool IsChanged() { return false; } // What about doing AreEqual in the destructor ?
+    bool IsChanged() { return false; }    // What about doing AreEqual in the destructor ?
 
     void Assign(ElemType&& elem)
     {
@@ -176,7 +176,10 @@ template <typename TContainer, typename TKey, typename TVal> struct Stencil::Tra
 
     ElemType const& Elem() const { return _elem; }
 
-    bool IsChanged() const { TODO("DoNotCommit"); }
+    bool IsChanged() const
+    {
+        return !_elemState.edit_subtxns.empty() || !_elemState.add_subtxns.empty() || !_elemState.removed_keys.empty();
+    }
 
     template <typename TLambda> void Edit(TKey const& key, TLambda&& lambda)
     {
@@ -185,9 +188,10 @@ template <typename TContainer, typename TKey, typename TVal> struct Stencil::Tra
         lambda(txn);
     }
 
-    template <typename TLambda> auto Assign(TKey const& key, TVal&& val)
+    auto Assign(TKey&& key, TVal&& val)
     {
         _elem[key] = std::move(val);
+        _container.NotifyElementEdited_(_containerState);
         return _assign_txn_at(key);
     }
     void Assign(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
@@ -215,6 +219,7 @@ template <typename TContainer, typename TKey, typename TVal> struct Stencil::Tra
     }
 
     void NotifyElementEdited_(ElemTxnState const& /*elemTxnState*/) { TODO("DoNotCommit"); }
+    void NotifyElementAssigned_(ElemTxnState const& /*elemTxnState*/) { TODO("DoNotCommit"); }
 
     private:
     auto& _edit_txn_at(TKey const& key)
@@ -237,14 +242,8 @@ template <typename TContainer, typename TKey, typename TVal> struct Stencil::Tra
 
     auto& _assign_txn_at(TKey const& key)
     {
-        {
-            auto it = _elemState.edit_subtxns.find(key);
-            if (it != _elemState.edit_subtxns.end()) { _elemState.edit_subtxns.erase(it); }
-        }
-        {
-            auto it = _elemState.add_subtxns.find(key);
-            if (it != _elemState.add_subtxns.end()) { return *it.second.get(); }
-        }
+        _elemState.edit_subtxns.erase(key);
+        _elemState.add_subtxns.erase(key);
         auto it = _elem.find(key);
         if (it == _elem.end()) { throw std::logic_error("Object not found"); }
         auto txnstate                = std::make_unique<CombinedTxnState>();
@@ -415,28 +414,25 @@ template <Stencil::ConceptTransactionForIterable TTxn> struct Stencil::VisitorFo
     using Iterator = typename Stencil::Visitor<ElemType>::Iterator;
 
     template <typename T1>
-        requires std::is_same_v<std::remove_const_t<T1>, TTxn>
-    static void IteratorBegin(Iterator& /*it*/, T1& /*elem*/)
-    {
-        TODO("DoNotCommit: Stencil::Visitor<T>::IteratorBegin(it, *elem.get());");
-    }
+    requires std::is_same_v<std::remove_const_t<T1>, TTxn>
+    static void IteratorBegin(Iterator& /*it*/, T1& /*elem*/) { TODO("DoNotCommit: Stencil::Visitor<T>::IteratorBegin(it, *elem.get());"); }
 
     template <typename T1>
-        requires std::is_same_v<std::remove_const_t<T1>, TTxn>
+    requires std::is_same_v<std::remove_const_t<T1>, TTxn>
     static void IteratorMoveNext(Iterator& /*it*/, T1& /*elem*/)
     {
         TODO("DoNotCommit: Stencil::Visitor<T>::IteratorMoveNext(it, *elem.get());");
     }
 
     template <typename T1>
-        requires std::is_same_v<std::remove_const_t<T1>, TTxn>
+    requires std::is_same_v<std::remove_const_t<T1>, TTxn>
     static bool IteratorValid(Iterator& /*it*/, T1& /*elem*/)
     {
         TODO("DoNotCommit: return Stencil::Visitor<T>::IteratorValid(it, *elem.get());");
     }
 
     template <typename T1, typename TLambda>
-        requires std::is_same_v<std::remove_const_t<T1>, TTxn>
+    requires std::is_same_v<std::remove_const_t<T1>, TTxn>
     static void Visit(Iterator& /*it*/, T1& /*elem*/, TLambda&& /*lambda*/)
     {
         TODO("DoNotCommit: Stencil::Visitor<T>::Visit(it, *elem.get(), std::forward<TLambda>(lambda));");

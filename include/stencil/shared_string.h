@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <memory>
 #include <string>
+#include <type_traits>
 
 namespace std
 {
@@ -144,3 +145,13 @@ inline shared_string operator+(const std::string& str1, const shared_string& str
 {
     return shared_string::make(str1 + str2.str());
 }
+
+namespace std
+{
+
+template <typename T> struct std::hash<shared_stringT<T>>
+{
+    size_t operator()(shared_stringT<T> const& str) const { return std::hash<shared_stringT<T>::TString>{}(str.str()); }
+};
+
+}    // namespace std

@@ -18,21 +18,27 @@ struct TestReplay
 
     void Replay(std::string_view const& txndata, std::string_view const& expectedIn = {})
     {
-        auto txn = CreateNestedObjectTransaction(obj1);
-        Stencil::StringTransactionSerDes::Apply(txn, txndata);
-        snapshots.push_back(Stencil::Json::Stringify(obj1));
+        auto delta    = Test([&](auto& txn) { Stencil::StringTransactionSerDes::Apply(txn, txndata); });
         auto expected = expectedIn.size() == 0 ? txndata : expectedIn;
+        if (expected[expected.size() - 1] == ';') { REQUIRE(delta == expected); }
+        else { REQUIRE(delta.substr(0, delta.size() - 1) == expected); }
+    }
+
+    template <typename TLambda> auto Test(TLambda&& lambda)
+    {
+        auto txn = CreateNestedObjectTransaction(obj1);
+        lambda(txn);
+        snapshots.push_back(Stencil::Json::Stringify(obj1));
 
         auto delta = Stencil::StringTransactionSerDes::Deserialize(txn);
 
         changes.push_back(delta);
-        if (expected[expected.size() - 1] == ';') { REQUIRE(delta == expected); }
-        else { REQUIRE(delta.substr(0, delta.size() - 1) == expected); }
-        Stencil::StringTransactionSerDes::Apply(txn2, txndata);
+        lambda(txn2);
+
         deltatxns.push_back(Stencil::StringTransactionSerDes::Deserialize(txn2));
 
-        Stencil::BinaryTransactionSerDes::Deserialize(txn, binary_txns);
-        Stencil::BinaryTransactionSerDes::Deserialize(txn2, binary_acc_txns);
+        Stencil::BinaryTransactionSerDes::Deserialize(txn, _binary_txns);
+        Stencil::BinaryTransactionSerDes::Deserialize(txn2, _binary_acc_txns);
 
         // Check repeat binary deserialization doesnt change the delta
         {
@@ -45,12 +51,66 @@ struct TestReplay
             REQUIRE(strm1.str() == strm2.str());
         }
         {
-            binary_last_txns.str("");
-            Stencil::BinaryTransactionSerDes::Deserialize(txn2, binary_last_txns);
+            _binary_last_txns.str("");
+            Stencil::BinaryTransactionSerDes::Deserialize(txn2, _binary_last_txns);
         }
         REQUIRE(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj2));
+        return delta;
     }
 
+    void SelfTest()
+    {
+        auto& replay = *this;
+        {
+            CheckOutputAgainstResource(replay.snapshots, "ChangeDataSnapshots");
+            CheckOutputAgainstResource(replay.deltatxns, "Deltas");
+
+            REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(replay.obj2));
+        }
+        {
+            Objects::NestedObject obj3;
+            auto                  txn3 = CreateNestedObjectTransaction(obj3);
+            for (auto& c : replay.changes) { Stencil::StringTransactionSerDes::Apply(txn3, c); }
+            REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
+        }
+        {
+            Objects::NestedObject obj3;
+            auto                  txn3 = CreateNestedObjectTransaction(obj3);
+            Stencil::StringTransactionSerDes::Apply(txn3, replay.deltatxns.back());
+            REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
+        }
+
+        auto binary_txns      = replay._binary_txns.str();
+        auto binary_acc_txns  = replay._binary_acc_txns.str();
+        auto binary_last_txns = replay._binary_last_txns.str();
+        // And now binary streams
+        {
+            Objects::NestedObject obj3;
+            auto                  txn3 = CreateNestedObjectTransaction(obj3);
+
+            std::istringstream istrm(binary_txns);
+            istrm.peek();
+            while (istrm.good() && (!istrm.eof()))
+            {
+                Stencil::BinaryTransactionSerDes::Apply(txn3, istrm);
+                istrm.peek();
+            }
+
+            REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
+        }
+        {
+            Objects::NestedObject obj3;
+            auto                  txn3 = CreateNestedObjectTransaction(obj3);
+            std::istringstream    istrm(binary_last_txns);
+            Stencil::BinaryTransactionSerDes::Apply(txn3, istrm);
+            REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
+            auto offset = static_cast<unsigned>(istrm.tellg());
+            REQUIRE(offset == binary_last_txns.size());
+            REQUIRE(!istrm.eof());
+        }
+        CompareBinaryOutputAgainstResource(binary_txns, "Transactions");
+        CompareBinaryOutputAgainstResource(binary_acc_txns, "LastAccumulated");
+    }
     std::vector<std::string> changes;
     std::vector<std::string> snapshots;
     std::vector<std::string> deltatxns;
@@ -58,9 +118,9 @@ struct TestReplay
     Objects::NestedObject obj1;
     Objects::NestedObject obj2;
 
-    std::ostringstream binary_txns;
-    std::ostringstream binary_acc_txns;
-    std::ostringstream binary_last_txns;
+    std::ostringstream _binary_txns;
+    std::ostringstream _binary_acc_txns;
+    std::ostringstream _binary_last_txns;
 
     TransactionNestObject txn2;
 };
@@ -95,55 +155,7 @@ TEST_CASE("Transactions", "[transaction]")
     replay.Replay("list1.listobj:remove[2] = {}");
     replay.Replay("obj3.obj1.val1 = 110000000");
     replay.Replay("obj3.obj1.val2 = 222000000");
-    {
-        CheckOutputAgainstResource(replay.snapshots, "ChangeDataSnapshots");
-        CheckOutputAgainstResource(replay.deltatxns, "Deltas");
-
-        REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(replay.obj2));
-    }
-    {
-        Objects::NestedObject obj3;
-        auto                  txn3 = CreateNestedObjectTransaction(obj3);
-        for (auto& c : replay.changes) { Stencil::StringTransactionSerDes::Apply(txn3, c); }
-        REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
-    }
-    {
-        Objects::NestedObject obj3;
-        auto                  txn3 = CreateNestedObjectTransaction(obj3);
-        Stencil::StringTransactionSerDes::Apply(txn3, replay.deltatxns.back());
-        REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
-    }
-
-    auto binary_txns      = replay.binary_txns.str();
-    auto binary_acc_txns  = replay.binary_acc_txns.str();
-    auto binary_last_txns = replay.binary_last_txns.str();
-    // And now binary streams
-    {
-        Objects::NestedObject obj3;
-        auto                  txn3 = CreateNestedObjectTransaction(obj3);
-
-        std::istringstream istrm(binary_txns);
-        istrm.peek();
-        while (istrm.good() && (!istrm.eof()))
-        {
-            Stencil::BinaryTransactionSerDes::Apply(txn3, istrm);
-            istrm.peek();
-        }
-
-        REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
-    }
-    {
-        Objects::NestedObject obj3;
-        auto                  txn3 = CreateNestedObjectTransaction(obj3);
-        std::istringstream    istrm(binary_last_txns);
-        Stencil::BinaryTransactionSerDes::Apply(txn3, istrm);
-        REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
-        auto offset = static_cast<unsigned>(istrm.tellg());
-        REQUIRE(offset == binary_last_txns.size());
-        REQUIRE(!istrm.eof());
-    }
-    CompareBinaryOutputAgainstResource(binary_txns, "Transactions");
-    CompareBinaryOutputAgainstResource(binary_acc_txns, "LastAccumulated");
+    replay.SelfTest();
 }
 
 TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
@@ -205,26 +217,71 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
     }
 }
 
-TEST_CASE("Transactions_unordered_map", "[transaction]")
+TEST_CASE("Transactions for unordered_map", "[transaction]")
 {
-    TestReplay            replay;
-    Objects::NestedObject obj;
-    SECTION("DictOfValues")
-    {
-        auto txn = CreateNestedObjectTransaction(obj);
+    TestReplay replay;
+
+    // dict of values : create
+    replay.Test([](auto& txn) {
+        auto subtxn1 = txn.dict1();
         {
-            auto subtxn = txn.dict1();
+            auto subtxn2 = subtxn1.dictval();
+            subtxn2.Assign(shared_string("now"), {});
         }
-    }
+    });
+
+    // dict of values : edit
+    replay.Test([](auto& txn) {
+        auto subtxn1 = txn.dict1();
+        {
+            auto subtxn2 = subtxn1.dictval();
+            subtxn2.Assign(shared_string("now"), {});
+        }
+    });
+
+    // dict of values : destroy
+    replay.Test([](auto& txn) {
+        auto subtxn1 = txn.dict1();
+        {
+            auto subtxn2 = subtxn1.dictval();
+            subtxn2.Assign(shared_string("now"), {});
+        }
+    });
+
+    // dict of values : create + edit + destroy
+    replay.Test([](auto& txn) {
+        auto subtxn1 = txn.dict1();
+        {
+            auto subtxn2 = subtxn1.dictval();
+            subtxn2.Assign(shared_string("now"), {});
+            subtxn2.Assign(shared_string("now"), {});
+            subtxn2.Assign(shared_string("now"), {});
+        }
+    });
+
+    // dict of values : create + edit + destroy (with flushes and in a loop)
+    replay.Test([](auto& txn) {
+        for (size_t i = 0; i < 10; i++)
+        {
+            auto subtxn1 = txn.dict1();
+            {
+                auto subtxn2 = subtxn1.dictval();
+                subtxn2.Assign(shared_string("now"), {});
+            }
+            {
+                auto subtxn2 = subtxn1.dictval();
+                subtxn2.Assign(shared_string("now"), {});
+            }
+            {
+                auto subtxn2 = subtxn1.dictval();
+                subtxn2.Assign(shared_string("now"), {});
+            }
+        }
+    });
 
     // Dict of values
     // Dict of structs
     //
-    // Dict of values: Simple Create edit destroy (empty initial)
-    // insert dict value k::v
-    // assign dict value k::v1
-    // remove dict key k
-    // Loop 10 times
     //
     // Dict of values : Create-edit-destroy with few values inserted
     // insert dict value k1:v1, k2:v2, k3:v3
@@ -250,6 +307,8 @@ TEST_CASE("Transactions_unordered_map", "[transaction]")
     // Dict timestamp update with assign
 
     // Dict repeated insertion overwrites
+    //
+    // Dict of struct : Assign clears off past edit and assign transactions (wipe slate)
     //
 }
 
