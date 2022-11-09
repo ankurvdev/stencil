@@ -157,7 +157,7 @@ struct StringTransactionSerDes
             }
             else if constexpr (Stencil::ConceptTransactionForIterable<T>)
             {
-                auto   keystr = it.token;
+                auto     keystr = it.token;
                 uint32_t key    = Stencil::Deserialize<uint32_t, ProtocolString>(keystr);
                 ++it;
                 size_t retval = 0;
@@ -252,6 +252,17 @@ struct StringTransactionSerDes
                 {
                     for (auto& s : stack) { ostr << s << "."; }
                     ostr << name << " = " << Stencil::Json::Stringify(subtxn.Elem()) << ";";
+                }
+                else if (mutator == 2)
+                {
+                    bool first = true;
+                    for (auto& s : stack)
+                    {
+                        if (!first) ostr << ".";
+                        first = false;
+                        ostr << s;
+                    }
+                    ostr << ":remove[" << name << "] = {};";
                 }
                 else if (mutator == 3)
                 {

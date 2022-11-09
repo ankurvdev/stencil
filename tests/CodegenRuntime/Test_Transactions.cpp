@@ -224,32 +224,41 @@ TEST_CASE("Transactions for unordered_map", "[transaction]")
 {
     struct Tester
     {
-        TestReplay             replay;
-        size_t                 _counter{0};
-        int32_t                create_val1() { return static_cast<int32_t>(++_counter); }
-        int32_t                create_val3() { return static_cast<int32_t>(++_counter); }
-        uint32_t               create_uint_key() { return static_cast<uint32_t>(++_counter); }
-        Stencil::Timestamp     create_val() { return Stencil::Timestamp{} + std::chrono::seconds{++_counter}; }
-        Objects::SimpleObject1 create_obj() { return Objects::SimpleObject1{.val1 = create_val1(), .val2 = create_uint_key(), .}; }
+        TestReplay    replay;
+        size_t        _counter{0};
+        int32_t       create_int32() { return static_cast<int32_t>(++_counter); }
+        uint8_t       create_uint8() { return static_cast<int32_t>(++_counter); }
+        uint32_t      create_uint32() { return static_cast<uint32_t>(++_counter); }
+        shared_string create_string() { return shared_string(fmt::format("str{}", static_cast<uint32_t>(++_counter))); }
+        double        create_double() { return static_cast<double>(++_counter * 100) + (static_cast<double>(++_counter) / 100.0); }
+        auto          create_timestamp() { return Stencil::Timestamp{} + std::chrono::seconds{++_counter}; }
+
+        Objects::SimpleObject1 create_obj()
+        {
+            return Objects::SimpleObject1{
+                .val1 = create_int32(), .val2 = create_uint32(), .val3 = create_uint8(), .val4 = create_string(), .val5 = create_double()};
+        }
 
         auto dict_value_create(shared_string const& key)
         {
+            auto ts = create_timestamp();
             return replay.Test([&](auto& txn) {
                 auto subtxn1 = txn.dict1();
                 {
                     auto subtxn2 = subtxn1.dictval();
-                    subtxn2.Assign(key, {});
+                    subtxn2.Assign(key, std::move(ts));
                 }
             });
         }
 
         auto dict_value_edit(shared_string const& key)
         {
+            auto ts = create_timestamp();
             return replay.Test([&](auto& txn) {
                 auto subtxn1 = txn.dict1();
                 {
                     auto subtxn2 = subtxn1.dictval();
-                    subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign({}); });
+                    subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign(std::move(ts)); });
                 }
             });
         }
@@ -267,12 +276,14 @@ TEST_CASE("Transactions for unordered_map", "[transaction]")
 
         auto dict_value_create_edit_destroy(shared_string const& key)
         {
+            auto ts1 = create_timestamp();
+            auto ts2 = create_timestamp();
             return replay.Test([&](auto& txn) {
                 auto subtxn1 = txn.dict1();
                 {
                     auto subtxn2 = subtxn1.dictval();
-                    subtxn2.Assign(key, {});
-                    subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign({}); });
+                    subtxn2.Assign(key, std::move(ts1));
+                    subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign(std::move(ts2)); });
                     subtxn2.Remove(key);
                 }
             });
@@ -280,15 +291,17 @@ TEST_CASE("Transactions for unordered_map", "[transaction]")
 
         auto dict_value_create_edit_destroy2(shared_string const& key)
         {
+            auto ts1 = create_timestamp();
+            auto ts2 = create_timestamp();
             return replay.Test([&](auto& txn) {
                 auto subtxn1 = txn.dict1();
                 {
                     auto subtxn2 = subtxn1.dictval();
-                    subtxn2.Assign(key, {});
+                    subtxn2.Assign(key, std::move(ts1));
                 }
                 {
                     auto subtxn2 = subtxn1.dictval();
-                    subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign({}); });
+                    subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign(std::move(ts2)); });
                 }
                 {
                     auto subtxn2 = subtxn1.dictval();
@@ -299,22 +312,24 @@ TEST_CASE("Transactions for unordered_map", "[transaction]")
 
         auto dict_obj_create(uint32_t const& key)
         {
+            auto obj = create_obj();
             return replay.Test([&](auto& txn) {
                 auto subtxn1 = txn.dict1();
                 {
                     auto subtxn2 = subtxn1.dictobj();
-                    subtxn2.Assign(key, create_obj());
+                    subtxn2.Assign(key, std::move(obj));
                 }
             });
         }
 
         auto dict_obj_edit(uint32_t const& key)
         {
+            auto val1 = create_int32();
             return replay.Test([&](auto& txn) {
                 auto subtxn1 = txn.dict1();
                 {
                     auto subtxn2 = subtxn1.dictobj();
-                    subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.set_val1(create_val1()); });
+                    subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.set_val1(std::move(val1)); });
                 }
             });
         }
@@ -331,27 +346,31 @@ TEST_CASE("Transactions for unordered_map", "[transaction]")
         }
         auto dict_obj_create_edit_destroy(uint32_t const& key)
         {
+            auto val1 = create_int32();
+            auto obj  = create_obj();
             return replay.Test([&](auto& txn) {
                 auto subtxn1 = txn.dict1();
                 {
                     auto subtxn2 = subtxn1.dictobj();
-                    subtxn2.Assign(key, create_obj());
-                    subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.set_val1(create_val1()); });
+                    subtxn2.Assign(key, std::move(obj));
+                    subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.set_val1(std::move(val1)); });
                     subtxn2.Remove(key);
                 }
             });
         }
         auto dict_obj_create_edit_destroy2(uint32_t const& key)
         {
+            auto val1 = create_int32();
+            auto obj  = create_obj();
             return replay.Test([&](auto& txn) {
                 auto subtxn1 = txn.dict1();
                 {
                     auto subtxn2 = subtxn1.dictobj();
-                    subtxn2.Assign(key, create_obj());
+                    subtxn2.Assign(key, std::move(obj));
                 }
                 {
                     auto subtxn2 = subtxn1.dictobj();
-                    subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.set_val1(create_val1()); });
+                    subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.set_val1(std::move(val1)); });
                 }
                 {
                     auto subtxn2 = subtxn1.dictobj();
@@ -369,47 +388,46 @@ TEST_CASE("Transactions for unordered_map", "[transaction]")
         {
             for (auto& key : keylist)
             {
-                REQUIRE(tester.dict_value_create(key) == R"(dict1.dictval.now1 = "1970-01-01T00:00:00.000000";)");
-                REQUIRE(tester.dict_value_edit(key) == "");
-                REQUIRE(tester.dict_value_edit(key) == "something");
-                REQUIRE(tester.dict_value_destroy(key) == "something");
-                REQUIRE(tester.dict_value_create(key) == "something");
-                REQUIRE(tester.dict_value_create_edit_destroy(key) == "something");
-                REQUIRE(tester.dict_value_create_edit_destroy2(key) == "something");
+                REQUIRE(tester.dict_value_create(key) == R"(dict1.dictval.now1 = "1970-01-01T00:00:01.000000";)");
+                REQUIRE(tester.dict_value_edit(key) == R"(dict1.dictval.now1 = "1970-01-01T00:00:02.000000";)");
+                REQUIRE(tester.dict_value_edit(key) == R"(dict1.dictval.now1 = "1970-01-01T00:00:03.000000";)");
+                REQUIRE(tester.dict_value_destroy(key) == R"(something)");
+                REQUIRE(tester.dict_value_create(key) == R"(something)");
+                REQUIRE(tester.dict_value_create_edit_destroy(key) == R"(something)");
+                REQUIRE(tester.dict_value_create_edit_destroy2(key) == R"(something)");
             }
-            REQUIRE(tester.dict_value_create(key1) == "something");
-            REQUIRE(tester.dict_value_edit(key1) == "something");
+            REQUIRE(tester.dict_value_create(key1) == R"(something)");
+            REQUIRE(tester.dict_value_edit(key1) == R"(something)");
         }
 
-        for (auto key : keylist) { REQUIRE(tester.dict_value_edit(key) == "something"); }
+        for (auto key : keylist) { REQUIRE(tester.dict_value_edit(key) == R"(something)"); }
 
-        for (auto key : keylist) { REQUIRE(tester.dict_value_destroy(key) == "something"); }
+        for (auto key : keylist) { REQUIRE(tester.dict_value_destroy(key) == R"(something)"); }
     }
 
     SECTION("dict obj : create edit destroy")
     {
         Tester                tester;
-        std::vector<uint32_t> keylist
-            = {tester.create_uint_key(), tester.create_uint_key(), tester.create_uint_key(), tester.create_uint_key()};
+        std::vector<uint32_t> keylist = {tester.create_uint32(), tester.create_uint32(), tester.create_uint32(), tester.create_uint32()};
         for (auto& key1 : keylist)
         {
             for (auto& key : keylist)
             {
-                REQUIRE(tester.dict_obj_create(key) == R"(dict1.dictobj.0 = {"val1":0,"val2":0,"val3":0,"val4":null,"val5":0};)");
-                REQUIRE(tester.dict_obj_edit(key) == "something");
-                REQUIRE(tester.dict_obj_edit(key) == "something");
-                REQUIRE(tester.dict_obj_destroy(key) == "something");
-                REQUIRE(tester.dict_obj_create(key) == "something");    // Dict repeated insertion overwrites
-                REQUIRE(tester.dict_obj_create_edit_destroy(key) == "something");
-                REQUIRE(tester.dict_obj_create_edit_destroy2(key) == "something");
+                REQUIRE(tester.dict_obj_create(key) == R"(dict1.dictobj.1 = {"val1":5,"val2":6,"val3":7,"val4":"str8","val5":900.1};)");
+                REQUIRE(tester.dict_obj_edit(key) == R"(dict1.dictobj.1.val1 = 11;)");
+                REQUIRE(tester.dict_obj_edit(key) == R"(dict1.dictobj.1.val1 = 12;)");
+                REQUIRE(tester.dict_obj_destroy(key) == R"(something)");
+                REQUIRE(tester.dict_obj_create(key) == R"(something)");    // Dict repeated insertion overwrites
+                REQUIRE(tester.dict_obj_create_edit_destroy(key) == R"(something)");
+                REQUIRE(tester.dict_obj_create_edit_destroy2(key) == R"(something)");
             }
-            REQUIRE(tester.dict_obj_create(key1) == "something");
-            REQUIRE(tester.dict_obj_edit(key1) == "something");
+            REQUIRE(tester.dict_obj_create(key1) == R"(something)");
+            REQUIRE(tester.dict_obj_edit(key1) == R"(something)");
         }
 
-        for (auto key : keylist) { REQUIRE(tester.dict_obj_edit(key) == "something"); }
+        for (auto key : keylist) { REQUIRE(tester.dict_obj_edit(key) == R"(something)"); }
 
-        for (auto key : keylist) { REQUIRE(tester.dict_obj_destroy(key) == "something"); }
+        for (auto key : keylist) { REQUIRE(tester.dict_obj_destroy(key) == R"(something)"); }
     }
 
     SECTION("dict value timestamp update : create edit destroy")
