@@ -14,6 +14,10 @@ TransactionNestObject CreateNestedObjectTransaction(Objects::NestedObject& obj)
 struct TestReplay
 {
     TestReplay() : txn2(CreateNestedObjectTransaction(obj2)) {}
+    ~TestReplay()
+    {
+        if (std::uncaught_exceptions() == 0) SelfTest();
+    }
     CLASS_DELETE_COPY_AND_MOVE(TestReplay);
 
     void Replay(std::string_view const& txndata, std::string_view const& expectedIn = {})
@@ -155,7 +159,6 @@ TEST_CASE("Transactions", "[transaction]")
     replay.Replay("list1.listobj:remove[2] = {}");
     replay.Replay("obj3.obj1.val1 = 110000000");
     replay.Replay("obj3.obj1.val2 = 222000000");
-    replay.SelfTest();
 }
 
 TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
@@ -219,94 +222,200 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
 
 TEST_CASE("Transactions for unordered_map", "[transaction]")
 {
-    TestReplay replay;
+    struct Tester
+    {
+        TestReplay             replay;
+        int32_t                create_val1() { return 1; }
+        uint32_t               create_uint_key() { return 0; }
+        Stencil::Timestamp     create_val() { return {}; }
+        Objects::SimpleObject1 create_obj() { return Objects::SimpleObject1{}; }
 
-    // dict of values : create
-    replay.Test([](auto& txn) {
-        auto subtxn1 = txn.dict1();
+        auto dict_value_create(shared_string const& key)
         {
-            auto subtxn2 = subtxn1.dictval();
-            subtxn2.Assign(shared_string("now"), {});
+            return replay.Test([&](auto& txn) {
+                auto subtxn1 = txn.dict1();
+                {
+                    auto subtxn2 = subtxn1.dictval();
+                    subtxn2.Assign(key, {});
+                }
+            });
         }
-    });
 
-    // dict of values : edit
-    replay.Test([](auto& txn) {
-        auto subtxn1 = txn.dict1();
+        auto dict_value_edit(shared_string const& key)
         {
-            auto subtxn2 = subtxn1.dictval();
-            subtxn2.Assign(shared_string("now"), {});
+            return replay.Test([&](auto& txn) {
+                auto subtxn1 = txn.dict1();
+                {
+                    auto subtxn2 = subtxn1.dictval();
+                    subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign({}); });
+                }
+            });
         }
-    });
 
-    // dict of values : destroy
-    replay.Test([](auto& txn) {
-        auto subtxn1 = txn.dict1();
+        auto dict_value_destroy(shared_string const& key)
         {
-            auto subtxn2 = subtxn1.dictval();
-            subtxn2.Assign(shared_string("now"), {});
+            return replay.Test([&](auto& txn) {
+                auto subtxn1 = txn.dict1();
+                {
+                    auto subtxn2 = subtxn1.dictval();
+                    subtxn2.Remove(key);
+                }
+            });
         }
-    });
 
-    // dict of values : create + edit + destroy
-    replay.Test([](auto& txn) {
-        auto subtxn1 = txn.dict1();
+        auto dict_value_create_edit_destroy(shared_string const& key)
         {
-            auto subtxn2 = subtxn1.dictval();
-            subtxn2.Assign(shared_string("now"), {});
-            subtxn2.Assign(shared_string("now"), {});
-            subtxn2.Assign(shared_string("now"), {});
+            return replay.Test([&](auto& txn) {
+                auto subtxn1 = txn.dict1();
+                {
+                    auto subtxn2 = subtxn1.dictval();
+                    subtxn2.Assign(key, {});
+                    subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign({}); });
+                    subtxn2.Remove(key);
+                }
+            });
         }
-    });
 
-    // dict of values : create + edit + destroy (with flushes and in a loop)
-    replay.Test([](auto& txn) {
-        for (size_t i = 0; i < 10; i++)
+        auto dict_value_create_edit_destroy2(shared_string const& key)
         {
-            auto subtxn1 = txn.dict1();
+            return replay.Test([&](auto& txn) {
+                auto subtxn1 = txn.dict1();
+                {
+                    auto subtxn2 = subtxn1.dictval();
+                    subtxn2.Assign(key, {});
+                }
+                {
+                    auto subtxn2 = subtxn1.dictval();
+                    subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign({}); });
+                }
+                {
+                    auto subtxn2 = subtxn1.dictval();
+                    subtxn2.Remove(key);
+                }
+            });
+        }
+
+        auto dict_obj_create(uint32_t const& key)
+        {
+            return replay.Test([&](auto& txn) {
+                auto subtxn1 = txn.dict1();
+                {
+                    auto subtxn2 = subtxn1.dictobj();
+                    subtxn2.Assign(key, create_obj());
+                }
+            });
+        }
+
+        auto dict_obj_edit(uint32_t const& key)
+        {
+            return replay.Test([&](auto& txn) {
+                auto subtxn1 = txn.dict1();
+                {
+                    auto subtxn2 = subtxn1.dictobj();
+                    subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.set_val1(create_val1()); });
+                }
+            });
+        }
+
+        auto dict_obj_destroy(uint32_t const& key)
+        {
+            return replay.Test([&](auto& txn) {
+                auto subtxn1 = txn.dict1();
+                {
+                    auto subtxn2 = subtxn1.dictobj();
+                    subtxn2.Remove(key);
+                }
+            });
+        }
+        auto dict_obj_create_edit_destroy(uint32_t const& key)
+        {
+            return replay.Test([&](auto& txn) {
+                auto subtxn1 = txn.dict1();
+                {
+                    auto subtxn2 = subtxn1.dictobj();
+                    subtxn2.Assign(key, create_obj());
+                    subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.set_val1(create_val1()); });
+                    subtxn2.Remove(key);
+                }
+            });
+        }
+        auto dict_obj_create_edit_destroy2(uint32_t const& key)
+        {
+            return replay.Test([&](auto& txn) {
+                auto subtxn1 = txn.dict1();
+                {
+                    auto subtxn2 = subtxn1.dictobj();
+                    subtxn2.Assign(key, create_obj());
+                }
+                {
+                    auto subtxn2 = subtxn1.dictobj();
+                    subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.set_val1(create_val1()); });
+                }
+                {
+                    auto subtxn2 = subtxn1.dictobj();
+                    subtxn2.Remove(key);
+                }
+            });
+        }
+    };
+
+    SECTION("dict value : create edit destroy")
+    {
+        Tester                     tester;
+        std::vector<shared_string> keylist = {shared_string("now1"), shared_string("now2"), shared_string("now3"), shared_string("now4")};
+        for (auto& key1 : keylist)
+        {
+            for (auto& key : keylist)
             {
-                auto subtxn2 = subtxn1.dictval();
-                subtxn2.Assign(shared_string("now"), {});
+                REQUIRE(tester.dict_value_create(key) == "something");
+                REQUIRE(tester.dict_value_edit(key) == "something");
+                REQUIRE(tester.dict_value_edit(key) == "something");
+                REQUIRE(tester.dict_value_destroy(key) == "something");
+                REQUIRE(tester.dict_value_create(key) == "something");
+                REQUIRE(tester.dict_value_create_edit_destroy(key) == "something");
+                REQUIRE(tester.dict_value_create_edit_destroy2(key) == "something");
             }
-            {
-                auto subtxn2 = subtxn1.dictval();
-                subtxn2.Assign(shared_string("now"), {});
-            }
-            {
-                auto subtxn2 = subtxn1.dictval();
-                subtxn2.Assign(shared_string("now"), {});
-            }
+            REQUIRE(tester.dict_value_create(key1) == "something");
+            REQUIRE(tester.dict_value_edit(key1) == "something");
         }
-    });
 
-    // Dict of values
-    // Dict of structs
-    //
-    //
-    // Dict of values : Create-edit-destroy with few values inserted
-    // insert dict value k1:v1, k2:v2, k3:v3
-    // insert dict value k::v
-    // assign dict value k::v1
-    // remove dict key k
-    // Loop 10 times
-    // remove k1, k2, k3
+        for (auto key : keylist) { REQUIRE(tester.dict_value_edit(key) == "something"); }
 
-    // Dict of structs : Create edit-assign destroy with empty initial
-    // insert dict value k::v
-    // edit dict value k::v1
-    // assign edit dict value k::v1
-    // remove dict key k
-    // Loop 10 times
-    //
-    // Dict of structs : Create assign edit destroy with empty initial
-    // Dict of structs : Create Create Create assign edit destroy
-    // Dict of struct  : remove remove remove all the way to empty
+        for (auto key : keylist) { REQUIRE(tester.dict_value_destroy(key) == "something"); }
+    }
 
-    // Dict timestamp updated with edits
-    // Dict timestamp updated with remove
-    // Dict timestamp update with assign
+    SECTION("dict obj : create edit destroy")
+    {
+        Tester                tester;
+        std::vector<uint32_t> keylist
+            = {tester.create_uint_key(), tester.create_uint_key(), tester.create_uint_key(), tester.create_uint_key()};
+        for (auto& key1 : keylist)
+        {
+            for (auto& key : keylist)
+            {
+                REQUIRE(tester.dict_obj_create(key) == "something");
+                REQUIRE(tester.dict_obj_edit(key) == "something");
+                REQUIRE(tester.dict_obj_edit(key) == "something");
+                REQUIRE(tester.dict_obj_destroy(key) == "something");
+                REQUIRE(tester.dict_obj_create(key) == "something");    // Dict repeated insertion overwrites
+                REQUIRE(tester.dict_obj_create_edit_destroy(key) == "something");
+                REQUIRE(tester.dict_obj_create_edit_destroy2(key) == "something");
+            }
+            REQUIRE(tester.dict_obj_create(key1) == "something");
+            REQUIRE(tester.dict_obj_edit(key1) == "something");
+        }
 
-    // Dict repeated insertion overwrites
+        for (auto key : keylist) { REQUIRE(tester.dict_obj_edit(key) == "something"); }
+
+        for (auto key : keylist) { REQUIRE(tester.dict_obj_destroy(key) == "something"); }
+    }
+
+    SECTION("dict value timestamp update : create edit destroy")
+    {}
+
+    SECTION("dict obj timestamp update : create edit destroy")
+    {}
+
     //
     // Dict of struct : Assign clears off past edit and assign transactions (wipe slate)
     //

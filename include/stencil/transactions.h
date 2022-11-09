@@ -188,7 +188,7 @@ template <typename TContainer, typename TKey, typename TVal> struct Stencil::Tra
         lambda(txn);
     }
 
-    auto Assign(TKey&& key, TVal&& val)
+    auto Assign(TKey const& key, TVal&& val)
     {
         _elem[key] = std::move(val);
         _container.NotifyElementEdited_(_containerState);
@@ -196,7 +196,7 @@ template <typename TContainer, typename TKey, typename TVal> struct Stencil::Tra
     }
     void Assign(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
     void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
-    void Remove(size_t /* key */) { std::logic_error("Invalid operation"); }
+    void Remove(TKey const& /* key */) { std::logic_error("Invalid operation"); }
 
     template <typename TLambda> auto Visit(TKey const& key, TLambda&& lambda) { lambda(key, at(key)); }
 
@@ -414,25 +414,28 @@ template <Stencil::ConceptTransactionForIterable TTxn> struct Stencil::VisitorFo
     using Iterator = typename Stencil::Visitor<ElemType>::Iterator;
 
     template <typename T1>
-    requires std::is_same_v<std::remove_const_t<T1>, TTxn>
-    static void IteratorBegin(Iterator& /*it*/, T1& /*elem*/) { TODO("DoNotCommit: Stencil::Visitor<T>::IteratorBegin(it, *elem.get());"); }
+        requires std::is_same_v<std::remove_const_t<T1>, TTxn>
+    static void IteratorBegin(Iterator& /*it*/, T1& /*elem*/)
+    {
+        TODO("DoNotCommit: Stencil::Visitor<T>::IteratorBegin(it, *elem.get());");
+    }
 
     template <typename T1>
-    requires std::is_same_v<std::remove_const_t<T1>, TTxn>
+        requires std::is_same_v<std::remove_const_t<T1>, TTxn>
     static void IteratorMoveNext(Iterator& /*it*/, T1& /*elem*/)
     {
         TODO("DoNotCommit: Stencil::Visitor<T>::IteratorMoveNext(it, *elem.get());");
     }
 
     template <typename T1>
-    requires std::is_same_v<std::remove_const_t<T1>, TTxn>
+        requires std::is_same_v<std::remove_const_t<T1>, TTxn>
     static bool IteratorValid(Iterator& /*it*/, T1& /*elem*/)
     {
         TODO("DoNotCommit: return Stencil::Visitor<T>::IteratorValid(it, *elem.get());");
     }
 
     template <typename T1, typename TLambda>
-    requires std::is_same_v<std::remove_const_t<T1>, TTxn>
+        requires std::is_same_v<std::remove_const_t<T1>, TTxn>
     static void Visit(Iterator& /*it*/, T1& /*elem*/, TLambda&& /*lambda*/)
     {
         TODO("DoNotCommit: Stencil::Visitor<T>::Visit(it, *elem.get(), std::forward<TLambda>(lambda));");
