@@ -225,10 +225,12 @@ TEST_CASE("Transactions for unordered_map", "[transaction]")
     struct Tester
     {
         TestReplay             replay;
-        int32_t                create_val1() { return 1; }
-        uint32_t               create_uint_key() { return 0; }
-        Stencil::Timestamp     create_val() { return {}; }
-        Objects::SimpleObject1 create_obj() { return Objects::SimpleObject1{}; }
+        size_t                 _counter{0};
+        int32_t                create_val1() { return static_cast<int32_t>(++_counter); }
+        int32_t                create_val3() { return static_cast<int32_t>(++_counter); }
+        uint32_t               create_uint_key() { return static_cast<uint32_t>(++_counter); }
+        Stencil::Timestamp     create_val() { return Stencil::Timestamp{} + std::chrono::seconds{++_counter}; }
+        Objects::SimpleObject1 create_obj() { return Objects::SimpleObject1{.val1 = create_val1(), .val2 = create_uint_key(), .}; }
 
         auto dict_value_create(shared_string const& key)
         {
@@ -367,8 +369,8 @@ TEST_CASE("Transactions for unordered_map", "[transaction]")
         {
             for (auto& key : keylist)
             {
-                REQUIRE(tester.dict_value_create(key) == "something");
-                REQUIRE(tester.dict_value_edit(key) == "something");
+                REQUIRE(tester.dict_value_create(key) == R"(dict1.dictval.now1 = "1970-01-01T00:00:00.000000";)");
+                REQUIRE(tester.dict_value_edit(key) == "");
                 REQUIRE(tester.dict_value_edit(key) == "something");
                 REQUIRE(tester.dict_value_destroy(key) == "something");
                 REQUIRE(tester.dict_value_create(key) == "something");
@@ -393,7 +395,7 @@ TEST_CASE("Transactions for unordered_map", "[transaction]")
         {
             for (auto& key : keylist)
             {
-                REQUIRE(tester.dict_obj_create(key) == "something");
+                REQUIRE(tester.dict_obj_create(key) == R"(dict1.dictobj.0 = {"val1":0,"val2":0,"val3":0,"val4":null,"val5":0};)");
                 REQUIRE(tester.dict_obj_edit(key) == "something");
                 REQUIRE(tester.dict_obj_edit(key) == "something");
                 REQUIRE(tester.dict_obj_destroy(key) == "something");

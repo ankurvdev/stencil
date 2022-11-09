@@ -191,9 +191,9 @@ template <typename TContainer, typename TKey, typename TVal> struct Stencil::Tra
     auto Assign(TKey const& key, TVal&& val)
     {
         _elem[key] = std::move(val);
-        _container.NotifyElementEdited_(_containerState);
         return _assign_txn_at(key);
     }
+
     void Assign(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
     void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
     void Remove(TKey const& /* key */) { std::logic_error("Invalid operation"); }
@@ -206,7 +206,7 @@ template <typename TContainer, typename TKey, typename TVal> struct Stencil::Tra
         for (auto& [k, v] : _elemState.add_subtxns)
         {
             auto txn = Stencil::CreateTransaction<ValTxn>(v->elem, v->container, *this, _elem[k]);
-            lambda(k, uint8_t{1u}, uint32_t{0u}, txn);
+            lambda(k, uint8_t{0u}, uint32_t{0u}, txn);
         }
 
         for (auto& [k, v] : _elemState.edit_subtxns)
@@ -246,9 +246,9 @@ template <typename TContainer, typename TKey, typename TVal> struct Stencil::Tra
         _elemState.add_subtxns.erase(key);
         auto it = _elem.find(key);
         if (it == _elem.end()) { throw std::logic_error("Object not found"); }
-        auto txnstate                = std::make_unique<CombinedTxnState>();
-        auto txnptr                  = txnstate.get();
-        _elemState.edit_subtxns[key] = std::move(txnstate);
+        auto txnstate               = std::make_unique<CombinedTxnState>();
+        auto txnptr                 = txnstate.get();
+        _elemState.add_subtxns[key] = std::move(txnstate);
         return *txnptr;
     }
 
