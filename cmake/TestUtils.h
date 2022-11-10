@@ -82,7 +82,7 @@ inline void WriteBinResourse(std::vector<std::string> const& actualstring, std::
         std::ofstream f(outf, std::ios::binary);
         for (auto& l : actualstring)
         {
-            size_t size;
+            size_t size = l.size();
             f.write(reinterpret_cast<const char*>(&size), sizeof(size));
             f.write(l.data(), static_cast<std::streamsize>(l.size()));
         }
@@ -232,7 +232,7 @@ inline std::vector<std::string> LoadStrResource(std::string_view const& name)
 
 inline std::vector<std::string> LoadBinResource(std::string_view const& name)
 {
-    auto testresname = GeneratePrefixFromTestName() + std::string(name) + ".txt";
+    auto testresname = GeneratePrefixFromTestName() + std::string(name) + ".bin";
 
     auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
     for (auto const& r : resourceCollection)
@@ -248,6 +248,7 @@ inline std::vector<std::string> LoadBinResource(std::string_view const& name)
             while (!ss.eof())
             {
                 ss.read(reinterpret_cast<char*>(&size), sizeof(size));
+                if (size > 1024 * 1024) { return data; }
                 std::string line;
                 line.resize(size);
                 ss.read(line.data(), static_cast<std::streamsize>(size));
