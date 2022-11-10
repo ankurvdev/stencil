@@ -151,16 +151,44 @@ template <typename TContainer, typename TKey, typename TVal> struct Stencil::Tra
     using ValTxnState       = typename ValTxn::TxnState;
     using ContainerTxnState = typename TContainer::ElemTxnState;
 
-    struct CombinedTxnState
-    {
-        ElemTxnState container;
-        ValTxnState  elem;
-    };
     struct TxnState
     {
-        std::unordered_map<TKey, std::unique_ptr<CombinedTxnState>> edit_subtxns;
-        std::unordered_map<TKey, std::unique_ptr<CombinedTxnState>> add_subtxns;
-        std::vector<TKey>                                           removed_keys;
+        struct Delta
+        {
+            enum class Type
+            {
+                New,
+                Edit,
+                Delete
+            } type;
+
+            ElemTxnState container;
+            ValTxnState  elem;
+            static Delta New(TKey const& key)
+            {
+                Delta state;
+                state.type          = Type::New;
+                state.container.key = key;
+                return state;
+            }
+
+            static Delta Edit(TKey const& key)
+            {
+                Delta state;
+                state.type          = Type::Edit;
+                state.container.key = key;
+                return state;
+            }
+
+            static Delta Delete(TKey const& key)
+            {
+                Delta state;
+                state.type          = Type::Delete;
+                state.container.key = key;
+                return state;
+            }
+        };
+        std::unordered_map<TKey, Delta> deltas;
     };
 
     Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
@@ -176,10 +204,7 @@ template <typename TContainer, typename TKey, typename TVal> struct Stencil::Tra
 
     ElemType const& Elem() const { return _elem; }
 
-    bool IsChanged() const
-    {
-        return !_elemState.edit_subtxns.empty() || !_elemState.add_subtxns.empty() || !_elemState.removed_keys.empty();
-    }
+    bool IsChanged() const { return !_elemState.deltas.empty(); }
 
     template <typename TLambda> void Edit(TKey const& key, TLambda&& lambda)
     {
@@ -199,28 +224,40 @@ template <typename TContainer, typename TKey, typename TVal> struct Stencil::Tra
     void Remove(TKey const& key)
     {
         _elem.erase(key);
-        _elemState.removed_keys.push_back(key);
+        auto it = _elemState.deltas.find(key);
+        if (it == _elemState.deltas.end()) { it = _elemState.deltas.insert({key, TxnState::Delta::Delete(key)}).first; }
+        else { it->second.type = TxnState::Delta::Type::Delete; }
     }
 
     template <typename TLambda> auto Visit(TKey const& key, TLambda&& lambda) { lambda(key, at(key)); }
 
     template <typename TLambda> void VisitChanges(TLambda&& lambda)
     {
-        for (auto const& k : _elemState.removed_keys) { lambda(k, uint8_t{2}, uint32_t{0u}, *this); }
-
-        for (auto& [k, v] : _elemState.add_subtxns)
+        for (auto& [k, v] : _elemState.deltas)
         {
-            auto txn = Stencil::CreateTransaction<ValTxn>(v->elem, v->container, *this, _elem[k]);
-            lambda(k, uint8_t{0u}, uint32_t{0u}, txn);
-        }
+            switch (v.type)
+            {
+            case TxnState::Delta::Type::New:
+            {
+                auto txn = Stencil::CreateTransaction<ValTxn>(v.elem, v.container, *this, _elem[k]);
+                lambda(k, uint8_t{0u}, uint32_t{0u}, txn);
+            }
+            break;
+            case TxnState::Delta::Type::Edit:
+            {
+                auto txn = Stencil::CreateTransaction<ValTxn>(v.elem, v.container, *this, _elem[k]);
+                lambda(k, uint8_t{3u}, uint32_t{0u}, txn);
+            }
+            break;
 
-        for (auto& [k, v] : _elemState.edit_subtxns)
-        {
-            auto txn = Stencil::CreateTransaction<ValTxn>(v->elem, v->container, *this, _elem[k]);
-            lambda(k, uint8_t{3u}, uint32_t{0u}, txn);
+            case TxnState::Delta::Type::Delete:
+            {
+                lambda(k, uint8_t{2u}, uint32_t{0u}, *this);
+            }
+            break;
+            default: throw std::logic_error("Invalid State");
+            }
         }
-
-        // lambda(auto const& name, auto const& /* type */, auto const& mutator, auto const& /* mutatordata */, auto& subtxn, auto& elem)
     }
 
     void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _edit_txn_at(elemTxnState.key); }
@@ -229,35 +266,21 @@ template <typename TContainer, typename TKey, typename TVal> struct Stencil::Tra
     private:
     auto& _edit_txn_at(TKey const& key)
     {
+        auto it = _elemState.deltas.find(key);
+        if (it == _elemState.deltas.end()) { it = _elemState.deltas.insert({key, TxnState::Delta::Edit(key)}).first; }
+        else
         {
-            auto it = _elemState.add_subtxns.find(key);
-            if (it != _elemState.add_subtxns.end()) { return *it->second.get(); }
+            if (it->second.type == TxnState::Delta::Type::Delete) throw std::logic_error("Invalid State");
         }
-        {
-            auto it = _elemState.edit_subtxns.find(key);
-            if (it != _elemState.edit_subtxns.end()) { return *it->second.get(); }
-        }
-        auto it = _elem.find(key);
-        if (it == _elem.end()) { throw std::logic_error("Object not found"); }
-        auto txnstate                = std::make_unique<CombinedTxnState>();
-        txnstate->container.key      = key;
-        auto txnptr                  = txnstate.get();
-        _elemState.edit_subtxns[key] = std::move(txnstate);
-        return *txnptr;
+        return it->second;
     }
 
     auto& _assign_txn_at(TKey const& key)
     {
-        //_elemState.edit_subtxns.erase(key);
-        //_elemState.add_subtxns.erase(key);
-        auto it = _elem.find(key);
-        if (it == _elem.end()) { throw std::logic_error("Object not found"); }
-        auto txnstate           = std::make_unique<CombinedTxnState>();
-        txnstate->container.key = key;
-
-        auto txnptr                 = txnstate.get();
-        _elemState.add_subtxns[key] = std::move(txnstate);
-        return *txnptr;
+        auto it = _elemState.deltas.find(key);
+        if (it == _elemState.deltas.end()) { it = _elemState.deltas.insert({key, TxnState::Delta::New(key)}).first; }
+        else { it->second.type = TxnState::Delta::Type::New; }
+        return it->second;
     }
 
     TxnState&          _elemState;
