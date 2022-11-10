@@ -109,19 +109,40 @@ struct StringTransactionSerDes
 
             if (mutator == 0)    // Set
             {
-                txn.Edit(key, [&](auto& subtxn) { Stencil::SerDesRead<ProtocolJsonVal>(subtxn, rhs); });
+                txn.Assign(key, [&](auto& subtxn) { Stencil::SerDesRead<ProtocolJsonVal>(subtxn, rhs); });
 
                 // txn.Visit(fieldname, [&](auto fieldType, auto& subtxn) { _ApplyJson(subtxn , fieldType, rhs); });
             }
             else if (mutator == 1)    // List Add
             {
-                auto listval = Stencil::Deserialize<uint32_t, Stencil::ProtocolString>(mutatordata);
-                txn.Edit(key, [&](auto& subtxn) { _ListAdd(subtxn, listval, rhs); });
+                txn.Edit(key, [&]([[maybe_unused]] auto& subtxn) {
+                    using TSubTxn = std::remove_cvref_t<decltype(subtxn)>;
+                    if constexpr (Stencil::ConceptTransactionForIterable<TSubTxn>)
+                    {
+                        auto subkey = Stencil::Deserialize<uint32_t, Stencil::ProtocolString>(mutatordata);
+                        _ListAdd(subtxn, subkey, rhs);
+                    }
+                    else { throw std::logic_error("Invalid operation"); }
+                });
             }
             else if (mutator == 2)    // List remove
             {
-                auto listval = Stencil::Deserialize<uint32_t, Stencil::ProtocolString>(mutatordata);
-                txn.Edit(key, [&](auto& subtxn) { _ListRemove(subtxn, listval); });
+                txn.Edit(key, [&]([[maybe_unused]] auto& subtxn) {
+                    using TSubTxn = std::remove_cvref_t<decltype(subtxn)>;
+
+                    if constexpr (Stencil::ConceptTransactionForIndexable<TSubTxn>)
+                    {
+                        using TSubKey = Stencil::TypeTraitsForIndexable<typename TransactionTraits<TSubTxn>::ElemType>::Key;
+                        auto subkey   = Stencil::Deserialize<TSubKey, Stencil::ProtocolString>(mutatordata);
+                        subtxn.Remove(subkey);
+                    }
+                    else if constexpr (Stencil::ConceptTransactionForIterable<TSubTxn>)
+                    {
+                        auto subkey = Stencil::Deserialize<uint32_t, Stencil::ProtocolString>(mutatordata);
+                        subtxn.Remove(subkey);
+                    }
+                    else { throw std::logic_error("Invalid operation"); }
+                });
             }
             else { throw std::logic_error("Unknown Mutator"); }
         }

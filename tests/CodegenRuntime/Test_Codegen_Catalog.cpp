@@ -108,7 +108,7 @@ TEST_CASE("CodeGen::Catalog::Simplecase", "[Database]")
                 copy.path = shared_string(std::filesystem::relative(std::filesystem::path(copy.path.str()), srcdir).string());
             lines.push_back(Stencil::Json::Stringify(copy));
         }
-        CheckOutputAgainstResource(lines, "Sources");
+        CheckOutputAgainstStrResource(lines, "Sources");
     }
     {
         auto lock = datastore.LockForRead();
@@ -132,6 +132,6 @@ TEST_CASE("CodeGen::Catalog::Simplecase", "[Database]")
             lines.push_back(Stencil::Json::Stringify(copy));
         }
         std::sort(lines.begin(), lines.end());
-        CheckOutputAgainstResource(lines, "ContentInfo");
+        CheckOutputAgainstStrResource(lines, "ContentInfo");
     }
 }

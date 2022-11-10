@@ -206,34 +206,31 @@ struct BinaryTransactionSerDes
                 using TKey     = typename Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::ElemType>::Key;
                 TKey key;
                 Stencil::SerDes<TKey, ProtocolBinary>::Read(key, reader);
-                txn.Edit(key, [&](auto& subtxn) {
-                    using Txn = std::remove_cvref_t<decltype(subtxn)>;
 
-                    switch (mutator)
-                    {
-                    case 0:    // Assign
-                    {
-                        Stencil::SerDesRead<ProtocolBinary>(subtxn, reader);
-                    }
+                switch (mutator)
+                {
+                case 0:    // Assign
+
+                    txn.Assign(key, [&](auto& subtxn) { Stencil::SerDesRead<ProtocolBinary>(subtxn, reader); });
+
                     break;
-                    case 1:    // List-Add
-                    {
-                        throw std::logic_error("invalid mutator");
-                    }
+                case 1:    // List-Add
+
+                    throw std::logic_error("invalid mutator");
+
                     break;
-                    case 2:    // List-remove
-                    {
-                        throw std::logic_error("invalid mutator");
-                    }
+                case 2:    // List-remove
+
+                    txn.Remove(key);
+
                     break;
-                    case 3:    // Edit
-                    {
-                        _Apply(subtxn, reader);
-                    }
+                case 3:    // Edit
+
+                    txn.Edit(key, [&](auto& subtxn) { _Apply(subtxn, reader); });
                     break;
-                    default: throw std::logic_error("invalid mutator");
-                    }
-                });
+
+                default: throw std::logic_error("invalid mutator");
+                }
             }
         }
     };

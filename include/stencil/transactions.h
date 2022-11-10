@@ -212,6 +212,12 @@ template <typename TContainer, typename TKey, typename TVal> struct Stencil::Tra
         auto  txn   = Stencil::CreateTransaction<ValTxn>(state.elem, state.container, *this, _elem[key]);
         lambda(txn);
     }
+    template <typename TLambda> void Assign(TKey const& key, TLambda&& lambda)
+    {
+        auto& state = _assign_txn_at(key);
+        auto  txn   = Stencil::CreateTransaction<ValTxn>(state.elem, state.container, *this, _elem[key]);
+        lambda(txn);
+    }
 
     auto Assign(TKey const& key, TVal&& val)
     {

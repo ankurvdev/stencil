@@ -63,9 +63,36 @@ inline std::vector<std::string> readlines(std::filesystem::path const& path)
     return readlines(file);
 }
 
-inline void CompareLines(std::vector<std::string> const& actualstring,
-                         std::vector<std::string> const& expectedstring,
-                         std::string_view const&         resname = "test")
+inline void WriteStrResourse(std::vector<std::string> const& actualstring, std::string_view const& resname)
+{
+    auto outf = std::filesystem::absolute(std::string(resname) + ".txt");
+    {
+        std::ofstream f(outf);
+        for (auto& l : actualstring) { f << l << "\n"; }
+        f.flush();
+        f.close();
+    }
+    FAIL(fmt::format("Comparison Failed: Output: \n{}", outf.string()));
+}
+
+inline void WriteBinResourse(std::vector<std::string> const& actualstring, std::string_view const& resname)
+{
+    auto outf = std::filesystem::absolute(std::string(resname) + ".bin");
+    {
+        std::ofstream f(outf, std::ios::binary);
+        for (auto& l : actualstring)
+        {
+            size_t size;
+            f.write(reinterpret_cast<const char*>(&size), sizeof(size));
+            f.write(l.data(), static_cast<std::streamsize>(l.size()));
+        }
+        f.flush();
+        f.close();
+    }
+    FAIL(fmt::format("Comparison Failed: Output: \n{}", outf.string()));
+}
+
+inline void PrintDiff(std::vector<std::string> const& actualstring, std::vector<std::string> const& expectedstring)
 {
 
     dtl::Diff<std::string, std::vector<std::string>> d(expectedstring, actualstring);
@@ -111,15 +138,28 @@ inline void CompareLines(std::vector<std::string> const& actualstring,
         {
             d.printUnifiedFormat();    // print a difference as Unified Format.
         }
-        auto outf = std::filesystem::absolute(std::string(resname) + ".txt");
+    }
+}
 
-        {
-            std::ofstream f(outf);
-            for (auto& l : actualstring) { f << l << "\n"; }
-            f.flush();
-            f.close();
-        }
-        FAIL(fmt::format("Comparison Failed: Output: \n{}", outf.string()));
+inline void CompareStrLines(std::vector<std::string> const& actualstring,
+                            std::vector<std::string> const& expectedstring,
+                            std::string_view const&         resname = "test")
+{
+    if (actualstring != expectedstring)
+    {
+        PrintDiff(actualstring, expectedstring);
+        WriteStrResourse(actualstring, resname);
+    }
+}
+
+inline void CompareBinLines(std::vector<std::string> const& actualstring,
+                            std::vector<std::string> const& expectedstring,
+                            std::string_view const&         resname = "test")
+{
+    if (actualstring != expectedstring)
+    {
+        PrintDiff(actualstring, expectedstring);
+        WriteBinResourse(actualstring, resname);
     }
 }
 
@@ -172,7 +212,7 @@ struct ResourceFileManager
     std::unordered_map<std::string, std::filesystem::path> _openedfiles;
 };
 
-inline std::vector<std::string> LoadResource(std::string_view const& name)
+inline std::vector<std::string> LoadStrResource(std::string_view const& name)
 {
     auto testresname = GeneratePrefixFromTestName() + std::string(name) + ".txt";
 
@@ -190,10 +230,47 @@ inline std::vector<std::string> LoadResource(std::string_view const& name)
     return std::vector<std::string>();
 }
 
-inline void CheckOutputAgainstResource(std::vector<std::string> const& lines, std::string_view const& resourcename)
+inline std::vector<std::string> LoadBinResource(std::string_view const& name)
 {
-    CompareLines(lines, LoadResource(resourcename), GeneratePrefixFromTestName() + std::string(resourcename));
+    auto testresname = GeneratePrefixFromTestName() + std::string(name) + ".txt";
+
+    auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
+    for (auto const& r : resourceCollection)
+    {
+        auto resname = wstring_to_string(r.name());
+        if (resname == testresname || resname == name)
+        {
+            std::string              str(r.string());
+            std::istringstream       ss(str);
+            std::size_t              size;
+            std::vector<std::string> data;
+            ss.peek();
+            while (!ss.eof())
+            {
+                ss.read(reinterpret_cast<char*>(&size), sizeof(size));
+                std::string line;
+                line.resize(size);
+                ss.read(line.data(), static_cast<std::streamsize>(size));
+                if (ss.eof()) throw std::logic_error("Reached end unexpectedly");
+                data.push_back(line);
+                ss.peek();
+            }
+            return data;
+        }
+    }
+    return std::vector<std::string>();
 }
+
+inline void CheckOutputAgainstStrResource(std::vector<std::string> const& lines, std::string_view const& resourcename)
+{
+    CompareStrLines(lines, LoadStrResource(resourcename), GeneratePrefixFromTestName() + std::string(resourcename));
+}
+
+inline void CheckOutputAgainstBinResource(std::vector<std::string> const& lines, std::string_view const& resourcename)
+{
+    CompareBinLines(lines, LoadBinResource(resourcename), GeneratePrefixFromTestName() + std::string(resourcename));
+}
+
 template <typename TData> inline void CompareBinaryOutputAgainstResource(TData const& actual, std::string_view const& resourcename)
 {
     auto testresname        = GeneratePrefixFromTestName() + std::string(resourcename) + ".bin";

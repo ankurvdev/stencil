@@ -23,10 +23,9 @@ struct TestReplay
             try
             {
                 SelfTest();
-            }
-            catch (...)
+            } catch (...)
             {
-               // FAIL("Self Test Failed");
+                // FAIL("Self Test Failed");
             }
         }
     }
@@ -40,106 +39,117 @@ struct TestReplay
         else { REQUIRE(delta.substr(0, delta.size() - 1) == expected); }
     }
 
+    static std::string BinTxnSerialize(TransactionNestObject& txn)
+    {
+        std::ostringstream ostr;
+        Stencil::BinaryTransactionSerDes::Deserialize(txn, ostr);
+        return ostr.str();
+    }
+
+    static void BinTxnApply(TransactionNestObject& txn, std::string const& txnbin)
+    {
+        std::istringstream istrm(txnbin);
+        Stencil::BinaryTransactionSerDes::Apply(txn, istrm);
+        auto offset = static_cast<unsigned>(istrm.tellg());
+        REQUIRE(offset == txnbin.size());
+        REQUIRE(!istrm.eof());
+    }
+
     template <typename TLambda> auto Test(TLambda&& lambda)
     {
-        auto txn = CreateNestedObjectTransaction(obj1);
-        lambda(txn);
-        snapshots.push_back(Stencil::Json::Stringify(obj1));
+        auto index = _json_snapshots.size();
 
-        auto delta = Stencil::StringTransactionSerDes::Deserialize(txn);
-
-        changes.push_back(delta);
+        auto txn1 = CreateNestedObjectTransaction(obj1);
+        lambda(txn1);
         lambda(txn2);
+        auto snapshot1 = Stencil::Json::Stringify(obj1);
+        auto snapshot2 = Stencil::Json::Stringify(obj2);
 
-        deltatxns.push_back(Stencil::StringTransactionSerDes::Deserialize(txn2));
+        auto txn1str = Stencil::StringTransactionSerDes::Deserialize(txn1);
+        if (_debug) REQUIRE(txn1str == _expected_txn1str[index]);
+        REQUIRE(Stencil::Json::Stringify(obj1) == snapshot1);                       // Check deserialization doesnt change anything
+        REQUIRE(Stencil::StringTransactionSerDes::Deserialize(txn1) == txn1str);    // Check repeat deserialization produces same output
 
-        Stencil::BinaryTransactionSerDes::Deserialize(txn, _binary_txns);
-        Stencil::BinaryTransactionSerDes::Deserialize(txn2, _binary_acc_txns);
+        auto txn2str = Stencil::StringTransactionSerDes::Deserialize(txn2);
+        if (_debug) REQUIRE(txn2str == _expected_txn2str[index]);
+        REQUIRE(Stencil::Json::Stringify(obj2) == snapshot2);
+        REQUIRE(Stencil::StringTransactionSerDes::Deserialize(txn2) == txn2str);
 
-        // Check repeat binary deserialization doesnt change the delta
-        {
-            std::ostringstream strm1, strm2;
-            Stencil::BinaryTransactionSerDes::Deserialize(txn, strm1);
-            auto delta1 = Stencil::StringTransactionSerDes::Deserialize(txn);
-            Stencil::BinaryTransactionSerDes::Deserialize(txn, strm2);
+        auto txn1bin = BinTxnSerialize(txn1);
+        if (_debug) REQUIRE(txn1bin == _expected_txn1bin[index]);
+        REQUIRE(Stencil::Json::Stringify(obj1) == snapshot1);
+        REQUIRE(BinTxnSerialize(txn1) == txn1bin);
 
-            REQUIRE(delta == delta1);
-            REQUIRE(strm1.str() == strm2.str());
-        }
-        {
-            _binary_last_txns.str("");
-            Stencil::BinaryTransactionSerDes::Deserialize(txn2, _binary_last_txns);
-        }
+        auto txn2bin = BinTxnSerialize(txn2);
+        if (_debug) REQUIRE(txn2bin == _expected_txn2bin[index]);
+        REQUIRE(Stencil::Json::Stringify(obj2) == snapshot2);
+        REQUIRE(BinTxnSerialize(txn2) == txn2bin);
+
         REQUIRE(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj2));
-        return delta;
+        _json_snapshots.push_back(snapshot1);
+        _txn1str.push_back(txn1str);
+        _txn2str.push_back(txn2str);
+        _txn1bin.push_back(txn1bin);
+        _txn2bin.push_back(txn2bin);
+
+        if (!_debug)
+        {
+            {
+                Objects::NestedObject obj3;
+                auto                  txn3 = CreateNestedObjectTransaction(obj3);
+                for (auto& c : _txn1str) { Stencil::StringTransactionSerDes::Apply(txn3, c); }
+                REQUIRE(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj3));
+            }
+            {
+                Objects::NestedObject obj3;
+                auto                  txn3 = CreateNestedObjectTransaction(obj3);
+                Stencil::StringTransactionSerDes::Apply(txn3, _txn2str.back());
+                REQUIRE(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj3));
+            }
+
+            {
+                Objects::NestedObject obj3;
+                auto                  txn3 = CreateNestedObjectTransaction(obj3);
+                for (auto& c : _txn1bin) { BinTxnApply(txn3, c); }
+                REQUIRE(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj3));
+            }
+            {
+                Objects::NestedObject obj3;
+                auto                  txn3 = CreateNestedObjectTransaction(obj3);
+                BinTxnApply(txn3, _txn2bin.back());
+                REQUIRE(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj3));
+            }
+        }
+        return txn1str;
     }
 
     void SelfTest()
     {
-        auto& replay = *this;
-        {
-            CheckOutputAgainstResource(replay.changes, "Deltas");
-            CheckOutputAgainstResource(replay.deltatxns, "CumulativeDeltas");
-            CheckOutputAgainstResource(replay.snapshots, "ChangeDataSnapshots");
-
-            REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(replay.obj2));
-        }
-        {
-            Objects::NestedObject obj3;
-            auto                  txn3 = CreateNestedObjectTransaction(obj3);
-            for (auto& c : replay.changes) { Stencil::StringTransactionSerDes::Apply(txn3, c); }
-            REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
-        }
-        {
-            Objects::NestedObject obj3;
-            auto                  txn3 = CreateNestedObjectTransaction(obj3);
-            Stencil::StringTransactionSerDes::Apply(txn3, replay.deltatxns.back());
-            REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
-        }
-
-        auto binary_txns      = replay._binary_txns.str();
-        auto binary_acc_txns  = replay._binary_acc_txns.str();
-        auto binary_last_txns = replay._binary_last_txns.str();
-        // And now binary streams
-        {
-            Objects::NestedObject obj3;
-            auto                  txn3 = CreateNestedObjectTransaction(obj3);
-
-            std::istringstream istrm(binary_txns);
-            istrm.peek();
-            while (istrm.good() && (!istrm.eof()))
-            {
-                Stencil::BinaryTransactionSerDes::Apply(txn3, istrm);
-                istrm.peek();
-            }
-
-            REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
-        }
-        {
-            Objects::NestedObject obj3;
-            auto                  txn3 = CreateNestedObjectTransaction(obj3);
-            std::istringstream    istrm(binary_last_txns);
-            Stencil::BinaryTransactionSerDes::Apply(txn3, istrm);
-            REQUIRE(Stencil::Json::Stringify(replay.obj1) == Stencil::Json::Stringify(obj3));
-            auto offset = static_cast<unsigned>(istrm.tellg());
-            REQUIRE(offset == binary_last_txns.size());
-            REQUIRE(!istrm.eof());
-        }
-        CompareBinaryOutputAgainstResource(binary_txns, "Transactions");
-        CompareBinaryOutputAgainstResource(binary_acc_txns, "LastAccumulated");
+        CheckOutputAgainstStrResource(_txn1str, "Deltas");
+        CheckOutputAgainstStrResource(_txn2str, "CumulativeDeltas");
+        CheckOutputAgainstStrResource(_json_snapshots, "ChangeDataSnapshots");
+        CheckOutputAgainstBinResource(_txn1bin, "DeltaBin");
+        CheckOutputAgainstBinResource(_txn2bin, "CumulativeDeltaBin");
     }
-    std::vector<std::string> changes;
-    std::vector<std::string> snapshots;
-    std::vector<std::string> deltatxns;
+
+    std::vector<std::string> _txn1str;
+    std::vector<std::string> _txn1bin;
+    std::vector<std::string> _txn2str;
+    std::vector<std::string> _txn2bin;
+
+    std::vector<std::string> _json_snapshots;
+
+    std::vector<std::string> _expected_txn1str        = LoadStrResource("Deltas");
+    std::vector<std::string> _expected_txn2str        = LoadStrResource("CumulativeDeltas");
+    std::vector<std::string> _expected_txn1bin        = LoadBinResource("DeltaBin");
+    std::vector<std::string> _expected_txn2bin        = LoadBinResource("CumulativeDeltaBin");
+    std::vector<std::string> _expected_json_snapshots = LoadStrResource("ChangeDataSnapshots");
 
     Objects::NestedObject obj1;
     Objects::NestedObject obj2;
 
-    std::ostringstream _binary_txns;
-    std::ostringstream _binary_acc_txns;
-    std::ostringstream _binary_last_txns;
-
     TransactionNestObject txn2;
+    bool                  _debug = false;
 };
 
 TEST_CASE("Transactions", "[transaction]")

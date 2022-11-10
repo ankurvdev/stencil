@@ -29,7 +29,7 @@ static void RunTest(std::initializer_list<std::string_view const> const& pidlfil
             auto fname          = path.filename().string();
             auto actualstring   = readlines(path);
             auto expectedstring = readlines(resfiles.load(fname, "res_"));
-            CompareLines(actualstring, expectedstring);
+            CompareStrLines(actualstring, expectedstring);
         }
     }
 }

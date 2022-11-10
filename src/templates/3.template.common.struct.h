@@ -320,7 +320,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
     void Assign(ElemType&& /* elem */) { TODO("DoNotCommit"); }
     void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
     void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
-    void Remove(size_t /* key */) { std::logic_error("Invalid operation"); }
+
+    template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
 
     private:
     TxnStateForElem    _txnStateForElem{};
@@ -367,6 +368,11 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
         //</Field>
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
+    }
+
+    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        return Edit(index, std::forward<TLambda>(lambda));
     }
 
     template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
