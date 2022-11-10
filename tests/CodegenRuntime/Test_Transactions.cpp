@@ -95,26 +95,26 @@ struct TestReplay
         if (!_debug)
         {
             {
-                Objects::NestedObject obj3;
+                Objects::NestedObject obj3{};
                 auto                  txn3 = CreateNestedObjectTransaction(obj3);
                 for (auto& c : _txn1str) { Stencil::StringTransactionSerDes::Apply(txn3, c); }
                 REQUIRE(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj3));
             }
             {
-                Objects::NestedObject obj3;
+                Objects::NestedObject obj3{};
                 auto                  txn3 = CreateNestedObjectTransaction(obj3);
                 Stencil::StringTransactionSerDes::Apply(txn3, _txn2str.back());
                 REQUIRE(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj3));
             }
 
             {
-                Objects::NestedObject obj3;
+                Objects::NestedObject obj3{};
                 auto                  txn3 = CreateNestedObjectTransaction(obj3);
                 for (auto& c : _txn1bin) { BinTxnApply(txn3, c); }
                 REQUIRE(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj3));
             }
             {
-                Objects::NestedObject obj3;
+                Objects::NestedObject obj3{};
                 auto                  txn3 = CreateNestedObjectTransaction(obj3);
                 BinTxnApply(txn3, _txn2bin.back());
                 REQUIRE(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj3));
@@ -145,8 +145,8 @@ struct TestReplay
     std::vector<std::string> _expected_txn2bin        = LoadBinResource("CumulativeDeltaBin");
     std::vector<std::string> _expected_json_snapshots = LoadStrResource("ChangeDataSnapshots");
 
-    Objects::NestedObject obj1;
-    Objects::NestedObject obj2;
+    Objects::NestedObject obj1{};
+    Objects::NestedObject obj2{};
 
     TransactionNestObject txn2;
     bool                  _debug = false;
