@@ -67,7 +67,7 @@ struct zzStruct_Namezz :
     public Stencil::StructT<zzStruct_Namezz>
 {
     //<Field>
-    zzFieldType_NativeTypezz zzNamezz = zzInitialValuezz;
+    zzFieldType_NativeTypezz zzNamezz = zzFieldType_NativeTypezz{zzInitialValuezz};
     //</Field>
 };
 //</Struct>
@@ -317,7 +317,13 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
         }
     }
 
-    void Assign(ElemType&& /* elem */) { TODO("DoNotCommit"); }
+    void Assign(ElemType&& elem)
+    {
+        // if (Stencil::AreEqual(_elem, elem)) return;
+        std::swap(_elem, elem);
+        _container.NotifyElementAssigned_(_containerState);
+    }
+
     void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
     void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
 

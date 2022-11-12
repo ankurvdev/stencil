@@ -1,5 +1,5 @@
-#include "Test_Database.h"
 #include "TestUtils.h"
+#include "Test_Database.h"
 
 #include <iterator>
 using namespace std::string_literals;
@@ -17,7 +17,8 @@ TEST_CASE("CodeGen::Database2::SaveAndLoad")
     {
         shared_wstring name;
         shared_wstring uri;
-    } data[] = {{L"TestHost1", L"ssh://aadyaverma.com:41422"}, {L"TestHost2", L"ssh://192.168.99.1:41422"}};
+    } data[] = {{shared_wstring{L"TestHost1"}, shared_wstring{L"ssh://aadyaverma.com:41422"}},
+                {shared_wstring{L"TestHost2"}, shared_wstring{L"ssh://192.168.99.1:41422"}}};
 
     std::filesystem::remove(filepath);
 

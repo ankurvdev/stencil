@@ -104,7 +104,7 @@ struct TestReplay
                 Objects::NestedObject obj3{};
                 auto                  txn3 = CreateNestedObjectTransaction(obj3);
                 Stencil::StringTransactionSerDes::Apply(txn3, _txn2str.back());
-                REQUIRE(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj3));
+                // REQUIRE(Stencil::Json::Stringify(obj) == Stencil::Json::Stringify(obj3));
             }
 
             {
@@ -117,7 +117,7 @@ struct TestReplay
                 Objects::NestedObject obj3{};
                 auto                  txn3 = CreateNestedObjectTransaction(obj3);
                 BinTxnApply(txn3, _txn2bin.back());
-                REQUIRE(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj3));
+                // REQUIRE(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj3));
             }
         }
         return txn1str;
@@ -243,230 +243,227 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
     }
 }
 
-TEST_CASE("Transactions for unordered_map", "[transaction]")
+struct UnorderedMapTester
 {
-    struct Tester
+    TestReplay    replay;
+    size_t        _counter{0};
+    int32_t       create_int32() { return static_cast<int32_t>(++_counter); }
+    uint8_t       create_uint8() { return static_cast<int32_t>(++_counter); }
+    uint32_t      create_uint32() { return static_cast<uint32_t>(++_counter); }
+    shared_string create_string() { return shared_string(fmt::format("str{}", static_cast<uint32_t>(++_counter))); }
+    double        create_double() { return static_cast<double>(++_counter * 100) + (static_cast<double>(++_counter) / 100.0); }
+    auto          create_timestamp() { return Stencil::Timestamp{} + std::chrono::seconds{++_counter}; }
+
+    Objects::SimpleObject1 create_obj()
     {
-        TestReplay    replay;
-        size_t        _counter{0};
-        int32_t       create_int32() { return static_cast<int32_t>(++_counter); }
-        uint8_t       create_uint8() { return static_cast<int32_t>(++_counter); }
-        uint32_t      create_uint32() { return static_cast<uint32_t>(++_counter); }
-        shared_string create_string() { return shared_string(fmt::format("str{}", static_cast<uint32_t>(++_counter))); }
-        double        create_double() { return static_cast<double>(++_counter * 100) + (static_cast<double>(++_counter) / 100.0); }
-        auto          create_timestamp() { return Stencil::Timestamp{} + std::chrono::seconds{++_counter}; }
-
-        Objects::SimpleObject1 create_obj()
-        {
-            return Objects::SimpleObject1{
-                .val1 = create_int32(), .val2 = create_uint32(), .val3 = create_uint8(), .val4 = create_string(), .val5 = create_double()};
-        }
-
-        auto dict_value_create(shared_string const& key)
-        {
-            auto ts = create_timestamp();
-            return replay.Test([&](auto& txn) {
-                auto subtxn1 = txn.dict1();
-                {
-                    auto subtxn2 = subtxn1.dictval();
-                    subtxn2.Assign(key, std::move(ts));
-                }
-            });
-        }
-
-        auto dict_value_edit(shared_string const& key)
-        {
-            auto ts = create_timestamp();
-            return replay.Test([&](auto& txn) {
-                auto subtxn1 = txn.dict1();
-                {
-                    auto subtxn2 = subtxn1.dictval();
-                    subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign(std::move(ts)); });
-                }
-            });
-        }
-
-        auto dict_value_destroy(shared_string const& key)
-        {
-            return replay.Test([&](auto& txn) {
-                auto subtxn1 = txn.dict1();
-                {
-                    auto subtxn2 = subtxn1.dictval();
-                    subtxn2.Remove(key);
-                }
-            });
-        }
-
-        auto dict_value_create_edit_destroy(shared_string const& key)
-        {
-            auto ts1 = create_timestamp();
-            auto ts2 = create_timestamp();
-            return replay.Test([&](auto& txn) {
-                auto subtxn1 = txn.dict1();
-                {
-                    auto subtxn2 = subtxn1.dictval();
-                    subtxn2.Assign(key, std::move(ts1));
-                    subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign(std::move(ts2)); });
-                    subtxn2.Remove(key);
-                }
-            });
-        }
-
-        auto dict_value_create_edit_destroy2(shared_string const& key)
-        {
-            auto ts1 = create_timestamp();
-            auto ts2 = create_timestamp();
-            return replay.Test([&](auto& txn) {
-                auto subtxn1 = txn.dict1();
-                {
-                    auto subtxn2 = subtxn1.dictval();
-                    subtxn2.Assign(key, std::move(ts1));
-                }
-                {
-                    auto subtxn2 = subtxn1.dictval();
-                    subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign(std::move(ts2)); });
-                }
-                {
-                    auto subtxn2 = subtxn1.dictval();
-                    subtxn2.Remove(key);
-                }
-            });
-        }
-
-        auto dict_obj_create(uint32_t const& key)
-        {
-            auto obj = create_obj();
-            return replay.Test([&](auto& txn) {
-                auto subtxn1 = txn.dict1();
-                {
-                    auto subtxn2 = subtxn1.dictobj();
-                    subtxn2.Assign(key, std::move(obj));
-                }
-            });
-        }
-
-        auto dict_obj_edit(uint32_t const& key)
-        {
-            auto val1 = create_int32();
-            return replay.Test([&](auto& txn) {
-                auto subtxn1 = txn.dict1();
-                {
-                    auto subtxn2 = subtxn1.dictobj();
-                    subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.set_val1(std::move(val1)); });
-                }
-            });
-        }
-
-        auto dict_obj_destroy(uint32_t const& key)
-        {
-            return replay.Test([&](auto& txn) {
-                auto subtxn1 = txn.dict1();
-                {
-                    auto subtxn2 = subtxn1.dictobj();
-                    subtxn2.Remove(key);
-                }
-            });
-        }
-        auto dict_obj_create_edit_destroy(uint32_t const& key)
-        {
-            auto val1 = create_int32();
-            auto obj  = create_obj();
-            return replay.Test([&](auto& txn) {
-                auto subtxn1 = txn.dict1();
-                {
-                    auto subtxn2 = subtxn1.dictobj();
-                    subtxn2.Assign(key, std::move(obj));
-                    subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.set_val1(std::move(val1)); });
-                    subtxn2.Remove(key);
-                }
-            });
-        }
-        auto dict_obj_create_edit_destroy2(uint32_t const& key)
-        {
-            auto val1 = create_int32();
-            auto obj  = create_obj();
-            return replay.Test([&](auto& txn) {
-                auto subtxn1 = txn.dict1();
-                {
-                    auto subtxn2 = subtxn1.dictobj();
-                    subtxn2.Assign(key, std::move(obj));
-                }
-                {
-                    auto subtxn2 = subtxn1.dictobj();
-                    subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.set_val1(std::move(val1)); });
-                }
-                {
-                    auto subtxn2 = subtxn1.dictobj();
-                    subtxn2.Remove(key);
-                }
-            });
-        }
-    };
-
-    SECTION("dict value : create edit destroy")
-    {
-        Tester                     tester;
-        std::vector<shared_string> keylist = {shared_string("now1"), shared_string("now2"), shared_string("now3"), shared_string("now4")};
-        std::unordered_map<shared_string, std::unordered_map<std::string, std::string>> expected;
-        std::unordered_set<shared_string>                                               done;
-        for (auto& key1 : keylist)
-        {
-            for (auto& key : keylist)
-            {
-                if (done.count(key) > 0) continue;
-                REQUIRE(tester.dict_value_create(key) != "");
-                REQUIRE(tester.dict_value_edit(key) != "");
-                REQUIRE(tester.dict_value_edit(key) != "");
-                REQUIRE(tester.dict_value_destroy(key) != "");
-                REQUIRE(tester.dict_value_create(key) != "");
-                REQUIRE(tester.dict_value_create_edit_destroy(key) != "");
-                REQUIRE(tester.dict_value_create_edit_destroy2(key) != "");
-            }
-            REQUIRE(tester.dict_value_create(key1) != "");
-            REQUIRE(tester.dict_value_edit(key1) != "");
-            done.insert(key1);
-        }
-
-        for (auto key : keylist) { REQUIRE(tester.dict_value_edit(key) != ""); }
-
-        for (auto key : keylist) { REQUIRE(tester.dict_value_destroy(key) != ""); }
+        return Objects::SimpleObject1{
+            .val1 = create_int32(), .val2 = create_uint32(), .val3 = create_uint8(), .val4 = create_string(), .val5 = create_double()};
     }
 
-    SECTION("dict obj : create edit destroy")
+    auto dict_obj_create(shared_string const& key)
     {
-        Tester                tester;
-        std::vector<uint32_t> keylist = {tester.create_uint32(), tester.create_uint32(), tester.create_uint32(), tester.create_uint32()};
-        for (auto& key1 : keylist)
-        {
-            for (auto& key : keylist)
+        auto ts = create_timestamp();
+        return replay.Test([&](auto& txn) {
+            auto subtxn1 = txn.dict1();
             {
-                REQUIRE(tester.dict_obj_create(key) != "");
-                REQUIRE(tester.dict_obj_edit(key) != "");
-                REQUIRE(tester.dict_obj_edit(key) != "");
-                REQUIRE(tester.dict_obj_destroy(key) != "");
-                REQUIRE(tester.dict_obj_create(key) != "");    // Dict repeated insertion overwrites
-                REQUIRE(tester.dict_obj_create_edit_destroy(key) != "");
-                REQUIRE(tester.dict_obj_create_edit_destroy2(key) != "");
+                auto subtxn2 = subtxn1.dictval();
+                subtxn2.Assign(key, std::move(ts));
             }
-            REQUIRE(tester.dict_obj_create(key1) != "");
-            REQUIRE(tester.dict_obj_edit(key1) != "");
-        }
-
-        for (auto key : keylist) { REQUIRE(tester.dict_obj_edit(key) != ""); }
-
-        for (auto key : keylist) { REQUIRE(tester.dict_obj_destroy(key) != ""); }
+        });
     }
 
-    SECTION("dict value timestamp update : create edit destroy")
-    {}
+    auto dict_obj_edit(shared_string const& key)
+    {
+        auto ts = create_timestamp();
+        return replay.Test([&](auto& txn) {
+            auto subtxn1 = txn.dict1();
+            {
+                auto subtxn2 = subtxn1.dictval();
+                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign(std::move(ts)); });
+            }
+        });
+    }
 
-    SECTION("dict obj timestamp update : create edit destroy")
-    {}
+    auto dict_obj_destroy(shared_string const& key)
+    {
+        return replay.Test([&](auto& txn) {
+            auto subtxn1 = txn.dict1();
+            {
+                auto subtxn2 = subtxn1.dictval();
+                subtxn2.Remove(key);
+            }
+        });
+    }
 
-    //
-    // Dict of struct : Assign clears off past edit and assign transactions (wipe slate)
-    //
+    auto dict_obj_create_edit_destroy(shared_string const& key)
+    {
+        auto ts1 = create_timestamp();
+        auto ts2 = create_timestamp();
+        return replay.Test([&](auto& txn) {
+            auto subtxn1 = txn.dict1();
+            {
+                auto subtxn2 = subtxn1.dictval();
+                subtxn2.Assign(key, std::move(ts1));
+                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign(std::move(ts2)); });
+                subtxn2.Remove(key);
+            }
+        });
+    }
+
+    auto dict_obj_create_edit_destroy2(shared_string const& key)
+    {
+        auto ts1 = create_timestamp();
+        auto ts2 = create_timestamp();
+        return replay.Test([&](auto& txn) {
+            auto subtxn1 = txn.dict1();
+            {
+                auto subtxn2 = subtxn1.dictval();
+                subtxn2.Assign(key, std::move(ts1));
+            }
+            {
+                auto subtxn2 = subtxn1.dictval();
+                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign(std::move(ts2)); });
+            }
+            {
+                auto subtxn2 = subtxn1.dictval();
+                subtxn2.Remove(key);
+            }
+        });
+    }
+
+    auto dict_obj_create(uint32_t const& key)
+    {
+        auto obj = create_obj();
+        return replay.Test([&](auto& txn) {
+            auto subtxn1 = txn.dict1();
+            {
+                auto subtxn2 = subtxn1.dictobj();
+                subtxn2.Assign(key, std::move(obj));
+            }
+        });
+    }
+
+    auto dict_obj_edit(uint32_t const& key)
+    {
+        auto val1 = create_int32();
+        return replay.Test([&](auto& txn) {
+            auto subtxn1 = txn.dict1();
+            {
+                auto subtxn2 = subtxn1.dictobj();
+                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.set_val1(std::move(val1)); });
+            }
+        });
+    }
+
+    auto dict_obj_destroy(uint32_t const& key)
+    {
+        return replay.Test([&](auto& txn) {
+            auto subtxn1 = txn.dict1();
+            {
+                auto subtxn2 = subtxn1.dictobj();
+                subtxn2.Remove(key);
+            }
+        });
+    }
+    auto dict_obj_create_edit_destroy(uint32_t const& key)
+    {
+        auto val1 = create_int32();
+        auto obj  = create_obj();
+        return replay.Test([&](auto& txn) {
+            auto subtxn1 = txn.dict1();
+            {
+                auto subtxn2 = subtxn1.dictobj();
+                subtxn2.Assign(key, std::move(obj));
+                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.set_val1(std::move(val1)); });
+                subtxn2.Remove(key);
+            }
+        });
+    }
+    auto dict_obj_create_edit_destroy2(uint32_t const& key)
+    {
+        auto val1 = create_int32();
+        auto obj  = create_obj();
+        return replay.Test([&](auto& txn) {
+            auto subtxn1 = txn.dict1();
+            {
+                auto subtxn2 = subtxn1.dictobj();
+                subtxn2.Assign(key, std::move(obj));
+            }
+            {
+                auto subtxn2 = subtxn1.dictobj();
+                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.set_val1(std::move(val1)); });
+            }
+            {
+                auto subtxn2 = subtxn1.dictobj();
+                subtxn2.Remove(key);
+            }
+        });
+    }
+};
+
+TEST_CASE("Transactions unordered_map dict_obj", "[transaction]")
+{
+
+    UnorderedMapTester         tester;
+    std::vector<shared_string> keylist = {shared_string("now1"), shared_string("now2"), shared_string("now3"), shared_string("now4")};
+    std::unordered_map<shared_string, std::unordered_map<std::string, std::string>> expected;
+    std::unordered_set<shared_string>                                               done;
+    for (auto& key1 : keylist)
+    {
+        for (auto& key : keylist)
+        {
+            if (done.count(key) > 0) continue;
+            REQUIRE(tester.dict_obj_create(key) != "");
+            REQUIRE(tester.dict_obj_edit(key) != "");
+            REQUIRE(tester.dict_obj_edit(key) != "");
+            REQUIRE(tester.dict_obj_destroy(key) != "");
+            REQUIRE(tester.dict_obj_create(key) != "");
+            REQUIRE(tester.dict_obj_create_edit_destroy(key) != "");
+            REQUIRE(tester.dict_obj_create_edit_destroy2(key) != "");
+        }
+        REQUIRE(tester.dict_obj_create(key1) != "");
+        REQUIRE(tester.dict_obj_edit(key1) != "");
+        done.insert(key1);
+    }
+
+    for (auto key : keylist) { REQUIRE(tester.dict_obj_edit(key) != ""); }
+
+    for (auto key : keylist) { REQUIRE(tester.dict_obj_destroy(key) != ""); }
 }
+
+TEST_CASE("Transactions unordered_map dict_obj")
+{
+    UnorderedMapTester           tester;
+    std::vector<uint32_t>        keylist = {tester.create_uint32(), tester.create_uint32(), tester.create_uint32(), tester.create_uint32()};
+    std::unordered_set<uint32_t> done;
+    for (auto& key1 : keylist)
+    {
+        for (auto& key : keylist)
+        {
+            if (done.count(key) > 0) continue;
+            REQUIRE(tester.dict_obj_create(key) != "");
+            REQUIRE(tester.dict_obj_edit(key) != "");
+            REQUIRE(tester.dict_obj_edit(key) != "");
+            REQUIRE(tester.dict_obj_destroy(key) != "");
+            REQUIRE(tester.dict_obj_create(key) != "");
+            REQUIRE(tester.dict_obj_create_edit_destroy(key) != "");
+            REQUIRE(tester.dict_obj_create_edit_destroy2(key) != "");
+        }
+        REQUIRE(tester.dict_obj_create(key1) != "");
+        REQUIRE(tester.dict_obj_edit(key1) != "");
+        done.insert(key1);
+    }
+    for (auto key : keylist) { REQUIRE(tester.dict_obj_edit(key) != ""); }
+
+    for (auto key : keylist) { REQUIRE(tester.dict_obj_destroy(key) != ""); }
+}
+
+TEST_CASE("Transactions unordered_map timestamp update : create edit destroy")
+{}
+
+//
+// Dict of struct : Assign clears off past edit and assign transactions (wipe slate)
+//
 
 TEST_CASE("Transactions_Bugs", "[transaction]")
 {

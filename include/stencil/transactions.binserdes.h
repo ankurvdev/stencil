@@ -47,6 +47,7 @@ struct IStrmReader
         TVal val;
         auto spn = AsSpan(val);
         _istrm.read(reinterpret_cast<char*>(spn.data()), static_cast<std::streamsize>(spn.size()));
+        if (_istrm.eof()) throw std::logic_error("Stream terminated");
         return val;
     }
 
@@ -55,6 +56,10 @@ struct IStrmReader
         size_t      size = read<uint32_t>();
         std::string str(size, 0);
         _istrm.read(reinterpret_cast<char*>(str.data()), static_cast<std::streamsize>(size));
+        if (size == 0 || str[0] == '\0') { 
+            std::cerr << "Seems to be an invalid string";
+        }
+        if (_istrm.eof()) throw std::logic_error("Stream terminated");
         return shared_string::make(std::move(str));
     }
 
@@ -89,7 +94,7 @@ struct BinaryTransactionSerDes
                 }
                 case 2u:    // List Remove
                 {
-                    Stencil::SerDes<uint32_t, ProtocolBinary>::Write(writer, mutatordata);
+                    // Stencil::SerDes<uint32_t, ProtocolBinary>::Write(writer, mutatordata);
                     // No additional information needs to be serialized in
                 }
                 break;
@@ -180,22 +185,6 @@ struct BinaryTransactionSerDes
 
     template <ConceptTransaction T> static void _ListRemove(T& txn, size_t listindex) { _ListApplicator<T>::Remove(txn, listindex); }
 
-    // template <ConceptTransactionForIterable T> struct _StructApplicator<T>
-    //{
-    //     static void Apply(T& /* txn */, IStrmReader& /* reader */)
-    //     {
-    //         // throw std::logic_error("Invalid");
-    //     }
-    // };
-
-    // template <ConceptTransactionForPrimitive T> struct _StructApplicator<T>
-    //{
-    //     static void Apply(T& /* txn */, IStrmReader& /* reader */)
-    //     {
-    //         // throw std::logic_error("Invalid");
-    //     }
-    // };
-
     template <ConceptTransactionForIndexable T> struct _StructApplicator<T>
     {
         static void Apply(T& txn, IStrmReader& reader)
@@ -210,25 +199,17 @@ struct BinaryTransactionSerDes
                 switch (mutator)
                 {
                 case 0:    // Assign
-
                     txn.Assign(key, [&](auto& subtxn) { Stencil::SerDesRead<ProtocolBinary>(subtxn, reader); });
-
                     break;
                 case 1:    // List-Add
-
                     throw std::logic_error("invalid mutator");
-
                     break;
                 case 2:    // List-remove
-
                     txn.Remove(key);
-
                     break;
                 case 3:    // Edit
-
                     txn.Edit(key, [&](auto& subtxn) { _Apply(subtxn, reader); });
                     break;
-
                 default: throw std::logic_error("invalid mutator");
                 }
             }

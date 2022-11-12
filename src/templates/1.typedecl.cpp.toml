@@ -15,9 +15,7 @@ boolean = "bool"
 
   [FieldTypes.default]
   NativeType = "void"
-  NativeHandler = "VoidHandler"
-  NativeHandlerData = "nullptr"
-  DefaultValue = "{}"
+  DefaultValue = "/*Initial Value*/"
 
   [FieldTypes.auto]
   NativeType = "auto"
@@ -75,6 +73,7 @@ boolean = "bool"
 
 [Struct]
 NativeType = "::%Program:Name%::%Struct:Name%"
+DefaultValue = "/*Initial Value*/"
 
 [Interface]
 NativeType = "long"

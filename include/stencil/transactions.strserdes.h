@@ -109,7 +109,12 @@ struct StringTransactionSerDes
 
             if (mutator == 0)    // Set
             {
-                txn.Assign(key, [&](auto& subtxn) { Stencil::SerDesRead<ProtocolJsonVal>(subtxn, rhs); });
+                txn.Assign(key, [&](auto& subtxn) {
+                    using ElemType = Stencil::TransactionTraits<std::remove_cvref_t<decltype(subtxn)>>::ElemType;
+                    ElemType rhsval{};
+                    Stencil::SerDesRead<ProtocolJsonVal>(rhsval, rhs);
+                    subtxn.Assign(std::move(rhsval));
+                });
 
                 // txn.Visit(fieldname, [&](auto fieldType, auto& subtxn) { _ApplyJson(subtxn , fieldType, rhs); });
             }

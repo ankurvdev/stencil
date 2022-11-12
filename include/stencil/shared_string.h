@@ -1,5 +1,6 @@
 #pragma once
 #include <algorithm>
+#include <compare>
 #include <memory>
 #include <string>
 #include <type_traits>
@@ -24,7 +25,7 @@ template <typename T> struct shared_stringT
 
     using value_type = typename TString::value_type;
 
-    template <size_t N> shared_stringT(T const (&str)[N]) { *this = make(str); }
+    template <size_t N> explicit shared_stringT(T const (&str)[N]) { *this = make(str); }
 
     explicit shared_stringT(const TStringView& str)
     {
@@ -52,15 +53,51 @@ template <typename T> struct shared_stringT
         return std::equal(str.begin(), str.end(), _str->begin(), _str->end(), [](char a, char b) { return tolower(a) == tolower(b); });
     }
 
-    bool operator==(const shared_stringT& str) const { return *(_str.get()) == *(str._str.get()); }
-    bool operator==(const TStringView& str) const { return *(_str.get()) == str; }
+    std::strong_ordering _compare(const shared_stringT& str) const
+    {
+        bool lhsempty = empty();
+        bool rhsempty = str.empty();
+        if (!lhsempty && !rhsempty) { return *(_str.get()) <=> *(str._str.get()); }
+        else if (lhsempty == rhsempty) { return std::strong_ordering::equal; }
+        else if (lhsempty) { return std::strong_ordering::less; }
+        else { return std::strong_ordering::greater; }
+    }
 
+    std::strong_ordering _compare(const TStringView& str) const
+    {
+        bool lhsempty = empty();
+        bool rhsempty = str.empty();
+        if (!lhsempty && !rhsempty) { return TStringView(*(_str.get())) <=> str; }
+        else if (lhsempty == rhsempty) { return std::strong_ordering::equal; }
+        else if (lhsempty) { return std::strong_ordering::less; }
+        else { return std::strong_ordering::greater; }
+    }
+    /*
+    template <size_t N> int _compare(T const (&str)[N]) const
+    {
+        bool lhsempty = empty();
+        bool rhsempty = N == 0;
+        if (!lhsempty && !rhsempty) { return TStringView(*(_str.get())) <=> str; }
+        else if (lhsempty == rhsempty) { return 0; }
+        else if (lhsempty) { return -1; }
+        else { return 1; }
+    }*/
+
+    bool operator==(const shared_stringT& str) const { return _compare(str) == 0; }
+    bool operator==(const TStringView& str) const { return _compare(str) == 0; }
+    bool operator!=(const shared_stringT& str) const { return _compare(str) != 0; }
+    bool operator!=(const TStringView& str) const { return _compare(str) != 0; }
+    auto operator<=>(const shared_stringT& str) const { return _compare(str); }
+    auto operator<=>(const TStringView& str) const { return _compare(str); }
+
+    /*
     template <size_t N> bool operator==(T const (&str)[N]) const { return *(_str.get()) == str; }
 
     bool operator!=(const shared_stringT& str) const { return *(_str.get()) != *str.get(); }
     bool operator!=(const TStringView& str) const { return *(_str.get()) != str; }
     bool operator<(const shared_stringT& str) const { return *(_str.get()) < *str.get(); }
     bool operator<(const TStringView& str) const { return *(_str.get()) < str; }
+    */
 
     shared_stringT                     operator+(const shared_stringT& str) const { return make(*_str.get() + *str.get()); }
     template <size_t N> shared_stringT operator+(T const (&str)[N]) const { return make(*_str.get() + str); }

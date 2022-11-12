@@ -344,6 +344,10 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
                 basetype = defbasetype;
             }
             if (basetype.has_value()) { AddBaseObject(basetype.value()); }
+            else
+            {
+                if (this->Name() != L"default") { throw std::logic_error("Please specify a default type"); }
+            }
         }
 
         DELETE_COPY_AND_MOVE(FieldType);
@@ -408,7 +412,10 @@ class ConstValue
         }
     }
 
-    static Str::Type DefaultStringifiedValue() { return Str::Create(L"{}"); }
+    static Str::Type DefaultStringifiedValue()
+    {
+        throw std::logic_error("Specify a default type"); /*return Str::Create(L" "); */ /* Dont leave this empty */
+    }
 };
 
 template <typename TOwner, typename TObject> struct StorageIndexT
@@ -503,13 +510,15 @@ template <typename TOwner, typename TObject> struct StorageIndexT
             if (_defaultValue != nullptr) { return _defaultValue->Stringify(); }
             Binding::BindingContext context;
             auto                    defval = _fieldType->TryLookupOrNull(context, Str::Create(L"DefaultValue"));
-            if (defval != nullptr)
+            if (defval == nullptr)
             {
-                assert(defval->GetType() == Binding::Type::String || defval->GetType() == Binding::Type::Expr);
-                if (defval->GetType() == Binding::Type::String) { return Str::Copy(defval->GetString()); }
-                else { return defval->GetExpr().String(); }
+                _fieldType->TryLookupOrNull(context, Str::Create(L"DefaultValue"));
+                return ConstValue::DefaultStringifiedValue();
             }
-            return ConstValue::DefaultStringifiedValue();
+
+            assert(defval->GetType() == Binding::Type::String || defval->GetType() == Binding::Type::Expr);
+            if (defval->GetType() == Binding::Type::String) { return Str::Copy(defval->GetString()); }
+            else { return defval->GetExpr().String(); }
         }
 
         Str::Type HasDefaultValue() const { return Str::Create(_defaultValue ? L"true" : L"false"); }

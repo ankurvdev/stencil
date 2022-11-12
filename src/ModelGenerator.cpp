@@ -616,7 +616,15 @@ void Generator::FinalizeTypeDefinitions()
         for (auto& a : baseFieldType->accessors) { v.accessors.push_back(a); }
     }
 
-    for (auto& v : _fieldTypeDecls) { _RegisterFieldDefForProgram(v); }
+    for (auto& v : _fieldTypeDecls)
+    {
+        if (v.name.substr(0, 7) == L"default") _RegisterFieldDefForProgram(v);
+    }
+
+    for (auto& v : _fieldTypeDecls)
+    {
+        if (v.name.substr(0, 7) != L"default") _RegisterFieldDefForProgram(v);
+    }
 
     for (auto& v : _containerDecls)
     {
