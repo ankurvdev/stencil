@@ -279,7 +279,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
 
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
-    template <typename TLambda> void VisitChanges(TLambda&& lambda)
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
     {
         //<Field>
         if (_IsFieldAssigned(Fields::Field_zzField_Namezz))

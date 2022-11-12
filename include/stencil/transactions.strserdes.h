@@ -104,13 +104,13 @@ struct StringTransactionSerDes
         static void
         Apply(T& txn, std::string_view const& fieldname, uint8_t mutator, std::string_view const& mutatordata, std::string_view const& rhs)
         {
-            using TKey = Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::ElemType>::Key;
+            using TKey = typename Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::ElemType>::Key;
             TKey key   = Stencil::Deserialize<TKey, ProtocolString>(fieldname);
 
             if (mutator == 0)    // Set
             {
                 txn.Assign(key, [&](auto& subtxn) {
-                    using ElemType = Stencil::TransactionTraits<std::remove_cvref_t<decltype(subtxn)>>::ElemType;
+                    using ElemType = typename Stencil::TransactionTraits<std::remove_cvref_t<decltype(subtxn)>>::ElemType;
                     ElemType rhsval{};
                     Stencil::SerDesRead<ProtocolJsonVal>(rhsval, rhs);
                     subtxn.Assign(std::move(rhsval));
@@ -137,7 +137,7 @@ struct StringTransactionSerDes
 
                     if constexpr (Stencil::ConceptTransactionForIndexable<TSubTxn>)
                     {
-                        using TSubKey = Stencil::TypeTraitsForIndexable<typename TransactionTraits<TSubTxn>::ElemType>::Key;
+                        using TSubKey = typename Stencil::TypeTraitsForIndexable<typename TransactionTraits<TSubTxn>::ElemType>::Key;
                         auto subkey   = Stencil::Deserialize<TSubKey, Stencil::ProtocolString>(mutatordata);
                         subtxn.Remove(subkey);
                     }
@@ -170,7 +170,7 @@ struct StringTransactionSerDes
             if constexpr (Stencil::ConceptTransactionForIndexable<T>)
             {
                 auto keystr = it.token;
-                using TKey  = Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::ElemType>::Key;
+                using TKey  = typename Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::ElemType>::Key;
                 TKey key    = Stencil::Deserialize<TKey, ProtocolString>(keystr);
                 ++it;
                 size_t retval = 0;

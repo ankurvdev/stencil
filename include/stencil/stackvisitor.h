@@ -91,7 +91,7 @@ template <typename TProto, typename TOwner, ConceptPrimitive T> struct Primitive
     TOwner* owner;
 };
 
-template <typename TProto, typename TOwner, ConceptPreferIterable T> struct IterableVisitorTypeHandler<TProto, TOwner, T>
+template <typename TProto, typename TOwner, ConceptIterable T> struct IterableVisitorTypeHandler<TProto, TOwner, T>
 {
     template <typename T1> TypeHandlerAndPtr VisitNext(T1& obj)
     {

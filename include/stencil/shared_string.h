@@ -83,10 +83,10 @@ template <typename T> struct shared_stringT
         else { return 1; }
     }*/
 
-    bool operator==(const shared_stringT& str) const { return _compare(str) == 0; }
-    bool operator==(const TStringView& str) const { return _compare(str) == 0; }
-    bool operator!=(const shared_stringT& str) const { return _compare(str) != 0; }
-    bool operator!=(const TStringView& str) const { return _compare(str) != 0; }
+    bool operator==(const shared_stringT& str) const { return _compare(str) == nullptr; }
+    bool operator==(const TStringView& str) const { return _compare(str) == nullptr; }
+    bool operator!=(const shared_stringT& str) const { return _compare(str) != nullptr; }
+    bool operator!=(const TStringView& str) const { return _compare(str) != nullptr; }
     auto operator<=>(const shared_stringT& str) const { return _compare(str); }
     auto operator<=>(const TStringView& str) const { return _compare(str); }
 

@@ -120,7 +120,10 @@ jobs:
     displayName: 'Copy Files to artifact staging directory'
     inputs:
       SourceFolder: 'cmake-build'
-      Contents: 'stencil*.zip'
+      Contents: |
+        'stencil*.zip'
+        '*.txt'
+        '*.bin'
       TargetFolder: $(Build.ArtifactStagingDirectory)
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact'

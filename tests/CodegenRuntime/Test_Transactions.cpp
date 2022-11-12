@@ -8,17 +8,18 @@
 #include <unordered_set>
 
 using TransactionNestObject = Stencil::Transaction<Objects::NestedObject, void>;
-TransactionNestObject CreateNestedObjectTransaction(Objects::NestedObject& obj)
+static TransactionNestObject CreateNestedObjectTransaction(Objects::NestedObject& obj)
 {
     return Stencil::CreateRootTransaction<Objects::NestedObject>(obj);
 }
+
 template <typename T> std::string SerDesSer(T const& obj)
 {
-
     auto str  = Stencil::Json::Stringify(obj);
     auto obj1 = Stencil::Json::Parse<T>(str);
     return Stencil::Json::Stringify(obj1);
 }
+
 struct TestReplay
 {
     TestReplay() : txn2(CreateNestedObjectTransaction(obj2)) {}
@@ -63,8 +64,6 @@ struct TestReplay
 
     template <typename TLambda> std::string Test(TLambda&& lambda)
     {
-        auto index = _json_snapshots.size();
-
         auto txn1 = CreateNestedObjectTransaction(obj1);
         lambda(txn1);
         lambda(txn2);

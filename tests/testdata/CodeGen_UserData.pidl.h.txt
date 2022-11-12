@@ -162,7 +162,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Us
 
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
-    template <typename TLambda> void VisitChanges(TLambda&& lambda)
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
     {
         if (_IsFieldAssigned(Fields::Field_modified))
         {
@@ -401,7 +401,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Us
 
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
-    template <typename TLambda> void VisitChanges(TLambda&& lambda)
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
     {
         if (_IsFieldAssigned(Fields::Field_username))
         {
@@ -726,7 +726,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Us
 
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
-    template <typename TLambda> void VisitChanges(TLambda&& lambda)
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
     {
         if (_IsFieldAssigned(Fields::Field_name))
         {
