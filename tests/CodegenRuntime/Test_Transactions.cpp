@@ -15,8 +15,7 @@ TransactionNestObject CreateNestedObjectTransaction(Objects::NestedObject& obj)
 template <typename T> std::string SerDesSer(T const& obj)
 {
 
-    auto str = Stencil::Json::Stringify(obj);
-    std::cout << str << std::endl;
+    auto str  = Stencil::Json::Stringify(obj);
     auto obj1 = Stencil::Json::Parse<T>(str);
     return Stencil::Json::Stringify(obj1);
 }
