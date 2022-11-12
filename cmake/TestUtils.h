@@ -26,7 +26,8 @@ SUPPRESS_WARNINGS_END
 #if defined HAVE_EMBEDRESOURCE
 DECLARE_RESOURCE_COLLECTION(testdata);
 #endif
-
+namespace TestCommon
+{
 inline std::string wstring_to_string(std::wstring_view wstr)
 {
     std::string out(wstr.size(), 0);
@@ -44,52 +45,43 @@ inline bool  IsDebuggerPresent()
 }
 #endif
 
-inline std::vector<std::string> readlines(std::istream& istr)
-{
-    std::vector<std::string> lines;
-    std::string              line;
-
-    while (std::getline(istr, line))
-    {
-        if (line.length() > 0 && line[line.length() - 1] == '\r') { line.resize(line.length() - 1); }
-        lines.push_back(std::move(line));
-    }
-    return lines;
-}
-
+/*
 inline std::vector<std::string> readlines(std::filesystem::path const& path)
 {
     std::fstream file(path);
     return readlines(file);
 }
+*/
 
-inline void WriteStrResourse(std::vector<std::string> const& actualstring, std::string_view const& resname)
+inline auto WriteStrResourse(std::vector<std::string> const& actualstring, std::string_view const& resname)
 {
-    auto outf = std::filesystem::absolute(std::string(resname) + ".txt");
-    {
-        std::ofstream f(outf);
-        for (auto& l : actualstring) { f << l << "\n"; }
-        f.flush();
-        f.close();
-    }
-    FAIL(fmt::format("Comparison Failed: Output: \n{}", outf.string()));
+    auto          outf = std::filesystem::absolute(std::string(resname) + ".txt");
+    std::ofstream f(outf);
+    for (auto& l : actualstring) { f << l << "\n"; }
+    return outf;
 }
 
-inline void WriteBinResourse(std::vector<std::string> const& actualstring, std::string_view const& resname)
+inline auto WriteBinResourse(std::vector<std::string> const& actualstring, std::string_view const& resname)
 {
-    auto outf = std::filesystem::absolute(std::string(resname) + ".bin");
+    auto          outf = std::filesystem::absolute(std::string(resname) + ".bin");
+    std::ofstream f(outf, std::ios::binary);
+    for (auto& l : actualstring)
     {
-        std::ofstream f(outf, std::ios::binary);
-        for (auto& l : actualstring)
-        {
-            size_t size = l.size();
-            f.write(reinterpret_cast<const char*>(&size), sizeof(size));
-            f.write(l.data(), static_cast<std::streamsize>(l.size()));
-        }
-        f.flush();
-        f.close();
+        size_t size = l.size();
+        f.write(reinterpret_cast<const char*>(&size), sizeof(size));
+        f.write(l.data(), static_cast<std::streamsize>(l.size()));
     }
-    FAIL(fmt::format("Comparison Failed: Output: \n{}", outf.string()));
+    return outf;
+}
+
+inline auto WriteStrmResourse(std::string const& actualstring, std::string_view const& resname)
+{
+    auto          outf = std::filesystem::absolute(std::string(resname) + ".bin");
+    std::ofstream f(outf, std::ios::binary);
+    size_t        size = actualstring.size();
+    f.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    f.write(actualstring.data(), static_cast<std::streamsize>(actualstring.size()));
+    return outf;
 }
 
 inline void PrintDiff(std::vector<std::string> const& actualstring, std::vector<std::string> const& expectedstring)
@@ -99,45 +91,41 @@ inline void PrintDiff(std::vector<std::string> const& actualstring, std::vector<
     d.compose();                // construct an edit distance and LCS and SES
     d.composeUnifiedHunks();    // construct a difference as Unified Format with SES.
 
-    if (actualstring != expectedstring)
+    if (actualstring.size() == expectedstring.size())
     {
-
-        if (actualstring.size() == expectedstring.size())
+        for (size_t i = 0; i < actualstring.size(); i++)
         {
-            for (size_t i = 0; i < actualstring.size(); i++)
+            if (actualstring[i] != expectedstring[i])
             {
-                if (actualstring[i] != expectedstring[i])
+                dtl::Diff<char, std::string> ld(expectedstring[i], actualstring[i]);
+                ld.compose();
+                auto                     ses      = ld.getSes().getSequence();
+                int                      lasttype = 0;
+                std::string              merged;
+                std::vector<std::string> deltas;
+                for (auto& sesobj : ses)
                 {
-                    dtl::Diff<char, std::string> ld(expectedstring[i], actualstring[i]);
-                    ld.compose();
-                    auto                     ses      = ld.getSes().getSequence();
-                    int                      lasttype = 0;
-                    std::string              merged;
-                    std::vector<std::string> deltas;
-                    for (auto& sesobj : ses)
+                    if (sesobj.second.type != lasttype)
                     {
-                        if (sesobj.second.type != lasttype)
-                        {
-                            if (lasttype == dtl::SES_COMMON) { merged = fmt::format("[{}:{}]", i, sesobj.second.afterIdx); }
-                            merged += (sesobj.second.type == dtl::SES_ADD ? '+' : '-');
-                        }
-                        if (sesobj.second.type == dtl::SES_COMMON)
-                        {
-                            if (merged.size() > 0) deltas.push_back(std::move(merged));
-                        }
-                        else { merged += sesobj.first; }
-                        lasttype = sesobj.second.type;
+                        if (lasttype == dtl::SES_COMMON) { merged = fmt::format("[{}:{}]", i, sesobj.second.afterIdx); }
+                        merged += (sesobj.second.type == dtl::SES_ADD ? '+' : '-');
                     }
-                    if (merged.size() > 0) deltas.push_back(std::move(merged));
-                    for (auto& delta : deltas) { std::cout << delta << " "; }
-                    std::cout << std::endl;
+                    if (sesobj.second.type == dtl::SES_COMMON)
+                    {
+                        if (merged.size() > 0) deltas.push_back(std::move(merged));
+                    }
+                    else { merged += sesobj.first; }
+                    lasttype = sesobj.second.type;
                 }
+                if (merged.size() > 0) deltas.push_back(std::move(merged));
+                for (auto& delta : deltas) { std::cout << delta << " "; }
+                std::cout << std::endl;
             }
         }
-        else
-        {
-            d.printUnifiedFormat();    // print a difference as Unified Format.
-        }
+    }
+    else
+    {
+        d.printUnifiedFormat();    // print a difference as Unified Format.
     }
 }
 
@@ -159,7 +147,8 @@ inline void CompareBinLines(std::vector<std::string> const& actualstring,
     if (actualstring != expectedstring)
     {
         PrintDiff(actualstring, expectedstring);
-        WriteBinResourse(actualstring, resname);
+        auto outf = WriteBinResourse(actualstring, resname);
+        FAIL(fmt::format("Comparison Failed: Output: \n{}", outf.string()));
     }
 }
 
@@ -211,7 +200,7 @@ struct ResourceFileManager
     }
     std::unordered_map<std::string, std::filesystem::path> _openedfiles;
 };
-
+/*
 inline std::vector<std::string> LoadStrResource(std::string_view const& name)
 {
     auto testresname = GeneratePrefixFromTestName() + std::string(name) + ".txt";
@@ -260,57 +249,93 @@ inline std::vector<std::string> LoadBinResource(std::string_view const& name)
         }
     }
     return std::vector<std::string>();
+}*/
+
+inline std::vector<std::string> ReadStrStream(std::istream& istr)
+{
+    std::vector<std::string> lines;
+    std::string              line;
+
+    while (std::getline(istr, line))
+    {
+        if (line.length() > 0 && line[line.length() - 1] == '\r') { line.resize(line.length() - 1); }
+        lines.push_back(std::move(line));
+    }
+    return lines;
 }
 
-inline void CheckOutputAgainstStrResource(std::vector<std::string> const& lines, std::string_view const& resourcename)
+inline std::vector<std::string> ReadBinStream(std::istream& ss)
 {
-    CompareStrLines(lines, LoadStrResource(resourcename), GeneratePrefixFromTestName() + std::string(resourcename));
+    std::size_t              size;
+    std::vector<std::string> data;
+    ss.peek();
+    while (!ss.eof())
+    {
+        ss.read(reinterpret_cast<char*>(&size), sizeof(size));
+        if (size > 1024 * 1024) { return data; }
+        std::string line;
+        line.resize(size);
+        ss.read(line.data(), static_cast<std::streamsize>(size));
+        if (ss.eof()) throw std::logic_error("Reached end unexpectedly");
+        data.push_back(line);
+        ss.peek();
+    }
+    return data;
 }
 
-inline void CheckOutputAgainstBinResource(std::vector<std::string> const& lines, std::string_view const& resourcename)
+inline void CheckOutputAgainstStrResource(std::vector<std::string> const& actual, std::string_view const& resourcename)
 {
-    CompareBinLines(lines, LoadBinResource(resourcename), GeneratePrefixFromTestName() + std::string(resourcename));
-}
-
-template <typename TData> inline void CompareBinaryOutputAgainstResource(TData const& actual, std::string_view const& resourcename)
-{
-    auto testresname        = GeneratePrefixFromTestName() + std::string(resourcename) + ".bin";
-    auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
-    for (auto const& r : resourceCollection)
+    auto testresname = fmt::format("{}{}", GeneratePrefixFromTestName(), resourcename);
+    auto expected    = actual;
+    for (auto const& r : LOAD_RESOURCE_COLLECTION(testdata))
     {
         auto resname = wstring_to_string(r.name());
-        if (resname == testresname || resname == resourcename)
-        {
-            auto data = r.string();
-            auto spn  = std::span<const char>(reinterpret_cast<char const*>(actual.data()), actual.size());
-            INFO("Checking Resource : " + resname);
-            if (data.size() == spn.size() && std::equal(spn.begin(), spn.end(), data.begin())) { return; }
-            std::ofstream f(testresname, std::ios::binary);
-            f.write(reinterpret_cast<char const*>(actual.data()), static_cast<std::streamsize>(actual.size()));
-            f.flush();
-            f.close();
-            size_t index = 0;
-            auto   it2   = data.begin();
-            for (auto it = spn.begin(); it != spn.end(); ++it, ++it2, ++index)
-            {
-                if ((*it) == (*it2)) continue;
-                FAIL(fmt::format("Binary comparison failed at Index = {} => {} != {}", index, int32_t{*it}, int32_t{*it2}));
-            }
-            return;
-        }
+        if (resname.find(testresname) == std::string::npos) continue;
+        std::string       str(r.string());
+        std::stringstream ss(str);
+        expected = ReadStrStream(ss);
+        if (actual == expected) return;
     }
-    std::ofstream f(testresname, std::ios::binary);
-    f.write(reinterpret_cast<char const*>(actual.data()), static_cast<std::streamsize>(actual.size()));
-    f.flush();
-    f.close();
-    FAIL("Cannot find reference resource : " + testresname);
+    PrintDiff(actual, expected);
+    WriteStrResourse(actual, resourcename);
 }
 
-inline void CompareFileAgainstResource(std::filesystem::path const& actualf, std::string_view const& resourcename)
+inline void CheckOutputAgainstBinResource(std::vector<std::string> const& actual, std::string_view const& resourcename)
 {
-    std::ifstream         instream(actualf, std::ios::in | std::ios::binary);
-    std::vector<char>     actualdata((std::istreambuf_iterator<char>(instream)), std::istreambuf_iterator<char>());
-    std::span<const char> spn = actualdata;
-    CompareBinaryOutputAgainstResource(spn, resourcename);
+    auto testresname = fmt::format("{}{}", GeneratePrefixFromTestName(), resourcename);
+    auto expected    = actual;
+    for (auto const& r : LOAD_RESOURCE_COLLECTION(testdata))
+    {
+        auto resname = wstring_to_string(r.name());
+        if (resname.find(testresname) == std::string::npos) continue;
+        std::string       str(r.string());
+        std::stringstream ss(str);
+        expected = ReadBinStream(ss);
+        if (actual == expected) return;
+    }
+    PrintDiff(actual, expected);
+    WriteBinResourse(actual, resourcename);
+}
+
+inline void CheckOutputAgainstBinResource(std::istream& instream, std::string_view const& resourcename)
+{
+    // std::ifstream         instream(actualf, std::ios::in | std::ios::binary);
+    std::vector<char> actualdata((std::istreambuf_iterator<char>(instream)), std::istreambuf_iterator<char>());
+    std::string       actual(actualdata.begin(), actualdata.end());
+
+    auto              testresname = fmt::format("{}{}", GeneratePrefixFromTestName(), resourcename);
+    std::vector<char> expecdted;
+    for (auto const& r : LOAD_RESOURCE_COLLECTION(testdata))
+    {
+        auto resname = wstring_to_string(r.name());
+        if (resname.find(testresname) == std::string::npos) continue;
+        std::string expected(r.string());
+        if (actual == expected) return;
+    }
+
+    // PrintDiff(actual, expected);
+    auto outf = WriteStrmResourse(actual, resourcename);
+    FAIL(fmt::format("Comparison Failed: Output: \n{}", outf.string()));
+}
 }
 #endif

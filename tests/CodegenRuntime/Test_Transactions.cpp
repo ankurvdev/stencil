@@ -72,22 +72,22 @@ struct TestReplay
         auto snapshot2 = Stencil::Json::Stringify(obj2);
 
         auto txn1str = Stencil::StringTransactionSerDes::Deserialize(txn1);
-        if (_debug) REQUIRE(txn1str == _expected_txn1str[index]);
+        // if (_debug) REQUIRE(txn1str == _expected_txn1str[index]);
         REQUIRE(Stencil::Json::Stringify(obj1) == snapshot1);                       // Check deserialization doesnt change anything
         REQUIRE(Stencil::StringTransactionSerDes::Deserialize(txn1) == txn1str);    // Check repeat deserialization produces same output
 
         auto txn2str = Stencil::StringTransactionSerDes::Deserialize(txn2);
-        if (_debug) REQUIRE(txn2str == _expected_txn2str[index]);
+        // if (_debug) REQUIRE(txn2str == _expected_txn2str[index]);
         REQUIRE(Stencil::Json::Stringify(obj2) == snapshot2);
         REQUIRE(Stencil::StringTransactionSerDes::Deserialize(txn2) == txn2str);
 
         auto txn1bin = BinTxnSerialize(txn1);
-        if (_debug) REQUIRE(txn1bin == _expected_txn1bin[index]);
+        // if (_debug) REQUIRE(txn1bin == _expected_txn1bin[index]);
         REQUIRE(Stencil::Json::Stringify(obj1) == snapshot1);
         REQUIRE(BinTxnSerialize(txn1) == txn1bin);
 
         auto txn2bin = BinTxnSerialize(txn2);
-        if (_debug) REQUIRE(txn2bin == _expected_txn2bin[index]);
+        // if (_debug) REQUIRE(txn2bin == _expected_txn2bin[index]);
         REQUIRE(Stencil::Json::Stringify(obj2) == snapshot2);
         REQUIRE(BinTxnSerialize(txn2) == txn2bin);
 
@@ -133,11 +133,11 @@ struct TestReplay
 
     void SelfTest()
     {
-        CheckOutputAgainstStrResource(_txn1str, "Deltas");
-        CheckOutputAgainstStrResource(_txn2str, "CumulativeDeltas");
-        CheckOutputAgainstStrResource(_json_snapshots, "ChangeDataSnapshots");
-        CheckOutputAgainstBinResource(_txn1bin, "DeltaBin");
-        CheckOutputAgainstBinResource(_txn2bin, "CumulativeDeltaBin");
+        TestCommon::CheckOutputAgainstStrResource(_txn1str, "Deltas");
+        TestCommon::CheckOutputAgainstStrResource(_txn2str, "CumulativeDeltas");
+        TestCommon::CheckOutputAgainstStrResource(_json_snapshots, "ChangeDataSnapshots");
+        TestCommon::CheckOutputAgainstBinResource(_txn1bin, "DeltaBin");
+        TestCommon::CheckOutputAgainstBinResource(_txn2bin, "CumulativeDeltaBin");
     }
 
     std::vector<std::string> _txn1str;
@@ -147,11 +147,11 @@ struct TestReplay
 
     std::vector<std::string> _json_snapshots;
 
-    std::vector<std::string> _expected_txn1str        = LoadStrResource("Deltas");
-    std::vector<std::string> _expected_txn2str        = LoadStrResource("CumulativeDeltas");
-    std::vector<std::string> _expected_txn1bin        = LoadBinResource("DeltaBin");
-    std::vector<std::string> _expected_txn2bin        = LoadBinResource("CumulativeDeltaBin");
-    std::vector<std::string> _expected_json_snapshots = LoadStrResource("ChangeDataSnapshots");
+    // std::vector<std::string> _expected_txn1str        = LoadStrResource("Deltas");
+    // std::vector<std::string> _expected_txn2str        = LoadStrResource("CumulativeDeltas");
+    // std::vector<std::string> _expected_txn1bin        = LoadBinResource("DeltaBin");
+    // std::vector<std::string> _expected_txn2bin        = LoadBinResource("CumulativeDeltaBin");
+    // std::vector<std::string> _expected_json_snapshots = LoadStrResource("ChangeDataSnapshots");
 
     Objects::NestedObject obj1{};
     Objects::NestedObject obj2{};

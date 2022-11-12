@@ -4,7 +4,7 @@ DECLARE_RESOURCE_COLLECTION(testdata);
 
 static void RunTest(std::vector<std::string> const& pidlfiles)
 {
-    ResourceFileManager resfiles;
+    TestCommon::ResourceFileManager resfiles;
     for (auto const& pidlfile : pidlfiles) { resfiles.load(std::string(pidlfile), ""); }
 
     for (auto const& pidlfile : pidlfiles)
@@ -27,10 +27,9 @@ static void RunTest(std::vector<std::string> const& pidlfiles)
         REQUIRE(outfiles.size() > 0);
         for (auto const& path : outfiles)
         {
-            auto fname          = path.filename().string();
-            auto actualstring   = readlines(path);
-            auto expectedstring = readlines(resfiles.load(fname, "res_"));
-            CompareStrLines(actualstring, expectedstring, fname);
+            auto          fname = path.filename().string();
+            std::ifstream ifs(path);
+            TestCommon::CheckOutputAgainstBinResource(ifs, fname);
         }
     }
 }
