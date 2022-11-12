@@ -294,21 +294,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
         }
         //</Field>
     }
-    void Assign(Fields key, ElemType&& elem)
-    {
-        _MarkFieldAssigned(key);
-        switch (key)
-        {
-        //<Field>
-        case Fields::Field_zzNamezz:
-        {
-            _elem.zzNamezz = std::move(elem);
-            break;
-        }
-        //</Field>
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
 
     void Assign(ElemType&& elem)
     {

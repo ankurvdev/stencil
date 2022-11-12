@@ -289,39 +289,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
             lambda(Fields::Field_User, uint8_t{3u}, uint32_t{0u}, txn);
         }
     }
-    void Assign(Fields key, ElemType&& elem)
-    {
-        _MarkFieldAssigned(key);
-        switch (key)
-        {
-        case Fields::Field_ProductId:
-        {
-            _elem.ProductId = std::move(elem);
-            break;
-        }
-        case Fields::Field_Repair:
-        {
-            _elem.Repair = std::move(elem);
-            break;
-        }
-        case Fields::Field_ForceNonSD:
-        {
-            _elem.ForceNonSD = std::move(elem);
-            break;
-        }
-        case Fields::Field_TargetVolume:
-        {
-            _elem.TargetVolume = std::move(elem);
-            break;
-        }
-        case Fields::Field_User:
-        {
-            _elem.User = std::move(elem);
-            break;
-        }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -597,19 +564,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
             lambda(Fields::Field_ProductId, uint8_t{3u}, uint32_t{0u}, txn);
         }
     }
-    void Assign(Fields key, ElemType&& elem)
-    {
-        _MarkFieldAssigned(key);
-        switch (key)
-        {
-        case Fields::Field_ProductId:
-        {
-            _elem.ProductId = std::move(elem);
-            break;
-        }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -795,19 +749,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         {
             auto txn = ProductId();
             lambda(Fields::Field_ProductId, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
-    void Assign(Fields key, ElemType&& elem)
-    {
-        _MarkFieldAssigned(key);
-        switch (key)
-        {
-        case Fields::Field_ProductId:
-        {
-            _elem.ProductId = std::move(elem);
-            break;
-        }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
 
@@ -997,19 +938,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
             lambda(Fields::Field_ProductId, uint8_t{3u}, uint32_t{0u}, txn);
         }
     }
-    void Assign(Fields key, ElemType&& elem)
-    {
-        _MarkFieldAssigned(key);
-        switch (key)
-        {
-        case Fields::Field_ProductId:
-        {
-            _elem.ProductId = std::move(elem);
-            break;
-        }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -1195,19 +1123,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         {
             auto txn = ProductId();
             lambda(Fields::Field_ProductId, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
-    void Assign(Fields key, ElemType&& elem)
-    {
-        _MarkFieldAssigned(key);
-        switch (key)
-        {
-        case Fields::Field_ProductId:
-        {
-            _elem.ProductId = std::move(elem);
-            break;
-        }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
 
@@ -1397,19 +1312,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
             lambda(Fields::Field_ProductId, uint8_t{3u}, uint32_t{0u}, txn);
         }
     }
-    void Assign(Fields key, ElemType&& elem)
-    {
-        _MarkFieldAssigned(key);
-        switch (key)
-        {
-        case Fields::Field_ProductId:
-        {
-            _elem.ProductId = std::move(elem);
-            break;
-        }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -1595,19 +1497,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         {
             auto txn = ProductId();
             lambda(Fields::Field_ProductId, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
-    void Assign(Fields key, ElemType&& elem)
-    {
-        _MarkFieldAssigned(key);
-        switch (key)
-        {
-        case Fields::Field_ProductId:
-        {
-            _elem.ProductId = std::move(elem);
-            break;
-        }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
 

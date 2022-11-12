@@ -371,69 +371,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ca
             lambda(Fields::Field_showId, uint8_t{3u}, uint32_t{0u}, txn);
         }
     }
-    void Assign(Fields key, ElemType&& elem)
-    {
-        _MarkFieldAssigned(key);
-        switch (key)
-        {
-        case Fields::Field_imdbId:
-        {
-            _elem.imdbId = std::move(elem);
-            break;
-        }
-        case Fields::Field_type:
-        {
-            _elem.type = std::move(elem);
-            break;
-        }
-        case Fields::Field_ratingM10:
-        {
-            _elem.ratingM10 = std::move(elem);
-            break;
-        }
-        case Fields::Field_firstReleased:
-        {
-            _elem.firstReleased = std::move(elem);
-            break;
-        }
-        case Fields::Field_votes:
-        {
-            _elem.votes = std::move(elem);
-            break;
-        }
-        case Fields::Field_title:
-        {
-            _elem.title = std::move(elem);
-            break;
-        }
-        case Fields::Field_certificate:
-        {
-            _elem.certificate = std::move(elem);
-            break;
-        }
-        case Fields::Field_plot:
-        {
-            _elem.plot = std::move(elem);
-            break;
-        }
-        case Fields::Field_season:
-        {
-            _elem.season = std::move(elem);
-            break;
-        }
-        case Fields::Field_episode:
-        {
-            _elem.episode = std::move(elem);
-            break;
-        }
-        case Fields::Field_showId:
-        {
-            _elem.showId = std::move(elem);
-            break;
-        }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -826,14 +763,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ca
     template <typename TLambda> void VisitChanges(TLambda&& lambda)
     {
     }
-    void Assign(Fields key, ElemType&& elem)
-    {
-        _MarkFieldAssigned(key);
-        switch (key)
-        {
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -1072,44 +1001,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ca
         {
             auto txn = status_info();
             lambda(Fields::Field_status_info, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
-    void Assign(Fields key, ElemType&& elem)
-    {
-        _MarkFieldAssigned(key);
-        switch (key)
-        {
-        case Fields::Field_type:
-        {
-            _elem.type = std::move(elem);
-            break;
-        }
-        case Fields::Field_path:
-        {
-            _elem.path = std::move(elem);
-            break;
-        }
-        case Fields::Field_added:
-        {
-            _elem.added = std::move(elem);
-            break;
-        }
-        case Fields::Field_last_checked:
-        {
-            _elem.last_checked = std::move(elem);
-            break;
-        }
-        case Fields::Field_frequencyInSecs:
-        {
-            _elem.frequencyInSecs = std::move(elem);
-            break;
-        }
-        case Fields::Field_status_info:
-        {
-            _elem.status_info = std::move(elem);
-            break;
-        }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
 
@@ -1514,54 +1405,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ca
             lambda(Fields::Field_status_info, uint8_t{3u}, uint32_t{0u}, txn);
         }
     }
-    void Assign(Fields key, ElemType&& elem)
-    {
-        _MarkFieldAssigned(key);
-        switch (key)
-        {
-        case Fields::Field_type:
-        {
-            _elem.type = std::move(elem);
-            break;
-        }
-        case Fields::Field_source:
-        {
-            _elem.source = std::move(elem);
-            break;
-        }
-        case Fields::Field_folder:
-        {
-            _elem.folder = std::move(elem);
-            break;
-        }
-        case Fields::Field_path:
-        {
-            _elem.path = std::move(elem);
-            break;
-        }
-        case Fields::Field_size:
-        {
-            _elem.size = std::move(elem);
-            break;
-        }
-        case Fields::Field_added:
-        {
-            _elem.added = std::move(elem);
-            break;
-        }
-        case Fields::Field_modified:
-        {
-            _elem.modified = std::move(elem);
-            break;
-        }
-        case Fields::Field_status_info:
-        {
-            _elem.status_info = std::move(elem);
-            break;
-        }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -1918,24 +1761,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ca
             lambda(Fields::Field_contents, uint8_t{3u}, uint32_t{0u}, txn);
         }
     }
-    void Assign(Fields key, ElemType&& elem)
-    {
-        _MarkFieldAssigned(key);
-        switch (key)
-        {
-        case Fields::Field_info:
-        {
-            _elem.info = std::move(elem);
-            break;
-        }
-        case Fields::Field_contents:
-        {
-            _elem.contents = std::move(elem);
-            break;
-        }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -2206,34 +2031,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ca
         {
             auto txn = rootfolders();
             lambda(Fields::Field_rootfolders, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
-    void Assign(Fields key, ElemType&& elem)
-    {
-        _MarkFieldAssigned(key);
-        switch (key)
-        {
-        case Fields::Field_contentinfo:
-        {
-            _elem.contentinfo = std::move(elem);
-            break;
-        }
-        case Fields::Field_sources:
-        {
-            _elem.sources = std::move(elem);
-            break;
-        }
-        case Fields::Field_folderinfo:
-        {
-            _elem.folderinfo = std::move(elem);
-            break;
-        }
-        case Fields::Field_rootfolders:
-        {
-            _elem.rootfolders = std::move(elem);
-            break;
-        }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
 
@@ -2534,34 +2331,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ca
             lambda(Fields::Field_status_info, uint8_t{3u}, uint32_t{0u}, txn);
         }
     }
-    void Assign(Fields key, ElemType&& elem)
-    {
-        _MarkFieldAssigned(key);
-        switch (key)
-        {
-        case Fields::Field_source:
-        {
-            _elem.source = std::move(elem);
-            break;
-        }
-        case Fields::Field_scanned_at:
-        {
-            _elem.scanned_at = std::move(elem);
-            break;
-        }
-        case Fields::Field_status_code:
-        {
-            _elem.status_code = std::move(elem);
-            break;
-        }
-        case Fields::Field_status_info:
-        {
-            _elem.status_info = std::move(elem);
-            break;
-        }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -2799,14 +2568,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ca
 
     template <typename TLambda> void VisitChanges(TLambda&& lambda)
     {
-    }
-    void Assign(Fields key, ElemType&& elem)
-    {
-        _MarkFieldAssigned(key);
-        switch (key)
-        {
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
     }
 
     void Assign(ElemType&& elem)

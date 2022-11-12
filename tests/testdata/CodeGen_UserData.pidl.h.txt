@@ -185,24 +185,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Us
             lambda(Fields::Field_creation, uint8_t{3u}, uint32_t{0u}, txn);
         }
     }
-    void Assign(Fields key, ElemType&& elem)
-    {
-        _MarkFieldAssigned(key);
-        switch (key)
-        {
-        case Fields::Field_modified:
-        {
-            _elem.modified = std::move(elem);
-            break;
-        }
-        case Fields::Field_creation:
-        {
-            _elem.creation = std::move(elem);
-            break;
-        }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -470,39 +452,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Us
         {
             auto txn = secretcode();
             lambda(Fields::Field_secretcode, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
-    void Assign(Fields key, ElemType&& elem)
-    {
-        _MarkFieldAssigned(key);
-        switch (key)
-        {
-        case Fields::Field_username:
-        {
-            _elem.username = std::move(elem);
-            break;
-        }
-        case Fields::Field_password:
-        {
-            _elem.password = std::move(elem);
-            break;
-        }
-        case Fields::Field_privatekey:
-        {
-            _elem.privatekey = std::move(elem);
-            break;
-        }
-        case Fields::Field_clientcert:
-        {
-            _elem.clientcert = std::move(elem);
-            break;
-        }
-        case Fields::Field_secretcode:
-        {
-            _elem.secretcode = std::move(elem);
-            break;
-        }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
 
@@ -808,29 +757,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Us
         {
             auto txn = identity();
             lambda(Fields::Field_identity, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
-    void Assign(Fields key, ElemType&& elem)
-    {
-        _MarkFieldAssigned(key);
-        switch (key)
-        {
-        case Fields::Field_name:
-        {
-            _elem.name = std::move(elem);
-            break;
-        }
-        case Fields::Field_uri:
-        {
-            _elem.uri = std::move(elem);
-            break;
-        }
-        case Fields::Field_identity:
-        {
-            _elem.identity = std::move(elem);
-            break;
-        }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
 
