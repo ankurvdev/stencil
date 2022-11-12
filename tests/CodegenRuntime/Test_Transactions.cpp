@@ -12,7 +12,14 @@ TransactionNestObject CreateNestedObjectTransaction(Objects::NestedObject& obj)
 {
     return Stencil::CreateRootTransaction<Objects::NestedObject>(obj);
 }
+template <typename T> std::string SerDesSer(T const& obj)
+{
 
+    auto str = Stencil::Json::Stringify(obj);
+    std::cout << str << std::endl;
+    auto obj1 = Stencil::Json::Parse<T>(str);
+    return Stencil::Json::Stringify(obj1);
+}
 struct TestReplay
 {
     TestReplay() : txn2(CreateNestedObjectTransaction(obj2)) {}
@@ -55,7 +62,7 @@ struct TestReplay
         REQUIRE(!istrm.eof());
     }
 
-    template <typename TLambda> auto Test(TLambda&& lambda)
+    template <typename TLambda> std::string Test(TLambda&& lambda)
     {
         auto index = _json_snapshots.size();
 
@@ -104,6 +111,7 @@ struct TestReplay
                 Objects::NestedObject obj3{};
                 auto                  txn3 = CreateNestedObjectTransaction(obj3);
                 Stencil::StringTransactionSerDes::Apply(txn3, _txn2str.back());
+                REQUIRE(SerDesSer(obj2) == SerDesSer(obj3));    // unordered map can sometime change ordering
                 // REQUIRE(Stencil::Json::Stringify(obj) == Stencil::Json::Stringify(obj3));
             }
 
@@ -117,6 +125,7 @@ struct TestReplay
                 Objects::NestedObject obj3{};
                 auto                  txn3 = CreateNestedObjectTransaction(obj3);
                 BinTxnApply(txn3, _txn2bin.back());
+                REQUIRE(SerDesSer(obj2) == SerDesSer(obj3));    // unordered map can sometime change ordering
                 // REQUIRE(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj3));
             }
         }
@@ -251,13 +260,94 @@ struct UnorderedMapTester
     uint8_t       create_uint8() { return static_cast<int32_t>(++_counter); }
     uint32_t      create_uint32() { return static_cast<uint32_t>(++_counter); }
     shared_string create_string() { return shared_string(fmt::format("str{}", static_cast<uint32_t>(++_counter))); }
-    double        create_double() { return static_cast<double>(++_counter * 100) + (static_cast<double>(++_counter) / 100.0); }
-    auto          create_timestamp() { return Stencil::Timestamp{} + std::chrono::seconds{++_counter}; }
+    double        create_double()
+    {
+        size_t count1 = ++_counter;
+        size_t count2 = ++_counter;
+        return static_cast<double>(count1 * 100) + (static_cast<double>(count2) / 100.0);
+    }
+    auto create_timestamp() { return Stencil::Timestamp{} + std::chrono::seconds{++_counter}; }
+
+    auto dict_value_create(shared_string const& key)
+    {
+        auto ts = create_timestamp();
+        return replay.Test([&](auto& txn) {
+            auto subtxn1 = txn.dict1();
+            {
+                auto subtxn2 = subtxn1.dictval();
+                subtxn2.Assign(key, std::move(ts));
+            }
+        });
+    }
+
+    auto dict_value_edit(shared_string const& key)
+    {
+        auto ts = create_timestamp();
+        return replay.Test([&](auto& txn) {
+            auto subtxn1 = txn.dict1();
+            {
+                auto subtxn2 = subtxn1.dictval();
+                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign(std::move(ts)); });
+            }
+        });
+    }
+
+    auto dict_value_destroy(shared_string const& key)
+    {
+        return replay.Test([&](auto& txn) {
+            auto subtxn1 = txn.dict1();
+            {
+                auto subtxn2 = subtxn1.dictval();
+                subtxn2.Remove(key);
+            }
+        });
+    }
+
+    auto dict_value_create_edit_destroy(shared_string const& key)
+    {
+        auto ts1 = create_timestamp();
+        auto ts2 = create_timestamp();
+        return replay.Test([&](auto& txn) {
+            auto subtxn1 = txn.dict1();
+            {
+                auto subtxn2 = subtxn1.dictval();
+                subtxn2.Assign(key, std::move(ts1));
+                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign(std::move(ts2)); });
+                subtxn2.Remove(key);
+            }
+        });
+    }
+
+    auto dict_value_create_edit_destroy2(shared_string const& key)
+    {
+        auto ts1 = create_timestamp();
+        auto ts2 = create_timestamp();
+        return replay.Test([&](auto& txn) {
+            auto subtxn1 = txn.dict1();
+            {
+                auto subtxn2 = subtxn1.dictval();
+                subtxn2.Assign(key, std::move(ts1));
+            }
+            {
+                auto subtxn2 = subtxn1.dictval();
+                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign(std::move(ts2)); });
+            }
+            {
+                auto subtxn2 = subtxn1.dictval();
+                subtxn2.Remove(key);
+            }
+        });
+    }
 
     Objects::SimpleObject1 create_obj()
     {
-        return Objects::SimpleObject1{
-            .val1 = create_int32(), .val2 = create_uint32(), .val3 = create_uint8(), .val4 = create_string(), .val5 = create_double()};
+        Objects::SimpleObject1 obj{};
+        obj.val1 = create_int32();
+        obj.val2 = create_uint32();
+        obj.val3 = create_uint8();
+        obj.val4 = create_string();
+        obj.val5 = create_double();
+        return obj;
     }
 
     auto dict_obj_create(shared_string const& key)
@@ -401,7 +491,7 @@ struct UnorderedMapTester
     }
 };
 
-TEST_CASE("Transactions unordered_map dict_obj", "[transaction]")
+TEST_CASE("Transactions unordered_map dict_value", "[transaction]")
 {
 
     UnorderedMapTester         tester;
@@ -413,22 +503,22 @@ TEST_CASE("Transactions unordered_map dict_obj", "[transaction]")
         for (auto& key : keylist)
         {
             if (done.count(key) > 0) continue;
-            REQUIRE(tester.dict_obj_create(key) != "");
-            REQUIRE(tester.dict_obj_edit(key) != "");
-            REQUIRE(tester.dict_obj_edit(key) != "");
-            REQUIRE(tester.dict_obj_destroy(key) != "");
-            REQUIRE(tester.dict_obj_create(key) != "");
-            REQUIRE(tester.dict_obj_create_edit_destroy(key) != "");
-            REQUIRE(tester.dict_obj_create_edit_destroy2(key) != "");
+            REQUIRE(tester.dict_value_create(key) != "");
+            REQUIRE(tester.dict_value_edit(key) != "");
+            REQUIRE(tester.dict_value_edit(key) != "");
+            REQUIRE(tester.dict_value_destroy(key) != "");
+            REQUIRE(tester.dict_value_create(key) != "");
+            REQUIRE(tester.dict_value_create_edit_destroy(key) != "");
+            REQUIRE(tester.dict_value_create_edit_destroy2(key) != "");
         }
-        REQUIRE(tester.dict_obj_create(key1) != "");
-        REQUIRE(tester.dict_obj_edit(key1) != "");
+        REQUIRE(tester.dict_value_create(key1) != "");
+        REQUIRE(tester.dict_value_edit(key1) != "");
         done.insert(key1);
     }
 
-    for (auto key : keylist) { REQUIRE(tester.dict_obj_edit(key) != ""); }
+    for (auto key : keylist) { REQUIRE(tester.dict_value_edit(key) != ""); }
 
-    for (auto key : keylist) { REQUIRE(tester.dict_obj_destroy(key) != ""); }
+    for (auto key : keylist) { REQUIRE(tester.dict_value_destroy(key) != ""); }
 }
 
 TEST_CASE("Transactions unordered_map dict_obj")

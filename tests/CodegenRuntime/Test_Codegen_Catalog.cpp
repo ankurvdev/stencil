@@ -15,7 +15,7 @@ static void add_local_content(Database2::exclusive_lock&    lock,
     src.path         = shared_string(path.string());
     src.size         = std::filesystem::file_size(path);
     src.source       = content_src;
-    src.status_info  = "";
+    src.status_info  = shared_string{""};
     src.type         = 'l';
 }
 
@@ -31,7 +31,7 @@ static void add_remote_content(Database2::exclusive_lock&    lock,
     src.path         = shared_string(url);
     src.size         = 0;
     src.source       = content_src;
-    src.status_info  = "";
+    src.status_info  = shared_string{""};
     src.type         = 'r';
 }
 
@@ -81,7 +81,7 @@ TEST_CASE("CodeGen::Catalog::Simplecase", "[Database]")
         src.frequencyInSecs = 0;
         src.last_checked    = Stencil::Timestamp();
         src.path            = shared_string(srcdir.string());
-        src.status_info     = "";
+        src.status_info     = shared_string{""};
         src.type            = 'l';
     }
     {
@@ -92,7 +92,7 @@ TEST_CASE("CodeGen::Catalog::Simplecase", "[Database]")
         src.frequencyInSecs = 0;
         src.last_checked    = Stencil::Timestamp();
         src.path            = shared_string("http://foo.com/");
-        src.status_info     = "";
+        src.status_info     = shared_string{""};
         src.type            = 'r';
     }
     {

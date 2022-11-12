@@ -107,4 +107,5 @@ TEST_CASE("CodeGen::Database2::SaveAndLoad")
             REQUIRE(j == 2 * std::size(data));
         }
     }
+    std::filesystem::remove(filepath);
 }

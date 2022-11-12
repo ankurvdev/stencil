@@ -56,9 +56,7 @@ struct IStrmReader
         size_t      size = read<uint32_t>();
         std::string str(size, 0);
         _istrm.read(reinterpret_cast<char*>(str.data()), static_cast<std::streamsize>(size));
-        if (size == 0 || str[0] == '\0') { 
-            std::cerr << "Seems to be an invalid string";
-        }
+        // if (size == 0 || str[0] == '\0') { std::cerr << "Seems to be an invalid string"; }
         if (_istrm.eof()) throw std::logic_error("Stream terminated");
         return shared_string::make(std::move(str));
     }
@@ -72,9 +70,9 @@ struct BinaryTransactionSerDes
     {
         if constexpr (ConceptTransactionForIndexable<T> || ConceptTransactionForIterable<T>)
         {
-            using ElemType = typename Stencil::TransactionTraits<T>::ElemType;
+            // using ElemType = typename Stencil::TransactionTraits<T>::ElemType;
 
-            txn.VisitChanges([&](auto const& key, uint8_t const& mutator, [[maybe_unused]] auto const& mutatordata, auto& subtxn) {
+            txn.VisitChanges([&](auto const& key, uint8_t const& mutator, [[maybe_unused]] uint32_t const& mutatordata, auto& subtxn) {
                 writer << static_cast<uint8_t>(mutator);
                 Stencil::SerDes<std::remove_cvref_t<decltype(key)>, ProtocolBinary>::Write(writer, key);
                 switch (mutator)
@@ -162,8 +160,8 @@ struct BinaryTransactionSerDes
                 break;
                 case 2:    // List-remove
                 {
-                    uint32_t mutatordata;
-                    Stencil::SerDes<uint32_t, ProtocolBinary>::Read(mutatordata, reader);
+                    // uint32_t mutatordata;
+                    // Stencil::SerDes<uint32_t, ProtocolBinary>::Read(mutatordata, reader);
                     _ListApplicator<T>::Remove(txn, key);
                 }
                 break;
@@ -191,8 +189,8 @@ struct BinaryTransactionSerDes
         {
             for (auto mutator = reader.read<uint8_t>(); mutator != std::numeric_limits<uint8_t>::max(); mutator = reader.read<uint8_t>())
             {
-                using ElemType = typename Stencil::TransactionTraits<T>::ElemType;
-                using TKey     = typename Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::ElemType>::Key;
+                // using ElemType = typename Stencil::TransactionTraits<T>::ElemType;
+                using TKey = typename Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::ElemType>::Key;
                 TKey key;
                 Stencil::SerDes<TKey, ProtocolBinary>::Read(key, reader);
 

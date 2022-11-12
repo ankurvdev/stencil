@@ -3,11 +3,11 @@ set(stencil_INCLUDE_PATH "${CMAKE_CURRENT_LIST_DIR}/../include" CACHE PATH "Sten
 
 find_package(TestCommon REQUIRED MODULE)
 
-file(GLOB resfiles "${CMAKE_CURRENT_LIST_DIR}/../tests/testdata/*")
+file(GLOB test_data_files CONFIGURE_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/../tests/testdata/*")
 file(GLOB pidlfiles "${CMAKE_CURRENT_LIST_DIR}/../tests/*.pidl")
 
 add_stencil_library(TARGET codegen IDLS ${pidlfiles})
-add_resource_library(TARGET testdata RESOURCES ${resfiles} ${pidlfiles})
+add_resource_library(TARGET testdata RESOURCES ${test_data_files} ${pidlfiles})
 
 add_executable(codegen_runtime_tests
     "${CMAKE_CURRENT_LIST_DIR}/../tests/CodegenRuntime/Test_Codegen_CLOpts.cpp"

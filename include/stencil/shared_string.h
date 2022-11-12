@@ -186,9 +186,9 @@ inline shared_string operator+(const std::string& str1, const shared_string& str
 namespace std
 {
 
-template <typename T> struct std::hash<shared_stringT<T>>
+template <typename T> struct hash<shared_stringT<T>>
 {
-    size_t operator()(shared_stringT<T> const& str) const { return std::hash<shared_stringT<T>::TString>{}(str.str()); }
+    size_t operator()(shared_stringT<T> const& str) const { return std::hash<typename shared_stringT<T>::TString>{}(str.str()); }
 };
 
 }    // namespace std

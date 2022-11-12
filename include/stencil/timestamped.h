@@ -28,7 +28,10 @@ template <typename T> struct TimestampedT
     time_point created = std::chrono::system_clock::now();
 #endif
     public:
-    void UpdateTimestamp_() { lastmodified = std::chrono::system_clock::now(); }
+    static void UpdateTimestamp(T& elem)
+    {
+        if constexpr (std::is_base_of_v<TimestampedT<T>, T>) { elem.lastmodified = std::chrono::system_clock::now(); }
+    }
 
     Timestamp lastmodified;
 };

@@ -163,7 +163,7 @@ endif()
 if (BUILD_TESTING)
     enable_testing()
     find_package(TestCommon REQUIRED MODULE)
-    file(GLOB resfiles tests/testdata/*)
+    file(GLOB resfiles CONFIGURE_DEPENDS tests/testdata/*)
     file(GLOB pidlfiles tests/*.pidl)
 
     add_executable(codegen_tests

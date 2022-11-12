@@ -252,7 +252,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
     {
         if (IsChanged())
         {
-            if constexpr (std::is_base_of_v<Stencil::TimestampedT<ElemType>, ElemType>) { _elem.UpdateTimestamp_(); }
+            Stencil::TimestampedT<ElemType>::UpdateTimestamp(_elem);
             _container.NotifyElementEdited_(_containerState);
         }
     }
@@ -272,14 +272,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
     void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
     {
         _MarkFieldAssigned(elemTxnState.field);
-        if constexpr (std::is_base_of_v<Stencil::OptionalPropsT<ElemType>, ElemType>)
-        {
-            if (!_elem.IsValid(elemTxnState.field))
-            {
-                _elem.MarkValid(elemTxnState.field);
-                return;
-            }
-        }
+        Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
     }
 
     void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
