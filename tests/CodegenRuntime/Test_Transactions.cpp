@@ -13,6 +13,16 @@ static TransactionNestObject CreateNestedObjectTransaction(Objects::NestedObject
     return Stencil::CreateRootTransaction<Objects::NestedObject>(obj);
 }
 
+template <typename T> bool TestObjEqual(T const& obj1, T const& obj2)
+{
+    return TestCommon::JsonStringEqual(Stencil::Json::Stringify(obj1), Stencil::Json::Stringify(obj2));
+}
+
+template <typename T> bool TestObjEqual(T const& obj1, std::string const& snapshot)
+{
+    return TestCommon::JsonStringEqual(Stencil::Json::Stringify(obj1), snapshot);
+}
+
 template <typename T> std::string SerDesSer(T const& obj)
 {
     auto str  = Stencil::Json::Stringify(obj);
@@ -72,25 +82,25 @@ struct TestReplay
 
         auto txn1str = Stencil::StringTransactionSerDes::Deserialize(txn1);
         // if (_debug) CHECK(txn1str == _expected_txn1str[index]);
-        CHECK(Stencil::Json::Stringify(obj1) == snapshot1);                       // Check deserialization doesnt change anything
+        CHECK(TestObjEqual(obj1, snapshot1));                                     // Check deserialization doesnt change anything
         CHECK(Stencil::StringTransactionSerDes::Deserialize(txn1) == txn1str);    // Check repeat deserialization produces same output
 
         auto txn2str = Stencil::StringTransactionSerDes::Deserialize(txn2);
         // if (_debug) CHECK(txn2str == _expected_txn2str[index]);
-        CHECK(Stencil::Json::Stringify(obj2) == snapshot2);
+        CHECK(TestObjEqual(obj2, snapshot2));
         CHECK(Stencil::StringTransactionSerDes::Deserialize(txn2) == txn2str);
 
         auto txn1bin = BinTxnSerialize(txn1);
         // if (_debug) CHECK(txn1bin == _expected_txn1bin[index]);
-        CHECK(Stencil::Json::Stringify(obj1) == snapshot1);
+        CHECK(TestObjEqual(obj1, snapshot1));
         CHECK(BinTxnSerialize(txn1) == txn1bin);
 
         auto txn2bin = BinTxnSerialize(txn2);
         // if (_debug) CHECK(txn2bin == _expected_txn2bin[index]);
-        CHECK(Stencil::Json::Stringify(obj2) == snapshot2);
+        CHECK(TestObjEqual(obj2, snapshot2));
         CHECK(BinTxnSerialize(txn2) == txn2bin);
 
-        CHECK(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj2));
+        CHECK(TestObjEqual(obj1, obj2));
         _json_snapshots.push_back(snapshot1);
         _txn1str.push_back(txn1str);
         _txn2str.push_back(txn2str);
@@ -103,13 +113,13 @@ struct TestReplay
                 Objects::NestedObject obj3{};
                 auto                  txn3 = CreateNestedObjectTransaction(obj3);
                 for (auto& c : _txn1str) { Stencil::StringTransactionSerDes::Apply(txn3, c); }
-                CHECK(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj3));
+                CHECK(TestObjEqual(obj1, obj3));
             }
             {
                 Objects::NestedObject obj3{};
                 auto                  txn3 = CreateNestedObjectTransaction(obj3);
                 Stencil::StringTransactionSerDes::Apply(txn3, _txn2str.back());
-                CHECK(TestCommon::JsonStringEqual(Stencil::Json::Stringify(obj2), Stencil::Json::Stringify(obj3)));
+                CHECK(TestObjEqual(obj2, obj3));
                 // unordered map can sometime change ordering
                 // CHECK(Stencil::Json::Stringify(obj) == Stencil::Json::Stringify(obj3));
             }
@@ -118,13 +128,13 @@ struct TestReplay
                 Objects::NestedObject obj3{};
                 auto                  txn3 = CreateNestedObjectTransaction(obj3);
                 for (auto& c : _txn1bin) { BinTxnApply(txn3, c); }
-                CHECK(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj3));
+                CHECK(TestObjEqual(obj1, obj3));
             }
             {
                 Objects::NestedObject obj3{};
                 auto                  txn3 = CreateNestedObjectTransaction(obj3);
                 BinTxnApply(txn3, _txn2bin.back());
-                CHECK(TestCommon::JsonStringEqual(Stencil::Json::Stringify(obj2), Stencil::Json::Stringify(obj3)));
+                CHECK(TestObjEqual(obj2, obj3));
                 // unordered map can sometime change ordering
                 // CHECK(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj3));
             }
