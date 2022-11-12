@@ -29,7 +29,7 @@ static void RunTest(std::vector<std::string> const& pidlfiles)
         {
             auto          fname = path.filename().string();
             std::ifstream ifs(path);
-            TestCommon::CheckOutputAgainstBinResource(ifs, fname);
+            TestCommon::CheckOutputAgainstStrResource(ifs, fname);
         }
     }
 }

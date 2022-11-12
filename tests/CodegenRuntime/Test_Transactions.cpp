@@ -41,8 +41,8 @@ struct TestReplay
     {
         auto delta    = Test([&](auto& txn) { Stencil::StringTransactionSerDes::Apply(txn, txndata); });
         auto expected = expectedIn.size() == 0 ? txndata : expectedIn;
-        if (expected[expected.size() - 1] == ';') { REQUIRE(delta == expected); }
-        else { REQUIRE(delta.substr(0, delta.size() - 1) == expected); }
+        if (expected[expected.size() - 1] == ';') { CHECK(delta == expected); }
+        else { CHECK(delta.substr(0, delta.size() - 1) == expected); }
     }
 
     static std::string BinTxnSerialize(TransactionNestObject& txn)
@@ -57,8 +57,8 @@ struct TestReplay
         std::istringstream istrm(txnbin);
         Stencil::BinaryTransactionSerDes::Apply(txn, istrm);
         auto offset = static_cast<unsigned>(istrm.tellg());
-        REQUIRE(offset == txnbin.size());
-        REQUIRE(!istrm.eof());
+        CHECK(offset == txnbin.size());
+        CHECK(!istrm.eof());
     }
 
     template <typename TLambda> std::string Test(TLambda&& lambda)
@@ -72,26 +72,26 @@ struct TestReplay
         auto snapshot2 = Stencil::Json::Stringify(obj2);
 
         auto txn1str = Stencil::StringTransactionSerDes::Deserialize(txn1);
-        // if (_debug) REQUIRE(txn1str == _expected_txn1str[index]);
-        REQUIRE(Stencil::Json::Stringify(obj1) == snapshot1);                       // Check deserialization doesnt change anything
-        REQUIRE(Stencil::StringTransactionSerDes::Deserialize(txn1) == txn1str);    // Check repeat deserialization produces same output
+        // if (_debug) CHECK(txn1str == _expected_txn1str[index]);
+        CHECK(Stencil::Json::Stringify(obj1) == snapshot1);                       // Check deserialization doesnt change anything
+        CHECK(Stencil::StringTransactionSerDes::Deserialize(txn1) == txn1str);    // Check repeat deserialization produces same output
 
         auto txn2str = Stencil::StringTransactionSerDes::Deserialize(txn2);
-        // if (_debug) REQUIRE(txn2str == _expected_txn2str[index]);
-        REQUIRE(Stencil::Json::Stringify(obj2) == snapshot2);
-        REQUIRE(Stencil::StringTransactionSerDes::Deserialize(txn2) == txn2str);
+        // if (_debug) CHECK(txn2str == _expected_txn2str[index]);
+        CHECK(Stencil::Json::Stringify(obj2) == snapshot2);
+        CHECK(Stencil::StringTransactionSerDes::Deserialize(txn2) == txn2str);
 
         auto txn1bin = BinTxnSerialize(txn1);
-        // if (_debug) REQUIRE(txn1bin == _expected_txn1bin[index]);
-        REQUIRE(Stencil::Json::Stringify(obj1) == snapshot1);
-        REQUIRE(BinTxnSerialize(txn1) == txn1bin);
+        // if (_debug) CHECK(txn1bin == _expected_txn1bin[index]);
+        CHECK(Stencil::Json::Stringify(obj1) == snapshot1);
+        CHECK(BinTxnSerialize(txn1) == txn1bin);
 
         auto txn2bin = BinTxnSerialize(txn2);
-        // if (_debug) REQUIRE(txn2bin == _expected_txn2bin[index]);
-        REQUIRE(Stencil::Json::Stringify(obj2) == snapshot2);
-        REQUIRE(BinTxnSerialize(txn2) == txn2bin);
+        // if (_debug) CHECK(txn2bin == _expected_txn2bin[index]);
+        CHECK(Stencil::Json::Stringify(obj2) == snapshot2);
+        CHECK(BinTxnSerialize(txn2) == txn2bin);
 
-        REQUIRE(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj2));
+        CHECK(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj2));
         _json_snapshots.push_back(snapshot1);
         _txn1str.push_back(txn1str);
         _txn2str.push_back(txn2str);
@@ -104,28 +104,28 @@ struct TestReplay
                 Objects::NestedObject obj3{};
                 auto                  txn3 = CreateNestedObjectTransaction(obj3);
                 for (auto& c : _txn1str) { Stencil::StringTransactionSerDes::Apply(txn3, c); }
-                REQUIRE(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj3));
+                CHECK(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj3));
             }
             {
                 Objects::NestedObject obj3{};
                 auto                  txn3 = CreateNestedObjectTransaction(obj3);
                 Stencil::StringTransactionSerDes::Apply(txn3, _txn2str.back());
-                REQUIRE(SerDesSer(obj2) == SerDesSer(obj3));    // unordered map can sometime change ordering
-                // REQUIRE(Stencil::Json::Stringify(obj) == Stencil::Json::Stringify(obj3));
+                CHECK(SerDesSer(obj2) == SerDesSer(obj3));    // unordered map can sometime change ordering
+                // CHECK(Stencil::Json::Stringify(obj) == Stencil::Json::Stringify(obj3));
             }
 
             {
                 Objects::NestedObject obj3{};
                 auto                  txn3 = CreateNestedObjectTransaction(obj3);
                 for (auto& c : _txn1bin) { BinTxnApply(txn3, c); }
-                REQUIRE(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj3));
+                CHECK(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj3));
             }
             {
                 Objects::NestedObject obj3{};
                 auto                  txn3 = CreateNestedObjectTransaction(obj3);
                 BinTxnApply(txn3, _txn2bin.back());
-                REQUIRE(SerDesSer(obj2) == SerDesSer(obj3));    // unordered map can sometime change ordering
-                // REQUIRE(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj3));
+                CHECK(SerDesSer(obj2) == SerDesSer(obj3));    // unordered map can sometime change ordering
+                // CHECK(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj3));
             }
         }
         return txn1str;
@@ -217,10 +217,10 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
                 t3 = obj1.obj1.lastmodified;
             }
             t4 = obj1.lastmodified;
-            REQUIRE(t1 == t2);
-            REQUIRE(t1 < t3);
-            REQUIRE(t1 < t4);
-            REQUIRE(t3 < t4);
+            CHECK(t1 == t2);
+            CHECK(t1 < t3);
+            CHECK(t1 < t4);
+            CHECK(t3 < t4);
 
             {
                 // No update on false edits
@@ -228,7 +228,7 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
                 txn.obj1().set_val1(1000);
             }
             t4 = obj1.obj1.lastmodified;
-            REQUIRE(t3 == t4);
+            CHECK(t3 == t4);
         }
         {
             // List edits
@@ -240,13 +240,13 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
                 txn.list1().add_listobj(std::move(lobj1));
             }
             t3 = obj1.lastmodified;
-            REQUIRE(t2 < t3);
+            CHECK(t2 < t3);
             {
                 auto txn = CreateNestedObjectTransaction(obj1);
                 txn.list1().edit_listobj(0).set_value(200);
             }
             t4 = obj1.lastmodified;
-            REQUIRE(t3 < t4);
+            CHECK(t3 < t4);
         }
     }
 }
@@ -256,7 +256,7 @@ struct UnorderedMapTester
     TestReplay    replay;
     size_t        _counter{0};
     int32_t       create_int32() { return static_cast<int32_t>(++_counter); }
-    uint8_t       create_uint8() { return static_cast<int32_t>(++_counter); }
+    uint8_t       create_uint8() { return static_cast<uint8_t>(++_counter); }
     uint32_t      create_uint32() { return static_cast<uint32_t>(++_counter); }
     shared_string create_string() { return shared_string(fmt::format("str{}", static_cast<uint32_t>(++_counter))); }
     double        create_double()
@@ -502,22 +502,22 @@ TEST_CASE("Transactions unordered_map dict_value", "[transaction]")
         for (auto& key : keylist)
         {
             if (done.count(key) > 0) continue;
-            REQUIRE(tester.dict_value_create(key) != "");
-            REQUIRE(tester.dict_value_edit(key) != "");
-            REQUIRE(tester.dict_value_edit(key) != "");
-            REQUIRE(tester.dict_value_destroy(key) != "");
-            REQUIRE(tester.dict_value_create(key) != "");
-            REQUIRE(tester.dict_value_create_edit_destroy(key) != "");
-            REQUIRE(tester.dict_value_create_edit_destroy2(key) != "");
+            CHECK(tester.dict_value_create(key) != "");
+            CHECK(tester.dict_value_edit(key) != "");
+            CHECK(tester.dict_value_edit(key) != "");
+            CHECK(tester.dict_value_destroy(key) != "");
+            CHECK(tester.dict_value_create(key) != "");
+            CHECK(tester.dict_value_create_edit_destroy(key) != "");
+            CHECK(tester.dict_value_create_edit_destroy2(key) != "");
         }
-        REQUIRE(tester.dict_value_create(key1) != "");
-        REQUIRE(tester.dict_value_edit(key1) != "");
+        CHECK(tester.dict_value_create(key1) != "");
+        CHECK(tester.dict_value_edit(key1) != "");
         done.insert(key1);
     }
 
-    for (auto key : keylist) { REQUIRE(tester.dict_value_edit(key) != ""); }
+    for (auto key : keylist) { CHECK(tester.dict_value_edit(key) != ""); }
 
-    for (auto key : keylist) { REQUIRE(tester.dict_value_destroy(key) != ""); }
+    for (auto key : keylist) { CHECK(tester.dict_value_destroy(key) != ""); }
 }
 
 TEST_CASE("Transactions unordered_map dict_obj")
@@ -530,21 +530,21 @@ TEST_CASE("Transactions unordered_map dict_obj")
         for (auto& key : keylist)
         {
             if (done.count(key) > 0) continue;
-            REQUIRE(tester.dict_obj_create(key) != "");
-            REQUIRE(tester.dict_obj_edit(key) != "");
-            REQUIRE(tester.dict_obj_edit(key) != "");
-            REQUIRE(tester.dict_obj_destroy(key) != "");
-            REQUIRE(tester.dict_obj_create(key) != "");
-            REQUIRE(tester.dict_obj_create_edit_destroy(key) != "");
-            REQUIRE(tester.dict_obj_create_edit_destroy2(key) != "");
+            CHECK(tester.dict_obj_create(key) != "");
+            CHECK(tester.dict_obj_edit(key) != "");
+            CHECK(tester.dict_obj_edit(key) != "");
+            CHECK(tester.dict_obj_destroy(key) != "");
+            CHECK(tester.dict_obj_create(key) != "");
+            CHECK(tester.dict_obj_create_edit_destroy(key) != "");
+            CHECK(tester.dict_obj_create_edit_destroy2(key) != "");
         }
-        REQUIRE(tester.dict_obj_create(key1) != "");
-        REQUIRE(tester.dict_obj_edit(key1) != "");
+        CHECK(tester.dict_obj_create(key1) != "");
+        CHECK(tester.dict_obj_edit(key1) != "");
         done.insert(key1);
     }
-    for (auto key : keylist) { REQUIRE(tester.dict_obj_edit(key) != ""); }
+    for (auto key : keylist) { CHECK(tester.dict_obj_edit(key) != ""); }
 
-    for (auto key : keylist) { REQUIRE(tester.dict_obj_destroy(key) != ""); }
+    for (auto key : keylist) { CHECK(tester.dict_obj_destroy(key) != ""); }
 }
 
 TEST_CASE("Transactions unordered_map timestamp update : create edit destroy")
@@ -563,7 +563,7 @@ TEST_CASE("Transactions_Bugs", "[transaction]")
         auto txn = CreateNestedObjectTransaction(obj1);
         txn.list1().edit_listobj(0).obj1().set_val1(1);
         // txn.Flush();
-        REQUIRE(txn.list1().IsChanged());
-        REQUIRE(txn.IsChanged());
+        CHECK(txn.list1().IsChanged());
+        CHECK(txn.IsChanged());
     }
 }

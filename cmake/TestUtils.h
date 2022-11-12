@@ -128,7 +128,7 @@ inline void PrintDiff(std::vector<std::string> const& actualstring, std::vector<
         d.printUnifiedFormat();    // print a difference as Unified Format.
     }
 }
-
+/*
 inline void CompareStrLines(std::vector<std::string> const& actualstring,
                             std::vector<std::string> const& expectedstring,
                             std::string_view const&         resname = "test")
@@ -148,10 +148,10 @@ inline void CompareBinLines(std::vector<std::string> const& actualstring,
     {
         PrintDiff(actualstring, expectedstring);
         auto outf = WriteBinResourse(actualstring, resname);
-        FAIL(fmt::format("Comparison Failed: Output: \n{}", outf.string()));
+        FAIL_CHECK(fmt::format("Comparison Failed: Output: \n{}", outf.string()));
     }
 }
-
+*/
 #if defined HAVE_EMBEDRESOURCE
 
 inline std::string GeneratePrefixFromTestName()
@@ -181,7 +181,7 @@ struct ResourceFileManager
         auto it = _openedfiles.find(testresname);
         if (it != _openedfiles.end()) { return it->second; }
         auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
-        for (auto const& r : resourceCollection)
+        for (auto const r : resourceCollection)
         {
             auto resname = wstring_to_string(r.name());
             if (resname == testresname || resname == name)
@@ -206,7 +206,7 @@ inline std::vector<std::string> LoadStrResource(std::string_view const& name)
     auto testresname = GeneratePrefixFromTestName() + std::string(name) + ".txt";
 
     auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
-    for (auto const& r : resourceCollection)
+    for (auto const r : resourceCollection)
     {
         auto resname = wstring_to_string(r.name());
         if (resname == testresname || resname == name)
@@ -224,7 +224,7 @@ inline std::vector<std::string> LoadBinResource(std::string_view const& name)
     auto testresname = GeneratePrefixFromTestName() + std::string(name) + ".bin";
 
     auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
-    for (auto const& r : resourceCollection)
+    for (auto const r : resourceCollection)
     {
         auto resname = wstring_to_string(r.name());
         if (resname == testresname || resname == name)
@@ -287,7 +287,7 @@ inline void CheckOutputAgainstStrResource(std::vector<std::string> const& actual
 {
     auto testresname = fmt::format("{}{}", GeneratePrefixFromTestName(), resourcename);
     auto expected    = actual;
-    for (auto const& r : LOAD_RESOURCE_COLLECTION(testdata))
+    for (auto const r : LOAD_RESOURCE_COLLECTION(testdata))
     {
         auto resname = wstring_to_string(r.name());
         if (resname.find(testresname) == std::string::npos) continue;
@@ -297,14 +297,15 @@ inline void CheckOutputAgainstStrResource(std::vector<std::string> const& actual
         if (actual == expected) return;
     }
     PrintDiff(actual, expected);
-    WriteStrResourse(actual, resourcename);
+    auto outf = WriteStrResourse(actual, testresname);
+    FAIL_CHECK(fmt::format("Comparison Failed: Output: \n{}", outf.string()));
 }
 
 inline void CheckOutputAgainstBinResource(std::vector<std::string> const& actual, std::string_view const& resourcename)
 {
     auto testresname = fmt::format("{}{}", GeneratePrefixFromTestName(), resourcename);
     auto expected    = actual;
-    for (auto const& r : LOAD_RESOURCE_COLLECTION(testdata))
+    for (auto const r : LOAD_RESOURCE_COLLECTION(testdata))
     {
         auto resname = wstring_to_string(r.name());
         if (resname.find(testresname) == std::string::npos) continue;
@@ -314,7 +315,13 @@ inline void CheckOutputAgainstBinResource(std::vector<std::string> const& actual
         if (actual == expected) return;
     }
     PrintDiff(actual, expected);
-    WriteBinResourse(actual, resourcename);
+    auto outf = WriteBinResourse(actual, testresname);
+    FAIL_CHECK(fmt::format("Comparison Failed: Output: \n{}", outf.string()));
+}
+
+inline void CheckOutputAgainstStrResource(std::istream& instream, std::string_view const& resourcename)
+{
+    CheckOutputAgainstStrResource(ReadStrStream(instream), resourcename);
 }
 
 inline void CheckOutputAgainstBinResource(std::istream& instream, std::string_view const& resourcename)
@@ -325,7 +332,7 @@ inline void CheckOutputAgainstBinResource(std::istream& instream, std::string_vi
 
     auto              testresname = fmt::format("{}{}", GeneratePrefixFromTestName(), resourcename);
     std::vector<char> expecdted;
-    for (auto const& r : LOAD_RESOURCE_COLLECTION(testdata))
+    for (auto const r : LOAD_RESOURCE_COLLECTION(testdata))
     {
         auto resname = wstring_to_string(r.name());
         if (resname.find(testresname) == std::string::npos) continue;
@@ -334,8 +341,8 @@ inline void CheckOutputAgainstBinResource(std::istream& instream, std::string_vi
     }
 
     // PrintDiff(actual, expected);
-    auto outf = WriteStrmResourse(actual, resourcename);
-    FAIL(fmt::format("Comparison Failed: Output: \n{}", outf.string()));
+    auto outf = WriteStrmResourse(actual, testresname);
+    FAIL_CHECK(fmt::format("Comparison Failed: Output: \n{}", outf.string()));
 }
 }
 #endif
