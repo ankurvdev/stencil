@@ -1,9 +1,19 @@
 #pragma once
-#if defined HAVE_EMBEDRESOURCE
+#include "CommonMacros.h"
+
+#if ((defined HAVE_EMBEDRESOURCE) && HAVE_EMBEDRESOURCE)
 #include <EmbeddedResource.h>
 #endif
 
-#include "CommonMacros.h"
+#if ((defined HAVE_RAPIDJSON) && HAVE_RAPIDJSON)
+SUPPRESS_WARNINGS_START
+SUPPRESS_STL_WARNINGS
+SUPPRESS_FMT_WARNINGS
+#include <rapidjson/document.h>
+#include <rapidjson/rapidjson.h>
+SUPPRESS_WARNINGS_END
+#endif
+
 
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
@@ -344,5 +354,17 @@ inline void CheckOutputAgainstBinResource(std::istream& instream, std::string_vi
     auto outf = WriteStrmResourse(actual, testresname);
     FAIL_CHECK(fmt::format("Comparison Failed: Output: \n{}", outf.string()));
 }
-}
 #endif
+
+inline bool JsonStringEqual([[maybe_unused]] std::string const& lhs, [[maybe_unused]] std::string const& rhs)
+{
+#if ((defined HAVE_RAPIDJSON) && HAVE_RAPIDJSON)
+    rapidjson::Document doclhs, docrhs;
+    doclhs.Parse(lhs.c_str());
+    docrhs.Parse(rhs.c_str());
+    return doclhs == docrhs;
+#else
+    throw std::logic_error("RapidJson needed");
+#endif
+}
+}    // namespace TestCommon

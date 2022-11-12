@@ -109,7 +109,8 @@ struct TestReplay
                 Objects::NestedObject obj3{};
                 auto                  txn3 = CreateNestedObjectTransaction(obj3);
                 Stencil::StringTransactionSerDes::Apply(txn3, _txn2str.back());
-                CHECK(SerDesSer(obj2) == SerDesSer(obj3));    // unordered map can sometime change ordering
+                CHECK(TestCommon::JsonStringEqual(Stencil::Json::Stringify(obj2), Stencil::Json::Stringify(obj3)));
+                // unordered map can sometime change ordering
                 // CHECK(Stencil::Json::Stringify(obj) == Stencil::Json::Stringify(obj3));
             }
 
@@ -123,7 +124,8 @@ struct TestReplay
                 Objects::NestedObject obj3{};
                 auto                  txn3 = CreateNestedObjectTransaction(obj3);
                 BinTxnApply(txn3, _txn2bin.back());
-                CHECK(SerDesSer(obj2) == SerDesSer(obj3));    // unordered map can sometime change ordering
+                CHECK(TestCommon::JsonStringEqual(Stencil::Json::Stringify(obj2), Stencil::Json::Stringify(obj3)));
+                // unordered map can sometime change ordering
                 // CHECK(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj3));
             }
         }
