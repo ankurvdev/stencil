@@ -1,0 +1,2637 @@
+#pragma once
+#include <stencil/stencil.h>
+
+// SECTION START: DECLARATIONS
+#if true
+
+namespace Catalog
+{
+struct ImdbInfo;
+struct FolderInfo;
+struct Source;
+struct ContentInfo;
+struct Folder;
+struct Data;
+struct ScanRequest;
+struct DataStore;
+}    // namespace Catalog
+
+template <> struct Stencil::TypeTraits<Catalog::ImdbInfo>;
+template <> struct Stencil::TypeTraits<Catalog::FolderInfo>;
+template <> struct Stencil::TypeTraits<Catalog::Source>;
+template <> struct Stencil::TypeTraits<Catalog::ContentInfo>;
+template <> struct Stencil::TypeTraits<Catalog::Folder>;
+template <> struct Stencil::TypeTraits<Catalog::Data>;
+template <> struct Stencil::TypeTraits<Catalog::ScanRequest>;
+template <> struct Stencil::TypeTraits<Catalog::DataStore>;
+#endif
+// SECTION END: DECLARATIONS
+
+// SECTION START: Definitions
+#if true
+namespace Catalog
+{
+struct ImdbInfo :
+    public Stencil::StructT<ImdbInfo>
+{
+    uint64_t imdbId = uint64_t{/*Initial Value*/};
+    uint8_t type = uint8_t{/*Initial Value*/};
+    uint8_t ratingM10 = uint8_t{/*Initial Value*/};
+    Stencil::Timestamp firstReleased = Stencil::Timestamp{/*Initial Value*/};
+    uint64_t votes = uint64_t{/*Initial Value*/};
+    shared_string title = shared_string{/*Initial Value*/};
+    shared_string certificate = shared_string{/*Initial Value*/};
+    shared_string plot = shared_string{/*Initial Value*/};
+    uint16_t season = uint16_t{/*Initial Value*/};
+    uint16_t episode = uint16_t{/*Initial Value*/};
+    uint64_t showId = uint64_t{/*Initial Value*/};
+};
+struct FolderInfo :
+    public ::Database2::ObjectT<::Catalog::DataStore,::Catalog::FolderInfo>,
+    public Stencil::StructT<FolderInfo>
+{
+};
+struct Source :
+    public ::Database2::ObjectT<::Catalog::DataStore,::Catalog::Source>,
+    public Stencil::StructT<Source>
+{
+    char type = char{/*Initial Value*/};
+    shared_string path = shared_string{/*Initial Value*/};
+    Stencil::Timestamp added = Stencil::Timestamp{/*Initial Value*/};
+    Stencil::Timestamp last_checked = Stencil::Timestamp{/*Initial Value*/};
+    uint32_t frequencyInSecs = uint32_t{/*Initial Value*/};
+    shared_string status_info = shared_string{/*Initial Value*/};
+};
+struct ContentInfo :
+    public ::Database2::ObjectT<::Catalog::DataStore,::Catalog::ContentInfo>,
+    public Stencil::StructT<ContentInfo>
+{
+    char type = char{/*Initial Value*/};
+    Stencil::Ref<::Catalog::Source> source = Stencil::Ref<::Catalog::Source>{/*Initial Value*/};
+    Stencil::Ref<::Catalog::FolderInfo> folder = Stencil::Ref<::Catalog::FolderInfo>{/*Initial Value*/};
+    shared_string path = shared_string{/*Initial Value*/};
+    uint64_t size = uint64_t{/*Initial Value*/};
+    Stencil::Timestamp added = Stencil::Timestamp{/*Initial Value*/};
+    Stencil::Timestamp modified = Stencil::Timestamp{/*Initial Value*/};
+    shared_string status_info = shared_string{/*Initial Value*/};
+};
+struct Folder :
+    public Stencil::StructT<Folder>
+{
+    Stencil::Ref<::Catalog::FolderInfo> info = Stencil::Ref<::Catalog::FolderInfo>{/*Initial Value*/};
+    std::vector<Stencil::Ref<::Catalog::ContentInfo>> contents = std::vector<Stencil::Ref<::Catalog::ContentInfo>>{/*Initial Value*/};
+};
+struct Data :
+    public Stencil::StructT<Data>
+{
+    Stencil::RefMap<::Catalog::ContentInfo> contentinfo = Stencil::RefMap<::Catalog::ContentInfo>{/*Initial Value*/};
+    Stencil::RefMap<::Catalog::Source> sources = Stencil::RefMap<::Catalog::Source>{/*Initial Value*/};
+    Stencil::RefMap<::Catalog::FolderInfo> folderinfo = Stencil::RefMap<::Catalog::FolderInfo>{/*Initial Value*/};
+    shared_tree<::Catalog::Folder> rootfolders = shared_tree<::Catalog::Folder>{/*Initial Value*/};
+};
+struct ScanRequest :
+    public Stencil::StructT<ScanRequest>
+{
+    Stencil::Ref<::Catalog::Source> source = Stencil::Ref<::Catalog::Source>{/*Initial Value*/};
+    Stencil::Timestamp scanned_at = Stencil::Timestamp{/*Initial Value*/};
+    uint32_t status_code = uint32_t{/*Initial Value*/};
+    shared_string status_info = shared_string{/*Initial Value*/};
+};
+struct DataStore :
+    public ::Database2::OwnerT<::Catalog::DataStore,::Catalog::Source>,
+    public ::Database2::OwnerT<::Catalog::DataStore,::Catalog::ContentInfo>,
+    public ::Database2::OwnerT<::Catalog::DataStore,::Catalog::FolderInfo>,
+    public Stencil::StructT<DataStore>
+{
+};
+}    // namespace Catalog
+#endif
+
+// SECTION END: Definitions
+
+// SECTION START: Template specializations
+#if true
+
+// SECTION:
+
+template <> struct Stencil::TypeTraits<Catalog::ImdbInfo>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<Catalog::ImdbInfo>
+{
+    enum class Fields
+    {
+        Invalid,
+        Field_imdbId
+,        Field_type
+,        Field_ratingM10
+,        Field_firstReleased
+,        Field_votes
+,        Field_title
+,        Field_certificate
+,        Field_plot
+,        Field_season
+,        Field_episode
+,        Field_showId
+    };
+
+    using Key = Fields;
+};
+
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Catalog::ImdbInfo>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<Catalog::ImdbInfo>::Fields;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        "imdbId"
+,        "type"
+,        "ratingM10"
+,        "firstReleased"
+,        "votes"
+,        "title"
+,        "certificate"
+,        "plot"
+,        "season"
+,        "episode"
+,        "showId"
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraitsForIndexable<Catalog::ImdbInfo>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<Catalog::ImdbInfo>::Fields>(index);
+    }
+};
+
+template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Catalog::ImdbInfo, TContainer>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<Catalog::ImdbInfo>::Fields;
+
+    struct ElemTxnState
+    {
+        Fields field;
+    };
+
+    struct TxnStateForElem
+    {
+        ElemTxnState imdbId = {Fields::Field_imdbId};
+        ElemTxnState type = {Fields::Field_type};
+        ElemTxnState ratingM10 = {Fields::Field_ratingM10};
+        ElemTxnState firstReleased = {Fields::Field_firstReleased};
+        ElemTxnState votes = {Fields::Field_votes};
+        ElemTxnState title = {Fields::Field_title};
+        ElemTxnState certificate = {Fields::Field_certificate};
+        ElemTxnState plot = {Fields::Field_plot};
+        ElemTxnState season = {Fields::Field_season};
+        ElemTxnState episode = {Fields::Field_episode};
+        ElemTxnState showId = {Fields::Field_showId};
+    };
+
+    using Txn               = Stencil::Transaction<Catalog::ImdbInfo, TContainer>;
+    using ElemType          = Catalog::ImdbInfo;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using Transaction_imdbId = Stencil::Transaction<uint64_t, Txn>;
+    using Transaction_type = Stencil::Transaction<uint8_t, Txn>;
+    using Transaction_ratingM10 = Stencil::Transaction<uint8_t, Txn>;
+    using Transaction_firstReleased = Stencil::Transaction<Stencil::Timestamp, Txn>;
+    using Transaction_votes = Stencil::Transaction<uint64_t, Txn>;
+    using Transaction_title = Stencil::Transaction<shared_string, Txn>;
+    using Transaction_certificate = Stencil::Transaction<shared_string, Txn>;
+    using Transaction_plot = Stencil::Transaction<shared_string, Txn>;
+    using Transaction_season = Stencil::Transaction<uint16_t, Txn>;
+    using Transaction_episode = Stencil::Transaction<uint16_t, Txn>;
+    using Transaction_showId = Stencil::Transaction<uint64_t, Txn>;
+    struct TxnState
+    {
+        std::bitset<64> assigntracker;    // TODO1
+        std::bitset<64> edittracker;      // TODO1
+        typename Transaction_imdbId::TxnState imdbId{};
+        typename Transaction_type::TxnState type{};
+        typename Transaction_ratingM10::TxnState ratingM10{};
+        typename Transaction_firstReleased::TxnState firstReleased{};
+        typename Transaction_votes::TxnState votes{};
+        typename Transaction_title::TxnState title{};
+        typename Transaction_certificate::TxnState certificate{};
+        typename Transaction_plot::TxnState plot{};
+        typename Transaction_season::TxnState season{};
+        typename Transaction_episode::TxnState episode{};
+        typename Transaction_showId::TxnState showId{};
+    };
+
+    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~Transaction()
+    {
+        if (IsChanged())
+        {
+            Stencil::TimestampedT<ElemType>::UpdateTimestamp(_elem);
+            _container.NotifyElementEdited_(_containerState);
+        }
+    }
+
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
+
+    ElemType const& Elem() const { return _elem; }
+
+    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+
+    void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
+    {
+        _MarkFieldAssigned(elemTxnState.field);
+        Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
+    }
+
+    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+
+    bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
+    {
+        if (_IsFieldAssigned(Fields::Field_imdbId))
+        {
+            auto txn = imdbId();
+            lambda(Fields::Field_imdbId, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_imdbId))
+        {
+            auto txn = imdbId();
+            lambda(Fields::Field_imdbId, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_type))
+        {
+            auto txn = type();
+            lambda(Fields::Field_type, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_type))
+        {
+            auto txn = type();
+            lambda(Fields::Field_type, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_ratingM10))
+        {
+            auto txn = ratingM10();
+            lambda(Fields::Field_ratingM10, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_ratingM10))
+        {
+            auto txn = ratingM10();
+            lambda(Fields::Field_ratingM10, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_firstReleased))
+        {
+            auto txn = firstReleased();
+            lambda(Fields::Field_firstReleased, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_firstReleased))
+        {
+            auto txn = firstReleased();
+            lambda(Fields::Field_firstReleased, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_votes))
+        {
+            auto txn = votes();
+            lambda(Fields::Field_votes, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_votes))
+        {
+            auto txn = votes();
+            lambda(Fields::Field_votes, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_title))
+        {
+            auto txn = title();
+            lambda(Fields::Field_title, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_title))
+        {
+            auto txn = title();
+            lambda(Fields::Field_title, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_certificate))
+        {
+            auto txn = certificate();
+            lambda(Fields::Field_certificate, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_certificate))
+        {
+            auto txn = certificate();
+            lambda(Fields::Field_certificate, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_plot))
+        {
+            auto txn = plot();
+            lambda(Fields::Field_plot, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_plot))
+        {
+            auto txn = plot();
+            lambda(Fields::Field_plot, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_season))
+        {
+            auto txn = season();
+            lambda(Fields::Field_season, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_season))
+        {
+            auto txn = season();
+            lambda(Fields::Field_season, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_episode))
+        {
+            auto txn = episode();
+            lambda(Fields::Field_episode, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_episode))
+        {
+            auto txn = episode();
+            lambda(Fields::Field_episode, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_showId))
+        {
+            auto txn = showId();
+            lambda(Fields::Field_showId, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_showId))
+        {
+            auto txn = showId();
+            lambda(Fields::Field_showId, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    void Assign(ElemType&& elem)
+    {
+        // if (Stencil::AreEqual(_elem, elem)) return;
+        std::swap(_elem, elem);
+        _container.NotifyElementAssigned_(_containerState);
+    }
+
+    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
+    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
+
+    template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
+
+    private:
+    TxnStateForElem    _txnStateForElem{};
+    TxnState&          _elemState;
+    ContainerTxnState& _containerState;
+    TContainer&        _container;
+    ElemType&          _elem;
+
+    public:
+    auto imdbId()
+    {
+        return Stencil::CreateTransaction<Transaction_imdbId>(_elemState.imdbId, _txnStateForElem.imdbId, *this, _elem.imdbId);
+    }
+
+    auto type()
+    {
+        return Stencil::CreateTransaction<Transaction_type>(_elemState.type, _txnStateForElem.type, *this, _elem.type);
+    }
+
+    auto ratingM10()
+    {
+        return Stencil::CreateTransaction<Transaction_ratingM10>(_elemState.ratingM10, _txnStateForElem.ratingM10, *this, _elem.ratingM10);
+    }
+
+    auto firstReleased()
+    {
+        return Stencil::CreateTransaction<Transaction_firstReleased>(_elemState.firstReleased, _txnStateForElem.firstReleased, *this, _elem.firstReleased);
+    }
+
+    auto votes()
+    {
+        return Stencil::CreateTransaction<Transaction_votes>(_elemState.votes, _txnStateForElem.votes, *this, _elem.votes);
+    }
+
+    auto title()
+    {
+        return Stencil::CreateTransaction<Transaction_title>(_elemState.title, _txnStateForElem.title, *this, _elem.title);
+    }
+
+    auto certificate()
+    {
+        return Stencil::CreateTransaction<Transaction_certificate>(_elemState.certificate, _txnStateForElem.certificate, *this, _elem.certificate);
+    }
+
+    auto plot()
+    {
+        return Stencil::CreateTransaction<Transaction_plot>(_elemState.plot, _txnStateForElem.plot, *this, _elem.plot);
+    }
+
+    auto season()
+    {
+        return Stencil::CreateTransaction<Transaction_season>(_elemState.season, _txnStateForElem.season, *this, _elem.season);
+    }
+
+    auto episode()
+    {
+        return Stencil::CreateTransaction<Transaction_episode>(_elemState.episode, _txnStateForElem.episode, *this, _elem.episode);
+    }
+
+    auto showId()
+    {
+        return Stencil::CreateTransaction<Transaction_showId>(_elemState.showId, _txnStateForElem.showId, *this, _elem.showId);
+    }
+
+    void set_imdbId(uint64_t&& val)
+    {
+        auto subtxn = imdbId();
+        subtxn.Assign(std::forward<uint64_t>(val));
+    }
+
+    void set_type(uint8_t&& val)
+    {
+        auto subtxn = type();
+        subtxn.Assign(std::forward<uint8_t>(val));
+    }
+
+    void set_ratingM10(uint8_t&& val)
+    {
+        auto subtxn = ratingM10();
+        subtxn.Assign(std::forward<uint8_t>(val));
+    }
+
+    void set_firstReleased(Stencil::Timestamp&& val)
+    {
+        auto subtxn = firstReleased();
+        subtxn.Assign(std::forward<Stencil::Timestamp>(val));
+    }
+
+    void set_votes(uint64_t&& val)
+    {
+        auto subtxn = votes();
+        subtxn.Assign(std::forward<uint64_t>(val));
+    }
+
+    void set_title(shared_string&& val)
+    {
+        auto subtxn = title();
+        subtxn.Assign(std::forward<shared_string>(val));
+    }
+
+    void set_certificate(shared_string&& val)
+    {
+        auto subtxn = certificate();
+        subtxn.Assign(std::forward<shared_string>(val));
+    }
+
+    void set_plot(shared_string&& val)
+    {
+        auto subtxn = plot();
+        subtxn.Assign(std::forward<shared_string>(val));
+    }
+
+    void set_season(uint16_t&& val)
+    {
+        auto subtxn = season();
+        subtxn.Assign(std::forward<uint16_t>(val));
+    }
+
+    void set_episode(uint16_t&& val)
+    {
+        auto subtxn = episode();
+        subtxn.Assign(std::forward<uint16_t>(val));
+    }
+
+    void set_showId(uint64_t&& val)
+    {
+        auto subtxn = showId();
+        subtxn.Assign(std::forward<uint64_t>(val));
+    }
+
+    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case Fields::Field_imdbId:
+        {
+            auto txn = imdbId();
+            return lambda(txn);
+        }
+        case Fields::Field_type:
+        {
+            auto txn = type();
+            return lambda(txn);
+        }
+        case Fields::Field_ratingM10:
+        {
+            auto txn = ratingM10();
+            return lambda(txn);
+        }
+        case Fields::Field_firstReleased:
+        {
+            auto txn = firstReleased();
+            return lambda(txn);
+        }
+        case Fields::Field_votes:
+        {
+            auto txn = votes();
+            return lambda(txn);
+        }
+        case Fields::Field_title:
+        {
+            auto txn = title();
+            return lambda(txn);
+        }
+        case Fields::Field_certificate:
+        {
+            auto txn = certificate();
+            return lambda(txn);
+        }
+        case Fields::Field_plot:
+        {
+            auto txn = plot();
+            return lambda(txn);
+        }
+        case Fields::Field_season:
+        {
+            auto txn = season();
+            return lambda(txn);
+        }
+        case Fields::Field_episode:
+        {
+            auto txn = episode();
+            return lambda(txn);
+        }
+        case Fields::Field_showId:
+        {
+            auto txn = showId();
+            return lambda(txn);
+        }
+        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        return Edit(index, std::forward<TLambda>(lambda));
+    }
+
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
+    {
+        {
+            auto txn = imdbId();
+            lambda(Fields::Field_imdbId, txn, Elem().imdbId);
+        }
+        {
+            auto txn = type();
+            lambda(Fields::Field_type, txn, Elem().type);
+        }
+        {
+            auto txn = ratingM10();
+            lambda(Fields::Field_ratingM10, txn, Elem().ratingM10);
+        }
+        {
+            auto txn = firstReleased();
+            lambda(Fields::Field_firstReleased, txn, Elem().firstReleased);
+        }
+        {
+            auto txn = votes();
+            lambda(Fields::Field_votes, txn, Elem().votes);
+        }
+        {
+            auto txn = title();
+            lambda(Fields::Field_title, txn, Elem().title);
+        }
+        {
+            auto txn = certificate();
+            lambda(Fields::Field_certificate, txn, Elem().certificate);
+        }
+        {
+            auto txn = plot();
+            lambda(Fields::Field_plot, txn, Elem().plot);
+        }
+        {
+            auto txn = season();
+            lambda(Fields::Field_season, txn, Elem().season);
+        }
+        {
+            auto txn = episode();
+            lambda(Fields::Field_episode, txn, Elem().episode);
+        }
+        {
+            auto txn = showId();
+            lambda(Fields::Field_showId, txn, Elem().showId);
+        }
+    }
+};
+
+template <> struct Stencil::Visitor<Catalog::ImdbInfo> : Stencil::VisitorT<Catalog::ImdbInfo>
+{
+    using TData  = Catalog::ImdbInfo;
+    using Fields = TypeTraitsForIndexable<TData>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_imdbId: return lambda(obj.imdbId);
+        case Fields::Field_type: return lambda(obj.type);
+        case Fields::Field_ratingM10: return lambda(obj.ratingM10);
+        case Fields::Field_firstReleased: return lambda(obj.firstReleased);
+        case Fields::Field_votes: return lambda(obj.votes);
+        case Fields::Field_title: return lambda(obj.title);
+        case Fields::Field_certificate: return lambda(obj.certificate);
+        case Fields::Field_plot: return lambda(obj.plot);
+        case Fields::Field_season: return lambda(obj.season);
+        case Fields::Field_episode: return lambda(obj.episode);
+        case Fields::Field_showId: return lambda(obj.showId);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_imdbId, obj.imdbId);
+        lambda(Fields::Field_type, obj.type);
+        lambda(Fields::Field_ratingM10, obj.ratingM10);
+        lambda(Fields::Field_firstReleased, obj.firstReleased);
+        lambda(Fields::Field_votes, obj.votes);
+        lambda(Fields::Field_title, obj.title);
+        lambda(Fields::Field_certificate, obj.certificate);
+        lambda(Fields::Field_plot, obj.plot);
+        lambda(Fields::Field_season, obj.season);
+        lambda(Fields::Field_episode, obj.episode);
+        lambda(Fields::Field_showId, obj.showId);
+    }
+};
+
+template <> struct Stencil::TypeTraits<Catalog::FolderInfo>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<Catalog::FolderInfo>
+{
+    enum class Fields
+    {
+        Invalid,
+    };
+
+    using Key = Fields;
+};
+
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Catalog::FolderInfo>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<Catalog::FolderInfo>::Fields;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraitsForIndexable<Catalog::FolderInfo>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<Catalog::FolderInfo>::Fields>(index);
+    }
+};
+
+template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Catalog::FolderInfo, TContainer>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<Catalog::FolderInfo>::Fields;
+
+    struct ElemTxnState
+    {
+        Fields field;
+    };
+
+    struct TxnStateForElem
+    {
+    };
+
+    using Txn               = Stencil::Transaction<Catalog::FolderInfo, TContainer>;
+    using ElemType          = Catalog::FolderInfo;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    struct TxnState
+    {
+        std::bitset<64> assigntracker;    // TODO1
+        std::bitset<64> edittracker;      // TODO1
+    };
+
+    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~Transaction()
+    {
+        if (IsChanged())
+        {
+            Stencil::TimestampedT<ElemType>::UpdateTimestamp(_elem);
+            _container.NotifyElementEdited_(_containerState);
+        }
+    }
+
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
+
+    ElemType const& Elem() const { return _elem; }
+
+    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+
+    void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
+    {
+        _MarkFieldAssigned(elemTxnState.field);
+        Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
+    }
+
+    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+
+    bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
+    {
+    }
+
+    void Assign(ElemType&& elem)
+    {
+        // if (Stencil::AreEqual(_elem, elem)) return;
+        std::swap(_elem, elem);
+        _container.NotifyElementAssigned_(_containerState);
+    }
+
+    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
+    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
+
+    template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
+
+    private:
+    TxnStateForElem    _txnStateForElem{};
+    TxnState&          _elemState;
+    ContainerTxnState& _containerState;
+    TContainer&        _container;
+    ElemType&          _elem;
+
+    public:
+    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        return Edit(index, std::forward<TLambda>(lambda));
+    }
+
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
+    {
+    }
+};
+
+template <> struct Stencil::Visitor<Catalog::FolderInfo> : Stencil::VisitorT<Catalog::FolderInfo>
+{
+    using TData  = Catalog::FolderInfo;
+    using Fields = TypeTraitsForIndexable<TData>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+    }
+};
+
+template <> struct Stencil::TypeTraits<Catalog::Source>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<Catalog::Source>
+{
+    enum class Fields
+    {
+        Invalid,
+        Field_type
+,        Field_path
+,        Field_added
+,        Field_last_checked
+,        Field_frequencyInSecs
+,        Field_status_info
+    };
+
+    using Key = Fields;
+};
+
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Catalog::Source>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<Catalog::Source>::Fields;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        "type"
+,        "path"
+,        "added"
+,        "last_checked"
+,        "frequencyInSecs"
+,        "status_info"
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraitsForIndexable<Catalog::Source>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<Catalog::Source>::Fields>(index);
+    }
+};
+
+template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Catalog::Source, TContainer>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<Catalog::Source>::Fields;
+
+    struct ElemTxnState
+    {
+        Fields field;
+    };
+
+    struct TxnStateForElem
+    {
+        ElemTxnState type = {Fields::Field_type};
+        ElemTxnState path = {Fields::Field_path};
+        ElemTxnState added = {Fields::Field_added};
+        ElemTxnState last_checked = {Fields::Field_last_checked};
+        ElemTxnState frequencyInSecs = {Fields::Field_frequencyInSecs};
+        ElemTxnState status_info = {Fields::Field_status_info};
+    };
+
+    using Txn               = Stencil::Transaction<Catalog::Source, TContainer>;
+    using ElemType          = Catalog::Source;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using Transaction_type = Stencil::Transaction<char, Txn>;
+    using Transaction_path = Stencil::Transaction<shared_string, Txn>;
+    using Transaction_added = Stencil::Transaction<Stencil::Timestamp, Txn>;
+    using Transaction_last_checked = Stencil::Transaction<Stencil::Timestamp, Txn>;
+    using Transaction_frequencyInSecs = Stencil::Transaction<uint32_t, Txn>;
+    using Transaction_status_info = Stencil::Transaction<shared_string, Txn>;
+    struct TxnState
+    {
+        std::bitset<64> assigntracker;    // TODO1
+        std::bitset<64> edittracker;      // TODO1
+        typename Transaction_type::TxnState type{};
+        typename Transaction_path::TxnState path{};
+        typename Transaction_added::TxnState added{};
+        typename Transaction_last_checked::TxnState last_checked{};
+        typename Transaction_frequencyInSecs::TxnState frequencyInSecs{};
+        typename Transaction_status_info::TxnState status_info{};
+    };
+
+    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~Transaction()
+    {
+        if (IsChanged())
+        {
+            Stencil::TimestampedT<ElemType>::UpdateTimestamp(_elem);
+            _container.NotifyElementEdited_(_containerState);
+        }
+    }
+
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
+
+    ElemType const& Elem() const { return _elem; }
+
+    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+
+    void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
+    {
+        _MarkFieldAssigned(elemTxnState.field);
+        Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
+    }
+
+    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+
+    bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
+    {
+        if (_IsFieldAssigned(Fields::Field_type))
+        {
+            auto txn = type();
+            lambda(Fields::Field_type, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_type))
+        {
+            auto txn = type();
+            lambda(Fields::Field_type, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_path))
+        {
+            auto txn = path();
+            lambda(Fields::Field_path, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_path))
+        {
+            auto txn = path();
+            lambda(Fields::Field_path, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_added))
+        {
+            auto txn = added();
+            lambda(Fields::Field_added, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_added))
+        {
+            auto txn = added();
+            lambda(Fields::Field_added, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_last_checked))
+        {
+            auto txn = last_checked();
+            lambda(Fields::Field_last_checked, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_last_checked))
+        {
+            auto txn = last_checked();
+            lambda(Fields::Field_last_checked, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_frequencyInSecs))
+        {
+            auto txn = frequencyInSecs();
+            lambda(Fields::Field_frequencyInSecs, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_frequencyInSecs))
+        {
+            auto txn = frequencyInSecs();
+            lambda(Fields::Field_frequencyInSecs, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_status_info))
+        {
+            auto txn = status_info();
+            lambda(Fields::Field_status_info, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_status_info))
+        {
+            auto txn = status_info();
+            lambda(Fields::Field_status_info, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    void Assign(ElemType&& elem)
+    {
+        // if (Stencil::AreEqual(_elem, elem)) return;
+        std::swap(_elem, elem);
+        _container.NotifyElementAssigned_(_containerState);
+    }
+
+    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
+    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
+
+    template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
+
+    private:
+    TxnStateForElem    _txnStateForElem{};
+    TxnState&          _elemState;
+    ContainerTxnState& _containerState;
+    TContainer&        _container;
+    ElemType&          _elem;
+
+    public:
+    auto type()
+    {
+        return Stencil::CreateTransaction<Transaction_type>(_elemState.type, _txnStateForElem.type, *this, _elem.type);
+    }
+
+    auto path()
+    {
+        return Stencil::CreateTransaction<Transaction_path>(_elemState.path, _txnStateForElem.path, *this, _elem.path);
+    }
+
+    auto added()
+    {
+        return Stencil::CreateTransaction<Transaction_added>(_elemState.added, _txnStateForElem.added, *this, _elem.added);
+    }
+
+    auto last_checked()
+    {
+        return Stencil::CreateTransaction<Transaction_last_checked>(_elemState.last_checked, _txnStateForElem.last_checked, *this, _elem.last_checked);
+    }
+
+    auto frequencyInSecs()
+    {
+        return Stencil::CreateTransaction<Transaction_frequencyInSecs>(_elemState.frequencyInSecs, _txnStateForElem.frequencyInSecs, *this, _elem.frequencyInSecs);
+    }
+
+    auto status_info()
+    {
+        return Stencil::CreateTransaction<Transaction_status_info>(_elemState.status_info, _txnStateForElem.status_info, *this, _elem.status_info);
+    }
+
+    void set_type(char&& val)
+    {
+        auto subtxn = type();
+        subtxn.Assign(std::forward<char>(val));
+    }
+
+    void set_path(shared_string&& val)
+    {
+        auto subtxn = path();
+        subtxn.Assign(std::forward<shared_string>(val));
+    }
+
+    void set_added(Stencil::Timestamp&& val)
+    {
+        auto subtxn = added();
+        subtxn.Assign(std::forward<Stencil::Timestamp>(val));
+    }
+
+    void set_last_checked(Stencil::Timestamp&& val)
+    {
+        auto subtxn = last_checked();
+        subtxn.Assign(std::forward<Stencil::Timestamp>(val));
+    }
+
+    void set_frequencyInSecs(uint32_t&& val)
+    {
+        auto subtxn = frequencyInSecs();
+        subtxn.Assign(std::forward<uint32_t>(val));
+    }
+
+    void set_status_info(shared_string&& val)
+    {
+        auto subtxn = status_info();
+        subtxn.Assign(std::forward<shared_string>(val));
+    }
+
+    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case Fields::Field_type:
+        {
+            auto txn = type();
+            return lambda(txn);
+        }
+        case Fields::Field_path:
+        {
+            auto txn = path();
+            return lambda(txn);
+        }
+        case Fields::Field_added:
+        {
+            auto txn = added();
+            return lambda(txn);
+        }
+        case Fields::Field_last_checked:
+        {
+            auto txn = last_checked();
+            return lambda(txn);
+        }
+        case Fields::Field_frequencyInSecs:
+        {
+            auto txn = frequencyInSecs();
+            return lambda(txn);
+        }
+        case Fields::Field_status_info:
+        {
+            auto txn = status_info();
+            return lambda(txn);
+        }
+        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        return Edit(index, std::forward<TLambda>(lambda));
+    }
+
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
+    {
+        {
+            auto txn = type();
+            lambda(Fields::Field_type, txn, Elem().type);
+        }
+        {
+            auto txn = path();
+            lambda(Fields::Field_path, txn, Elem().path);
+        }
+        {
+            auto txn = added();
+            lambda(Fields::Field_added, txn, Elem().added);
+        }
+        {
+            auto txn = last_checked();
+            lambda(Fields::Field_last_checked, txn, Elem().last_checked);
+        }
+        {
+            auto txn = frequencyInSecs();
+            lambda(Fields::Field_frequencyInSecs, txn, Elem().frequencyInSecs);
+        }
+        {
+            auto txn = status_info();
+            lambda(Fields::Field_status_info, txn, Elem().status_info);
+        }
+    }
+};
+
+template <> struct Stencil::Visitor<Catalog::Source> : Stencil::VisitorT<Catalog::Source>
+{
+    using TData  = Catalog::Source;
+    using Fields = TypeTraitsForIndexable<TData>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_type: return lambda(obj.type);
+        case Fields::Field_path: return lambda(obj.path);
+        case Fields::Field_added: return lambda(obj.added);
+        case Fields::Field_last_checked: return lambda(obj.last_checked);
+        case Fields::Field_frequencyInSecs: return lambda(obj.frequencyInSecs);
+        case Fields::Field_status_info: return lambda(obj.status_info);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_type, obj.type);
+        lambda(Fields::Field_path, obj.path);
+        lambda(Fields::Field_added, obj.added);
+        lambda(Fields::Field_last_checked, obj.last_checked);
+        lambda(Fields::Field_frequencyInSecs, obj.frequencyInSecs);
+        lambda(Fields::Field_status_info, obj.status_info);
+    }
+};
+
+template <> struct Stencil::TypeTraits<Catalog::ContentInfo>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<Catalog::ContentInfo>
+{
+    enum class Fields
+    {
+        Invalid,
+        Field_type
+,        Field_source
+,        Field_folder
+,        Field_path
+,        Field_size
+,        Field_added
+,        Field_modified
+,        Field_status_info
+    };
+
+    using Key = Fields;
+};
+
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Catalog::ContentInfo>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<Catalog::ContentInfo>::Fields;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        "type"
+,        "source"
+,        "folder"
+,        "path"
+,        "size"
+,        "added"
+,        "modified"
+,        "status_info"
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraitsForIndexable<Catalog::ContentInfo>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<Catalog::ContentInfo>::Fields>(index);
+    }
+};
+
+template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Catalog::ContentInfo, TContainer>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<Catalog::ContentInfo>::Fields;
+
+    struct ElemTxnState
+    {
+        Fields field;
+    };
+
+    struct TxnStateForElem
+    {
+        ElemTxnState type = {Fields::Field_type};
+        ElemTxnState source = {Fields::Field_source};
+        ElemTxnState folder = {Fields::Field_folder};
+        ElemTxnState path = {Fields::Field_path};
+        ElemTxnState size = {Fields::Field_size};
+        ElemTxnState added = {Fields::Field_added};
+        ElemTxnState modified = {Fields::Field_modified};
+        ElemTxnState status_info = {Fields::Field_status_info};
+    };
+
+    using Txn               = Stencil::Transaction<Catalog::ContentInfo, TContainer>;
+    using ElemType          = Catalog::ContentInfo;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using Transaction_type = Stencil::Transaction<char, Txn>;
+    using Transaction_source = Stencil::Transaction<Stencil::Ref<::Catalog::Source>, Txn>;
+    using Transaction_folder = Stencil::Transaction<Stencil::Ref<::Catalog::FolderInfo>, Txn>;
+    using Transaction_path = Stencil::Transaction<shared_string, Txn>;
+    using Transaction_size = Stencil::Transaction<uint64_t, Txn>;
+    using Transaction_added = Stencil::Transaction<Stencil::Timestamp, Txn>;
+    using Transaction_modified = Stencil::Transaction<Stencil::Timestamp, Txn>;
+    using Transaction_status_info = Stencil::Transaction<shared_string, Txn>;
+    struct TxnState
+    {
+        std::bitset<64> assigntracker;    // TODO1
+        std::bitset<64> edittracker;      // TODO1
+        typename Transaction_type::TxnState type{};
+        typename Transaction_source::TxnState source{};
+        typename Transaction_folder::TxnState folder{};
+        typename Transaction_path::TxnState path{};
+        typename Transaction_size::TxnState size{};
+        typename Transaction_added::TxnState added{};
+        typename Transaction_modified::TxnState modified{};
+        typename Transaction_status_info::TxnState status_info{};
+    };
+
+    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~Transaction()
+    {
+        if (IsChanged())
+        {
+            Stencil::TimestampedT<ElemType>::UpdateTimestamp(_elem);
+            _container.NotifyElementEdited_(_containerState);
+        }
+    }
+
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
+
+    ElemType const& Elem() const { return _elem; }
+
+    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+
+    void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
+    {
+        _MarkFieldAssigned(elemTxnState.field);
+        Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
+    }
+
+    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+
+    bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
+    {
+        if (_IsFieldAssigned(Fields::Field_type))
+        {
+            auto txn = type();
+            lambda(Fields::Field_type, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_type))
+        {
+            auto txn = type();
+            lambda(Fields::Field_type, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_source))
+        {
+            auto txn = source();
+            lambda(Fields::Field_source, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_source))
+        {
+            auto txn = source();
+            lambda(Fields::Field_source, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_folder))
+        {
+            auto txn = folder();
+            lambda(Fields::Field_folder, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_folder))
+        {
+            auto txn = folder();
+            lambda(Fields::Field_folder, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_path))
+        {
+            auto txn = path();
+            lambda(Fields::Field_path, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_path))
+        {
+            auto txn = path();
+            lambda(Fields::Field_path, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_size))
+        {
+            auto txn = size();
+            lambda(Fields::Field_size, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_size))
+        {
+            auto txn = size();
+            lambda(Fields::Field_size, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_added))
+        {
+            auto txn = added();
+            lambda(Fields::Field_added, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_added))
+        {
+            auto txn = added();
+            lambda(Fields::Field_added, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_modified))
+        {
+            auto txn = modified();
+            lambda(Fields::Field_modified, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_modified))
+        {
+            auto txn = modified();
+            lambda(Fields::Field_modified, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_status_info))
+        {
+            auto txn = status_info();
+            lambda(Fields::Field_status_info, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_status_info))
+        {
+            auto txn = status_info();
+            lambda(Fields::Field_status_info, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    void Assign(ElemType&& elem)
+    {
+        // if (Stencil::AreEqual(_elem, elem)) return;
+        std::swap(_elem, elem);
+        _container.NotifyElementAssigned_(_containerState);
+    }
+
+    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
+    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
+
+    template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
+
+    private:
+    TxnStateForElem    _txnStateForElem{};
+    TxnState&          _elemState;
+    ContainerTxnState& _containerState;
+    TContainer&        _container;
+    ElemType&          _elem;
+
+    public:
+    auto type()
+    {
+        return Stencil::CreateTransaction<Transaction_type>(_elemState.type, _txnStateForElem.type, *this, _elem.type);
+    }
+
+    auto source()
+    {
+        return Stencil::CreateTransaction<Transaction_source>(_elemState.source, _txnStateForElem.source, *this, _elem.source);
+    }
+
+    auto folder()
+    {
+        return Stencil::CreateTransaction<Transaction_folder>(_elemState.folder, _txnStateForElem.folder, *this, _elem.folder);
+    }
+
+    auto path()
+    {
+        return Stencil::CreateTransaction<Transaction_path>(_elemState.path, _txnStateForElem.path, *this, _elem.path);
+    }
+
+    auto size()
+    {
+        return Stencil::CreateTransaction<Transaction_size>(_elemState.size, _txnStateForElem.size, *this, _elem.size);
+    }
+
+    auto added()
+    {
+        return Stencil::CreateTransaction<Transaction_added>(_elemState.added, _txnStateForElem.added, *this, _elem.added);
+    }
+
+    auto modified()
+    {
+        return Stencil::CreateTransaction<Transaction_modified>(_elemState.modified, _txnStateForElem.modified, *this, _elem.modified);
+    }
+
+    auto status_info()
+    {
+        return Stencil::CreateTransaction<Transaction_status_info>(_elemState.status_info, _txnStateForElem.status_info, *this, _elem.status_info);
+    }
+
+    void set_type(char&& val)
+    {
+        auto subtxn = type();
+        subtxn.Assign(std::forward<char>(val));
+    }
+
+    void set_source(Stencil::Ref<::Catalog::Source>&& val)
+    {
+        auto subtxn = source();
+        subtxn.Assign(std::forward<Stencil::Ref<::Catalog::Source>>(val));
+    }
+
+    void set_folder(Stencil::Ref<::Catalog::FolderInfo>&& val)
+    {
+        auto subtxn = folder();
+        subtxn.Assign(std::forward<Stencil::Ref<::Catalog::FolderInfo>>(val));
+    }
+
+    void set_path(shared_string&& val)
+    {
+        auto subtxn = path();
+        subtxn.Assign(std::forward<shared_string>(val));
+    }
+
+    void set_size(uint64_t&& val)
+    {
+        auto subtxn = size();
+        subtxn.Assign(std::forward<uint64_t>(val));
+    }
+
+    void set_added(Stencil::Timestamp&& val)
+    {
+        auto subtxn = added();
+        subtxn.Assign(std::forward<Stencil::Timestamp>(val));
+    }
+
+    void set_modified(Stencil::Timestamp&& val)
+    {
+        auto subtxn = modified();
+        subtxn.Assign(std::forward<Stencil::Timestamp>(val));
+    }
+
+    void set_status_info(shared_string&& val)
+    {
+        auto subtxn = status_info();
+        subtxn.Assign(std::forward<shared_string>(val));
+    }
+
+    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case Fields::Field_type:
+        {
+            auto txn = type();
+            return lambda(txn);
+        }
+        case Fields::Field_source:
+        {
+            auto txn = source();
+            return lambda(txn);
+        }
+        case Fields::Field_folder:
+        {
+            auto txn = folder();
+            return lambda(txn);
+        }
+        case Fields::Field_path:
+        {
+            auto txn = path();
+            return lambda(txn);
+        }
+        case Fields::Field_size:
+        {
+            auto txn = size();
+            return lambda(txn);
+        }
+        case Fields::Field_added:
+        {
+            auto txn = added();
+            return lambda(txn);
+        }
+        case Fields::Field_modified:
+        {
+            auto txn = modified();
+            return lambda(txn);
+        }
+        case Fields::Field_status_info:
+        {
+            auto txn = status_info();
+            return lambda(txn);
+        }
+        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        return Edit(index, std::forward<TLambda>(lambda));
+    }
+
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
+    {
+        {
+            auto txn = type();
+            lambda(Fields::Field_type, txn, Elem().type);
+        }
+        {
+            auto txn = source();
+            lambda(Fields::Field_source, txn, Elem().source);
+        }
+        {
+            auto txn = folder();
+            lambda(Fields::Field_folder, txn, Elem().folder);
+        }
+        {
+            auto txn = path();
+            lambda(Fields::Field_path, txn, Elem().path);
+        }
+        {
+            auto txn = size();
+            lambda(Fields::Field_size, txn, Elem().size);
+        }
+        {
+            auto txn = added();
+            lambda(Fields::Field_added, txn, Elem().added);
+        }
+        {
+            auto txn = modified();
+            lambda(Fields::Field_modified, txn, Elem().modified);
+        }
+        {
+            auto txn = status_info();
+            lambda(Fields::Field_status_info, txn, Elem().status_info);
+        }
+    }
+};
+
+template <> struct Stencil::Visitor<Catalog::ContentInfo> : Stencil::VisitorT<Catalog::ContentInfo>
+{
+    using TData  = Catalog::ContentInfo;
+    using Fields = TypeTraitsForIndexable<TData>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_type: return lambda(obj.type);
+        case Fields::Field_source: return lambda(obj.source);
+        case Fields::Field_folder: return lambda(obj.folder);
+        case Fields::Field_path: return lambda(obj.path);
+        case Fields::Field_size: return lambda(obj.size);
+        case Fields::Field_added: return lambda(obj.added);
+        case Fields::Field_modified: return lambda(obj.modified);
+        case Fields::Field_status_info: return lambda(obj.status_info);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_type, obj.type);
+        lambda(Fields::Field_source, obj.source);
+        lambda(Fields::Field_folder, obj.folder);
+        lambda(Fields::Field_path, obj.path);
+        lambda(Fields::Field_size, obj.size);
+        lambda(Fields::Field_added, obj.added);
+        lambda(Fields::Field_modified, obj.modified);
+        lambda(Fields::Field_status_info, obj.status_info);
+    }
+};
+
+template <> struct Stencil::TypeTraits<Catalog::Folder>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<Catalog::Folder>
+{
+    enum class Fields
+    {
+        Invalid,
+        Field_info
+,        Field_contents
+    };
+
+    using Key = Fields;
+};
+
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Catalog::Folder>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<Catalog::Folder>::Fields;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        "info"
+,        "contents"
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraitsForIndexable<Catalog::Folder>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<Catalog::Folder>::Fields>(index);
+    }
+};
+
+template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Catalog::Folder, TContainer>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<Catalog::Folder>::Fields;
+
+    struct ElemTxnState
+    {
+        Fields field;
+    };
+
+    struct TxnStateForElem
+    {
+        ElemTxnState info = {Fields::Field_info};
+        ElemTxnState contents = {Fields::Field_contents};
+    };
+
+    using Txn               = Stencil::Transaction<Catalog::Folder, TContainer>;
+    using ElemType          = Catalog::Folder;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using Transaction_info = Stencil::Transaction<Stencil::Ref<::Catalog::FolderInfo>, Txn>;
+    using Transaction_contents = Stencil::Transaction<std::vector<Stencil::Ref<::Catalog::ContentInfo>>, Txn>;
+    struct TxnState
+    {
+        std::bitset<64> assigntracker;    // TODO1
+        std::bitset<64> edittracker;      // TODO1
+        typename Transaction_info::TxnState info{};
+        typename Transaction_contents::TxnState contents{};
+    };
+
+    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~Transaction()
+    {
+        if (IsChanged())
+        {
+            Stencil::TimestampedT<ElemType>::UpdateTimestamp(_elem);
+            _container.NotifyElementEdited_(_containerState);
+        }
+    }
+
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
+
+    ElemType const& Elem() const { return _elem; }
+
+    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+
+    void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
+    {
+        _MarkFieldAssigned(elemTxnState.field);
+        Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
+    }
+
+    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+
+    bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
+    {
+        if (_IsFieldAssigned(Fields::Field_info))
+        {
+            auto txn = info();
+            lambda(Fields::Field_info, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_info))
+        {
+            auto txn = info();
+            lambda(Fields::Field_info, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_contents))
+        {
+            auto txn = contents();
+            lambda(Fields::Field_contents, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_contents))
+        {
+            auto txn = contents();
+            lambda(Fields::Field_contents, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    void Assign(ElemType&& elem)
+    {
+        // if (Stencil::AreEqual(_elem, elem)) return;
+        std::swap(_elem, elem);
+        _container.NotifyElementAssigned_(_containerState);
+    }
+
+    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
+    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
+
+    template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
+
+    private:
+    TxnStateForElem    _txnStateForElem{};
+    TxnState&          _elemState;
+    ContainerTxnState& _containerState;
+    TContainer&        _container;
+    ElemType&          _elem;
+
+    public:
+    auto info()
+    {
+        return Stencil::CreateTransaction<Transaction_info>(_elemState.info, _txnStateForElem.info, *this, _elem.info);
+    }
+
+    auto contents()
+    {
+        return Stencil::CreateTransaction<Transaction_contents>(_elemState.contents, _txnStateForElem.contents, *this, _elem.contents);
+    }
+
+    void set_info(Stencil::Ref<::Catalog::FolderInfo>&& val)
+    {
+        auto subtxn = info();
+        subtxn.Assign(std::forward<Stencil::Ref<::Catalog::FolderInfo>>(val));
+    }
+
+    void set_contents(std::vector<Stencil::Ref<::Catalog::ContentInfo>>&& val)
+    {
+        auto subtxn = contents();
+        subtxn.Assign(std::forward<std::vector<Stencil::Ref<::Catalog::ContentInfo>>>(val));
+    }
+
+    void add_contents(Stencil::Ref<::Catalog::ContentInfo>&& args)
+    {
+        _MarkFieldEdited(Fields::Field_contents);
+        auto txn = contents();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::add(txn, std::move(args));
+    }
+    void remove_contents(size_t&& args)
+    {
+        _MarkFieldEdited(Fields::Field_contents);
+        auto txn = contents();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::remove(txn, std::move(args));
+    }
+    auto edit_contents(size_t&& args)
+    {
+        _MarkFieldEdited(Fields::Field_contents);
+        auto txn = contents();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::edit(txn, std::move(args));
+    }
+    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case Fields::Field_info:
+        {
+            auto txn = info();
+            return lambda(txn);
+        }
+        case Fields::Field_contents:
+        {
+            auto txn = contents();
+            return lambda(txn);
+        }
+        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        return Edit(index, std::forward<TLambda>(lambda));
+    }
+
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
+    {
+        {
+            auto txn = info();
+            lambda(Fields::Field_info, txn, Elem().info);
+        }
+        {
+            auto txn = contents();
+            lambda(Fields::Field_contents, txn, Elem().contents);
+        }
+    }
+};
+
+template <> struct Stencil::Visitor<Catalog::Folder> : Stencil::VisitorT<Catalog::Folder>
+{
+    using TData  = Catalog::Folder;
+    using Fields = TypeTraitsForIndexable<TData>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_info: return lambda(obj.info);
+        case Fields::Field_contents: return lambda(obj.contents);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_info, obj.info);
+        lambda(Fields::Field_contents, obj.contents);
+    }
+};
+
+template <> struct Stencil::TypeTraits<Catalog::Data>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<Catalog::Data>
+{
+    enum class Fields
+    {
+        Invalid,
+        Field_contentinfo
+,        Field_sources
+,        Field_folderinfo
+,        Field_rootfolders
+    };
+
+    using Key = Fields;
+};
+
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Catalog::Data>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<Catalog::Data>::Fields;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        "contentinfo"
+,        "sources"
+,        "folderinfo"
+,        "rootfolders"
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraitsForIndexable<Catalog::Data>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<Catalog::Data>::Fields>(index);
+    }
+};
+
+template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Catalog::Data, TContainer>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<Catalog::Data>::Fields;
+
+    struct ElemTxnState
+    {
+        Fields field;
+    };
+
+    struct TxnStateForElem
+    {
+        ElemTxnState contentinfo = {Fields::Field_contentinfo};
+        ElemTxnState sources = {Fields::Field_sources};
+        ElemTxnState folderinfo = {Fields::Field_folderinfo};
+        ElemTxnState rootfolders = {Fields::Field_rootfolders};
+    };
+
+    using Txn               = Stencil::Transaction<Catalog::Data, TContainer>;
+    using ElemType          = Catalog::Data;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using Transaction_contentinfo = Stencil::Transaction<Stencil::RefMap<::Catalog::ContentInfo>, Txn>;
+    using Transaction_sources = Stencil::Transaction<Stencil::RefMap<::Catalog::Source>, Txn>;
+    using Transaction_folderinfo = Stencil::Transaction<Stencil::RefMap<::Catalog::FolderInfo>, Txn>;
+    using Transaction_rootfolders = Stencil::Transaction<shared_tree<::Catalog::Folder>, Txn>;
+    struct TxnState
+    {
+        std::bitset<64> assigntracker;    // TODO1
+        std::bitset<64> edittracker;      // TODO1
+        typename Transaction_contentinfo::TxnState contentinfo{};
+        typename Transaction_sources::TxnState sources{};
+        typename Transaction_folderinfo::TxnState folderinfo{};
+        typename Transaction_rootfolders::TxnState rootfolders{};
+    };
+
+    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~Transaction()
+    {
+        if (IsChanged())
+        {
+            Stencil::TimestampedT<ElemType>::UpdateTimestamp(_elem);
+            _container.NotifyElementEdited_(_containerState);
+        }
+    }
+
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
+
+    ElemType const& Elem() const { return _elem; }
+
+    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+
+    void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
+    {
+        _MarkFieldAssigned(elemTxnState.field);
+        Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
+    }
+
+    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+
+    bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
+    {
+        if (_IsFieldAssigned(Fields::Field_contentinfo))
+        {
+            auto txn = contentinfo();
+            lambda(Fields::Field_contentinfo, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_contentinfo))
+        {
+            auto txn = contentinfo();
+            lambda(Fields::Field_contentinfo, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_sources))
+        {
+            auto txn = sources();
+            lambda(Fields::Field_sources, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_sources))
+        {
+            auto txn = sources();
+            lambda(Fields::Field_sources, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_folderinfo))
+        {
+            auto txn = folderinfo();
+            lambda(Fields::Field_folderinfo, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_folderinfo))
+        {
+            auto txn = folderinfo();
+            lambda(Fields::Field_folderinfo, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_rootfolders))
+        {
+            auto txn = rootfolders();
+            lambda(Fields::Field_rootfolders, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_rootfolders))
+        {
+            auto txn = rootfolders();
+            lambda(Fields::Field_rootfolders, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    void Assign(ElemType&& elem)
+    {
+        // if (Stencil::AreEqual(_elem, elem)) return;
+        std::swap(_elem, elem);
+        _container.NotifyElementAssigned_(_containerState);
+    }
+
+    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
+    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
+
+    template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
+
+    private:
+    TxnStateForElem    _txnStateForElem{};
+    TxnState&          _elemState;
+    ContainerTxnState& _containerState;
+    TContainer&        _container;
+    ElemType&          _elem;
+
+    public:
+    auto contentinfo()
+    {
+        return Stencil::CreateTransaction<Transaction_contentinfo>(_elemState.contentinfo, _txnStateForElem.contentinfo, *this, _elem.contentinfo);
+    }
+
+    auto sources()
+    {
+        return Stencil::CreateTransaction<Transaction_sources>(_elemState.sources, _txnStateForElem.sources, *this, _elem.sources);
+    }
+
+    auto folderinfo()
+    {
+        return Stencil::CreateTransaction<Transaction_folderinfo>(_elemState.folderinfo, _txnStateForElem.folderinfo, *this, _elem.folderinfo);
+    }
+
+    auto rootfolders()
+    {
+        return Stencil::CreateTransaction<Transaction_rootfolders>(_elemState.rootfolders, _txnStateForElem.rootfolders, *this, _elem.rootfolders);
+    }
+
+    void set_contentinfo(Stencil::RefMap<::Catalog::ContentInfo>&& val)
+    {
+        auto subtxn = contentinfo();
+        subtxn.Assign(std::forward<Stencil::RefMap<::Catalog::ContentInfo>>(val));
+    }
+
+    void set_sources(Stencil::RefMap<::Catalog::Source>&& val)
+    {
+        auto subtxn = sources();
+        subtxn.Assign(std::forward<Stencil::RefMap<::Catalog::Source>>(val));
+    }
+
+    void set_folderinfo(Stencil::RefMap<::Catalog::FolderInfo>&& val)
+    {
+        auto subtxn = folderinfo();
+        subtxn.Assign(std::forward<Stencil::RefMap<::Catalog::FolderInfo>>(val));
+    }
+
+    void set_rootfolders(shared_tree<::Catalog::Folder>&& val)
+    {
+        auto subtxn = rootfolders();
+        subtxn.Assign(std::forward<shared_tree<::Catalog::Folder>>(val));
+    }
+
+    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case Fields::Field_contentinfo:
+        {
+            auto txn = contentinfo();
+            return lambda(txn);
+        }
+        case Fields::Field_sources:
+        {
+            auto txn = sources();
+            return lambda(txn);
+        }
+        case Fields::Field_folderinfo:
+        {
+            auto txn = folderinfo();
+            return lambda(txn);
+        }
+        case Fields::Field_rootfolders:
+        {
+            auto txn = rootfolders();
+            return lambda(txn);
+        }
+        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        return Edit(index, std::forward<TLambda>(lambda));
+    }
+
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
+    {
+        {
+            auto txn = contentinfo();
+            lambda(Fields::Field_contentinfo, txn, Elem().contentinfo);
+        }
+        {
+            auto txn = sources();
+            lambda(Fields::Field_sources, txn, Elem().sources);
+        }
+        {
+            auto txn = folderinfo();
+            lambda(Fields::Field_folderinfo, txn, Elem().folderinfo);
+        }
+        {
+            auto txn = rootfolders();
+            lambda(Fields::Field_rootfolders, txn, Elem().rootfolders);
+        }
+    }
+};
+
+template <> struct Stencil::Visitor<Catalog::Data> : Stencil::VisitorT<Catalog::Data>
+{
+    using TData  = Catalog::Data;
+    using Fields = TypeTraitsForIndexable<TData>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_contentinfo: return lambda(obj.contentinfo);
+        case Fields::Field_sources: return lambda(obj.sources);
+        case Fields::Field_folderinfo: return lambda(obj.folderinfo);
+        case Fields::Field_rootfolders: return lambda(obj.rootfolders);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_contentinfo, obj.contentinfo);
+        lambda(Fields::Field_sources, obj.sources);
+        lambda(Fields::Field_folderinfo, obj.folderinfo);
+        lambda(Fields::Field_rootfolders, obj.rootfolders);
+    }
+};
+
+template <> struct Stencil::TypeTraits<Catalog::ScanRequest>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<Catalog::ScanRequest>
+{
+    enum class Fields
+    {
+        Invalid,
+        Field_source
+,        Field_scanned_at
+,        Field_status_code
+,        Field_status_info
+    };
+
+    using Key = Fields;
+};
+
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Catalog::ScanRequest>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<Catalog::ScanRequest>::Fields;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        "source"
+,        "scanned_at"
+,        "status_code"
+,        "status_info"
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraitsForIndexable<Catalog::ScanRequest>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<Catalog::ScanRequest>::Fields>(index);
+    }
+};
+
+template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Catalog::ScanRequest, TContainer>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<Catalog::ScanRequest>::Fields;
+
+    struct ElemTxnState
+    {
+        Fields field;
+    };
+
+    struct TxnStateForElem
+    {
+        ElemTxnState source = {Fields::Field_source};
+        ElemTxnState scanned_at = {Fields::Field_scanned_at};
+        ElemTxnState status_code = {Fields::Field_status_code};
+        ElemTxnState status_info = {Fields::Field_status_info};
+    };
+
+    using Txn               = Stencil::Transaction<Catalog::ScanRequest, TContainer>;
+    using ElemType          = Catalog::ScanRequest;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using Transaction_source = Stencil::Transaction<Stencil::Ref<::Catalog::Source>, Txn>;
+    using Transaction_scanned_at = Stencil::Transaction<Stencil::Timestamp, Txn>;
+    using Transaction_status_code = Stencil::Transaction<uint32_t, Txn>;
+    using Transaction_status_info = Stencil::Transaction<shared_string, Txn>;
+    struct TxnState
+    {
+        std::bitset<64> assigntracker;    // TODO1
+        std::bitset<64> edittracker;      // TODO1
+        typename Transaction_source::TxnState source{};
+        typename Transaction_scanned_at::TxnState scanned_at{};
+        typename Transaction_status_code::TxnState status_code{};
+        typename Transaction_status_info::TxnState status_info{};
+    };
+
+    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~Transaction()
+    {
+        if (IsChanged())
+        {
+            Stencil::TimestampedT<ElemType>::UpdateTimestamp(_elem);
+            _container.NotifyElementEdited_(_containerState);
+        }
+    }
+
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
+
+    ElemType const& Elem() const { return _elem; }
+
+    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+
+    void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
+    {
+        _MarkFieldAssigned(elemTxnState.field);
+        Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
+    }
+
+    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+
+    bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
+    {
+        if (_IsFieldAssigned(Fields::Field_source))
+        {
+            auto txn = source();
+            lambda(Fields::Field_source, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_source))
+        {
+            auto txn = source();
+            lambda(Fields::Field_source, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_scanned_at))
+        {
+            auto txn = scanned_at();
+            lambda(Fields::Field_scanned_at, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_scanned_at))
+        {
+            auto txn = scanned_at();
+            lambda(Fields::Field_scanned_at, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_status_code))
+        {
+            auto txn = status_code();
+            lambda(Fields::Field_status_code, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_status_code))
+        {
+            auto txn = status_code();
+            lambda(Fields::Field_status_code, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_status_info))
+        {
+            auto txn = status_info();
+            lambda(Fields::Field_status_info, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_status_info))
+        {
+            auto txn = status_info();
+            lambda(Fields::Field_status_info, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    void Assign(ElemType&& elem)
+    {
+        // if (Stencil::AreEqual(_elem, elem)) return;
+        std::swap(_elem, elem);
+        _container.NotifyElementAssigned_(_containerState);
+    }
+
+    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
+    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
+
+    template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
+
+    private:
+    TxnStateForElem    _txnStateForElem{};
+    TxnState&          _elemState;
+    ContainerTxnState& _containerState;
+    TContainer&        _container;
+    ElemType&          _elem;
+
+    public:
+    auto source()
+    {
+        return Stencil::CreateTransaction<Transaction_source>(_elemState.source, _txnStateForElem.source, *this, _elem.source);
+    }
+
+    auto scanned_at()
+    {
+        return Stencil::CreateTransaction<Transaction_scanned_at>(_elemState.scanned_at, _txnStateForElem.scanned_at, *this, _elem.scanned_at);
+    }
+
+    auto status_code()
+    {
+        return Stencil::CreateTransaction<Transaction_status_code>(_elemState.status_code, _txnStateForElem.status_code, *this, _elem.status_code);
+    }
+
+    auto status_info()
+    {
+        return Stencil::CreateTransaction<Transaction_status_info>(_elemState.status_info, _txnStateForElem.status_info, *this, _elem.status_info);
+    }
+
+    void set_source(Stencil::Ref<::Catalog::Source>&& val)
+    {
+        auto subtxn = source();
+        subtxn.Assign(std::forward<Stencil::Ref<::Catalog::Source>>(val));
+    }
+
+    void set_scanned_at(Stencil::Timestamp&& val)
+    {
+        auto subtxn = scanned_at();
+        subtxn.Assign(std::forward<Stencil::Timestamp>(val));
+    }
+
+    void set_status_code(uint32_t&& val)
+    {
+        auto subtxn = status_code();
+        subtxn.Assign(std::forward<uint32_t>(val));
+    }
+
+    void set_status_info(shared_string&& val)
+    {
+        auto subtxn = status_info();
+        subtxn.Assign(std::forward<shared_string>(val));
+    }
+
+    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case Fields::Field_source:
+        {
+            auto txn = source();
+            return lambda(txn);
+        }
+        case Fields::Field_scanned_at:
+        {
+            auto txn = scanned_at();
+            return lambda(txn);
+        }
+        case Fields::Field_status_code:
+        {
+            auto txn = status_code();
+            return lambda(txn);
+        }
+        case Fields::Field_status_info:
+        {
+            auto txn = status_info();
+            return lambda(txn);
+        }
+        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        return Edit(index, std::forward<TLambda>(lambda));
+    }
+
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
+    {
+        {
+            auto txn = source();
+            lambda(Fields::Field_source, txn, Elem().source);
+        }
+        {
+            auto txn = scanned_at();
+            lambda(Fields::Field_scanned_at, txn, Elem().scanned_at);
+        }
+        {
+            auto txn = status_code();
+            lambda(Fields::Field_status_code, txn, Elem().status_code);
+        }
+        {
+            auto txn = status_info();
+            lambda(Fields::Field_status_info, txn, Elem().status_info);
+        }
+    }
+};
+
+template <> struct Stencil::Visitor<Catalog::ScanRequest> : Stencil::VisitorT<Catalog::ScanRequest>
+{
+    using TData  = Catalog::ScanRequest;
+    using Fields = TypeTraitsForIndexable<TData>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_source: return lambda(obj.source);
+        case Fields::Field_scanned_at: return lambda(obj.scanned_at);
+        case Fields::Field_status_code: return lambda(obj.status_code);
+        case Fields::Field_status_info: return lambda(obj.status_info);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_source, obj.source);
+        lambda(Fields::Field_scanned_at, obj.scanned_at);
+        lambda(Fields::Field_status_code, obj.status_code);
+        lambda(Fields::Field_status_info, obj.status_info);
+    }
+};
+
+template <> struct Stencil::TypeTraits<Catalog::DataStore>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<Catalog::DataStore>
+{
+    enum class Fields
+    {
+        Invalid,
+    };
+
+    using Key = Fields;
+};
+
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Catalog::DataStore>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<Catalog::DataStore>::Fields;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraitsForIndexable<Catalog::DataStore>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<Catalog::DataStore>::Fields>(index);
+    }
+};
+
+template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Catalog::DataStore, TContainer>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<Catalog::DataStore>::Fields;
+
+    struct ElemTxnState
+    {
+        Fields field;
+    };
+
+    struct TxnStateForElem
+    {
+    };
+
+    using Txn               = Stencil::Transaction<Catalog::DataStore, TContainer>;
+    using ElemType          = Catalog::DataStore;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    struct TxnState
+    {
+        std::bitset<64> assigntracker;    // TODO1
+        std::bitset<64> edittracker;      // TODO1
+    };
+
+    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~Transaction()
+    {
+        if (IsChanged())
+        {
+            Stencil::TimestampedT<ElemType>::UpdateTimestamp(_elem);
+            _container.NotifyElementEdited_(_containerState);
+        }
+    }
+
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
+
+    ElemType const& Elem() const { return _elem; }
+
+    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+
+    void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
+    {
+        _MarkFieldAssigned(elemTxnState.field);
+        Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
+    }
+
+    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+
+    bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
+    {
+    }
+
+    void Assign(ElemType&& elem)
+    {
+        // if (Stencil::AreEqual(_elem, elem)) return;
+        std::swap(_elem, elem);
+        _container.NotifyElementAssigned_(_containerState);
+    }
+
+    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
+    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
+
+    template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
+
+    private:
+    TxnStateForElem    _txnStateForElem{};
+    TxnState&          _elemState;
+    ContainerTxnState& _containerState;
+    TContainer&        _container;
+    ElemType&          _elem;
+
+    public:
+    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        return Edit(index, std::forward<TLambda>(lambda));
+    }
+
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
+    {
+    }
+};
+
+template <> struct Stencil::Visitor<Catalog::DataStore> : Stencil::VisitorT<Catalog::DataStore>
+{
+    using TData  = Catalog::DataStore;
+    using Fields = TypeTraitsForIndexable<TData>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+    }
+};
+
+#endif
+// SECTION END: Template specializations
+
+// SECTION START: Inline Function Definitions
+#if true
+
+#endif
+// SECTION END: Inline Function Definitions

@@ -1,11 +1,15 @@
 #pragma once
 #include "typetraits.h"
 
+SUPPRESS_WARNINGS_START
+SUPPRESS_STL_WARNINGS
 #include <cctype>
 #include <stdexcept>
 #include <string_view>
 #include <type_traits>
 #include <variant>
+SUPPRESS_WARNINGS_END
+
 
 namespace Stencil
 {

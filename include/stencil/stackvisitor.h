@@ -100,10 +100,7 @@ template <typename TProto, typename TOwner, ConceptIterable T> struct IterableVi
             Visitor<T>::IteratorBegin(it, obj);
             valid = true;
         }
-        else
-        {
-            Visitor<T>::IteratorMoveNext(it, obj);
-        }
+        else { Visitor<T>::IteratorMoveNext(it, obj); }
 
         if (!Visitor<T>::IteratorValid(it, obj)) throw std::runtime_error("Cannot Visit Next Item on the iterable");
 
@@ -151,7 +148,7 @@ template <typename TProto, typename TOwner, ConceptIndexable T> struct Indexable
 
     TOwner* owner;
 
-    typename Traits::Key _key;
+    typename Traits::Key _key{};
 
     VisitorTypeHandler<TProto, TOwner, typename Traits::Key> _keyhandler;
 
@@ -185,10 +182,12 @@ template <typename TProto, typename TOwner, typename T> struct VisitorTypeHandle
     virtual void Assign(void* ptr, Primitives64Bit const& val) override
     {
         if constexpr (ConceptPrimitives64Bit<T>) { *reinterpret_cast<T*>(ptr) = val.cast<T>(); }
-        else
-        {
-            TODO("");
-        }
+        /* else if constexpr (ConceptTransactionForPrimitive<T>)
+         {
+             using ElemType = typename Stencil::TransactionTraits<T>::ElemType;
+             (*reinterpret_cast<T*>(ptr)).Assign(val.cast<ElemType>());
+         }*/
+        else { TODO(""); }
     }
     virtual void Assign(void* ptr, std::string_view const& val) override { primitive.Assign(*reinterpret_cast<T*>(ptr), val); }
     virtual void Assign(void* /*ptr*/, std::wstring_view const& /*val*/) override

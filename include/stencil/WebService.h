@@ -208,10 +208,7 @@ template <WebInterfaceImpl... TImpls> struct WebService
                 res.set_content(rslt.str(), "application/json");
                 return true;
             }
-            else
-            {
-                throw std::logic_error("Not implemented");
-            }
+            else { throw std::logic_error("Not implemented"); }
         }
     }
 
@@ -247,7 +244,7 @@ template <WebInterfaceImpl... TImpls> struct WebService
             else
             {
                 auto retval = Traits::Invoke(args);
-#ifdef USE_NLOHMANN_JSON
+#ifdef HAVE_NLOHMANN_JSON
                 auto rslt = Stencil::Json::Stringify<decltype(retval)>(retval);
                 res.set_content(rslt, "application/json");
 #else
@@ -297,10 +294,7 @@ template <WebInterfaceImpl... TImpls> struct WebService
         if (!impl::iequal(WebServiceHandlerTraits<typename T::Interface>::Url(), ifname))
         {
             if constexpr (sizeof...(Ts) > 0) { return _HandleRequest<Ts...>(req, res, ifname, path); }
-            else
-            {
-                throw std::runtime_error(fmt::format("No matching interface found for {}", ifname));
-            }
+            else { throw std::runtime_error(fmt::format("No matching interface found for {}", ifname)); }
         }
         return _HandleRequest(std::get<T>(_impls), req, res, path);
     }

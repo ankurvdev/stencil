@@ -4,8 +4,7 @@ Current status : Rejected.
 
 Variant-Type can be an tuple index int to cover all cases
 
-
-```
+```cpp
 template <> struct TypeTraits<Foo>
 {
     static constexpr std::string_view Name();

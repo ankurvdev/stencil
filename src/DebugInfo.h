@@ -2,7 +2,7 @@
 #include <CommonMacros.h>
 
 SUPPRESS_WARNINGS_START
-SUPPRESS_MSVC_STL_WARNINGS
+SUPPRESS_FMT_WARNINGS
 SUPPRESS_STL_WARNINGS
 #include <fmt/ostream.h>
 #include <fmt/xchar.h>

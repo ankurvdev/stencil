@@ -5,15 +5,12 @@
 #include "stackvisitor.h"
 #include "visitor.h"
 
-//#if defined USE_SIMDJSON
-
-#pragma warning(push, 3)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Weverything"
+// #if defined USE_SIMDJSON
+SUPPRESS_WARNINGS_START
+#pragma warning(disable : 4061) /* Not all labels are EXPLICITLY handled in switch */
 #include <rapidjson/memorystream.h>
 #include <rapidjson/reader.h>
-#pragma clang diagnostic pop
-#pragma warning(pop)
+SUPPRESS_WARNINGS_END
 
 #include <array>
 #include <deque>
@@ -39,7 +36,7 @@ struct ProtocolJsonVal
         return false;               \
     }
 
-//#include "json_parse_simdjson.h"
+// #include "json_parse_simdjson.h"
 namespace Stencil::impl::rapidjson_
 {
 template <typename T> struct Tokenizer : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, Tokenizer<T>>
@@ -150,6 +147,16 @@ template <typename T, typename TContext> auto _WriteQuotedString(TContext& ctx, 
     fmt::print(ctx, "\"");
 }
 
+// template <typename T, typename TContext> void _ReadQuotedString(T& obj, TContext const& ctx);
+
+template <typename T> void _ReadQuotedString(T& obj, std::string_view const& ctx)
+{
+    if (ctx.size() == 0 || ctx.data()[0] != '\"') { return SerDes<T, ProtocolString>::Read(obj, ctx); }
+    if (ctx.data()[ctx.size() - 1] != '\"') throw std::logic_error("String does not end with quotes");
+    auto ctx1 = ctx.substr(1, ctx.size() - 2);
+    SerDes<T, ProtocolString>::Read(obj, ctx1);
+}
+
 template <size_t N> struct SerDes<std::array<char, N>, ProtocolJsonVal>
 {
     using TObj = std::array<char, N>;
@@ -199,14 +206,14 @@ template <> struct SerDes<uuids::uuid, ProtocolJsonVal>
     using TObj = uuids::uuid;
 
     template <typename Context> static auto Write(Context& ctx, TObj const& obj) { _WriteQuotedString(ctx, obj); }
-    template <typename Context> static auto Read(TObj& obj, Context& ctx) { SerDes<uuids::uuid, ProtocolString>::Read(obj, ctx); }
+    template <typename Context> static auto Read(TObj& obj, Context& ctx) { _ReadQuotedString(obj, ctx); }
 };
 
 template <typename TClock> struct SerDes<std::chrono::time_point<TClock>, ProtocolJsonVal>
 {
     using TObj = std::chrono::time_point<TClock>;
     template <typename Context> static auto Write(Context& ctx, TObj const& obj) { _WriteQuotedString(ctx, obj); }
-    template <typename Context> static auto Read(TObj& obj, Context& ctx) { SerDes<TObj, ProtocolString>::Read(obj, ctx); }
+    template <typename Context> static auto Read(TObj& obj, Context& ctx) { _ReadQuotedString(obj, ctx); }
 };
 
 template <> struct SerDes<char, ProtocolJsonVal>
@@ -236,13 +243,13 @@ template <> struct SerDes<char, ProtocolJsonVal>
 template <ConceptEnumPack T> struct SerDes<T, ProtocolJsonVal>
 {
     template <typename Context> static auto Write(Context& ctx, T const& obj) { _WriteQuotedString(ctx, obj); }
-    template <typename Context> static auto Read(T& obj, Context& ctx) { SerDes<T, ProtocolString>::Read(obj, ctx); }
+    template <typename Context> static auto Read(T& obj, Context& ctx) { _ReadQuotedString(obj, ctx); }
 };
 
 template <ConceptEnum T> struct SerDes<T, ProtocolJsonVal>
 {
     template <typename Context> static auto Write(Context& ctx, T const& obj) { _WriteQuotedString(ctx, obj); }
-    template <typename Context> static auto Read(T& obj, Context& ctx) { SerDes<T, ProtocolString>::Read(obj, ctx); }
+    template <typename Context> static auto Read(T& obj, Context& ctx) { _ReadQuotedString(obj, ctx); }
 };
 
 template <ConceptPrimitives64Bit T> struct SerDes<T, ProtocolJsonVal>
@@ -261,7 +268,7 @@ template <> struct SerDes<std::string, ProtocolJsonVal>
         else
             _WriteQuotedString(ctx, obj);
     }
-    template <typename Context> static auto Read(TObj& obj, Context& ctx) { SerDes<TObj, ProtocolString>::Read(obj, ctx); }
+    template <typename Context> static auto Read(TObj& obj, Context& ctx) { _ReadQuotedString(obj, ctx); }
 };
 
 template <> struct SerDes<std::wstring, ProtocolJsonVal>
@@ -274,7 +281,7 @@ template <> struct SerDes<std::wstring, ProtocolJsonVal>
         else
             _WriteQuotedString(ctx, obj);
     }
-    template <typename Context> static auto Read(TObj& obj, Context& ctx) { SerDes<TObj, ProtocolString>::Read(obj, ctx); }
+    template <typename Context> static auto Read(TObj& obj, Context& ctx) { _ReadQuotedString(obj, ctx); }
 };
 
 template <> struct SerDes<std::wstring_view, ProtocolJsonVal>
@@ -287,7 +294,7 @@ template <> struct SerDes<std::wstring_view, ProtocolJsonVal>
         else
             _WriteQuotedString(ctx, obj);
     }
-    template <typename Context> static auto Read(TObj& obj, Context& ctx) { return SerDes<TObj, ProtocolString>::Read(obj, ctx); }
+    template <typename Context> static auto Read(TObj& obj, Context& ctx) { _ReadQuotedString(obj, ctx); }
 };
 
 template <typename T> struct SerDes<shared_stringT<T>, ProtocolJsonVal>
@@ -300,7 +307,7 @@ template <typename T> struct SerDes<shared_stringT<T>, ProtocolJsonVal>
         else
             _WriteQuotedString(ctx, obj);
     }
-    template <typename Context> static auto Read(TObj& obj, Context& ctx) { return SerDes<TObj, ProtocolString>::Read(obj, ctx); }
+    template <typename Context> static auto Read(TObj& obj, Context& ctx) { _ReadQuotedString(obj, ctx); }
 };
 }    // namespace Stencil
 

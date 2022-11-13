@@ -1,7 +1,10 @@
 #pragma once
 #include <algorithm>
+#include <compare>
 #include <memory>
 #include <string>
+#include <string_view>
+#include <type_traits>
 
 namespace std
 {
@@ -23,7 +26,7 @@ template <typename T> struct shared_stringT
 
     using value_type = typename TString::value_type;
 
-    template <size_t N> shared_stringT(T const (&str)[N]) { *this = make(str); }
+    template <size_t N> explicit shared_stringT(T const (&str)[N]) { *this = make(str); }
 
     explicit shared_stringT(const TStringView& str)
     {
@@ -51,15 +54,36 @@ template <typename T> struct shared_stringT
         return std::equal(str.begin(), str.end(), _str->begin(), _str->end(), [](char a, char b) { return tolower(a) == tolower(b); });
     }
 
-    bool operator==(const shared_stringT& str) const { return *(_str.get()) == *str.get(); }
-    bool operator==(const TStringView& str) const { return *(_str.get()) == str; }
+    // spaceship operator doesnt seem to work on android
+    auto _compare(const shared_stringT& str) const
+    {
+        bool lhsempty = empty();
+        bool rhsempty = str.empty();
+        if (!lhsempty && !rhsempty) { return *(_str.get()) <=> *(str._str.get()); }
+        else if (lhsempty == rhsempty) { return std::strong_ordering::equal; }
+        else if (lhsempty) { return std::strong_ordering::less; }
+        else { return std::strong_ordering::greater; }
+    }
 
+    TStringView view() const { return empty() ? TStringView() : TStringView(*_str.get()); }
+
+    bool operator==(const shared_stringT& str) const { return view() == str.view(); }
+    bool operator==(const TStringView& str) const { return view() == str; }
+    bool operator!=(const shared_stringT& str) const { return view() != str.view(); }
+    bool operator!=(const TStringView& str) const { return view() != str; }
+    bool operator<(const shared_stringT& str) const { return view() < str.view(); }
+    bool operator<(const TStringView& str) const { return view() < str; }
+    bool operator>(const shared_stringT& str) const { return view() > str.view(); }
+    bool operator>(const TStringView& str) const { return view() > str; }
+
+    /*
     template <size_t N> bool operator==(T const (&str)[N]) const { return *(_str.get()) == str; }
 
     bool operator!=(const shared_stringT& str) const { return *(_str.get()) != *str.get(); }
     bool operator!=(const TStringView& str) const { return *(_str.get()) != str; }
     bool operator<(const shared_stringT& str) const { return *(_str.get()) < *str.get(); }
     bool operator<(const TStringView& str) const { return *(_str.get()) < str; }
+    */
 
     shared_stringT                     operator+(const shared_stringT& str) const { return make(*_str.get() + *str.get()); }
     template <size_t N> shared_stringT operator+(T const (&str)[N]) const { return make(*_str.get() + str); }
@@ -144,3 +168,13 @@ inline shared_string operator+(const std::string& str1, const shared_string& str
 {
     return shared_string::make(str1 + str2.str());
 }
+
+namespace std
+{
+
+template <typename T> struct hash<shared_stringT<T>>
+{
+    size_t operator()(shared_stringT<T> const& str) const { return std::hash<typename shared_stringT<T>::TString>{}(str.str()); }
+};
+
+}    // namespace std

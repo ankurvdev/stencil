@@ -1,0 +1,1299 @@
+#pragma once
+#include <stencil/stencil.h>
+
+// SECTION START: DECLARATIONS
+#if true
+
+namespace CLOpts1
+{
+struct CommandLineOptions;
+struct SimpleObj;
+struct ObjWithList;
+struct CLOptsTest;
+}    // namespace CLOpts1
+
+template <> struct Stencil::TypeTraits<CLOpts1::CommandLineOptions>;
+template <> struct Stencil::TypeTraits<CLOpts1::SimpleObj>;
+template <> struct Stencil::TypeTraits<CLOpts1::ObjWithList>;
+template <> struct Stencil::TypeTraits<CLOpts1::CLOptsTest>;
+#endif
+// SECTION END: DECLARATIONS
+
+// SECTION START: Definitions
+#if true
+namespace CLOpts1
+{
+struct CommandLineOptions :
+    public Stencil::StructT<CommandLineOptions>
+{
+    shared_string workingDirectory = shared_string{/*Initial Value*/};
+    std::vector<shared_string> libraries = std::vector<shared_string>{/*Initial Value*/};
+    std::vector<shared_string> scan = std::vector<shared_string>{/*Initial Value*/};
+    int32_t httpsPort = int32_t{3443};
+    bool daemon = bool{0};
+};
+struct SimpleObj :
+    public Stencil::StructT<SimpleObj>
+{
+    shared_string field1 = shared_string{/*Initial Value*/};
+    shared_string field2 = shared_string{/*Initial Value*/};
+};
+struct ObjWithList :
+    public Stencil::StructT<ObjWithList>
+{
+    std::vector<shared_string> field1 = std::vector<shared_string>{/*Initial Value*/};
+};
+struct CLOptsTest :
+    public Stencil::StructT<CLOptsTest>
+{
+    shared_string key1 = shared_string{/*Initial Value*/};
+    std::vector<int32_t> listofint = std::vector<int32_t>{/*Initial Value*/};
+    std::vector<std::vector<int32_t>> listoflist = std::vector<std::vector<int32_t>>{/*Initial Value*/};
+    std::vector<::CLOpts1::SimpleObj> listofobj = std::vector<::CLOpts1::SimpleObj>{/*Initial Value*/};
+    ::CLOpts1::ObjWithList objoflist = ::CLOpts1::ObjWithList{/*Initial Value*/};
+    shared_string key2 = shared_string{/*Initial Value*/};
+};
+}    // namespace CLOpts1
+#endif
+
+// SECTION END: Definitions
+
+// SECTION START: Template specializations
+#if true
+
+// SECTION:
+
+template <> struct Stencil::TypeTraits<CLOpts1::CommandLineOptions>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>
+{
+    enum class Fields
+    {
+        Invalid,
+        Field_workingDirectory
+,        Field_libraries
+,        Field_scan
+,        Field_httpsPort
+,        Field_daemon
+    };
+
+    using Key = Fields;
+};
+
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Fields;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        "workingDirectory"
+,        "libraries"
+,        "scan"
+,        "httpsPort"
+,        "daemon"
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Fields>(index);
+    }
+};
+
+template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CLOpts1::CommandLineOptions, TContainer>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Fields;
+
+    struct ElemTxnState
+    {
+        Fields field;
+    };
+
+    struct TxnStateForElem
+    {
+        ElemTxnState workingDirectory = {Fields::Field_workingDirectory};
+        ElemTxnState libraries = {Fields::Field_libraries};
+        ElemTxnState scan = {Fields::Field_scan};
+        ElemTxnState httpsPort = {Fields::Field_httpsPort};
+        ElemTxnState daemon = {Fields::Field_daemon};
+    };
+
+    using Txn               = Stencil::Transaction<CLOpts1::CommandLineOptions, TContainer>;
+    using ElemType          = CLOpts1::CommandLineOptions;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using Transaction_workingDirectory = Stencil::Transaction<shared_string, Txn>;
+    using Transaction_libraries = Stencil::Transaction<std::vector<shared_string>, Txn>;
+    using Transaction_scan = Stencil::Transaction<std::vector<shared_string>, Txn>;
+    using Transaction_httpsPort = Stencil::Transaction<int32_t, Txn>;
+    using Transaction_daemon = Stencil::Transaction<bool, Txn>;
+    struct TxnState
+    {
+        std::bitset<64> assigntracker;    // TODO1
+        std::bitset<64> edittracker;      // TODO1
+        typename Transaction_workingDirectory::TxnState workingDirectory{};
+        typename Transaction_libraries::TxnState libraries{};
+        typename Transaction_scan::TxnState scan{};
+        typename Transaction_httpsPort::TxnState httpsPort{};
+        typename Transaction_daemon::TxnState daemon{};
+    };
+
+    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~Transaction()
+    {
+        if (IsChanged())
+        {
+            Stencil::TimestampedT<ElemType>::UpdateTimestamp(_elem);
+            _container.NotifyElementEdited_(_containerState);
+        }
+    }
+
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
+
+    ElemType const& Elem() const { return _elem; }
+
+    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+
+    void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
+    {
+        _MarkFieldAssigned(elemTxnState.field);
+        Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
+    }
+
+    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+
+    bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
+    {
+        if (_IsFieldAssigned(Fields::Field_workingDirectory))
+        {
+            auto txn = workingDirectory();
+            lambda(Fields::Field_workingDirectory, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_workingDirectory))
+        {
+            auto txn = workingDirectory();
+            lambda(Fields::Field_workingDirectory, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_libraries))
+        {
+            auto txn = libraries();
+            lambda(Fields::Field_libraries, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_libraries))
+        {
+            auto txn = libraries();
+            lambda(Fields::Field_libraries, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_scan))
+        {
+            auto txn = scan();
+            lambda(Fields::Field_scan, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_scan))
+        {
+            auto txn = scan();
+            lambda(Fields::Field_scan, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_httpsPort))
+        {
+            auto txn = httpsPort();
+            lambda(Fields::Field_httpsPort, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_httpsPort))
+        {
+            auto txn = httpsPort();
+            lambda(Fields::Field_httpsPort, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_daemon))
+        {
+            auto txn = daemon();
+            lambda(Fields::Field_daemon, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_daemon))
+        {
+            auto txn = daemon();
+            lambda(Fields::Field_daemon, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    void Assign(ElemType&& elem)
+    {
+        // if (Stencil::AreEqual(_elem, elem)) return;
+        std::swap(_elem, elem);
+        _container.NotifyElementAssigned_(_containerState);
+    }
+
+    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
+    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
+
+    template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
+
+    private:
+    TxnStateForElem    _txnStateForElem{};
+    TxnState&          _elemState;
+    ContainerTxnState& _containerState;
+    TContainer&        _container;
+    ElemType&          _elem;
+
+    public:
+    auto workingDirectory()
+    {
+        return Stencil::CreateTransaction<Transaction_workingDirectory>(_elemState.workingDirectory, _txnStateForElem.workingDirectory, *this, _elem.workingDirectory);
+    }
+
+    auto libraries()
+    {
+        return Stencil::CreateTransaction<Transaction_libraries>(_elemState.libraries, _txnStateForElem.libraries, *this, _elem.libraries);
+    }
+
+    auto scan()
+    {
+        return Stencil::CreateTransaction<Transaction_scan>(_elemState.scan, _txnStateForElem.scan, *this, _elem.scan);
+    }
+
+    auto httpsPort()
+    {
+        return Stencil::CreateTransaction<Transaction_httpsPort>(_elemState.httpsPort, _txnStateForElem.httpsPort, *this, _elem.httpsPort);
+    }
+
+    auto daemon()
+    {
+        return Stencil::CreateTransaction<Transaction_daemon>(_elemState.daemon, _txnStateForElem.daemon, *this, _elem.daemon);
+    }
+
+    void set_workingDirectory(shared_string&& val)
+    {
+        auto subtxn = workingDirectory();
+        subtxn.Assign(std::forward<shared_string>(val));
+    }
+
+    void set_libraries(std::vector<shared_string>&& val)
+    {
+        auto subtxn = libraries();
+        subtxn.Assign(std::forward<std::vector<shared_string>>(val));
+    }
+
+    void add_libraries(shared_string&& args)
+    {
+        _MarkFieldEdited(Fields::Field_libraries);
+        auto txn = libraries();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::add(txn, std::move(args));
+    }
+    void remove_libraries(size_t&& args)
+    {
+        _MarkFieldEdited(Fields::Field_libraries);
+        auto txn = libraries();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::remove(txn, std::move(args));
+    }
+    auto edit_libraries(size_t&& args)
+    {
+        _MarkFieldEdited(Fields::Field_libraries);
+        auto txn = libraries();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::edit(txn, std::move(args));
+    }
+    void set_scan(std::vector<shared_string>&& val)
+    {
+        auto subtxn = scan();
+        subtxn.Assign(std::forward<std::vector<shared_string>>(val));
+    }
+
+    void add_scan(shared_string&& args)
+    {
+        _MarkFieldEdited(Fields::Field_scan);
+        auto txn = scan();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::add(txn, std::move(args));
+    }
+    void remove_scan(size_t&& args)
+    {
+        _MarkFieldEdited(Fields::Field_scan);
+        auto txn = scan();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::remove(txn, std::move(args));
+    }
+    auto edit_scan(size_t&& args)
+    {
+        _MarkFieldEdited(Fields::Field_scan);
+        auto txn = scan();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::edit(txn, std::move(args));
+    }
+    void set_httpsPort(int32_t&& val)
+    {
+        auto subtxn = httpsPort();
+        subtxn.Assign(std::forward<int32_t>(val));
+    }
+
+    void set_daemon(bool&& val)
+    {
+        auto subtxn = daemon();
+        subtxn.Assign(std::forward<bool>(val));
+    }
+
+    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case Fields::Field_workingDirectory:
+        {
+            auto txn = workingDirectory();
+            return lambda(txn);
+        }
+        case Fields::Field_libraries:
+        {
+            auto txn = libraries();
+            return lambda(txn);
+        }
+        case Fields::Field_scan:
+        {
+            auto txn = scan();
+            return lambda(txn);
+        }
+        case Fields::Field_httpsPort:
+        {
+            auto txn = httpsPort();
+            return lambda(txn);
+        }
+        case Fields::Field_daemon:
+        {
+            auto txn = daemon();
+            return lambda(txn);
+        }
+        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        return Edit(index, std::forward<TLambda>(lambda));
+    }
+
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
+    {
+        {
+            auto txn = workingDirectory();
+            lambda(Fields::Field_workingDirectory, txn, Elem().workingDirectory);
+        }
+        {
+            auto txn = libraries();
+            lambda(Fields::Field_libraries, txn, Elem().libraries);
+        }
+        {
+            auto txn = scan();
+            lambda(Fields::Field_scan, txn, Elem().scan);
+        }
+        {
+            auto txn = httpsPort();
+            lambda(Fields::Field_httpsPort, txn, Elem().httpsPort);
+        }
+        {
+            auto txn = daemon();
+            lambda(Fields::Field_daemon, txn, Elem().daemon);
+        }
+    }
+};
+
+template <> struct Stencil::Visitor<CLOpts1::CommandLineOptions> : Stencil::VisitorT<CLOpts1::CommandLineOptions>
+{
+    using TData  = CLOpts1::CommandLineOptions;
+    using Fields = TypeTraitsForIndexable<TData>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_workingDirectory: return lambda(obj.workingDirectory);
+        case Fields::Field_libraries: return lambda(obj.libraries);
+        case Fields::Field_scan: return lambda(obj.scan);
+        case Fields::Field_httpsPort: return lambda(obj.httpsPort);
+        case Fields::Field_daemon: return lambda(obj.daemon);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_workingDirectory, obj.workingDirectory);
+        lambda(Fields::Field_libraries, obj.libraries);
+        lambda(Fields::Field_scan, obj.scan);
+        lambda(Fields::Field_httpsPort, obj.httpsPort);
+        lambda(Fields::Field_daemon, obj.daemon);
+    }
+};
+
+template <> struct Stencil::TypeTraits<CLOpts1::SimpleObj>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>
+{
+    enum class Fields
+    {
+        Invalid,
+        Field_field1
+,        Field_field2
+    };
+
+    using Key = Fields;
+};
+
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>::Fields;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        "field1"
+,        "field2"
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>::Fields>(index);
+    }
+};
+
+template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CLOpts1::SimpleObj, TContainer>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>::Fields;
+
+    struct ElemTxnState
+    {
+        Fields field;
+    };
+
+    struct TxnStateForElem
+    {
+        ElemTxnState field1 = {Fields::Field_field1};
+        ElemTxnState field2 = {Fields::Field_field2};
+    };
+
+    using Txn               = Stencil::Transaction<CLOpts1::SimpleObj, TContainer>;
+    using ElemType          = CLOpts1::SimpleObj;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using Transaction_field1 = Stencil::Transaction<shared_string, Txn>;
+    using Transaction_field2 = Stencil::Transaction<shared_string, Txn>;
+    struct TxnState
+    {
+        std::bitset<64> assigntracker;    // TODO1
+        std::bitset<64> edittracker;      // TODO1
+        typename Transaction_field1::TxnState field1{};
+        typename Transaction_field2::TxnState field2{};
+    };
+
+    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~Transaction()
+    {
+        if (IsChanged())
+        {
+            Stencil::TimestampedT<ElemType>::UpdateTimestamp(_elem);
+            _container.NotifyElementEdited_(_containerState);
+        }
+    }
+
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
+
+    ElemType const& Elem() const { return _elem; }
+
+    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+
+    void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
+    {
+        _MarkFieldAssigned(elemTxnState.field);
+        Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
+    }
+
+    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+
+    bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
+    {
+        if (_IsFieldAssigned(Fields::Field_field1))
+        {
+            auto txn = field1();
+            lambda(Fields::Field_field1, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_field1))
+        {
+            auto txn = field1();
+            lambda(Fields::Field_field1, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_field2))
+        {
+            auto txn = field2();
+            lambda(Fields::Field_field2, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_field2))
+        {
+            auto txn = field2();
+            lambda(Fields::Field_field2, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    void Assign(ElemType&& elem)
+    {
+        // if (Stencil::AreEqual(_elem, elem)) return;
+        std::swap(_elem, elem);
+        _container.NotifyElementAssigned_(_containerState);
+    }
+
+    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
+    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
+
+    template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
+
+    private:
+    TxnStateForElem    _txnStateForElem{};
+    TxnState&          _elemState;
+    ContainerTxnState& _containerState;
+    TContainer&        _container;
+    ElemType&          _elem;
+
+    public:
+    auto field1()
+    {
+        return Stencil::CreateTransaction<Transaction_field1>(_elemState.field1, _txnStateForElem.field1, *this, _elem.field1);
+    }
+
+    auto field2()
+    {
+        return Stencil::CreateTransaction<Transaction_field2>(_elemState.field2, _txnStateForElem.field2, *this, _elem.field2);
+    }
+
+    void set_field1(shared_string&& val)
+    {
+        auto subtxn = field1();
+        subtxn.Assign(std::forward<shared_string>(val));
+    }
+
+    void set_field2(shared_string&& val)
+    {
+        auto subtxn = field2();
+        subtxn.Assign(std::forward<shared_string>(val));
+    }
+
+    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case Fields::Field_field1:
+        {
+            auto txn = field1();
+            return lambda(txn);
+        }
+        case Fields::Field_field2:
+        {
+            auto txn = field2();
+            return lambda(txn);
+        }
+        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        return Edit(index, std::forward<TLambda>(lambda));
+    }
+
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
+    {
+        {
+            auto txn = field1();
+            lambda(Fields::Field_field1, txn, Elem().field1);
+        }
+        {
+            auto txn = field2();
+            lambda(Fields::Field_field2, txn, Elem().field2);
+        }
+    }
+};
+
+template <> struct Stencil::Visitor<CLOpts1::SimpleObj> : Stencil::VisitorT<CLOpts1::SimpleObj>
+{
+    using TData  = CLOpts1::SimpleObj;
+    using Fields = TypeTraitsForIndexable<TData>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_field1: return lambda(obj.field1);
+        case Fields::Field_field2: return lambda(obj.field2);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_field1, obj.field1);
+        lambda(Fields::Field_field2, obj.field2);
+    }
+};
+
+template <> struct Stencil::TypeTraits<CLOpts1::ObjWithList>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>
+{
+    enum class Fields
+    {
+        Invalid,
+        Field_field1
+    };
+
+    using Key = Fields;
+};
+
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>::Fields;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        "field1"
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>::Fields>(index);
+    }
+};
+
+template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CLOpts1::ObjWithList, TContainer>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>::Fields;
+
+    struct ElemTxnState
+    {
+        Fields field;
+    };
+
+    struct TxnStateForElem
+    {
+        ElemTxnState field1 = {Fields::Field_field1};
+    };
+
+    using Txn               = Stencil::Transaction<CLOpts1::ObjWithList, TContainer>;
+    using ElemType          = CLOpts1::ObjWithList;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using Transaction_field1 = Stencil::Transaction<std::vector<shared_string>, Txn>;
+    struct TxnState
+    {
+        std::bitset<64> assigntracker;    // TODO1
+        std::bitset<64> edittracker;      // TODO1
+        typename Transaction_field1::TxnState field1{};
+    };
+
+    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~Transaction()
+    {
+        if (IsChanged())
+        {
+            Stencil::TimestampedT<ElemType>::UpdateTimestamp(_elem);
+            _container.NotifyElementEdited_(_containerState);
+        }
+    }
+
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
+
+    ElemType const& Elem() const { return _elem; }
+
+    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+
+    void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
+    {
+        _MarkFieldAssigned(elemTxnState.field);
+        Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
+    }
+
+    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+
+    bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
+    {
+        if (_IsFieldAssigned(Fields::Field_field1))
+        {
+            auto txn = field1();
+            lambda(Fields::Field_field1, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_field1))
+        {
+            auto txn = field1();
+            lambda(Fields::Field_field1, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    void Assign(ElemType&& elem)
+    {
+        // if (Stencil::AreEqual(_elem, elem)) return;
+        std::swap(_elem, elem);
+        _container.NotifyElementAssigned_(_containerState);
+    }
+
+    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
+    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
+
+    template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
+
+    private:
+    TxnStateForElem    _txnStateForElem{};
+    TxnState&          _elemState;
+    ContainerTxnState& _containerState;
+    TContainer&        _container;
+    ElemType&          _elem;
+
+    public:
+    auto field1()
+    {
+        return Stencil::CreateTransaction<Transaction_field1>(_elemState.field1, _txnStateForElem.field1, *this, _elem.field1);
+    }
+
+    void set_field1(std::vector<shared_string>&& val)
+    {
+        auto subtxn = field1();
+        subtxn.Assign(std::forward<std::vector<shared_string>>(val));
+    }
+
+    void add_field1(shared_string&& args)
+    {
+        _MarkFieldEdited(Fields::Field_field1);
+        auto txn = field1();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::add(txn, std::move(args));
+    }
+    void remove_field1(size_t&& args)
+    {
+        _MarkFieldEdited(Fields::Field_field1);
+        auto txn = field1();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::remove(txn, std::move(args));
+    }
+    auto edit_field1(size_t&& args)
+    {
+        _MarkFieldEdited(Fields::Field_field1);
+        auto txn = field1();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::edit(txn, std::move(args));
+    }
+    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case Fields::Field_field1:
+        {
+            auto txn = field1();
+            return lambda(txn);
+        }
+        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        return Edit(index, std::forward<TLambda>(lambda));
+    }
+
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
+    {
+        {
+            auto txn = field1();
+            lambda(Fields::Field_field1, txn, Elem().field1);
+        }
+    }
+};
+
+template <> struct Stencil::Visitor<CLOpts1::ObjWithList> : Stencil::VisitorT<CLOpts1::ObjWithList>
+{
+    using TData  = CLOpts1::ObjWithList;
+    using Fields = TypeTraitsForIndexable<TData>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_field1: return lambda(obj.field1);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_field1, obj.field1);
+    }
+};
+
+template <> struct Stencil::TypeTraits<CLOpts1::CLOptsTest>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>
+{
+    enum class Fields
+    {
+        Invalid,
+        Field_key1
+,        Field_listofint
+,        Field_listoflist
+,        Field_listofobj
+,        Field_objoflist
+,        Field_key2
+    };
+
+    using Key = Fields;
+};
+
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Fields;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        "key1"
+,        "listofint"
+,        "listoflist"
+,        "listofobj"
+,        "objoflist"
+,        "key2"
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Fields>(index);
+    }
+};
+
+template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CLOpts1::CLOptsTest, TContainer>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Fields;
+
+    struct ElemTxnState
+    {
+        Fields field;
+    };
+
+    struct TxnStateForElem
+    {
+        ElemTxnState key1 = {Fields::Field_key1};
+        ElemTxnState listofint = {Fields::Field_listofint};
+        ElemTxnState listoflist = {Fields::Field_listoflist};
+        ElemTxnState listofobj = {Fields::Field_listofobj};
+        ElemTxnState objoflist = {Fields::Field_objoflist};
+        ElemTxnState key2 = {Fields::Field_key2};
+    };
+
+    using Txn               = Stencil::Transaction<CLOpts1::CLOptsTest, TContainer>;
+    using ElemType          = CLOpts1::CLOptsTest;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using Transaction_key1 = Stencil::Transaction<shared_string, Txn>;
+    using Transaction_listofint = Stencil::Transaction<std::vector<int32_t>, Txn>;
+    using Transaction_listoflist = Stencil::Transaction<std::vector<std::vector<int32_t>>, Txn>;
+    using Transaction_listofobj = Stencil::Transaction<std::vector<::CLOpts1::SimpleObj>, Txn>;
+    using Transaction_objoflist = Stencil::Transaction<::CLOpts1::ObjWithList, Txn>;
+    using Transaction_key2 = Stencil::Transaction<shared_string, Txn>;
+    struct TxnState
+    {
+        std::bitset<64> assigntracker;    // TODO1
+        std::bitset<64> edittracker;      // TODO1
+        typename Transaction_key1::TxnState key1{};
+        typename Transaction_listofint::TxnState listofint{};
+        typename Transaction_listoflist::TxnState listoflist{};
+        typename Transaction_listofobj::TxnState listofobj{};
+        typename Transaction_objoflist::TxnState objoflist{};
+        typename Transaction_key2::TxnState key2{};
+    };
+
+    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~Transaction()
+    {
+        if (IsChanged())
+        {
+            Stencil::TimestampedT<ElemType>::UpdateTimestamp(_elem);
+            _container.NotifyElementEdited_(_containerState);
+        }
+    }
+
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
+
+    ElemType const& Elem() const { return _elem; }
+
+    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+
+    void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
+    {
+        _MarkFieldAssigned(elemTxnState.field);
+        Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
+    }
+
+    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+
+    bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
+    {
+        if (_IsFieldAssigned(Fields::Field_key1))
+        {
+            auto txn = key1();
+            lambda(Fields::Field_key1, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_key1))
+        {
+            auto txn = key1();
+            lambda(Fields::Field_key1, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_listofint))
+        {
+            auto txn = listofint();
+            lambda(Fields::Field_listofint, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_listofint))
+        {
+            auto txn = listofint();
+            lambda(Fields::Field_listofint, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_listoflist))
+        {
+            auto txn = listoflist();
+            lambda(Fields::Field_listoflist, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_listoflist))
+        {
+            auto txn = listoflist();
+            lambda(Fields::Field_listoflist, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_listofobj))
+        {
+            auto txn = listofobj();
+            lambda(Fields::Field_listofobj, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_listofobj))
+        {
+            auto txn = listofobj();
+            lambda(Fields::Field_listofobj, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_objoflist))
+        {
+            auto txn = objoflist();
+            lambda(Fields::Field_objoflist, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_objoflist))
+        {
+            auto txn = objoflist();
+            lambda(Fields::Field_objoflist, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_key2))
+        {
+            auto txn = key2();
+            lambda(Fields::Field_key2, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_key2))
+        {
+            auto txn = key2();
+            lambda(Fields::Field_key2, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    void Assign(ElemType&& elem)
+    {
+        // if (Stencil::AreEqual(_elem, elem)) return;
+        std::swap(_elem, elem);
+        _container.NotifyElementAssigned_(_containerState);
+    }
+
+    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
+    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
+
+    template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
+
+    private:
+    TxnStateForElem    _txnStateForElem{};
+    TxnState&          _elemState;
+    ContainerTxnState& _containerState;
+    TContainer&        _container;
+    ElemType&          _elem;
+
+    public:
+    auto key1()
+    {
+        return Stencil::CreateTransaction<Transaction_key1>(_elemState.key1, _txnStateForElem.key1, *this, _elem.key1);
+    }
+
+    auto listofint()
+    {
+        return Stencil::CreateTransaction<Transaction_listofint>(_elemState.listofint, _txnStateForElem.listofint, *this, _elem.listofint);
+    }
+
+    auto listoflist()
+    {
+        return Stencil::CreateTransaction<Transaction_listoflist>(_elemState.listoflist, _txnStateForElem.listoflist, *this, _elem.listoflist);
+    }
+
+    auto listofobj()
+    {
+        return Stencil::CreateTransaction<Transaction_listofobj>(_elemState.listofobj, _txnStateForElem.listofobj, *this, _elem.listofobj);
+    }
+
+    auto objoflist()
+    {
+        return Stencil::CreateTransaction<Transaction_objoflist>(_elemState.objoflist, _txnStateForElem.objoflist, *this, _elem.objoflist);
+    }
+
+    auto key2()
+    {
+        return Stencil::CreateTransaction<Transaction_key2>(_elemState.key2, _txnStateForElem.key2, *this, _elem.key2);
+    }
+
+    void set_key1(shared_string&& val)
+    {
+        auto subtxn = key1();
+        subtxn.Assign(std::forward<shared_string>(val));
+    }
+
+    void set_listofint(std::vector<int32_t>&& val)
+    {
+        auto subtxn = listofint();
+        subtxn.Assign(std::forward<std::vector<int32_t>>(val));
+    }
+
+    void add_listofint(int32_t&& args)
+    {
+        _MarkFieldEdited(Fields::Field_listofint);
+        auto txn = listofint();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::add(txn, std::move(args));
+    }
+    void remove_listofint(size_t&& args)
+    {
+        _MarkFieldEdited(Fields::Field_listofint);
+        auto txn = listofint();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::remove(txn, std::move(args));
+    }
+    auto edit_listofint(size_t&& args)
+    {
+        _MarkFieldEdited(Fields::Field_listofint);
+        auto txn = listofint();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::edit(txn, std::move(args));
+    }
+    void set_listoflist(std::vector<std::vector<int32_t>>&& val)
+    {
+        auto subtxn = listoflist();
+        subtxn.Assign(std::forward<std::vector<std::vector<int32_t>>>(val));
+    }
+
+    void add_listoflist(std::vector<int32_t>&& args)
+    {
+        _MarkFieldEdited(Fields::Field_listoflist);
+        auto txn = listoflist();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::add(txn, std::move(args));
+    }
+    void remove_listoflist(size_t&& args)
+    {
+        _MarkFieldEdited(Fields::Field_listoflist);
+        auto txn = listoflist();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::remove(txn, std::move(args));
+    }
+    auto edit_listoflist(size_t&& args)
+    {
+        _MarkFieldEdited(Fields::Field_listoflist);
+        auto txn = listoflist();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::edit(txn, std::move(args));
+    }
+    void set_listofobj(std::vector<::CLOpts1::SimpleObj>&& val)
+    {
+        auto subtxn = listofobj();
+        subtxn.Assign(std::forward<std::vector<::CLOpts1::SimpleObj>>(val));
+    }
+
+    void add_listofobj(::CLOpts1::SimpleObj&& args)
+    {
+        _MarkFieldEdited(Fields::Field_listofobj);
+        auto txn = listofobj();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::add(txn, std::move(args));
+    }
+    void remove_listofobj(size_t&& args)
+    {
+        _MarkFieldEdited(Fields::Field_listofobj);
+        auto txn = listofobj();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::remove(txn, std::move(args));
+    }
+    auto edit_listofobj(size_t&& args)
+    {
+        _MarkFieldEdited(Fields::Field_listofobj);
+        auto txn = listofobj();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::edit(txn, std::move(args));
+    }
+    void set_objoflist(::CLOpts1::ObjWithList&& val)
+    {
+        auto subtxn = objoflist();
+        subtxn.Assign(std::forward<::CLOpts1::ObjWithList>(val));
+    }
+
+    void set_key2(shared_string&& val)
+    {
+        auto subtxn = key2();
+        subtxn.Assign(std::forward<shared_string>(val));
+    }
+
+    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case Fields::Field_key1:
+        {
+            auto txn = key1();
+            return lambda(txn);
+        }
+        case Fields::Field_listofint:
+        {
+            auto txn = listofint();
+            return lambda(txn);
+        }
+        case Fields::Field_listoflist:
+        {
+            auto txn = listoflist();
+            return lambda(txn);
+        }
+        case Fields::Field_listofobj:
+        {
+            auto txn = listofobj();
+            return lambda(txn);
+        }
+        case Fields::Field_objoflist:
+        {
+            auto txn = objoflist();
+            return lambda(txn);
+        }
+        case Fields::Field_key2:
+        {
+            auto txn = key2();
+            return lambda(txn);
+        }
+        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        return Edit(index, std::forward<TLambda>(lambda));
+    }
+
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
+    {
+        {
+            auto txn = key1();
+            lambda(Fields::Field_key1, txn, Elem().key1);
+        }
+        {
+            auto txn = listofint();
+            lambda(Fields::Field_listofint, txn, Elem().listofint);
+        }
+        {
+            auto txn = listoflist();
+            lambda(Fields::Field_listoflist, txn, Elem().listoflist);
+        }
+        {
+            auto txn = listofobj();
+            lambda(Fields::Field_listofobj, txn, Elem().listofobj);
+        }
+        {
+            auto txn = objoflist();
+            lambda(Fields::Field_objoflist, txn, Elem().objoflist);
+        }
+        {
+            auto txn = key2();
+            lambda(Fields::Field_key2, txn, Elem().key2);
+        }
+    }
+};
+
+template <> struct Stencil::Visitor<CLOpts1::CLOptsTest> : Stencil::VisitorT<CLOpts1::CLOptsTest>
+{
+    using TData  = CLOpts1::CLOptsTest;
+    using Fields = TypeTraitsForIndexable<TData>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_key1: return lambda(obj.key1);
+        case Fields::Field_listofint: return lambda(obj.listofint);
+        case Fields::Field_listoflist: return lambda(obj.listoflist);
+        case Fields::Field_listofobj: return lambda(obj.listofobj);
+        case Fields::Field_objoflist: return lambda(obj.objoflist);
+        case Fields::Field_key2: return lambda(obj.key2);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_key1, obj.key1);
+        lambda(Fields::Field_listofint, obj.listofint);
+        lambda(Fields::Field_listoflist, obj.listoflist);
+        lambda(Fields::Field_listofobj, obj.listofobj);
+        lambda(Fields::Field_objoflist, obj.objoflist);
+        lambda(Fields::Field_key2, obj.key2);
+    }
+};
+
+#endif
+// SECTION END: Template specializations
+
+// SECTION START: Inline Function Definitions
+#if true
+
+#endif
+// SECTION END: Inline Function Definitions

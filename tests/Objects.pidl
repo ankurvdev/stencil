@@ -1,0 +1,51 @@
+struct SimpleObject1
+{
+    int32     val1;
+    uint32    val2;
+    uint8     val3;
+    string    val4;
+    double    val5;
+}
+
+struct ListObject
+{
+    uint32        value;
+    SimpleObject1 obj1;
+}
+
+struct DictObject
+{
+    dict<uint32, SimpleObject1> dictobj;
+    dict<string, timestamp>     dictval;
+    dict<uint32, dict<uint32, SimpleObject1>> dictdict;
+}
+
+struct List
+{
+    list<ListObject> listobj;
+}
+
+struct SimpleObject2
+{
+    bool        val1;
+    double      val2;
+    char[8]     val3;
+    timestamp   val4;
+    uint64      val5;
+    int64       val6;
+    uint16      val7;
+    int16       val8;
+    
+}
+
+struct NestedObject
+{
+    SimpleObject1   obj1;
+    SimpleObject2   obj2;
+    ListObject      obj3;
+    DictObject      dict1;
+    List            list1;
+}
+
+attribute optionalprops  object = SimpleObject1, SimpleObject2
+attribute timestamped    object = NestedObject, SimpleObject1, ListObject, List, SimpleObject2

@@ -1,4 +1,4 @@
-# Transactions
+[[TOC]]
 
 ## Overview
 
@@ -75,58 +75,112 @@ Foo foo;
 }
 ```
 
-## Delta Change listeners
+## Dev Notes
 
-```c++
-NotifyListeners(txn, foo);
-```
+### Multiple levels of recordings
 
-## Data Recording
+- Tagging: previous state lost. New state marked as changed
+- History: previous state available. Undo support.
+- Visitor: ability to walk /visit changes.
+- Streaming: no visitation after changes
+  - What's the use case ?
 
-```c++
-std::ofstream f("record.bin", ios::binary| ios::app);
-f << timestamp << BinaryTransactionSerDes::Writer(txn, foo);
-```
+### Features
 
-## Replay
+1. Recursive (Nesting). For codegen support (structs)
+2. Primitives need to be empty. Struct members tagged via bitmask ( Parent support required )
+3. Editing objects via visitors (serialization/deserialization) support
+4. Detect no-changes for primitive values. (Recursively)
+    - Testcase : deserializing twice into same obj should produce empty txn on the second attempt.
+    - What to do for lists
+5. Serializing /deserializing into patches via protocol ( json, string, binary)
 
-```c++
-std::ifstream f("record.bin", ios::binary);
-while(f.good())
-{
-    f >> BinaryTransactionSerDes::Applicator(foo);
-}
-```
+## Proposals: Containers and State
 
-## Delta Logging
+Primitives dont have state for perf reasons
+Primitives rely on owner to maintain state
+    - This is useful because the bool changed can not be a bitfield in parent.
+However if we have no state in transaction then the owner needs to provide some context so it understands which child transaction is requesting the callback
 
-```c++
-fmt::print("{}", StringTransactionSerDes::Deserialize(txn, foo);
-```
+### [APPROVED] Container: `Transaction<T, TContainer>`
 
-## Change Commands
+- `Constructor`:
+  - `Transaction(... TContainer& container ...)`
 
-```c++
-auto txn = StringTransactionSerDes::Apply(foo, "child1.val1 = 1;child1.val2 = \"newvalue\";child1.list1:add[0] = {val: 1}; child1.list1:add[0]= {val: 2};val3 = 2");
-```
+### [Approved] ElementState: `Transaction<...>::ElementState`
 
-## Specializing for Custom types
+- `Constructor`: `Transaction(... ElementState& elemState...)`
+- `struct`: `ElementState` contans bitfields
+- `iterables`: List of change records
+- `indexables`: List of additions edits removals
+- `primitives`: `struct {/*Empty*/}`
 
-```C++
+### [Testing] ContainerState: `Transaction<T, TContainer>::TContainer::ContainerState`
 
-struct MyType{}
+- `Constructor`: `Transaction(... TContainer::ContainerState& containerState, ...)`
+- `struct`: `struct ContainerState { Field key; }`
+  - Not persistent
+  - Provided at txn construction for context on callbacks to owner
+  - Owner `ElementState` contains bitfields that use the key to trigger based on callbacks
+- `iterables`: `struct ContainerState { Iterator it; }`
+- `indexables`: `struct ContainerState { Key key; }`
+- `primitives`: Invalid
 
-template <> struct Transaction<MyType> : TransactionT<MyType>
-{
+### [REJECTED] ~~AccessorFn~~
 
-// lambda is a auto lambda
-template <typename TLambda>
-void Visit(size_t index, TLamda&& lambda); // Invoke lambda(Tranction<SubType>) based on given index
-template <typename TLambda>
-void Visit(std::string_view const& name, TLambda&& lambda); // Invoke  lambda(Tranction<SubType>) based on given name
-void VisitChanges()
+- The overhead cost of function pointers everywhere isnt worth it
+- Access to its object from transaction becomes incredibly hard.
+- Requires maintaining accessibility state in the Containerized Object (index/key)
+- Unordered_maps and vectors will suffer from perf impact due to repeated searches (accessor invocation)
+- Since Transactions are no longer storable types the worry about unstable pointer from owner-containers isnt valid anymore.
 
-};
+- ~~`Constructor`:`Transaction(... AccessorFn *fn...)`~~
+  - ~~Accessor fn is how the transaction accesses its object~~
+  - ~~No more direct access.~~
 
+- ~~`TObj& Obj()` : fn(owner, state) -> TObj&~~
+  - ~~`vector` : State contains index which can be used to dereference into the object~~
+  - ~~`unordered_map` : State contains key~~
+  - ~~`primitives` : State is empty~~
+  - ~~`struct`:~~
 
-```
+~~__How to access object from the Transaction__~~
+
+~~A Transaction doesnt directly have access to the object.
+Reason: The object could be a managed object and so parents could move pointer around for no apparent reason (containers, vector, unordered_map)
+So Access to the object is granted by an accessorfn provided by the parent
+Within a Transaction AccessorFn can be called by providing an Owner object and will provide access to the object
+Vector/List: AccessorFn is uniform so some obj-state must be provided
+The AccessorFn will need some identifier to identify the exact object~~
+
+### Pros-Cons
+
+- Pros
+  - Simplifies ser des. Assists with visitor pattern.
+  - Establishes parent relationship. Provides up navigability which is important for Feature(2)
+  - Ability to get unstable ptr objects lazily
+  - Makes feature (1)(2) simpler
+  - Fork persistent state into another object for nesting
+  - Change txn struct to be temp var.
+  - Solves issues with unstable container memberptr  (vector)
+
+- Cons
+  - Additional parent ptr overhead
+    - Makes the transaction object itself a temporary object.
+  - Requires separation of state for feature (2)
+
+## Proposals: Visitors for Transactions
+
+- Makes feature (5) simpler
+
+Mutator support
+
+VisitChanges
+
+### FAQ
+
+- Multi-threading and locking
+  - Caller enforced. Caller ensures editing happens in a single thread
+- Should we use thread local to maintain state around the sink ?
+- The Ostream should be able to control output and formatting
+  

@@ -15,9 +15,7 @@ boolean = "bool"
 
   [FieldTypes.default]
   NativeType = "void"
-  NativeHandler = "VoidHandler"
-  NativeHandlerData = "nullptr"
-  DefaultValue = "{}"
+  DefaultValue = "/*Initial Value*/"
 
   [FieldTypes.auto]
   NativeType = "auto"
@@ -75,6 +73,7 @@ boolean = "bool"
 
 [Struct]
 NativeType = "::%Program:Name%::%Struct:Name%"
+DefaultValue = "/*Initial Value*/"
 
 [Interface]
 NativeType = "long"
@@ -125,7 +124,7 @@ Args = "size_t"
 Id = 2
 
 [Containers.list.Mutators.edit]
-ReturnType = "auto&"
+ReturnType = "auto"
 Args = "size_t"
 Id = 3
 
@@ -138,7 +137,7 @@ NativeType = "shared_tree<%type:NativeType%>"
 Params = [ "key", "value" ]
 NativeType = "std::map<%key:NativeType%, %value:NativeType%>"
 
-[Containers.hashtable]
+[Containers.dict]
 Params = [ "key", "value" ]
 NativeType = "std::unordered_map<%key:NativeType%, %value:NativeType%>"
 

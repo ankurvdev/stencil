@@ -47,22 +47,24 @@ template <typename T> static void RunTestCase(TestCaseCLI const& tc, std::vector
 
 template <typename T> static void RunTestCases(std::initializer_list<TestCaseCLI> cases, std::string const& name)
 {
-    {
-        std::vector<std::string> lines;
-        RunTestCase<T>({{"1"}, "default-1", false}, lines, name);
-        RunTestCase<T>({{}, "default-2", true}, lines, name);
-        RunTestCase<T>({{"[]"}, "default-3", false}, lines, name);
-        RunTestCase<T>({{"mismatched"}, "default-4", false}, lines, name);
-        for (auto& tc : cases) { RunTestCase<T>(tc, lines, name); }
-        CheckOutputAgainstResource(lines, name);
-    }
+
+    std::vector<std::string> lines;
+    RunTestCase<T>({{"1"}, "default-1", false}, lines, name);
+    RunTestCase<T>({{}, "default-2", true}, lines, name);
+    RunTestCase<T>({{"[]"}, "default-3", false}, lines, name);
+    RunTestCase<T>({{"mismatched"}, "default-4", false}, lines, name);
+    for (auto& tc : cases) { RunTestCase<T>(tc, lines, name); }
+    TestCommon::CheckOutputAgainstStrResource(lines, name);
 
     // CompareFileAgainstResource(logfname, reffname.string());
 }
 
 TEST_CASE("CLI", "[CLI]")
 {
-    SECTION("TestObj") { RunTestCases<TestObj>({}, "TestObj"); }
+    SECTION("TestObj")
+    {
+        RunTestCases<TestObj>({}, "TestObj");
+    }
     SECTION("WithPrimitives64Bit")
     {
         RunTestCases<WithPrimitives64Bit>({{{"--f1=-1"}, "int64-1", true},

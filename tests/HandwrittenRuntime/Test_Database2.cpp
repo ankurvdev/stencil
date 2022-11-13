@@ -265,9 +265,9 @@ template <typename TObj> void TestCaseForObj()
         TestCaseForObj<type>();                       \
     }
 
-//#define TEST_CASE_FOR_(type, ...) TEST_CASE_FOR_OBJTYPE(type) TEST_CASE_FOR_(__VA_ARGS__)
-//#define TEST_CASE_FOR__(arg) TEST_CASE_FOR_ arg
-//#define TEST_CASE_FOR(args) TEST_CASE_FOR__((args))
+// #define TEST_CASE_FOR_(type, ...) TEST_CASE_FOR_OBJTYPE(type) TEST_CASE_FOR_(__VA_ARGS__)
+// #define TEST_CASE_FOR__(arg) TEST_CASE_FOR_ arg
+// #define TEST_CASE_FOR(args) TEST_CASE_FOR__((args))
 
 #define ALL_TESTED_TYPES Database2::ByteString, TestData::WithSimpleRef
 TEST_CASE_FOR_OBJTYPE(Database2::ByteString)
@@ -411,9 +411,9 @@ TEST_CASE("CodeGen::Database2::UniqueSharedAndSelf", "[Database2]")
         {
             auto lock = store.LockForEdit();
             for (auto const [ref, obj] : store.Objects<Database2::ByteString>(lock)) { store.Delete(lock, ref); }
-            size_t count = 0;
-            for ([[maybe_unused]] auto const [ref, obj] : store.Objects<Database2::ByteString>(lock)) { count++; }
-            // TODO : REQUIRE(count == 0);
+            // size_t count = 0;
+            //  for ([[maybe_unused]] auto const [ref, obj] : store.Objects<Database2::ByteString>(lock)) { count++; }
+            //  TODO : REQUIRE(count == 0);
 
             // TODO : TEst case for verifying that editlock causes a page dirty
         }

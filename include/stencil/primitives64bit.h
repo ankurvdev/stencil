@@ -2,16 +2,17 @@
 #include "CommonMacros.h"
 
 SUPPRESS_WARNINGS_START
+SUPPRESS_STL_WARNINGS
 #pragma warning(disable : 4866)    // left to right evaluation not guaranteed
-#include <chrono>
-SUPPRESS_WARNINGS_END
-
 #include <array>
 #include <bit>
+#include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <stdexcept>
 #include <type_traits>
+
+SUPPRESS_WARNINGS_END
 
 struct Primitives64Bit
 {
@@ -52,14 +53,8 @@ struct Primitives64Bit
             {
                 return Type{.width = W, .category = Primitives64Bit::Type::Category::Unsigned};
             }
-            else if constexpr (std::is_signed<T>::value)
-            {
-                return Type{.width = W, .category = Primitives64Bit::Type::Category::Signed};
-            }
-            else
-            {
-                return Type{.width = 0, .category = Primitives64Bit::Type::Category::Unknown};
-            }
+            else if constexpr (std::is_signed<T>::value) { return Type{.width = W, .category = Primitives64Bit::Type::Category::Signed}; }
+            else { return Type{.width = 0, .category = Primitives64Bit::Type::Category::Unknown}; }
         }
 
         public:
@@ -191,10 +186,7 @@ struct Primitives64Bit
             default: throw std::logic_error("Unsupported Cast");
             }
         }
-        else
-        {
-            throw std::logic_error("Unknown type");
-        }
+        else { throw std::logic_error("Unknown type"); }
     }
 };
 
@@ -240,7 +232,8 @@ template <typename TClock> struct Primitives64Bit::Traits<std::chrono::time_poin
 
 #ifdef TODO1
 template <size_t N>
-requires(N <= 8) struct Primitives64Bit::Traits<std::array<char, N>>
+    requires(N <= 8)
+struct Primitives64Bit::Traits<std::array<char, N>>
 {
     static constexpr auto      Type() { return Primitives64Bit::Type::Signed(N); }
     static void                Assign(Primitives64Bit& /*obj*/, std::array<char, N>& /*val*/) { TODO(""); }
@@ -250,7 +243,8 @@ requires(N <= 8) struct Primitives64Bit::Traits<std::array<char, N>>
 #endif
 
 template <size_t N>
-requires(N <= 4) struct Primitives64Bit::Traits<std::array<int16_t, N>>
+    requires(N <= 4)
+struct Primitives64Bit::Traits<std::array<int16_t, N>>
 {
     using TObj = std::array<int16_t, N>;
     static constexpr auto         Type() { return Primitives64Bit::Type::Signed(N * 2); }
@@ -266,7 +260,8 @@ requires(N <= 4) struct Primitives64Bit::Traits<std::array<int16_t, N>>
 };
 
 template <size_t N>
-requires(N <= 8) struct Primitives64Bit::Traits<std::array<uint8_t, N>>
+    requires(N <= 8)
+struct Primitives64Bit::Traits<std::array<uint8_t, N>>
 {
     using TObj = std::array<uint8_t, N>;
 
@@ -292,7 +287,8 @@ requires(N <= 8) struct Primitives64Bit::Traits<std::array<uint8_t, N>>
 };
 
 template <size_t N>
-requires(N <= 4) struct Primitives64Bit::Traits<std::array<uint16_t, N>>
+    requires(N <= 4)
+struct Primitives64Bit::Traits<std::array<uint16_t, N>>
 {
     using TObj = std::array<uint16_t, N>;
 
@@ -318,7 +314,8 @@ requires(N <= 4) struct Primitives64Bit::Traits<std::array<uint16_t, N>>
 };
 
 template <typename T>
-concept ConceptPrimitives64Bit = !Primitives64Bit::Type::IsUnknown(Primitives64Bit::Traits<T>::Type());
+concept ConceptPrimitives64Bit = !
+Primitives64Bit::Type::IsUnknown(Primitives64Bit::Traits<T>::Type());
 
 template <typename T>
 concept ConceptPrimitives64BitFloat = Primitives64Bit::Type::IsFloat(Primitives64Bit::Traits<T>::Type());
@@ -337,4 +334,4 @@ static_assert(ConceptPrimitives64Bit<bool>);
 static_assert(!ConceptPrimitives64BitSigned<float>);
 static_assert(ConceptPrimitives64BitFloat<float>);
 static_assert(ConceptPrimitives64Bit<uint64_t>);
-static_assert(ConceptPrimitives64BitSigned<char>); // Apparently chars can be signed or unsigned. We treat then as signed
+static_assert(ConceptPrimitives64BitSigned<char>);    // Apparently chars can be signed or unsigned. We treat then as signed

@@ -15,11 +15,17 @@
 
 #define WIDENSTR(x) WIDENSTR_(x)
 #define WIDENSTR_(x) L##x
-#define OBJECTNAME(str)                                                                       \
-    static constexpr auto BindingKeyName() { return std::wstring_view(WIDENSTR(#str)); }      \
-    Str::Type             ObjectTypeName() override { return Str::Create(BindingKeyName()); } \
-    struct                                                                                    \
-    {                                                                                         \
+#define OBJECTNAME(str)                           \
+    static constexpr auto BindingKeyName()        \
+    {                                             \
+        return std::wstring_view(WIDENSTR(#str)); \
+    }                                             \
+    Str::Type ObjectTypeName() override           \
+    {                                             \
+        return Str::Create(BindingKeyName());     \
+    }                                             \
+    struct                                        \
+    {                                             \
     } dummy
 
 namespace IDLGenerics
@@ -75,6 +81,8 @@ struct AnnotatedObjectT : public Binding::BindableObjectArray<AnnotatedObjectT<T
 
 template <typename TOwner, typename TObject> struct NamedIndexT
 {
+    struct NamedObject;
+
     struct Owner : public Binding::BindableObjectArray<TOwner, TObject>
     {
         Owner() = default;
@@ -84,7 +92,7 @@ template <typename TOwner, typename TObject> struct NamedIndexT
         {
             static_assert(std::is_base_of_v<std::enable_shared_from_this<TObject>, TObject>, "Object should be a shared_ptr");
             static_assert(std::is_base_of_v<std::enable_shared_from_this<TOwner>, TOwner>, "Owner should be a shared_ptr");
-            static_assert(std::is_base_of<NamedIndexT<TOwner, TObject>::NamedObject, TObject>::value);
+            static_assert(std::is_base_of<NamedObject, TObject>::value);
             auto ptr = std::make_shared<TObject>(std::forward<TArgs>(args)...);
             Binding::BindableObjectArray<TOwner, TObject>::AddToArray(ptr->shared_from_this());
             return (_namemap[ptr->Name()] = ptr);
@@ -186,6 +194,8 @@ struct FieldTypeStore
 
 template <typename TOwner, typename TObject> struct FieldTypeIndex
 {
+    struct FieldType;
+
     struct Owner : public NamedIndexT<TOwner, TObject>::Owner, public virtual FieldTypeStore
     {
         Owner() = default;
@@ -193,15 +203,13 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
 
         template <typename... TArgs> auto CreateFieldTypeObject(TArgs&&... args)
         {
-            static_assert(std::is_base_of<FieldTypeIndex<TOwner, TObject>::FieldType, TObject>::value);
+            static_assert(std::is_base_of<FieldType, TObject>::value);
             auto ptr = NamedIndexT<TOwner, TObject>::Owner::CreateNamedObject(std::forward<TArgs>(args)...);
             ptr->SetFieldId(GetFieldCount());
             AddFieldType(ptr->GetFieldName(), ptr);
             return ptr;
         }
     };
-
-    struct FieldType;
 
     struct Mutator : public std::enable_shared_from_this<Mutator>,
                      public NamedIndexT<TOwner, Mutator>::NamedObject,
@@ -336,6 +344,10 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
                 basetype = defbasetype;
             }
             if (basetype.has_value()) { AddBaseObject(basetype.value()); }
+            else
+            {
+                if (this->Name() != L"default") { throw std::logic_error("Please specify a default type"); }
+            }
         }
 
         DELETE_COPY_AND_MOVE(FieldType);
@@ -400,11 +412,15 @@ class ConstValue
         }
     }
 
-    static Str::Type DefaultStringifiedValue() { return Str::Create(L"{}"); }
+    static Str::Type DefaultStringifiedValue()
+    {
+        throw std::logic_error("Specify a default type"); /*return Str::Create(L" "); */ /* Dont leave this empty */
+    }
 };
 
 template <typename TOwner, typename TObject> struct StorageIndexT
 {
+    struct StorageType;
 
     struct Owner : public FieldTypeIndex<TOwner, TObject>::Owner
     {
@@ -414,7 +430,7 @@ template <typename TOwner, typename TObject> struct StorageIndexT
 
         template <typename... TArgs> auto CreateStorageObject(TArgs&&... args)
         {
-            static_assert(std::is_base_of<StorageIndexT<TOwner, TObject>::StorageType, TObject>::value);
+            static_assert(std::is_base_of<StorageType, TObject>::value);
             return this->CreateFieldTypeObject(std::forward<TArgs>(args)...);
         }
     };
@@ -494,16 +510,15 @@ template <typename TOwner, typename TObject> struct StorageIndexT
             if (_defaultValue != nullptr) { return _defaultValue->Stringify(); }
             Binding::BindingContext context;
             auto                    defval = _fieldType->TryLookupOrNull(context, Str::Create(L"DefaultValue"));
-            if (defval != nullptr)
+            if (defval == nullptr)
             {
-                assert(defval->GetType() == Binding::Type::String || defval->GetType() == Binding::Type::Expr);
-                if (defval->GetType() == Binding::Type::String) { return Str::Copy(defval->GetString()); }
-                else
-                {
-                    return defval->GetExpr().String();
-                }
+                _fieldType->TryLookupOrNull(context, Str::Create(L"DefaultValue"));
+                return ConstValue::DefaultStringifiedValue();
             }
-            return ConstValue::DefaultStringifiedValue();
+
+            assert(defval->GetType() == Binding::Type::String || defval->GetType() == Binding::Type::Expr);
+            if (defval->GetType() == Binding::Type::String) { return Str::Copy(defval->GetString()); }
+            else { return defval->GetExpr().String(); }
         }
 
         Str::Type HasDefaultValue() const { return Str::Create(_defaultValue ? L"true" : L"false"); }

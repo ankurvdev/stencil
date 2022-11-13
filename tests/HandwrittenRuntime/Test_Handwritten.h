@@ -1,10 +1,13 @@
 #include <stencil/stencil.h>
 
+SUPPRESS_WARNINGS_START
+SUPPRESS_STL_WARNINGS
 #include <assert.h>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <variant>
+SUPPRESS_WARNINGS_END
 
 struct WithPrimitives64Bit
 {

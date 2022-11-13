@@ -4,23 +4,15 @@
 #include "typetraits_builtins.h"
 
 SUPPRESS_WARNINGS_START
-
-SUPPRESS_WARNINGS_END
-
-SUPPRESS_WARNINGS_START
-#pragma warning(disable : 4866)    // left to right evaluation not guaranteed
-#pragma warning(disable : 4868)    // left to right evaluation not guaranteed
-#pragma warning(disable : 4623)    // default constructor was implicitly defined as deleted
-#pragma warning(disable : 4626)    // assignment operator was implicitly defined as deleted
-#pragma warning(disable : 5027)    // move assignment operator was implicitly defined as deleted
-#pragma warning(disable : 5219)    // date.h implicit conversion from 'unsigned int64 to long double
-#pragma warning(disable : 4365)    // fmt: initializing conversion signed/unsigned mismatch
-#include <fmt/format.h>
-#include <fmt/chrono.h>
-#include <fmt/ostream.h>
+SUPPRESS_STL_WARNINGS
+SUPPRESS_FMT_WARNINGS
+#pragma warning(disable : 5219)    // implicit conversion (int to double), possible loss of data
 #include <charconv>
 #include <chrono>
 #include <date/date.h>
+#include <fmt/chrono.h>
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 #include <sstream>
 #include <string_view>
 
@@ -31,7 +23,7 @@ namespace Stencil
 struct ProtocolString
 {
     using InType  = std::string_view;
-    using OutType = std::string;
+    using OutType = std::stringstream;
 };
 
 // Absense of ProtocolString is being used as constexpr detection for stuff
@@ -53,7 +45,6 @@ template <ConceptEnum T> struct SerDes<T, ProtocolString>
 
     template <typename Context> static auto Read(T& obj, Context& ctx)
     {
-
         using EnumTrait = typename Stencil::EnumTraits<T>;
 
         for (size_t i = 0; i < std::size(EnumTrait::Names); i++)
@@ -78,10 +69,7 @@ template <ConceptPrimitives64Bit T> struct SerDes<T, ProtocolString>
     template <typename Context> static auto Write(Context& ctx, T const& obj)
     {
         if constexpr (std::is_default_constructible_v<fmt::formatter<T>>) { fmt::print(ctx, "{}", obj); }
-        else
-        {
-            fmt::print(ctx, "{}", Primitives64Bit::Traits<T>::Repr(obj));
-        }
+        else { fmt::print(ctx, "{}", Primitives64Bit::Traits<T>::Repr(obj)); }
     }
 
     template <typename Context> static auto Read(T& obj, Context& ctx)
@@ -150,14 +138,8 @@ template <size_t N> struct SerDes<std::array<char, N>, ProtocolString>
         auto str       = std::string_view(obj.data(), obj.size());
         auto nullindex = str.find(char{0}, 0);
         if (nullindex == str.npos) { fmt::print(ctx, "{}", str); }
-        else if (nullindex == 0)
-        {
-            fmt::print(ctx, "null");
-        }
-        else
-        {
-            fmt::print(ctx, "{}", str.substr(0, nullindex));
-        }
+        else if (nullindex == 0) { fmt::print(ctx, "null"); }
+        else { fmt::print(ctx, "{}", str.substr(0, nullindex)); }
     }
     template <typename Context> static auto Read(TObj& obj, Context& ctx)
     {
@@ -245,7 +227,8 @@ template <> struct SerDes<char, ProtocolString>
 };
 
 template <size_t N>
-requires(N <= 4) struct SerDes<std::array<uint16_t, N>, ProtocolString>
+    requires(N <= 4)
+struct SerDes<std::array<uint16_t, N>, ProtocolString>
 {
     using TObj = std::array<uint16_t, N>;
     template <typename Context> static auto Write(Context& ctx, TObj const& obj)

@@ -8,8 +8,8 @@ namespace IDL::Lang::Thrift
 {
 void Context::Import(Str::View const& name)
 {
-    std::ifstream f(program.File().parent_path() / std::filesystem::path(Str::Value(name).c_str()));
-    Load(*this, f);
+    auto path = (program.File().parent_path() / std::filesystem::path(Str::Value(name).c_str()));
+    LoadFile(*this, path);
 }
 
 std::shared_ptr<IDL::Struct> CreateStruct(Context& context, Str::Type& id, FieldList& fields, TypeAttributeList& map)
@@ -35,10 +35,10 @@ std::shared_ptr<IDL::Variant> CreateVariant(Context& context, Str::Type& id, Fie
     return strct;
 }
 
-static void CreateRelectionshipDefinitionRecursively(Context&                            context,
-                                                     Str::Type&&                         name,
+static void CreateRelectionshipDefinitionRecursively(Context&                         context,
+                                                     Str::Type&&                      name,
                                                      AttributeComponentList&          map,
-                                                     ComponentList&                      componentmap,
+                                                     ComponentList&                   componentmap,
                                                      AttributeComponentList::iterator atit)
 {
     TypeAttributeList attributemap;

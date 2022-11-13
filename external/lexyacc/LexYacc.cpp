@@ -1,9 +1,14 @@
+#pragma warning(push, 3)
+#pragma warning(disable : 5262) /*xlocale(2010,13): implicit fall-through occurs here*/
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <unordered_map>
+
+#pragma warning(pop)
 
 namespace stdfs = std::filesystem;
 

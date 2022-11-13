@@ -67,7 +67,7 @@ struct zzStruct_Namezz :
     public Stencil::StructT<zzStruct_Namezz>
 {
     //<Field>
-    zzFieldType_NativeTypezz zzNamezz = zzInitialValuezz;
+    zzFieldType_NativeTypezz zzNamezz = zzFieldType_NativeTypezz{zzInitialValuezz};
     //</Field>
 };
 //</Struct>
@@ -211,87 +211,162 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram
     }
 };
 
-template <> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz> : Stencil::TransactionT<zzProgram_Namezz::zzStruct_Namezz>
+template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TContainer>
 {
-    using TData  = zzProgram_Namezz::zzStruct_Namezz;
     using Fields = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields;
 
+    struct ElemTxnState
+    {
+        Fields field;
+    };
+
+    struct TxnStateForElem
+    {
+        //<Field>
+        ElemTxnState zzNamezz = {Fields::Field_zzField_Namezz};
+        //</Field>
+    };
+
+    using Txn               = Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TContainer>;
+    using ElemType          = zzProgram_Namezz::zzStruct_Namezz;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
     //<Field>
-    Transaction<zzFieldType_NativeTypezz> _subtracker_zzNamezz;
+    using Transaction_zzNamezz = Stencil::Transaction<zzFieldType_NativeTypezz, Txn>;
     //</Field>
+
+    struct TxnState
+    {
+        std::bitset<64> assigntracker;    // TODO1
+        std::bitset<64> edittracker;      // TODO1
+        //<Field>
+        typename Transaction_zzNamezz::TxnState zzNamezz{};
+        //</Field>
+    };
+
+    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~Transaction()
+    {
+        if (IsChanged())
+        {
+            Stencil::TimestampedT<ElemType>::UpdateTimestamp(_elem);
+            _container.NotifyElementEdited_(_containerState);
+        }
+    }
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
-    Transaction(TData& ptr) :
-        Stencil::TransactionT<zzProgram_Namezz::zzStruct_Namezz>(ptr)
-        //<Field>
-        ,
-        _subtracker_zzNamezz(Obj().zzNamezz)
-    //</Field>
-    {}
+    ElemType const& Elem() const { return _elem; }
 
-    //<Field>
-    auto& zzNamezz()
+    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+
+    void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
     {
-        MarkFieldEdited_(Fields::Field_zzField_Namezz);
-        return _subtracker_zzNamezz;
+        _MarkFieldAssigned(elemTxnState.field);
+        Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
     }
+
+    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+
+    bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
+    {
+        //<Field>
+        if (_IsFieldAssigned(Fields::Field_zzField_Namezz))
+        {
+            auto txn = zzNamezz();
+            lambda(Fields::Field_zzField_Namezz, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_zzField_Namezz))
+        {
+            auto txn = zzNamezz();
+            lambda(Fields::Field_zzField_Namezz, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        //</Field>
+    }
+
+    void Assign(ElemType&& elem)
+    {
+        // if (Stencil::AreEqual(_elem, elem)) return;
+        std::swap(_elem, elem);
+        _container.NotifyElementAssigned_(_containerState);
+    }
+
+    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
+    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
+
+    template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
+
+    private:
+    TxnStateForElem    _txnStateForElem{};
+    TxnState&          _elemState;
+    ContainerTxnState& _containerState;
+    TContainer&        _container;
+    ElemType&          _elem;
+
+    public:
+    //<Field>
+    auto zzNamezz()
+    {
+        return Stencil::CreateTransaction<Transaction_zzNamezz>(_elemState.zzNamezz, _txnStateForElem.zzNamezz, *this, _elem.zzNamezz);
+    }
+
     //</Field>
     //<Field>
     void set_zzNamezz(zzFieldType_NativeTypezz&& val)
     {
-        MarkFieldAssigned_(Fields::Field_zzNamezz, Obj().zzNamezz, val);
-        Obj().zzNamezz = std::move(val);
+        auto subtxn = zzNamezz();
+        subtxn.Assign(std::forward<zzFieldType_NativeTypezz>(val));
     }
 
     //<FieldType_Mutator>
     zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz&& args)
     {
-        MarkFieldEdited_(Fields::Field_zzField_Namezz);
-        return Stencil::Mutators<std::remove_reference_t<decltype(zzField_Namezz())>>::zzNamezz(zzField_Namezz(), std::move(args));
+        _MarkFieldEdited(Fields::Field_zzField_Namezz);
+        auto txn = zzField_Namezz();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::zzNamezz(txn, std::move(args));
     }
     //</FieldType_Mutator>
     //</Field>
 
-    template <typename TLambda> auto Visit(Fields index, [[maybe_unused]] TLambda&& lambda)
+    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
     {
         switch (index)
         {
         //<Field>
-        case Fields::Field_zzNamezz: return lambda("zzNamezz", zzNamezz());
+        case Fields::Field_zzNamezz:
+        {
+            auto txn = zzNamezz();
+            return lambda(txn);
+        }
         //</Field>
         case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
 
-    template <typename TLambda> auto Visit([[maybe_unused]] std::string_view const& fieldName, [[maybe_unused]] TLambda&& lambda)
+    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
     {
-        //<Field>
-        if (fieldName == "zzNamezz") { return lambda(Fields::Field_zzNamezz, zzNamezz()); }
-        //</Field>
-        throw std::invalid_argument("Asked to visit invalid field");
+        return Edit(index, std::forward<TLambda>(lambda));
     }
 
     template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
     {
         //<Field>
-        lambda("zzNamezz", Fields::Field_zzNamezz, zzNamezz(), Obj().zzNamezz);
-        //</Field>
-    }
-
-    void Flush()
-    {
-        //<Field>
-        zzNamezz().Flush();
-
-        if (IsFieldEdited(Fields::Field_zzNamezz))
         {
-            if (!zzNamezz().IsChanged()) _edittracker.reset(static_cast<uint8_t>(Fields::Field_zzNamezz));
+            auto txn = zzNamezz();
+            lambda(Fields::Field_zzNamezz, txn, Elem().zzNamezz);
         }
-
         //</Field>
-
-        Stencil::TransactionT<zzProgram_Namezz::zzStruct_Namezz>::Flush_();
     }
 };
 
