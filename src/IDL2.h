@@ -253,10 +253,7 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
                     {
                         rslt->AddString(Str::Copy(recrval->GetString()));    // TODO IFieldType::GetFieldName
                     }
-                    else
-                    {
-                        return Binding::Expression::Clone(recrval->GetExpr());
-                    }
+                    else { return Binding::Expression::Clone(recrval->GetExpr()); }
                 }
             }
             return rslt;
@@ -286,7 +283,7 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
 };
 
 struct AttributeDefinition : public std::enable_shared_from_this<AttributeDefinition>,
-                                public IDLGenerics::NamedIndexT<Program, AttributeDefinition>::NamedObject
+                             public IDLGenerics::NamedIndexT<Program, AttributeDefinition>::NamedObject
 {
     public:
     typedef std::unordered_map<Str::Type, Str::Type> AttributeComponentMap;
@@ -299,9 +296,9 @@ struct AttributeDefinition : public std::enable_shared_from_this<AttributeDefini
     DELETE_COPY_AND_MOVE(AttributeDefinition);
 
     AttributeDefinition(std::shared_ptr<Program> program,
-                           Str::Type&&              name,
-                           std::shared_ptr<Binding::AttributeMap> /* attributes */,
-                           AttributeComponentMap&& unordered_map) :
+                        Str::Type&&              name,
+                        std::shared_ptr<Binding::AttributeMap> /* attributes */,
+                        AttributeComponentMap&& unordered_map) :
         IDLGenerics::NamedIndexT<Program, AttributeDefinition>::NamedObject(program, std::move(name)),
         m_ComponentMap(std::move(unordered_map))
     {
@@ -391,16 +388,16 @@ struct Program : public std::enable_shared_from_this<Program>,
 struct Struct;
 
 struct AttributeTag : public std::enable_shared_from_this<AttributeTag>,
-                         public Binding::BindableT<AttributeTag>,
-                         public IDLGenerics::NamedIndexT<Struct, AttributeTag>::NamedObject
+                      public Binding::BindableT<AttributeTag>,
+                      public IDLGenerics::NamedIndexT<Struct, AttributeTag>::NamedObject
 {
     OBJECTNAME(AttributeTag);
     DELETE_COPY_AND_MOVE(AttributeTag);
 
     AttributeTag(std::shared_ptr<Struct> owner,
-                    Str::Type&&             name,
-                    std::optional<std::shared_ptr<const AttributeDefinition>> /*def*/,
-                    std::shared_ptr<IDLGenerics::IFieldType> fieldType) :
+                 Str::Type&&             name,
+                 std::optional<std::shared_ptr<const AttributeDefinition>> /*def*/,
+                 std::shared_ptr<IDLGenerics::IFieldType> fieldType) :
         Binding::BindableT<AttributeTag>(Str::Create(L"TagType"), &AttributeTag::GetAttributeDefinitionBindable),
         IDLGenerics::NamedIndexT<Struct, AttributeTag>::NamedObject(owner, std::move(name)),
         _fieldType(fieldType)
@@ -462,7 +459,11 @@ struct Interface : public std::enable_shared_from_this<Interface>,
 
     Interface(std::shared_ptr<Program> program, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> unordered_map) :
         IDLGenerics::StorageIndexT<Program, Interface>::StorageType(program, std::move(name), {}, unordered_map)
-    {}
+    {
+        // HACK : We want default types from Program to propagate to the interface
+        // Should we just have the search be recursive ?
+        for (auto const& [fieldname, fieldtype] : program->_fieldTypeMap) { this->AddFieldType(Str::Type{fieldname}, fieldtype); }
+    }
 
     template <typename TObject, typename... TArgs> auto CreateNamedObject(TArgs&&... args)
     {
@@ -631,10 +632,7 @@ inline std::shared_ptr<IDLGenerics::IFieldType> NativeFieldType::FindOrCreate(st
         {
             return program->CreateNamedObject<NativeFieldType>(std::move(name), fieldType, unordered_map);
         }
-        else
-        {
-            baseName = Str::Create(L"default");
-        }
+        else { baseName = Str::Create(L"default"); }
     }
 
     return program->CreateNamedObject<NativeFieldType>(std::move(name), program->GetFieldTypeName(std::move(baseName)), unordered_map);

@@ -179,6 +179,7 @@ struct FieldTypeStore
         ACTION_CONTEXT([&]() { return L"Searching For FieldType::" + Str::Create(name); });
         return _fieldTypeMap.at(Str::Type(name));
     }
+
     std::optional<std::shared_ptr</*const*/ IFieldType>> TryGetFieldTypeName(Str::View const& name) const
     {
         auto it = _fieldTypeMap.find(Str::Type(name));
@@ -417,7 +418,6 @@ class ConstValue
         throw std::logic_error("Specify a default type"); /*return Str::Create(L" "); */ /* Dont leave this empty */
     }
 };
-
 template <typename TOwner, typename TObject> struct StorageIndexT
 {
     struct StorageType;

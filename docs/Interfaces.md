@@ -18,9 +18,7 @@ Practical Scenarios
 ```IDL
 interface Foo {
     // ...
-
     event Bar(int arg1, string arg2);
-    
     // ...
 }
 ```
@@ -49,16 +47,14 @@ sse.addEventListener('bar', function (e: any) {
 
 ```
 
-Other language / framework projections will have similiar 
+Other language / framework projections will have similiar
 
 ### Object Data Store
 
 ```IDL
 interface Foo {
     // ...
-
     objectstore DataObject dataobject;
-    
     // ...
 }
 ```
@@ -67,7 +63,7 @@ The Object store exposes CRUD (Create, Read, Update, Delete) apis for a given ob
 
 The interface implementors can use the C++ projections of the object-store CRUD apis to make the same interactions that are made available to projection frameworks
 
-```C++ 
+```C++
 
 auto id = this->Create_dataobject();
 
@@ -96,9 +92,7 @@ xhr.open('GET', serverprefix + '/foo/dataobject/all?arg1=1') // Get all objects
 ```IDL
 interface Foo {
     // ...
-
     int AddNumbers(int arg1, int arg2);
-    
     // ...
 }
 ```
@@ -108,8 +102,5 @@ The interface implementors must provide a override function that is invoked when
 For the WebService framework projection, the client can use the snippet
 
 ```javascript
-
 xhr.open('GET', serverprefix + '/foo/addnumbers?arg1=0&arg2=1')
-
 ```
-
