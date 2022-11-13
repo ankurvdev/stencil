@@ -68,4 +68,4 @@ enable_testing()
 add_test(NAME stencil_vcpkg_test COMMAND stencil_vcpkg_test)
 
 include(${CMAKE_CURRENT_LIST_DIR}/../../cmake/RuntimeCodegenTests.cmake)
-target_link_libraries(stencil_vcpkg_test PRIVATE codegen testdata WavefrontObjly)
+target_link_libraries(stencil_vcpkg_test PRIVATE codegen testdata WavefrontObj)
