@@ -153,6 +153,9 @@ function(_target_add_lexyacc target lyfile lexyacc_NAME)
 
     set(outputs "${yy}" "${yh}" "${yc}" "${ll}" "${lc}" "${hh}")
     if (NOT EXISTS "${LEXYACC_EXECUTABLE}")
+        find_program(LEXYACC_EXECUTABLE lexyacc)
+    endif()
+    if (NOT EXISTS "${LEXYACC_EXECUTABLE}")
         add_custom_command(
             OUTPUT  "${yy}" "${ll}"
             COMMAND lexyacc "${lyfile}" --outdir "${outdir}" --prefix ${lexyacc_NAME}

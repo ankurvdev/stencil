@@ -36,19 +36,20 @@ if (NOT "${VCPKG_HOST_TRIPLET}" STREQUAL "${VCPKG_TARGET_TRIPLET}")
         EMBEDRESOURCE_EXECUTABLE: ${EMBEDRESOURCE_EXECUTABLE}
         LEXYACC_EXECUTABLE: ${LEXYACC_EXECUTABLE}
     ")
-
 endif()
 
+find_package(EmbedResource)
 find_package(stencil REQUIRED)
 set(srcfile ${CMAKE_CURRENT_BINARY_DIR}/main.cpp)
 file(WRITE ${srcfile} "")
 add_executable(stencil_vcpkg_test ${srcfile})
 
-add_lexyacc_library(TARGET WavefrontObjly LYFILE ${CMAKE_CURRENT_LIST_DIR}/WavefrontObj.ly)
+add_lexyacc_library(TARGET WavefrontObj LYFILE ${CMAKE_CURRENT_LIST_DIR}/WavefrontObj.ly)
+target_include_directories(WavefrontObj PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
 target_include_directories(stencil_vcpkg_test PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
 
 file(APPEND ${srcfile} "
-#include<WavefrontObj.ly.h>
+#include<WavefrontObj.h>
 #include<EmbeddedResource.h>
 #include <iostream>
 DECLARE_RESOURCE_COLLECTION(testdata);
@@ -67,4 +68,4 @@ enable_testing()
 add_test(NAME stencil_vcpkg_test COMMAND stencil_vcpkg_test)
 
 include(${CMAKE_CURRENT_LIST_DIR}/../../cmake/RuntimeCodegenTests.cmake)
-target_link_libraries(stencil_vcpkg_test PRIVATE codegen testdata)
+target_link_libraries(stencil_vcpkg_test PRIVATE codegen testdata WavefrontObjly)
