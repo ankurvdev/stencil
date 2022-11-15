@@ -31,24 +31,7 @@ Implementation in C++ would have be inheriting from a virtual base class consist
 
 that can be used to notify clients of the event (along with args)
 
-Client will use event handler registration / de-registration apis to recieve these notifications
-
-For the Web-Service Projection framework the following Javascript snippet can be used to register for the event
-
-```javascript
-
-sse = new EventSource(serverprefix + '/foo/eventsource')
-
-sse.addEventListener('bar', function (e: any) {
-        console.log(e.data)
-        console.log(JSON.parse(e.data).arg1)
-        console.log(JSON.parse(e.data).arg2)
-});
-
-```
-
-Other language / framework projections will have similiar
-
+Client will use event handler registration / de-registration apis to 
 ### Object Data Store
 
 ```IDL
