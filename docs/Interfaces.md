@@ -6,12 +6,11 @@ Practical Scenarios
 
 * RPC Function calls
 * Web-Services
-  * Object Store (CRUD)
-  * Events (SSE)
-  * REST Apis (JSON)
+* BLE services
+* MQTT
 * Language Bindings and API projections for Python PHP etc
 
-## Supported Member Types
+## Components
 
 ### Events
 
@@ -23,51 +22,12 @@ interface Foo {
 }
 ```
 
-Implementation in C++ would have be inheriting from a virtual base class consisting of the following projected function available
+Translates to
 
 ```C++
+struct Foo {
     void RaiseEvent_Bar(int arg1, std::string const& arg2)
-```
-
-that can be used to notify clients of the event (along with args)
-
-Client will use event handler registration / de-registration apis to 
-### Object Data Store
-
-```IDL
-interface Foo {
-    // ...
-    objectstore DataObject dataobject;
-    // ...
 }
-```
-
-The Object store exposes CRUD (Create, Read, Update, Delete) apis for a given object through the interface.
-
-The interface implementors can use the C++ projections of the object-store CRUD apis to make the same interactions that are made available to projection frameworks
-
-```C++
-
-auto id = this->Create_dataobject();
-
-// Use Transactions to update objects 
-auto& txn = this->Edit_dataobject(id);
-txn.set_arg1(0);
-// ...
-
-this->Delete_dataobject(id);
-
-```
-
-```javascript
-
-xhr.open('GET', serverprefix + '/foo/dataobject/create?arg1=0') // Create new object
-xhr.open('GET', serverprefix + '/foo/dataobject/get?ids=id_12345') // Fetch multiple objects in a single request
-xhr.open('GET', serverprefix + '/foo/dataobject/id_12345') // Fetch single object
-xhr.open('GET', serverprefix + '/foo/dataobject/id_12345?arg1=1') // Edit and update and return single object
-xhr.open('GET', serverprefix + '/foo/dataobject/delete?ids=id_12345') // Delete the objects
-xhr.open('GET', serverprefix + '/foo/dataobject/all?arg1=1') // Get all objects
-
 ```
 
 ### Functions
@@ -75,15 +35,33 @@ xhr.open('GET', serverprefix + '/foo/dataobject/all?arg1=1') // Get all objects
 ```IDL
 interface Foo {
     // ...
-    int AddNumbers(int arg1, int arg2);
+    static int DoSomething();
+    int DoSomethingContextual(int arg1, int arg2);
     // ...
 }
 ```
+Translates to
 
-The interface implementors must provide a override function that is invoked when the api invocation is requested by the client.
-
-For the WebService framework projection, the client can use the snippet
-
-```javascript
-xhr.open('GET', serverprefix + '/foo/addnumbers?arg1=0&arg2=1')
+```c++
+struct Foo {
+    static int DoSomething();
+    virtual int AddNumbers(int arg1, int arg2);
+}
 ```
+
+If an interface contain non static functions, the generated class must be implemented before it can be used.
+
+
+
+### ~~~Object Data Store~~~
+```IDL
+interface Foo {
+    // ...
+    objectstore DataObject dataobject;
+    // ...
+}
+```
+Adding object data Store to the interface doesn't add value.
+Object Data Store can always be added to the services exposing the interface.
+
+##
