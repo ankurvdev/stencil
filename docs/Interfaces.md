@@ -1,5 +1,20 @@
 # Interfaces
 
+## Design Notes
+
+### Virtual functions vs Linked Functions
+
+Pros (Virtual)
+* Easier context. Avoid use of singletons or thread local context managers.
+* separate static and virtual. So more choice.
+
+Pros (Linked)
+* make the class non instantiable
+* how do brokers get access to the implementors 
+* static doesn't make sense. Everything is static.
+
+
+
 ## Overview
 
 Practical Scenarios
@@ -64,4 +79,9 @@ interface Foo {
 Adding object data Store to the interface doesn't add value.
 Object Data Store can always be added to the services exposing the interface.
 
-##
+## Brokers
+
+### Web
+```c++
+struct Svc : public Foo, WebSvc<Foo, DataStore>, BLESvc<Foo, DataStore>
+```
