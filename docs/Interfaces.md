@@ -117,3 +117,9 @@ struct Svc :
 ```
 
 The generated code should include client helpers (js, c++) for easy interfacing.
+
+
+### Language Bindings 
+
+How do Language Bindings know the implementors of virtual class to instantiate for invoking calls ?
+Foo::Create and return Foo unique/shared Foo pointer ?
