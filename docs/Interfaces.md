@@ -2,7 +2,8 @@
 
 ## Design Notes
 
-### Virtual functions vs Linked Functions
+### Virtual functions (vs Linked Functions)
+Status : Tentatively approved
 
 Pros (Virtual)
 * Easier context. Avoid use of singletons or thread local context managers.
@@ -15,6 +16,7 @@ Pros (Linked)
 * static doesn't make sense. Everything is static.
 
 ### Data-stores part of interface?
+Status : Tentatively denied
 
 * Why yes
   * we can generate client side CRUD code (javascript/c++ etc)
