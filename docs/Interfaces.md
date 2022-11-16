@@ -1,31 +1,7 @@
 # Interfaces
 
-## Design Notes
-
-### Virtual functions (vs Linked Functions)
-Status : Tentatively approved
-
-#### Interface activation
-Done  via linked function(s) handwritten by programmer.
-Should it be unique_ptr shared_ptr. Provide both.
-
-unique_ptr<> IInterface::Create ( caller managed lifetime)
-shared_ptr<> IInstance::Activate (singleton)
-They mutually exclusive, usually caller will choose one.
-
-
-Pros (Virtual)
-* Easier context. Avoid use of singletons or thread local context managers.
-* separate static and virtual. So more choice.
-* implementors can declare and contain data-stores.
-
-Pros (Linked)
-* make the class non instantiable
-* how do brokers get access to the implementors 
-* static doesn't make sense. Everything is static.
-
 ### Data-stores part of interface?
-Status : Tentatively denied
+Status : Under consideration (Needs prototyping for linking with DatabaseT)
 
 * Why yes
   * we can generate client side CRUD code (javascript/c++ etc)
@@ -35,7 +11,7 @@ Status : Tentatively denied
   * backend could be databaseT based or split based chosen by implementation.
 
 * Why no
-  * There's nothing to implement.
+  * How would a programmer link the interface with DatabaseT ?
   * could the CRUD code be generated regardless of including it in interface ?
   * could the sync code be generated regardless ?
 
@@ -101,37 +77,51 @@ If an interface contain non static functions, the generated class must be implem
 
 
 
-### ~~~Object Data Store~~~
+### Object Store
 ```IDL
 interface Foo {
     // ...
-    objectstore DataObject dataobject;
+    objectstore DataObject dataobject1;
+    objectstore Dataobject dataobject2;
     // ...
 }
 ```
 Adding object data Store to the interface doesn't add value.
 Object Data Store can always be added to the services exposing the interface.
 
-## Brokers
-
-### Web
-
-Server (handwritten)
+## Handwritten (Implementation)
 
 ```c++
-struct Svc :
-      public Foo, 
-      public WebSvc<Svc, Foo, DataStore>, 
-      public BLESvc<Foo, DataStore>
-
+struct FooImpl : public Foo<DatabaseT>
 {
-
+  using DataStoreT = DatabaseT; // Used by Foo to 
+  
+  virtual int AddNumbers(int arg1, int arg2) override 
+  {
+     RaiseEvent_Bar(arg1, "test");
+     return arg1 + arg2 + _offset; 
+  }
+  
+  int offset_{-1};
 };
+
+// Static functions
+int Foo::DoSomething() { return -1; }
+
+// Activators/Creators 
+static std::unique_ptr<Foo> Foo::Create()
+{
+return new FooImpl();
+};
+static std::shared_ptr<Foo> Foo::Activate()
+{
+return new FooImpl();
+};
+
 
 ```
 
-The generated code should include client helpers (js, c++) for easy interfacing.
-
+## Code Generated Scenarios
 
 ### Language Bindings 
 
@@ -151,3 +141,27 @@ foo1.dataobjects.remove(...)
 ```
 
 ### Typescript SSE sync
+
+
+
+## Design Notes
+
+### Virtual functions (vs Linked Functions)
+Status : Tentatively approved
+
+#### Interface activation
+Programmer provided functions:.
+- `unique_ptr<> IInterface::Create` ( caller managed lifetime)
+- `shared_ptr<> IInstance::Activate` (singleton)
+They mutually exclusive, usually caller will choose one.
+
+Pros (Virtual)
+* Easier context. Avoid use of singletons or thread local context managers.
+* separate static and virtual. So more choice.
+* implementors can declare and contain data-stores.
+
+Pros (Linked)
+* make the class non instantiable
+* how do brokers get access to the implementors 
+* static doesn't make sense. Everything is static.
+
