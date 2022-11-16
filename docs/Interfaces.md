@@ -5,6 +5,15 @@
 ### Virtual functions (vs Linked Functions)
 Status : Tentatively approved
 
+#### Interface activation
+Done  via linked function(s) handwritten by programmer.
+Should it be unique_ptr shared_ptr. Provide both.
+
+unique_ptr<> IInterface::Create ( caller managed lifetime)
+shared_ptr<> IInstance::Activate (singleton)
+They mutually exclusive, usually caller will choose one.
+
+
 Pros (Virtual)
 * Easier context. Avoid use of singletons or thread local context managers.
 * separate static and virtual. So more choice.
@@ -123,5 +132,11 @@ The generated code should include client helpers (js, c++) for easy interfacing.
 
 ### Language Bindings 
 
-How do Language Bindings know the implementors of virtual class to instantiate for invoking calls ?
-Foo::Create and return Foo unique/shared Foo pointer ?
+```Python
+foo1 = new IFoo()
+foo1.AddNumbers(1,2)
+IFoo.DoSomething()
+foo1.Bar.subscribe(callback)
+foo2 = new IFoo()
+```
+Use interface activation to get
