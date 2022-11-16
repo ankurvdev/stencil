@@ -30,6 +30,9 @@ Status : Tentatively denied
 * Why yes
   * we can generate client side CRUD code (javascript/c++ etc)
   * we can create protocol/network agnostic object sync code
+  * standardizes CRUD access for objects.
+  * alternative would be verbose additions of the apis
+  * backend could be databaseT based or split based chosen by implementation.
 
 * Why no
   * There's nothing to implement.
