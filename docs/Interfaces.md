@@ -139,4 +139,10 @@ IFoo.DoSomething()
 foo1.Bar.subscribe(callback)
 foo2 = new IFoo()
 ```
-Use interface activation to get
+Might be useful to have objectstore so we can do
+
+```python
+foo1.dataobjects.add(new DataObject(....))
+foo1.dataobjects.get(id)
+foo1.dataobjects.remove(...)
+```
