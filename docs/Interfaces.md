@@ -149,3 +149,5 @@ foo1.dataobjects.add(new DataObject(....))
 foo1.dataobjects.get(id)
 foo1.dataobjects.remove(...)
 ```
+
+### Typescript SSE sync
