@@ -9,6 +9,16 @@
 ### Data-stores part of interface?
 Status : Under consideration (Needs prototyping for linking with DatabaseT)
 
+* Do not dictate backend (DatabaseT for eg) or else it's not an interface 
+* CRUD
+  * Create : No construction ? Start with always empty ?
+  * Read : what Id system to use ?
+  * Update : Transactions ? Do we just send a new object ? I'd system ?
+  * Delete : I'd system ?
+  * The interface itself is fairly tied to the backend
+  * Does a uint32/64 Id work everywhere ?
+ * if interface is templates on the implementor side. How would the client know the implementors 
+
 #### Yes
   * Auto-generated 
     * CRUD interfaces : Less verbose, succinct, standardized
