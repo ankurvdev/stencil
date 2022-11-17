@@ -1,21 +1,28 @@
 # Interfaces
 
+### Open questions
+
+- How can interface include datastore as merely api-grouping?
+- How would implementors choose datastore backend (DatabaseT, MysqlT, JsonStoreT)
+- 
+
 ### Data-stores part of interface?
 Status : Under consideration (Needs prototyping for linking with DatabaseT)
 
-* Why yes
-  * we can generate client side CRUD code (javascript/c++ etc)
-  * we can create protocol/network agnostic object sync code
-  * standardizes CRUD access for objects.
-  * alternative would be verbose additions of the apis
-  * backend could be databaseT based or split based chosen by implementation.
+#### Yes
+  * Auto-generated 
+    * CRUD interfaces : Less verbose, succinct, standardized
+    * Client side CRUD code (javascript/c++ etc)
+    * Remote synced mirror
 
-* Why no
+#### No
+  * RPC - would need explicit verbose CRUD interfaces
+  * Bindings - would need explitict verbose CRUD interface 
+  * SSE Sync - 
   * How would a programmer link the interface with DatabaseT ?
   * could the CRUD code be generated regardless of including it in interface ?
   * could the sync code be generated regardless ?
-
-How would the sync code know what endpoint to use ? Manual init ?
+  * How would the sync code know what endpoint to use ? Manual init ?
 
 If using virtual. The implementors can inherit markers to declare the data-stores they provide.
 
@@ -147,13 +154,14 @@ foo1.dataobjects.remove(...)
 ## Design Notes
 
 ### Virtual functions (vs Linked Functions)
-Status : Tentatively approved
+Status : Approved.
+If you don't like virtual functions, go full static and manage threadlocal context.
 
 #### Interface activation
 Programmer provided functions:.
 - `unique_ptr<> IInterface::Create` ( caller managed lifetime)
 - `shared_ptr<> IInstance::Activate` (singleton)
-They mutually exclusive, usually caller will choose one.
+- usually caller will choose one or another method of activation.
 
 Pros (Virtual)
 * Easier context. Avoid use of singletons or thread local context managers.
@@ -164,4 +172,3 @@ Pros (Linked)
 * make the class non instantiable
 * how do brokers get access to the implementors 
 * static doesn't make sense. Everything is static.
-
