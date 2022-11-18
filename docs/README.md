@@ -9,11 +9,13 @@
 * Web Services [Interfaces]
 * Python Bindings [Interfaces]
 
+
 * Build Integration (CMake + Submodule)
 * Build Integration (CMake + Vcpkg)
 * Use your own templates, Language and types
 
-(Future Work
+
+(Future Work - Contribute)
 * MySQL ORM [Database]
 * Bluetooth (BLE Gatt) Services [Interfaces]
 * MQTT Services [Interfaces]
