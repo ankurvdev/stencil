@@ -12,7 +12,7 @@ Scenarios
 * Python Bindings [Interfaces]
 
 Build
-
+* Supported Platforms : Linux, Android, Win32, UWP
 * Build Integration (CMake + Submodule)
 * Build Integration (CMake + Vcpkg)
 * Use your own templates, Language and types
