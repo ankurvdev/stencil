@@ -1,5 +1,22 @@
 # README
 
+## Quick Start
+### Scenarios
+
+* Json Parsing + Stringify [SerDes]
+* Command Line Args Parsing [SerDes]
+* Persistent Object Storage +CRUD [Database]
+* Object Mirroring and Delta updates [Transactions]
+* Web Services [Interfaces]
+* Python Bindings [Interfaces]
+
+(Future Work)
+* MySQL ORM [Database]
+* Bluetooth (BLE Gatt) Services [Interfaces]
+* MQTT Services [Interfaces]
+* Encrypted Storage [Database]
+* 
+
 ## Overview
 
 [![Build Status](https://dev.azure.com/ankurv/stencil/_apis/build/status/ankurvdev.stencil?branchName=main)](https://dev.azure.com/ankurv/stencil/_build/latest?definitionId=8&branchName=main)
