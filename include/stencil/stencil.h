@@ -5,11 +5,9 @@
 #include "protocol_json.h"
 #include "protocol_string.h"
 
-#include "mutatorsaccessors.h"
-#include "optionalprops.h"
 #include "shared_tree.h"
 #include "transactions.h"
-#include "visitor.h"
+#include "interfaces.h"
 
 #include "Database2.h"
 #include "ref.h"

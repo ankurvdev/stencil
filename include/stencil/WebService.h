@@ -54,13 +54,9 @@ template <typename T1, typename T2> inline bool iequal(T1 const& a, T2 const& b)
 }    // namespace impl
 
 template <typename T>
-concept WebInterfaceImpl = requires(T t)
-{
-    typename T::Interface;
-    typename WebServiceHandlerTraits<typename T::Interface>;
-};
+concept ConceptInterface = requires(T t) { typename Stencil::InterfaceTraits<T>; };
 
-template <WebInterfaceImpl... TImpls> struct WebService
+template <ConceptInterface... Ts> struct WebService
 {
     struct UnableToStartDaemonException
     {};
@@ -108,7 +104,7 @@ template <WebInterfaceImpl... TImpls> struct WebService
             auto index = path.find('/', 1);
             if (index == path.npos) throw std::runtime_error("Invalid path. Cannot detect interface");
             auto ifname = path.substr(1, index - 1);
-            _HandleRequest<TImpls...>(req, res, ifname, path.substr(index));
+            _HandleRequest<Ts...>(req, res, ifname, path.substr(index));
         } catch (std::exception const& ex)
         {
             res.status = 500;
@@ -138,7 +134,7 @@ template <WebInterfaceImpl... TImpls> struct WebService
         return args;
     }
 
-    template <WebInterfaceImpl T>
+    template <ConceptInterface T>
     bool _HandleEventSource(T& /* obj */,
                             httplib::Request const& /* req */,
                             httplib::Response& /* res */,
@@ -160,7 +156,7 @@ template <WebInterfaceImpl... TImpls> struct WebService
         throw std::logic_error("Not implemented");
     }
 
-    template <typename TTup, size_t TTupIndex, WebInterfaceImpl T>
+    template <typename TTup, size_t TTupIndex, ConceptInterface T>
     bool _TryHandleObjectStore(T&                      obj,
                                httplib::Request const& req,
                                httplib::Response&      res,
@@ -212,7 +208,7 @@ template <WebInterfaceImpl... TImpls> struct WebService
         }
     }
 
-    template <WebInterfaceImpl T>
+    template <ConceptInterface T>
     bool _HandleObjectStore(T&                      obj,
                             httplib::Request const& req,
                             httplib::Response&      res,
@@ -223,7 +219,7 @@ template <WebInterfaceImpl... TImpls> struct WebService
         return _TryHandleObjectStore<ObjectsTup, std::tuple_size_v<ObjectsTup>, T>(obj, req, res, ifname, path);
     }
 
-    template <typename TTup, size_t TTupIndex, WebInterfaceImpl T>
+    template <typename TTup, size_t TTupIndex, ConceptInterface T>
     bool _TryHandleFunction(T&                      obj,
                             httplib::Request const& req,
                             httplib::Response&      res,
@@ -255,7 +251,7 @@ template <WebInterfaceImpl... TImpls> struct WebService
         }
     }
 
-    template <WebInterfaceImpl T>
+    template <ConceptInterface T>
     bool _HandleFunction(T&                      obj,
                          httplib::Request const& req,
                          httplib::Response&      res,
@@ -273,7 +269,7 @@ template <WebInterfaceImpl... TImpls> struct WebService
         return _TryHandleFunction<Tup, std::tuple_size_v<Tup>, T>(obj, req, res, ifname, path);
     }
 
-    template <WebInterfaceImpl T>
+    template <ConceptInterface T>
     void _HandleRequest(T& obj, httplib::Request const& req, httplib::Response& res, std::string_view const& path)
     {
         if (path.empty() || path[0] != '/') throw std::logic_error("Invalid path");
@@ -288,7 +284,7 @@ template <WebInterfaceImpl... TImpls> struct WebService
         if (!found) { throw std::runtime_error(fmt::format("No Matching api found for {}", path)); }
     }
 
-    template <WebInterfaceImpl T, WebInterfaceImpl... Ts>
+    template <ConceptInterface T, ConceptInterface... Ts>
     void _HandleRequest(httplib::Request const& req, httplib::Response& res, std::string_view const& ifname, std::string_view const& path)
     {
         if (!impl::iequal(WebServiceHandlerTraits<typename T::Interface>::Url(), ifname))
@@ -303,8 +299,8 @@ template <WebInterfaceImpl... TImpls> struct WebService
     std::condition_variable _cond;
     std::mutex              _mutex;
 
-    int                   _port;
-    httplib::Server       _server;
-    std::tuple<TImpls...> _impls;
+    int                                _port;
+    httplib::Server                    _server;
+    std::tuple<std::unique_ptr<Ts>...> _impls;
 };
 }    // namespace Stencil

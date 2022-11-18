@@ -100,7 +100,7 @@ struct zzVariant_Namezz : public Stencil::VariantT<zzVariant_Namezz>
 //</Variant>
 
 //<Interface>
-struct zzInterface_Namezz : public Stencil::InterfaceT<zzInterface_Namezz>
+struct zzInterface_Namezz
 {
     public:
     struct Dummy
@@ -121,7 +121,7 @@ struct zzInterface_Namezz : public Stencil::InterfaceT<zzInterface_Namezz>
 
     zzInterface_Namezz()          = default;
     virtual ~zzInterface_Namezz() = default;
-    DELETE_COPY_AND_MOVE(zzInterface_Namezz);
+    CLASS_DELETE_COPY_AND_MOVE(zzInterface_Namezz);
     //<InterfaceFunction>
     virtual zzReturnType_NativeTypezz zzInterfaceFunction_Namezz(
         //<Args_Field Join=','>
@@ -135,7 +135,7 @@ struct zzInterface_Namezz : public Stencil::InterfaceT<zzInterface_Namezz>
     struct Args_zzInterfaceFunction_Namezz
     {
         //<Args_Field>
-        zzFieldType_NativeTypezz arg_zzNamezz{};
+        zzFieldType_NativeTypezz zzNamezz{};
         //</Args_Field>
     };
 
@@ -159,6 +159,10 @@ struct zzInterface_Namezz : public Stencil::InterfaceT<zzInterface_Namezz>
 
     //</InterfaceFunction>
     ObjectStore objects;
+
+    static std::unique_ptr<zzInterface_Namezz> Create();
+    static std::shared_ptr<zzInterface_Namezz> CreateShared();
+    static std::shared_ptr<zzInterface_Namezz> Activate();
 };
 //</Interface>
 
@@ -399,65 +403,86 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz> : Stencil
 
 //<Interface>
 //<InterfaceFunction>
-template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args>
+template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
 {
-    //<Args_Field>
-
-    struct Traits_arg_zzNamezz
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
+{
+    enum class Fields
     {
-        using TOwner     = zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args;
-        using TFieldType = zzFieldType_NativeTypezz;
-
-        static constexpr std::string_view Name() { return "zzNamezz"; }
-        static const ::Stencil::Flags     Flags() { return {}; }
-        static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
-        static constexpr auto TPropertyGetter() { return &TOwner::get_arg_zzNamezz; }
-        static constexpr auto TPropertySetter() { return &TOwner::set_arg_zzNamezz; }
+        Invalid,
+        //<Args_Field Join=','>
+        arg_zzNamezz
+        //</Args_Field>
     };
-    //</Args_Field>
 
-    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
-    static constexpr std::string_view    Name() { return "zzInterfaceFunction_Namezz"; }
-    static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
-
-    using ThisType = zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args;
-
-    using Handler = ::ReflectionServices::ReflectedStructHandler<zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args
-                                                                     //<Args_Field Join=','>
-                                                                     Traits_arg_zzNamezz
-                                                                 //</Args_Field>
-                                                                 >;
+    using Key = Fields;
 };
 
 template <>
-Stencil::Comparator<zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args,
-                    zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args>{
-    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2){
+struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>::Fields;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        //<Args_Field Join=','>
+        "arg_zzNamezz"
+        //</Args_Field>
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>::Fields
+    ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>::Fields>(
+            index);
+    }
+};
+
+template <>
+struct Stencil::Comparator<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz,
+                           zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
+{
+    using ThisType = zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
         return true
                //<Args_Field>
-               && Stencil::AreEqual(obj1.get_carg_zzNamezz(), obj2.get_carg_zzNamezz())
-        //</Args_Field>
-        ;
-}
-}
-;
+               && Stencil::AreEqual(obj1.zzNamezz, obj2.zzNamezz)
+            //</Args_Field>
+            ;
+    }
+};
+//</InterfaceFunction>
+
+//<InterfaceFunction>
+
+template <> struct Stencil::InterfaceApiTraits<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
+{
+    using ArgsStruct = zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz;
+    static constexpr bool             IsStatic() { return false; }
+    static constexpr std::string_view Name() { return "zzNamezz"; }
+
+    static auto Invoke(zzProgram_Namezz::zzInterface_Namezz& instance, ArgsStruct& args)
+    {
+        return instance.zzNamezz(
+            //<Args_Field Join=','>
+            args.zzNamezz
+            //</Args_Field>
+        );
+    }
+};
+
 //</InterfaceFunction>
 
 template <> struct Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz>
 {
-    //<InterfaceFunction>
-    struct ApiTraits_zzNamezz
-    {
-        using TOwner = zzProgram_Namezz::zzInterface_Namezz;
-        static const ::Stencil::Flags     Flags() { return {}; }
-        static constexpr std::string_view Name() { return "zzNamezz"; }
-        static constexpr bool             Static = false;
-    };
-    //</InterfaceFunction>
-
-    using Apis = std::tuple<
+    using ApiStructs = std::tuple<
         //<InterfaceFunction Join=','>
-        ApiTraits_zzNamezz
+        zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz
         //</InterfaceFunction>
         >;
 
@@ -468,6 +493,7 @@ template <> struct Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz
         >;
 };
 
+#if 0
 //<InterfaceObjectStore>
 template <> struct Stencil::TypeTraits<zzObjectType_NativeTypezz>;
 template <>
@@ -476,32 +502,13 @@ struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz::ObjectStore_zzN
 {};
 //</InterfaceObjectStore>
 
-//<InterfaceFunction>
-
-template <> struct Stencil::InterfaceApiTraits<Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz>::ApiTraits_zzNamezz>
-{
-    using ArgsStruct = zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args;
-    static constexpr bool             IsStatic() { return false; }
-    static constexpr std::string_view Name() { return "zzNamezz"; }
-
-    static auto Invoke(ArgsStruct& args)
-    {
-        return args.instance->zzNamezz(
-            //<Args_Field Join=','>
-            args.get_arg_zzNamezz()
-            //</Args_Field>
-        );
-    }
-};
-
-//</InterfaceFunction>
-
 //<InterfaceObjectStore>
 template <> struct Stencil::InterfaceObjectTraits<zzProgram_Namezz::zzInterface_Namezz::ObjectStore_zzNamezz>
 {
     static constexpr std::string_view Name() { return "zzNamezz"; }
 };
 //</InterfaceObjectStore>
+#endif
 
 #if ((defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0))
 template <> struct Stencil::WebServiceHandlerTraits<zzProgram_Namezz::zzInterface_Namezz>
