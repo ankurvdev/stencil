@@ -284,15 +284,15 @@ template <ConceptInterface... Ts> struct WebService
         if (!found) { throw std::runtime_error(fmt::format("No Matching api found for {}", path)); }
     }
 
-    template <ConceptInterface T, ConceptInterface... Ts>
+    template <ConceptInterface T1, ConceptInterface... T1s>
     void _HandleRequest(httplib::Request const& req, httplib::Response& res, std::string_view const& ifname, std::string_view const& path)
     {
-        if (!impl::iequal(Stencil::InterfaceTraits<T>::Name(), ifname))
+        if (!impl::iequal(Stencil::InterfaceTraits<T1>::Name(), ifname))
         {
-            if constexpr (sizeof...(Ts) > 0) { return _HandleRequest<Ts...>(req, res, ifname, path); }
+            if constexpr (sizeof...(T1s) > 0) { return _HandleRequest<T1s...>(req, res, ifname, path); }
             else { throw std::runtime_error(fmt::format("No matching interface found for {}", ifname)); }
         }
-        return _HandleRequest(*std::get<std::unique_ptr<T>>(_impls).get(), req, res, path);
+        return _HandleRequest(*std::get<std::unique_ptr<T1>>(_impls).get(), req, res, path);
     }
 
     std::thread             _listenthread;

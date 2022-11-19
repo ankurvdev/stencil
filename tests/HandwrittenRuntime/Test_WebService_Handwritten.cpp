@@ -11,12 +11,6 @@ struct TestInterface : public Stencil::InterfaceT<TestInterface>
     {
         uint64_t arg_num1{};
         uint64_t arg_num2{};
-
-        uint64_t& get_arg_num1() { return arg_num1; }
-        void      set_arg_num1(uint64_t&& value) { arg_num1 = value; }
-
-        uint64_t& get_arg_num2() { return arg_num2; }
-        void      set_arg_num2(uint64_t&& value) { arg_num2 = value; }
     };
 
     struct DataStore : Database2::DatabaseT<DataStore>
@@ -35,86 +29,40 @@ struct TestInterface : public Stencil::InterfaceT<TestInterface>
     DataStore objects;
 };
 
-template <> struct Stencil::TypeTraits<TestInterface::TestObj_obj&>
+template <> struct Stencil::TypeTraits<TestInterface::TestObj_obj>
 {
     struct Traits_arg_num1
     {
-        using TOwner     = TestInterface::TestObj_obj;
-        using TFieldType = uint64_t;
         static constexpr std::string_view Name() { return "num1"; }
-        static const ::Stencil::Flags     Flags() { return {}; }
-        static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
-        static constexpr auto TPropertyGetter() { return &TestInterface::TestObj_obj::get_arg_num1; }
-        static constexpr auto TPropertySetter() { return &TestInterface::TestObj_obj::set_arg_num1; }
     };
 
     struct Traits_arg_num2
     {
-        using TOwner     = TestInterface::TestObj_obj;
-        using TFieldType = uint64_t;
-
         static constexpr std::string_view Name() { return "num2"; }
-        static const ::Stencil::Flags     Flags() { return {}; }
-
-        static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
-
-        static constexpr auto TPropertyGetter() { return &TestInterface::TestObj_obj::get_arg_num2; }
-        static constexpr auto TPropertySetter() { return &TestInterface::TestObj_obj::set_arg_num2; }
     };
 
-    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
-    static constexpr std::string_view    Name() { return "AddNumber"; }
-    static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
-
-    using Handler = ::ReflectionServices::ReflectedStructHandler<TestInterface::TestObj_obj, Traits_arg_num1, Traits_arg_num2>;
+    static constexpr std::string_view Name() { return "AddNumber"; }
 };
 
 struct TestInterface_AddNumber_Args
 {
-    TestInterface* instance = nullptr;
-
     uint64_t arg_num1{};
     uint64_t arg_num2{};
-
-    uint64_t& get_arg_num1() { return arg_num1; }
-    void      set_arg_num1(uint64_t&& value) { arg_num1 = value; }
-
-    uint64_t& get_arg_num2() { return arg_num2; }
-    void      set_arg_num2(uint64_t&& value) { arg_num2 = value; }
 };
 
-template <> struct Stencil::TypeTraits<TestInterface_AddNumber_Args&>
+template <> struct Stencil::TypeTraits<TestInterface_AddNumber_Args>
 {
     struct Traits_arg_num1
     {
-        using TOwner     = TestInterface_AddNumber_Args;
-        using TFieldType = uint64_t;
         static constexpr std::string_view Name() { return "num1"; }
-        static const ::Stencil::Flags     Flags() { return {}; }
-        static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
-        static constexpr auto TPropertyGetter() { return &TestInterface_AddNumber_Args::get_arg_num1; }
-        static constexpr auto TPropertySetter() { return &TestInterface_AddNumber_Args::set_arg_num1; }
     };
 
     struct Traits_arg_num2
     {
-        using TOwner     = TestInterface_AddNumber_Args;
-        using TFieldType = uint64_t;
-
         static constexpr std::string_view Name() { return "num2"; }
-        static const ::Stencil::Flags     Flags() { return {}; }
-
-        static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
-
-        static constexpr auto TPropertyGetter() { return &TestInterface_AddNumber_Args::get_arg_num2; }
-        static constexpr auto TPropertySetter() { return &TestInterface_AddNumber_Args::set_arg_num2; }
     };
 
-    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
-    static constexpr std::string_view    Name() { return "AddNumber"; }
-    static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
-
-    using Handler = ::ReflectionServices::ReflectedStructHandler<TestInterface_AddNumber_Args, Traits_arg_num1, Traits_arg_num2>;
+    static constexpr std::string_view Name() { return "AddNumber"; }
 };
 template <> struct Stencil::InterfaceObjectTraits<TestInterface::TestObj_obj>
 {
@@ -125,15 +73,12 @@ template <> struct Stencil::InterfaceTraits<TestInterface>
 {
     struct ApiTraits_AddNumber
     {
-        using TOwner = TestInterface;
-        static const ::Stencil::Flags Flags() { return {}; }
-
         static constexpr std::string_view Name() { return "AddNumber"; }
         static constexpr bool             Static = false;
     };
 
-    using Apis    = std::tuple<ApiTraits_AddNumber>;
-    using Objects = std::tuple<TestInterface::TestObj_obj>;
+    using ApiStructs = std::tuple<ApiTraits_AddNumber>;
+    using Objects    = std::tuple<TestInterface::TestObj_obj>;
 };
 
 template <> struct Stencil::InterfaceApiTraits<Stencil::InterfaceTraits<TestInterface>::ApiTraits_AddNumber>
@@ -142,7 +87,7 @@ template <> struct Stencil::InterfaceApiTraits<Stencil::InterfaceTraits<TestInte
     static constexpr bool             IsStatic() { return false; }
     static constexpr std::string_view Name() { return "AddNumber"; }
 
-    static uint64_t Invoke(ArgsStruct& args) { return args.instance->AddNumber(args.get_arg_num1(), args.get_arg_num2()); }
+    static uint64_t Invoke(TestInterface& obj, ArgsStruct& args) { return obj.AddNumber(args.arg_num1, args.arg_num2); }
 };
 
 // End Generated code
@@ -188,10 +133,7 @@ class CppHttpLib
         httplib::Client cli(host.data(), port);
         auto            res = cli.Get(get.data());
         if (res && res->status == 200) { _response = res->body; }
-        else
-        {
-            throw std::runtime_error("Unable to get");
-        }
+        else { throw std::runtime_error("Unable to get"); }
     }
 
     std::string response() { return _response; }
