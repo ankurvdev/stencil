@@ -399,6 +399,18 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz> : Stencil
     }
 };
 
+template <> struct Stencil::Comparator<zzProgram_Namezz::zzStruct_Namezz, zzProgram_Namezz::zzStruct_Namezz>
+{
+    using ThisType = zzProgram_Namezz::zzStruct_Namezz;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               //<Field>
+               && Stencil::AreEqual(obj1.zzNamezz, obj2.zzNamezz)
+            //</Field>
+            ;
+    }
+};
 //</Struct>
 
 //<Interface>
@@ -480,6 +492,8 @@ template <> struct Stencil::InterfaceApiTraits<zzProgram_Namezz::zzInterface_Nam
 
 template <> struct Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz>
 {
+    static constexpr std::string_view Name() { return "zzInterface_Namezz"; }
+
     using ApiStructs = std::tuple<
         //<InterfaceFunction Join=','>
         zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz
@@ -493,12 +507,11 @@ template <> struct Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz
         >;
 };
 
-#if 0
 //<InterfaceObjectStore>
 template <> struct Stencil::TypeTraits<zzObjectType_NativeTypezz>;
 template <>
-struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz::ObjectStore_zzNamezz&>
-    : public Stencil::TypeTraits<zzObjectType_NativeTypezz&>
+struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz::ObjectStore_zzNamezz>
+    : public Stencil::TypeTraits<zzObjectType_NativeTypezz>
 {};
 //</InterfaceObjectStore>
 
@@ -508,7 +521,6 @@ template <> struct Stencil::InterfaceObjectTraits<zzProgram_Namezz::zzInterface_
     static constexpr std::string_view Name() { return "zzNamezz"; }
 };
 //</InterfaceObjectStore>
-#endif
 
 #if ((defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0))
 template <> struct Stencil::WebServiceHandlerTraits<zzProgram_Namezz::zzInterface_Namezz>

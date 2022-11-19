@@ -39,6 +39,9 @@ template <typename T> struct UuidBasedId
 
     constexpr bool                  Empty() const { return uuid == Invalid().uuid; }
     static constexpr UuidBasedId<T> Invalid() { return UuidBasedId<T>(); }
+
+    auto operator==(UuidBasedId<T> const& t) const { return uuid == t.uuid; }
+
     friend UuidObjectT<T>;
 
     friend std::hash<UuidBasedId<T>>;

@@ -38,16 +38,20 @@ struct Server1Impl : Interfaces::Server1
     // Event listeners ?
 };
 
+std::unique_ptr<Interfaces::Server1> Interfaces::Server1::Create()
+{
+    return std::make_unique<Server1Impl>();
+}
 // Generated code ends
 
 struct Tester
 {
     struct SSEListener
     {
-        SSEListener(std::string_view const& url) : _url(url), _ssecli("localhost", 44444) {}
+        SSEListener(std::string_view const& url) : _ssecli("localhost", 44444), _url(url) {}
         CLASS_DELETE_COPY_AND_MOVE(SSEListener);
 
-        bool _ChunkCallback(const char* data, uint64_t len)
+        bool _ChunkCallback(const char* data, uint64_t /*len*/)
         {
             std::unique_lock<std::mutex> guard(_mutex);
             _sseData << data;

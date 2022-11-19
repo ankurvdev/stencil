@@ -17,7 +17,9 @@ template <typename T> struct Ref
 };
 
 template <typename T> struct RefMap
-{};
+{
+    constexpr auto operator<=>(RefMap<T> const& rhs) const = default;
+};
 
 }    // namespace Stencil
 

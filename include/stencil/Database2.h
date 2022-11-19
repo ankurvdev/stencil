@@ -1071,6 +1071,8 @@ template <typename TObj> struct ChildRef : ChildRefMarker
         Release(lock, db);
         ref = std::get<0>(db.template Create<Obj>(lock, std::forward<TArgs>(args)...));
     }
+    auto operator==(ChildRef<TObj> const& t) const { return ref == t.ref; }
+
     impl::Ref ref{0, 0};
 };
 
@@ -1344,19 +1346,10 @@ template <typename TDb> struct DatabaseT
         }
     }
 
-    void Init(std::filesystem::path const& path)
-    {
-        _pagemgr->Init(path);
-    }
-    void Init()
-    {
-        _pagemgr->Init();
-    }
+    void Init(std::filesystem::path const& path) { _pagemgr->Init(path); }
+    void Init() { _pagemgr->Init(); }
 
-    void Flush(exclusive_lock const& /*guardscope*/)
-    {
-        _pagemgr->Flush();
-    }
+    void Flush(exclusive_lock const& /*guardscope*/) { _pagemgr->Flush(); }
 
     private:
     // std::shared_mutex _mutex;
@@ -1419,11 +1412,14 @@ using WideEncryptedStringTraits       = TStringTraits<0xB00, Ownership::Self, En
 using WideEncryptedSharedStringTraits = TStringTraits<0xC00, Ownership::Shared, Encryption::Yes, wchar_t>;
 using WideEncryptedUniqueStringTraits = TStringTraits<0xD00, Ownership::Unique, Encryption::Yes, wchar_t>;
 
-#define DEFINESTRING(str)                                                                                                    \
-    using str = str##Traits::WireType;                                                                                       \
-    template <typename TDb> struct ObjTraits<TDb, str> : str##Traits                                                         \
-    {                                                                                                                        \
-        static WireType Create(TDb& /* db */, exclusive_lock const& /* lock */, ViewType const& str) { return Create(str); } \
+#define DEFINESTRING(str)                                                                            \
+    using str = str##Traits::WireType;                                                               \
+    template <typename TDb> struct ObjTraits<TDb, str> : str##Traits                                 \
+    {                                                                                                \
+        static WireType Create(TDb& /* db */, exclusive_lock const& /* lock */, ViewType const& str) \
+        {                                                                                            \
+            return Create(str);                                                                      \
+        }                                                                                            \
     };
 DEFINESTRING(ByteString)
 DEFINESTRING(ByteSharedString)

@@ -175,7 +175,7 @@ template <ConceptInterface... Ts> struct WebService
             {
                 auto lock       = obj.objects.LockForEdit();
                 auto [id, obj1] = obj.objects.template Create<SelectedTup>(lock, _CreateArgStruct<SelectedTup>(req));
-                uint32_t idint  = ((uint32_t{id.page} << 16) | uint32_t{id.slot});
+                uint32_t idint  = id.objId;
                 auto     rslt   = Stencil::Json::Stringify<decltype(idint)>(idint);
                 res.set_content(rslt, "application/json");
                 return true;
@@ -215,7 +215,7 @@ template <ConceptInterface... Ts> struct WebService
                             std::string_view const& ifname,
                             std::string_view const& path)
     {
-        using ObjectsTup = typename Stencil::InterfaceTraits<typename T::Interface>::Objects;
+        using ObjectsTup = typename Stencil::InterfaceTraits<T>::Objects;
         return _TryHandleObjectStore<ObjectsTup, std::tuple_size_v<ObjectsTup>, T>(obj, req, res, ifname, path);
     }
 
@@ -236,10 +236,10 @@ template <ConceptInterface... Ts> struct WebService
             }
             using Traits = ::Stencil::InterfaceApiTraits<SelectedTup>;
             auto args    = _CreateArgStruct<typename Traits::ArgsStruct>(req);
-            if constexpr (std::is_same_v<void, decltype(Traits::Invoke(args))>) { Traits::Invoke(args); }
+            if constexpr (std::is_same_v<void, decltype(Traits::Invoke(obj, args))>) { Traits::Invoke(obj, args); }
             else
             {
-                auto retval = Traits::Invoke(args);
+                auto retval = Traits::Invoke(obj, args);
 #ifdef HAVE_NLOHMANN_JSON
                 auto rslt = Stencil::Json::Stringify<decltype(retval)>(retval);
                 res.set_content(rslt, "application/json");
@@ -258,7 +258,7 @@ template <ConceptInterface... Ts> struct WebService
                          std::string_view const& ifname,
                          std::string_view const& path)
     {
-        using Tup = typename Stencil::InterfaceTraits<typename T::Interface>::Apis;
+        using Tup = typename Stencil::InterfaceTraits<T>::ApiStructs;
         /* Func API
          *      Condition: path matches api-name
          *      Action:
@@ -287,12 +287,12 @@ template <ConceptInterface... Ts> struct WebService
     template <ConceptInterface T, ConceptInterface... Ts>
     void _HandleRequest(httplib::Request const& req, httplib::Response& res, std::string_view const& ifname, std::string_view const& path)
     {
-        if (!impl::iequal(WebServiceHandlerTraits<typename T::Interface>::Url(), ifname))
+        if (!impl::iequal(Stencil::InterfaceTraits<T>::Name(), ifname))
         {
             if constexpr (sizeof...(Ts) > 0) { return _HandleRequest<Ts...>(req, res, ifname, path); }
             else { throw std::runtime_error(fmt::format("No matching interface found for {}", ifname)); }
         }
-        return _HandleRequest(std::get<T>(_impls), req, res, path);
+        return _HandleRequest(*std::get<std::unique_ptr<T>>(_impls).get(), req, res, path);
     }
 
     std::thread             _listenthread;
@@ -301,6 +301,6 @@ template <ConceptInterface... Ts> struct WebService
 
     int                                _port;
     httplib::Server                    _server;
-    std::tuple<std::unique_ptr<Ts>...> _impls;
+    std::tuple<std::unique_ptr<Ts>...> _impls = {Ts::Create()...};
 };
 }    // namespace Stencil
