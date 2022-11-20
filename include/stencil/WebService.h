@@ -149,10 +149,7 @@ struct SSEListenerManager
 }    // namespace impl
 
 template <typename T>
-concept ConceptInterface = requires(T t)
-{
-    typename Stencil::InterfaceTraits<T>;
-};
+concept ConceptInterface = requires { typename Stencil::InterfaceTraits<T>; };
 
 template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Interface::InterfaceEventHandlerT<WebService<Ts...>, Ts>...
 {
@@ -166,7 +163,7 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
     {};
 
     WebService() = default;
-    ~WebService()
+    ~WebService() override
     {
         _sseManager.Stop();
         StopDaemon();
@@ -325,11 +322,11 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
                     auto eindex = ids.find(',', sindex);
                     if (eindex == std::string_view::npos) eindex = ids.size();
                     if (!first) { rslt << ','; }
-                    first      = false;
-                    auto idstr = ids.substr(sindex, eindex - sindex);
-                    auto id    = std::stoul(idstr);
-                    auto lock  = obj.objects.LockForEdit();
-                    auto obj1  = obj.objects.template Get<SelectedTup>(lock, Database2::impl::Ref::FromUInt(id));
+                    first          = false;
+                    auto     idstr = ids.substr(sindex, eindex - sindex);
+                    uint32_t id    = static_cast<uint32_t>(std::stoul(idstr));
+                    auto     lock  = obj.objects.LockForEdit();
+                    auto     obj1  = obj.objects.template Get<SelectedTup>(lock, Database2::impl::Ref::FromUInt(id));
                     // auto jsobj = Stencil::Json::Stringify<SelectedTup>(obj1);
                     // rslt << jsobj;
                     sindex = eindex + 1;

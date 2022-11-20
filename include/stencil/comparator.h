@@ -1,4 +1,5 @@
 #pragma once
+#include "shared_string.h"
 #include "shared_tree.h"
 #include <unordered_map>
 #include <vector>
@@ -21,24 +22,24 @@ template <> struct Comparator<double, double>
     static bool AreEqual(double const& t1, double const& t2) { return std::fabs(t1 - t2) <= std::numeric_limits<double>::epsilon(); }
 };
 
-template <typename T1, typename T2> bool AreEqual(T1 const& t1, T2 const& t2)
-{
-    return Comparator<T1, T2>::AreEqual(t1, t2);
-}
-
 template <typename T> struct Comparator<std::vector<T>, std::vector<T>>
 {
-    static bool AreEqual(std::vector<T> const& t1, std::vector<T> const& t2);
+    static bool AreEqual(std::vector<T> const& /* t1 */, std::vector<T> const& /* t2 */) { TODO("Not Implemented"); }
 };
 
 template <typename T> struct Comparator<shared_tree<T>, shared_tree<T>>
 {
-    static bool AreEqual(shared_tree<T> const& t1, shared_tree<T> const& t2);
+    static bool AreEqual(shared_tree<T> const& /* t1 */, shared_tree<T> const& /* t2 */) { TODO("Not Implemented"); }
 };
 
 template <typename K, typename V> struct Comparator<std::unordered_map<K, V>, std::unordered_map<K, V>>
 {
-    static bool AreEqual(std::unordered_map<K, V> const& t1, std::unordered_map<K, V> const& t2);
+    static bool AreEqual(std::unordered_map<K, V> const& /* t1 */, std::unordered_map<K, V> const& /* t2 */) { TODO("Not Implemented"); }
 };
+
+template <typename T1, typename T2> bool AreEqual(T1 const& t1, T2 const& t2)
+{
+    return Comparator<T1, T2>::AreEqual(t1, t2);
+}
 
 };    // namespace Stencil
