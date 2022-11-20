@@ -100,8 +100,10 @@ struct zzVariant_Namezz : public Stencil::VariantT<zzVariant_Namezz>
 //</Variant>
 
 //<Interface>
-struct zzInterface_Namezz
+struct zzInterface_Namezz : public Stencil::InterfaceT<zzInterface_Namezz>
 {
+    using BaseClass = Stencil::InterfaceT<zzInterface_Namezz>;
+
     public:
     struct Dummy
     {};
@@ -122,6 +124,7 @@ struct zzInterface_Namezz
     zzInterface_Namezz()          = default;
     virtual ~zzInterface_Namezz() = default;
     CLASS_DELETE_COPY_AND_MOVE(zzInterface_Namezz);
+
     //<InterfaceFunction>
     virtual zzReturnType_NativeTypezz zzInterfaceFunction_Namezz(
         //<Args_Field Join=','>
@@ -129,9 +132,6 @@ struct zzInterface_Namezz
         //</Args_Field>
         )
         = 0;
-    //</InterfaceFunction>
-
-    //<InterfaceFunction>
     struct Args_zzInterfaceFunction_Namezz
     {
         //<Args_Field>
@@ -158,6 +158,29 @@ struct zzInterface_Namezz
     }
 
     //</InterfaceFunction>
+
+    //<InterfaceEvent>
+    struct Args_zzInterfaceEvent_Namezz
+    {
+        //<Args_Field>
+        zzFieldType_NativeTypezz zzNamezz{};
+        //</Args_Field>
+    };
+
+    void Raise_zzInterfaceEvent_Namezz(
+        //<Args_Field Join=','>
+        zzFieldType_NativeTypezz const& zzNamezz
+        //</Args_Field>
+    )
+    {
+        BaseClass::RaiseEvent(Args_zzInterfaceEvent_Namezz{
+            //<Args_Field Join=','>
+            zzNamezz
+            //</Args_Field>
+        });
+    }
+    //</InterfaceEvent>
+
     ObjectStore objects;
 
     static std::unique_ptr<zzInterface_Namezz> Create();
@@ -414,11 +437,13 @@ template <> struct Stencil::Comparator<zzProgram_Namezz::zzStruct_Namezz, zzProg
 //</Struct>
 
 //<Interface>
+
 //<InterfaceFunction>
 template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
 {
     using Categories = std::tuple<Stencil::Category::Indexable>;
 };
+
 template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
 {
     enum class Fields
@@ -468,9 +493,6 @@ struct Stencil::Comparator<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfac
             ;
     }
 };
-//</InterfaceFunction>
-
-//<InterfaceFunction>
 
 template <> struct Stencil::InterfaceApiTraits<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
 {
@@ -487,8 +509,70 @@ template <> struct Stencil::InterfaceApiTraits<zzProgram_Namezz::zzInterface_Nam
         );
     }
 };
-
 //</InterfaceFunction>
+
+//<InterfaceEvent>
+template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>
+{
+    enum class Fields
+    {
+        Invalid,
+        //<Args_Field Join=','>
+        arg_zzNamezz
+        //</Args_Field>
+    };
+
+    using Key = Fields;
+};
+
+template <>
+struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>::Fields;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        //<Args_Field Join=','>
+        "arg_zzNamezz"
+        //</Args_Field>
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>::Fields
+    ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>::Fields>(
+            index);
+    }
+};
+
+template <>
+struct Stencil::Comparator<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz,
+                           zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>
+{
+    using ThisType = zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               //<Args_Field>
+               && Stencil::AreEqual(obj1.zzNamezz, obj2.zzNamezz)
+            //</Args_Field>
+            ;
+    }
+};
+
+template <> struct Stencil::InterfaceApiTraits<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>
+{
+    using ArgsStruct = zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz;
+    static constexpr std::string_view Name() { return "zzNamezz"; }
+};
+//</InterfaceEvent>
 
 template <> struct Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz>
 {
@@ -504,6 +588,12 @@ template <> struct Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz
         //<InterfaceObjectStore Join=','>
         zzProgram_Namezz::zzInterface_Namezz::ObjectStore_zzNamezz
         //</InterfaceObjectStore>
+        >;
+
+    using EventStructs = std::tuple<
+        //<InterfaceEvent>
+        zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz
+        //</InterfaceEvent>
         >;
 };
 

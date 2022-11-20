@@ -90,6 +90,7 @@ struct Tester
         {
             _stopRequested = true;
             _ssecli.stop();
+            _sseListener.join();
         }
 
         bool                    _responseRecieved;
@@ -106,8 +107,8 @@ struct Tester
     {
         svc.StartOnPort(44444);
         _sseListener1.Start();
-        _sseListener2.Start();
-        _sseListener3.Start();
+        //_sseListener2.Start();
+        // _sseListener3.Start();
     }
     ~Tester() = default;
     CLASS_DELETE_COPY_AND_MOVE(Tester);
@@ -135,9 +136,9 @@ struct Tester
     void svc_raise_event() {}
     void svc_call_function() {}
 
-    SSEListener _sseListener1{"/api/server1/events"};
-    SSEListener _sseListener2{"/api/server1/obj1/events"};
-    SSEListener _sseListener3{"/api/server1/obj2/events"};
+    SSEListener _sseListener1{"/api/server1/somethinghappened"};
+    // SSEListener _sseListener2{"/api/server1/objectstore/changed"};
+    // SSEListener _sseListener3{"/api/server1/obj2/events"};
 
     Stencil::WebService<Interfaces::Server1> svc;
 };
