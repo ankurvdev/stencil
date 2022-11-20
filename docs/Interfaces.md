@@ -67,10 +67,21 @@ interface Foo {
 Translates to
 
 ```C++
-struct Foo {
-    void RaiseEvent_Bar(int arg1, std::string const& arg2)
+struct Foo : Stencil::InterfaceT<Foo> {
+    void RaiseEvent_Bar(int arg1, std::string const& arg2);
 }
 ```
+
+The scenario based wrappers (`WebService`, `PythonBinding` etc) must use the `InterfaceT<>::RegisterHandler(this)` to register themselves as the event handlers for these callback and take the necessary action
+
+#### Dev Notes on Handler mechanism
+
+- Start out with one handler per event. (Can be extended to vector if needed)
+- Variadic Virtual Classes (One per Event) vs Static CallbackPtr and CallbackData
+  - Every event needs one fn-ptr to call.
+  - We're not generating code for Scenario-Wrappers so Scenario-Wrappers must register `this` as void-ptr along with the static fn-ptr
+  - Can Scenario Wrappers implement
+- The Scenario wrappers cant implement variadic
 
 ### Functions
 
@@ -162,7 +173,7 @@ results in the following apis
 
 - `/api/server1/somethinghappened` => (EventSource/SSE)
 - `/api/server1/function1` => `dict<uint32. SimpleObject1>`
-- `/api/objectsource/changed` => (EventSource/SSE)
+- `/api/objectstore/changed` => (EventSource/SSE)
 - `/api/objectstore/create/obj1` => {id: obj1:json}
 - `/api/objectstore/edit/obj1/<id>` => obj1:json // Should it be transaction ?
 - `/api/objectstore/read/obj1/<id>` => obj1:json

@@ -3,13 +3,16 @@
 
 #include <condition_variable>
 using namespace std::chrono_literals;
-
+static auto CreateCLI()
+{
+    return httplib::Client("localhost", 44444);
+}
 /*
 interface Server1 {
-    event SomethingHappened(uint32 arg1, SimpleObject1 arg2);
-    objectstore SimpleObject1   obj1;
-    objectstore NestedObject    obj2;
-    dict<uint32, SimpleObject1> Function1(uint32 arg1, SimpleObject1 arg2);
+event SomethingHappened(uint32 arg1, SimpleObject1 arg2);
+objectstore SimpleObject1   obj1;
+objectstore NestedObject    obj2;
+dict<uint32, SimpleObject1> Function1(uint32 arg1, SimpleObject1 arg2);
 }
 */
 /// Generated code begins
@@ -31,7 +34,7 @@ struct Server1Impl : Interfaces::Server1
         copied.val5 += 1.0;
         retval[key] = std::move(copied);
 
-        // TODO Raise_SomethingHappened(key, copied);
+        Raise_SomethingHappened(key, copied);
         return retval;
     }
     ObjectStore objectstore;
@@ -48,13 +51,13 @@ struct Tester
 {
     struct SSEListener
     {
-        SSEListener(std::string_view const& url) : _ssecli("localhost", 44444), _url(url) {}
+        SSEListener(std::string_view const& url) : _url(url) {}
         CLASS_DELETE_COPY_AND_MOVE(SSEListener);
 
-        bool _ChunkCallback(const char* data, uint64_t /*len*/)
+        bool _ChunkCallback(const char* data, uint64_t len)
         {
             std::unique_lock<std::mutex> guard(_mutex);
-            _sseData << data;
+            _sseData.push_back(std::string(data, len));
             _responseRecieved = true;
             _cv.notify_all();
             return true;
@@ -93,14 +96,14 @@ struct Tester
             _sseListener.join();
         }
 
-        bool                    _responseRecieved;
-        std::atomic<bool>       _stopRequested;
-        std::mutex              _mutex;
-        httplib::Client         _ssecli;
-        std::condition_variable _cv;
-        std::ostringstream      _sseData;
-        std::thread             _sseListener;
-        std::string             _url;
+        bool                     _responseRecieved;
+        std::atomic<bool>        _stopRequested;
+        std::mutex               _mutex;
+        httplib::Client          _ssecli = CreateCLI();
+        std::condition_variable  _cv;
+        std::vector<std::string> _sseData;
+        std::thread              _sseListener;
+        std::string              _url;
     };
 
     Tester()
@@ -110,23 +113,44 @@ struct Tester
         //_sseListener2.Start();
         // _sseListener3.Start();
     }
-    ~Tester() = default;
+    ~Tester()
+    {
+        TestCommon::CheckResource<TestCommon::JsonFormat>(_json_lines, "json");
+        TestCommon::CheckResource<TestCommon::JsonFormat>(_sseListener1._sseData, "server1_somethinghappened");
+    }
     CLASS_DELETE_COPY_AND_MOVE(Tester);
+
+    auto _valid_cli_call_get(std::string const& path)
+    {
+        auto response = CreateCLI().Get(path);
+        REQUIRE(response == true);
+        REQUIRE(response->status == 200);
+        return response->body;
+    }
+
+    auto _valid_cli_json_get(std::string const& path)
+    {
+        auto json = _valid_cli_call_get(path);
+        CHECK(json != "");
+        _json_lines.push_back(json);
+        return json;
+    }
 
     void cli_create_obj1() {}
     void cli_read_obj1() {}
     void cli_edit_obj1() {}
     void cli_destroy_obj1() {}
 
-    void svc_create_obj1() {}
-    void svc_read_obj1() {}
-    void svc_edit_obj1() {}
-    void svc_destroy_obj1() {}
-
     void cli_create_obj2() {}
     void cli_read_obj2() {}
     void cli_edit_obj2() {}
     void cli_destroy_obj2() {}
+    void cli_call_function() { _valid_cli_json_get("/api/server1/function1"); }
+
+    void svc_create_obj1() {}
+    void svc_read_obj1() {}
+    void svc_edit_obj1() {}
+    void svc_destroy_obj1() {}
 
     void svc_create_obj2() {}
     void svc_read_obj2() {}
@@ -136,16 +160,20 @@ struct Tester
     void svc_raise_event() {}
     void svc_call_function() {}
 
+    std::vector<std::string> _json_lines;
+
     SSEListener _sseListener1{"/api/server1/somethinghappened"};
     // SSEListener _sseListener2{"/api/server1/objectstore/changed"};
     // SSEListener _sseListener3{"/api/server1/obj2/events"};
-
     Stencil::WebService<Interfaces::Server1> svc;
 };
 
 TEST_CASE("WebService-objectstore", "[interfaces]")
 {
     Tester tester;
+    tester.cli_call_function();
+    tester.svc_call_function();
+
     tester.cli_create_obj1();
     tester.cli_read_obj1();
     tester.cli_edit_obj1();

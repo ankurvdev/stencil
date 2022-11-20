@@ -151,7 +151,7 @@ struct SSEListenerManager
 template <typename T>
 concept ConceptInterface = requires(T t) { typename Stencil::InterfaceTraits<T>; };
 
-template <ConceptInterface... Ts> struct WebService
+template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Interface::InterfaceEventHandlerT<WebService<Ts...>, Ts>...
 {
     struct UnableToStartDaemonException
     {};
@@ -184,18 +184,27 @@ template <ConceptInterface... Ts> struct WebService
         for (int i = 0; i < 100 && !_server.is_running(); i++) std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
         if (!_server.is_running()) throw std::runtime_error("Unable to start server");
+
+        std::apply([&](auto& impl) { impl->handler = this; }, _impls);
     }
 
     void StopDaemon()
     {
         {
             auto guardscope = std::unique_lock<std::mutex>();
+            std::apply([](auto& impl) { impl->handler = nullptr; }, _impls);
             _server.stop();
         }
         _cond.notify_all();
     }
 
     void WaitForStop() { _listenthread.join(); }
+
+    template <typename TEventArgs> void OnEvent(TEventArgs const& args)
+    {
+        auto msg = fmt::format("event: init\ndata: {}\n\n", Stencil::Json::Stringify(args));
+        _sseManager.Send(msg);    // Empty data
+    }
 
     private:
     bool _HandleRequest(const httplib::Request& req, httplib::Response& res)
@@ -363,12 +372,8 @@ template <ConceptInterface... Ts> struct WebService
             else
             {
                 auto retval = Traits::Invoke(obj, args);
-#ifdef HAVE_NLOHMANN_JSON
-                auto rslt = Stencil::Json::Stringify<decltype(retval)>(retval);
+                auto rslt   = Stencil::Json::Stringify<decltype(retval)>(retval);
                 res.set_content(rslt, "application/json");
-#else
-                throw std::logic_error("No json stringifier defined");
-#endif
             }
             return true;
         }

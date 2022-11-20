@@ -45,7 +45,7 @@ template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzVariant_Namezz>;
 //</Variant>
 
 //<Interface>
-template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz>;
+template <> struct Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz>;
 //</Interface>
 
 #endif
@@ -480,6 +480,33 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzI
 };
 
 template <>
+struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
+    : Stencil::VisitorT<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
+{
+    using TData  = zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz;
+    using Fields = TypeTraitsForIndexable<TData>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        //<Args_Field>
+        case Fields::Field_zzNamezz: return lambda(obj.zzNamezz);
+        //</Args_Field>
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        //<Args_Field>
+        lambda(Fields::Field_zzNamezz, obj.zzNamezz);
+        //</Args_Field>
+    }
+};
+
+template <>
 struct Stencil::Comparator<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz,
                            zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
 {
@@ -549,6 +576,33 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzI
     {
         return static_cast<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>::Fields>(
             index);
+    }
+};
+
+template <>
+struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>
+    : Stencil::VisitorT<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>
+{
+    using TData  = zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz;
+    using Fields = TypeTraitsForIndexable<TData>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        //<Args_Field>
+        case Fields::arg_zzNamezz: return lambda(obj.zzNamezz);
+        //</Args_Field>
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        //<Args_Field>
+        lambda(Fields::arg_zzNamezz, obj.zzNamezz);
+        //</Args_Field>
     }
 };
 

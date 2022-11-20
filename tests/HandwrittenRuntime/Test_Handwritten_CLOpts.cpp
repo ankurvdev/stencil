@@ -54,7 +54,7 @@ template <typename T> static void RunTestCases(std::initializer_list<TestCaseCLI
     RunTestCase<T>({{"[]"}, "default-3", false}, lines, name);
     RunTestCase<T>({{"mismatched"}, "default-4", false}, lines, name);
     for (auto& tc : cases) { RunTestCase<T>(tc, lines, name); }
-    TestCommon::CheckOutputAgainstStrResource(lines, name);
+    TestCommon::CheckResource<TestCommon::StrFormat>(lines, name);
 
     // CompareFileAgainstResource(logfname, reffname.string());
 }
