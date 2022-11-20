@@ -149,7 +149,10 @@ struct SSEListenerManager
 }    // namespace impl
 
 template <typename T>
-concept ConceptInterface = requires(T t) { typename Stencil::InterfaceTraits<T>; };
+concept ConceptInterface = requires(T t)
+{
+    typename Stencil::InterfaceTraits<T>;
+};
 
 template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Interface::InterfaceEventHandlerT<WebService<Ts...>, Ts>...
 {
@@ -264,7 +267,6 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
             {
                 return _TryHandleEvents<TTup, TTupIndex - 1, T>(obj, req, res, ifname, path);
             }
-            using Traits = ::Stencil::InterfaceApiTraits<SelectedTup>;
             res.set_header("Access-Control-Allow-Origin", "*");
             auto instance = _sseManager.CreateInstance();
             res.set_chunked_content_provider(

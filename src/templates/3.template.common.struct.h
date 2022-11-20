@@ -491,7 +491,7 @@ struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFu
         switch (field)
         {
         //<Args_Field>
-        case Fields::Field_zzNamezz: return lambda(obj.zzNamezz);
+        case Fields::arg_zzNamezz: return lambda(obj.zzNamezz);
         //</Args_Field>
         case Fields::Invalid: [[fallthrough]];
         default: throw std::logic_error("Invalid Key");
@@ -501,7 +501,7 @@ struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFu
     template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         //<Args_Field>
-        lambda(Fields::Field_zzNamezz, obj.zzNamezz);
+        lambda(Fields::arg_zzNamezz, obj.zzNamezz);
         //</Args_Field>
     }
 };
