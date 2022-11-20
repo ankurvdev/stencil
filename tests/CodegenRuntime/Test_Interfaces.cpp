@@ -7,6 +7,7 @@ static auto CreateCLI()
 {
     return httplib::Client("localhost", 44444);
 }
+
 /*
 interface Server1 {
 event SomethingHappened(uint32 arg1, SimpleObject1 arg2);
@@ -49,6 +50,31 @@ std::unique_ptr<Interfaces::Server1> Interfaces::Server1::Create()
 
 struct Tester
 {
+
+    size_t        _counter{0};
+    int32_t       create_int32() { return static_cast<int32_t>(++_counter); }
+    uint8_t       create_uint8() { return static_cast<uint8_t>(++_counter); }
+    uint32_t      create_uint32() { return static_cast<uint32_t>(++_counter); }
+    shared_string create_string() { return shared_string(fmt::format("str{}", static_cast<uint32_t>(++_counter))); }
+    double        create_double()
+    {
+        size_t count1 = ++_counter;
+        size_t count2 = ++_counter;
+        return static_cast<double>(count1 * 100) + (static_cast<double>(count2) / 100.0);
+    }
+    auto create_timestamp() { return Stencil::Timestamp{} + std::chrono::seconds{++_counter}; }
+    auto create_simple_object1()
+    {
+        Interfaces::SimpleObject1 obj{};
+        obj.val1         = create_int32();
+        obj.val2         = create_uint32();
+        obj.val3         = create_uint8();
+        obj.val4         = create_string();
+        obj.val5         = create_double();
+        obj.lastmodified = create_timestamp();
+        return obj;
+    }
+
     struct SSEListener
     {
         SSEListener(std::string_view const& url) : _url(url) {}
@@ -120,23 +146,33 @@ struct Tester
     }
     CLASS_DELETE_COPY_AND_MOVE(Tester);
 
-    auto _valid_cli_call_get(std::string const& path)
+    auto _valid_cli_call_get(std::string const& path, httplib::Params const& params)
     {
-        auto response = CreateCLI().Get(path);
+        auto response = CreateCLI().Get(path, params, httplib::Headers(), httplib::Progress());
         REQUIRE(response == true);
         REQUIRE(response->status == 200);
         return response->body;
     }
 
-    auto _valid_cli_json_get(std::string const& path)
+    auto _valid_cli_json_get(std::string const& path, httplib::Params const& params)
     {
-        auto json = _valid_cli_call_get(path);
+        auto json = _valid_cli_call_get(path, params);
         CHECK(json != "");
         _json_lines.push_back(json);
         return json;
     }
 
-    void cli_create_obj1() {}
+    void cli_create_obj1()
+    {
+        auto obj1 = create_simple_object1();
+        _valid_cli_json_get("/api/server1/objectstore/create/obj1",
+                            httplib::Params{{"val1", fmt::format("{}", obj1.val1)},
+                                            {"val2", fmt::format("{}", obj1.val2)},
+                                            {"val3", fmt::format("{}", obj1.val3)},
+                                            {"val4", fmt::format("{}", obj1.val4)},
+                                            {"val5", fmt::format("{}", obj1.val5)}});
+    }
+
     void cli_read_obj1() {}
     void cli_edit_obj1() {}
     void cli_destroy_obj1() {}
@@ -145,7 +181,13 @@ struct Tester
     void cli_read_obj2() {}
     void cli_edit_obj2() {}
     void cli_destroy_obj2() {}
-    void cli_call_function() { _valid_cli_json_get("/api/server1/function1"); }
+
+    void cli_call_function()
+    {
+        _valid_cli_json_get(
+            "/api/server1/function1",
+            httplib::Params{{"arg1", fmt::format("{}", create_uint32())}, {"arg2", Stencil::Json::Stringify(create_simple_object1())}});
+    }
 
     void svc_create_obj1() {}
     void svc_read_obj1() {}
@@ -157,13 +199,14 @@ struct Tester
     void svc_edit_obj2() {}
     void svc_destroy_obj2() {}
 
-    void svc_raise_event() {}
-    void svc_call_function() {}
+    void svc_raise_event() { svc.GetInterface<Interfaces::Server1>().Raise_SomethingHappened(create_uint32(), create_simple_object1()); }
+    void svc_call_function() { svc.GetInterface<Interfaces::Server1>().Function1(create_uint32(), create_simple_object1()); }
 
     std::vector<std::string> _json_lines;
 
+    uint32_t    _count{0};
     SSEListener _sseListener1{"/api/server1/somethinghappened"};
-    // SSEListener _sseListener2{"/api/server1/objectstore/changed"};
+    SSEListener _sseListener2{"/api/server1/objectstore/changed"};
     // SSEListener _sseListener3{"/api/server1/obj2/events"};
     Stencil::WebService<Interfaces::Server1> svc;
 };
@@ -195,4 +238,3 @@ TEST_CASE("WebService-objectstore", "[interfaces]")
     tester.svc_raise_event();
     tester.svc_call_function();
 }
-

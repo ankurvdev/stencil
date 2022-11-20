@@ -206,6 +206,8 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
         _sseManager.Send(msg);    // Empty data
     }
 
+    template <ConceptInterface T> auto& GetInterface() { return *std::get<std::unique_ptr<T>>(_impls).get(); }
+
     private:
     bool _HandleRequest(const httplib::Request& req, httplib::Response& res)
     {
