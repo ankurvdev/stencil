@@ -465,7 +465,7 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzI
     static constexpr std::string_view Names[] = {
         "Invalid",
         //<Args_Field Join=','>
-        "arg_zzNamezz"
+        "zzNamezz"
         //</Args_Field>
     };
 
@@ -565,7 +565,7 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzI
     static constexpr std::string_view Names[] = {
         "Invalid",
         //<Args_Field Join=','>
-        "arg_zzNamezz"
+        "zzNamezz"
         //</Args_Field>
     };
 
@@ -656,6 +656,22 @@ template <> struct Stencil::TypeTraits<zzObjectType_NativeTypezz>;
 template <>
 struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz::ObjectStore_zzNamezz>
     : public Stencil::TypeTraits<zzObjectType_NativeTypezz>
+{};
+
+template <>
+struct Stencil::TypeTraitsForPrimitive<zzProgram_Namezz::zzInterface_Namezz::ObjectStore_zzNamezz>
+    : public Stencil::TypeTraitsForPrimitive<zzObjectType_NativeTypezz>
+{};
+template <>
+struct Stencil::TypeTraitsForIterable<zzProgram_Namezz::zzInterface_Namezz::ObjectStore_zzNamezz>
+    : public Stencil::TypeTraitsForIterable<zzObjectType_NativeTypezz>
+{};
+template <>
+struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::ObjectStore_zzNamezz>
+    : public Stencil::TypeTraitsForIndexable<zzObjectType_NativeTypezz>
+{};
+template <>
+struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::ObjectStore_zzNamezz> : public Stencil::Visitor<zzObjectType_NativeTypezz>
 {};
 //</InterfaceObjectStore>
 

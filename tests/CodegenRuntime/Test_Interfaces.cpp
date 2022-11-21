@@ -1,6 +1,8 @@
 #include "Interfaces.pidl.h"
 #include "TestUtils.h"
 
+#include <stencil/WebService.h>
+
 #include <condition_variable>
 using namespace std::chrono_literals;
 static auto CreateCLI()
@@ -38,13 +40,14 @@ struct Server1Impl : Interfaces::Server1
         Raise_SomethingHappened(key, copied);
         return retval;
     }
-    ObjectStore objectstore;
     // Event listeners ?
 };
 
 std::unique_ptr<Interfaces::Server1> Interfaces::Server1::Create()
 {
-    return std::make_unique<Server1Impl>();
+    auto ptr = std::make_unique<Server1Impl>();
+    ptr->objects.Init("SaveAndLoad.bin");
+    return ptr;
 }
 // Generated code ends
 
@@ -119,7 +122,7 @@ struct Tester
         {
             _stopRequested = true;
             _ssecli.stop();
-            _sseListener.join();
+            if (_sseListener.joinable()) _sseListener.join();
         }
 
         bool                     _responseRecieved;
@@ -136,6 +139,7 @@ struct Tester
     {
         svc.StartOnPort(44444);
         _sseListener1.Start();
+        _sseListener2.Start();
         //_sseListener2.Start();
         // _sseListener3.Start();
     }
@@ -143,6 +147,7 @@ struct Tester
     {
         TestCommon::CheckResource<TestCommon::JsonFormat>(_json_lines, "json");
         TestCommon::CheckResource<TestCommon::JsonFormat>(_sseListener1._sseData, "server1_somethinghappened");
+        TestCommon::CheckResource<TestCommon::JsonFormat>(_sseListener2._sseData, "server1_objectstore");
     }
     CLASS_DELETE_COPY_AND_MOVE(Tester);
 

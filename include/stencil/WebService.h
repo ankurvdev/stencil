@@ -236,14 +236,13 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
 
     template <typename TArgsStruct> auto _CreateArgStruct(httplib::Request const& req)
     {
-        TArgsStruct args;
+        TArgsStruct args{};
         for (auto const& [keystr, valjson] : req.params)
         {
             using TKey = Stencil::TypeTraitsForIndexable<TArgsStruct>::Key;
-            TKey key;
+            TKey key{};
             Stencil::SerDesRead<Stencil::ProtocolString>(key, keystr);
-            Visitor<TArgsStruct>::VisitKey(
-                args, key, [&](auto& val) { val = Stencil::SerDesRead<Stencil::ProtocolJsonVal>(val, valjson); });
+            Visitor<TArgsStruct>::VisitKey(args, key, [&](auto& val) { Stencil::SerDesRead<Stencil::ProtocolJsonVal>(val, valjson); });
         }
         return args;
     }
@@ -345,7 +344,7 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
                             std::string_view const& ifname,
                             std::string_view const& path)
     {
-        if (impl::iequal("objectstore", ifname))
+        if (ifname == "objectstore")
         {
             res.set_header("Access-Control-Allow-Origin", "*");
             auto instance = _sseManager.CreateInstance();
