@@ -234,20 +234,17 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
         res.set_content(fmt::format("<p>Error Status: <span style='color:red;'>{}</span></p>", res.status), "text/html");
     }
 
-    template <typename TArgsStruct> auto _CreateArgStruct(httplib::Request const& /* req */)
+    template <typename TArgsStruct> auto _CreateArgStruct(httplib::Request const& req)
     {
         TArgsStruct args;
-#ifdef TODO1
-        using StateTracker = ReflectionServices::StateTraker<TArgsStruct, void*>;
-        StateTracker tracker(&args, nullptr);
-        for (auto const& [key, value] : req.params)
+        for (auto const& [keystr, valjson] : req.params)
         {
-            if (tracker.TryObjKey(Value(shared_string::make(key)), nullptr))
-            {
-                tracker.HandleValue(Value(shared_string::make(value)), nullptr);
-            }
+            using TKey = Stencil::TypeTraitsForIndexable<TArgsStruct>::Key;
+            TKey key;
+            Stencil::SerDesRead<Stencil::ProtocolString>(key, keystr);
+            Visitor<TArgsStruct>::VisitKey(
+                args, key, [&](auto& val) { val = Stencil::SerDesRead<Stencil::ProtocolJsonVal>(val, valjson); });
         }
-#endif
         return args;
     }
 
@@ -289,7 +286,7 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
         return _TryHandleEvents<Tup, std::tuple_size_v<Tup>, T>(obj, req, res, ifname, path);
     }
 
-    template <typename TTup, size_t TTupIndex, ConceptInterface T>
+    template <typename TTup, ConceptInterface T, size_t TTupIndex = std::tuple_size_v<TTup>>
     bool _TryHandleObjectStore(T&                      obj,
                                httplib::Request const& req,
                                httplib::Response&      res,
@@ -302,7 +299,7 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
             using SelectedTup = std::tuple_element_t<TTupIndex - 1, TTup>;
             if (!impl::iequal(Stencil::InterfaceObjectTraits<SelectedTup>::Name(), ifname))
             {
-                return _TryHandleObjectStore<TTup, TTupIndex - 1, T>(obj, req, res, ifname, path);
+                return _TryHandleObjectStore<TTup, T, TTupIndex - 1>(obj, req, res, ifname, path);
             }
             if (path == "/create")
             {
@@ -348,8 +345,23 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
                             std::string_view const& ifname,
                             std::string_view const& path)
     {
-        using ObjectsTup = typename Stencil::InterfaceTraits<T>::Objects;
-        return _TryHandleObjectStore<ObjectsTup, std::tuple_size_v<ObjectsTup>, T>(obj, req, res, ifname, path);
+        if (impl::iequal("objectstore", ifname))
+        {
+            res.set_header("Access-Control-Allow-Origin", "*");
+            auto instance = _sseManager.CreateInstance();
+            res.set_chunked_content_provider(
+                "text/event-stream",
+                [instance](size_t /*offset*/, httplib::DataSink& sink) {
+                    // This function doesnt return so its important to release the lock before entering start
+                    instance->Start(sink, "event: init\ndata: \n\n");    // Empty data
+                    return true;
+                },
+                [instance](bool /*success*/) { instance->Release(); });
+            res.status = 200;
+            return true;
+        }
+
+        return _TryHandleObjectStore<typename Stencil::InterfaceTraits<T>::Objects, T>(obj, req, res, ifname, path);
     }
 
     template <typename TTup, size_t TTupIndex, ConceptInterface T>

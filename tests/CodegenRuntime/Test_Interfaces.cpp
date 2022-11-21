@@ -165,7 +165,7 @@ struct Tester
     void cli_create_obj1()
     {
         auto obj1 = create_simple_object1();
-        _valid_cli_json_get("/api/server1/objectstore/create/obj1",
+        _valid_cli_json_get("/api/server1/obj1/create",
                             httplib::Params{{"val1", fmt::format("{}", obj1.val1)},
                                             {"val2", fmt::format("{}", obj1.val2)},
                                             {"val3", fmt::format("{}", obj1.val3)},
@@ -206,7 +206,7 @@ struct Tester
 
     uint32_t    _count{0};
     SSEListener _sseListener1{"/api/server1/somethinghappened"};
-    SSEListener _sseListener2{"/api/server1/objectstore/changed"};
+    SSEListener _sseListener2{"/api/server1/objectstore"};
     // SSEListener _sseListener3{"/api/server1/obj2/events"};
     Stencil::WebService<Interfaces::Server1> svc;
 };

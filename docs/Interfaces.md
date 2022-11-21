@@ -173,12 +173,12 @@ results in the following apis
 
 - `/api/server1/somethinghappened` => (EventSource/SSE)
 - `/api/server1/function1` => `dict<uint32. SimpleObject1>`
-- `/api/objectstore/changed` => (EventSource/SSE)
-- `/api/objectstore/create/obj1` => {id: obj1:json}
-- `/api/objectstore/edit/obj1/<id>` => obj1:json // Should it be transaction ?
-- `/api/objectstore/read/obj1/<id>` => obj1:json
-- `/api/objectstore/all/obj1/` => {id: obj1:json}
-- `/api/objectstore/delete/obj1/<id>` => {}
+- `/api/objectstore` => (EventSource/SSE)
+- `/api/obj1/create` => {id: obj1:json}
+- `/api/obj1/edit/<id>` => obj1:json // Should it be transaction ?
+- `/api/obj1/read/<id>` => obj1:json
+- `/api/obj1/all` => {id: obj1:json}
+- `/api/obj1/delete/<id>` => {}
 
 ### Language Bindings
 
