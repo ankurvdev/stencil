@@ -1326,6 +1326,7 @@ template <typename TDb> struct DatabaseT
     {
         assert(id.Valid());
         impl::Ref dbId = id;
+#if defined TODO1
         // If ownership == shared, Decrease ref count
         // If ownership == unique or ref count == 0
         //      Iterate over all sub-objects.
@@ -1340,6 +1341,7 @@ template <typename TDb> struct DatabaseT
             if (refcount == 0) { _ReleaseChildRefs<TObj>(lock, page.Get(lock, dbId.slot)); }
         }
         else
+#endif
         {
             impl::PageForRecord<Traits<TObj>::RecordSize()> page(_pagemgr->LoadPage(dbId.page));
             page.Release(lock, dbId.slot);

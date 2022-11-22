@@ -1,4 +1,4 @@
-#include "Interfaces.pidl.h"
+#include "ObjectsTester.h"
 #include "TestUtils.h"
 
 #include <stencil/WebService.h>
@@ -51,32 +51,8 @@ std::unique_ptr<Interfaces::Server1> Interfaces::Server1::Create()
 }
 // Generated code ends
 
-struct Tester
+struct Tester : ObjectsTester
 {
-
-    size_t        _counter{0};
-    int32_t       create_int32() { return static_cast<int32_t>(++_counter); }
-    uint8_t       create_uint8() { return static_cast<uint8_t>(++_counter); }
-    uint32_t      create_uint32() { return static_cast<uint32_t>(++_counter); }
-    shared_string create_string() { return shared_string(fmt::format("str{}", static_cast<uint32_t>(++_counter))); }
-    double        create_double()
-    {
-        size_t count1 = ++_counter;
-        size_t count2 = ++_counter;
-        return static_cast<double>(count1 * 100) + (static_cast<double>(count2) / 100.0);
-    }
-    auto create_timestamp() { return Stencil::Timestamp{} + std::chrono::seconds{++_counter}; }
-    auto create_simple_object1()
-    {
-        Interfaces::SimpleObject1 obj{};
-        obj.val1         = create_int32();
-        obj.val2         = create_uint32();
-        obj.val3         = create_uint8();
-        obj.val4         = create_string();
-        obj.val5         = create_double();
-        obj.lastmodified = create_timestamp();
-        return obj;
-    }
 
     struct SSEListener
     {
@@ -151,6 +127,17 @@ struct Tester
     }
     CLASS_DELETE_COPY_AND_MOVE(Tester);
 
+    template <typename T> auto _create_http_params(T const& obj)
+    {
+        httplib::Params params;
+        Stencil::Visitor<T>::VisitAll(obj, [&](auto const& key, auto const& val) {
+            std::string keystr        = Stencil::Serialize<Stencil::ProtocolString>(key).str();
+            std::string valstr        = Stencil::Serialize<Stencil::ProtocolJsonVal>(val).str();
+            params.insert({std::move(keystr), std::move(valstr)});
+        });
+        return params;
+    }
+
     auto _valid_cli_call_get(std::string const& path, httplib::Params const& params)
     {
         auto response = CreateCLI().Get(path, params, httplib::Headers(), httplib::Progress());
@@ -169,24 +156,49 @@ struct Tester
 
     void cli_create_obj1()
     {
-        auto obj1 = create_simple_object1();
-        _valid_cli_json_get("/api/server1/obj1/create",
-                            httplib::Params{{"val1", fmt::format("{}", obj1.val1)},
-                                            {"val2", fmt::format("{}", obj1.val2)},
-                                            {"val3", fmt::format("{}", obj1.val3)},
-                                            {"val4", fmt::format("{}", obj1.val4)},
-                                            {"val5", fmt::format("{}", obj1.val5)}});
+        auto obj1  = create_simple_object1();
+        _cliObj1Id = _valid_cli_json_get("/api/server1/obj1/create", _create_http_params(obj1));
     }
 
-    void cli_read_obj1() {}
-    void cli_edit_obj1() {}
-    void cli_destroy_obj1() {}
+    void cli_read_obj1()
+    {
+        REQUIRE(_cliObj1Id.length() > 1);
+        _valid_cli_json_get(fmt::format("/api/server1/obj1/read/{}", _cliObj1Id), {});
+        // auto all = _valid_cli_json_get(fmt::format("/api/server1/obj1/all"), {});
+    }
 
-    void cli_create_obj2() {}
-    void cli_read_obj2() {}
-    void cli_edit_obj2() {}
-    void cli_destroy_obj2() {}
+    void cli_edit_obj1()
+    {
+        REQUIRE(_cliObj1Id.length() > 1);
+        _valid_cli_json_get(fmt::format("/api/server1/obj1/edit/{}", _cliObj1Id), _create_http_params(create_simple_object1()));
+    }
 
+    void cli_destroy_obj1()
+    {
+        REQUIRE(_cliObj1Id.length() > 1);
+        _valid_cli_json_get(fmt::format("/api/server1/obj1/delete/{}", _cliObj1Id), {});
+    }
+
+    void cli_create_obj2() { _cliObj2Id = _valid_cli_json_get("/api/server1/obj2/create", _create_http_params(create_nested_object())); }
+
+    void cli_read_obj2()
+    {
+        REQUIRE(_cliObj2Id.length() > 1);
+        _valid_cli_json_get(fmt::format("/api/server1/obj2/read/{}", _cliObj2Id), {});
+        // auto all = _valid_cli_json_get(fmt::format("/api/server1/obj2/all"), {});
+    }
+
+    void cli_edit_obj2()
+    {
+        REQUIRE(_cliObj2Id.length() > 1);
+        _valid_cli_json_get(fmt::format("/api/server1/obj2/edit/{}", _cliObj2Id), _create_http_params(create_nested_object()));
+    }
+
+    void cli_destroy_obj2()
+    {
+        REQUIRE(_cliObj2Id.length() > 1);
+        _valid_cli_json_get(fmt::format("/api/server1/obj2/delete/{}", _cliObj2Id), {});
+    }
     void cli_call_function()
     {
         _valid_cli_json_get(
@@ -208,6 +220,8 @@ struct Tester
     void svc_call_function() { svc.GetInterface<Interfaces::Server1>().Function1(create_uint32(), create_simple_object1()); }
 
     std::vector<std::string> _json_lines;
+    std::string              _cliObj1Id;
+    std::string              _cliObj2Id;
 
     uint32_t    _count{0};
     SSEListener _sseListener1{"/api/server1/somethinghappened"};

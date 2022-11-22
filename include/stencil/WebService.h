@@ -209,18 +209,24 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
     template <ConceptInterface T> auto& GetInterface() { return *std::get<std::unique_ptr<T>>(_impls).get(); }
 
     private:
+    std::tuple<std::string_view, std::string_view> _Split(std::string_view const& path)
+    {
+        if (path.empty() || path[0] != '/') throw std::logic_error("Invalid path");
+        auto index = path.find('/', 1);
+        auto str1  = path.substr(1, index - 1);
+        if (index == path.npos) return {str1, {}};
+        return {str1, path.substr(index)};
+    }
+
     bool _HandleRequest(const httplib::Request& req, httplib::Response& res)
     {
         std::string_view const& path = req.path;
-        if (path.empty() || path[0] != '/') throw std::logic_error("Invalid path");
-        auto stindex = std::string_view("/api/").length();
-        auto index   = path.find('/', stindex);
-        if (index == path.npos) return false;
+        auto [ifname, subpath]       = _Split(path);
+        if (ifname != "api" || subpath.empty()) return false;
         try
         {
-
-            auto ifname = path.substr(stindex, index - stindex);
-            _HandleRequest<Ts...>(req, res, ifname, path.substr(index));
+            auto [ifname1, subpath1] = _Split(subpath);
+            _HandleRequest<Ts...>(req, res, ifname1, subpath1);
         } catch (std::exception const& ex)
         {
             res.status = 500;
@@ -285,6 +291,38 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
         return _TryHandleEvents<Tup, std::tuple_size_v<Tup>, T>(obj, req, res, ifname, path);
     }
 
+    template <typename TLambda> auto _ForeachObjId(httplib::Request const& req, std::string_view const& subpath, TLambda&& lambda)
+    {
+        std::ostringstream rslt;
+        if (subpath.empty())
+        {
+            auto it = req.params.find("ids");
+            if (it == req.params.end()) { throw std::invalid_argument("No Id specified for read"); }
+            auto ids = it->second;
+            rslt << '{';
+            bool   first  = true;
+            size_t sindex = 0;
+            do {
+                auto eindex = ids.find(',', sindex);
+                if (eindex == std::string_view::npos) eindex = ids.size();
+                auto idstr = ids.substr(sindex, eindex - sindex);
+                if (!first) { rslt << ','; }
+                rslt << idstr;
+                first       = false;
+                uint32_t id = static_cast<uint32_t>(std::stoul(idstr));
+                lambda(rslt, id);
+                sindex = eindex + 1;
+            } while (sindex < ids.size());
+            rslt << '}';
+        }
+        else
+        {
+            uint32_t id = static_cast<uint32_t>(std::stoul(std::string(subpath.substr(1))));
+            lambda(rslt, id);
+        }
+        return rslt.str();
+    }
+
     template <typename TTup, ConceptInterface T, size_t TTupIndex = std::tuple_size_v<TTup>>
     bool _TryHandleObjectStore(T&                      obj,
                                httplib::Request const& req,
@@ -300,40 +338,76 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
             {
                 return _TryHandleObjectStore<TTup, T, TTupIndex - 1>(obj, req, res, ifname, path);
             }
-            if (path == "/create")
+            auto [action, subpath] = _Split(path);
+            if (action == "create")
             {
                 auto lock       = obj.objects.LockForEdit();
                 auto [id, obj1] = obj.objects.template Create<SelectedTup>(lock, _CreateArgStruct<SelectedTup>(req));
                 uint32_t idint  = id.objId;
                 auto     rslt   = Stencil::Json::Stringify<decltype(idint)>(idint);
                 res.set_content(rslt, "application/json");
-                return true;
             }
-            else if (path == "/get")
+            else if (action == "all")
             {
-                auto              ids = req.params.find("ids")->second;
-                std::stringstream rslt;
-                rslt << '[';
-                bool   first  = true;
-                size_t sindex = 0;
-                do {
-                    auto eindex = ids.find(',', sindex);
-                    if (eindex == std::string_view::npos) eindex = ids.size();
-                    if (!first) { rslt << ','; }
-                    first          = false;
-                    auto     idstr = ids.substr(sindex, eindex - sindex);
-                    uint32_t id    = static_cast<uint32_t>(std::stoul(idstr));
-                    auto     lock  = obj.objects.LockForEdit();
-                    auto     obj1  = obj.objects.template Get<SelectedTup>(lock, Database2::impl::Ref::FromUInt(id));
-                    // auto jsobj = Stencil::Json::Stringify<SelectedTup>(obj1);
-                    // rslt << jsobj;
-                    sindex = eindex + 1;
-                } while (sindex < ids.size());
-                rslt << ']';
+                auto               lock = obj.objects.LockForRead();
+                std::ostringstream rslt;
+                rslt << '{';
+                bool first = true;
+                for (auto const& [ref, obj1] : obj.objects.Objects<SelectedTup>(lock))
+                {
+                    rslt << ref.objId << ':' << Stencil::Json::Stringify<SelectedTup>(obj1);
+                    if (first) { rslt << ','; }
+                    first = false;
+                }
+                rslt << '}';
                 res.set_content(rslt.str(), "application/json");
-                return true;
+            }
+            else if (action == "read")
+            {
+                auto lock = obj.objects.LockForRead();
+                res.set_content(_ForeachObjId(req,
+                                              subpath,
+                                              [&](auto& rslt, uint32_t id) {
+                                                  auto obj1
+                                                      = obj.objects.template Get<SelectedTup>(lock, Database2::impl::Ref::FromUInt(id));
+                                                  auto jsobj = Stencil::Json::Stringify<SelectedTup>(obj1);
+                                                  rslt << jsobj;
+                                              }),
+                                "application/json");
+            }
+            else if (action == "edit")
+            {
+                auto lock = obj.objects.LockForEdit();
+                res.set_content(_ForeachObjId(req,
+                                              subpath,
+                                              [&](auto& rslt, uint32_t id) {
+                                                  auto obj1
+                                                      = obj.objects.template Get<SelectedTup>(lock, Database2::impl::Ref::FromUInt(id));
+                                                  auto jsobj = Stencil::Json::Stringify<SelectedTup>(obj1);
+                                                  rslt << jsobj;
+                                              }),
+                                "application/json");
+            }
+            else if (action == "delete")
+            {
+                auto lock = obj.objects.LockForEdit();
+                res.set_content(_ForeachObjId(req,
+                                              subpath,
+                                              [&](auto& rslt, uint32_t id) {
+                                                  try
+                                                  {
+                                                      obj.objects.template Delete<SelectedTup>(lock, Database2::impl::Ref::FromUInt(id));
+                                                      rslt << "true";
+                                                  } catch (std::exception const& /*ex*/)
+                                                  {
+                                                      rslt << "false";
+                                                  }
+                                              }),
+                                "application/json");
             }
             else { throw std::logic_error("Not implemented"); }
+            res.status = 200;
+            return true;
         }
     }
 
@@ -405,14 +479,10 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
     template <ConceptInterface T>
     void _HandleRequest(T& obj, httplib::Request const& req, httplib::Response& res, std::string_view const& path)
     {
-        if (path.empty() || path[0] != '/') throw std::logic_error("Invalid path");
-        auto index = path.find('/', 1);
-        if (index == path.npos) index = path.size();
-        auto ifname    = path.substr(1, index - 1);
-        auto remaining = path.substr(index);
+        auto [ifname, subpath] = _Split(path);
 
-        bool found = _HandleEvents(obj, req, res, ifname, remaining) || _HandleObjectStore(obj, req, res, ifname, remaining)
-                     || _HandleFunction(obj, req, res, ifname, remaining);
+        bool found = _HandleEvents(obj, req, res, ifname, subpath) || _HandleObjectStore(obj, req, res, ifname, subpath)
+                     || _HandleFunction(obj, req, res, ifname, subpath);
 
         if (!found) { throw std::runtime_error(fmt::format("No Matching api found for {}", path)); }
     }

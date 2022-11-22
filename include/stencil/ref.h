@@ -97,7 +97,7 @@ struct Stencil::Visitor<Stencil::Ref<T>>
 
     template <typename T1, typename TLambda>
     requires std::is_same_v<std::remove_const_t<T1>, ThisType>
-    static void VisitAllIndicies(T1& obj, TLambda&& lambda)
+    static void VisitAll(T1& obj, TLambda&& lambda)
     {
         if (obj.get() == nullptr)
         {
@@ -109,7 +109,7 @@ struct Stencil::Visitor<Stencil::Ref<T>>
             else { return; }
         }
 
-        Stencil::Visitor<T>::VisitAllIndicies(*obj.get(), std::forward<TLambda>(lambda));
+        Stencil::Visitor<T>::VisitAll(*obj.get(), std::forward<TLambda>(lambda));
     }
 };
 #endif
@@ -149,7 +149,7 @@ template <typename T> struct Stencil::Visitor<Stencil::RefMap<T>> : Stencil::Vis
 
     template <typename T1, typename TLambda>
     requires std::is_same_v<std::remove_const_t<T1>, ThisType>
-    static void VisitAllIndicies(T1& obj, TLambda&& lambda)
+    static void VisitAll(T1& obj, TLambda&& lambda)
     {
         if (obj.get() == nullptr)
         {
@@ -161,7 +161,7 @@ template <typename T> struct Stencil::Visitor<Stencil::RefMap<T>> : Stencil::Vis
             else { return; }
         }
 
-        Stencil::Visitor<T>::VisitAllIndicies(*obj.get(), std::forward<TLambda>(lambda));
+        Stencil::Visitor<T>::VisitAll(*obj.get(), std::forward<TLambda>(lambda));
     }
 };
 

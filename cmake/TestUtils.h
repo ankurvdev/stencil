@@ -94,7 +94,7 @@ inline auto WriteStrmResourse(std::string const& actualstring, std::string_view 
     return outf;
 }
 
-inline void PrintDiff(std::vector<std::string> const& actualstring, std::vector<std::string> const& expectedstring)
+inline void PrintLinesDiff(std::vector<std::string> const& actualstring, std::vector<std::string> const& expectedstring)
 {
 
     dtl::Diff<std::string, std::vector<std::string>> d(expectedstring, actualstring);
@@ -300,6 +300,8 @@ struct StrFormat
     {
         return WriteStrResourse(actualstring, resname);
     }
+    static auto PrintDiff(std::vector<std::string> const& actualstring, std::istream& ss) { PrintLinesDiff(actualstring, ReadStream(ss)); }
+
     static bool Compare(std::vector<std::string> const& actual, std::istream& ss) { return actual == ReadStream(ss); }
 };
 
@@ -337,6 +339,8 @@ struct BinFormat
     {
         return WriteBinResourse(actualstring, resname);
     }
+    static auto PrintDiff(std::vector<std::string> const& /*actualstring*/, std::istream& /*ss*/) {}
+
     static bool Compare(std::vector<std::string> const& actual, std::istream& ss) { return actual == ReadStream(ss); }
 };
 
@@ -350,6 +354,7 @@ template <typename TFormat> inline bool _CheckResource(std::vector<std::string> 
         std::string       str(r.string());
         std::stringstream ss(str);
         if (TFormat::Compare(actual, ss)) return true;
+        TFormat::PrintDiff(actual, ss);
         break;
     }
     auto outf = TFormat::WriteResource(actual, testresname);

@@ -108,7 +108,7 @@ template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolCLI>
             int               type = -1;
             std::stringstream ss;
 
-            Visitor<TVal>::VisitAllIndicies(v, [&](auto, auto& v1) {
+            Visitor<TVal>::VisitAll(v, [&](auto, auto& v1) {
                 if constexpr (ConceptHasProtocolString<std::remove_cvref_t<decltype(v1)>>)
                 {
                     // Iterable of Values. Use shorthand
@@ -156,7 +156,7 @@ template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolCLI>
 
     template <typename Context> static auto Write(Context& ctx, T const& obj)
     {
-        Visitor<T>::VisitAllIndicies(obj, [&](auto const& k, auto const& v) { _WriteForKeyValue(k, v, obj, ctx); });
+        Visitor<T>::VisitAll(obj, [&](auto const& k, auto const& v) { _WriteForKeyValue(k, v, obj, ctx); });
         ctx.push_back("-");
     }
     template <typename TVal, typename TRhs> static void _ReadForIterableValue(TVal& val, TRhs const& value)
@@ -259,7 +259,7 @@ template <Stencil::ConceptIterable T> struct SerDes<T, ProtocolCLI>
 {
     template <typename Context> static auto Write(Context& ctx, T const& obj)
     {
-        Visitor<T>::VisitAllIndicies(obj, [&](auto, auto& v) {
+        Visitor<T>::VisitAll(obj, [&](auto, auto& v) {
             SerDes<std::remove_cvref_t<decltype(v)>, ProtocolCLI>::Write(ctx, v);
             ctx.push_back("-");
         });

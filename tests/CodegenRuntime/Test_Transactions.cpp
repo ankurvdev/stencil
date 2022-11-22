@@ -1,5 +1,4 @@
-#include "Objects.pidl.h"
-
+#include "ObjectsTester.h"
 #include "TestUtils.h"
 
 #include "stencil/transactions.binserdes.h"
@@ -263,22 +262,9 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
     }
 }
 
-struct UnorderedMapTester
+struct UnorderedMapTester : public ObjectsTester
 {
     TestReplay    replay;
-    size_t        _counter{0};
-    int32_t       create_int32() { return static_cast<int32_t>(++_counter); }
-    uint8_t       create_uint8() { return static_cast<uint8_t>(++_counter); }
-    uint32_t      create_uint32() { return static_cast<uint32_t>(++_counter); }
-    shared_string create_string() { return shared_string(fmt::format("str{}", static_cast<uint32_t>(++_counter))); }
-    double        create_double()
-    {
-        size_t count1 = ++_counter;
-        size_t count2 = ++_counter;
-        return static_cast<double>(count1 * 100) + (static_cast<double>(count2) / 100.0);
-    }
-    auto create_timestamp() { return Stencil::Timestamp{} + std::chrono::seconds{++_counter}; }
-
     auto dict_value_create(shared_string const& key)
     {
         auto ts = create_timestamp();

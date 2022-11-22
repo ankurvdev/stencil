@@ -417,7 +417,7 @@ template <> struct Stencil::Visitor<Objects::SimpleObject1> : Stencil::VisitorT<
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_val1, obj.val1);
         lambda(Fields::Field_val2, obj.val2);
@@ -644,7 +644,7 @@ template <> struct Stencil::Visitor<Objects::ListObject> : Stencil::VisitorT<Obj
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_value, obj.value);
         lambda(Fields::Field_obj1, obj.obj1);
@@ -904,7 +904,7 @@ template <> struct Stencil::Visitor<Objects::DictObject> : Stencil::VisitorT<Obj
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_dictobj, obj.dictobj);
         lambda(Fields::Field_dictval, obj.dictval);
@@ -1111,7 +1111,7 @@ template <> struct Stencil::Visitor<Objects::List> : Stencil::VisitorT<Objects::
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_listobj, obj.listobj);
     }
@@ -1550,7 +1550,7 @@ template <> struct Stencil::Visitor<Objects::SimpleObject2> : Stencil::VisitorT<
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_val1, obj.val1);
         lambda(Fields::Field_val2, obj.val2);
@@ -1888,7 +1888,7 @@ template <> struct Stencil::Visitor<Objects::NestedObject> : Stencil::VisitorT<O
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_obj1, obj.obj1);
         lambda(Fields::Field_obj2, obj.obj2);

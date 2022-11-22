@@ -112,7 +112,7 @@ template <ConceptPreferIndexable T> struct SerDes<T, ProtocolBinary>
     using TKey = typename Stencil::TypeTraitsForIndexable<T>::Key;
     template <typename Context> static auto Write(Context& ctx, T const& obj)
     {
-        Visitor<T>::VisitAllIndicies(obj, [&](auto const& key, auto const& val) {
+        Visitor<T>::VisitAll(obj, [&](auto const& key, auto const& val) {
             ctx << uint8_t{1};
             SerDes<std::remove_cvref_t<decltype(key)>, ProtocolBinary>::Write(ctx, key);
             SerDes<std::remove_cvref_t<decltype(val)>, ProtocolBinary>::Write(ctx, val);
@@ -139,7 +139,7 @@ template <ConceptPreferIterable T> struct SerDes<T, ProtocolBinary>
     template <typename Context> static auto Write(Context& ctx, T const& obj)
     {
         // Some iterables can be primitives
-        Visitor<T>::VisitAllIndicies(obj, [&](auto& /*key*/, auto& val) {
+        Visitor<T>::VisitAll(obj, [&](auto& /*key*/, auto& val) {
             ctx << uint8_t{1};
             SerDes<std::remove_cvref_t<decltype(val)>, ProtocolBinary>::Write(ctx, val);
         });

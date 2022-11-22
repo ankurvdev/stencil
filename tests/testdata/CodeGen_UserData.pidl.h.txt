@@ -280,7 +280,7 @@ template <> struct Stencil::Visitor<UserData::UserData> : Stencil::VisitorT<User
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_modified, obj.modified);
         lambda(Fields::Field_creation, obj.creation);
@@ -612,7 +612,7 @@ template <> struct Stencil::Visitor<UserData::Identity> : Stencil::VisitorT<User
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_username, obj.username);
         lambda(Fields::Field_password, obj.password);
@@ -875,7 +875,7 @@ template <> struct Stencil::Visitor<UserData::RemoteHost> : Stencil::VisitorT<Us
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_name, obj.name);
         lambda(Fields::Field_uri, obj.uri);

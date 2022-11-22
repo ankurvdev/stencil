@@ -447,7 +447,7 @@ template <> struct Stencil::Visitor<CLOpts2::InstallOptions> : Stencil::VisitorT
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_ProductId, obj.ProductId);
         lambda(Fields::Field_Repair, obj.Repair);
@@ -638,7 +638,7 @@ template <> struct Stencil::Visitor<CLOpts2::QueueOptions> : Stencil::VisitorT<C
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_ProductId, obj.ProductId);
     }
@@ -825,7 +825,7 @@ template <> struct Stencil::Visitor<CLOpts2::PauseOptions> : Stencil::VisitorT<C
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_ProductId, obj.ProductId);
     }
@@ -1012,7 +1012,7 @@ template <> struct Stencil::Visitor<CLOpts2::CancelOptions> : Stencil::VisitorT<
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_ProductId, obj.ProductId);
     }
@@ -1199,7 +1199,7 @@ template <> struct Stencil::Visitor<CLOpts2::ResumeOptions> : Stencil::VisitorT<
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_ProductId, obj.ProductId);
     }
@@ -1386,7 +1386,7 @@ template <> struct Stencil::Visitor<CLOpts2::UpdateOptions> : Stencil::VisitorT<
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_ProductId, obj.ProductId);
     }
@@ -1573,7 +1573,7 @@ template <> struct Stencil::Visitor<CLOpts2::HydrateOptions> : Stencil::VisitorT
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_ProductId, obj.ProductId);
     }
@@ -1654,7 +1654,7 @@ template <> struct Stencil::Visitor<CLOpts2::CommandLineOptions>
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda)
     {
         auto fieldType = static_cast<Fields>(obj.index());
         std::visit([&](auto&& arg) { lambda(fieldType, arg); }, obj._variant);

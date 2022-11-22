@@ -655,7 +655,7 @@ template <> struct Stencil::Visitor<Catalog::ImdbInfo> : Stencil::VisitorT<Catal
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_imdbId, obj.imdbId);
         lambda(Fields::Field_type, obj.type);
@@ -816,7 +816,7 @@ template <> struct Stencil::Visitor<Catalog::FolderInfo> : Stencil::VisitorT<Cat
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
     }
 };
@@ -1182,7 +1182,7 @@ template <> struct Stencil::Visitor<Catalog::Source> : Stencil::VisitorT<Catalog
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_type, obj.type);
         lambda(Fields::Field_path, obj.path);
@@ -1626,7 +1626,7 @@ template <> struct Stencil::Visitor<Catalog::ContentInfo> : Stencil::VisitorT<Ca
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_type, obj.type);
         lambda(Fields::Field_source, obj.source);
@@ -1874,7 +1874,7 @@ template <> struct Stencil::Visitor<Catalog::Folder> : Stencil::VisitorT<Catalog
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_info, obj.info);
         lambda(Fields::Field_contents, obj.contents);
@@ -2170,7 +2170,7 @@ template <> struct Stencil::Visitor<Catalog::Data> : Stencil::VisitorT<Catalog::
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_contentinfo, obj.contentinfo);
         lambda(Fields::Field_sources, obj.sources);
@@ -2468,7 +2468,7 @@ template <> struct Stencil::Visitor<Catalog::ScanRequest> : Stencil::VisitorT<Ca
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_source, obj.source);
         lambda(Fields::Field_scanned_at, obj.scanned_at);
@@ -2622,7 +2622,7 @@ template <> struct Stencil::Visitor<Catalog::DataStore> : Stencil::VisitorT<Cata
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
     }
 };

@@ -189,7 +189,7 @@ template <size_t N> struct SerDes<std::array<uint16_t, N>, ProtocolJsonVal>
         {
             fmt::print(ctx, "[");
             bool first = true;
-            Visitor<std::array<uint16_t, N>>::VisitAllIndicies(obj, [&](auto, auto& v) {
+            Visitor<std::array<uint16_t, N>>::VisitAll(obj, [&](auto, auto& v) {
                 using ValueType = std::remove_cvref_t<decltype(v)>;
                 if (!first) fmt::print(ctx, ",");
                 SerDes<ValueType, ProtocolString>::Write(ctx, v);
@@ -332,7 +332,7 @@ template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolJsonVal>
     {
         _WriteTo(ctx, '{');
         bool first = true;
-        Visitor<T>::VisitAllIndicies(obj, [&](auto const& k, auto const& v) {
+        Visitor<T>::VisitAll(obj, [&](auto const& k, auto const& v) {
             if (!first) _WriteTo(ctx, ',');
             _WriteTo(ctx, '\"');
             SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ctx, k);
@@ -363,7 +363,7 @@ template <Stencil::ConceptIterable T> struct SerDes<T, ProtocolJsonVal>
     {
         _WriteTo(ctx, '[');
         bool first = true;
-        Visitor<T>::VisitAllIndicies(obj, [&](auto, auto& v) {
+        Visitor<T>::VisitAll(obj, [&](auto, auto& v) {
             if (!first) _WriteTo(ctx, ',');
             SerDes<std::remove_cvref_t<decltype(v)>, ProtocolJsonVal>::Write(ctx, v);
             first = false;

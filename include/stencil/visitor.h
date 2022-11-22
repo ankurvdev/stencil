@@ -74,7 +74,7 @@ template <typename... Ts> struct Visitor<std::variant<Ts...>>
         }
         else { _SetAndVisit<0>(obj, key, lambda); }
     }
-    template <typename T1, typename TLambda> static void VisitAllIndicies(T1& obj, TLambda&& lambda)
+    template <typename T1, typename TLambda> static void VisitAll(T1& obj, TLambda&& lambda)
     {
         std::visit([&](auto&& arg) { lambda(obj.index(), arg); }, obj);
     }
@@ -105,7 +105,7 @@ template <typename T, typename... TAttrs> struct StructVisitor
         StructFieldsVisitor<TAttr>::VisitAllFields(obj, [&](auto&& key, auto&& val) { lambda(Key{key}, val); });
         return false;
     }
-    template <typename T1, typename TLambda> static void VisitAllIndicies(T1& obj, TLambda&& lambda)
+    template <typename T1, typename TLambda> static void VisitAll(T1& obj, TLambda&& lambda)
     {
         [[maybe_unused]] bool found = (_VisitAllFieldsHelper<TAttrs>(obj, lambda) || ...);
         StructFieldsVisitor<T>::VisitAllFields(obj, [&](auto&& key, auto&& val) { lambda(Key{key}, val); });
@@ -214,7 +214,7 @@ struct Stencil::Visitor<std::shared_ptr<T>> : Stencil::VisitorT<std::shared_ptr<
 
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, ThisType>
-    static void VisitAllIndicies(T1& obj, TLambda&& lambda)
+    static void VisitAll(T1& obj, TLambda&& lambda)
     {
         if (obj.get() == nullptr)
         {
@@ -226,7 +226,7 @@ struct Stencil::Visitor<std::shared_ptr<T>> : Stencil::VisitorT<std::shared_ptr<
             else { return; }
         }
 
-        Stencil::Visitor<T>::VisitAllIndicies(*obj.get(), std::forward<TLambda>(lambda));
+        Stencil::Visitor<T>::VisitAll(*obj.get(), std::forward<TLambda>(lambda));
     }
 };
 
@@ -242,7 +242,7 @@ template <typename T, size_t N> struct Stencil::Visitor<std::array<T, N>> : Sten
 
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, std::array<T, N>>
-    static void VisitAllIndicies(T1& obj, TLambda&& lambda)
+    static void VisitAll(T1& obj, TLambda&& lambda)
     {
         for (size_t i = 0; i < N; i++) { lambda(i, obj.at(i)); }
     }
@@ -287,7 +287,7 @@ template <typename T> struct Stencil::Visitor<std::vector<T>> : Stencil::Visitor
 
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
-    static void VisitAllIndicies(T1& obj, TLambda&& lambda)
+    static void VisitAll(T1& obj, TLambda&& lambda)
     {
         for (size_t i = 0; i < obj.size(); i++) { lambda(i, obj.at(i)); }
     }
@@ -327,7 +327,7 @@ template <typename K, typename V> struct Stencil::Visitor<std::unordered_map<K, 
 
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, TObj>
-    static void VisitAllIndicies(T1& obj, TLambda&& lambda)
+    static void VisitAll(T1& obj, TLambda&& lambda)
     {
         for (auto& [k, v] : obj) { lambda(k, v); }
     }
@@ -348,7 +348,7 @@ template <typename K, typename V> struct Stencil::Visitor<std::unordered_map<K, 
 
     template <typename T1, typename TLambda>
     requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
-    static void VisitAllIndicies(T1& obj, TLambda&& lambda)
+    static void VisitAll(T1& obj, TLambda&& lambda)
     {
         for (size_t i = 0; i < obj.size(); i++) { lambda(i, obj.at(i)); }
     }

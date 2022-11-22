@@ -118,7 +118,7 @@ template<> Stencil::Visitor<Foo>
 {
 
     static void VisitKey(Foo& obj, Stencil::TypeTraits<Foo>::Key const& key, TLambda& lambda) { .. lambda(key, value); ....}
-    static void VisitAllIndicies(Foo& obj,  TLambda& lambda) { ... lambda(key, value); ....}
+    static void VisitAll(Foo& obj,  TLambda& lambda) { ... lambda(key, value); ....}
 };
 ```
 
