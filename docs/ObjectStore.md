@@ -1,3 +1,28 @@
+# Database
+
+https://www.remi-coulom.fr/joedb/vectors.html
+Apache arrow and parquet 
+Rocksdb
+https://en.m.wikipedia.org/wiki/Wide-column_store
+
+Nosql
+
+lmdb |Version: 0.9.29
+LMDB is an extraordinarily fast, memory-efficient database
+
+
+berkeleydb |Version: 4.8.30
+BDB - A high-performance embedded database for key/value data.
+
+
+hdf5 |Version: 1.12.2
+HDF5 is a data model, library, and file format for storing and managing data
+
+
+
+
+
+
 ## Spec Keywords/Features
 
 * object-store using struct/union syntax
