@@ -1,5 +1,16 @@
 # Interfaces
 
+TODO
+
+- DatabaseT
+  - iterables
+  - indexables
+  - Non fixed size records
+  - ownership [unique, shared]
+- readonly
+- writable
+- python extension
+
 ## Open questions
 
 - How can interface include datastore as merely api-grouping?
