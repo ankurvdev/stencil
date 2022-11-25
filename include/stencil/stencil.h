@@ -9,6 +9,6 @@
 #include "shared_tree.h"
 #include "transactions.h"
 
-#include "Database2.h"
+#include "database.h"
 #include "ref.h"
 #include "shared_tree.h"
