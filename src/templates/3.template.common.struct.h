@@ -100,6 +100,11 @@ struct zzVariant_Namezz : public Stencil::VariantT<zzVariant_Namezz>
 //</Variant>
 
 //<Interface>
+//<InterfaceObjectStore>
+struct zzInterface_Namezz_ObjectStore_zzNamezz : zzObjectType_NativeTypezz    //, Database::ObjectT<ObjectStore, ObjectStore_zzNamezz>
+{};
+//</InterfaceObjectStore>
+
 struct zzInterface_Namezz : public Stencil::InterfaceT<zzInterface_Namezz>
 {
     using BaseClass = Stencil::InterfaceT<zzInterface_Namezz>;
@@ -107,19 +112,12 @@ struct zzInterface_Namezz : public Stencil::InterfaceT<zzInterface_Namezz>
     public:
     struct Dummy
     {};
-    struct ObjectStore;
 
-    //<InterfaceObjectStore>
-    struct ObjectStore_zzNamezz : zzObjectType_NativeTypezz, Database2::ObjectT<ObjectStore, ObjectStore_zzNamezz>
-    {};
-
-    //</InterfaceObjectStore>
-    struct ObjectStore : Dummy
-        //<InterfaceObjectStore>
-        ,
-                         public Database2::OwnerT<ObjectStore, ObjectStore_zzNamezz>
-    //</InterfaceObjectStore>
-    {};
+    using ObjectStore = Stencil::Database::Database<
+        //<InterfaceObjectStore Join=','>
+        zzInterface_Namezz_ObjectStore_zzNamezz
+        //</InterfaceObjectStore>
+        >;
 
     zzInterface_Namezz()          = default;
     virtual ~zzInterface_Namezz() = default;
@@ -437,6 +435,40 @@ template <> struct Stencil::Comparator<zzProgram_Namezz::zzStruct_Namezz, zzProg
 //</Struct>
 
 //<Interface>
+
+//<InterfaceObjectStore>
+
+template <>
+struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>
+    : struct Stencil::TypeTraits<zzProgram_Namezz::zzObjectType_NativeTypezz>
+{};
+
+template <>
+struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>
+    : struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzObjectType_NativeTypezz>
+{};
+
+//</InterfaceObjectStore>
+template <> struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzInterface_Namezz>
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<
+        //<Field>
+        typename Stencil::Database::RecordTraits<zzFieldType_NativeTypezz>::RecordTypes
+        //</Field>
+        >;
+};
+
+template <> struct Stencil::Database::RecordView<zzProgram_Namezz::zzInterface_Namezz>
+{
+    RecordView()  = default;
+    ~RecordView() = default;
+    CLASS_DELETE_COPY_AND_MOVE(RecordView);
+
+    public:
+    //<Field>
+    Stencil::Database::RecordView<zzFieldType_NativeTypezz> zzNamezz{};
+    //</Field>
+};
 
 //<InterfaceFunction>
 template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
