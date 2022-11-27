@@ -1,4 +1,5 @@
 #include "TestUtils.h"
+#if 0
 #include <Catalog.pidl.h>
 
 #include <iostream>
@@ -135,3 +136,4 @@ TEST_CASE("CodeGen::Catalog::Simplecase", "[Database]")
         TestCommon::CheckResource<TestCommon::StrFormat>(lines, "ContentInfo");
     }
 }
+#endif

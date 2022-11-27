@@ -131,8 +131,8 @@ struct Tester : ObjectsTester
     {
         httplib::Params params;
         Stencil::Visitor<T>::VisitAll(obj, [&](auto const& key, auto const& val) {
-            std::string keystr        = Stencil::Serialize<Stencil::ProtocolString>(key).str();
-            std::string valstr        = Stencil::Serialize<Stencil::ProtocolJsonVal>(val).str();
+            std::string keystr = Stencil::Serialize<Stencil::ProtocolString>(key).str();
+            std::string valstr = Stencil::Serialize<Stencil::ProtocolJsonVal>(val).str();
             params.insert({std::move(keystr), std::move(valstr)});
         });
         return params;

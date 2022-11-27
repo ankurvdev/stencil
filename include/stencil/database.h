@@ -58,7 +58,8 @@ template <typename... Tuples> using tuple_cat_t = decltype(std::tuple_cat(std::d
 
 template <ConceptRecord T, typename TDb> static constexpr uint16_t TypeId = tuple_index_of<T, typename TDb::RecordTypes>;
 
-template <ConceptRecord T> struct RecordView;
+template <typename T> struct RecordView;
+
 template <ConceptRecord T> using RefAndRecordView = std::tuple<Ref<T>, RecordView<T>>;
 
 using ROLock = std::unique_lock<std::mutex>;
@@ -101,10 +102,16 @@ template <ConceptRecord... Ts> struct Database
             // Visit-All
         }
     }
+
+    RWLock LockForEdit() { return std::unique_lock<std::mutex>(_mutex); }
+    ROLock LockForRead() { return std::unique_lock<std::mutex>(_mutex); }
+
+    std::mutex _mutex;
 };
 }    // namespace Stencil::Database
 
 // Specializations
+
 template <Stencil::Database::ConceptRecord K, Stencil::Database::ConceptRecord V>
 struct Stencil::Database::RecordTraits<std::unordered_map<K, V>>
 {
@@ -116,7 +123,7 @@ struct Stencil::Database::RecordTraits<std::unordered_map<K, V>>
 
     using RecordTypes = tuple_cat_t<typename RecordTraits<K>::RecordTypes,
                                     typename RecordTraits<V>::RecordTypes,
-                                    RecordTraits<Stencil::Database::List<MapItem>>>;
+                                    std::tuple<Stencil::Database::List<MapItem>>>;
 };
 
 template <Stencil::Database::ConceptRecord T> struct Stencil::Database::RecordTraits<std::vector<T>>
@@ -143,3 +150,22 @@ template <Stencil::ConceptPrimitive T> struct Stencil::Database::RecordTraits<T>
 {
     using RecordTypes = std::tuple<T>;
 };
+
+template <Stencil::Database::ConceptRecord K, Stencil::Database::ConceptRecord V>
+struct Stencil::Database::RecordView<std::unordered_map<K, V>>
+{};
+
+template <Stencil::Database::ConceptRecord T> struct Stencil::Database::RecordView<std::vector<T>>
+{};
+
+template <Stencil::Database::ConceptRecord T> struct Stencil::Database::RecordView<std::unique_ptr<T>>
+{};
+
+template <> struct Stencil::Database::RecordView<shared_string>
+{};
+
+template <> struct Stencil::Database::RecordView<shared_wstring>
+{};
+
+template <Stencil::ConceptPrimitive T> struct Stencil::Database::RecordView<T>
+{};

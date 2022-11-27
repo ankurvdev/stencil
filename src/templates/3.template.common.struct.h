@@ -33,6 +33,10 @@ struct zzVariant_Namezz;
 
 //<Interface>
 struct zzInterface_Namezz;
+
+//<InterfaceObjectStore>
+struct zzInterface_Namezz_ObjectStore_zzNamezz;
+//</InterfaceObjectStore>
 //</Interface>
 }    // namespace zzProgram_Namezz
 
@@ -46,6 +50,11 @@ template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzVariant_Namezz>;
 
 //<Interface>
 template <> struct Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz>;
+
+//<InterfaceObjectStore>
+template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>;
+//</InterfaceObjectStore>
+
 //</Interface>
 
 #endif
@@ -104,87 +113,6 @@ struct zzVariant_Namezz : public Stencil::VariantT<zzVariant_Namezz>
 struct zzInterface_Namezz_ObjectStore_zzNamezz : zzObjectType_NativeTypezz    //, Database::ObjectT<ObjectStore, ObjectStore_zzNamezz>
 {};
 //</InterfaceObjectStore>
-
-struct zzInterface_Namezz : public Stencil::InterfaceT<zzInterface_Namezz>
-{
-    using BaseClass = Stencil::InterfaceT<zzInterface_Namezz>;
-
-    public:
-    struct Dummy
-    {};
-
-    using ObjectStore = Stencil::Database::Database<
-        //<InterfaceObjectStore Join=','>
-        zzInterface_Namezz_ObjectStore_zzNamezz
-        //</InterfaceObjectStore>
-        >;
-
-    zzInterface_Namezz()          = default;
-    virtual ~zzInterface_Namezz() = default;
-    CLASS_DELETE_COPY_AND_MOVE(zzInterface_Namezz);
-
-    //<InterfaceFunction>
-    virtual zzReturnType_NativeTypezz zzInterfaceFunction_Namezz(
-        //<Args_Field Join=','>
-        zzFieldType_NativeTypezz const& zzNamezz
-        //</Args_Field>
-        )
-        = 0;
-    struct Args_zzInterfaceFunction_Namezz
-    {
-        //<Args_Field>
-        zzFieldType_NativeTypezz zzNamezz{};
-        //</Args_Field>
-    };
-
-    zzReturnType_NativeTypezz zzInterfaceFunction_Namezz(Args_zzInterfaceFunction_Namezz const& args)
-    {
-        return this->zzInterfaceFunction_Namezz(
-            //<Args_Field Join=','>
-            args.zzNamezz
-            //</Args_Field>
-        );
-    }
-
-    zzReturnType_NativeTypezz zzInterfaceFunction_Namezz(Args_zzInterfaceFunction_Namezz&& args)
-    {
-        return this->zzInterfaceFunction_Namezz(
-            //<Args_Field Join=','>
-            std::move(args.zzNamezz)
-            //</Args_Field>
-        );
-    }
-
-    //</InterfaceFunction>
-
-    //<InterfaceEvent>
-    struct Args_zzInterfaceEvent_Namezz
-    {
-        //<Args_Field>
-        zzFieldType_NativeTypezz zzNamezz{};
-        //</Args_Field>
-    };
-
-    void Raise_zzInterfaceEvent_Namezz(
-        //<Args_Field Join=','>
-        zzFieldType_NativeTypezz const& zzNamezz
-        //</Args_Field>
-    )
-    {
-        BaseClass::RaiseEvent(Args_zzInterfaceEvent_Namezz{
-            //<Args_Field Join=','>
-            zzNamezz
-            //</Args_Field>
-        });
-    }
-    //</InterfaceEvent>
-
-    ObjectStore objects;
-
-    static std::unique_ptr<zzInterface_Namezz> Create();
-    static std::shared_ptr<zzInterface_Namezz> CreateShared();
-    static std::shared_ptr<zzInterface_Namezz> Activate();
-};
 //</Interface>
 
 }    // namespace zzProgram_Namezz
@@ -432,6 +360,28 @@ template <> struct Stencil::Comparator<zzProgram_Namezz::zzStruct_Namezz, zzProg
             ;
     }
 };
+
+template <> struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzStruct_Namezz>
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<
+        //<Field Join=','>
+        typename Stencil::Database::RecordTraits<zzFieldType_NativeTypezz>::RecordTypes
+        //</Field>
+        >;
+};
+
+template <> struct Stencil::Database::RecordView<zzProgram_Namezz::zzStruct_Namezz>
+{
+    RecordView()  = default;
+    ~RecordView() = default;
+    CLASS_DELETE_COPY_AND_MOVE(RecordView);
+
+    public:
+    //<Field>
+    Stencil::Database::RecordView<zzFieldType_NativeTypezz> zzNamezz{};
+    //</Field>
+};
+
 //</Struct>
 
 //<Interface>
@@ -440,19 +390,19 @@ template <> struct Stencil::Comparator<zzProgram_Namezz::zzStruct_Namezz, zzProg
 
 template <>
 struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>
-    : struct Stencil::TypeTraits<zzProgram_Namezz::zzObjectType_NativeTypezz>
+    : public Stencil::TypeTraits<zzObjectType_NativeTypezz>
 {};
 
 template <>
 struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>
-    : struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzObjectType_NativeTypezz>
+    : public Stencil::Database::RecordTraits<zzObjectType_NativeTypezz>
 {};
 
 //</InterfaceObjectStore>
 template <> struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzInterface_Namezz>
 {
     using RecordTypes = Stencil::Database::tuple_cat_t<
-        //<Field>
+        //<Field Join=','>
         typename Stencil::Database::RecordTraits<zzFieldType_NativeTypezz>::RecordTypes
         //</Field>
         >;
@@ -469,8 +419,91 @@ template <> struct Stencil::Database::RecordView<zzProgram_Namezz::zzInterface_N
     Stencil::Database::RecordView<zzFieldType_NativeTypezz> zzNamezz{};
     //</Field>
 };
+namespace zzProgram_Namezz
+{
+struct zzInterface_Namezz : public Stencil::InterfaceT<zzInterface_Namezz>
+{
+    using BaseClass = Stencil::InterfaceT<zzInterface_Namezz>;
 
+    public:
+    struct Dummy
+    {};
+
+    using ObjectStore = Stencil::Database::Database<
+        //<InterfaceObjectStore Join=','>
+        zzInterface_Namezz_ObjectStore_zzNamezz
+        //</InterfaceObjectStore>
+        >;
+
+    zzInterface_Namezz()          = default;
+    virtual ~zzInterface_Namezz() = default;
+    CLASS_DELETE_COPY_AND_MOVE(zzInterface_Namezz);
+
+    //<InterfaceFunction>
+    virtual zzReturnType_NativeTypezz zzInterfaceFunction_Namezz(
+        //<Args_Field Join=','>
+        zzFieldType_NativeTypezz const& zzNamezz
+        //</Args_Field>
+        )
+        = 0;
+    struct Args_zzInterfaceFunction_Namezz
+    {
+        //<Args_Field>
+        zzFieldType_NativeTypezz zzNamezz{};
+        //</Args_Field>
+    };
+
+    zzReturnType_NativeTypezz zzInterfaceFunction_Namezz(Args_zzInterfaceFunction_Namezz const& args)
+    {
+        return this->zzInterfaceFunction_Namezz(
+            //<Args_Field Join=','>
+            args.zzNamezz
+            //</Args_Field>
+        );
+    }
+
+    zzReturnType_NativeTypezz zzInterfaceFunction_Namezz(Args_zzInterfaceFunction_Namezz&& args)
+    {
+        return this->zzInterfaceFunction_Namezz(
+            //<Args_Field Join=','>
+            std::move(args.zzNamezz)
+            //</Args_Field>
+        );
+    }
+
+    //</InterfaceFunction>
+
+    //<InterfaceEvent>
+    struct Args_zzInterfaceEvent_Namezz
+    {
+        //<Args_Field>
+        zzFieldType_NativeTypezz zzNamezz{};
+        //</Args_Field>
+    };
+
+    void Raise_zzInterfaceEvent_Namezz(
+        //<Args_Field Join=','>
+        zzFieldType_NativeTypezz const& zzNamezz
+        //</Args_Field>
+    )
+    {
+        BaseClass::RaiseEvent(Args_zzInterfaceEvent_Namezz{
+            //<Args_Field Join=','>
+            zzNamezz
+            //</Args_Field>
+        });
+    }
+    //</InterfaceEvent>
+
+    ObjectStore objects;
+
+    static std::unique_ptr<zzInterface_Namezz> Create();
+    static std::shared_ptr<zzInterface_Namezz> CreateShared();
+    static std::shared_ptr<zzInterface_Namezz> Activate();
+};
+}    // namespace zzProgram_Namezz
 //<InterfaceFunction>
+
 template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
 {
     using Categories = std::tuple<Stencil::Category::Indexable>;
@@ -672,7 +705,7 @@ template <> struct Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz
 
     using Objects = std::tuple<
         //<InterfaceObjectStore Join=','>
-        zzProgram_Namezz::zzInterface_Namezz::ObjectStore_zzNamezz
+        zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz
         //</InterfaceObjectStore>
         >;
 
@@ -684,31 +717,26 @@ template <> struct Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz
 };
 
 //<InterfaceObjectStore>
-template <> struct Stencil::TypeTraits<zzObjectType_NativeTypezz>;
-template <>
-struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz::ObjectStore_zzNamezz>
-    : public Stencil::TypeTraits<zzObjectType_NativeTypezz>
-{};
 
 template <>
-struct Stencil::TypeTraitsForPrimitive<zzProgram_Namezz::zzInterface_Namezz::ObjectStore_zzNamezz>
+struct Stencil::TypeTraitsForPrimitive<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>
     : public Stencil::TypeTraitsForPrimitive<zzObjectType_NativeTypezz>
 {};
 template <>
-struct Stencil::TypeTraitsForIterable<zzProgram_Namezz::zzInterface_Namezz::ObjectStore_zzNamezz>
+struct Stencil::TypeTraitsForIterable<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>
     : public Stencil::TypeTraitsForIterable<zzObjectType_NativeTypezz>
 {};
 template <>
-struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::ObjectStore_zzNamezz>
+struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>
     : public Stencil::TypeTraitsForIndexable<zzObjectType_NativeTypezz>
 {};
 template <>
-struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::ObjectStore_zzNamezz> : public Stencil::Visitor<zzObjectType_NativeTypezz>
+struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz> : public Stencil::Visitor<zzObjectType_NativeTypezz>
 {};
 //</InterfaceObjectStore>
 
 //<InterfaceObjectStore>
-template <> struct Stencil::InterfaceObjectTraits<zzProgram_Namezz::zzInterface_Namezz::ObjectStore_zzNamezz>
+template <> struct Stencil::InterfaceObjectTraits<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>
 {
     static constexpr std::string_view Name() { return "zzNamezz"; }
 };

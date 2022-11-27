@@ -149,7 +149,10 @@ struct SSEListenerManager
 }    // namespace impl
 
 template <typename T>
-concept ConceptInterface = requires { typename Stencil::InterfaceTraits<T>; };
+concept ConceptInterface = requires
+{
+    typename Stencil::InterfaceTraits<T>;
+};
 
 template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Interface::InterfaceEventHandlerT<WebService<Ts...>, Ts>...
 {
@@ -353,7 +356,7 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
                 std::ostringstream rslt;
                 rslt << '{';
                 bool first = true;
-                for (auto const& [ref, obj1] : obj.objects.Objects<SelectedTup>(lock))
+                for (auto const& [ref, obj1] : obj.objects.template Objects<SelectedTup>(lock))
                 {
                     rslt << ref.objId << ':' << Stencil::Json::Stringify<SelectedTup>(obj1);
                     if (first) { rslt << ','; }
@@ -368,8 +371,7 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
                 res.set_content(_ForeachObjId(req,
                                               subpath,
                                               [&](auto& rslt, uint32_t id) {
-                                                  auto obj1
-                                                      = obj.objects.template Get<SelectedTup>(lock, Database2::impl::Ref::FromUInt(id));
+                                                  auto obj1  = obj.objects.template Get<SelectedTup>(lock, {id});
                                                   auto jsobj = Stencil::Json::Stringify<SelectedTup>(obj1);
                                                   rslt << jsobj;
                                               }),
@@ -381,8 +383,7 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
                 res.set_content(_ForeachObjId(req,
                                               subpath,
                                               [&](auto& rslt, uint32_t id) {
-                                                  auto obj1
-                                                      = obj.objects.template Get<SelectedTup>(lock, Database2::impl::Ref::FromUInt(id));
+                                                  auto obj1  = obj.objects.template Get<SelectedTup>(lock, {id});
                                                   auto jsobj = Stencil::Json::Stringify<SelectedTup>(obj1);
                                                   rslt << jsobj;
                                               }),
@@ -396,7 +397,7 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
                                               [&](auto& rslt, uint32_t id) {
                                                   try
                                                   {
-                                                      obj.objects.template Delete<SelectedTup>(lock, Database2::impl::Ref::FromUInt(id));
+                                                      obj.objects.template Delete<SelectedTup>(lock, {id});
                                                       rslt << "true";
                                                   } catch (std::exception const& /*ex*/)
                                                   {
