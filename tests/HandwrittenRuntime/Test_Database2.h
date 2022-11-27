@@ -1,5 +1,5 @@
 #include <stencil/stencil.h>
-
+#if 0
 std::filesystem::path DbFileName();
 
 namespace Database = Database2;
@@ -178,4 +178,5 @@ template <> struct Database2::ObjTraits<TestData::DataStore, TestData::WithEncry
     static constexpr ObjTypeId TypeId() { return 9; }
     static constexpr size_t    RecordSize() { return sizeof(WireType); }
 };
+#endif
 #endif

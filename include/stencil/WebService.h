@@ -149,10 +149,7 @@ struct SSEListenerManager
 }    // namespace impl
 
 template <typename T>
-concept ConceptInterface = requires
-{
-    typename Stencil::InterfaceTraits<T>;
-};
+concept ConceptInterface = requires { typename Stencil::InterfaceTraits<T>; };
 
 template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Interface::InterfaceEventHandlerT<WebService<Ts...>, Ts>...
 {
@@ -347,7 +344,7 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
                 auto lock       = obj.objects.LockForEdit();
                 auto [id, obj1] = obj.objects.template Create<SelectedTup>(lock, _CreateArgStruct<SelectedTup>(req));
                 uint32_t idint  = id.id;
-                auto     rslt   = Stencil::Json::Stringify<decltype(idint)>(idint);
+                auto     rslt   = Stencil::Json::Stringify(idint);
                 res.set_content(rslt, "application/json");
             }
             else if (action == "all")
@@ -358,7 +355,7 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
                 bool first = true;
                 for (auto const& [ref, obj1] : obj.objects.template Items<SelectedTup>(lock))
                 {
-                    rslt << ref.id << ':' << Stencil::Json::Stringify<SelectedTup>(obj1);
+                    rslt << ref.id << ':' << Stencil::Json::Stringify(obj1);
                     if (first) { rslt << ','; }
                     first = false;
                 }
@@ -372,7 +369,7 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
                                               subpath,
                                               [&](auto& rslt, uint32_t id) {
                                                   auto obj1  = obj.objects.template Get<SelectedTup>(lock, {id});
-                                                  auto jsobj = Stencil::Json::Stringify<SelectedTup>(obj1);
+                                                  auto jsobj = Stencil::Json::Stringify(obj1);
                                                   rslt << jsobj;
                                               }),
                                 "application/json");
@@ -384,7 +381,7 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
                                               subpath,
                                               [&](auto& rslt, uint32_t id) {
                                                   auto obj1  = obj.objects.template Get<SelectedTup>(lock, {id});
-                                                  auto jsobj = Stencil::Json::Stringify<SelectedTup>(obj1);
+                                                  auto jsobj = Stencil::Json::Stringify(obj1);
                                                   rslt << jsobj;
                                               }),
                                 "application/json");

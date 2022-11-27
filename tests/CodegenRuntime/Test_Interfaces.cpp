@@ -46,7 +46,7 @@ struct Server1Impl : Interfaces::Server1
 std::unique_ptr<Interfaces::Server1> Interfaces::Server1::Create()
 {
     auto ptr = std::make_unique<Server1Impl>();
-    ptr->objects.Init("SaveAndLoad.bin");
+    ptr->objects.Init(std::filesystem::path("SaveAndLoad.bin"));
     return ptr;
 }
 // Generated code ends

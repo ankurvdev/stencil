@@ -368,6 +368,7 @@ template <> struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzStruct_Na
         typename Stencil::Database::RecordTraits<zzFieldType_NativeTypezz>::RecordTypes
         //</Field>
         >;
+    static constexpr size_t Size() { return sizeof(zzProgram_Namezz::zzStruct_Namezz); }
 };
 
 template <> struct Stencil::Database::RecordView<zzProgram_Namezz::zzStruct_Namezz>
@@ -408,6 +409,7 @@ struct Stencil::Database::RecordView<zzProgram_Namezz::zzInterface_Namezz_Object
 };
 
 //</InterfaceObjectStore>
+#if 0
 template <> struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzInterface_Namezz>
 {
     using RecordTypes = Stencil::Database::tuple_cat_t<
@@ -415,6 +417,7 @@ template <> struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzInterface
         typename Stencil::Database::RecordTraits<zzFieldType_NativeTypezz>::RecordTypes
         //</Field>
         >;
+    static constexpr size_t Size() { return sizeof(zzProgram_Namezz::zzInterface_Namezz); }
 };
 
 template <> struct Stencil::Database::RecordView<zzProgram_Namezz::zzInterface_Namezz>
@@ -428,6 +431,8 @@ template <> struct Stencil::Database::RecordView<zzProgram_Namezz::zzInterface_N
     Stencil::Database::RecordView<zzFieldType_NativeTypezz> zzNamezz{};
     //</Field>
 };
+#endif
+
 namespace zzProgram_Namezz
 {
 struct zzInterface_Namezz : public Stencil::InterfaceT<zzInterface_Namezz>
