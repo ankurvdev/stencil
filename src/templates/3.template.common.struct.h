@@ -398,6 +398,15 @@ struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzInterface_Namezz_Obje
     : public Stencil::Database::RecordTraits<zzObjectType_NativeTypezz>
 {};
 
+template <>
+struct Stencil::Database::RecordView<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>
+    : public Stencil::Database::RecordView<zzObjectType_NativeTypezz>
+{
+    RecordView()  = default;
+    ~RecordView() = default;
+    CLASS_DELETE_COPY_AND_MOVE(RecordView);
+};
+
 //</InterfaceObjectStore>
 template <> struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzInterface_Namezz>
 {

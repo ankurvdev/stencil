@@ -346,7 +346,7 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
             {
                 auto lock       = obj.objects.LockForEdit();
                 auto [id, obj1] = obj.objects.template Create<SelectedTup>(lock, _CreateArgStruct<SelectedTup>(req));
-                uint32_t idint  = id.objId;
+                uint32_t idint  = id.id;
                 auto     rslt   = Stencil::Json::Stringify<decltype(idint)>(idint);
                 res.set_content(rslt, "application/json");
             }
@@ -356,9 +356,9 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
                 std::ostringstream rslt;
                 rslt << '{';
                 bool first = true;
-                for (auto const& [ref, obj1] : obj.objects.template Objects<SelectedTup>(lock))
+                for (auto const& [ref, obj1] : obj.objects.template Items<SelectedTup>(lock))
                 {
-                    rslt << ref.objId << ':' << Stencil::Json::Stringify<SelectedTup>(obj1);
+                    rslt << ref.id << ':' << Stencil::Json::Stringify<SelectedTup>(obj1);
                     if (first) { rslt << ','; }
                     first = false;
                 }

@@ -72,6 +72,21 @@ template <ConceptRecord T> struct Iterator
 {
     // TODO2
 };
+template <ConceptRecord T, typename TDb, typename TLock> struct RangeForView
+{
+    RangeForView(TLock const& lock, TDb& db) : _lock(&lock), _db(&db) {}
+
+    CLASS_DELETE_COPY_DEFAULT_MOVE(RangeForView);
+
+    TLock const* _lock{};
+    TDb*         _db{};
+
+    Iterator<T> _begin;
+    Iterator<T> _end;
+
+    auto begin() const { return _begin; }
+    auto end() const { return _end; }
+};
 
 template <typename T> struct List
 {};
@@ -82,11 +97,12 @@ namespace Stencil::Database    // Class/Inferface
 
 template <ConceptRecord... Ts> struct Database
 {
+    using ThisT       = Database<Ts...>;
     using RecordTypes = tuple_cat_t<typename RecordTraits<Ts>::RecordTypes...>;
 
     // template <ConceptRecord T> RefAndRecordView<T> Create(RWLock const& lock, T const& obj);
     template <ConceptRecord T> RecordView<T> Get(ROLock const& lock, Ref<T> const& ref) { TODO("TODO2"); }
-    template <ConceptRecord T> Iterator<T>   Items(ROLock const& lock, Ref<T> const& ref) { TODO("TODO2"); }
+    template <ConceptRecord T> auto          Items(ROLock const& lock) { return RangeForView<T, ThisT, ROLock>(lock, *this); }
     template <ConceptRecord T> void          Delete(RWLock const& lock, Ref<T> const& ref) { TODO("TODO2"); }
 
     template <ConceptRecord T> RefAndRecordView<T> Create(RWLock const& lock, T const& obj)
@@ -105,6 +121,8 @@ template <ConceptRecord... Ts> struct Database
 
     RWLock LockForEdit() { return std::unique_lock<std::mutex>(_mutex); }
     ROLock LockForRead() { return std::unique_lock<std::mutex>(_mutex); }
+
+    void Init(std::string_view const& fname);
 
     std::mutex _mutex;
 };
