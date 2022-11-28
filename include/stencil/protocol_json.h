@@ -357,7 +357,7 @@ template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolJsonVal>
 //     template <typename Context> static auto Write(Context& /*ctx*/, T const& /*obj*/) { TODO(""); }
 // };
 
-template <Stencil::ConceptIterable T> struct SerDes<T, ProtocolJsonVal>
+template <Stencil::ConceptPreferIterable T> struct SerDes<T, ProtocolJsonVal>
 {
     template <typename Context> static auto Write(Context& ctx, T const& obj)
     {

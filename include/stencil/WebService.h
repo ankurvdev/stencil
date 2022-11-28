@@ -322,7 +322,6 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
         }
         return rslt.str();
     }
-
     template <typename TTup, ConceptInterface T, size_t TTupIndex = std::tuple_size_v<TTup>>
     bool _TryHandleObjectStore(T&                      obj,
                                httplib::Request const& req,
@@ -333,80 +332,86 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
         if constexpr (TTupIndex == 0) { return false; }
         else
         {
-            using SelectedTup = std::tuple_element_t<TTupIndex - 1, TTup>;
-            if (!impl::iequal(Stencil::InterfaceObjectTraits<SelectedTup>::Name(), ifname))
+            if (!impl::iequal(Stencil::InterfaceObjectTraits<std::tuple_element_t<TTupIndex - 1, TTup>>::Name(), ifname))
             {
                 return _TryHandleObjectStore<TTup, T, TTupIndex - 1>(obj, req, res, ifname, path);
             }
-            auto [action, subpath] = _Split(path);
-            if (action == "create")
-            {
-                auto lock       = obj.objects.LockForEdit();
-                auto [id, obj1] = obj.objects.template Create<SelectedTup>(lock, _CreateArgStruct<SelectedTup>(req));
-                uint32_t idint  = id.id;
-                auto     rslt   = Stencil::Json::Stringify(idint);
-                res.set_content(rslt, "application/json");
-            }
-            else if (action == "all")
-            {
-                auto               lock = obj.objects.LockForRead();
-                std::ostringstream rslt;
-                rslt << '{';
-                bool first = true;
-                for (auto const& [ref, obj1] : obj.objects.template Items<SelectedTup>(lock))
-                {
-                    rslt << ref.id << ':' << Stencil::Json::Stringify(obj1);
-                    if (first) { rslt << ','; }
-                    first = false;
-                }
-                rslt << '}';
-                res.set_content(rslt.str(), "application/json");
-            }
-            else if (action == "read")
-            {
-                auto lock = obj.objects.LockForRead();
-                res.set_content(_ForeachObjId(req,
-                                              subpath,
-                                              [&](auto& rslt, uint32_t id) {
-                                                  auto obj1  = obj.objects.template Get<SelectedTup>(lock, {id});
-                                                  auto jsobj = Stencil::Json::Stringify(obj1);
-                                                  rslt << jsobj;
-                                              }),
-                                "application/json");
-            }
-            else if (action == "edit")
-            {
-                auto lock = obj.objects.LockForEdit();
-                res.set_content(_ForeachObjId(req,
-                                              subpath,
-                                              [&](auto& rslt, uint32_t id) {
-                                                  auto obj1  = obj.objects.template Get<SelectedTup>(lock, {id});
-                                                  auto jsobj = Stencil::Json::Stringify(obj1);
-                                                  rslt << jsobj;
-                                              }),
-                                "application/json");
-            }
-            else if (action == "delete")
-            {
-                auto lock = obj.objects.LockForEdit();
-                res.set_content(_ForeachObjId(req,
-                                              subpath,
-                                              [&](auto& rslt, uint32_t id) {
-                                                  try
-                                                  {
-                                                      obj.objects.template Delete<SelectedTup>(lock, {id});
-                                                      rslt << "true";
-                                                  } catch (std::exception const& /*ex*/)
-                                                  {
-                                                      rslt << "false";
-                                                  }
-                                              }),
-                                "application/json");
-            }
-            else { throw std::logic_error("Not implemented"); }
-            res.status = 200;
-            return true;
+
+            return _TryHandleObjectStore1<std::tuple_element_t<TTupIndex - 1, TTup>>(obj, req, res, path);
         }
+    }
+
+    template <typename TInterfaceObj, ConceptInterface T>
+    bool _TryHandleObjectStore1(T& obj, httplib::Request const& req, httplib::Response& res, std::string_view const& path)
+    {
+        auto [action, subpath] = _Split(path);
+        if (action == "create")
+        {
+            auto lock       = obj.objects.LockForEdit();
+            auto [id, obj1] = obj.objects.template Create<TInterfaceObj>(lock, _CreateArgStruct<TInterfaceObj>(req));
+            uint32_t idint  = id.id;
+            auto     rslt   = Stencil::Json::Stringify(idint);
+            res.set_content(rslt, "application/json");
+        }
+        else if (action == "all")
+        {
+            auto               lock = obj.objects.LockForRead();
+            std::ostringstream rslt;
+            rslt << '{';
+            bool first = true;
+            for (auto const& [ref, obj1] : obj.objects.template Items<TInterfaceObj>(lock))
+            {
+                rslt << ref.id << ':' << Stencil::Json::Stringify(obj1);
+                if (first) { rslt << ','; }
+                first = false;
+            }
+            rslt << '}';
+            res.set_content(rslt.str(), "application/json");
+        }
+        else if (action == "read")
+        {
+            auto lock = obj.objects.LockForRead();
+            res.set_content(_ForeachObjId(req,
+                                          subpath,
+                                          [&](auto& rslt, uint32_t id) {
+                                              auto obj1  = obj.objects.template Get<TInterfaceObj>(lock, {id});
+                                              auto jsobj = Stencil::Json::Stringify(obj1);
+                                              rslt << jsobj;
+                                          }),
+                            "application/json");
+        }
+        else if (action == "edit")
+        {
+            auto lock = obj.objects.LockForEdit();
+            res.set_content(_ForeachObjId(req,
+                                          subpath,
+                                          [&](auto& rslt, uint32_t id) {
+                                              auto obj1  = obj.objects.template Get<TInterfaceObj>(lock, {id});
+                                              auto jsobj = Stencil::Json::Stringify(obj1);
+                                              rslt << jsobj;
+                                          }),
+                            "application/json");
+        }
+        else if (action == "delete")
+        {
+            auto lock = obj.objects.LockForEdit();
+            res.set_content(_ForeachObjId(req,
+                                          subpath,
+                                          [&](auto& rslt, uint32_t id) {
+                                              try
+                                              {
+                                                  obj.objects.template Delete<TInterfaceObj>(lock, {id});
+                                                  rslt << "true";
+                                              } catch (std::exception const& /*ex*/)
+                                              {
+                                                  rslt << "false";
+                                              }
+                                          }),
+                            "application/json");
+        }
+        else { throw std::logic_error("Not implemented"); }
+        res.status = 200;
+        return true;
     }
 
     template <ConceptInterface T>

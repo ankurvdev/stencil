@@ -383,6 +383,33 @@ template <> struct Stencil::Database::RecordView<zzProgram_Namezz::zzStruct_Name
     //</Field>
 };
 
+template <>
+struct Stencil::Visitor<Stencil::Database::RecordView<zzProgram_Namezz::zzStruct_Namezz>>
+    : Stencil::VisitorT<Stencil::Database::RecordView<zzProgram_Namezz::zzStruct_Namezz>>
+{
+    using TData  = Stencil::Database::RecordView<zzProgram_Namezz::zzStruct_Namezz>;
+    using Fields = TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        //<Field>
+        case Fields::Field_zzNamezz: return lambda(obj.zzNamezz);
+        //</Field>
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        //<Field>
+        lambda(Fields::Field_zzNamezz, obj.zzNamezz);
+        //</Field>
+    }
+};
+
 //</Struct>
 
 //<Interface>
@@ -408,30 +435,12 @@ struct Stencil::Database::RecordView<zzProgram_Namezz::zzInterface_Namezz_Object
     CLASS_DELETE_COPY_AND_MOVE(RecordView);
 };
 
+template <>
+struct Stencil::Visitor<Stencil::Database::RecordView<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>>
+    : Stencil::Visitor<Stencil::Database::RecordView<zzObjectType_NativeTypezz>>
+{};
+
 //</InterfaceObjectStore>
-#if 0
-template <> struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzInterface_Namezz>
-{
-    using RecordTypes = Stencil::Database::tuple_cat_t<
-        //<Field Join=','>
-        typename Stencil::Database::RecordTraits<zzFieldType_NativeTypezz>::RecordTypes
-        //</Field>
-        >;
-    static constexpr size_t Size() { return sizeof(zzProgram_Namezz::zzInterface_Namezz); }
-};
-
-template <> struct Stencil::Database::RecordView<zzProgram_Namezz::zzInterface_Namezz>
-{
-    RecordView()  = default;
-    ~RecordView() = default;
-    CLASS_DELETE_COPY_AND_MOVE(RecordView);
-
-    public:
-    //<Field>
-    Stencil::Database::RecordView<zzFieldType_NativeTypezz> zzNamezz{};
-    //</Field>
-};
-#endif
 
 namespace zzProgram_Namezz
 {

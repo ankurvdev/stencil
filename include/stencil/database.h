@@ -41,7 +41,11 @@ concept ConceptRef = IsRef<T>;
 
 template <typename T, typename TTup, size_t I = 0> constexpr size_t tuple_index_of()
 {
-    if constexpr (std::tuple_size<TTup>::value == I) { static_assert(std::is_same_v<T, T>, "Tuple Out of range"); }
+    if constexpr (std::tuple_size<TTup>::value == I)
+    {
+        static_assert(std::is_same_v<T, T>, "Tuple Out of range");
+        return I;
+    }
     else
     {
         if constexpr (std::is_same_v<std::tuple_element_t<I, TTup>, T>) { return I; }
@@ -51,7 +55,8 @@ template <typename T, typename TTup, size_t I = 0> constexpr size_t tuple_index_
 
 template <typename... Tuples> using tuple_cat_t = decltype(std::tuple_cat(std::declval<Tuples>()...));
 
-template <ConceptRecord T, typename TDb> static constexpr uint16_t TypeId = tuple_index_of<T, typename TDb::RecordTypes>();
+template <ConceptRecord T, typename TDb>
+static constexpr uint16_t TypeId = static_cast<uint16_t>(tuple_index_of<T, typename TDb::RecordTypes>());
 
 template <typename T> struct RecordView;
 
@@ -887,7 +892,11 @@ template <ConceptRecord T, typename TDb, typename TLock> struct Iterator
 
 template <ConceptRecord T, typename TDb, typename TLock> struct RefAndObjIterator : public Iterator<T, TDb, TLock>
 {
-    auto operator*() { return std::make_tuple(Stencil::Database::Ref<T>(this->_current), this->Get()); }
+    std::tuple<Stencil::Database::Ref<T>, Stencil::Database::RecordView<T>> operator*()
+    {
+        TODO("TODO2");
+        // return {static_cast<Stencil::Database::Ref<T>>(this->_current), this->Get()};
+    }
 };
 
 template <ConceptRecord T, typename TDb, typename TLock> struct RangeForView
@@ -917,11 +926,11 @@ template <ConceptRecord... Ts> struct Database
 
     CLASS_DELETE_COPY_AND_MOVE(Database);
 
-    template <ConceptRecord T> RecordView<T> Get(ROLock const& lock, Ref<T> const& ref) { TODO("TODO2"); }
+    template <ConceptRecord T> RecordView<T> Get(ROLock const& /*lock*/, Ref<T> const& /*ref*/) { TODO("TODO2"); }
     template <ConceptRecord T> auto          Items(ROLock& lock) { return impl::RangeForView<T, ThisT, ROLock>(lock, *this); }
-    template <ConceptRecord T> void          Delete(RWLock const& lock, Ref<T> const& ref) { TODO("TODO2"); }
+    template <ConceptRecord T> void          Delete(RWLock const& /*lock*/, Ref<T> const& /*ref*/) { TODO("TODO2"); }
 
-    template <ConceptRecord T> RefAndRecordView<T> Create(RWLock const& lock, T const& obj)
+    template <ConceptRecord T> RefAndRecordView<T> Create([[maybe_unused]] RWLock const& lock, [[maybe_unused]] T const& obj)
     {
         if constexpr (ConceptBlob<T>) {}
         else if constexpr (ConceptFixedSize<T>) {}
@@ -933,6 +942,7 @@ template <ConceptRecord... Ts> struct Database
             });
             // Visit-All
         }
+        TODO("TODO2");
     }
 
     public:    // Methods
@@ -1124,7 +1134,6 @@ template <ConceptRecord... Ts> struct Database
     template <ConceptRecord T, typename _TDb, typename TLock> friend struct impl::Iterator;
 
     void Init(std::string_view const& fname);
-
 };
 }    // namespace Stencil::Database
 
@@ -1180,10 +1189,41 @@ template <Stencil::Database::ConceptRecord T> struct Stencil::Database::RecordVi
 {};
 
 template <> struct Stencil::Database::RecordView<shared_string>
-{};
+{
+    operator shared_string() const { TODO("TODO2"); }
+};
 
 template <> struct Stencil::Database::RecordView<shared_wstring>
-{};
+{
+    operator shared_wstring() const { TODO("TODO2"); }
+};
 
 template <Stencil::ConceptPrimitive T> struct Stencil::Database::RecordView<T>
+{
+    operator T() const { TODO("TODO2"); }
+};
+
+template <typename T> struct Stencil::TypeTraits<Stencil::Database::RecordView<T>> : Stencil::TypeTraits<T>
 {};
+
+template <Stencil::ConceptPrimitive T, typename TProt>
+struct Stencil::SerDes<Stencil::Database::RecordView<T>, TProt> : Stencil::SerDes<T, TProt>
+{};
+
+template <typename K, typename V> struct Stencil::Visitor<Stencil::Database::RecordView<std::unordered_map<K, V>>>
+{
+    using TObj = Stencil::Database::RecordView<std::unordered_map<K, V>>;
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& /*obj*/, [[maybe_unused]] TLambda&& /*lambda*/)
+    {
+        TODO("TODO2");
+    }
+};
+
+template <typename T> struct Stencil::Visitor<Stencil::Database::RecordView<std::vector<T>>>
+{
+    using TObj = Stencil::Database::RecordView<std::vector<T>>;
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& /*obj*/, [[maybe_unused]] TLambda&& /*lambda*/)
+    {
+        TODO("TODO2");
+    }
+};
