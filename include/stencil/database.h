@@ -12,6 +12,10 @@ namespace Stencil::Database    // Type/Trait Declarations
 {
 
 template <typename T> struct RecordTraits;
+template <typename T> struct FixedSizeRecordTraits;
+template <typename T> struct BlobRecordTraits;
+template <typename T> struct ComplexRecordTraits;
+template <typename T> struct TrivialRecordTraits;
 
 template <typename T>
 concept ConceptRecord = requires { typename RecordTraits<T>::RecordTypes; };
@@ -70,6 +74,23 @@ concept ConceptLock = std::is_same_v<T, ROLock> || std::is_same_v<T, RWLock>;
 
 template <typename T> struct List
 {};
+
+template <ConceptFixedSize T> struct FixedSizeRecordTraits<T>
+{
+    static constexpr uint32_t GetDataSize() { return sizeof(T); }
+    static void               WriteToBuffer(T const& obj, RecordView<T>& rec)
+    {
+        // static_assert(sizeof(T) == sizeof(RecordView<T>), "For Fixed sized records Object and RecordViews should be identical");
+        rec = *reinterpret_cast<RecordView<T> const*>(&obj);
+    }
+};
+
+template <ConceptBlob T> struct BlobRecordTraits<T>
+{
+    static uint32_t GetDataSize(T& obj) { TODO("TODO2"); }
+    static void     WriteToBuffer(T const& /*obj*/, RecordView<T>& /*rec*/) { TODO("TODO2"); }
+};
+
 }    // namespace Stencil::Database
 
 namespace Stencil::Database::impl
@@ -917,6 +938,19 @@ template <ConceptRecord T, typename TDb, typename TLock> struct RangeForView
 }    // namespace Stencil::Database::impl
 namespace Stencil::Database    // Class/Inferface
 {
+
+constexpr uint32_t _bit_ceil(uint32_t v) noexcept
+{
+    v--;
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+    v++;
+    return v;
+}
+
 template <ConceptRecord... Ts> struct Database
 {
     using ThisT       = Database<Ts...>;
@@ -932,24 +966,35 @@ template <ConceptRecord... Ts> struct Database
 
     template <ConceptRecord T> RefAndRecordView<T> Create([[maybe_unused]] RWLock const& lock, [[maybe_unused]] T const& obj)
     {
-        if constexpr (ConceptBlob<T>) {}
-        else if constexpr (ConceptFixedSize<T>) {}
-        else
+        if constexpr (ConceptBlob<T>)
         {
-            RecordView<T> rec;
-            rec.VisitAll([&](auto& field) {
-                if constexpr (ConceptRef<std::remove_cvref_t<decltype(field)>>) { auto [ref, rec] = Create(lock, field); }
-            });
-            // Visit-All
+            size_t datasize = BlobRecordTraits<T>::GetDataSize(obj);
+            if (datasize == 0)
+            {
+                throw std::logic_error("Empty Blobs not allowed");
+                // RecordView<T> obj;
+                // return RefAndEditT<TObj>(RefT<TObj>{}, obj);
+            }
+            auto recsize        = _bit_ceil(static_cast<uint32_t>(datasize));
+            auto [ref, slotobj] = _Allocate<0>(lock, TypeId<T, ThisT>, recsize);
+            RecordView<T>* rec  = reinterpret_cast<RecordView<T>*>(slotobj.data.data());
+            BlobRecordTraits<T>::WriteToBuffer(obj, *rec);
+            return RefAndRecordView<T>(ref, *rec);
         }
-        TODO("TODO2");
+        else if constexpr (ConceptFixedSize<T>)
+        {
+            static constexpr uint32_t RecordSize = static_cast<size_t>(FixedSizeRecordTraits<T>::GetDataSize());
+            auto [ref, slotobj]                  = _Allocate<RecordSize>(lock, TypeId<T, ThisT>, RecordSize);
+            RecordView<T>* rec                   = reinterpret_cast<RecordView<T>*>(slotobj.data.data());
+            FixedSizeRecordTraits<T>::WriteToBuffer(obj, *rec);
+            return RefAndRecordView<T>(ref, *rec);
+        }
+        else { TODO("TODO2"); }
     }
 
     public:    // Methods
     auto LockForRead() { return _pagemgr->LockForRead(); }
     auto LockForEdit() { return _pagemgr->LockForEdit(); }
-
-#if 0
 
     template <size_t TRecordSize> impl::PageRuntime& _FindOrCreatePage(RWLock const& lock, uint16_t typeId, uint32_t recDataSize)
     {
@@ -975,74 +1020,7 @@ template <ConceptRecord... Ts> struct Database
         return std::make_tuple(impl::Ref(page.PageIndex(), slot.index), slot);
     }
 
-    constexpr uint32_t _bit_ceil(uint32_t v) noexcept
-    {
-        v--;
-        v |= v >> 1;
-        v |= v >> 2;
-        v |= v >> 4;
-        v |= v >> 8;
-        v |= v >> 16;
-        v++;
-        return v;
-    }
-
-    template <typename TObj, typename... TArgs> RefAndEditT<TObj> Create(RWLock const& lock, TArgs&&... args)
-    {
-        if constexpr (Traits<TObj>::RecordSize() == 0)
-        {
-            size_t datasize = Traits<TObj>::GetDataSize(std::forward<TArgs>(args)...);
-            if (datasize == 0)
-            {
-                EditT<TObj> obj;
-                return RefAndEditT<TObj>(RefT<TObj>{}, obj);
-            }
-            auto recsize       = _bit_ceil(static_cast<uint32_t>(datasize));
-            auto [ref, buffer] = _Allocate<0>(lock, Traits<TObj>::TypeId(), recsize);
-            if constexpr (Traits<TObj>::StructMemberCount() > 0)
-            {
-                // auto wireobj = new (buffer) WireT<TObj>();
-                // static_assert(sizeof...(args) == Traits<TObj>::StructMemberCount());
-                //_FillParent<sizeof...(args)>(lock, *wireobj, std::forward<TArgs>(args)...);
-                // return RefAndEditT<TObj>(RefT<TObj>(ref), *wireobj);
-
-                // The first arg is for base
-                // Next N args are for N child objects
-                // The rest of the args are for the child objects.
-                // TODO figure out if thats possible
-                throw std::logic_error("TODO_OBJREF");
-            }
-            else
-            {
-                auto editptr = new (buffer.data.data()) WireT<TObj>{recsize, std::forward<TArgs>(args)...};
-                return RefAndEditT<TObj>(RefT<TObj>(ref), *editptr);
-            }
-        }
-        else
-        {
-            auto [ref, slotobj]
-                = _Allocate<Traits<TObj>::RecordSize()>(lock, Traits<TObj>::TypeId(), static_cast<uint32_t>(Traits<TObj>::RecordSize()));
-            void* buffer = slotobj.data.data();
-            if constexpr (Traits<TObj>::StructMemberCount() > 0)
-            {
-                //                auto wireobj = new (buffer) WireT<TObj>{};
-
-                // static_assert(Traits<TObj>::StructMemberCount() == sizeof...(args));
-                // auto wireobj = new (buffer) Traits<TObj>::WireT{};
-                auto wireobj = new (buffer) WireT<TObj>();
-                static_assert(sizeof...(args) == Traits<TObj>::StructMemberCount());
-                _FillParent<0, sizeof...(args), TObj>(lock, *wireobj, std::forward<TArgs>(args)...);
-                return RefAndEditT<TObj>(RefT<TObj>(ref), *wireobj);
-
-                // return lambda(std::forward<TArgs>(args)...);
-            }
-            else
-            {
-                auto editptr = new (buffer) WireT<TObj>{std::forward<TArgs>(args)...};
-                return RefAndEditT<TObj>(RefT<TObj>(ref), *editptr);
-            }
-        }
-    }
+#if 0
 
     template <typename TObj> SnapT<TObj> Get(RefT<TObj> const& id) { return Get(LockForRead(), id); }
 
@@ -1200,7 +1178,8 @@ template <> struct Stencil::Database::RecordView<shared_wstring>
 
 template <Stencil::ConceptPrimitive T> struct Stencil::Database::RecordView<T>
 {
-    operator T() const { TODO("TODO2"); }
+      operator T() const { return data; }
+    T data;
 };
 
 template <typename T> struct Stencil::TypeTraits<Stencil::Database::RecordView<T>> : Stencil::TypeTraits<T>
