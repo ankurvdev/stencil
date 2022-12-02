@@ -361,6 +361,14 @@ template <> struct Stencil::Comparator<zzProgram_Namezz::zzStruct_Namezz, zzProg
     }
 };
 
+template <> struct Stencil::Database::RecordView<zzProgram_Namezz::zzStruct_Namezz>
+{
+    public:
+    //<Field>
+    Stencil::Database::RecordView<zzFieldType_NativeTypezz> zzNamezz{};
+    //</Field>
+};
+
 template <> struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzStruct_Namezz>
 {
     using RecordTypes = Stencil::Database::tuple_cat_t<
@@ -369,14 +377,17 @@ template <> struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzStruct_Na
         //</Field>
         >;
     static constexpr size_t Size() { return sizeof(zzProgram_Namezz::zzStruct_Namezz); }
-};
 
-template <> struct Stencil::Database::RecordView<zzProgram_Namezz::zzStruct_Namezz>
-{
-    public:
-    //<Field>
-    Stencil::Database::RecordView<zzFieldType_NativeTypezz> zzNamezz{};
-    //</Field>
+    template <typename TDb>
+    static void WriteToBuffer(TDb&                                                              db,
+                              Stencil::Database::RWLock const&                                  lock,
+                              zzProgram_Namezz::zzStruct_Namezz const&                          obj,
+                              Stencil::Database::RecordView<zzProgram_Namezz::zzStruct_Namezz>& rec)
+    {
+        //<Field>
+        RecordTraits<decltype(obj.zzNamezz)>::WriteToBuffer(db, lock, obj.zzNamezz, rec.zzNamezz);
+        //</Field>
+    }
 };
 
 template <>
@@ -425,8 +436,7 @@ struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzInterface_Namezz_Obje
 template <>
 struct Stencil::Database::RecordView<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>
     : public Stencil::Database::RecordView<zzObjectType_NativeTypezz>
-{
-};
+{};
 
 template <>
 struct Stencil::Visitor<Stencil::Database::RecordView<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>>
