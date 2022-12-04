@@ -96,7 +96,7 @@ template <ConceptFixedSize T> struct FixedSizeRecordTraits<T>
 
 template <ConceptBlob T> struct BlobRecordTraits<T>
 {
-    static uint32_t GetDataSize(T& obj) { TODO("TODO2"); }
+    static uint32_t GetDataSize(T& /* obj */) { TODO("TODO2"); }
     static void     WriteToBuffer(T const& /*obj*/, Record<T>& /*rec*/) { TODO("TODO2"); }
 };
 
@@ -875,7 +875,7 @@ template <ConceptRecord T, typename TDb, typename TLock> struct Iterator
         return *this;
     }
 
-    auto operator*() { return this->Get(); }
+    // auto operator*() { return this->Get(); }
 
     auto Get()
     {
@@ -912,6 +912,12 @@ template <ConceptRecord T, typename TDb, typename TLock> struct Iterator
         *this = End();
     }
 
+    std::tuple<Stencil::Database::Ref<T>, Stencil::Database::Record<T>> operator*()
+    {
+        // TODO("TODO2");
+        return {static_cast<Stencil::Database::Ref<T>>(this->_current), this->Get()};
+    }
+
     Iterator(TLock& lock, TDb& db) : _db(db), _lock(&lock) {}
     Iterator() = default;
 
@@ -920,25 +926,16 @@ template <ConceptRecord T, typename TDb, typename TLock> struct Iterator
     Ref    _current{Ref::Invalid()};
 };
 
-template <ConceptRecord T, typename TDb, typename TLock> struct RefAndObjIterator : public Iterator<T, TDb, TLock>
-{
-    std::tuple<Stencil::Database::Ref<T>, Stencil::Database::Record<T>> operator*()
-    {
-        // TODO("TODO2");
-        return {static_cast<Stencil::Database::Ref<T>>(this->_current), this->Get()};
-    }
-};
-
 template <ConceptRecord T, typename TDb, typename TLock> struct RangeForView
 {
-    using Iterator = impl::RefAndObjIterator<T, TDb, TLock>;
+    using IteratorType = Iterator<T, TDb, TLock>;
 
-    RangeForView(TLock& lock, TDb& db) : _begin{Iterator::Begin(&lock, &db)} {}
+    RangeForView(TLock& lock, TDb& db) : _begin{IteratorType::Begin(&lock, &db)} {}
 
     CLASS_DELETE_COPY_DEFAULT_MOVE(RangeForView);
 
-    Iterator _begin;
-    Iterator _end = Iterator::End();
+    IteratorType _begin;
+    IteratorType _end = IteratorType::End();
 
     auto begin() { return _begin; }
     auto end() { return _end; }
@@ -1208,7 +1205,7 @@ template <ConceptRecord K, ConceptRecord V> struct RecordTraits<std::unordered_m
     static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, ObjectType const& /*obj*/, Record<ObjectType>& /*rec*/)
     {
         TODO("TODO2");
-    };
+    }
 
     static constexpr size_t Size() { return 0; }
     static size_t           GetDataSize(ObjectType const& obj) { return sizeof(MapItem) * obj.size(); }
@@ -1222,7 +1219,8 @@ template <ConceptRecord T> struct RecordTraits<std::vector<T>>
     static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, ObjectType const& /*obj*/, Record<ObjectType>& /*rec*/)
     {
         TODO("TODO2");
-    };
+    }
+
     static constexpr size_t Size() { return 0; }
     static size_t           GetDataSize(ObjectType const& obj) { return sizeof(Ref<T>) * obj.size(); }
 };
@@ -1235,7 +1233,7 @@ template <ConceptRecord T> struct RecordTraits<std::unique_ptr<T>>
     static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, ObjectType const& /*obj*/, Record<ObjectType>& /*rec*/)
     {
         TODO("TODO2");
-    };
+    }
 };
 
 template <> struct RecordTraits<shared_string>
@@ -1243,9 +1241,10 @@ template <> struct RecordTraits<shared_string>
     using RecordTypes = std::tuple<shared_string>;
     using ObjectType  = shared_string;
     template <typename TDb>
-    static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, ObjectType const& /*obj*/, Record<ObjectType>& /*rec*/){
-        // TODO("TODO2");
-    };
+    static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, ObjectType const& /*obj*/, Record<ObjectType>& /*rec*/)
+    {
+        TODO("TODO2");
+    }
 };
 
 template <> struct RecordTraits<shared_wstring>
@@ -1257,16 +1256,13 @@ template <> struct RecordTraits<shared_wstring>
     static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, ObjectType const& /*obj*/, Record<ObjectType>& /*rec*/)
     {
         TODO("TODO2");
-    };
+    }
 };
 
 template <Stencil::ConceptPrimitive T> struct RecordTraits<T>
 {
     using RecordTypes = std::tuple<T>;
-    template <typename TDb> static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, T const& obj, Record<T>& rec)
-    {
-        rec.data = obj;
-    };
+    template <typename TDb> static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, T const& obj, Record<T>& rec) { rec.data = obj; }
 };
 
 template <ConceptBlob T> struct RecordNest<T>
@@ -1404,7 +1400,7 @@ template <typename K, typename V> struct Stencil::Visitor<Stencil::Database::Rec
 template <typename T> struct Stencil::Visitor<Stencil::Database::Record<std::vector<T>>>
 {
     using TObj = Stencil::Database::Record<std::vector<T>>;
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& /*obj*/, [[maybe_unused]] TLambda&& /*lambda*/)
+    template <typename T1, typename TLambda> static void VisitAll([[maybe_unused]] T1& /*obj*/, [[maybe_unused]] TLambda&& /*lambda*/)
     {
         TODO("TODO2");
     }

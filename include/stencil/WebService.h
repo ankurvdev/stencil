@@ -245,10 +245,11 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
         TArgsStruct args{};
         for (auto const& [keystr, valjson] : req.params)
         {
-            using TKey = Stencil::TypeTraitsForIndexable<TArgsStruct>::Key;
+            using TKey = typename Stencil::TypeTraitsForIndexable<TArgsStruct>::Key;
             TKey key{};
             Stencil::SerDesRead<Stencil::ProtocolString>(key, keystr);
-            Visitor<TArgsStruct>::VisitKey(args, key, [&](auto& val) { Stencil::SerDesRead<Stencil::ProtocolJsonVal>(val, valjson); });
+            auto &jsonval = valjson; // Clang complains about capturing localbinding variables
+            Visitor<TArgsStruct>::VisitKey(args, key, [&](auto& val) { Stencil::SerDesRead<Stencil::ProtocolJsonVal>(val, jsonval); });
         }
         return args;
     }
@@ -374,8 +375,9 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
             res.set_content(_ForeachObjId(req,
                                           subpath,
                                           [&](auto& rslt, uint32_t id) {
-                                              auto obj1  = obj.objects.template Get<TInterfaceObj>(lock, {id});
-                                              auto jsobj = Stencil::Json::Stringify(Stencil::Database::CreateRecordView(obj.objects, lock, obj1));
+                                              auto obj1 = obj.objects.template Get<TInterfaceObj>(lock, {id});
+                                              auto jsobj
+                                                  = Stencil::Json::Stringify(Stencil::Database::CreateRecordView(obj.objects, lock, obj1));
                                               rslt << jsobj;
                                           }),
                             "application/json");
@@ -386,7 +388,7 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
             res.set_content(_ForeachObjId(req,
                                           subpath,
                                           [&](auto& rslt, uint32_t id) {
-                                              auto obj1  = obj.objects.template Get<TInterfaceObj>(lock, {id});
+                                              auto obj1 = obj.objects.template Get<TInterfaceObj>(lock, {id});
                                               auto jsobj
                                                   = Stencil::Json::Stringify(Stencil::Database::CreateRecordView(obj.objects, lock, obj1));
                                               rslt << jsobj;
