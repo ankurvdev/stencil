@@ -110,7 +110,7 @@ template <> struct SerDes<std::string, ProtocolString>
 
 template <> struct SerDes<std::string_view, ProtocolString>
 {
-    using TObj = std::string;
+    using TObj = std::string_view;
 
     template <typename Context> static auto Write(Context& ctx, TObj const& obj) { fmt::print(ctx, "{}", obj); }
     template <typename Context> static auto Read(TObj& obj, Context& ctx) { obj = ctx; }

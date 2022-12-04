@@ -361,11 +361,11 @@ template <> struct Stencil::Comparator<zzProgram_Namezz::zzStruct_Namezz, zzProg
     }
 };
 
-template <> struct Stencil::Database::RecordView<zzProgram_Namezz::zzStruct_Namezz>
+template <> struct Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz>
 {
     public:
     //<Field>
-    Stencil::Database::RecordView<zzFieldType_NativeTypezz> zzNamezz{};
+    Stencil::Database::RecordNest<zzFieldType_NativeTypezz>::Type zzNamezz{};
     //</Field>
 };
 
@@ -376,25 +376,29 @@ template <> struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzStruct_Na
         typename Stencil::Database::RecordTraits<zzFieldType_NativeTypezz>::RecordTypes
         //</Field>
         >;
-    static constexpr size_t Size() { return sizeof(zzProgram_Namezz::zzStruct_Namezz); }
+        
+    static constexpr size_t Size()
+    {
+        return sizeof(Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz>);
+    }
 
     template <typename TDb>
-    static void WriteToBuffer(TDb&                                                              db,
-                              Stencil::Database::RWLock const&                                  lock,
-                              zzProgram_Namezz::zzStruct_Namezz const&                          obj,
-                              Stencil::Database::RecordView<zzProgram_Namezz::zzStruct_Namezz>& rec)
+    static void WriteToBuffer(TDb&                                                          db,
+                              Stencil::Database::RWLock const&                              lock,
+                              zzProgram_Namezz::zzStruct_Namezz const&                      obj,
+                              Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz>& rec)
     {
         //<Field>
-        RecordTraits<decltype(obj.zzNamezz)>::WriteToBuffer(db, lock, obj.zzNamezz, rec.zzNamezz);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.zzNamezz, rec.zzNamezz);
         //</Field>
     }
 };
 
 template <>
-struct Stencil::Visitor<Stencil::Database::RecordView<zzProgram_Namezz::zzStruct_Namezz>>
-    : Stencil::VisitorT<Stencil::Database::RecordView<zzProgram_Namezz::zzStruct_Namezz>>
+struct Stencil::Visitor<Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz>>
+    : Stencil::VisitorT<Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz>>
 {
-    using TData  = Stencil::Database::RecordView<zzProgram_Namezz::zzStruct_Namezz>;
+    using TData  = Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz>;
     using Fields = TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
@@ -434,13 +438,13 @@ struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzInterface_Namezz_Obje
 {};
 
 template <>
-struct Stencil::Database::RecordView<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>
-    : public Stencil::Database::RecordView<zzObjectType_NativeTypezz>
+struct Stencil::Database::Record<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>
+    : public Stencil::Database::Record<zzObjectType_NativeTypezz>
 {};
 
 template <>
-struct Stencil::Visitor<Stencil::Database::RecordView<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>>
-    : Stencil::Visitor<Stencil::Database::RecordView<zzObjectType_NativeTypezz>>
+struct Stencil::Visitor<Stencil::Database::Record<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>>
+    : Stencil::Visitor<Stencil::Database::Record<zzObjectType_NativeTypezz>>
 {};
 
 //</InterfaceObjectStore>

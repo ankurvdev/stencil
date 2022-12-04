@@ -12,10 +12,10 @@ namespace Stencil::Database    // Type/Trait Declarations
 {
 
 template <typename T> struct RecordTraits;
+
 template <typename T> struct FixedSizeRecordTraits;
 template <typename T> struct BlobRecordTraits;
 template <typename T> struct ComplexRecordTraits;
-template <typename T> struct TrivialRecordTraits;
 
 template <typename T>
 concept ConceptRecord = requires { typename RecordTraits<T>::RecordTypes; };
@@ -62,9 +62,18 @@ template <typename... Tuples> using tuple_cat_t = decltype(std::tuple_cat(std::d
 template <ConceptRecord T, typename TDb>
 static constexpr uint16_t TypeId = static_cast<uint16_t>(tuple_index_of<T, typename TDb::RecordTypes>());
 
-template <typename T> struct RecordView;
+template <typename T> struct Record;
+template <typename T> struct RecordNest
+{
+    using Type = T;
+};
 
-template <ConceptRecord T> using RefAndRecordView = std::tuple<Ref<T>, RecordView<T>>;
+template <ConceptRecord T> struct RecordNest<T>
+{
+    using Type = Record<T>;
+};
+
+template <ConceptRecord T> using RefAndRecord = std::tuple<Ref<T>, Record<T>>;
 
 using ROLock = std::unique_lock<std::shared_mutex>;
 using RWLock = std::unique_lock<std::shared_mutex>;
@@ -78,17 +87,17 @@ template <typename T> struct List
 template <ConceptFixedSize T> struct FixedSizeRecordTraits<T>
 {
     static constexpr uint32_t GetDataSize() { return sizeof(T); }
-    static void               WriteToBuffer(T const& obj, RecordView<T>& rec)
+    static void               WriteToBuffer(T const& obj, Record<T>& rec)
     {
-        // static_assert(sizeof(T) == sizeof(RecordView<T>), "For Fixed sized records Object and RecordViews should be identical");
-        rec = *reinterpret_cast<RecordView<T> const*>(&obj);
+        static_assert(sizeof(T) == sizeof(Record<T>), "For Fixed sized records Object and Record should be identical");
+        rec = *reinterpret_cast<Record<T> const*>(&obj);
     }
 };
 
 template <ConceptBlob T> struct BlobRecordTraits<T>
 {
     static uint32_t GetDataSize(T& obj) { TODO("TODO2"); }
-    static void     WriteToBuffer(T const& /*obj*/, RecordView<T>& /*rec*/) { TODO("TODO2"); }
+    static void     WriteToBuffer(T const& /*obj*/, Record<T>& /*rec*/) { TODO("TODO2"); }
 };
 
 }    // namespace Stencil::Database
@@ -913,7 +922,7 @@ template <ConceptRecord T, typename TDb, typename TLock> struct Iterator
 
 template <ConceptRecord T, typename TDb, typename TLock> struct RefAndObjIterator : public Iterator<T, TDb, TLock>
 {
-    std::tuple<Stencil::Database::Ref<T>, Stencil::Database::RecordView<T>> operator*()
+    std::tuple<Stencil::Database::Ref<T>, Stencil::Database::Record<T>> operator*()
     {
         // TODO("TODO2");
         return {static_cast<Stencil::Database::Ref<T>>(this->_current), this->Get()};
@@ -934,6 +943,17 @@ template <ConceptRecord T, typename TDb, typename TLock> struct RangeForView
     auto begin() { return _begin; }
     auto end() { return _end; }
 };
+
+template <typename T, typename TDb> void WriteToBuffer(TDb& db, RWLock const& lock, T const& obj, Stencil::Database::Record<T>& rec)
+{
+    RecordTraits<T>::WriteToBuffer(db, lock, obj, rec);
+}
+
+template <typename T, typename TDb> void WriteToBuffer(TDb& db, RWLock const& lock, T const& obj, Stencil::Database::Ref<T>& rec)
+{
+    auto [ref, nrec] = db.Create(lock, obj);
+    rec              = ref;
+}
 
 }    // namespace Stencil::Database::impl
 namespace Stencil::Database    // Class/Inferface
@@ -960,11 +980,39 @@ template <ConceptRecord... Ts> struct Database
 
     CLASS_DELETE_COPY_AND_MOVE(Database);
 
-    template <ConceptRecord T> RecordView<T> Get(ROLock const& /*lock*/, Ref<T> const& /*ref*/) { TODO("TODO2"); }
-    template <ConceptRecord T> auto          Items(ROLock& lock) { return impl::RangeForView<T, ThisT, ROLock>(lock, *this); }
-    template <ConceptRecord T> void          Delete(RWLock const& /*lock*/, Ref<T> const& /*ref*/) { TODO("TODO2"); }
+    template <ConceptRecord T> Record<T> Get(ROLock const& lock, Ref<T> const& ref)
+    {
+        impl::Ref dbId{ref};
+        // assert(ref.id.Valid());
+        assert(dbId.page < _pagemgr->GetPageCount());
+        static constexpr uint32_t RecordSize = static_cast<uint32_t>(RecordTraits<T>::Size());
 
-    template <ConceptRecord T> RefAndRecordView<T> Create([[maybe_unused]] RWLock const& lock, [[maybe_unused]] T const& obj)
+        impl::PageForRecord<RecordSize> page(_pagemgr->LoadPage(dbId.page));
+
+        auto slot = page.Get(lock, dbId.slot);
+        page._page.MarkDirty();
+        auto rec = reinterpret_cast<Record<T> const*>(slot.data.data());
+        return *rec;
+    }
+    template <ConceptRecord T> auto Items(ROLock& lock) { return impl::RangeForView<T, ThisT, ROLock>(lock, *this); }
+    template <ConceptRecord T> void Delete(RWLock const& lock, Ref<T> const& ref)
+    {
+        auto                      rec        = Get(lock, ref);
+        static constexpr uint32_t RecordSize = static_cast<uint32_t>(RecordTraits<T>::Size());
+
+        Stencil::Visitor<Record<T>>::VisitAll(rec, [&](auto k, auto v) {
+            if constexpr (IsRef<std::remove_cvref_t<decltype(k)>>) { Delete(lock, k); }
+            if constexpr (IsRef<std::remove_cvref_t<decltype(v)>>) { Delete(lock, v); }
+        });
+
+        impl::Ref dbId{ref};
+        {
+            impl::PageForRecord<RecordSize> page(_pagemgr->LoadPage(dbId.page));
+            page.Release(lock, dbId.slot);
+        }
+    }
+
+    template <ConceptRecord T> RefAndRecord<T> Create([[maybe_unused]] RWLock const& lock, [[maybe_unused]] T const& obj)
     {
         if constexpr (ConceptBlob<T>)
         {
@@ -972,30 +1020,48 @@ template <ConceptRecord... Ts> struct Database
             if (datasize == 0)
             {
                 throw std::logic_error("Empty Blobs not allowed");
-                // RecordView<T> obj;
+                // Record<T> obj;
                 // return RefAndEditT<TObj>(RefT<TObj>{}, obj);
             }
             auto recsize        = _bit_ceil(static_cast<uint32_t>(datasize));
             auto [ref, slotobj] = _Allocate<0>(lock, TypeId<T, ThisT>, recsize);
-            RecordView<T>* rec  = reinterpret_cast<RecordView<T>*>(slotobj.data.data());
+            auto rec            = reinterpret_cast<Record<T>*>(slotobj.data.data());
             BlobRecordTraits<T>::WriteToBuffer(obj, *rec);
-            return RefAndRecordView<T>(ref, *rec);
+            return RefAndRecord<T>(ref, *rec);
         }
         else if constexpr (ConceptFixedSize<T>)
         {
             static constexpr uint32_t RecordSize = static_cast<uint32_t>(FixedSizeRecordTraits<T>::GetDataSize());
             auto [ref, slotobj]                  = _Allocate<RecordSize>(lock, TypeId<T, ThisT>, RecordSize);
-            RecordView<T>* rec                   = reinterpret_cast<RecordView<T>*>(slotobj.data.data());
+            auto rec                             = reinterpret_cast<Record<T>*>(slotobj.data.data());
             FixedSizeRecordTraits<T>::WriteToBuffer(obj, *rec);
-            return RefAndRecordView<T>(ref, *rec);
+            return RefAndRecord<T>(ref, *rec);
         }
         else if constexpr (ConceptComplex<T>)
         {
             static constexpr uint32_t RecordSize = static_cast<uint32_t>(RecordTraits<T>::Size());
-            auto [ref, slotobj]                  = _Allocate<RecordSize>(lock, TypeId<T, ThisT>, RecordSize);
-            RecordView<T>* rec                   = reinterpret_cast<RecordView<T>*>(slotobj.data.data());
-            RecordTraits<T>::WriteToBuffer(*this, lock, obj, *rec);
-            return RefAndRecordView<T>(ref, *rec);
+            if constexpr (RecordSize == 0)
+            {
+                size_t datasize = RecordTraits<T>::GetDataSize(obj);
+                if (datasize == 0)
+                {
+                    throw std::logic_error("Empty Blobs not allowed");
+                    // Record<T> obj;
+                    // return RefAndEditT<TObj>(RefT<TObj>{}, obj);
+                }
+                auto recsize        = _bit_ceil(static_cast<uint32_t>(datasize));
+                auto [ref, slotobj] = _Allocate<0>(lock, TypeId<T, ThisT>, recsize);
+                auto rec            = reinterpret_cast<Record<T>*>(slotobj.data.data());
+                RecordTraits<T>::WriteToBuffer(*this, lock, obj, *rec);
+                return RefAndRecord<T>(ref, *rec);
+            }
+            else
+            {
+                auto [ref, slotobj] = _Allocate<RecordSize>(lock, TypeId<T, ThisT>, RecordSize);
+                auto rec            = reinterpret_cast<Record<T>*>(slotobj.data.data());
+                RecordTraits<T>::WriteToBuffer(*this, lock, obj, *rec);
+                return RefAndRecord<T>(ref, *rec);
+            }
         }
         else { throw std::logic_error("Unknown Type"); }
     }
@@ -1124,9 +1190,9 @@ template <ConceptRecord... Ts> struct Database
 }    // namespace Stencil::Database
 
 // Specializations
-
-template <Stencil::Database::ConceptRecord K, Stencil::Database::ConceptRecord V>
-struct Stencil::Database::RecordTraits<std::unordered_map<K, V>>
+namespace Stencil::Database
+{
+template <ConceptRecord K, ConceptRecord V> struct RecordTraits<std::unordered_map<K, V>>
 {
     struct MapItem
     {
@@ -1134,132 +1200,210 @@ struct Stencil::Database::RecordTraits<std::unordered_map<K, V>>
         Ref<V> v;
     };
 
-    using RecordTypes = tuple_cat_t<typename RecordTraits<K>::RecordTypes,
-                                    typename RecordTraits<V>::RecordTypes,
-                                    std::tuple<Stencil::Database::List<MapItem>>>;
+    using RecordTypes
+        = tuple_cat_t<typename RecordTraits<K>::RecordTypes, typename RecordTraits<V>::RecordTypes, std::tuple<List<MapItem>>>;
 
     using ObjectType = std::unordered_map<K, V>;
     template <typename TDb>
-    static void WriteToBuffer(TDb& /*db*/,
-                              Stencil::Database::RWLock const& /*lock*/,
-                              ObjectType const& /*obj*/,
-                              Stencil::Database::RecordView<ObjectType>& /*rec*/)
+    static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, ObjectType const& /*obj*/, Record<ObjectType>& /*rec*/)
     {
         TODO("TODO2");
     };
+
+    static constexpr size_t Size() { return 0; }
+    static size_t           GetDataSize(ObjectType const& obj) { return sizeof(MapItem) * obj.size(); }
 };
 
-template <Stencil::Database::ConceptRecord T> struct Stencil::Database::RecordTraits<std::vector<T>>
+template <ConceptRecord T> struct RecordTraits<std::vector<T>>
 {
-    using RecordTypes = tuple_cat_t<typename RecordTraits<T>::RecordTypes, std::tuple<Stencil::Database::List<Ref<T>>>>;
+    using RecordTypes = tuple_cat_t<typename RecordTraits<T>::RecordTypes, std::tuple<List<Ref<T>>>>;
     using ObjectType  = std::vector<T>;
     template <typename TDb>
-    static void WriteToBuffer(TDb& /*db*/,
-                              Stencil::Database::RWLock const& /*lock*/,
-                              ObjectType const& /*obj*/,
-                              Stencil::Database::RecordView<ObjectType>& /*rec*/)
+    static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, ObjectType const& /*obj*/, Record<ObjectType>& /*rec*/)
     {
         TODO("TODO2");
     };
+    static constexpr size_t Size() { return 0; }
+    static size_t           GetDataSize(ObjectType const& obj) { return sizeof(Ref<T>) * obj.size(); }
 };
 
-template <Stencil::Database::ConceptRecord T> struct Stencil::Database::RecordTraits<std::unique_ptr<T>>
+template <ConceptRecord T> struct RecordTraits<std::unique_ptr<T>>
 {
     using RecordTypes = typename RecordTraits<T>::RecordTypes;
     using ObjectType  = std::unique_ptr<T>;
     template <typename TDb>
-    static void WriteToBuffer(TDb& /*db*/,
-                              Stencil::Database::RWLock const& /*lock*/,
-                              ObjectType const& /*obj*/,
-                              Stencil::Database::RecordView<ObjectType>& /*rec*/)
+    static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, ObjectType const& /*obj*/, Record<ObjectType>& /*rec*/)
     {
         TODO("TODO2");
     };
 };
 
-template <> struct Stencil::Database::RecordTraits<shared_string>
+template <> struct RecordTraits<shared_string>
 {
     using RecordTypes = std::tuple<shared_string>;
     using ObjectType  = shared_string;
     template <typename TDb>
-    static void WriteToBuffer(TDb& /*db*/,
-                              Stencil::Database::RWLock const& /*lock*/,
-                              ObjectType const& /*obj*/,
-                              Stencil::Database::RecordView<ObjectType>& /*rec*/){
+    static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, ObjectType const& /*obj*/, Record<ObjectType>& /*rec*/){
         // TODO("TODO2");
     };
 };
 
-template <> struct Stencil::Database::RecordTraits<shared_wstring>
+template <> struct RecordTraits<shared_wstring>
 {
     using RecordTypes = std::tuple<shared_wstring>;
 
     using ObjectType = shared_wstring;
     template <typename TDb>
-    static void WriteToBuffer(TDb& /*db*/,
-                              Stencil::Database::RWLock const& /*lock*/,
-                              ObjectType const& /*obj*/,
-                              Stencil::Database::RecordView<ObjectType>& /*rec*/)
+    static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, ObjectType const& /*obj*/, Record<ObjectType>& /*rec*/)
     {
         TODO("TODO2");
     };
 };
 
-template <Stencil::ConceptPrimitive T> struct Stencil::Database::RecordTraits<T>
+template <Stencil::ConceptPrimitive T> struct RecordTraits<T>
 {
     using RecordTypes = std::tuple<T>;
-    template <typename TDb>
-    static void WriteToBuffer(TDb& /*db*/, Stencil::Database::RWLock const& /*lock*/, T const& obj, Stencil::Database::RecordView<T>& rec)
+    template <typename TDb> static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, T const& obj, Record<T>& rec)
     {
         rec.data = obj;
     };
 };
 
-template <Stencil::Database::ConceptRecord K, Stencil::Database::ConceptRecord V>
-struct Stencil::Database::RecordView<std::unordered_map<K, V>>
-{};
-
-template <Stencil::Database::ConceptRecord T> struct Stencil::Database::RecordView<std::vector<T>>
-{};
-
-template <Stencil::Database::ConceptRecord T> struct Stencil::Database::RecordView<std::unique_ptr<T>>
-{};
-
-template <> struct Stencil::Database::RecordView<shared_string>
+template <ConceptBlob T> struct RecordNest<T>
 {
-    operator shared_string() const { TODO("TODO2"); }
+    using Type = Ref<T>;
 };
 
-template <> struct Stencil::Database::RecordView<shared_wstring>
+template <ConceptComplex T> struct RecordNest<T>
 {
-    operator shared_wstring() const { TODO("TODO2"); }
+    using Type = Ref<T>;
 };
 
-template <Stencil::ConceptPrimitive T> struct Stencil::Database::RecordView<T>
+template <ConceptRecord T> struct RecordNest<std::unique_ptr<T>>
 {
-      operator T() const { return data; }
+    using Type = Ref<T>;
+};
+
+template <ConceptRecord T> struct RecordNest<std::shared_ptr<T>>
+{
+    using Type = Ref<T>;
+};
+
+template <ConceptPrimitive T> struct Record<T>
+{
+    T const& get() const { return data; }
+    T        data;
+};
+
+template <ConceptFixedSize T> struct Record<T>
+{
+    T const& get() const { return data; }
+
     T data;
 };
 
-template <typename T> struct Stencil::TypeTraits<Stencil::Database::RecordView<T>> : Stencil::TypeTraits<T>
-{};
-
-template <Stencil::ConceptPrimitive T, typename TProt>
-struct Stencil::SerDes<Stencil::Database::RecordView<T>, TProt> : Stencil::SerDes<T, TProt>
-{};
-
-template <typename K, typename V> struct Stencil::Visitor<Stencil::Database::RecordView<std::unordered_map<K, V>>>
+template <> struct Record<shared_string>
 {
-    using TObj = Stencil::Database::RecordView<std::unordered_map<K, V>>;
+    std::string_view get() const { return std::string_view(reinterpret_cast<const char*>((&blobSize + 1)), blobSize); }
+    uint32_t         blobSize;
+    // TODO2
+};
+
+// template <ConceptRecord T> struct Record<std::unique_ptr<T>> = delete;    // No need to store unique_ptr in the database
+// template <ConceptRecord T> struct Record<std::shared_ptr<T>> = delete;    // No need to store shared_ptr in the database
+
+template <ConceptRecord K, ConceptRecord V> struct Record<std::unordered_map<K, V>>
+{
+    // TODO2
+};
+
+template <ConceptRecord T> struct Record<std::vector<T>>
+{
+    // TODO2
+};
+}    // namespace Stencil::Database
+namespace Stencil::Database
+{
+
+template <typename T, typename TDb> struct RecordView;
+template <typename T, typename TDb> struct RecordEdit;
+
+template <typename T, typename TDb> struct RecordView
+{
+    RecordView(TDb& db, ROLock& lock, Record<T> const& rec) : _db(db), _lock(lock), _rec(rec) {}
+    ~RecordView() = default;
+    CLASS_DELETE_COPY_AND_MOVE(RecordView);
+
+    TDb&             _db;
+    ROLock&          _lock;
+    Record<T> const& _rec;
+};
+
+#if 0
+template <typename T, typename TDb> struct RecordView<T, TDb, RWLock>
+{
+    RecordView(TDb& db, RWLock& lock, Record<T>& rec) : _db(db), _lock(lock), _rec(rec) {}
+    ~RecordView() = default;
+    CLASS_DELETE_COPY_AND_MOVE(RecordView);
+
+    TDb&       _db;
+    RWLock&    _lock;
+    Record<T>& _rec;
+};
+#endif
+
+template <typename T> struct RecordViewTraits;
+template <typename T, typename TDb> struct RecordViewTraits<RecordView<T, TDb>>
+{
+    using Db         = TDb;
+    using Type       = T;
+    using RecordType = Record<T>;
+    using NestType   = RecordNest<T>;
+};
+
+template <typename T, typename TDb> RecordView<T, TDb> CreateRecordView(TDb& db, ROLock& lock, Record<T> const& rec)
+{
+    return RecordView<T, TDb>(db, lock, rec);
+}
+
+// template <typename T, typename TDb> RecordView<T, TDb> CreateRecordView(TDb& db, RWLock& lock, Record<T>& rec)
+//{
+//     return RecordView<T, TDb>(db, lock, rec);
+// }
+
+template <typename T> static constexpr bool               IsRecordView                     = false;
+template <typename T, typename TDb> static constexpr bool IsRecordView<RecordView<T, TDb>> = true;
+template <typename T>
+concept ConceptRecordView = IsRecordView<T>;
+}    // namespace Stencil::Database
+
+template <Stencil::Database::ConceptRecordView T>
+struct Stencil::TypeTraits<T> : Stencil::TypeTraits<typename Stencil::Database::RecordViewTraits<T>::Type>
+{};
+
+template <Stencil::Database::ConceptRecordView T> struct Stencil::Visitor<T>
+{
+    template <typename T1, typename TLambda> static void VisitAll([[maybe_unused]] T1& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        Stencil::Visitor<typename Stencil::Database::RecordViewTraits<T>::RecordType>::VisitAll(obj._rec, [&](auto key, auto subobj) {
+            if constexpr (Stencil::Database::IsRef<std::remove_cvref_t<decltype(subobj)>>) { TODO("TODO2"); }
+            else { lambda(key, subobj.get()); }
+        });
+    }
+};
+
+template <typename K, typename V> struct Stencil::Visitor<Stencil::Database::Record<std::unordered_map<K, V>>>
+{
+    using TObj = Stencil::Database::Record<std::unordered_map<K, V>>;
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& /*obj*/, [[maybe_unused]] TLambda&& /*lambda*/)
     {
         TODO("TODO2");
     }
 };
 
-template <typename T> struct Stencil::Visitor<Stencil::Database::RecordView<std::vector<T>>>
+template <typename T> struct Stencil::Visitor<Stencil::Database::Record<std::vector<T>>>
 {
-    using TObj = Stencil::Database::RecordView<std::vector<T>>;
+    using TObj = Stencil::Database::Record<std::vector<T>>;
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& /*obj*/, [[maybe_unused]] TLambda&& /*lambda*/)
     {
         TODO("TODO2");

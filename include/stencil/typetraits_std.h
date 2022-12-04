@@ -84,6 +84,11 @@ template <> struct Stencil::TypeTraits<std::wstring>
     using Categories = std::tuple<Stencil::Category::Primitive>;
 };
 
+template <typename T> struct Stencil::TypeTraits<std::basic_string_view<T>>
+{
+    using Categories = std::tuple<Stencil::Category::Primitive>;
+};
+
 // 2 options
 
 // "type" : ....

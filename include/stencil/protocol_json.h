@@ -271,6 +271,20 @@ template <> struct SerDes<std::string, ProtocolJsonVal>
     template <typename Context> static auto Read(TObj& obj, Context& ctx) { _ReadQuotedString(obj, ctx); }
 };
 
+template <typename T> struct SerDes<std::basic_string_view<T>, ProtocolJsonVal>
+{
+    using TObj = std::basic_string_view<T>;
+
+    template <typename Context> static auto Write(Context& ctx, TObj const& obj)
+    {
+        if (obj.empty()) { fmt::print(ctx, "null"); }
+        else
+            _WriteQuotedString(ctx, obj);
+    }
+
+    template <typename Context> static auto Read(TObj& obj, Context& ctx) = delete;
+};
+
 template <> struct SerDes<std::wstring, ProtocolJsonVal>
 {
     using TObj = std::wstring;

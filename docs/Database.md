@@ -1,18 +1,60 @@
 # Database
 
-## Design Problems
+## Type Categories
 
-- typeid => set for tuple-index of types
-- view-type =>
-- shared_ptr =>
+Types are bucketed into the following categories
 
-### uint32_t:typeid vs tuple-index
+- Fixed
+  - Size is known at compile time
+  - Trivial Types , POD Structs, Primitives
+  - Record is same as the type
+- Blobs
+  - Size is not known at compile time
+  - The view must be reinterpreteed from data pointer
+- Complex
+  - Containes references to other Complex, Fixed or Blob Types
 
-Try to use tuple-index. CRUD for complex types need capabilities which are a superset of this
+### Examples
 
-- typeid: may not be cross-plat. but we dont care about crossplat consistency
-- typeid: there are maybe just hundred types at most. uint8_t should be more than enough
-- tuple-index: there are hidden types, how to figure out the complete set
+`dict<k,v>` => Blob : List[Pair<KRef, VRef>]
+`unique_ptr<T>` =>
+
+## Data Management
+
+To manage CRUD access for types, the database requires the following translated types
+
+### `Record<T>`
+
+This defines how a type is stored in the database
+
+- Fixed : Usually copied as-is into the record
+- Blobs : Serialized into the record. Allocation size inferred from
+- Complex : Nested types are referenced
+
+### `RecordNest<T>`
+
+This define how a type is store within a Record
+Its either `Ref<Record<T>>` or `Record<T>`
+
+- Fixed : Same as `Record<T>` by value
+- Blobs : `Ref<Record<T>>`
+- Complex : `Ref<Record<T>>`
+
+- `unique_ptr<T>` : `Ref<Record<T>>`
+
+### `RecordView<T>`
+
+Needed for visitor.
+db and lock needed to dereference (on-demand) load of objects
+`RecordView(db, lock, RecordNest<T>)`
+A wrapper class to help incremental / on-demand access to data
+
+- Fixed : Same as RecordStorage
+- Blobs : Deserialized from the record.
+- Complex
+  - Fixed : (primitives, structs etc) Nested
+  - Blobs : Ref'ed
+  - Complex : Ref'ed
 
 ### CRUD for complex types
 

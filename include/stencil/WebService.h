@@ -361,7 +361,7 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
             bool first = true;
             for (auto const& [ref, obj1] : obj.objects.template Items<TInterfaceObj>(lock))
             {
-                rslt << ref.id << ':' << Stencil::Json::Stringify(obj1);
+                rslt << ref.id << ':' << Stencil::Json::Stringify(Stencil::Database::CreateRecordView(obj.objects, lock, obj1));
                 if (first) { rslt << ','; }
                 first = false;
             }
@@ -375,7 +375,7 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
                                           subpath,
                                           [&](auto& rslt, uint32_t id) {
                                               auto obj1  = obj.objects.template Get<TInterfaceObj>(lock, {id});
-                                              auto jsobj = Stencil::Json::Stringify(obj1);
+                                              auto jsobj = Stencil::Json::Stringify(Stencil::Database::CreateRecordView(obj.objects, lock, obj1));
                                               rslt << jsobj;
                                           }),
                             "application/json");
@@ -387,7 +387,8 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
                                           subpath,
                                           [&](auto& rslt, uint32_t id) {
                                               auto obj1  = obj.objects.template Get<TInterfaceObj>(lock, {id});
-                                              auto jsobj = Stencil::Json::Stringify(obj1);
+                                              auto jsobj
+                                                  = Stencil::Json::Stringify(Stencil::Database::CreateRecordView(obj.objects, lock, obj1));
                                               rslt << jsobj;
                                           }),
                             "application/json");
