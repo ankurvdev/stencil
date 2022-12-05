@@ -2,6 +2,12 @@
 #include "TestUtils.h"
 
 #include <stencil/WebService.h>
+static_assert(Stencil::Database::ConceptRecord<uint32_t>);
+static_assert(Stencil::Database::ConceptTrivial<uint32_t>);
+
+static_assert(Stencil::Database::ConceptFixedSize<uint32_t>);
+static_assert(Stencil::Database::ConceptBlob<shared_string>);
+static_assert(Stencil::Database::ConceptComplex<std::unordered_map<uint32_t, uint32_t>>);
 
 #include <condition_variable>
 using namespace std::chrono_literals;
