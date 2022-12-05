@@ -31,9 +31,9 @@ struct Server1Impl : Interfaces::Server1
     ~Server1Impl() override = default;
     CLASS_DELETE_COPY_AND_MOVE(Server1Impl);
 
-    std::unordered_map<uint32_t, Interfaces::SimpleObject1> Function1(uint32_t const& arg1, Interfaces::SimpleObject1 const& arg2) override
+    std::unordered_map<uint32_t, Objects::SimpleObject1> Function1(uint32_t const& arg1, Objects::SimpleObject1 const& arg2) override
     {
-        std::unordered_map<uint32_t, Interfaces::SimpleObject1> retval;
+        std::unordered_map<uint32_t, Objects::SimpleObject1> retval;
 
         auto key    = arg1 + 1;
         auto copied = arg2;

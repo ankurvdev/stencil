@@ -17,6 +17,9 @@ struct zzReturnType_NativeTypezz
 //<Template file="zzFileNamezz.h">
 #pragma once
 #include <stencil/stencil.h>
+//<Import>
+#include "zzNamezz.pidl.h"
+//</Import>
 
 // SECTION START: DECLARATIONS
 #if true
@@ -376,11 +379,8 @@ template <> struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzStruct_Na
         typename Stencil::Database::RecordTraits<zzFieldType_NativeTypezz>::RecordTypes
         //</Field>
         >;
-        
-    static constexpr size_t Size()
-    {
-        return sizeof(Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz>);
-    }
+
+    static constexpr size_t Size() { return sizeof(Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz>); }
 
     template <typename TDb>
     static void WriteToBuffer(TDb&                                                          db,

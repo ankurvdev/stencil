@@ -72,20 +72,20 @@ boolean = "bool"
   NativeType = "Stencil::Timestamp"
 
 [Struct]
-NativeType = "::%Program:Name%::%Struct:Name%"
+NativeType = "::%Struct:Parent:Name%::%Struct:Name%"
 DefaultValue = "/*Initial Value*/"
 
 [Interface]
 NativeType = "long"
 
 [FunctionArgs]
-NativeType = "::%Program:Name%::%Struct:Name%"
+NativeType = "::%Struct:Parent:Name%::%Struct:Name%"
 
 [Typedef]
 NativeType = "%Name%"
 
 [Variant]
-NativeType = "::%Program:Name%::Variant  "
+NativeType = "::%Variant:Parent:Name%::Variant  "
 
 [Containers.ref]
 Params = [ "type"]

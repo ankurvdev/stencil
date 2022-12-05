@@ -6,11 +6,8 @@
 
 namespace IDL::Lang::Thrift
 {
-void Context::Import(Str::View const& name)
-{
-    auto path = (program.File().parent_path() / std::filesystem::path(Str::Value(name).c_str()));
-    LoadFile(*this, path);
-}
+void Context::LoadFile(std::filesystem::path const& inputFile)
+{}
 
 std::shared_ptr<IDL::Struct> CreateStruct(Context& context, Str::Type& id, FieldList& fields, TypeAttributeList& map)
 {
@@ -112,11 +109,10 @@ struct ThriftGenerator : Generator
 {
     virtual void LoadFile(std::filesystem::path const& inputFile) override
     {
-        FinalizeTypeDefinitions();
-
-        IDL::Lang::Thrift::Context context{Program_()};
-        context.program.SetFileName(inputFile);
         IDLDebug::ErrorAggregator errorAggregator;
+
+        IDL::Lang::Thrift::Context context{Program_(), TypeDefinitions_()};
+        context.program.SetFileName(inputFile);
         try
         {
             IDL::Lang::Thrift::LoadFile(context, inputFile);
@@ -135,4 +131,15 @@ struct ThriftGenerator : Generator
 std::unique_ptr<Generator> Generator::CreateThriftGenerator()
 {
     return std::make_unique<ThriftGenerator>();
+}
+
+void IDL::Lang::Thrift::Context::Import(Str::View const& name)
+{
+    auto path = (program.File().parent_path() / std::filesystem::path(Str::Value(name).c_str()));
+
+    std::shared_ptr<IDL::Program> importedProgram = std::make_shared<IDL::Program>();
+    importedProgram->SetFileName(path);
+    IDL::Lang::Thrift::Context importedCtx{*importedProgram.get(), typeDefinitions};
+    IDL::Lang::Thrift::LoadFile(importedCtx, path);
+    program.Import(*importedProgram);
 }

@@ -79,8 +79,8 @@ struct Container : public std::enable_shared_from_this<Container>,
         return expr;
     }
 
-    void AddMutator(MutatorAccessorDefinition&& def) { _mutators.push_back(std::move(def)); }
-    void AddAccessor(MutatorAccessorDefinition&& def) { _accessors.push_back(std::move(def)); }
+    void AddMutator(MutatorAccessorDefinition const& def) { _mutators.push_back(def); }
+    void AddAccessor(MutatorAccessorDefinition const& def) { _accessors.push_back(def); }
 
     size_t     ComponentSize() const { return m_Components.size(); }
     Str::Type& Component(size_t index) { return m_Components[index]; }
@@ -344,7 +344,9 @@ struct Program : public std::enable_shared_from_this<Program>,
     Program() :
         std::enable_shared_from_this<Program>(),
         Binding::BindableT<Program>(Str::Create(L"Name"), &Program::Name, Str::Create(L"FileName"), &Program::FileName)
-    {}
+    {
+        Register(_imports);
+    }
 
     void SetFileName(std::filesystem::path const& file)
     {
@@ -381,6 +383,44 @@ struct Program : public std::enable_shared_from_this<Program>,
     {
         return IDLGenerics::NamedIndexT<Program, TObject>::Owner::Lookup(std::forward<TArgs>(args)...);
     }
+
+    void Import(Program& importedProgram)
+    {
+        _imports->_array.push_back(importedProgram.shared_from_this());
+        for (auto& [name, types] : importedProgram._fieldTypeMap) { this->AddFieldType(Str::Copy(name), types); }
+    }
+
+    struct ImportBindableComponent : public Binding::IBindableComponent,
+                                     public ValueT<Binding::Type::Array>,
+                                     public Binding::IValueArray,
+                                     public std::enable_shared_from_this<ImportBindableComponent>
+
+    {
+        DELETE_MOVE_AND_COPY_ASSIGNMENT(ImportBindableComponent);
+
+        ImportBindableComponent() = default;
+        virtual size_t    GetKeyCount() override { return 1; }
+        virtual Str::Type GetKeyAt([[maybe_unused]] size_t index) override
+        {
+            assert(index == 0);
+            return Str::Copy(_key);
+        }
+        virtual Str::Type               ComponentName() override { return Str::Copy(_key); }
+        virtual std::shared_ptr<IValue> TryLookupValue(Binding::BindingContext& /*context */, Str::View const& key) override
+        {
+            if (key == _key) { return this->shared_from_this(); }
+            return {};
+        }
+
+        IValueArray& GetArray() override { return *this; }
+        size_t       GetCount() override { return _array.size(); }
+        IBindable&   GetObjectAt(size_t index) override { return *_array[index]; }
+        Str::Type    _key = Str::Create(L"Import");
+
+        std::vector<std::shared_ptr<BindableBase>> _array;
+    };
+
+    std::shared_ptr<ImportBindableComponent> _imports = std::make_shared<ImportBindableComponent>();
 
     std::vector<std::filesystem::path> GenerateModel(bool isDryRun, std::filesystem::path const& outDir);
 };

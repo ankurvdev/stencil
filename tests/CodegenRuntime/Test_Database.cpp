@@ -1,4 +1,6 @@
 #include "TestUtils.h"
+#include "ObjectsTester.h"
+
 #if 0
 #include "Test_Database.h"
 

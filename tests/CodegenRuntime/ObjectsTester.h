@@ -28,7 +28,7 @@ struct ObjectsTester
 
     auto create_simple_object1()
     {
-        Interfaces::SimpleObject1 obj{};
+        Objects::SimpleObject1 obj{};
         obj.val1         = create_int32();
         obj.val2         = create_uint32();
         obj.val3         = create_uint8();
@@ -40,7 +40,7 @@ struct ObjectsTester
 
     auto create_simple_object2()
     {
-        Interfaces::SimpleObject2 obj{};
+        Objects::SimpleObject2 obj{};
         obj.val1         = create_bool();
         obj.val2         = create_double();
         obj.val3         = create_array_char_8();
@@ -55,7 +55,7 @@ struct ObjectsTester
 
     auto create_list_object()
     {
-        Interfaces::ListObject obj{};
+        Objects::ListObject obj{};
         obj.obj1         = create_simple_object1();
         obj.value        = create_uint32();
         obj.lastmodified = create_timestamp();
@@ -64,14 +64,14 @@ struct ObjectsTester
 
     auto create_list()
     {
-        Interfaces::List obj{};
+        Objects::List obj{};
         for (size_t i = (++_list_counter + 1); i > 0; i--) { obj.listobj.push_back(create_list_object()); }
         return obj;
     }
 
     auto create_dict()
     {
-        Interfaces::DictObject obj{};
+        Objects::DictObject obj{};
         for (size_t i = (++_list_counter + 1); i > 0; i--)
         {
 
@@ -84,7 +84,7 @@ struct ObjectsTester
 
     auto create_nested_object()
     {
-        Interfaces::NestedObject obj{};
+        Objects::NestedObject obj{};
         obj.obj1         = create_simple_object1();
         obj.obj2         = create_simple_object2();
         obj.obj3         = create_list_object();
