@@ -364,7 +364,12 @@ template <> struct Stencil::Comparator<zzProgram_Namezz::zzStruct_Namezz, zzProg
     }
 };
 
-template <> struct Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz>
+template <>
+struct Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz> :
+    //<AttributeTag>
+    public Stencil::Database::Record<zzTagType_NativeTypezz>,
+    //</AttributeTag>
+    public Stencil::Database::RecordT<zzProgram_Namezz::zzStruct_Namezz>
 {
     public:
     //<Field>
@@ -375,10 +380,10 @@ template <> struct Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz>
 template <> struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzStruct_Namezz>
 {
     using RecordTypes = Stencil::Database::tuple_cat_t<
-        //<Field Join=','>
-        typename Stencil::Database::RecordTraits<zzFieldType_NativeTypezz>::RecordTypes
+        //<Field>
+        typename Stencil::Database::RecordTraits<zzFieldType_NativeTypezz>::RecordTypes,
         //</Field>
-        >;
+        std::tuple<zzProgram_Namezz::zzStruct_Namezz>>;
 
     static constexpr size_t Size() { return sizeof(Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz>); }
 
@@ -435,7 +440,10 @@ struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNa
 template <>
 struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>
     : public Stencil::Database::RecordTraits<zzObjectType_NativeTypezz>
-{};
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<typename Stencil::Database::RecordTraits<zzObjectType_NativeTypezz>::RecordTypes,
+                                                       std::tuple<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>>;
+};
 
 template <>
 struct Stencil::Database::Record<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>

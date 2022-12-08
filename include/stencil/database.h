@@ -47,7 +47,7 @@ template <typename T, typename TTup, size_t I = 0> constexpr size_t tuple_index_
 {
     if constexpr (std::tuple_size<TTup>::value == I)
     {
-        static_assert(std::is_same_v<T, T>, "Tuple Out of range");
+        static_assert(!std::is_same_v<T, T>, "Tuple Out of range");
         return I;
     }
     else
@@ -63,6 +63,9 @@ template <ConceptRecord T, typename TDb>
 static constexpr uint16_t TypeId = static_cast<uint16_t>(tuple_index_of<T, typename TDb::RecordTypes>());
 
 template <typename T> struct Record;
+template <typename T> struct RecordT
+{};
+
 template <typename T> struct RecordNest
 {
     using Type = T;
@@ -1133,8 +1136,9 @@ template <ConceptRecord K, ConceptRecord V> struct RecordTraits<std::unordered_m
         Ref<V> v;
     };
 
-    using RecordTypes
-        = tuple_cat_t<typename RecordTraits<K>::RecordTypes, typename RecordTraits<V>::RecordTypes, std::tuple<List<MapItem>>>;
+    using RecordTypes = tuple_cat_t<typename RecordTraits<K>::RecordTypes,
+                                    typename RecordTraits<V>::RecordTypes,
+                                    std::tuple<List<MapItem>, std::unordered_map<K, V>>>;
 
     using ObjectType = std::unordered_map<K, V>;
     template <typename TDb> static void WriteToBuffer(TDb& db, RWLock const& lock, ObjectType const& obj, Record<ObjectType>& rec)
@@ -1161,7 +1165,7 @@ template <ConceptRecord T> struct Record<std::vector<T>>
 };
 template <ConceptRecord T> struct RecordTraits<std::vector<T>>
 {
-    using RecordTypes = tuple_cat_t<typename RecordTraits<T>::RecordTypes, std::tuple<List<Ref<T>>>>;
+    using RecordTypes = tuple_cat_t<typename RecordTraits<T>::RecordTypes, std::tuple<List<Ref<T>>, std::vector<T>>>;
     using ObjectType  = std::vector<T>;
     template <typename TDb> static void WriteToBuffer(TDb& db, RWLock const& lock, ObjectType const& obj, Record<ObjectType>& rec)
     {
@@ -1366,3 +1370,17 @@ template <typename T> struct Stencil::Visitor<Stencil::Database::Record<std::vec
         TODO("TODO2");
     }
 };
+
+template <typename T> struct Stencil::Database::Record<Stencil::OptionalPropsT<T>> : Stencil::OptionalPropsT<T>
+{};
+
+template <typename T> struct Stencil::Database::Record<Stencil::TimestampedT<T>> : Stencil::TimestampedT<T>
+{};
+
+template <typename T>
+struct Stencil::TypeTraits<Stencil::Database::Record<Stencil::OptionalPropsT<T>>> : Stencil::TypeTraits<Stencil::OptionalPropsT<T>>
+{};
+
+template <typename T>
+struct Stencil::TypeTraits<Stencil::Database::Record<Stencil::TimestampedT<T>>> : Stencil::TypeTraits<Stencil::TimestampedT<T>>
+{};

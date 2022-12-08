@@ -1,5 +1,9 @@
 # Database
 
+TODO
+
+1. Timestamp<T> support and other storage inherited attributes
+
 ## Type Categories
 
 Types are bucketed into the following categories
