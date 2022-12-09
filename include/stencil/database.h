@@ -1329,14 +1329,28 @@ template <Stencil::Database::ConceptRecordView T> struct Stencil::Visitor<T>
 {
     template <typename T1, typename TLambda> static void VisitAll([[maybe_unused]] T1& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        Stencil::Visitor<typename Stencil::Database::RecordViewTraits<T>::RecordType>::VisitAll(obj._rec, [&](auto key, auto subobj) {
-            if constexpr (Stencil::Database::IsRef<std::remove_cvref_t<decltype(subobj)>>)
-            {
-                auto rec = obj._db.Get(obj._lock, subobj);
-                lambda(key, Stencil::Database::CreateRecordView(obj._db, obj._lock, rec));
-            }
-            else { lambda(key, subobj.get()); }
-        });
+        using RecType = typename Stencil::Database::RecordViewTraits<T>::RecordType;
+        using Type    = typename Stencil::Database::RecordViewTraits<T>::Type;
+        if constexpr (Stencil::ConceptPreferPrimitive<Type>) {}
+        else if constexpr (Stencil::ConceptPreferIndexable<Type>)
+        {
+            Stencil::Visitor<RecType>::VisitAll(obj._rec, [&](auto key, auto subobj) {
+                if constexpr (Stencil::Database::IsRef<std::remove_cvref_t<decltype(subobj)>>)
+                {
+                    auto vrec  = obj._db.Get(obj._lock, subobj);
+                    auto vrecv = Stencil::Database::CreateRecordView(obj._db, obj._lock, vrec);
+                    if constexpr (Stencil::Database::IsRef<std::remove_cvref_t<decltype(key)>>)
+                    {
+                        auto krec  = obj._db.Get(obj._lock, key);
+                        auto krecv = Stencil::Database::CreateRecordView(obj._db, obj._lock, krec);
+                        lambda(krecv, vrecv);
+                    }
+                    else { lambda(key, Stencil::Database::CreateRecordView(obj._db, obj._lock, vrec)); }
+                }
+                else { lambda(key, subobj.get()); }
+            });
+        }
+        else { TODO("TODO2"); }
     }
 };
 
@@ -1356,9 +1370,11 @@ template <Stencil::Database::ConceptTrivialRecordView T, typename TProt> struct 
 template <typename K, typename V> struct Stencil::Visitor<Stencil::Database::Record<std::unordered_map<K, V>>>
 {
     using TObj = Stencil::Database::Record<std::unordered_map<K, V>>;
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& /*obj*/, [[maybe_unused]] TLambda&& /*lambda*/)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        TODO("TODO2");
+        using MapItem = typename Stencil::Database::RecordTraits<std::unordered_map<K, V>>::MapItem;
+        std::span<const MapItem> data(reinterpret_cast<MapItem const*>((&obj.blobSize) + 1), obj.blobSize / sizeof(MapItem));
+        for (auto item : data) { lambda(item.k, item.v); }
     }
 };
 

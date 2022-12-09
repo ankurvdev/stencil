@@ -20,47 +20,66 @@ struct DatabaseTester
     }
 
     CLASS_DELETE_COPY_AND_MOVE(DatabaseTester);
-    void test_create_object1(Stencil::Database::RWLock& lock)
+    void check(Objects::SimpleObject1 const& ref, Stencil::Database::Record<Objects::SimpleObject1> const& rec)
+    {
+        // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
+        REQUIRE(rec._fieldtracker == ref._fieldtracker);
+        // REQUIRE(obj1.lastmodified == refobj1.lastmodified); TODO2
+        REQUIRE(rec.val1.data == ref.val1);
+        REQUIRE(rec.val2.data == ref.val2);
+        REQUIRE(rec.val3.data == ref.val3);
+        REQUIRE(rec.val4.id > 0);
+        // REQUIRE(obj1.val4 == refobj1.val4);
+        REQUIRE(rec.val5.data == ref.val5);
+    }
+
+    void check(Objects::SimpleObject2 const& ref, Stencil::Database::Record<Objects::SimpleObject2> const& rec)
+    {
+        // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
+        REQUIRE(rec._fieldtracker == ref._fieldtracker);
+        // REQUIRE(obj1.lastmodified == refobj1.lastmodified); TODO2
+        REQUIRE(rec.val1.data == ref.val1);
+        REQUIRE(rec.val2.data == ref.val2);
+        REQUIRE(rec.val3.data == ref.val3);
+        REQUIRE(rec.val4.data == ref.val4);
+        REQUIRE(rec.val5.data == ref.val5);
+        REQUIRE(rec.val6.data == ref.val6);
+        REQUIRE(rec.val7.data == ref.val7);
+        REQUIRE(rec.val8.data == ref.val8);
+    }
+
+    void test_create_simple_object1(Stencil::Database::RWLock& lock)
     {
         auto refobj1     = tester.create_simple_object1();
         auto [id1, obj1] = datastore->Create(lock, refobj1);
         REQUIRE(id1.id > 0);
-        // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
-        REQUIRE(obj1._fieldtracker == refobj1._fieldtracker);
-        // REQUIRE(obj1.lastmodified == refobj1.lastmodified); TODO2
-        REQUIRE(obj1.val1.data == refobj1.val1);
-        REQUIRE(obj1.val2.data == refobj1.val2);
-        REQUIRE(obj1.val3.data == refobj1.val3);
-        REQUIRE(obj1.val4.id > 0);
-        // REQUIRE(obj1.val4 == refobj1.val4);
-        REQUIRE(obj1.val5.data == refobj1.val5);
-
-        // auto v46 = std::get<46>(typename DataStore::RecordTypes{});
-        // auto v47 = std::get<47>(typename DataStore::RecordTypes{});
-        // auto v48 = std::get<48>(typename DataStore::RecordTypes{});
-        // auto v49 = std::get<49>(typename DataStore::RecordTypes{});
-
+        check(refobj1, obj1);
         generated_ids.insert({Stencil::Database::TypeId<::Objects::SimpleObject1, DataStore>, id1.id});
     }
 
-    void test_create_object2(Stencil::Database::RWLock& lock)
+    void test_create_simple_object2(Stencil::Database::RWLock& lock)
     {
         auto refobj1     = tester.create_simple_object2();
         auto [id1, obj1] = datastore->Create(lock, refobj1);
         REQUIRE(id1.id > 0);
-        // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
-        REQUIRE(obj1._fieldtracker == refobj1._fieldtracker);
-        // REQUIRE(obj1.lastmodified == refobj1.lastmodified); TODO2
-        REQUIRE(obj1.val1.data == refobj1.val1);
-        REQUIRE(obj1.val2.data == refobj1.val2);
-        REQUIRE(obj1.val3.data == refobj1.val3);
-        REQUIRE(obj1.val4.data == refobj1.val4);
-        REQUIRE(obj1.val5.data == refobj1.val5);
-        REQUIRE(obj1.val6.data == refobj1.val6);
-        REQUIRE(obj1.val7.data == refobj1.val7);
-        REQUIRE(obj1.val8.data == refobj1.val8);
+        check(refobj1, obj1);
+
         // REQUIRE(obj1.val4 == refobj1.val4);
         // REQUIRE(obj1.val5.data == refobj1.val5);
+        static_assert(Stencil::Database::TypeId<::Objects::SimpleObject2, DataStore>
+                          != Stencil::Database::TypeId<::Objects::SimpleObject1, DataStore>,
+                      "Cannot have two types equal");
+        generated_ids.insert({Stencil::Database::TypeId<::Objects::SimpleObject2, DataStore>, id1.id});
+    }
+
+    void test_create_nested_object(Stencil::Database::RWLock& lock)
+    {
+        auto refobj1     = tester.create_nested_object();
+        auto [id1, obj1] = datastore->Create(lock, refobj1);
+        REQUIRE(id1.id > 0);
+        // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
+        check(refobj1.obj1, datastore->Get(lock, obj1.obj1));
+        check(refobj1.obj2, datastore->Get(lock, obj1.obj2));
         static_assert(Stencil::Database::TypeId<::Objects::SimpleObject2, DataStore>
                           != Stencil::Database::TypeId<::Objects::SimpleObject1, DataStore>,
                       "Cannot have two types equal");
@@ -79,8 +98,9 @@ TEST_CASE("Database", "[database]")
     size_t         i = 0;
 
     auto lock = tester.datastore->LockForEdit();
-    for (i = 0; i < 1000; i++) { tester.test_create_object1(lock); }
-    for (i = 0; i < 1000; i++) { tester.test_create_object2(lock); }
+    for (i = 0; i < 1000; i++) { tester.test_create_simple_object1(lock); }
+    for (i = 0; i < 1000; i++) { tester.test_create_simple_object2(lock); }
+    for (i = 0; i < 1000; i++) { tester.test_create_nested_object(lock); }
 
     tester.datastore->Flush(lock);
 }
