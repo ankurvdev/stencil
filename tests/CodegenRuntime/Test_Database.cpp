@@ -20,7 +20,8 @@ struct DatabaseTester
     }
 
     CLASS_DELETE_COPY_AND_MOVE(DatabaseTester);
-    void check(Objects::SimpleObject1 const& ref, Stencil::Database::Record<Objects::SimpleObject1> const& rec)
+    void
+    check(Stencil::Database::RWLock& /*lock*/, Objects::SimpleObject1 const& ref, Stencil::Database::Record<Objects::SimpleObject1> const& rec)
     {
         // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
         REQUIRE(rec._fieldtracker == ref._fieldtracker);
@@ -33,7 +34,8 @@ struct DatabaseTester
         REQUIRE(rec.val5.data == ref.val5);
     }
 
-    void check(Objects::SimpleObject2 const& ref, Stencil::Database::Record<Objects::SimpleObject2> const& rec)
+    void
+    check(Stencil::Database::RWLock& /*lock*/, Objects::SimpleObject2 const& ref, Stencil::Database::Record<Objects::SimpleObject2> const& rec)
     {
         // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
         REQUIRE(rec._fieldtracker == ref._fieldtracker);
@@ -48,12 +50,35 @@ struct DatabaseTester
         REQUIRE(rec.val8.data == ref.val8);
     }
 
+    void check(Stencil::Database::RWLock& lock, Objects::ListObject const& ref, Stencil::Database::Record<Objects::ListObject> const& rec)
+    {
+        check(lock, ref.obj1, datastore->Get(lock, rec.obj1));
+        // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
+        // REQUIRE(rec.lastmodified == ref.lastmodified); TODO2
+        REQUIRE(rec.value.data == ref.value);
+    }
+
+    void check(Stencil::Database::RWLock& /*lock*/, Objects::DictObject const& /*ref*/, Stencil::Database::Record<Objects::DictObject> const& /*rec*/)
+    {
+        // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
+        // check(lock, ref.dictdict, datastore->Get(lock, rec.dictdict));
+        // check(lock, ref.dictobj, datastore->Get(lock, rec.dictobj));
+        // check(lock, ref.dictval, datastore->Get(lock, rec.dictval));
+    }
+
+    void check(Stencil::Database::RWLock& /*lock*/, Objects::List const& /*ref*/, Stencil::Database::Record<Objects::List> const& /*rec*/)
+    {
+        // auto& vec = ref.listobj;
+        // for (size_t i = 0; i < vec.size(); i++) { check(lock, vec[i], datastore->Get(lock, rec.listobj)[i]); }
+        // REQUIRE(obj1.lastmodified == refobj1.lastmodified); TODO2
+    }
+
     void test_create_simple_object1(Stencil::Database::RWLock& lock)
     {
         auto refobj1     = tester.create_simple_object1();
         auto [id1, obj1] = datastore->Create(lock, refobj1);
         REQUIRE(id1.id > 0);
-        check(refobj1, obj1);
+        check(lock, refobj1, obj1);
         generated_ids.insert({Stencil::Database::TypeId<::Objects::SimpleObject1, DataStore>, id1.id});
     }
 
@@ -62,7 +87,7 @@ struct DatabaseTester
         auto refobj1     = tester.create_simple_object2();
         auto [id1, obj1] = datastore->Create(lock, refobj1);
         REQUIRE(id1.id > 0);
-        check(refobj1, obj1);
+        check(lock, refobj1, obj1);
 
         // REQUIRE(obj1.val4 == refobj1.val4);
         // REQUIRE(obj1.val5.data == refobj1.val5);
@@ -78,8 +103,12 @@ struct DatabaseTester
         auto [id1, obj1] = datastore->Create(lock, refobj1);
         REQUIRE(id1.id > 0);
         // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
-        check(refobj1.obj1, datastore->Get(lock, obj1.obj1));
-        check(refobj1.obj2, datastore->Get(lock, obj1.obj2));
+        check(lock, refobj1.obj1, datastore->Get(lock, obj1.obj1));
+        check(lock, refobj1.obj2, datastore->Get(lock, obj1.obj2));
+        check(lock, refobj1.obj3, datastore->Get(lock, obj1.obj3));
+        check(lock, refobj1.dict1, datastore->Get(lock, obj1.dict1));
+        check(lock, refobj1.list1, datastore->Get(lock, obj1.list1));
+
         static_assert(Stencil::Database::TypeId<::Objects::SimpleObject2, DataStore>
                           != Stencil::Database::TypeId<::Objects::SimpleObject1, DataStore>,
                       "Cannot have two types equal");

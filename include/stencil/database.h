@@ -454,8 +454,13 @@ struct PageRuntime
 
 static constexpr size_t GetSlotUInt32s(size_t count)
 {
-    return (((count - 1) | 0x1f) + 1) / 32;
+    return (((count - 1) | (32 - 1)) + 1) / 32;
 }
+static constexpr size_t GetSlotUInt8s(size_t count)
+{
+    return (((count - 1) | (8 - 1)) + 1) / 8;
+}
+
 static constexpr size_t AlignToWord(size_t s)
 {
     return (((s - 1) | (sizeof(void*) - 1)) + 1);
@@ -562,6 +567,7 @@ static constexpr size_t GetSlotCapacityForSharedRec(size_t recordSize)
 
 template <> struct PageForRecord<0>
 {
+    static constexpr size_t MaxRecordSize = Page::PageDataSize - AlignToWord(2 + 1);
 
     static constexpr size_t GetSlotCapacity(size_t recordSizeInBytes)
     {
@@ -572,19 +578,21 @@ template <> struct PageForRecord<0>
         // s = 4    : 8192 = 1984 * 4 + 248 + 4 (4 uint8_ts wasted)
         // s = 128  :
         // s = 1024 : 8192 = 7 * 1024 + 1 + 4   (1019 uint8_ts wasted)
-        size_t AlignedRecordSize        = AlignToWord(recordSizeInBytes);
+        size_t AlignedRecordSize        = recordSizeInBytes > sizeof(size_t) ? AlignToWord(recordSizeInBytes) : recordSizeInBytes;
         size_t SlotsWithoutSlotTracking = (Page::PageDataSize - 2) / AlignedRecordSize;
-        size_t SlotTrackingCost         = AlignToWord(sizeof(uint32_t) * GetSlotUInt32s(SlotsWithoutSlotTracking));
-        size_t SlotsWithSlotTracking    = (Page::PageDataSize - 2 - SlotTrackingCost) / AlignedRecordSize;
+        size_t SlotTrackingCost         = AlignToWord(2 + sizeof(uint8_t) * GetSlotUInt8s(SlotsWithoutSlotTracking));
+        size_t SlotsWithSlotTracking    = (Page::PageDataSize - SlotTrackingCost) / AlignedRecordSize;
         return SlotsWithSlotTracking;
     }
 
     void _SetRecordSize(uint16_t recordSize)
     {
+        static_assert(GetSlotCapacity(1) == 7160);
+        static_assert(GetSlotCapacity(8184) == 1);
         _recordSize = recordSize;
         _slots      = reinterpret_cast<decltype(_slots)>(_page.RawData().data() + sizeof(uint16_t));
         _records    = reinterpret_cast<decltype(_records)>(_page.RawData().data() + sizeof(uint16_t)
-                                                        + (GetSlotUInt32s(GetSlotCapacity(recordSize)) * 4));
+                                                        + (GetSlotUInt8s(GetSlotCapacity(recordSize))));
         while (_page._availableSlot < GetSlotCount() && ValidSlot(_page._availableSlot)) ++_page._availableSlot;
     }
 
@@ -599,8 +607,8 @@ template <> struct PageForRecord<0>
     auto   PageIndex() const { return _page._pageIndex; }
     auto   GetPageDataSize() const { return _recordSize; }
     size_t GetSlotCount() const { return GetSlotCapacity(_recordSize); }
-    bool   ValidSlot(size_t slot) const { return (*(_slots + (slot / 32)) & (0x1 << (slot % 32))) != 0; }
-    void   _FillSlot(size_t slot) { *(_slots + (slot / 32)) |= 0x1 << slot % 32; }
+    bool   ValidSlot(size_t slot) const { return (*(_slots + (slot / 8)) & (0x1 << (slot % 8))) != 0; }
+    void   _FillSlot(size_t slot) { *(_slots + (slot / 8)) |= 0x1 << slot % 8; }
 
     template <typename TLock> bool Full(TLock const& /*guardscope*/) { return _page._availableSlot >= GetSlotCount(); }
 
@@ -644,7 +652,7 @@ template <> struct PageForRecord<0>
 
     PageRuntime& _page;
     uint16_t     _recordSize{0};
-    uint32_t*    _slots   = nullptr;
+    uint8_t*     _slots   = nullptr;
     uint8_t*     _records = nullptr;
 };
 
@@ -670,7 +678,7 @@ struct JournalPage
 
     Entry& GetJournalEntry(Ref::PageIndex entryIndex) { return _page.Get<Entry>(sizeof(Header))[entryIndex]; }
 
-    bool Full(Ref::PageIndex pageIndex) const { return pageIndex > EntryCount + _StartPageIndex(); }
+    bool Full(Ref::PageIndex pageIndex) const { return pageIndex >= EntryCount + _StartPageIndex(); }
 
     Ref::PageIndex GetNextJornalPage() const { return _page.Get<Header>()[0].nextJournalPage; }
 
@@ -1048,7 +1056,11 @@ template <ConceptRecord... Ts> struct Database
                     // Record<T> obj;
                     // return RefAndEditT<TObj>(RefT<TObj>{}, obj);
                 }
-                auto recsize        = _bit_ceil(static_cast<uint32_t>(datasize));
+                if (datasize > impl::PageForRecord<0>::MaxRecordSize) { throw std::logic_error("Large Blobs not yet implemented"); }
+
+                auto recsize = _bit_ceil(static_cast<uint32_t>(datasize));
+                recsize      = std::min(static_cast<uint32_t>(impl::PageForRecord<0>::MaxRecordSize), recsize);
+
                 auto [ref, slotobj] = _Allocate<0>(lock, TypeId<T, ThisT>, recsize);
                 assert(impl::Ref{ref}.page < _pagemgr->GetPageCount());
 

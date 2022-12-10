@@ -62,17 +62,24 @@ struct ObjectsTester
         return obj;
     }
 
+    auto incr_list()
+    {
+        ++_list_counter;
+        _list_counter = _list_counter & 0xf;
+        return _list_counter + 1;
+    }
+
     auto create_list()
     {
         Objects::List obj{};
-        for (size_t i = (++_list_counter + 1); i > 0; i--) { obj.listobj.push_back(create_list_object()); }
+        for (size_t i = incr_list(); i > 0; i--) { obj.listobj.push_back(create_list_object()); }
         return obj;
     }
 
     auto create_dict()
     {
         Objects::DictObject obj{};
-        for (size_t i = (++_list_counter + 1); i > 0; i--)
+        for (size_t i = incr_list(); i > 0; i--)
         {
 
             obj.dictobj[create_uint32()]  = create_simple_object1();
