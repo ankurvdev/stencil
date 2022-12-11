@@ -957,6 +957,26 @@ template <typename T, typename TDb> void WriteToBuffer(TDb& db, RWLock const& lo
     rec              = ref;
 }
 
+struct Blob
+{
+    uint32_t blobSize{};
+
+    private:
+    uint8_t*       _GetDataPtr() { return reinterpret_cast<uint8_t*>(this) + sizeof(Blob); }
+    uint8_t const* _GetDataPtr() const { return reinterpret_cast<uint8_t const*>(this) + sizeof(Blob); }
+
+    public:
+    template <typename T> size_t   Count() const { return static_cast<size_t>(blobSize) / sizeof(T); }
+    template <typename T> T const* Data() const { return reinterpret_cast<T const*>(_GetDataPtr()); }
+    template <typename T> T*       Data() { return reinterpret_cast<T*>(_GetDataPtr()); }
+
+    template <typename T> std::span<T>       AsSpan() { return std::span<T>(Data<T>(), Count<T>()); }
+    template <typename T> std::span<T const> AsSpan() const { return std::span<T const>(Data<T>(), Count<T>()); }
+};
+
+template <typename T, typename TRec> auto AsBlob(Record<TRec>)
+{}
+
 }    // namespace Stencil::Database::impl
 namespace Stencil::Database    // Class/Inferface
 {
@@ -1030,6 +1050,7 @@ template <ConceptRecord... Ts> struct Database
             auto recsize        = _bit_ceil(static_cast<uint32_t>(datasize));
             auto [ref, slotobj] = _Allocate<0>(lock, TypeId<T, ThisT>, recsize);
             auto rec            = reinterpret_cast<Record<T>*>(slotobj.data.data());
+            rec->blobSize       = recsize;
             RecordTraits<T>::WriteToBuffer(*this, lock, obj, *rec);
             // assert(ref.id.Valid());
             assert(impl::Ref{ref}.page < _pagemgr->GetPageCount());
@@ -1064,7 +1085,8 @@ template <ConceptRecord... Ts> struct Database
                 auto [ref, slotobj] = _Allocate<0>(lock, TypeId<T, ThisT>, recsize);
                 assert(impl::Ref{ref}.page < _pagemgr->GetPageCount());
 
-                auto rec = reinterpret_cast<Record<T>*>(slotobj.data.data());
+                auto rec      = reinterpret_cast<Record<T>*>(slotobj.data.data());
+                rec->blobSize = recsize;
                 RecordTraits<T>::WriteToBuffer(*this, lock, obj, *rec);
                 return RefAndRecord<T>(ref, *rec);
             }
@@ -1128,62 +1150,60 @@ template <ConceptRecord... Ts> struct Database
 namespace Stencil::Database
 {
 
-template <> struct Record<shared_string>
+template <> struct Record<shared_string> : impl::Blob
 {
-    std::string_view get() const { return std::string_view(reinterpret_cast<const char*>((&blobSize + 1)), blobSize); }
-    uint32_t         blobSize;
-    // TODO2
+    std::string_view get() const { return std::string_view(Data<char const>(), blobSize); }
 };
 
-template <ConceptRecord K, ConceptRecord V> struct Record<std::unordered_map<K, V>>
+template <ConceptRecord K, ConceptRecord V> struct MapItem
 {
-    uint32_t blobSize;
+    Ref<K> k;
+    Ref<V> v;
+};
+
+template <ConceptRecord K, ConceptRecord V> struct Record<std::unordered_map<K, V>> : impl::Blob
+{
+    auto Items() { return AsSpan<MapItem<K, V>>(); }
+    auto Items() const { return AsSpan<MapItem<K, V>>(); }
 };
 
 template <ConceptRecord K, ConceptRecord V> struct RecordTraits<std::unordered_map<K, V>>
 {
-    struct MapItem
-    {
-        Ref<K> k;
-        Ref<V> v;
-    };
 
     using RecordTypes = tuple_cat_t<typename RecordTraits<K>::RecordTypes,
                                     typename RecordTraits<V>::RecordTypes,
-                                    std::tuple<List<MapItem>, std::unordered_map<K, V>>>;
+                                    std::tuple<List<MapItem<K, V>>, std::unordered_map<K, V>>>;
 
     using ObjectType = std::unordered_map<K, V>;
     template <typename TDb> static void WriteToBuffer(TDb& db, RWLock const& lock, ObjectType const& obj, Record<ObjectType>& rec)
     {
-        rec.blobSize = static_cast<uint32_t>(GetDataSize(obj));
-        std::span<MapItem> data(reinterpret_cast<MapItem*>(&rec.blobSize + 1), obj.size());
-        auto               it = data.begin();
+        static_assert(sizeof(Record<ObjectType>) == sizeof(impl::Blob));
+        auto it = rec.Items().begin();
         for (auto const& [k, v] : obj)
         {
             auto kref = db.Create(lock, k);
             auto vref = db.Create(lock, v);
-            *it       = MapItem{std::get<0>(kref), std::get<0>(vref)};
+            *it       = MapItem<K, V>{std::get<0>(kref), std::get<0>(vref)};
             ++it;
         }
     }
 
     static constexpr size_t Size() { return 0; }
-    static size_t           GetDataSize(ObjectType const& obj) { return sizeof(MapItem) * obj.size(); }
+    static size_t           GetDataSize(ObjectType const& obj) { return sizeof(MapItem<K, V>) * obj.size(); }
 };
 
-template <ConceptRecord T> struct Record<std::vector<T>>
-{
-    uint32_t blobSize;
-};
+template <ConceptRecord T> struct Record<std::vector<T>> : impl::Blob
+{};
+
 template <ConceptRecord T> struct RecordTraits<std::vector<T>>
 {
     using RecordTypes = tuple_cat_t<typename RecordTraits<T>::RecordTypes, std::tuple<List<Ref<T>>, std::vector<T>>>;
     using ObjectType  = std::vector<T>;
     template <typename TDb> static void WriteToBuffer(TDb& db, RWLock const& lock, ObjectType const& obj, Record<ObjectType>& rec)
     {
-        rec.blobSize = static_cast<uint32_t>(GetDataSize(obj));
-        std::span<Ref<T>> data(reinterpret_cast<Ref<T>*>(&rec.blobSize + 1), obj.size());
-        auto              it = data.begin();
+        static_assert(sizeof(Record<ObjectType>) == sizeof(impl::Blob));
+
+        auto it = rec.template AsSpan<Ref<T>>().begin();
         for (auto const& v : obj)
         {
             auto vref = db.Create(lock, v);
@@ -1216,9 +1236,9 @@ template <> struct RecordTraits<shared_string>
     template <typename TDb>
     static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, shared_string const& obj, Record<shared_string>& rec)
     {
-        rec.blobSize = static_cast<uint32_t>(obj.size());
-        char* data   = reinterpret_cast<char*>(&rec.blobSize + 1);
-        std::copy(obj.data(), obj.data() + rec.blobSize, data);
+        static_assert(sizeof(Record<shared_string>) == sizeof(impl::Blob));
+        auto spn = rec.template AsSpan<char>();
+        std::copy(obj.begin(), obj.end(), spn.begin());
     }
 };
 
@@ -1384,9 +1404,7 @@ template <typename K, typename V> struct Stencil::Visitor<Stencil::Database::Rec
     using TObj = Stencil::Database::Record<std::unordered_map<K, V>>;
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        using MapItem = typename Stencil::Database::RecordTraits<std::unordered_map<K, V>>::MapItem;
-        std::span<const MapItem> data(reinterpret_cast<MapItem const*>((&obj.blobSize) + 1), obj.blobSize / sizeof(MapItem));
-        for (auto item : data) { lambda(item.k, item.v); }
+        for (auto item : obj.Items()) { lambda(item.k, item.v); }
     }
 };
 

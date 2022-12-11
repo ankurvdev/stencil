@@ -20,8 +20,9 @@ struct DatabaseTester
     }
 
     CLASS_DELETE_COPY_AND_MOVE(DatabaseTester);
-    void
-    check(Stencil::Database::RWLock& /*lock*/, Objects::SimpleObject1 const& ref, Stencil::Database::Record<Objects::SimpleObject1> const& rec)
+    void check(Stencil::Database::RWLock& /*lock*/,
+               Objects::SimpleObject1 const&                            ref,
+               Stencil::Database::Record<Objects::SimpleObject1> const& rec)
     {
         // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
         REQUIRE(rec._fieldtracker == ref._fieldtracker);
@@ -34,8 +35,9 @@ struct DatabaseTester
         REQUIRE(rec.val5.data == ref.val5);
     }
 
-    void
-    check(Stencil::Database::RWLock& /*lock*/, Objects::SimpleObject2 const& ref, Stencil::Database::Record<Objects::SimpleObject2> const& rec)
+    void check(Stencil::Database::RWLock& /*lock*/,
+               Objects::SimpleObject2 const&                            ref,
+               Stencil::Database::Record<Objects::SimpleObject2> const& rec)
     {
         // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
         REQUIRE(rec._fieldtracker == ref._fieldtracker);
@@ -58,12 +60,44 @@ struct DatabaseTester
         REQUIRE(rec.value.data == ref.value);
     }
 
-    void check(Stencil::Database::RWLock& /*lock*/, Objects::DictObject const& /*ref*/, Stencil::Database::Record<Objects::DictObject> const& /*rec*/)
+    void check(Stencil::Database::RWLock& lock,
+               std::unordered_map<uint32_t, std::unordered_map<uint32_t, ::Objects::SimpleObject1>> const& /*ref*/,
+               Stencil::Database::Record<std::unordered_map<uint32_t, std::unordered_map<uint32_t, ::Objects::SimpleObject1>>> const& rec)
+    {
+        for (auto item : rec.Items())
+        {
+            auto krec = datastore->Get(lock, item.k);
+            auto vrec = datastore->Get(lock, item.v);
+        }
+    }
+
+    void check(Stencil::Database::RWLock& lock,
+               std::unordered_map<uint32_t, ::Objects::SimpleObject1> const& /*ref*/,
+               Stencil::Database::Record<std::unordered_map<uint32_t, ::Objects::SimpleObject1>> const& rec)
+    {
+        for (auto item : rec.Items())
+        {
+            auto krec = datastore->Get(lock, item.k);
+            auto vrec = datastore->Get(lock, item.v);
+        }
+    }
+    void check(Stencil::Database::RWLock& lock,
+               std::unordered_map<shared_string, Stencil::Timestamp> const& /*ref*/,
+               Stencil::Database::Record<std::unordered_map<shared_string, Stencil::Timestamp>> const& rec)
+    {
+        for (auto item : rec.Items())
+        {
+            auto krec = datastore->Get(lock, item.k);
+            auto vrec = datastore->Get(lock, item.v);
+        }
+    }
+
+    void check(Stencil::Database::RWLock& lock, Objects::DictObject const& ref, Stencil::Database::Record<Objects::DictObject> const& rec)
     {
         // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
-        // check(lock, ref.dictdict, datastore->Get(lock, rec.dictdict));
-        // check(lock, ref.dictobj, datastore->Get(lock, rec.dictobj));
-        // check(lock, ref.dictval, datastore->Get(lock, rec.dictval));
+        check(lock, ref.dictdict, datastore->Get(lock, rec.dictdict));
+        check(lock, ref.dictobj, datastore->Get(lock, rec.dictobj));
+        check(lock, ref.dictval, datastore->Get(lock, rec.dictval));
     }
 
     void check(Stencil::Database::RWLock& /*lock*/, Objects::List const& /*ref*/, Stencil::Database::Record<Objects::List> const& /*rec*/)
@@ -79,7 +113,25 @@ struct DatabaseTester
         auto [id1, obj1] = datastore->Create(lock, refobj1);
         REQUIRE(id1.id > 0);
         check(lock, refobj1, obj1);
-        generated_ids.insert({Stencil::Database::TypeId<::Objects::SimpleObject1, DataStore>, id1.id});
+        generated_ids.insert({Stencil::Database::TypeId<decltype(refobj1), DataStore>, id1.id});
+    }
+
+    void test_create_dict(Stencil::Database::RWLock& lock)
+    {
+        auto refobj1     = tester.create_dict();
+        auto [id1, obj1] = datastore->Create(lock, refobj1);
+        REQUIRE(id1.id > 0);
+        check(lock, refobj1, obj1);
+        generated_ids.insert({Stencil::Database::TypeId<decltype(refobj1), DataStore>, id1.id});
+    }
+
+    void test_create_list(Stencil::Database::RWLock& lock)
+    {
+        auto refobj1     = tester.create_list();
+        auto [id1, obj1] = datastore->Create(lock, refobj1);
+        REQUIRE(id1.id > 0);
+        check(lock, refobj1, obj1);
+        generated_ids.insert({Stencil::Database::TypeId<decltype(refobj1), DataStore>, id1.id});
     }
 
     void test_create_simple_object2(Stencil::Database::RWLock& lock)
@@ -94,7 +146,7 @@ struct DatabaseTester
         static_assert(Stencil::Database::TypeId<::Objects::SimpleObject2, DataStore>
                           != Stencil::Database::TypeId<::Objects::SimpleObject1, DataStore>,
                       "Cannot have two types equal");
-        generated_ids.insert({Stencil::Database::TypeId<::Objects::SimpleObject2, DataStore>, id1.id});
+        generated_ids.insert({Stencil::Database::TypeId<decltype(refobj1), DataStore>, id1.id});
     }
 
     void test_create_nested_object(Stencil::Database::RWLock& lock)
@@ -112,26 +164,42 @@ struct DatabaseTester
         static_assert(Stencil::Database::TypeId<::Objects::SimpleObject2, DataStore>
                           != Stencil::Database::TypeId<::Objects::SimpleObject1, DataStore>,
                       "Cannot have two types equal");
-        generated_ids.insert({Stencil::Database::TypeId<::Objects::SimpleObject2, DataStore>, id1.id});
+        generated_ids.insert({Stencil::Database::TypeId<decltype(refobj1), DataStore>, id1.id});
+    }
+
+    template <typename T>
+    void dump(Stencil::Database::RWLock& lock, Stencil::Database::Ref<T> const& /*ref*/, Stencil::Database::Record<T> const& rec)
+    {
+        auto recview = Stencil::Database::CreateRecordView(*datastore, lock, rec);
+        lines.push_back(Stencil::Json::Stringify(recview));
     }
 
     std::unique_ptr<DataStore>                  datastore = std::make_unique<DataStore>();
     ObjectsTester                               tester;
     std::unordered_multimap<uint16_t, uint32_t> generated_ids;
     std::filesystem::path                       filepath = "SaveAndLoad.bin"s;
+    std::vector<std::string>                    lines;
 };
 
 TEST_CASE("Database", "[database]")
 {
     DatabaseTester tester;
-    size_t         i = 0;
-
-    auto lock = tester.datastore->LockForEdit();
-    for (i = 0; i < 1000; i++) { tester.test_create_simple_object1(lock); }
-    for (i = 0; i < 1000; i++) { tester.test_create_simple_object2(lock); }
-    for (i = 0; i < 1000; i++) { tester.test_create_nested_object(lock); }
-
-    tester.datastore->Flush(lock);
+    for (size_t count = 1; count < 1000; count = count * 10)
+    {
+        auto lock = tester.datastore->LockForEdit();
+        for (size_t i = 0; i < count; i++) { tester.test_create_simple_object1(lock); }
+        for (auto [ref, rec] : tester.datastore->Items<Objects::SimpleObject1>(lock)) { tester.dump(lock, ref, rec); }
+        for (size_t i = 0; i < count; i++) { tester.test_create_dict(lock); }
+        for (auto [ref, rec] : tester.datastore->Items<Objects::DictObject>(lock)) { tester.dump(lock, ref, rec); }
+        for (size_t i = 0; i < count; i++) { tester.test_create_list(lock); }
+        for (auto [ref, rec] : tester.datastore->Items<Objects::List>(lock)) { tester.dump(lock, ref, rec); }
+        for (size_t i = 0; i < count; i++) { tester.test_create_simple_object2(lock); }
+        for (auto [ref, rec] : tester.datastore->Items<Objects::SimpleObject2>(lock)) { tester.dump(lock, ref, rec); }
+        for (size_t i = 0; i < count; i++) { tester.test_create_nested_object(lock); }
+        for (auto [ref, rec] : tester.datastore->Items<Objects::NestedObject>(lock)) { tester.dump(lock, ref, rec); }
+        tester.datastore->Flush(lock);
+    }
+    // Json Export
 }
 #if 0
 // Count objects in a new session
