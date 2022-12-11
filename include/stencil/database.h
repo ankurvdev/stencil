@@ -882,7 +882,7 @@ template <ConceptRecord T, typename TDb, typename TLock> struct Iterator
 
     // auto operator*() { return this->Get(); }
 
-    auto Get()
+    auto& Get()
     {
         if (_db == nullptr) { throw std::runtime_error("Reached the end of iteration"); }
         return this->_db->Get(*this->_lock, Stencil::Database::Ref<T>(this->_current));
@@ -917,7 +917,7 @@ template <ConceptRecord T, typename TDb, typename TLock> struct Iterator
         *this = End();
     }
 
-    std::tuple<Stencil::Database::Ref<T>, Stencil::Database::Record<T>> operator*()
+    std::tuple<Stencil::Database::Ref<T>, Stencil::Database::Record<T> const&> operator*()
     {
         // TODO("TODO2");
         return {static_cast<Stencil::Database::Ref<T>>(this->_current), this->Get()};
@@ -959,6 +959,10 @@ template <typename T, typename TDb> void WriteToBuffer(TDb& db, RWLock const& lo
 
 struct Blob
 {
+    Blob()  = default;
+    ~Blob() = default;
+    CLASS_DEFAULT_COPY_AND_MOVE(Blob);
+
     uint32_t blobSize{};
 
     private:
@@ -981,6 +985,18 @@ template <typename T, typename TRec> auto AsBlob(Record<TRec>)
 namespace Stencil::Database    // Class/Inferface
 {
 
+constexpr size_t _bit_ceil(size_t v) noexcept
+{
+    v--;
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+    v++;
+    return v;
+}
+
 constexpr uint32_t _bit_ceil(uint32_t v) noexcept
 {
     v--;
@@ -1002,10 +1018,11 @@ template <ConceptRecord... Ts> struct Database
 
     CLASS_DELETE_COPY_AND_MOVE(Database);
 
-    template <ConceptRecord T> Record<T> Get(ROLock const& lock, Ref<T> const& ref)
+    template <ConceptRecord T> Record<T> const& Get(ROLock const& lock, Ref<T> const& ref)
     {
         impl::Ref dbId{ref};
         // assert(ref.id.Valid());
+        assert(dbId.page != 0);
         assert(dbId.page < _pagemgr->GetPageCount());
         static constexpr uint32_t RecordSize = static_cast<uint32_t>(RecordTraits<T>::Size());
 
@@ -1047,10 +1064,14 @@ template <ConceptRecord... Ts> struct Database
                 // Record<T> obj;
                 // return RefAndEditT<TObj>(RefT<TObj>{}, obj);
             }
-            auto recsize        = _bit_ceil(static_cast<uint32_t>(datasize));
-            auto [ref, slotobj] = _Allocate<0>(lock, TypeId<T, ThisT>, recsize);
+            auto recsize = datasize + sizeof(impl::Blob);
+            if (recsize > impl::PageForRecord<0>::MaxRecordSize) { throw std::logic_error("Large Blobs not yet implemented"); }
+            recsize = _bit_ceil(recsize);
+            recsize = std::min(impl::PageForRecord<0>::MaxRecordSize, recsize);
+
+            auto [ref, slotobj] = _Allocate<0>(lock, TypeId<T, ThisT>, static_cast<uint32_t>(recsize));
             auto rec            = reinterpret_cast<Record<T>*>(slotobj.data.data());
-            rec->blobSize       = recsize;
+            rec->blobSize       = static_cast<uint32_t>(datasize);
             RecordTraits<T>::WriteToBuffer(*this, lock, obj, *rec);
             // assert(ref.id.Valid());
             assert(impl::Ref{ref}.page < _pagemgr->GetPageCount());
@@ -1077,16 +1098,17 @@ template <ConceptRecord... Ts> struct Database
                     // Record<T> obj;
                     // return RefAndEditT<TObj>(RefT<TObj>{}, obj);
                 }
-                if (datasize > impl::PageForRecord<0>::MaxRecordSize) { throw std::logic_error("Large Blobs not yet implemented"); }
+                auto recsize = datasize + sizeof(impl::Blob);
+                if (recsize > impl::PageForRecord<0>::MaxRecordSize) { throw std::logic_error("Large Blobs not yet implemented"); }
 
-                auto recsize = _bit_ceil(static_cast<uint32_t>(datasize));
-                recsize      = std::min(static_cast<uint32_t>(impl::PageForRecord<0>::MaxRecordSize), recsize);
+                recsize = _bit_ceil(recsize);
+                recsize = std::min(impl::PageForRecord<0>::MaxRecordSize, recsize);
 
-                auto [ref, slotobj] = _Allocate<0>(lock, TypeId<T, ThisT>, recsize);
+                auto [ref, slotobj] = _Allocate<0>(lock, TypeId<T, ThisT>, static_cast<uint32_t>(recsize));
                 assert(impl::Ref{ref}.page < _pagemgr->GetPageCount());
 
                 auto rec      = reinterpret_cast<Record<T>*>(slotobj.data.data());
-                rec->blobSize = recsize;
+                rec->blobSize = static_cast<uint32_t>(datasize);
                 RecordTraits<T>::WriteToBuffer(*this, lock, obj, *rec);
                 return RefAndRecord<T>(ref, *rec);
             }
@@ -1152,6 +1174,10 @@ namespace Stencil::Database
 
 template <> struct Record<shared_string> : impl::Blob
 {
+    Record()  = default;
+    ~Record() = default;
+    CLASS_DEFAULT_COPY_AND_MOVE(Record);
+
     std::string_view get() const { return std::string_view(Data<char const>(), blobSize); }
 };
 
@@ -1163,6 +1189,9 @@ template <ConceptRecord K, ConceptRecord V> struct MapItem
 
 template <ConceptRecord K, ConceptRecord V> struct Record<std::unordered_map<K, V>> : impl::Blob
 {
+    Record()  = default;
+    ~Record() = default;
+    CLASS_DEFAULT_COPY_AND_MOVE(Record);
     auto Items() { return AsSpan<MapItem<K, V>>(); }
     auto Items() const { return AsSpan<MapItem<K, V>>(); }
 };
@@ -1193,7 +1222,13 @@ template <ConceptRecord K, ConceptRecord V> struct RecordTraits<std::unordered_m
 };
 
 template <ConceptRecord T> struct Record<std::vector<T>> : impl::Blob
-{};
+{
+    Record()  = default;
+    ~Record() = default;
+    CLASS_DEFAULT_COPY_AND_MOVE(Record);
+    auto Items() { return AsSpan<Ref<T>>(); }
+    auto Items() const { return AsSpan<Ref<T>>(); }
+};
 
 template <ConceptRecord T> struct RecordTraits<std::vector<T>>
 {
@@ -1369,20 +1404,32 @@ template <Stencil::Database::ConceptRecordView T> struct Stencil::Visitor<T>
             Stencil::Visitor<RecType>::VisitAll(obj._rec, [&](auto key, auto subobj) {
                 if constexpr (Stencil::Database::IsRef<std::remove_cvref_t<decltype(subobj)>>)
                 {
-                    auto vrec  = obj._db.Get(obj._lock, subobj);
-                    auto vrecv = Stencil::Database::CreateRecordView(obj._db, obj._lock, vrec);
+                    auto& vrec  = obj._db.Get(obj._lock, subobj);
+                    auto  vrecv = Stencil::Database::CreateRecordView(obj._db, obj._lock, vrec);
                     if constexpr (Stencil::Database::IsRef<std::remove_cvref_t<decltype(key)>>)
                     {
-                        auto krec  = obj._db.Get(obj._lock, key);
-                        auto krecv = Stencil::Database::CreateRecordView(obj._db, obj._lock, krec);
+                        auto& krec  = obj._db.Get(obj._lock, key);
+                        auto  krecv = Stencil::Database::CreateRecordView(obj._db, obj._lock, krec);
                         lambda(krecv, vrecv);
                     }
-                    else { lambda(key, Stencil::Database::CreateRecordView(obj._db, obj._lock, vrec)); }
+                    else { lambda(key, vrecv); }
                 }
                 else { lambda(key, subobj.get()); }
             });
         }
-        else { TODO("TODO2"); }
+        else if constexpr (Stencil::ConceptPreferIterable<Type>)
+        {
+            Stencil::Visitor<RecType>::VisitAll(obj._rec, [&](auto k, auto subobj) {
+                if constexpr (Stencil::Database::IsRef<std::remove_cvref_t<decltype(subobj)>>)
+                {
+                    auto& vrec     = obj._db.Get(obj._lock, subobj);
+                    auto  itemrecv = Stencil::Database::CreateRecordView(obj._db, obj._lock, vrec);
+                    lambda(k, itemrecv);
+                }
+                else { lambda(k, subobj.get()); }
+            });
+        }
+        else { throw std::logic_error("Unknown Type"); }
     }
 };
 
@@ -1411,9 +1458,10 @@ template <typename K, typename V> struct Stencil::Visitor<Stencil::Database::Rec
 template <typename T> struct Stencil::Visitor<Stencil::Database::Record<std::vector<T>>>
 {
     using TObj = Stencil::Database::Record<std::vector<T>>;
-    template <typename T1, typename TLambda> static void VisitAll([[maybe_unused]] T1& /*obj*/, [[maybe_unused]] TLambda&& /*lambda*/)
+    template <typename T1, typename TLambda> static void VisitAll([[maybe_unused]] T1& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        TODO("TODO2");
+        size_t index = 0;
+        for (auto item : obj.Items()) { lambda(index++, item); }
     }
 };
 

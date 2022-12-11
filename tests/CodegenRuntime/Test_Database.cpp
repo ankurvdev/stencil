@@ -95,9 +95,10 @@ struct DatabaseTester
     void check(Stencil::Database::RWLock& lock, Objects::DictObject const& ref, Stencil::Database::Record<Objects::DictObject> const& rec)
     {
         // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
-        check(lock, ref.dictdict, datastore->Get(lock, rec.dictdict));
-        check(lock, ref.dictobj, datastore->Get(lock, rec.dictobj));
         check(lock, ref.dictval, datastore->Get(lock, rec.dictval));
+        check(lock, ref.dictobj, datastore->Get(lock, rec.dictobj));
+        check(lock, ref.dictdict, datastore->Get(lock, rec.dictdict));
+
     }
 
     void check(Stencil::Database::RWLock& /*lock*/, Objects::List const& /*ref*/, Stencil::Database::Record<Objects::List> const& /*rec*/)
