@@ -35,7 +35,8 @@ template <typename T> struct Stencil::TypeTraits<T, typename std::enable_if_t<st
 };
 
 template <typename T, size_t N>
-requires(!ConceptPrimitives64Bit<std::array<T, N>>) struct Stencil::TypeTraits<std::array<T, N>>
+    requires(!ConceptPrimitives64Bit<std::array<T, N>>)
+struct Stencil::TypeTraits<std::array<T, N>>
 {
     using Categories = std::tuple<Stencil::Category::Iterable>;
 };

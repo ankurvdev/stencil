@@ -10,7 +10,6 @@ SUPPRESS_STL_WARNINGS
 #include <variant>
 SUPPRESS_WARNINGS_END
 
-
 namespace Stencil
 {
 template <typename T> struct EnumTraits;

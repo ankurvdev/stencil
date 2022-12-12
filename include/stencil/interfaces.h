@@ -21,7 +21,7 @@ template <typename TEventArgs> struct IEventHandler
 
 template <typename TImpl, typename TEventArgs> struct EventHandler : public IEventHandler<TEventArgs>
 {
-    EventHandler()  = default;
+    EventHandler()           = default;
     ~EventHandler() override = default;
 
     virtual void HandleEvent(TEventArgs const& args) override { static_cast<TImpl*>(this)->OnEvent(args); }
@@ -60,4 +60,3 @@ template <typename T> struct InterfaceT
 };
 
 }    // namespace Stencil
-

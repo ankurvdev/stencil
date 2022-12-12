@@ -15,41 +15,41 @@
 #include <unordered_map>
 #include <vector>
 
-#define CLASS_DEFAULT_COPY_AND_MOVE(name)         \
-    name(name const&) = default;            \
-    name(name&&)      = default;            \
+#define CLASS_DEFAULT_COPY_AND_MOVE(name)   \
+    name(name const&)            = default; \
+    name(name&&)                 = default; \
     name& operator=(name const&) = default; \
-    name& operator=(name&&) = delete
+    name& operator=(name&&)      = delete
 
 #define DELETE_MOVE_ASSIGNMENT(name)        \
-    name(name const&) = default;            \
-    name(name&&)      = default;            \
+    name(name const&)            = default; \
+    name(name&&)                 = default; \
     name& operator=(name const&) = default; \
-    name& operator=(name&&) = delete
+    name& operator=(name&&)      = delete
 
 #define DELETE_MOVE_AND_COPY_ASSIGNMENT(name) \
-    name(name const&) = default;              \
-    name(name&&)      = default;              \
+    name(name const&)            = default;   \
+    name(name&&)                 = default;   \
     name& operator=(name const&) = delete;    \
-    name& operator=(name&&) = delete
+    name& operator=(name&&)      = delete
 
 #define DELETE_COPY_AND_MOVE(name)         \
-    name(name const&) = delete;            \
-    name(name&&)      = delete;            \
+    name(name const&)            = delete; \
+    name(name&&)                 = delete; \
     name& operator=(name const&) = delete; \
-    name& operator=(name&&) = delete
+    name& operator=(name&&)      = delete
 
-#define DELETE_COPY_DEFAULT_MOVE(name)     \
-    name(name const&) = delete;            \
-    name(name&&)      = default;           \
-    name& operator=(name const&) = delete; \
-    name& operator=(name&&) = default
+#define DELETE_COPY_DEFAULT_MOVE(name)      \
+    name(name const&)            = delete;  \
+    name(name&&)                 = default; \
+    name& operator=(name const&) = delete;  \
+    name& operator=(name&&)      = default
 
-#define ONLY_MOVE_CONSTRUCT(name)          \
-    name(name const&) = delete;            \
-    name(name&&)      = default;           \
-    name& operator=(name const&) = delete; \
-    name& operator=(name&&) = delete
+#define ONLY_MOVE_CONSTRUCT(name)           \
+    name(name const&)            = delete;  \
+    name(name&&)                 = default; \
+    name& operator=(name const&) = delete;  \
+    name& operator=(name&&)      = delete
 
 #if !defined TODO
 #define TODO(...) throw std::logic_error("Not Implemented")
@@ -245,10 +245,7 @@ struct Expression
                     }
                 }
             }
-            else
-            {
-                newexpr->AddString(Str::Copy(p.text));
-            }
+            else { newexpr->AddString(Str::Copy(p.text)); }
         }
 
         assert(!newexpr->_empty());
@@ -333,14 +330,8 @@ struct Expression
         Str::Type Stringify() const
         {
             if (piecetype == PieceType::String) { return text; }
-            else if (piecetype == PieceType::Expr)
-            {
-                return expr->Stringify();
-            }
-            else
-            {
-                throw std::logic_error("Invalid Piece Type");
-            }
+            else if (piecetype == PieceType::Expr) { return expr->Stringify(); }
+            else { throw std::logic_error("Invalid Piece Type"); }
         }
     };
 

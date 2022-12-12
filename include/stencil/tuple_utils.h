@@ -24,10 +24,7 @@ template <typename TI, typename T, typename... Ts> constexpr size_t TupleIndexOf
     else
     {
         if constexpr (sizeof...(Ts) == 0) { static_assert(sizeof...(Ts) != 0, "Cannot Match anything in tuple"); }
-        else
-        {
-            return TupleIndexOf<TI, Ts...>(index + 1);
-        }
+        else { return TupleIndexOf<TI, Ts...>(index + 1); }
     }
 }
 }    // namespace Stencil

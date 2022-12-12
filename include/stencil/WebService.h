@@ -248,7 +248,7 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
             using TKey = typename Stencil::TypeTraitsForIndexable<TArgsStruct>::Key;
             TKey key{};
             Stencil::SerDesRead<Stencil::ProtocolString>(key, keystr);
-            auto &jsonval = valjson; // Clang complains about capturing localbinding variables
+            auto& jsonval = valjson;    // Clang complains about capturing localbinding variables
             Visitor<TArgsStruct>::VisitKey(args, key, [&](auto& val) { Stencil::SerDesRead<Stencil::ProtocolJsonVal>(val, jsonval); });
         }
         return args;

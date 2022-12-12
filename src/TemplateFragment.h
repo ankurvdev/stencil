@@ -14,8 +14,8 @@ struct TemplateFragment
 
     // Debug Info
     std::wstring sourceFileName;
-    size_t      rowstart;
-    size_t      rowend;
+    size_t       rowstart;
+    size_t       rowend;
 };
 
 struct Template

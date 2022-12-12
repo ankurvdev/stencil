@@ -119,10 +119,7 @@ template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolCLI>
                         SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
                         fmt::print(ss, "=");
                     }
-                    else
-                    {
-                        fmt::print(ss, ",");
-                    }
+                    else { fmt::print(ss, ","); }
                     type = 0;
                     SerDes<std::remove_cvref_t<decltype(v1)>, ProtocolString>::Write(ss, v1);
                 }
@@ -186,10 +183,7 @@ template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolCLI>
                     Visitor<TVal>::IteratorBegin(it, val);
                     valid = true;
                 }
-                else
-                {
-                    Visitor<TVal>::IteratorMoveNext(it, val);
-                }
+                else { Visitor<TVal>::IteratorMoveNext(it, val); }
 
                 if (!Visitor<TVal>::IteratorValid(it, val)) { throw std::runtime_error("Cannot Visit Next Item on the iterable"); }
 
@@ -198,10 +192,7 @@ template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolCLI>
                 Visitor<TVal>::Visit(it, val, [&](auto& val2) {
                     using SubTVal = std::remove_cvref_t<decltype(val2)>;
                     if constexpr (ConceptHasProtocolString<SubTVal>) { SerDes<SubTVal, ProtocolString>::Read(val2, subval); }
-                    else
-                    {
-                        throw std::logic_error("Unsupported type");
-                    }
+                    else { throw std::logic_error("Unsupported type"); }
                 });
 
                 if (ei == std::string_view::npos) break;
@@ -211,10 +202,7 @@ template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolCLI>
 
             return;
         }
-        else
-        {
-            _Error();
-        }
+        else { _Error(); }
     }
 
     template <typename Context> static auto Read(T& obj, Context& ctx)
@@ -289,10 +277,7 @@ template <Stencil::ConceptIterable T> struct SerDes<T, ProtocolCLI>
                 Visitor<T>::IteratorBegin(it, obj);
                 valid = true;
             }
-            else
-            {
-                Visitor<T>::IteratorMoveNext(it, obj);
-            }
+            else { Visitor<T>::IteratorMoveNext(it, obj); }
             if (!Visitor<T>::IteratorValid(it, obj)) throw std::runtime_error("Cannot Visit Next Item on the iterable");
 
             Visitor<T>::Visit(it, obj, [&](auto& val) { SerDes<std::remove_cvref_t<decltype(val)>, ProtocolCLI>::Read(val, ctx); });
@@ -342,7 +327,8 @@ template <size_t N> struct SerDes<std::array<char, N>, ProtocolCLI>
 };
 
 template <size_t N>
-requires(N <= 4) struct SerDes<std::array<uint16_t, N>, ProtocolCLI>
+    requires(N <= 4)
+struct SerDes<std::array<uint16_t, N>, ProtocolCLI>
 {
     using TObj = std::array<uint16_t, N>;
 
