@@ -1,6 +1,7 @@
 #include "ObjectsTester.h"
 #include "TestUtils.h"
 
+using namespace Catch::literals;
 using namespace std::literals;
 using DataStore = Stencil::Database::Database<::Objects::NestedObject>;
 static_assert(Stencil::Database::TypeId<::Objects::SimpleObject1, DataStore> > 0);
@@ -32,7 +33,7 @@ struct DatabaseTester
         REQUIRE(rec.val3.data == ref.val3);
         REQUIRE(rec.val4.id > 0);
         // REQUIRE(obj1.val4 == refobj1.val4);
-        REQUIRE(rec.val5.data == ref.val5);
+        REQUIRE(rec.val5.data == Catch::Approx(ref.val5));
     }
 
     void check(Stencil::Database::RWLock& /*lock*/,
@@ -43,7 +44,7 @@ struct DatabaseTester
         REQUIRE(rec._fieldtracker == ref._fieldtracker);
         // REQUIRE(obj1.lastmodified == refobj1.lastmodified); TODO2
         REQUIRE(rec.val1.data == ref.val1);
-        REQUIRE(rec.val2.data == ref.val2);
+        REQUIRE(rec.val2.data == Catch::Approx(ref.val2));
         REQUIRE(rec.val3.data == ref.val3);
         REQUIRE(rec.val4.data == ref.val4);
         REQUIRE(rec.val5.data == ref.val5);
@@ -66,8 +67,8 @@ struct DatabaseTester
     {
         for (auto item : rec.Items())
         {
-            auto krec = datastore->Get(lock, item.k);
-            auto vrec = datastore->Get(lock, item.v);
+            /*auto krec =*/ datastore->Get(lock, item.k);
+            /*auto vrec =*/ datastore->Get(lock, item.v);
         }
     }
 
@@ -77,8 +78,8 @@ struct DatabaseTester
     {
         for (auto item : rec.Items())
         {
-            auto krec = datastore->Get(lock, item.k);
-            auto vrec = datastore->Get(lock, item.v);
+            /* auto krec = */ datastore->Get(lock, item.k);
+            /* auto vrec =  */datastore->Get(lock, item.v);
         }
     }
     void check(Stencil::Database::RWLock& lock,
@@ -87,8 +88,8 @@ struct DatabaseTester
     {
         for (auto item : rec.Items())
         {
-            auto krec = datastore->Get(lock, item.k);
-            auto vrec = datastore->Get(lock, item.v);
+            /* auto krec = */ datastore->Get(lock, item.k);
+            /* auto vrec = */ datastore->Get(lock, item.v);
         }
     }
 

@@ -6,8 +6,6 @@
 
 namespace IDL::Lang::Thrift
 {
-void Context::LoadFile(std::filesystem::path const& inputFile)
-{}
 
 std::shared_ptr<IDL::Struct> CreateStruct(Context& context, Str::Type& id, FieldList& fields, TypeAttributeList& map)
 {
