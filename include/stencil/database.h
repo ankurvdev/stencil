@@ -515,6 +515,12 @@ template <size_t RecordSize> struct PageForRecord
         mask |= 0x1 << index % 32;
         _slots->at(index / 32) = mask;
     }
+    void _ClearSlot(size_t index)
+    {
+        auto mask = _slots->at(index / 32);
+        mask &= ~(0x1 << index % 32);
+        _slots->at(index / 32) = mask;
+    }
     template <typename TLock> bool Full(TLock const& /*guardscope*/) { return _page._availableSlot >= SlotCount; }
 
     SlotObj Allocate([[maybe_unused]] RWLock const& guardscope)
@@ -535,6 +541,7 @@ template <size_t RecordSize> struct PageForRecord
     {
         auto& rec = _records->at(slot);
         std::fill(rec.begin(), rec.end(), uint8_t{0});
+        _ClearSlot(slot);
         _page.MarkSlotFree(slot);
         return 0;
     }
@@ -1036,11 +1043,12 @@ template <ConceptRecord... Ts> struct Database
     template <ConceptRecord T> auto Items(ROLock& lock) { return impl::RangeForView<T, ThisT, ROLock>(lock, *this); }
     template <ConceptRecord T> void Delete(RWLock const& lock, Ref<T> const& ref)
     {
-        auto                      rec        = Get(lock, ref);
+        auto& rec = Get(lock, ref);
+
         static constexpr uint32_t RecordSize = static_cast<uint32_t>(RecordTraits<T>::Size());
         if constexpr (ConceptComplex<T>)
         {
-            Stencil::Visitor<Record<T>>::VisitAll(rec, [&](auto k, auto v) {
+            Stencil::Visitor<Record<T>>::VisitAll(rec, [&](auto k, auto& v) {
                 if constexpr (IsRef<std::remove_cvref_t<decltype(k)>>) { Delete(lock, k); }
                 if constexpr (IsRef<std::remove_cvref_t<decltype(v)>>) { Delete(lock, v); }
             });
@@ -1401,7 +1409,7 @@ template <Stencil::Database::ConceptRecordView T> struct Stencil::Visitor<T>
         if constexpr (Stencil::ConceptPreferPrimitive<Type>) {}
         else if constexpr (Stencil::ConceptPreferIndexable<Type>)
         {
-            Stencil::Visitor<RecType>::VisitAll(obj._rec, [&](auto key, auto subobj) {
+            Stencil::Visitor<RecType>::VisitAll(obj._rec, [&](auto key, auto& subobj) {
                 if constexpr (Stencil::Database::IsRef<std::remove_cvref_t<decltype(subobj)>>)
                 {
                     auto& vrec  = obj._db.Get(obj._lock, subobj);
@@ -1419,7 +1427,7 @@ template <Stencil::Database::ConceptRecordView T> struct Stencil::Visitor<T>
         }
         else if constexpr (Stencil::ConceptPreferIterable<Type>)
         {
-            Stencil::Visitor<RecType>::VisitAll(obj._rec, [&](auto k, auto subobj) {
+            Stencil::Visitor<RecType>::VisitAll(obj._rec, [&](auto k, auto& subobj) {
                 if constexpr (Stencil::Database::IsRef<std::remove_cvref_t<decltype(subobj)>>)
                 {
                     auto& vrec     = obj._db.Get(obj._lock, subobj);

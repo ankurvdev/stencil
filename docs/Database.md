@@ -3,6 +3,10 @@
 TODO
 
 1. Timestamp<T> support and other storage inherited attributes
+2. Differentiate between nested records and top-level records of the same type
+	- Items : Iterator should not emit out nested records. Only toplevel records
+	- Delete: should not be allowed on nested records.
+
 
 ## Type Categories
 

@@ -98,7 +98,6 @@ struct DatabaseTester
         check(lock, ref.dictval, datastore->Get(lock, rec.dictval));
         check(lock, ref.dictobj, datastore->Get(lock, rec.dictobj));
         check(lock, ref.dictdict, datastore->Get(lock, rec.dictdict));
-
     }
 
     void check(Stencil::Database::RWLock& /*lock*/, Objects::List const& /*ref*/, Stencil::Database::Record<Objects::List> const& /*rec*/)
@@ -175,6 +174,20 @@ struct DatabaseTester
         lines.push_back(Stencil::Json::Stringify(recview));
     }
 
+    template <typename T> void delete_half(Stencil::Database::RWLock& lock)
+    {
+        size_t i = 0;
+        for (auto it = generated_ids.cbegin(); it != generated_ids.cend();)
+        {
+            if (it->first == Stencil::Database::TypeId<T, DataStore> && ((++i) % 2 == 0))
+            {
+                datastore->Delete(lock, Stencil::Database::Ref<T>{it->second});
+                lines.push_back(fmt::format("{{\"delete\": {}}}", it->second));
+                it = generated_ids.erase(it);
+            }
+            else { ++it; }
+        }
+    }
     std::unique_ptr<DataStore>                  datastore = std::make_unique<DataStore>();
     ObjectsTester                               tester;
     std::unordered_multimap<uint16_t, uint32_t> generated_ids;
@@ -198,6 +211,13 @@ TEST_CASE("Database", "[database]")
         for (auto [ref, rec] : tester.datastore->Items<Objects::SimpleObject2>(lock)) { tester.dump(lock, ref, rec); }
         for (size_t i = 0; i < count; i++) { tester.test_create_nested_object(lock); }
         for (auto [ref, rec] : tester.datastore->Items<Objects::NestedObject>(lock)) { tester.dump(lock, ref, rec); }
+
+        tester.delete_half<Objects::NestedObject>(lock);
+        tester.delete_half<Objects::DictObject>(lock);
+        tester.delete_half<Objects::List>(lock);
+        tester.delete_half<Objects::SimpleObject2>(lock);
+        tester.delete_half<Objects::SimpleObject1>(lock);
+
         tester.datastore->Flush(lock);
     }
     // Json Export
