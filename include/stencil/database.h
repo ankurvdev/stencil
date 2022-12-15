@@ -1000,7 +1000,7 @@ template <typename T, typename TRec> auto AsBlob(Record<TRec>)
 namespace Stencil::Database    // Class/Inferface
 {
 
-constexpr size_t _bit_ceil(size_t v) noexcept
+static constexpr inline size_t _bit_ceil(size_t v) noexcept
 {
     v--;
     v |= v >> 1;
@@ -1012,7 +1012,7 @@ constexpr size_t _bit_ceil(size_t v) noexcept
     return v;
 }
 
-constexpr uint32_t _bit_ceil(uint32_t v) noexcept
+static constexpr inline uint32_t _bit_ceil(uint32_t v) noexcept
 {
     v--;
     v |= v >> 1;
