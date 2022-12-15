@@ -264,8 +264,8 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
 
 struct UnorderedMapTester : public ObjectsTester
 {
-    TestReplay    replay;
-    auto dict_value_create(shared_string const& key)
+    TestReplay replay;
+    auto       dict_value_create(shared_string const& key)
     {
         auto ts = create_timestamp();
         return replay.Test([&](auto& txn) {

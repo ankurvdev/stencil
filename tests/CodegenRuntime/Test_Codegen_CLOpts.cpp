@@ -13,7 +13,7 @@ template <typename TStruct, typename... TArgs> TStruct ParseArgs(TArgs&&... args
     std::string_view testargv[] = {std::forward<TArgs>(args)...};
     return Stencil::CLI::Parse<TStruct>(testargv);
 }
-#if defined                                                              TODO1
+#if defined TODO1
 
 template <typename TException> struct ExceptionMatcher : public Catch::MatcherBase<TException>
 {
@@ -167,13 +167,13 @@ TEST_CASE("CodeGen::CommandLineArgs::Help")
                                   CommandLineArgs<::CLOpts1::CommandLineOptions>::HelpException>::value);
     std::vector<std::string> output;
     auto                     linesoflines = {RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("--help"),
-                         RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("install", "--help"),
-                         RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("queue", "--help"),
-                         RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("pause", "--help"),
-                         RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("cancel", "--help"),
-                         RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("resume", "--help"),
-                         RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("update", "--help"),
-                         RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("hydrate", "--help")};
+                                             RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("install", "--help"),
+                                             RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("queue", "--help"),
+                                             RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("pause", "--help"),
+                                             RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("cancel", "--help"),
+                                             RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("resume", "--help"),
+                                             RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("update", "--help"),
+                                             RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("hydrate", "--help")};
 
     for (auto& lines : linesoflines)
     {
