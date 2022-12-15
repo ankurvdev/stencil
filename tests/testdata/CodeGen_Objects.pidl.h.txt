@@ -463,6 +463,8 @@ template <> struct Stencil::Database::RecordTraits<Objects::SimpleObject1>
         typename Stencil::Database::RecordTraits<uint8_t>::RecordTypes,
         typename Stencil::Database::RecordTraits<shared_string>::RecordTypes,
         typename Stencil::Database::RecordTraits<double>::RecordTypes,
+        typename Stencil::Database::RecordTraits<::Stencil::OptionalPropsT<::Objects::SimpleObject1>>::RecordTypes,
+        typename Stencil::Database::RecordTraits<::Stencil::TimestampedT<::Objects::SimpleObject1>>::RecordTypes,
         std::tuple<Objects::SimpleObject1>>;
 
     static constexpr size_t Size() { return sizeof(Stencil::Database::Record<Objects::SimpleObject1>); }
@@ -473,6 +475,8 @@ template <> struct Stencil::Database::RecordTraits<Objects::SimpleObject1>
                               Objects::SimpleObject1 const&                      obj,
                               Stencil::Database::Record<Objects::SimpleObject1>& rec)
     {
+        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<::Stencil::OptionalPropsT<::Objects::SimpleObject1> const&>(obj), static_cast<Stencil::Database::Record<::Stencil::OptionalPropsT<::Objects::SimpleObject1>>&>(rec));
+        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<::Stencil::TimestampedT<::Objects::SimpleObject1> const&>(obj), static_cast<Stencil::Database::Record<::Stencil::TimestampedT<::Objects::SimpleObject1>>&>(rec));
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.val1, rec.val1);
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.val2, rec.val2);
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.val3, rec.val3);
@@ -763,6 +767,7 @@ template <> struct Stencil::Database::RecordTraits<Objects::ListObject>
     using RecordTypes = Stencil::Database::tuple_cat_t<
         typename Stencil::Database::RecordTraits<uint32_t>::RecordTypes,
         typename Stencil::Database::RecordTraits<::Objects::SimpleObject1>::RecordTypes,
+        typename Stencil::Database::RecordTraits<::Stencil::TimestampedT<::Objects::ListObject>>::RecordTypes,
         std::tuple<Objects::ListObject>>;
 
     static constexpr size_t Size() { return sizeof(Stencil::Database::Record<Objects::ListObject>); }
@@ -773,6 +778,7 @@ template <> struct Stencil::Database::RecordTraits<Objects::ListObject>
                               Objects::ListObject const&                      obj,
                               Stencil::Database::Record<Objects::ListObject>& rec)
     {
+        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<::Stencil::TimestampedT<::Objects::ListObject> const&>(obj), static_cast<Stencil::Database::Record<::Stencil::TimestampedT<::Objects::ListObject>>&>(rec));
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.value, rec.value);
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.obj1, rec.obj1);
     }
@@ -1365,6 +1371,7 @@ template <> struct Stencil::Database::RecordTraits<Objects::List>
 {
     using RecordTypes = Stencil::Database::tuple_cat_t<
         typename Stencil::Database::RecordTraits<std::vector<::Objects::ListObject>>::RecordTypes,
+        typename Stencil::Database::RecordTraits<::Stencil::TimestampedT<::Objects::List>>::RecordTypes,
         std::tuple<Objects::List>>;
 
     static constexpr size_t Size() { return sizeof(Stencil::Database::Record<Objects::List>); }
@@ -1375,6 +1382,7 @@ template <> struct Stencil::Database::RecordTraits<Objects::List>
                               Objects::List const&                      obj,
                               Stencil::Database::Record<Objects::List>& rec)
     {
+        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<::Stencil::TimestampedT<::Objects::List> const&>(obj), static_cast<Stencil::Database::Record<::Stencil::TimestampedT<::Objects::List>>&>(rec));
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.listobj, rec.listobj);
     }
 };
@@ -1894,6 +1902,8 @@ template <> struct Stencil::Database::RecordTraits<Objects::SimpleObject2>
         typename Stencil::Database::RecordTraits<int64_t>::RecordTypes,
         typename Stencil::Database::RecordTraits<uint16_t>::RecordTypes,
         typename Stencil::Database::RecordTraits<int16_t>::RecordTypes,
+        typename Stencil::Database::RecordTraits<::Stencil::OptionalPropsT<::Objects::SimpleObject2>>::RecordTypes,
+        typename Stencil::Database::RecordTraits<::Stencil::TimestampedT<::Objects::SimpleObject2>>::RecordTypes,
         std::tuple<Objects::SimpleObject2>>;
 
     static constexpr size_t Size() { return sizeof(Stencil::Database::Record<Objects::SimpleObject2>); }
@@ -1904,6 +1914,8 @@ template <> struct Stencil::Database::RecordTraits<Objects::SimpleObject2>
                               Objects::SimpleObject2 const&                      obj,
                               Stencil::Database::Record<Objects::SimpleObject2>& rec)
     {
+        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<::Stencil::OptionalPropsT<::Objects::SimpleObject2> const&>(obj), static_cast<Stencil::Database::Record<::Stencil::OptionalPropsT<::Objects::SimpleObject2>>&>(rec));
+        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<::Stencil::TimestampedT<::Objects::SimpleObject2> const&>(obj), static_cast<Stencil::Database::Record<::Stencil::TimestampedT<::Objects::SimpleObject2>>&>(rec));
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.val1, rec.val1);
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.val2, rec.val2);
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.val3, rec.val3);
@@ -2323,6 +2335,7 @@ template <> struct Stencil::Database::RecordTraits<Objects::NestedObject>
         typename Stencil::Database::RecordTraits<::Objects::ListObject>::RecordTypes,
         typename Stencil::Database::RecordTraits<::Objects::DictObject>::RecordTypes,
         typename Stencil::Database::RecordTraits<::Objects::List>::RecordTypes,
+        typename Stencil::Database::RecordTraits<::Stencil::TimestampedT<::Objects::NestedObject>>::RecordTypes,
         std::tuple<Objects::NestedObject>>;
 
     static constexpr size_t Size() { return sizeof(Stencil::Database::Record<Objects::NestedObject>); }
@@ -2333,6 +2346,7 @@ template <> struct Stencil::Database::RecordTraits<Objects::NestedObject>
                               Objects::NestedObject const&                      obj,
                               Stencil::Database::Record<Objects::NestedObject>& rec)
     {
+        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<::Stencil::TimestampedT<::Objects::NestedObject> const&>(obj), static_cast<Stencil::Database::Record<::Stencil::TimestampedT<::Objects::NestedObject>>&>(rec));
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.obj1, rec.obj1);
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.obj2, rec.obj2);
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.obj3, rec.obj3);
