@@ -65,7 +65,7 @@ struct Tester : ObjectsTester
         SSEListener(std::string_view const& url) : _url(url) {}
         CLASS_DELETE_COPY_AND_MOVE(SSEListener);
 
-        bool _ChunkCallback(const char* data, uint64_t len)
+        bool _ChunkCallback(const char* data, size_t len)
         {
             std::unique_lock<std::mutex> guard(_mutex);
             _sseData.push_back(std::string(data, len));
@@ -80,7 +80,7 @@ struct Tester : ObjectsTester
             bool                   reconnect = true;
             while (!_stopRequested && reconnect)
             {
-                auto res = _ssecli.Get(_url, headers, [&](const char* data, uint64_t len) { return this->_ChunkCallback(data, len); });
+                auto res = _ssecli.Get(_url, headers, [&](const char* data, size_t len) { return this->_ChunkCallback(data, len); });
                 if (res)
                 {
                     // printf("HTTP %i\n", res->status);
