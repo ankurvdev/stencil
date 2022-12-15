@@ -754,6 +754,12 @@ struct PageManager
         _Initialize();
     }
 
+    void Init(std::ifstream&& istrm)
+    {
+        _serdes.AttachStream(std::move(istrm));
+        _Initialize();
+    }
+
     void Init()
     {
         _serdes.InitInMemory();
@@ -926,7 +932,6 @@ template <ConceptRecord T, typename TDb, typename TLock> struct Iterator
 
     std::tuple<Stencil::Database::Ref<T>, Stencil::Database::Record<T> const&> operator*()
     {
-        // TODO("TODO2");
         return {static_cast<Stencil::Database::Ref<T>>(this->_current), this->Get()};
     }
 
@@ -1162,6 +1167,7 @@ template <ConceptRecord... Ts> struct Database
 
     void Init(std::filesystem::path const& path) { _pagemgr->Init(path); }
     void Init() { _pagemgr->Init(); }
+    void Init(std::ifstream&& ifstrm) { _pagemgr->Init(std::move(ifstrm)); }
 
     void Flush(RWLock const& /*guardscope*/) { _pagemgr->Flush(); }
 
@@ -1266,35 +1272,22 @@ template <ConceptRecord T> struct RecordTraits<std::unique_ptr<T>>
     template <typename TDb>
     static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, ObjectType const& /*obj*/, Record<ObjectType>& /*rec*/)
     {
-        TODO("TODO2");
+        throw std::logic_error("unique_ptr<T> for database not implemented");
     }
 };
 
-template <> struct RecordTraits<shared_string>
+template <typename T> struct RecordTraits<shared_stringT<T>>
 {
-    using RecordTypes = std::tuple<shared_string>;
+    using RecordTypes = std::tuple<shared_stringT<T>>;
     static constexpr size_t Size() { return 0; }
-    static uint32_t         GetDataSize(shared_string const& obj) { return static_cast<uint32_t>(obj.size()); }
+    static uint32_t         GetDataSize(shared_stringT<T> const& obj) { return static_cast<uint32_t>(obj.size() * sizeof(T)); }
 
     template <typename TDb>
-    static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, shared_string const& obj, Record<shared_string>& rec)
+    static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, shared_stringT<T> const& obj, Record<shared_stringT<T>>& rec)
     {
-        static_assert(sizeof(Record<shared_string>) == sizeof(impl::Blob));
-        auto spn = rec.template AsSpan<char>();
+        static_assert(sizeof(Record<shared_stringT<T>>) == sizeof(impl::Blob));
+        auto spn = rec.template AsSpan<T>();
         std::copy(obj.begin(), obj.end(), spn.begin());
-    }
-};
-
-template <> struct RecordTraits<shared_wstring>
-{
-    using RecordTypes = std::tuple<shared_wstring>;
-    static constexpr size_t Size() { return 0; }
-
-    using ObjectType = shared_wstring;
-    template <typename TDb>
-    static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, ObjectType const& /*obj*/, Record<ObjectType>& /*rec*/)
-    {
-        TODO("TODO2");
     }
 };
 
@@ -1354,19 +1347,6 @@ template <typename T, typename TDb> struct RecordView
     Record<T> const& _rec;
 };
 
-#if 0
-template <typename T, typename TDb> struct RecordView<T, TDb, RWLock>
-{
-    RecordView(TDb& db, RWLock& lock, Record<T>& rec) : _db(db), _lock(lock), _rec(rec) {}
-    ~RecordView() = default;
-    CLASS_DELETE_COPY_AND_MOVE(RecordView);
-
-    TDb&       _db;
-    RWLock&    _lock;
-    Record<T>& _rec;
-};
-#endif
-
 template <typename T> struct RecordViewTraits;
 template <typename T, typename TDb> struct RecordViewTraits<RecordView<T, TDb>>
 {
@@ -1380,11 +1360,6 @@ template <typename T, typename TDb> RecordView<T, TDb> CreateRecordView(TDb& db,
 {
     return RecordView<T, TDb>(db, lock, rec);
 }
-
-// template <typename T, typename TDb> RecordView<T, TDb> CreateRecordView(TDb& db, RWLock& lock, Record<T>& rec)
-//{
-//     return RecordView<T, TDb>(db, lock, rec);
-// }
 
 template <typename T> static constexpr bool               IsRecordView                     = false;
 template <typename T, typename TDb> static constexpr bool IsRecordView<RecordView<T, TDb>> = true;

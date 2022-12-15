@@ -2,19 +2,18 @@
 
 TODO
 
-1. Timestamp<T> support and other storage inherited attributes
-2. Differentiate between nested records and top-level records of the same type
-	- Items : Iterator should not emit out nested records. Only toplevel records
-	- Delete: should not be allowed on nested records.
-
+- Differentiate between nested records and top-level records of the same type
+  - Items : Iterator should not emit out nested records. Only toplevel records
+  - Delete: should not be allowed on nested records.
+- Shared - Blobs and obects
+- Json Deserialization - Is it needed ? Do we really need to deserialize directly to database ?
 
 ## Type Categories
 
 Types are bucketed into the following categories
 
 - Fixed
-  - Size is known at compile time
-  - Trivial Types , POD Structs, Primitives
+  - Size is known at compile time, Eg: Trivial Types , POD Structs, Primitives
   - Record is same as the type
 - Blobs
   - Size is not known at compile time
@@ -41,28 +40,19 @@ This defines how a type is stored in the database
 
 ### `RecordNest<T>`
 
-This define how a type is store within a Record
+This define how a type is store within a Record (nesting)
 Its either `Ref<Record<T>>` or `Record<T>`
 
 - Fixed : Same as `Record<T>` by value
 - Blobs : `Ref<Record<T>>`
-- Complex : `Ref<Record<T>>`
-
-- `unique_ptr<T>` : `Ref<Record<T>>`
+- Complex : `Ref<Record<T>>` for some of the 
 
 ### `RecordView<T>`
-
-Needed for visitor.
-db and lock needed to dereference (on-demand) load of objects
-`RecordView(db, lock, RecordNest<T>)`
 A wrapper class to help incremental / on-demand access to data
+Contains db-ref and lock ref 
+Needed for visitor and json serialization etc that cannot pass along those additional context objects.
 
-- Fixed : Same as RecordStorage
-- Blobs : Deserialized from the record.
-- Complex
-  - Fixed : (primitives, structs etc) Nested
-  - Blobs : Ref'ed
-  - Complex : Ref'ed
+`RecordView(db, lock, RecordNest<T>)`
 
 ### CRUD for complex types
 
@@ -96,16 +86,6 @@ A wrapper class to help incremental / on-demand access to data
 
 ### Types
 
-Broadly speaking there are 2 categories of Types
-
-- Serialized-Types: Can be memory mapped directly
-  - Fixed-Size - Compile time size available
-  - Blobs - Length available at runtime or managed
-
-- Complex Types: Data spread across multiple types
-  - CRUD
-
-Cases to handle:
 
 Type        | Example                                      | Record Types
 ------------|----------------------------------------------|---------------------------------------

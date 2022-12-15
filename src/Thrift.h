@@ -64,7 +64,7 @@ class Context
     public:
     Context(IDL::Program& p, TypeDefinitions& t) : program(p), typeDefinitions(t) { typeDefinitions.LoadIntoProgram(p); }
 
-    ONLY_MOVE_CONSTRUCT(Context);
+    CLASS_ONLY_MOVE_CONSTRUCT(Context);
 
     struct ExceptionInfo
     {

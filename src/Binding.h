@@ -14,43 +14,6 @@
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
-
-#define CLASS_DEFAULT_COPY_AND_MOVE(name)   \
-    name(name const&)            = default; \
-    name(name&&)                 = default; \
-    name& operator=(name const&) = default; \
-    name& operator=(name&&)      = delete
-
-#define DELETE_MOVE_ASSIGNMENT(name)        \
-    name(name const&)            = default; \
-    name(name&&)                 = default; \
-    name& operator=(name const&) = default; \
-    name& operator=(name&&)      = delete
-
-#define DELETE_MOVE_AND_COPY_ASSIGNMENT(name) \
-    name(name const&)            = default;   \
-    name(name&&)                 = default;   \
-    name& operator=(name const&) = delete;    \
-    name& operator=(name&&)      = delete
-
-#define DELETE_COPY_AND_MOVE(name)         \
-    name(name const&)            = delete; \
-    name(name&&)                 = delete; \
-    name& operator=(name const&) = delete; \
-    name& operator=(name&&)      = delete
-
-#define DELETE_COPY_DEFAULT_MOVE(name)      \
-    name(name const&)            = delete;  \
-    name(name&&)                 = default; \
-    name& operator=(name const&) = delete;  \
-    name& operator=(name&&)      = default
-
-#define ONLY_MOVE_CONSTRUCT(name)           \
-    name(name const&)            = delete;  \
-    name(name&&)                 = default; \
-    name& operator=(name const&) = delete;  \
-    name& operator=(name&&)      = delete
-
 #if !defined TODO
 #define TODO(...) throw std::logic_error("Not Implemented")
 #endif
@@ -299,7 +262,7 @@ struct Expression
         Piece(std::unique_ptr<BindingExpr>&& exprIn) : piecetype(PieceType::Expr), expr(std::move(exprIn)) {}
         Piece(Str::Type&& textIn) : piecetype(PieceType::String), text(std::move(textIn)) {}
         ~Piece() = default;
-        ONLY_MOVE_CONSTRUCT(Piece);
+        CLASS_ONLY_MOVE_CONSTRUCT(Piece);
 
         enum class PieceType
         {
@@ -578,7 +541,7 @@ struct AttributeMap
 
 struct BindingContext
 {
-    DELETE_COPY_AND_MOVE(BindingContext);
+    CLASS_DELETE_COPY_AND_MOVE(BindingContext);
 
     BindingContext()
     {
@@ -682,7 +645,7 @@ struct BindingContext
         Scope(BindingContext& context, IBindable& ptr) : Scope(context._stack, ptr) {}
         Scope(std::vector<std::reference_wrapper<IBindable>>& stack, IBindable& ptr) : _stack(stack) { _stack.push_back(std::ref(ptr)); }
         ~Scope() { _stack.pop_back(); }
-        DELETE_COPY_AND_MOVE(Scope);
+        CLASS_DELETE_COPY_AND_MOVE(Scope);
         std::vector<std::reference_wrapper<IBindable>>& _stack;
     };
 
@@ -728,7 +691,7 @@ struct BindableBase : public IBindable, public ValueT<Type::Object>
 {
     BindableBase()           = default;
     ~BindableBase() override = default;
-    DELETE_COPY_AND_MOVE(BindableBase);
+    CLASS_DELETE_COPY_AND_MOVE(BindableBase);
 
     void AddBaseObject(std::shared_ptr<BindableBase> const& basePtr)
     {
@@ -749,7 +712,7 @@ struct BindableBase : public IBindable, public ValueT<Type::Object>
             {
                 std::shared_ptr<Expression> _expr;
                 Value(std::shared_ptr<Expression>&& expr) : _expr(std::move(expr)) {}
-                DELETE_COPY_AND_MOVE(Value);
+                CLASS_DELETE_COPY_AND_MOVE(Value);
                 Expression const& GetExpr() override { return *_expr; }
             };
 
@@ -882,7 +845,7 @@ template <typename TParent, typename TObject> struct BindableParent : public vir
     BindableParent() : _bindableComponent(std::make_shared<BindableComponent>(*this)) { Register(_bindableComponent); }
 #pragma warning(pop)
 
-    DELETE_COPY_AND_MOVE(BindableParent);
+    CLASS_DELETE_COPY_AND_MOVE(BindableParent);
 
     std::shared_ptr<BindableComponent> _bindableComponent;
 };
@@ -891,7 +854,7 @@ template <typename TOwner, typename TObject> struct BindableObjectArray : public
 {
     BindableObjectArray() { Register(_bindableComponent); }
     ~BindableObjectArray() override = default;
-    DELETE_COPY_AND_MOVE(BindableObjectArray);
+    CLASS_DELETE_COPY_AND_MOVE(BindableObjectArray);
 
     void AddToArray(std::shared_ptr<BindableBase> obj) { _bindableComponent->_array.push_back(obj); }
 
@@ -901,7 +864,7 @@ template <typename TOwner, typename TObject> struct BindableObjectArray : public
                                public std::enable_shared_from_this<BindableComponent>
 
     {
-        DELETE_MOVE_AND_COPY_ASSIGNMENT(BindableComponent);
+        CLASS_DELETE_MOVE_AND_COPY_ASSIGNMENT(BindableComponent);
 
         BindableComponent() = default;
         virtual size_t    GetKeyCount() override { return 1; }
@@ -1054,7 +1017,7 @@ template <typename TOwner, typename TParent = TOwner> struct BindableT : public 
         for (auto& c : _bindableComponent) Register(c);
     }
     ~BindableT() override = default;
-    DELETE_COPY_AND_MOVE(BindableT);
+    CLASS_DELETE_COPY_AND_MOVE(BindableT);
 
     std::vector<std::shared_ptr<BindableComponent>> _bindableComponent;
 };
@@ -1065,7 +1028,7 @@ template <typename TOwner, typename TParent = TOwner> struct BindableDictionaryT
     {
         if (map != nullptr) { AddAttributes(map); }
     }
-    DELETE_COPY_AND_MOVE(BindableDictionaryT);
+    CLASS_DELETE_COPY_AND_MOVE(BindableDictionaryT);
 
     struct BindableComponent : public IBindableComponent
     {

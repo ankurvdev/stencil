@@ -32,5 +32,5 @@ struct Template
     FileType                             fileType;
 
     Template() = default;
-    DELETE_COPY_DEFAULT_MOVE(Template);
+    CLASS_DELETE_COPY_DEFAULT_MOVE(Template);
 };

@@ -178,8 +178,6 @@ if (BUILD_TESTING)
         tests/HandwrittenRuntime/Test_Handwritten_CLOpts.cpp
         tests/HandwrittenRuntime/Test_Handwritten_Json.cpp
         tests/HandwrittenRuntime/Test_Handwritten_Binary.cpp
-        tests/HandwrittenRuntime/Test_Database2.cpp
-        #tests/HandwrittenRuntime/Test_WebService_Handwritten.cpp
     )
 
     target_compile_definitions(runtime_tests PRIVATE HAVE_NLOHMANN_JSON HAVE_CPP_HTTPLIB)

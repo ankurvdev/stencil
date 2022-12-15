@@ -27,7 +27,7 @@ struct DatabaseTester
     {
         // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
         REQUIRE(rec._fieldtracker == ref._fieldtracker);
-        // REQUIRE(obj1.lastmodified == refobj1.lastmodified); TODO2
+        REQUIRE(rec.lastmodified == ref.lastmodified);
         REQUIRE(rec.val1.data == ref.val1);
         REQUIRE(rec.val2.data == ref.val2);
         REQUIRE(rec.val3.data == ref.val3);
@@ -42,7 +42,7 @@ struct DatabaseTester
     {
         // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
         REQUIRE(rec._fieldtracker == ref._fieldtracker);
-        // REQUIRE(obj1.lastmodified == refobj1.lastmodified); TODO2
+        REQUIRE(rec.lastmodified == ref.lastmodified);
         REQUIRE(rec.val1.data == ref.val1);
         REQUIRE(rec.val2.data == Catch::Approx(ref.val2));
         REQUIRE(rec.val3.data == ref.val3);
@@ -57,7 +57,7 @@ struct DatabaseTester
     {
         check(lock, ref.obj1, datastore->Get(lock, rec.obj1));
         // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
-        // REQUIRE(rec.lastmodified == ref.lastmodified); TODO2
+        REQUIRE(rec.lastmodified == ref.lastmodified);
         REQUIRE(rec.value.data == ref.value);
     }
 
@@ -67,8 +67,8 @@ struct DatabaseTester
     {
         for (auto item : rec.Items())
         {
-            /*auto krec =*/ datastore->Get(lock, item.k);
-            /*auto vrec =*/ datastore->Get(lock, item.v);
+            /*auto krec =*/datastore->Get(lock, item.k);
+            /*auto vrec =*/datastore->Get(lock, item.v);
         }
     }
 
@@ -79,7 +79,7 @@ struct DatabaseTester
         for (auto item : rec.Items())
         {
             /* auto krec = */ datastore->Get(lock, item.k);
-            /* auto vrec =  */datastore->Get(lock, item.v);
+            /* auto vrec =  */ datastore->Get(lock, item.v);
         }
     }
     void check(Stencil::Database::RWLock& lock,
@@ -223,57 +223,66 @@ TEST_CASE("Database", "[database]")
     }
     // Json Export
 }
-#if 0
-// Count objects in a new session
+
+TEST_CASE("Database File Storage", "[database]")
 {
-    UserData::UserData database;
-    database.Init(filepath);
+    auto dbFileName = std::filesystem::path("SaveAndLoadFile.bin"s);
+    if (std::filesystem::exists(dbFileName)) std::filesystem::remove(dbFileName);
 
+    // Constructor With Path Creates New File and Writes Header
     {
-        auto   lock = database.LockForEdit();
-        size_t j    = 0;
-        for (auto const [ref, obj] : database.Objects<UserData::RemoteHost>(lock))
         {
-            REQUIRE(!obj.identity.Empty());
-            auto name = obj.name.Get(lock, database);
-            auto uri  = obj.uri.Get(lock, database);
-            REQUIRE(name == data[j].name);
-            REQUIRE(uri == data[j].uri);
-            ++j;
+            DataStore datastore;
+            datastore.Init(dbFileName);
         }
-        REQUIRE(j == std::size(data));
+        REQUIRE(std::filesystem::exists(dbFileName));
+        REQUIRE(std::filesystem::file_size(dbFileName) == (8192 * 2 + 80));
     }
 
+    // Constructor With Path Reads Existing File but doesnt touch it
     {
-        // Create More objects
-        auto lock = database.LockForEdit();
-        for (auto const& d : data)
+        auto time = std::filesystem::file_time_type::clock::now();
         {
-            auto [id1, obj1] = database.Create<UserData::Identity>(lock, d.name, d.uri, L"", L"", L"");
-            auto [id2, obj2] = database.Create<UserData::RemoteHost>(lock, d.name, d.uri, obj1.id);
-            REQUIRE(id1.Valid());
-            REQUIRE(id2.Valid());
-            auto name = obj2.name.Get(lock, database);
-            auto uri  = obj2.uri.Get(lock, database);
-            REQUIRE(name == d.name);
-            REQUIRE(uri == d.uri);
+            DataStore datastore;
+            datastore.Init(dbFileName);
+        }
+        if (std::filesystem::last_write_time(dbFileName).time_since_epoch().count() > time.time_since_epoch().count())
+        {
+            FAIL("Failed. Database was modified");
         }
     }
+
+    // Constructor With IStream reads file
     {
-        auto lock = database.LockForRead();
-        // Count of objects should be double now
-        size_t j = 0;
-        for (auto const [ref, obj] : database.Objects<UserData::RemoteHost>(lock))
+        auto time = std::filesystem::file_time_type::clock::now();
         {
-            auto name = obj.name.Get(lock, database);
-            auto uri  = obj.uri.Get(lock, database);
-            REQUIRE(name == data[j % std::size(data)].name);
-            REQUIRE(uri == data[j % std::size(data)].uri);
-            ++j;
+            DataStore datastore;
+            datastore.Init(std::ifstream(dbFileName));
+            ObjectsTester tester;
+            auto          lock    = datastore.LockForEdit();
+            auto          refobj1 = tester.create_simple_object1();
+            auto [id1, obj1]      = datastore.Create(lock, refobj1);
         }
-        REQUIRE(j == 2 * std::size(data));
+
+        if (std::filesystem::last_write_time(dbFileName).time_since_epoch().count() > time.time_since_epoch().count())
+        {
+            FAIL("Database changed");
+        }
+    }
+
+    // Empty Constructor for in-memory datastore
+    {
+        {
+            DataStore datastore;
+            
+            datastore.Init();
+            ObjectsTester tester;
+            auto          lock    = datastore.LockForEdit();
+            auto          refobj1 = tester.create_simple_object1();
+            auto [id1, obj1]      = datastore.Create(lock, refobj1);
+        }
+        {
+            // TODO : Verify nothing written
+        }
     }
 }
-std::filesystem::remove(filepath);
-}
-#endif
