@@ -5,16 +5,10 @@
 #include "protocol_json.h"
 #include "protocol_string.h"
 
-#include "mutatorsaccessors.h"
-#include "optionalprops.h"
+#include "interfaces.h"
 #include "shared_tree.h"
 #include "transactions.h"
-#include "visitor.h"
 
-#include "Database2.h"
+#include "database.h"
 #include "ref.h"
 #include "shared_tree.h"
-
-#if defined HAVE_CPP_HTTPLIB
-#include "WebService.h"
-#endif

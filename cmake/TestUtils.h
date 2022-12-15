@@ -10,10 +10,10 @@ SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
 SUPPRESS_FMT_WARNINGS
 #include <rapidjson/document.h>
+#include <rapidjson/istreamwrapper.h>
 #include <rapidjson/rapidjson.h>
 SUPPRESS_WARNINGS_END
 #endif
-
 
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
@@ -94,7 +94,7 @@ inline auto WriteStrmResourse(std::string const& actualstring, std::string_view 
     return outf;
 }
 
-inline void PrintDiff(std::vector<std::string> const& actualstring, std::vector<std::string> const& expectedstring)
+inline void PrintLinesDiff(std::vector<std::string> const& actualstring, std::vector<std::string> const& expectedstring)
 {
 
     dtl::Diff<std::string, std::vector<std::string>> d(expectedstring, actualstring);
@@ -293,68 +293,17 @@ inline std::vector<std::string> ReadBinStream(std::istream& ss)
     return data;
 }
 
-inline void CheckOutputAgainstStrResource(std::vector<std::string> const& actual, std::string_view const& resourcename)
+struct StrFormat
 {
-    auto testresname = fmt::format("{}{}", GeneratePrefixFromTestName(), resourcename);
-    auto expected    = actual;
-    for (auto const r : LOAD_RESOURCE_COLLECTION(testdata))
+    static auto ReadStream(std::istream& ss) { return ReadStrStream(ss); }
+    static auto WriteResource(std::vector<std::string> const& actualstring, std::string_view const& resname)
     {
-        auto resname = wstring_to_string(r.name());
-        if (resname.find(testresname) == std::string::npos) continue;
-        std::string       str(r.string());
-        std::stringstream ss(str);
-        expected = ReadStrStream(ss);
-        if (actual == expected) return;
+        return WriteStrResourse(actualstring, resname);
     }
-    PrintDiff(actual, expected);
-    auto outf = WriteStrResourse(actual, testresname);
-    FAIL_CHECK(fmt::format("Comparison Failed: Output: \n{}", outf.string()));
-}
+    static auto PrintDiff(std::vector<std::string> const& actualstring, std::istream& ss) { PrintLinesDiff(actualstring, ReadStream(ss)); }
 
-inline void CheckOutputAgainstBinResource(std::vector<std::string> const& actual, std::string_view const& resourcename)
-{
-    auto testresname = fmt::format("{}{}", GeneratePrefixFromTestName(), resourcename);
-    auto expected    = actual;
-    for (auto const r : LOAD_RESOURCE_COLLECTION(testdata))
-    {
-        auto resname = wstring_to_string(r.name());
-        if (resname.find(testresname) == std::string::npos) continue;
-        std::string       str(r.string());
-        std::stringstream ss(str);
-        expected = ReadBinStream(ss);
-        if (actual == expected) return;
-    }
-    PrintDiff(actual, expected);
-    auto outf = WriteBinResourse(actual, testresname);
-    FAIL_CHECK(fmt::format("Comparison Failed: Output: \n{}", outf.string()));
-}
-
-inline void CheckOutputAgainstStrResource(std::istream& instream, std::string_view const& resourcename)
-{
-    CheckOutputAgainstStrResource(ReadStrStream(instream), resourcename);
-}
-
-inline void CheckOutputAgainstBinResource(std::istream& instream, std::string_view const& resourcename)
-{
-    // std::ifstream         instream(actualf, std::ios::in | std::ios::binary);
-    std::vector<char> actualdata((std::istreambuf_iterator<char>(instream)), std::istreambuf_iterator<char>());
-    std::string       actual(actualdata.begin(), actualdata.end());
-
-    auto              testresname = fmt::format("{}{}", GeneratePrefixFromTestName(), resourcename);
-    std::vector<char> expecdted;
-    for (auto const r : LOAD_RESOURCE_COLLECTION(testdata))
-    {
-        auto resname = wstring_to_string(r.name());
-        if (resname.find(testresname) == std::string::npos) continue;
-        std::string expected(r.string());
-        if (actual == expected) return;
-    }
-
-    // PrintDiff(actual, expected);
-    auto outf = WriteStrmResourse(actual, testresname);
-    FAIL_CHECK(fmt::format("Comparison Failed: Output: \n{}", outf.string()));
-}
-#endif
+    static bool Compare(std::vector<std::string> const& actual, std::istream& ss) { return actual == ReadStream(ss); }
+};
 
 inline bool JsonStringEqual([[maybe_unused]] std::string const& lhs, [[maybe_unused]] std::string const& rhs)
 {
@@ -367,4 +316,55 @@ inline bool JsonStringEqual([[maybe_unused]] std::string const& lhs, [[maybe_unu
     throw std::logic_error("RapidJson needed");
 #endif
 }
+struct JsonFormat : StrFormat
+{
+    static bool Compare(std::vector<std::string> const& actual, std::istream& ss)
+    {
+
+        auto expected = ReadStrStream(ss);
+        if (actual.size() != expected.size()) return false;
+
+        for (size_t i = 0; i != actual.size(); i++)
+        {
+            if (!JsonStringEqual(actual[i], expected[i])) return false;
+        }
+        return true;
+    }
+};
+struct BinFormat
+{
+    static auto ReadStream(std::istream& ss) { return ReadBinStream(ss); }
+
+    static auto WriteResource(std::vector<std::string> const& actualstring, std::string_view const& resname)
+    {
+        return WriteBinResourse(actualstring, resname);
+    }
+    static auto PrintDiff(std::vector<std::string> const& /*actualstring*/, std::istream& /*ss*/) {}
+
+    static bool Compare(std::vector<std::string> const& actual, std::istream& ss) { return actual == ReadStream(ss); }
+};
+
+template <typename TFormat> inline bool _CheckResource(std::vector<std::string> const& actual, std::string_view const& resourcename)
+{
+    auto testresname = fmt::format("{}{}", GeneratePrefixFromTestName(), resourcename);
+    for (auto const r : LOAD_RESOURCE_COLLECTION(testdata))
+    {
+        auto resname = wstring_to_string(r.name());
+        if (resname.find(testresname) == std::string::npos) continue;
+        std::string       str(r.string());
+        std::stringstream ss(str);
+        if (TFormat::Compare(actual, ss)) return true;
+        TFormat::PrintDiff(actual, ss);
+    }
+    auto outf = TFormat::WriteResource(actual, testresname);
+    FAIL_CHECK(fmt::format("Comparison Failed: Output: \n{}", outf.string()));
+    return false;
+}
+
+template <typename TFormat> inline void CheckResource(std::vector<std::string> const& actual, std::string_view const& resourcename)
+{
+    _CheckResource<TFormat>(actual, resourcename);
+}
+#endif
+
 }    // namespace TestCommon

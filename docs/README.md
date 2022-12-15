@@ -1,5 +1,29 @@
 # README
 
+## Quick Start
+
+Scenarios
+
+- Json Parsing + Stringify [SerDes]
+- Command Line Args Parsing [SerDes]
+- Persistent Object Storage +CRUD [Database]
+- Object Mirroring and Delta updates [Transactions]
+- Web Services [Interfaces]
+- Python Bindings [Interfaces]
+
+Build : Supported Platforms : Linux, Android, Win32, UWP
+
+- Build Integration (CMake + Submodule)
+- Build Integration (CMake + Vcpkg)
+- Use your own templates, Language and types
+
+(Future Work - Contribute)
+
+- MySQL ORM [Database]
+- Bluetooth (BLE Gatt) Services [Interfaces]
+- MQTT Services [Interfaces]
+- Encrypted Storage [Database]
+
 ## Overview
 
 [![Build Status](https://dev.azure.com/ankurv/stencil/_apis/build/status/ankurvdev.stencil?branchName=main)](https://dev.azure.com/ankurv/stencil/_build/latest?definitionId=8&branchName=main)
@@ -145,7 +169,7 @@ C++ Code
 
 ```c++
 #include <UserData.pidl.h>
-#include <Database2.h>
+
 int main(int argc, char *argv[])
 {
 // TODO

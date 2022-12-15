@@ -49,7 +49,8 @@ template <typename T> struct Mutators<std::vector<T>>
     }
 
     template <typename TProtocol = Stencil::ProtocolBinary>
-    static std::vector<uint8_t> GenerateMutationData(uint8_t /* mutationIndex */, std::vector<T> const& /*fieldVal*/, size_t const& /* val */)
+    static std::vector<uint8_t>
+    GenerateMutationData(uint8_t /* mutationIndex */, std::vector<T> const& /*fieldVal*/, size_t const& /* val */)
     {
 #ifdef TODO1
         if (mutationIndex == 2)    // add

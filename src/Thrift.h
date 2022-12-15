@@ -30,7 +30,7 @@ using TypeAttributeList = std::shared_ptr<Binding::AttributeMap>;
 using Program   = std::optional<std::shared_ptr<IDL::Program>>;
 using Typedef   = std::optional<std::shared_ptr<IDL::Typedef>>;
 using Struct    = std::optional<std::shared_ptr<IDL::Struct>>;
-using Variant     = std::optional<std::shared_ptr<IDL::Variant>>;
+using Variant   = std::optional<std::shared_ptr<IDL::Variant>>;
 using Interface = std::optional<std::shared_ptr<IDL::Interface>>;
 
 // using InterfaceFunction    = std::optional<std::shared_ptr<IDL::InterfaceFunction>>;
@@ -53,7 +53,7 @@ using IdList              = std::vector<Str::Type>;
 
 using AttributeComponent     = std::pair<Str::Type, std::vector<Str::Type>>;
 using AttributeComponentList = std::unordered_map<Str::Type, std::vector<Str::Type>>;
-using ComponentList             = std::unordered_map<Str::Type, Str::Type>;
+using ComponentList          = std::unordered_map<Str::Type, Str::Type>;
 
 }    // namespace IDL::Lang::Thrift
 
@@ -62,9 +62,9 @@ namespace IDL::Lang::Thrift
 class Context
 {
     public:
-    Context(IDL::Program& p) : program(p) {}
+    Context(IDL::Program& p, TypeDefinitions& t) : program(p), typeDefinitions(t) { typeDefinitions.LoadIntoProgram(p); }
 
-    ONLY_MOVE_CONSTRUCT(Context);
+    CLASS_ONLY_MOVE_CONSTRUCT(Context);
 
     struct ExceptionInfo
     {
@@ -74,10 +74,12 @@ class Context
     };
     bool Debug() { return false; }
     void InitializeModelDataSources(const std::wstring_view& datasource) { program.InitializeModelDataSources(datasource); }
+    void LoadFile(std::filesystem::path const& fpath);
     void Import(Str::View const& file);
     void NotifyError(int line, int col, std::string const& msg) { errors.push_back(ExceptionInfo{line, col, msg}); }
 
     IDL::Program&              program;
+    TypeDefinitions&           typeDefinitions;
     Str::Type                  filename;
     std::vector<ExceptionInfo> errors;
 };

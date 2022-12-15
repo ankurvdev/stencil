@@ -14,8 +14,8 @@ struct TemplateFragment
 
     // Debug Info
     std::wstring sourceFileName;
-    size_t      rowstart;
-    size_t      rowend;
+    size_t       rowstart;
+    size_t       rowend;
 };
 
 struct Template
@@ -32,5 +32,5 @@ struct Template
     FileType                             fileType;
 
     Template() = default;
-    DELETE_COPY_DEFAULT_MOVE(Template);
+    CLASS_DELETE_COPY_DEFAULT_MOVE(Template);
 };

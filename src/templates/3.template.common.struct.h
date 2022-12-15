@@ -17,6 +17,9 @@ struct zzReturnType_NativeTypezz
 //<Template file="zzFileNamezz.h">
 #pragma once
 #include <stencil/stencil.h>
+//<Import>
+#include "zzNamezz.pidl.h"
+//</Import>
 
 // SECTION START: DECLARATIONS
 #if true
@@ -33,6 +36,10 @@ struct zzVariant_Namezz;
 
 //<Interface>
 struct zzInterface_Namezz;
+
+//<InterfaceObjectStore>
+struct zzInterface_Namezz_ObjectStore_zzNamezz;
+//</InterfaceObjectStore>
 //</Interface>
 }    // namespace zzProgram_Namezz
 
@@ -45,7 +52,12 @@ template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzVariant_Namezz>;
 //</Variant>
 
 //<Interface>
-template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz>;
+template <> struct Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz>;
+
+//<InterfaceObjectStore>
+template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>;
+//</InterfaceObjectStore>
+
 //</Interface>
 
 #endif
@@ -100,66 +112,10 @@ struct zzVariant_Namezz : public Stencil::VariantT<zzVariant_Namezz>
 //</Variant>
 
 //<Interface>
-struct zzInterface_Namezz : public Stencil::InterfaceT<zzInterface_Namezz>
-{
-    public:
-    struct Dummy
-    {};
-    struct ObjectStore;
-
-    //<InterfaceObjectStore>
-    struct ObjectStore_zzNamezz : zzObjectType_NativeTypezz, Database2::ObjectT<ObjectStore, ObjectStore_zzNamezz>
-    {};
-
-    //</InterfaceObjectStore>
-    struct ObjectStore : Dummy
-        //<InterfaceObjectStore>
-        ,
-                         public Database2::OwnerT<ObjectStore, ObjectStore_zzNamezz>
-    //</InterfaceObjectStore>
-    {};
-
-    zzInterface_Namezz()          = default;
-    virtual ~zzInterface_Namezz() = default;
-    DELETE_COPY_AND_MOVE(zzInterface_Namezz);
-    //<InterfaceFunction>
-    virtual zzReturnType_NativeTypezz zzInterfaceFunction_Namezz(
-        //<Args_Field Join=','>
-        zzFieldType_NativeTypezz const& zzNamezz
-        //</Args_Field>
-        )
-        = 0;
-    //</InterfaceFunction>
-
-    //<InterfaceFunction>
-    struct Args_zzInterfaceFunction_Namezz
-    {
-        //<Args_Field>
-        zzFieldType_NativeTypezz arg_zzNamezz{};
-        //</Args_Field>
-    };
-
-    zzReturnType_NativeTypezz zzInterfaceFunction_Namezz(Args_zzInterfaceFunction_Namezz const& args)
-    {
-        return this->zzInterfaceFunction_Namezz(
-            //<Args_Field Join=','>
-            args.zzNamezz
-            //</Args_Field>
-        );
-    }
-
-    zzReturnType_NativeTypezz zzInterfaceFunction_Namezz(Args_zzInterfaceFunction_Namezz&& args)
-    {
-        return this->zzInterfaceFunction_Namezz(
-            //<Args_Field Join=','>
-            std::move(args.zzNamezz)
-            //</Args_Field>
-        );
-    }
-
-    //</InterfaceFunction>
-    ObjectStore objects;
-};
+//<InterfaceObjectStore>
+struct zzInterface_Namezz_ObjectStore_zzNamezz : zzObjectType_NativeTypezz    //, Database::ObjectT<ObjectStore, ObjectStore_zzNamezz>
+{};
+//</InterfaceObjectStore>
 //</Interface>
 
 }    // namespace zzProgram_Namezz
@@ -387,7 +343,88 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz> : Stencil
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        //<Field>
+        lambda(Fields::Field_zzNamezz, obj.zzNamezz);
+        //</Field>
+    }
+};
+
+template <> struct Stencil::Comparator<zzProgram_Namezz::zzStruct_Namezz, zzProgram_Namezz::zzStruct_Namezz>
+{
+    using ThisType = zzProgram_Namezz::zzStruct_Namezz;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               //<Field>
+               && Stencil::AreEqual(obj1.zzNamezz, obj2.zzNamezz)
+            //</Field>
+            ;
+    }
+};
+
+template <>
+struct Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz> :
+    //<AttributeTag>
+    public Stencil::Database::Record<zzTagType_NativeTypezz>,
+    //</AttributeTag>
+    public Stencil::Database::RecordT<zzProgram_Namezz::zzStruct_Namezz>
+{
+    public:
+    //<Field>
+    Stencil::Database::RecordNest<zzFieldType_NativeTypezz>::Type zzNamezz{};
+    //</Field>
+};
+
+template <> struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzStruct_Namezz>
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<
+        //<Field>
+        typename Stencil::Database::RecordTraits<zzFieldType_NativeTypezz>::RecordTypes,
+        //</Field>
+        //<AttributeTag>
+        typename Stencil::Database::RecordTraits<zzTagType_NativeTypezz>::RecordTypes,
+        //</AttributeTag>
+        std::tuple<zzProgram_Namezz::zzStruct_Namezz>>;
+
+    static constexpr size_t Size() { return sizeof(Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz>); }
+
+    template <typename TDb>
+    static void WriteToBuffer(TDb&                                                          db,
+                              Stencil::Database::RWLock const&                              lock,
+                              zzProgram_Namezz::zzStruct_Namezz const&                      obj,
+                              Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz>& rec)
+    {
+         //<AttributeTag>
+        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<zzTagType_NativeTypezz const&>(obj), static_cast<Stencil::Database::Record<zzTagType_NativeTypezz>&>(rec));
+        //</AttributeTag>
+        //<Field>
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.zzNamezz, rec.zzNamezz);
+        //</Field>
+    }
+};
+
+template <>
+struct Stencil::Visitor<Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz>>
+    : Stencil::VisitorT<Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz>>
+{
+    using TData  = Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz>;
+    using Fields = TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        //<Field>
+        case Fields::Field_zzNamezz: return lambda(obj.zzNamezz);
+        //</Field>
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         //<Field>
         lambda(Fields::Field_zzNamezz, obj.zzNamezz);
@@ -398,106 +435,352 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz> : Stencil
 //</Struct>
 
 //<Interface>
-//<InterfaceFunction>
-template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args>
+
+//<InterfaceObjectStore>
+
+template <>
+struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>
+    : public Stencil::TypeTraits<zzObjectType_NativeTypezz>
+{};
+
+template <>
+struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>
+    : public Stencil::Database::RecordTraits<zzObjectType_NativeTypezz>
 {
-    //<Args_Field>
-
-    struct Traits_arg_zzNamezz
-    {
-        using TOwner     = zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args;
-        using TFieldType = zzFieldType_NativeTypezz;
-
-        static constexpr std::string_view Name() { return "zzNamezz"; }
-        static const ::Stencil::Flags     Flags() { return {}; }
-        static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
-        static constexpr auto TPropertyGetter() { return &TOwner::get_arg_zzNamezz; }
-        static constexpr auto TPropertySetter() { return &TOwner::set_arg_zzNamezz; }
-    };
-    //</Args_Field>
-
-    static constexpr ::Stencil::DataType Type() { return ::Stencil::DataType::Object; }
-    static constexpr std::string_view    Name() { return "zzInterfaceFunction_Namezz"; }
-    static constexpr auto TAttributeValue(const std::string_view& key) { return ::ReflectionServices::EmptyAttributeValue(key); }
-
-    using ThisType = zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args;
-
-    using Handler = ::ReflectionServices::ReflectedStructHandler<zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args
-                                                                     //<Args_Field Join=','>
-                                                                     Traits_arg_zzNamezz
-                                                                 //</Args_Field>
-                                                                 >;
+    using RecordTypes = Stencil::Database::tuple_cat_t<typename Stencil::Database::RecordTraits<zzObjectType_NativeTypezz>::RecordTypes,
+                                                       std::tuple<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>>;
 };
 
 template <>
-Stencil::Comparator<zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args,
-                    zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args>{
-    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2){
+struct Stencil::Database::Record<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>
+    : public Stencil::Database::Record<zzObjectType_NativeTypezz>
+{};
+
+template <>
+struct Stencil::Visitor<Stencil::Database::Record<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>>
+    : Stencil::Visitor<Stencil::Database::Record<zzObjectType_NativeTypezz>>
+{};
+
+//</InterfaceObjectStore>
+
+namespace zzProgram_Namezz
+{
+struct zzInterface_Namezz : public Stencil::InterfaceT<zzInterface_Namezz>
+{
+    using BaseClass = Stencil::InterfaceT<zzInterface_Namezz>;
+
+    public:
+    struct Dummy
+    {};
+
+    using ObjectStore = Stencil::Database::Database<
+        //<InterfaceObjectStore Join=','>
+        zzInterface_Namezz_ObjectStore_zzNamezz
+        //</InterfaceObjectStore>
+        >;
+
+    zzInterface_Namezz()          = default;
+    virtual ~zzInterface_Namezz() = default;
+    CLASS_DELETE_COPY_AND_MOVE(zzInterface_Namezz);
+
+    //<InterfaceFunction>
+    virtual zzReturnType_NativeTypezz zzInterfaceFunction_Namezz(
+        //<Args_Field Join=','>
+        zzFieldType_NativeTypezz const& zzNamezz
+        //</Args_Field>
+        )
+        = 0;
+    struct Args_zzInterfaceFunction_Namezz
+    {
+        //<Args_Field>
+        zzFieldType_NativeTypezz zzNamezz{};
+        //</Args_Field>
+    };
+
+    zzReturnType_NativeTypezz zzInterfaceFunction_Namezz(Args_zzInterfaceFunction_Namezz const& args)
+    {
+        return this->zzInterfaceFunction_Namezz(
+            //<Args_Field Join=','>
+            args.zzNamezz
+            //</Args_Field>
+        );
+    }
+
+    zzReturnType_NativeTypezz zzInterfaceFunction_Namezz(Args_zzInterfaceFunction_Namezz&& args)
+    {
+        return this->zzInterfaceFunction_Namezz(
+            //<Args_Field Join=','>
+            std::move(args.zzNamezz)
+            //</Args_Field>
+        );
+    }
+
+    //</InterfaceFunction>
+
+    //<InterfaceEvent>
+    struct Args_zzInterfaceEvent_Namezz
+    {
+        //<Args_Field>
+        zzFieldType_NativeTypezz zzNamezz{};
+        //</Args_Field>
+    };
+
+    void Raise_zzInterfaceEvent_Namezz(
+        //<Args_Field Join=','>
+        zzFieldType_NativeTypezz const& zzNamezz
+        //</Args_Field>
+    )
+    {
+        BaseClass::RaiseEvent(Args_zzInterfaceEvent_Namezz{
+            //<Args_Field Join=','>
+            zzNamezz
+            //</Args_Field>
+        });
+    }
+    //</InterfaceEvent>
+
+    ObjectStore objects;
+
+    static std::unique_ptr<zzInterface_Namezz> Create();
+    static std::shared_ptr<zzInterface_Namezz> CreateShared();
+    static std::shared_ptr<zzInterface_Namezz> Activate();
+};
+}    // namespace zzProgram_Namezz
+//<InterfaceFunction>
+
+template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
+{
+    enum class Fields
+    {
+        Invalid,
+        //<Args_Field Join=','>
+        arg_zzNamezz
+        //</Args_Field>
+    };
+
+    using Key = Fields;
+};
+
+template <>
+struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>::Fields;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        //<Args_Field Join=','>
+        "zzNamezz"
+        //</Args_Field>
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>::Fields
+    ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>::Fields>(
+            index);
+    }
+};
+
+template <>
+struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
+    : Stencil::VisitorT<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
+{
+    using TData  = zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz;
+    using Fields = TypeTraitsForIndexable<TData>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        //<Args_Field>
+        case Fields::arg_zzNamezz: return lambda(obj.zzNamezz);
+        //</Args_Field>
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        //<Args_Field>
+        lambda(Fields::arg_zzNamezz, obj.zzNamezz);
+        //</Args_Field>
+    }
+};
+
+template <>
+struct Stencil::Comparator<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz,
+                           zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
+{
+    using ThisType = zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
         return true
                //<Args_Field>
-               && Stencil::AreEqual(obj1.get_carg_zzNamezz(), obj2.get_carg_zzNamezz())
-        //</Args_Field>
-        ;
-}
-}
-;
+               && Stencil::AreEqual(obj1.zzNamezz, obj2.zzNamezz)
+            //</Args_Field>
+            ;
+    }
+};
+
+template <> struct Stencil::InterfaceApiTraits<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
+{
+    using ArgsStruct = zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz;
+    static constexpr bool             IsStatic() { return false; }
+    static constexpr std::string_view Name() { return "zzNamezz"; }
+
+    static auto Invoke(zzProgram_Namezz::zzInterface_Namezz& instance, ArgsStruct& args)
+    {
+        return instance.zzNamezz(
+            //<Args_Field Join=','>
+            args.zzNamezz
+            //</Args_Field>
+        );
+    }
+};
 //</InterfaceFunction>
+
+//<InterfaceEvent>
+template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>
+{
+    enum class Fields
+    {
+        Invalid,
+        //<Args_Field Join=','>
+        arg_zzNamezz
+        //</Args_Field>
+    };
+
+    using Key = Fields;
+};
+
+template <>
+struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>::Fields;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        //<Args_Field Join=','>
+        "zzNamezz"
+        //</Args_Field>
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>::Fields
+    ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>::Fields>(
+            index);
+    }
+};
+
+template <>
+struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>
+    : Stencil::VisitorT<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>
+{
+    using TData  = zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz;
+    using Fields = TypeTraitsForIndexable<TData>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        //<Args_Field>
+        case Fields::arg_zzNamezz: return lambda(obj.zzNamezz);
+        //</Args_Field>
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        //<Args_Field>
+        lambda(Fields::arg_zzNamezz, obj.zzNamezz);
+        //</Args_Field>
+    }
+};
+
+template <>
+struct Stencil::Comparator<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz,
+                           zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>
+{
+    using ThisType = zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               //<Args_Field>
+               && Stencil::AreEqual(obj1.zzNamezz, obj2.zzNamezz)
+            //</Args_Field>
+            ;
+    }
+};
+
+template <> struct Stencil::InterfaceApiTraits<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>
+{
+    using ArgsStruct = zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz;
+    static constexpr std::string_view Name() { return "zzNamezz"; }
+};
+//</InterfaceEvent>
 
 template <> struct Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz>
 {
-    //<InterfaceFunction>
-    struct ApiTraits_zzNamezz
-    {
-        using TOwner = zzProgram_Namezz::zzInterface_Namezz;
-        static const ::Stencil::Flags     Flags() { return {}; }
-        static constexpr std::string_view Name() { return "zzNamezz"; }
-        static constexpr bool             Static = false;
-    };
-    //</InterfaceFunction>
+    static constexpr std::string_view Name() { return "zzInterface_Namezz"; }
 
-    using Apis = std::tuple<
+    using ApiStructs = std::tuple<
         //<InterfaceFunction Join=','>
-        ApiTraits_zzNamezz
+        zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz
         //</InterfaceFunction>
         >;
 
     using Objects = std::tuple<
         //<InterfaceObjectStore Join=','>
-        zzProgram_Namezz::zzInterface_Namezz::ObjectStore_zzNamezz
+        zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz
         //</InterfaceObjectStore>
+        >;
+
+    using EventStructs = std::tuple<
+        //<InterfaceEvent>
+        zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz
+        //</InterfaceEvent>
         >;
 };
 
 //<InterfaceObjectStore>
-template <> struct Stencil::TypeTraits<zzObjectType_NativeTypezz>;
+
 template <>
-struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz::ObjectStore_zzNamezz&>
-    : public Stencil::TypeTraits<zzObjectType_NativeTypezz&>
+struct Stencil::TypeTraitsForPrimitive<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>
+    : public Stencil::TypeTraitsForPrimitive<zzObjectType_NativeTypezz>
+{};
+template <>
+struct Stencil::TypeTraitsForIterable<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>
+    : public Stencil::TypeTraitsForIterable<zzObjectType_NativeTypezz>
+{};
+template <>
+struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>
+    : public Stencil::TypeTraitsForIndexable<zzObjectType_NativeTypezz>
+{};
+template <>
+struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz> : public Stencil::Visitor<zzObjectType_NativeTypezz>
 {};
 //</InterfaceObjectStore>
 
-//<InterfaceFunction>
-
-template <> struct Stencil::InterfaceApiTraits<Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz>::ApiTraits_zzNamezz>
-{
-    using ArgsStruct = zzProgram_Namezz::zzInterface_Namezz_zzInterfaceFunction_Namezz_Args;
-    static constexpr bool             IsStatic() { return false; }
-    static constexpr std::string_view Name() { return "zzNamezz"; }
-
-    static auto Invoke(ArgsStruct& args)
-    {
-        return args.instance->zzNamezz(
-            //<Args_Field Join=','>
-            args.get_arg_zzNamezz()
-            //</Args_Field>
-        );
-    }
-};
-
-//</InterfaceFunction>
-
 //<InterfaceObjectStore>
-template <> struct Stencil::InterfaceObjectTraits<zzProgram_Namezz::zzInterface_Namezz::ObjectStore_zzNamezz>
+template <> struct Stencil::InterfaceObjectTraits<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>
 {
     static constexpr std::string_view Name() { return "zzNamezz"; }
 };
@@ -577,7 +860,7 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzVariant_Namezz>
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda)
     {
         auto fieldType = static_cast<Fields>(obj.index());
         std::visit([&](auto&& arg) { lambda(fieldType, arg); }, obj._variant);

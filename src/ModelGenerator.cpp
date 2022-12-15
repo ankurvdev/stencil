@@ -58,7 +58,7 @@ static std::ostream& operator<<(std::ostream& strm, std::wstring_view wstr)
     return strm;
 }
 
-void Generator::FieldTypeDecl::Merge(FieldTypeDecl&& decl)
+void TypeDefinitions::FieldTypeDecl::Merge(TypeDefinitions::FieldTypeDecl&& decl)
 {
     if (!decl.name.empty())
     {
@@ -216,10 +216,10 @@ static void debug(YAML::Node const& node)
 #endif
 
 template <typename TTableNode>
-static Generator::MutatorAccessorDefinition ParseMutatorAccessorDefinitionFromTomlNode(TTableNode const& node, std::wstring&& key)
+static TypeDefinitions::MutatorAccessorDefinition ParseMutatorAccessorDefinitionFromTomlNode(TTableNode const& node, std::wstring&& key)
 {
-    auto&                                valtbl = (node.as_table());
-    Generator::MutatorAccessorDefinition val;
+    auto&                                      valtbl = (node.as_table());
+    TypeDefinitions::MutatorAccessorDefinition val;
     val.name = std::move(key);
     val.id   = static_cast<uint8_t>(valtbl.at("Id").as_integer());
     val.returnType
@@ -242,17 +242,17 @@ static Generator::MutatorAccessorDefinition ParseMutatorAccessorDefinitionFromTo
 }
 
 template <typename TTableNode>
-static std::vector<Generator::MutatorAccessorDefinition> ParseMutatorAccessorDefinitionArrFromTomlNode(TTableNode const& node)
+static std::vector<TypeDefinitions::MutatorAccessorDefinition> ParseMutatorAccessorDefinitionArrFromTomlNode(TTableNode const& node)
 {
-    std::vector<Generator::MutatorAccessorDefinition> valarr;
+    std::vector<TypeDefinitions::MutatorAccessorDefinition> valarr;
     for (auto [key, value] : node.as_table()) { valarr.push_back(ParseMutatorAccessorDefinitionFromTomlNode(value, Str::Convert(key))); }
 
     return valarr;
 }
 
-template <typename TTableNode> static Generator::ContainerTypeDecl ContainerTypeDeclFromTomlNode(TTableNode const& node)
+template <typename TTableNode> static TypeDefinitions::ContainerTypeDecl ContainerTypeDeclFromTomlNode(TTableNode const& node)
 {
-    Generator::ContainerTypeDecl val;
+    TypeDefinitions::ContainerTypeDecl val;
     if (node.is_string())
     {
         val.baseField = Str::Convert(node.as_string().str);
@@ -280,9 +280,9 @@ template <typename TTableNode> static Generator::ContainerTypeDecl ContainerType
     return val;
 }
 
-template <typename TTableNode> static Generator::FieldTypeDecl FieldTypeDeclFromTomlNode(TTableNode const& node)
+template <typename TTableNode> static TypeDefinitions::FieldTypeDecl FieldTypeDeclFromTomlNode(TTableNode const& node)
 {
-    Generator::FieldTypeDecl val;
+    TypeDefinitions::FieldTypeDecl val;
 
     if (node.is_string())
     {
@@ -307,7 +307,7 @@ template <typename TTableNode> static Generator::FieldTypeDecl FieldTypeDeclFrom
     return val;
 }
 
-void Generator::_AddTypeDefinitions(std::string_view const& /*name*/, std::string_view const& text)
+void TypeDefinitions::AddTypeDefinitions(std::string_view const& /*name*/, std::string_view const& text)
 {
     std::string       tomltext(text);
     std::stringstream tomlstrm(tomltext);
@@ -458,7 +458,7 @@ static void ExpandTemplate(tree<Str::Type>&                 codetree,
                                tmplit->rowstart,
                                tmplit->rowend,
                                tmplit->name,
-                               tmplit->body->Stringify());
+                               tmplit->body ? tmplit->body->Stringify() : L"<empty>");
         });
 
         Binding::BindingExpr bexpr;
@@ -568,35 +568,40 @@ void Generator::_AddTemplate(std::string_view const& name, std::string_view cons
 
 void Generator::_AddContent(std::string_view const& name, std::string_view const& text)
 {
-    if (name.find("typedecl") != std::string_view ::npos) { _AddTypeDefinitions(name, text); }
+    if (name.find("typedecl") != std::string_view ::npos) { _typeDefinitions->AddTypeDefinitions(name, text); }
     else if (name.find("template") != std::string_view ::npos) { _AddTemplate(name, text); }
 }
 
-void Generator::_RegisterFieldDefForProgram(Generator::FieldTypeDecl& v)
+void TypeDefinitions::_RegisterFieldDefForProgram(TypeDefinitions::FieldTypeDecl const& v, IDL::Program& program) const
 {
-    if (!v.baseField.empty()) { _RegisterFieldDefForProgram(_fieldTypeDecls[_fieldTypeDeclMap[v.baseField]]); }
+    if (!v.baseField.empty()) { _RegisterFieldDefForProgram(_fieldTypeDecls[_fieldTypeDeclMap.at(v.baseField)], program); }
 
-    if (_program->TryGetFieldTypeName(v.name).has_value()) { return; }
+    if (program.TryGetFieldTypeName(v.name).has_value()) { return; }
 
-    auto fieldtype = _program->CreateFieldTypeObject<IDL::NativeFieldType>(
-        std::move(v.name), _program->TryGetFieldTypeName(v.baseField), v.annotationMap);
+    auto fieldtype
+        = program.CreateFieldTypeObject<IDL::NativeFieldType>(Str::Copy(v.name), program.TryGetFieldTypeName(v.baseField), v.annotationMap);
     for (auto& m : v.mutators)
     {
         if (m.args.size() > 1) { throw std::logic_error("Multiple args not yet supported"); }
 
-        fieldtype->CreateMutator(std::move(m.name), m.id, m.returnType, m.args[0]);
+        fieldtype->CreateMutator(Str::Copy(m.name), m.id, m.returnType, m.args[0]);
     }
     for (auto& m : v.accessors)
     {
         if (m.args.size() > 1) { throw std::logic_error("Multiple args not yet supported"); }
 
-        fieldtype->CreateAccessor(std::move(m.name), m.id, m.returnType, m.args[0]);
+        fieldtype->CreateAccessor(Str::Copy(m.name), m.id, m.returnType, m.args[0]);
     }
 };
 
 void Generator::FinalizeTypeDefinitions()
 {
     if (_finalized) { return; }
+
+    _finalized = true;
+}
+void TypeDefinitions::FinalizeTypeDefinitions()
+{
     auto defaultFieldTypeDecl = &_fieldTypeDecls[_fieldTypeDeclMap[L"default"]];
 
     // Relay inheritance
@@ -615,35 +620,40 @@ void Generator::FinalizeTypeDefinitions()
         for (auto& m : baseFieldType->mutators) { v.mutators.push_back(m); }
         for (auto& a : baseFieldType->accessors) { v.accessors.push_back(a); }
     }
+}
 
+void TypeDefinitions::LoadIntoProgram(IDL::Program& program) const
+{
     for (auto& v : _fieldTypeDecls)
     {
-        if (v.name.substr(0, 7) == L"default") _RegisterFieldDefForProgram(v);
+        if (v.name.substr(0, 7) == L"default") _RegisterFieldDefForProgram(v, program);
     }
 
     for (auto& v : _fieldTypeDecls)
     {
-        if (v.name.substr(0, 7) != L"default") _RegisterFieldDefForProgram(v);
+        if (v.name.substr(0, 7) != L"default") _RegisterFieldDefForProgram(v, program);
     }
 
     for (auto& v : _containerDecls)
     {
-        auto base      = _program->TryLookup<IDL::Container>(v.baseField);
-        auto container = _program->CreateNamedObject<IDL::Container>(std::move(v.name), std::move(v.args), base, v.annotationMap);
-        for (auto& m : v.mutators) { container->AddMutator(std::move(m)); }
-        for (auto& m : v.accessors) { container->AddAccessor(std::move(m)); }
+        auto base = program.TryLookup<IDL::Container>(v.baseField);
+        auto container
+            = program.CreateNamedObject<IDL::Container>(Str::Copy(v.name), std::vector<Str::Type>(v.args), base, v.annotationMap);
+        for (auto& m : v.mutators) { container->AddMutator({m}); }
+        for (auto& m : v.accessors) { container->AddAccessor({m}); }
     }
 
-    for (auto& [k, v] : _attributeDefs) { _program->CreateNamedObject<IDL::AttributeDefinition>(Str::Create(k), nullptr, std::move(v)); }
+    for (auto& [k, v] : _attributeDefs)
+    {
+        program.CreateNamedObject<IDL::AttributeDefinition>(Str::Create(k), nullptr, IDL::AttributeDefinition::AttributeComponentMap(v));
+    }
 
     std::optional<std::shared_ptr<IDLGenerics::IFieldType>> emptyBaseField;
-    _program->CreateFieldTypeObject<IDL::NativeFieldType>(L"default_struct", emptyBaseField, _structDefault.annotationMap);
-    _program->CreateFieldTypeObject<IDL::NativeFieldType>(L"default_union", emptyBaseField, _unionDefault.annotationMap);
-    _program->CreateFieldTypeObject<IDL::NativeFieldType>(L"default_interface", emptyBaseField, _interfaceDefault.annotationMap);
-    _program->CreateFieldTypeObject<IDL::NativeFieldType>(L"default_typedef", emptyBaseField, _typedefDefault.annotationMap);
-    _program->CreateFieldTypeObject<IDL::NativeFieldType>(L"default_functionargs", emptyBaseField, _fnargsDefault.annotationMap);
-
-    _finalized = true;
+    program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_struct", emptyBaseField, _structDefault.annotationMap);
+    program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_union", emptyBaseField, _unionDefault.annotationMap);
+    program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_interface", emptyBaseField, _interfaceDefault.annotationMap);
+    program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_typedef", emptyBaseField, _typedefDefault.annotationMap);
+    program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_functionargs", emptyBaseField, _fnargsDefault.annotationMap);
 }
 
 void Generator::LoadBuilltinTemplates()

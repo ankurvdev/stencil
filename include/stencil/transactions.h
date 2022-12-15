@@ -493,7 +493,7 @@ struct Stencil::Visitor<TTxn> : Stencil::VisitorT<TTxn>, Stencil::VisitorForIter
         txn.Edit(std::forward<TKey>(key), std::forward<TLambda>(lambda));
     }
 
-    template <typename TLambda> static void VisitAllIndicies(TTxn& txn, TLambda&& lambda) { txn.VisitAll(std::forward<TLambda>(lambda)); }
+    template <typename TLambda> static void VisitAll(TTxn& txn, TLambda&& lambda) { txn.VisitAll(std::forward<TLambda>(lambda)); }
 };
 
 template <Stencil::ConceptTransactionForPrimitive TTxn, typename TProtocol> struct Stencil::SerDes<TTxn, TProtocol>

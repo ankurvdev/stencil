@@ -1,6 +1,5 @@
 #pragma once
 #include <stencil/stencil.h>
-
 // SECTION START: DECLARATIONS
 #if true
 
@@ -417,7 +416,97 @@ template <> struct Stencil::Visitor<Objects::SimpleObject1> : Stencil::VisitorT<
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_val1, obj.val1);
+        lambda(Fields::Field_val2, obj.val2);
+        lambda(Fields::Field_val3, obj.val3);
+        lambda(Fields::Field_val4, obj.val4);
+        lambda(Fields::Field_val5, obj.val5);
+    }
+};
+
+template <> struct Stencil::Comparator<Objects::SimpleObject1, Objects::SimpleObject1>
+{
+    using ThisType = Objects::SimpleObject1;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.val1, obj2.val1)
+               && Stencil::AreEqual(obj1.val2, obj2.val2)
+               && Stencil::AreEqual(obj1.val3, obj2.val3)
+               && Stencil::AreEqual(obj1.val4, obj2.val4)
+               && Stencil::AreEqual(obj1.val5, obj2.val5)
+            ;
+    }
+};
+
+template <>
+struct Stencil::Database::Record<Objects::SimpleObject1> :
+    public Stencil::Database::Record<::Stencil::OptionalPropsT<::Objects::SimpleObject1>>,
+    public Stencil::Database::Record<::Stencil::TimestampedT<::Objects::SimpleObject1>>,
+    public Stencil::Database::RecordT<Objects::SimpleObject1>
+{
+    public:
+    Stencil::Database::RecordNest<int32_t>::Type val1{};
+    Stencil::Database::RecordNest<uint32_t>::Type val2{};
+    Stencil::Database::RecordNest<uint8_t>::Type val3{};
+    Stencil::Database::RecordNest<shared_string>::Type val4{};
+    Stencil::Database::RecordNest<double>::Type val5{};
+};
+
+template <> struct Stencil::Database::RecordTraits<Objects::SimpleObject1>
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<
+        typename Stencil::Database::RecordTraits<int32_t>::RecordTypes,
+        typename Stencil::Database::RecordTraits<uint32_t>::RecordTypes,
+        typename Stencil::Database::RecordTraits<uint8_t>::RecordTypes,
+        typename Stencil::Database::RecordTraits<shared_string>::RecordTypes,
+        typename Stencil::Database::RecordTraits<double>::RecordTypes,
+        typename Stencil::Database::RecordTraits<::Stencil::OptionalPropsT<::Objects::SimpleObject1>>::RecordTypes,
+        typename Stencil::Database::RecordTraits<::Stencil::TimestampedT<::Objects::SimpleObject1>>::RecordTypes,
+        std::tuple<Objects::SimpleObject1>>;
+
+    static constexpr size_t Size() { return sizeof(Stencil::Database::Record<Objects::SimpleObject1>); }
+
+    template <typename TDb>
+    static void WriteToBuffer(TDb&                                                          db,
+                              Stencil::Database::RWLock const&                              lock,
+                              Objects::SimpleObject1 const&                      obj,
+                              Stencil::Database::Record<Objects::SimpleObject1>& rec)
+    {
+        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<::Stencil::OptionalPropsT<::Objects::SimpleObject1> const&>(obj), static_cast<Stencil::Database::Record<::Stencil::OptionalPropsT<::Objects::SimpleObject1>>&>(rec));
+        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<::Stencil::TimestampedT<::Objects::SimpleObject1> const&>(obj), static_cast<Stencil::Database::Record<::Stencil::TimestampedT<::Objects::SimpleObject1>>&>(rec));
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.val1, rec.val1);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.val2, rec.val2);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.val3, rec.val3);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.val4, rec.val4);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.val5, rec.val5);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Stencil::Database::Record<Objects::SimpleObject1>>
+    : Stencil::VisitorT<Stencil::Database::Record<Objects::SimpleObject1>>
+{
+    using TData  = Stencil::Database::Record<Objects::SimpleObject1>;
+    using Fields = TypeTraitsForIndexable<Objects::SimpleObject1>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_val1: return lambda(obj.val1);
+        case Fields::Field_val2: return lambda(obj.val2);
+        case Fields::Field_val3: return lambda(obj.val3);
+        case Fields::Field_val4: return lambda(obj.val4);
+        case Fields::Field_val5: return lambda(obj.val5);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_val1, obj.val1);
         lambda(Fields::Field_val2, obj.val2);
@@ -644,7 +733,76 @@ template <> struct Stencil::Visitor<Objects::ListObject> : Stencil::VisitorT<Obj
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_value, obj.value);
+        lambda(Fields::Field_obj1, obj.obj1);
+    }
+};
+
+template <> struct Stencil::Comparator<Objects::ListObject, Objects::ListObject>
+{
+    using ThisType = Objects::ListObject;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.value, obj2.value)
+               && Stencil::AreEqual(obj1.obj1, obj2.obj1)
+            ;
+    }
+};
+
+template <>
+struct Stencil::Database::Record<Objects::ListObject> :
+    public Stencil::Database::Record<::Stencil::TimestampedT<::Objects::ListObject>>,
+    public Stencil::Database::RecordT<Objects::ListObject>
+{
+    public:
+    Stencil::Database::RecordNest<uint32_t>::Type value{};
+    Stencil::Database::RecordNest<::Objects::SimpleObject1>::Type obj1{};
+};
+
+template <> struct Stencil::Database::RecordTraits<Objects::ListObject>
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<
+        typename Stencil::Database::RecordTraits<uint32_t>::RecordTypes,
+        typename Stencil::Database::RecordTraits<::Objects::SimpleObject1>::RecordTypes,
+        typename Stencil::Database::RecordTraits<::Stencil::TimestampedT<::Objects::ListObject>>::RecordTypes,
+        std::tuple<Objects::ListObject>>;
+
+    static constexpr size_t Size() { return sizeof(Stencil::Database::Record<Objects::ListObject>); }
+
+    template <typename TDb>
+    static void WriteToBuffer(TDb&                                                          db,
+                              Stencil::Database::RWLock const&                              lock,
+                              Objects::ListObject const&                      obj,
+                              Stencil::Database::Record<Objects::ListObject>& rec)
+    {
+        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<::Stencil::TimestampedT<::Objects::ListObject> const&>(obj), static_cast<Stencil::Database::Record<::Stencil::TimestampedT<::Objects::ListObject>>&>(rec));
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.value, rec.value);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.obj1, rec.obj1);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Stencil::Database::Record<Objects::ListObject>>
+    : Stencil::VisitorT<Stencil::Database::Record<Objects::ListObject>>
+{
+    using TData  = Stencil::Database::Record<Objects::ListObject>;
+    using Fields = TypeTraitsForIndexable<Objects::ListObject>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_value: return lambda(obj.value);
+        case Fields::Field_obj1: return lambda(obj.obj1);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_value, obj.value);
         lambda(Fields::Field_obj1, obj.obj1);
@@ -904,7 +1062,79 @@ template <> struct Stencil::Visitor<Objects::DictObject> : Stencil::VisitorT<Obj
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_dictobj, obj.dictobj);
+        lambda(Fields::Field_dictval, obj.dictval);
+        lambda(Fields::Field_dictdict, obj.dictdict);
+    }
+};
+
+template <> struct Stencil::Comparator<Objects::DictObject, Objects::DictObject>
+{
+    using ThisType = Objects::DictObject;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.dictobj, obj2.dictobj)
+               && Stencil::AreEqual(obj1.dictval, obj2.dictval)
+               && Stencil::AreEqual(obj1.dictdict, obj2.dictdict)
+            ;
+    }
+};
+
+template <>
+struct Stencil::Database::Record<Objects::DictObject> :
+    public Stencil::Database::RecordT<Objects::DictObject>
+{
+    public:
+    Stencil::Database::RecordNest<std::unordered_map<uint32_t, ::Objects::SimpleObject1>>::Type dictobj{};
+    Stencil::Database::RecordNest<std::unordered_map<shared_string, Stencil::Timestamp>>::Type dictval{};
+    Stencil::Database::RecordNest<std::unordered_map<uint32_t, std::unordered_map<uint32_t, ::Objects::SimpleObject1>>>::Type dictdict{};
+};
+
+template <> struct Stencil::Database::RecordTraits<Objects::DictObject>
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<
+        typename Stencil::Database::RecordTraits<std::unordered_map<uint32_t, ::Objects::SimpleObject1>>::RecordTypes,
+        typename Stencil::Database::RecordTraits<std::unordered_map<shared_string, Stencil::Timestamp>>::RecordTypes,
+        typename Stencil::Database::RecordTraits<std::unordered_map<uint32_t, std::unordered_map<uint32_t, ::Objects::SimpleObject1>>>::RecordTypes,
+        std::tuple<Objects::DictObject>>;
+
+    static constexpr size_t Size() { return sizeof(Stencil::Database::Record<Objects::DictObject>); }
+
+    template <typename TDb>
+    static void WriteToBuffer(TDb&                                                          db,
+                              Stencil::Database::RWLock const&                              lock,
+                              Objects::DictObject const&                      obj,
+                              Stencil::Database::Record<Objects::DictObject>& rec)
+    {
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.dictobj, rec.dictobj);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.dictval, rec.dictval);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.dictdict, rec.dictdict);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Stencil::Database::Record<Objects::DictObject>>
+    : Stencil::VisitorT<Stencil::Database::Record<Objects::DictObject>>
+{
+    using TData  = Stencil::Database::Record<Objects::DictObject>;
+    using Fields = TypeTraitsForIndexable<Objects::DictObject>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_dictobj: return lambda(obj.dictobj);
+        case Fields::Field_dictval: return lambda(obj.dictval);
+        case Fields::Field_dictdict: return lambda(obj.dictdict);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_dictobj, obj.dictobj);
         lambda(Fields::Field_dictval, obj.dictval);
@@ -1111,7 +1341,70 @@ template <> struct Stencil::Visitor<Objects::List> : Stencil::VisitorT<Objects::
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_listobj, obj.listobj);
+    }
+};
+
+template <> struct Stencil::Comparator<Objects::List, Objects::List>
+{
+    using ThisType = Objects::List;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.listobj, obj2.listobj)
+            ;
+    }
+};
+
+template <>
+struct Stencil::Database::Record<Objects::List> :
+    public Stencil::Database::Record<::Stencil::TimestampedT<::Objects::List>>,
+    public Stencil::Database::RecordT<Objects::List>
+{
+    public:
+    Stencil::Database::RecordNest<std::vector<::Objects::ListObject>>::Type listobj{};
+};
+
+template <> struct Stencil::Database::RecordTraits<Objects::List>
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<
+        typename Stencil::Database::RecordTraits<std::vector<::Objects::ListObject>>::RecordTypes,
+        typename Stencil::Database::RecordTraits<::Stencil::TimestampedT<::Objects::List>>::RecordTypes,
+        std::tuple<Objects::List>>;
+
+    static constexpr size_t Size() { return sizeof(Stencil::Database::Record<Objects::List>); }
+
+    template <typename TDb>
+    static void WriteToBuffer(TDb&                                                          db,
+                              Stencil::Database::RWLock const&                              lock,
+                              Objects::List const&                      obj,
+                              Stencil::Database::Record<Objects::List>& rec)
+    {
+        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<::Stencil::TimestampedT<::Objects::List> const&>(obj), static_cast<Stencil::Database::Record<::Stencil::TimestampedT<::Objects::List>>&>(rec));
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.listobj, rec.listobj);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Stencil::Database::Record<Objects::List>>
+    : Stencil::VisitorT<Stencil::Database::Record<Objects::List>>
+{
+    using TData  = Stencil::Database::Record<Objects::List>;
+    using Fields = TypeTraitsForIndexable<Objects::List>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_listobj: return lambda(obj.listobj);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_listobj, obj.listobj);
     }
@@ -1550,7 +1843,115 @@ template <> struct Stencil::Visitor<Objects::SimpleObject2> : Stencil::VisitorT<
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_val1, obj.val1);
+        lambda(Fields::Field_val2, obj.val2);
+        lambda(Fields::Field_val3, obj.val3);
+        lambda(Fields::Field_val4, obj.val4);
+        lambda(Fields::Field_val5, obj.val5);
+        lambda(Fields::Field_val6, obj.val6);
+        lambda(Fields::Field_val7, obj.val7);
+        lambda(Fields::Field_val8, obj.val8);
+    }
+};
+
+template <> struct Stencil::Comparator<Objects::SimpleObject2, Objects::SimpleObject2>
+{
+    using ThisType = Objects::SimpleObject2;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.val1, obj2.val1)
+               && Stencil::AreEqual(obj1.val2, obj2.val2)
+               && Stencil::AreEqual(obj1.val3, obj2.val3)
+               && Stencil::AreEqual(obj1.val4, obj2.val4)
+               && Stencil::AreEqual(obj1.val5, obj2.val5)
+               && Stencil::AreEqual(obj1.val6, obj2.val6)
+               && Stencil::AreEqual(obj1.val7, obj2.val7)
+               && Stencil::AreEqual(obj1.val8, obj2.val8)
+            ;
+    }
+};
+
+template <>
+struct Stencil::Database::Record<Objects::SimpleObject2> :
+    public Stencil::Database::Record<::Stencil::OptionalPropsT<::Objects::SimpleObject2>>,
+    public Stencil::Database::Record<::Stencil::TimestampedT<::Objects::SimpleObject2>>,
+    public Stencil::Database::RecordT<Objects::SimpleObject2>
+{
+    public:
+    Stencil::Database::RecordNest<bool>::Type val1{};
+    Stencil::Database::RecordNest<double>::Type val2{};
+    Stencil::Database::RecordNest<std::array<char, 8>>::Type val3{};
+    Stencil::Database::RecordNest<Stencil::Timestamp>::Type val4{};
+    Stencil::Database::RecordNest<uint64_t>::Type val5{};
+    Stencil::Database::RecordNest<int64_t>::Type val6{};
+    Stencil::Database::RecordNest<uint16_t>::Type val7{};
+    Stencil::Database::RecordNest<int16_t>::Type val8{};
+};
+
+template <> struct Stencil::Database::RecordTraits<Objects::SimpleObject2>
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<
+        typename Stencil::Database::RecordTraits<bool>::RecordTypes,
+        typename Stencil::Database::RecordTraits<double>::RecordTypes,
+        typename Stencil::Database::RecordTraits<std::array<char, 8>>::RecordTypes,
+        typename Stencil::Database::RecordTraits<Stencil::Timestamp>::RecordTypes,
+        typename Stencil::Database::RecordTraits<uint64_t>::RecordTypes,
+        typename Stencil::Database::RecordTraits<int64_t>::RecordTypes,
+        typename Stencil::Database::RecordTraits<uint16_t>::RecordTypes,
+        typename Stencil::Database::RecordTraits<int16_t>::RecordTypes,
+        typename Stencil::Database::RecordTraits<::Stencil::OptionalPropsT<::Objects::SimpleObject2>>::RecordTypes,
+        typename Stencil::Database::RecordTraits<::Stencil::TimestampedT<::Objects::SimpleObject2>>::RecordTypes,
+        std::tuple<Objects::SimpleObject2>>;
+
+    static constexpr size_t Size() { return sizeof(Stencil::Database::Record<Objects::SimpleObject2>); }
+
+    template <typename TDb>
+    static void WriteToBuffer(TDb&                                                          db,
+                              Stencil::Database::RWLock const&                              lock,
+                              Objects::SimpleObject2 const&                      obj,
+                              Stencil::Database::Record<Objects::SimpleObject2>& rec)
+    {
+        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<::Stencil::OptionalPropsT<::Objects::SimpleObject2> const&>(obj), static_cast<Stencil::Database::Record<::Stencil::OptionalPropsT<::Objects::SimpleObject2>>&>(rec));
+        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<::Stencil::TimestampedT<::Objects::SimpleObject2> const&>(obj), static_cast<Stencil::Database::Record<::Stencil::TimestampedT<::Objects::SimpleObject2>>&>(rec));
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.val1, rec.val1);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.val2, rec.val2);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.val3, rec.val3);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.val4, rec.val4);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.val5, rec.val5);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.val6, rec.val6);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.val7, rec.val7);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.val8, rec.val8);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Stencil::Database::Record<Objects::SimpleObject2>>
+    : Stencil::VisitorT<Stencil::Database::Record<Objects::SimpleObject2>>
+{
+    using TData  = Stencil::Database::Record<Objects::SimpleObject2>;
+    using Fields = TypeTraitsForIndexable<Objects::SimpleObject2>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_val1: return lambda(obj.val1);
+        case Fields::Field_val2: return lambda(obj.val2);
+        case Fields::Field_val3: return lambda(obj.val3);
+        case Fields::Field_val4: return lambda(obj.val4);
+        case Fields::Field_val5: return lambda(obj.val5);
+        case Fields::Field_val6: return lambda(obj.val6);
+        case Fields::Field_val7: return lambda(obj.val7);
+        case Fields::Field_val8: return lambda(obj.val8);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_val1, obj.val1);
         lambda(Fields::Field_val2, obj.val2);
@@ -1888,7 +2289,94 @@ template <> struct Stencil::Visitor<Objects::NestedObject> : Stencil::VisitorT<O
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_obj1, obj.obj1);
+        lambda(Fields::Field_obj2, obj.obj2);
+        lambda(Fields::Field_obj3, obj.obj3);
+        lambda(Fields::Field_dict1, obj.dict1);
+        lambda(Fields::Field_list1, obj.list1);
+    }
+};
+
+template <> struct Stencil::Comparator<Objects::NestedObject, Objects::NestedObject>
+{
+    using ThisType = Objects::NestedObject;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.obj1, obj2.obj1)
+               && Stencil::AreEqual(obj1.obj2, obj2.obj2)
+               && Stencil::AreEqual(obj1.obj3, obj2.obj3)
+               && Stencil::AreEqual(obj1.dict1, obj2.dict1)
+               && Stencil::AreEqual(obj1.list1, obj2.list1)
+            ;
+    }
+};
+
+template <>
+struct Stencil::Database::Record<Objects::NestedObject> :
+    public Stencil::Database::Record<::Stencil::TimestampedT<::Objects::NestedObject>>,
+    public Stencil::Database::RecordT<Objects::NestedObject>
+{
+    public:
+    Stencil::Database::RecordNest<::Objects::SimpleObject1>::Type obj1{};
+    Stencil::Database::RecordNest<::Objects::SimpleObject2>::Type obj2{};
+    Stencil::Database::RecordNest<::Objects::ListObject>::Type obj3{};
+    Stencil::Database::RecordNest<::Objects::DictObject>::Type dict1{};
+    Stencil::Database::RecordNest<::Objects::List>::Type list1{};
+};
+
+template <> struct Stencil::Database::RecordTraits<Objects::NestedObject>
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<
+        typename Stencil::Database::RecordTraits<::Objects::SimpleObject1>::RecordTypes,
+        typename Stencil::Database::RecordTraits<::Objects::SimpleObject2>::RecordTypes,
+        typename Stencil::Database::RecordTraits<::Objects::ListObject>::RecordTypes,
+        typename Stencil::Database::RecordTraits<::Objects::DictObject>::RecordTypes,
+        typename Stencil::Database::RecordTraits<::Objects::List>::RecordTypes,
+        typename Stencil::Database::RecordTraits<::Stencil::TimestampedT<::Objects::NestedObject>>::RecordTypes,
+        std::tuple<Objects::NestedObject>>;
+
+    static constexpr size_t Size() { return sizeof(Stencil::Database::Record<Objects::NestedObject>); }
+
+    template <typename TDb>
+    static void WriteToBuffer(TDb&                                                          db,
+                              Stencil::Database::RWLock const&                              lock,
+                              Objects::NestedObject const&                      obj,
+                              Stencil::Database::Record<Objects::NestedObject>& rec)
+    {
+        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<::Stencil::TimestampedT<::Objects::NestedObject> const&>(obj), static_cast<Stencil::Database::Record<::Stencil::TimestampedT<::Objects::NestedObject>>&>(rec));
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.obj1, rec.obj1);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.obj2, rec.obj2);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.obj3, rec.obj3);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.dict1, rec.dict1);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.list1, rec.list1);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Stencil::Database::Record<Objects::NestedObject>>
+    : Stencil::VisitorT<Stencil::Database::Record<Objects::NestedObject>>
+{
+    using TData  = Stencil::Database::Record<Objects::NestedObject>;
+    using Fields = TypeTraitsForIndexable<Objects::NestedObject>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_obj1: return lambda(obj.obj1);
+        case Fields::Field_obj2: return lambda(obj.obj2);
+        case Fields::Field_obj3: return lambda(obj.obj3);
+        case Fields::Field_dict1: return lambda(obj.dict1);
+        case Fields::Field_list1: return lambda(obj.list1);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_obj1, obj.obj1);
         lambda(Fields::Field_obj2, obj.obj2);

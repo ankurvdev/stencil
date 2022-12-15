@@ -1,5 +1,8 @@
 #pragma once
+#include "typetraits.h"
+
 #include <chrono>
+#include <tuple>
 
 namespace Stencil
 {
@@ -37,3 +40,8 @@ template <typename T> struct TimestampedT
 };
 
 }    // namespace Stencil
+
+template <typename T> struct Stencil::TypeTraits<Stencil::TimestampedT<T>>
+{
+    using Categories = std::tuple<Stencil::Category::Primitive>;
+};

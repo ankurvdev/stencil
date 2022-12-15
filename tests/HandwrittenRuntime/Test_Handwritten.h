@@ -149,7 +149,7 @@ template <> struct Stencil::Visitor<WithPrimitives64Bit> : Stencil::VisitorT<Wit
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda)
     {
         lambda(Fields::Field_f1, obj.f1);
         lambda(Fields::Field_f2, obj.f2);
@@ -211,7 +211,7 @@ template <> struct Stencil::Visitor<ComplexPrimitives> : Stencil::VisitorT<Compl
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda)
     {
         lambda(Fields::Field_f1, obj.f1);
         lambda(Fields::Field_f2, obj.f2);
@@ -270,7 +270,7 @@ template <> struct Stencil::Visitor<LargePrimitives> : Stencil::VisitorT<LargePr
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda)
     {
         lambda(Fields::Field_f1, obj.f1);
         lambda(Fields::Field_f2, obj.f2);
@@ -329,7 +329,7 @@ template <> struct Stencil::Visitor<WithBlobs> : Stencil::VisitorT<WithBlobs>
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda)
     {
         lambda(Fields::Field_f1, obj.f1);
         lambda(Fields::Field_f2, obj.f2);
@@ -388,7 +388,7 @@ template <> struct Stencil::Visitor<Nested> : Stencil::VisitorT<Nested>
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda)
     {
         lambda(Fields::Field_f1, obj.f1);
         lambda(Fields::Field_f2, obj.f2);
@@ -684,5 +684,5 @@ template <> struct Stencil::Visitor<TestObj> : Stencil::VisitorT<TestObj>
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda) { lambda(Fields::Field_f1, obj.f1); }
+    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda) { lambda(Fields::Field_f1, obj.f1); }
 };

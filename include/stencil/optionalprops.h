@@ -1,5 +1,8 @@
 #pragma once
+#include "typetraits.h"
+
 #include <bitset>
+#include <tuple>
 
 namespace Stencil
 {
@@ -35,3 +38,8 @@ template <typename T> struct OptionalPropsT : OptionalProps
 };
 
 }    // namespace Stencil
+
+template <typename T> struct Stencil::TypeTraits<Stencil::OptionalPropsT<T>>
+{
+    using Categories = std::tuple<Stencil::Category::Primitive>;
+};

@@ -25,6 +25,8 @@
 
 #include <algorithm>
 #include <string_view>
+#include <unordered_set>
+
 #define STENCIL_USING_WEBSERVICE 1
 namespace Stencil
 {
@@ -51,16 +53,105 @@ template <typename T1, typename T2> inline bool iequal(T1 const& a, T2 const& b)
 {
     return std::equal(std::begin(a), std::end(a), std::begin(b), std::end(b), [](auto a1, auto b1) { return tolower(a1) == tolower(b1); });
 }
+
+struct SSEListenerManager
+{
+    SSEListenerManager() = default;
+    CLASS_DELETE_COPY_AND_MOVE(SSEListenerManager);
+
+    struct Instance : std::enable_shared_from_this<Instance>
+    {
+
+        SSEListenerManager*     _manager{nullptr};
+        httplib::DataSink*      _sink{nullptr};
+        std::condition_variable _dataAvailable{};
+        bool                    _stopRequested = false;
+
+        Instance() = default;
+        CLASS_DELETE_COPY_AND_MOVE(Instance);
+
+        void Start(httplib::DataSink& sink, std::span<const char> const& msg)
+        {
+            {
+                auto lock = std::unique_lock<std::mutex>(_manager->_mutex);
+                _manager->Register(lock, shared_from_this());
+                if (_manager->_stopRequested) return;
+                if (_sink != nullptr) { throw std::logic_error("Duplicate sink"); }
+                _sink = &sink;
+                _sink->write(msg.data(), msg.size());
+            }
+            do {
+                auto lock = std::unique_lock<std::mutex>(_manager->_mutex);
+                if (_manager->_stopRequested) return;
+                _dataAvailable.wait(lock, [&](...) { return _sink != nullptr || _manager->_stopRequested; });
+                if (_manager->_stopRequested) return;
+                if (!_sink->is_writable())
+                {
+                    _manager->Remove(lock, shared_from_this());
+                    _sink->done();
+                    _sink = nullptr;
+                    return;
+                }
+            } while (true);
+        }
+
+        void Release()
+        {
+            auto lock = std::unique_lock<std::mutex>(_manager->_mutex);
+            _manager->Remove(lock, shared_from_this());
+        }
+    };
+
+    void Send(std::span<const char> const& msg)
+    {
+        auto lock = std::unique_lock<std::mutex>(_mutex);
+        for (auto const& inst : _sseListeners)
+        {
+            if (_stopRequested) return;
+            if (inst->_stopRequested) continue;
+            try
+            {
+                if (!inst->_sink->is_writable()) { continue; }
+                inst->_sink->write(msg.data(), msg.size());
+                inst->_dataAvailable.notify_all();
+            } catch (...)
+            {}
+        }
+    }
+
+    std::shared_ptr<Instance> CreateInstance()
+    {
+        auto inst      = std::make_shared<Instance>();
+        inst->_manager = this;
+        return inst;
+    }
+
+    void Register(std::unique_lock<std::mutex> const& /* lock */, std::shared_ptr<Instance> instance) { _sseListeners.insert(instance); }
+
+    void Remove(std::unique_lock<std::mutex> const& /* lock */, std::shared_ptr<Instance> instance) { _sseListeners.erase(instance); }
+
+    void Stop()
+    {
+        auto lock      = std::unique_lock<std::mutex>(_mutex);
+        _stopRequested = true;
+
+        for (auto const& inst : _sseListeners)
+        {
+            inst->_stopRequested = true;
+            inst->_dataAvailable.notify_all();
+        }
+    }
+    std::unordered_set<std::shared_ptr<Instance>> _sseListeners;
+    bool                                          _stopRequested = false;
+    std::mutex                                    _mutex;
+};
+
 }    // namespace impl
 
 template <typename T>
-concept WebInterfaceImpl = requires(T t)
-{
-    typename T::Interface;
-    typename WebServiceHandlerTraits<typename T::Interface>;
-};
+concept ConceptInterface = requires { typename Stencil::InterfaceTraits<T>; };
 
-template <WebInterfaceImpl... TImpls> struct WebService
+template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Interface::InterfaceEventHandlerT<WebService<Ts...>, Ts>...
 {
     struct UnableToStartDaemonException
     {};
@@ -72,25 +163,36 @@ template <WebInterfaceImpl... TImpls> struct WebService
     {};
 
     WebService() = default;
+    ~WebService() override
+    {
+        _sseManager.Stop();
+        StopDaemon();
+        WaitForStop();
+    }
     CLASS_DELETE_COPY_AND_MOVE(WebService);
 
     void StartOnPort(uint16_t port)
     {
         auto guardscope = std::unique_lock<std::mutex>();
-        _server.Get("/.*", [this](httplib::Request const& req, httplib::Response& res) { return this->_HandleRequest(req, res); });
-        _server.set_error_handler([this](auto... args) { return this->_HandleRequest(args...); });
+        _server.set_pre_routing_handler([this](httplib::Request const& req, httplib::Response& res) {
+            return this->_HandleRequest(req, res) ? httplib::Server::HandlerResponse::Handled : httplib::Server::HandlerResponse::Unhandled;
+        });
+        //_server.set_error_handler([this](auto... args) { return this->_HandleRequest(args...); });
         _port         = port;
         _listenthread = std::thread([this]() { _server.listen("localhost", _port); });
 
         for (int i = 0; i < 100 && !_server.is_running(); i++) std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
         if (!_server.is_running()) throw std::runtime_error("Unable to start server");
+
+        std::apply([&](auto& impl) { impl->handler = this; }, _impls);
     }
 
     void StopDaemon()
     {
         {
             auto guardscope = std::unique_lock<std::mutex>();
+            std::apply([](auto& impl) { impl->handler = nullptr; }, _impls);
             _server.stop();
         }
         _cond.notify_all();
@@ -98,22 +200,39 @@ template <WebInterfaceImpl... TImpls> struct WebService
 
     void WaitForStop() { _listenthread.join(); }
 
-    private:
-    void _HandleRequest(const httplib::Request& req, httplib::Response& res)
+    template <typename TEventArgs> void OnEvent(TEventArgs const& args)
     {
+        auto msg = fmt::format("event: init\ndata: {}\n\n", Stencil::Json::Stringify(args));
+        _sseManager.Send(msg);    // Empty data
+    }
+
+    template <ConceptInterface T> auto& GetInterface() { return *std::get<std::unique_ptr<T>>(_impls).get(); }
+
+    private:
+    std::tuple<std::string_view, std::string_view> _Split(std::string_view const& path)
+    {
+        if (path.empty() || path[0] != '/') throw std::logic_error("Invalid path");
+        auto index = path.find('/', 1);
+        auto str1  = path.substr(1, index - 1);
+        if (index == path.npos) return {str1, {}};
+        return {str1, path.substr(index)};
+    }
+
+    bool _HandleRequest(const httplib::Request& req, httplib::Response& res)
+    {
+        std::string_view const& path = req.path;
+        auto [ifname, subpath]       = _Split(path);
+        if (ifname != "api" || subpath.empty()) return false;
         try
         {
-            std::string_view const& path = req.path;
-            if (path.empty() || path[0] != '/') throw std::logic_error("Invalid path");
-            auto index = path.find('/', 1);
-            if (index == path.npos) throw std::runtime_error("Invalid path. Cannot detect interface");
-            auto ifname = path.substr(1, index - 1);
-            _HandleRequest<TImpls...>(req, res, ifname, path.substr(index));
+            auto [ifname1, subpath1] = _Split(subpath);
+            _HandleRequest<Ts...>(req, res, ifname1, subpath1);
         } catch (std::exception const& ex)
         {
             res.status = 500;
             res.body   = ex.what();
         }
+        return true;
     }
 
     void _HandleError(const httplib::Request& /* req */, httplib::Response& res)
@@ -121,46 +240,90 @@ template <WebInterfaceImpl... TImpls> struct WebService
         res.set_content(fmt::format("<p>Error Status: <span style='color:red;'>{}</span></p>", res.status), "text/html");
     }
 
-    template <typename TArgsStruct> auto _CreateArgStruct(httplib::Request const& /* req */)
+    template <typename TArgsStruct> auto _CreateArgStruct(httplib::Request const& req)
     {
-        TArgsStruct args;
-#ifdef TODO1
-        using StateTracker = ReflectionServices::StateTraker<TArgsStruct, void*>;
-        StateTracker tracker(&args, nullptr);
-        for (auto const& [key, value] : req.params)
+        TArgsStruct args{};
+        for (auto const& [keystr, valjson] : req.params)
         {
-            if (tracker.TryObjKey(Value(shared_string::make(key)), nullptr))
-            {
-                tracker.HandleValue(Value(shared_string::make(value)), nullptr);
-            }
+            using TKey = typename Stencil::TypeTraitsForIndexable<TArgsStruct>::Key;
+            TKey key{};
+            Stencil::SerDesRead<Stencil::ProtocolString>(key, keystr);
+            auto& jsonval = valjson;    // Clang complains about capturing localbinding variables
+            Visitor<TArgsStruct>::VisitKey(args, key, [&](auto& val) { Stencil::SerDesRead<Stencil::ProtocolJsonVal>(val, jsonval); });
         }
-#endif
         return args;
     }
 
-    template <WebInterfaceImpl T>
-    bool _HandleEventSource(T& /* obj */,
-                            httplib::Request const& /* req */,
-                            httplib::Response& /* res */,
-                            std::string_view const& ifname,
-                            std::string_view const& /* path */)
+    template <typename TTup, size_t TTupIndex, ConceptInterface T>
+    bool _TryHandleEvents(T&                      obj,
+                          httplib::Request const& req,
+                          httplib::Response&      res,
+                          std::string_view const& ifname,
+                          std::string_view const& path)
     {
-        if (!impl::iequal("eventsource", ifname)) { return false; }
-
-        /* Event Source
-         *      Condition: path begins with /eventsource.
-         *      Action: Add the req to the SSR messaging queue
-         *      Explanation:
-         *          WebService(this) must register itself (via Traits) as the notification client for all events in the interface
-         *          Once RaiseEvent_event(int arg1, string arg2 ) is called, the event handlers are invoked
-         *          The Traits handler function transform args1, arg2 into a argstruct
-         *          The argstruct and the event name are plumbed here (WebService) which serializes that to a JSON object
-         *          And pumps the data into all the clients (req here)
-         */
-        throw std::logic_error("Not implemented");
+        if constexpr (TTupIndex == 0) { return false; }
+        else
+        {
+            using SelectedTup = std::tuple_element_t<TTupIndex - 1, TTup>;
+            if (!impl::iequal(Stencil::InterfaceApiTraits<SelectedTup>::Name(), ifname))
+            {
+                return _TryHandleEvents<TTup, TTupIndex - 1, T>(obj, req, res, ifname, path);
+            }
+            res.set_header("Access-Control-Allow-Origin", "*");
+            auto instance = _sseManager.CreateInstance();
+            res.set_chunked_content_provider(
+                "text/event-stream",
+                [instance](size_t /*offset*/, httplib::DataSink& sink) {
+                    // This function doesnt return so its important to release the lock before entering start
+                    instance->Start(sink, "event: init\ndata: \n\n");    // Empty data
+                    return true;
+                },
+                [instance](bool /*success*/) { instance->Release(); });
+            res.status = 200;
+            return true;
+        }
     }
 
-    template <typename TTup, size_t TTupIndex, WebInterfaceImpl T>
+    template <ConceptInterface T>
+    bool
+    _HandleEvents(T& obj, httplib::Request const& req, httplib::Response& res, std::string_view const& ifname, std::string_view const& path)
+    {
+        using Tup = typename Stencil::InterfaceTraits<T>::EventStructs;
+        return _TryHandleEvents<Tup, std::tuple_size_v<Tup>, T>(obj, req, res, ifname, path);
+    }
+
+    template <typename TLambda> auto _ForeachObjId(httplib::Request const& req, std::string_view const& subpath, TLambda&& lambda)
+    {
+        std::ostringstream rslt;
+        if (subpath.empty())
+        {
+            auto it = req.params.find("ids");
+            if (it == req.params.end()) { throw std::invalid_argument("No Id specified for read"); }
+            auto ids = it->second;
+            rslt << '{';
+            bool   first  = true;
+            size_t sindex = 0;
+            do {
+                auto eindex = ids.find(',', sindex);
+                if (eindex == std::string_view::npos) eindex = ids.size();
+                auto idstr = ids.substr(sindex, eindex - sindex);
+                if (!first) { rslt << ','; }
+                rslt << idstr;
+                first       = false;
+                uint32_t id = static_cast<uint32_t>(std::stoul(idstr));
+                lambda(rslt, id);
+                sindex = eindex + 1;
+            } while (sindex < ids.size());
+            rslt << '}';
+        }
+        else
+        {
+            uint32_t id = static_cast<uint32_t>(std::stoul(std::string(subpath.substr(1))));
+            lambda(rslt, id);
+        }
+        return rslt.str();
+    }
+    template <typename TTup, ConceptInterface T, size_t TTupIndex = std::tuple_size_v<TTup>>
     bool _TryHandleObjectStore(T&                      obj,
                                httplib::Request const& req,
                                httplib::Response&      res,
@@ -170,60 +333,117 @@ template <WebInterfaceImpl... TImpls> struct WebService
         if constexpr (TTupIndex == 0) { return false; }
         else
         {
-            using SelectedTup = std::tuple_element_t<TTupIndex - 1, TTup>;
-            if (!impl::iequal(Stencil::InterfaceObjectTraits<SelectedTup>::Name(), ifname))
+            if (!impl::iequal(Stencil::InterfaceObjectTraits<std::tuple_element_t<TTupIndex - 1, TTup>>::Name(), ifname))
             {
-                return _TryHandleObjectStore<TTup, TTupIndex - 1, T>(obj, req, res, ifname, path);
+                return _TryHandleObjectStore<TTup, T, TTupIndex - 1>(obj, req, res, ifname, path);
             }
-            if (path == "/create")
-            {
-                auto lock       = obj.objects.LockForEdit();
-                auto [id, obj1] = obj.objects.template Create<SelectedTup>(lock, _CreateArgStruct<SelectedTup>(req));
-                uint32_t idint  = ((uint32_t{id.page} << 16) | uint32_t{id.slot});
-                auto     rslt   = Stencil::Json::Stringify<decltype(idint)>(idint);
-                res.set_content(rslt, "application/json");
-                return true;
-            }
-            else if (path == "/get")
-            {
-                auto              ids = req.params.find("ids")->second;
-                std::stringstream rslt;
-                rslt << '[';
-                bool   first  = true;
-                size_t sindex = 0;
-                do {
-                    auto eindex = ids.find(',', sindex);
-                    if (eindex == std::string_view::npos) eindex = ids.size();
-                    if (!first) { rslt << ','; }
-                    first      = false;
-                    auto idstr = ids.substr(sindex, eindex - sindex);
-                    auto id    = std::stoul(idstr);
-                    auto lock  = obj.objects.LockForEdit();
-                    auto obj1  = obj.objects.template Get<SelectedTup>(lock, Database2::impl::Ref::FromUInt(id));
-                    // auto jsobj = Stencil::Json::Stringify<SelectedTup>(obj1);
-                    // rslt << jsobj;
-                    sindex = eindex + 1;
-                } while (sindex < ids.size());
-                rslt << ']';
-                res.set_content(rslt.str(), "application/json");
-                return true;
-            }
-            else { throw std::logic_error("Not implemented"); }
+
+            return _TryHandleObjectStore1<std::tuple_element_t<TTupIndex - 1, TTup>>(obj, req, res, path);
         }
     }
 
-    template <WebInterfaceImpl T>
+    template <typename TInterfaceObj, ConceptInterface T>
+    bool _TryHandleObjectStore1(T& obj, httplib::Request const& req, httplib::Response& res, std::string_view const& path)
+    {
+        auto [action, subpath] = _Split(path);
+        if (action == "create")
+        {
+            auto lock       = obj.objects.LockForEdit();
+            auto [id, obj1] = obj.objects.template Create<TInterfaceObj>(lock, _CreateArgStruct<TInterfaceObj>(req));
+            uint32_t idint  = id.id;
+            auto     rslt   = Stencil::Json::Stringify(idint);
+            res.set_content(rslt, "application/json");
+        }
+        else if (action == "all")
+        {
+            auto               lock = obj.objects.LockForRead();
+            std::ostringstream rslt;
+            rslt << '{';
+            bool first = true;
+            for (auto const& [ref, obj1] : obj.objects.template Items<TInterfaceObj>(lock))
+            {
+                rslt << ref.id << ':' << Stencil::Json::Stringify(Stencil::Database::CreateRecordView(obj.objects, lock, obj1));
+                if (first) { rslt << ','; }
+                first = false;
+            }
+            rslt << '}';
+            res.set_content(rslt.str(), "application/json");
+        }
+        else if (action == "read")
+        {
+            auto lock = obj.objects.LockForRead();
+            res.set_content(_ForeachObjId(req,
+                                          subpath,
+                                          [&](auto& rslt, uint32_t id) {
+                                              auto obj1 = obj.objects.template Get<TInterfaceObj>(lock, {id});
+                                              auto jsobj
+                                                  = Stencil::Json::Stringify(Stencil::Database::CreateRecordView(obj.objects, lock, obj1));
+                                              rslt << jsobj;
+                                          }),
+                            "application/json");
+        }
+        else if (action == "edit")
+        {
+            auto lock = obj.objects.LockForEdit();
+            res.set_content(_ForeachObjId(req,
+                                          subpath,
+                                          [&](auto& rslt, uint32_t id) {
+                                              auto obj1 = obj.objects.template Get<TInterfaceObj>(lock, {id});
+                                              auto jsobj
+                                                  = Stencil::Json::Stringify(Stencil::Database::CreateRecordView(obj.objects, lock, obj1));
+                                              rslt << jsobj;
+                                          }),
+                            "application/json");
+        }
+        else if (action == "delete")
+        {
+            auto lock = obj.objects.LockForEdit();
+            res.set_content(_ForeachObjId(req,
+                                          subpath,
+                                          [&](auto& rslt, uint32_t id) {
+                                              try
+                                              {
+                                                  obj.objects.template Delete<TInterfaceObj>(lock, {id});
+                                                  rslt << "true";
+                                              } catch (std::exception const& /*ex*/)
+                                              {
+                                                  rslt << "false";
+                                              }
+                                          }),
+                            "application/json");
+        }
+        else { throw std::logic_error("Not implemented"); }
+        res.status = 200;
+        return true;
+    }
+
+    template <ConceptInterface T>
     bool _HandleObjectStore(T&                      obj,
                             httplib::Request const& req,
                             httplib::Response&      res,
                             std::string_view const& ifname,
                             std::string_view const& path)
     {
-        using ObjectsTup = typename Stencil::InterfaceTraits<typename T::Interface>::Objects;
-        return _TryHandleObjectStore<ObjectsTup, std::tuple_size_v<ObjectsTup>, T>(obj, req, res, ifname, path);
+        if (ifname == "objectstore")
+        {
+            res.set_header("Access-Control-Allow-Origin", "*");
+            auto instance = _sseManager.CreateInstance();
+            res.set_chunked_content_provider(
+                "text/event-stream",
+                [instance](size_t /*offset*/, httplib::DataSink& sink) {
+                    // This function doesnt return so its important to release the lock before entering start
+                    instance->Start(sink, "event: init\ndata: \n\n");    // Empty data
+                    return true;
+                },
+                [instance](bool /*success*/) { instance->Release(); });
+            res.status = 200;
+            return true;
+        }
+
+        return _TryHandleObjectStore<typename Stencil::InterfaceTraits<T>::Objects, T>(obj, req, res, ifname, path);
     }
 
-    template <typename TTup, size_t TTupIndex, WebInterfaceImpl T>
+    template <typename TTup, size_t TTupIndex, ConceptInterface T>
     bool _TryHandleFunction(T&                      obj,
                             httplib::Request const& req,
                             httplib::Response&      res,
@@ -240,71 +460,57 @@ template <WebInterfaceImpl... TImpls> struct WebService
             }
             using Traits = ::Stencil::InterfaceApiTraits<SelectedTup>;
             auto args    = _CreateArgStruct<typename Traits::ArgsStruct>(req);
-            if constexpr (std::is_same_v<void, decltype(Traits::Invoke(args))>) { Traits::Invoke(args); }
+            if constexpr (std::is_same_v<void, decltype(Traits::Invoke(obj, args))>) { Traits::Invoke(obj, args); }
             else
             {
-                auto retval = Traits::Invoke(args);
-#ifdef HAVE_NLOHMANN_JSON
-                auto rslt = Stencil::Json::Stringify<decltype(retval)>(retval);
+                auto retval = Traits::Invoke(obj, args);
+                auto rslt   = Stencil::Json::Stringify<decltype(retval)>(retval);
                 res.set_content(rslt, "application/json");
-#else
-                throw std::logic_error("No json stringifier defined");
-#endif
             }
             return true;
         }
     }
 
-    template <WebInterfaceImpl T>
+    template <ConceptInterface T>
     bool _HandleFunction(T&                      obj,
                          httplib::Request const& req,
                          httplib::Response&      res,
                          std::string_view const& ifname,
                          std::string_view const& path)
     {
-        using Tup = typename Stencil::InterfaceTraits<typename T::Interface>::Apis;
-        /* Func API
-         *      Condition: path matches api-name
-         *      Action:
-         *          Convert args into Func API arg-struct
-         *          Traits are used to translate arg-struct to virtual function args for the given name
-         *
-         * */
+        using Tup = typename Stencil::InterfaceTraits<T>::ApiStructs;
         return _TryHandleFunction<Tup, std::tuple_size_v<Tup>, T>(obj, req, res, ifname, path);
     }
 
-    template <WebInterfaceImpl T>
+    template <ConceptInterface T>
     void _HandleRequest(T& obj, httplib::Request const& req, httplib::Response& res, std::string_view const& path)
     {
-        if (path.empty() || path[0] != '/') throw std::logic_error("Invalid path");
-        auto index = path.find('/', 1);
-        if (index == path.npos) index = path.size();
-        auto ifname    = path.substr(1, index - 1);
-        auto remaining = path.substr(index);
+        auto [ifname, subpath] = _Split(path);
 
-        bool found = _HandleEventSource(obj, req, res, ifname, remaining) || _HandleObjectStore(obj, req, res, ifname, remaining)
-                     || _HandleFunction(obj, req, res, ifname, remaining);
+        bool found = _HandleEvents(obj, req, res, ifname, subpath) || _HandleObjectStore(obj, req, res, ifname, subpath)
+                     || _HandleFunction(obj, req, res, ifname, subpath);
 
         if (!found) { throw std::runtime_error(fmt::format("No Matching api found for {}", path)); }
     }
 
-    template <WebInterfaceImpl T, WebInterfaceImpl... Ts>
+    template <ConceptInterface T1, ConceptInterface... T1s>
     void _HandleRequest(httplib::Request const& req, httplib::Response& res, std::string_view const& ifname, std::string_view const& path)
     {
-        if (!impl::iequal(WebServiceHandlerTraits<typename T::Interface>::Url(), ifname))
+        if (!impl::iequal(Stencil::InterfaceTraits<T1>::Name(), ifname))
         {
-            if constexpr (sizeof...(Ts) > 0) { return _HandleRequest<Ts...>(req, res, ifname, path); }
+            if constexpr (sizeof...(T1s) > 0) { return _HandleRequest<T1s...>(req, res, ifname, path); }
             else { throw std::runtime_error(fmt::format("No matching interface found for {}", ifname)); }
         }
-        return _HandleRequest(std::get<T>(_impls), req, res, path);
+        return _HandleRequest(*std::get<std::unique_ptr<T1>>(_impls).get(), req, res, path);
     }
 
     std::thread             _listenthread;
     std::condition_variable _cond;
     std::mutex              _mutex;
 
-    int                   _port;
-    httplib::Server       _server;
-    std::tuple<TImpls...> _impls;
+    int                                _port;
+    httplib::Server                    _server;
+    impl::SSEListenerManager           _sseManager;
+    std::tuple<std::unique_ptr<Ts>...> _impls = {Ts::Create()...};
 };
 }    // namespace Stencil

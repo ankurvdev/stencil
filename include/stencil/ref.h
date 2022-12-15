@@ -17,7 +17,9 @@ template <typename T> struct Ref
 };
 
 template <typename T> struct RefMap
-{};
+{
+    constexpr auto operator<=>(RefMap<T> const& rhs) const = default;
+};
 
 }    // namespace Stencil
 
@@ -45,17 +47,26 @@ template <Stencil::ConceptIterable T> struct Stencil::VisitorForIterable<Stencil
     using ThisType = Stencil::Ref<T>;
 
     template <typename T1>
-    requires std::is_same_v<std::remove_const_t<T1>, ThisType>
-    static void IteratorBegin(Iterator& it, T1& obj) { Stencil::Visitor<T>::IteratorBegin(it, *obj.get()); }
+        requires std::is_same_v<std::remove_const_t<T1>, ThisType>
+    static void IteratorBegin(Iterator& it, T1& obj)
+    {
+        Stencil::Visitor<T>::IteratorBegin(it, *obj.get());
+    }
     template <typename T1>
-    requires std::is_same_v<std::remove_const_t<T1>, ThisType>
-    static void IteratorMoveNext(Iterator& it, T1& obj) { Stencil::Visitor<T>::IteratorMoveNext(it, *obj.get()); }
+        requires std::is_same_v<std::remove_const_t<T1>, ThisType>
+    static void IteratorMoveNext(Iterator& it, T1& obj)
+    {
+        Stencil::Visitor<T>::IteratorMoveNext(it, *obj.get());
+    }
     template <typename T1>
-    requires std::is_same_v<std::remove_const_t<T1>, ThisType>
-    static bool IteratorValid(Iterator& it, T1& obj) { return Stencil::Visitor<T>::IteratorValid(it, *obj.get()); }
+        requires std::is_same_v<std::remove_const_t<T1>, ThisType>
+    static bool IteratorValid(Iterator& it, T1& obj)
+    {
+        return Stencil::Visitor<T>::IteratorValid(it, *obj.get());
+    }
 
     template <typename T1, typename TLambda>
-    requires std::is_same_v<std::remove_const_t<T1>, ThisType>
+        requires std::is_same_v<std::remove_const_t<T1>, ThisType>
     static void Visit(Iterator& it, T1& obj, TLambda&& lambda)
     {
         Stencil::Visitor<T>::Visit(it, *obj.get(), std::forward<TLambda>(lambda));
@@ -95,7 +106,7 @@ struct Stencil::Visitor<Stencil::Ref<T>>
 
     template <typename T1, typename TLambda>
     requires std::is_same_v<std::remove_const_t<T1>, ThisType>
-    static void VisitAllIndicies(T1& obj, TLambda&& lambda)
+    static void VisitAll(T1& obj, TLambda&& lambda)
     {
         if (obj.get() == nullptr)
         {
@@ -107,7 +118,7 @@ struct Stencil::Visitor<Stencil::Ref<T>>
             else { return; }
         }
 
-        Stencil::Visitor<T>::VisitAllIndicies(*obj.get(), std::forward<TLambda>(lambda));
+        Stencil::Visitor<T>::VisitAll(*obj.get(), std::forward<TLambda>(lambda));
     }
 };
 #endif
@@ -129,7 +140,7 @@ template <typename T> struct Stencil::Visitor<Stencil::RefMap<T>> : Stencil::Vis
     using ThisType = Stencil::RefMap<T>;
     // So that this works for both const and non-const
     template <typename T1, typename TKey, typename TLambda>
-    requires std::is_same_v<std::remove_const_t<T1>, ThisType>
+        requires std::is_same_v<std::remove_const_t<T1>, ThisType>
     static void VisitKey(T1& obj, TKey&& key, TLambda&& lambda)
     {
         if (obj.get() == nullptr)
@@ -146,8 +157,8 @@ template <typename T> struct Stencil::Visitor<Stencil::RefMap<T>> : Stencil::Vis
     }
 
     template <typename T1, typename TLambda>
-    requires std::is_same_v<std::remove_const_t<T1>, ThisType>
-    static void VisitAllIndicies(T1& obj, TLambda&& lambda)
+        requires std::is_same_v<std::remove_const_t<T1>, ThisType>
+    static void VisitAll(T1& obj, TLambda&& lambda)
     {
         if (obj.get() == nullptr)
         {
@@ -159,7 +170,7 @@ template <typename T> struct Stencil::Visitor<Stencil::RefMap<T>> : Stencil::Vis
             else { return; }
         }
 
-        Stencil::Visitor<T>::VisitAllIndicies(*obj.get(), std::forward<TLambda>(lambda));
+        Stencil::Visitor<T>::VisitAll(*obj.get(), std::forward<TLambda>(lambda));
     }
 };
 

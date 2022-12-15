@@ -1,5 +1,5 @@
-#include "Test_Handwritten.h"
 #include "TestUtils.h"
+#include "Test_Handwritten.h"
 
 struct TestCase
 {
@@ -41,7 +41,7 @@ template <typename T> static void RunTestCases(std::initializer_list<TestCase> c
         RunTestCase<T>({"[]", "default-3", false}, lines, name);
         RunTestCase<T>({R"({"mismatched": {}})", "default-4", false}, lines, name);
         for (auto& tc : cases) { RunTestCase<T>(tc, lines, name); }
-        TestCommon::CheckOutputAgainstStrResource(lines, name);
+        TestCommon::CheckResource<TestCommon::StrFormat>(lines, name);
     }
 
     // CompareFileAgainstResource(logfname, reffname.string());
@@ -49,7 +49,10 @@ template <typename T> static void RunTestCases(std::initializer_list<TestCase> c
 
 TEST_CASE("Json", "[Json]")
 {
-    SECTION("TestObj") { RunTestCases<TestObj>({}, "TestObj"); }
+    SECTION("TestObj")
+    {
+        RunTestCases<TestObj>({}, "TestObj");
+    }
 
     SECTION("WithPrimitives64Bit")
     {

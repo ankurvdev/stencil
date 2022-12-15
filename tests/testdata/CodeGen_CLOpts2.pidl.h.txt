@@ -1,6 +1,5 @@
 #pragma once
 #include <stencil/stencil.h>
-
 // SECTION START: DECLARATIONS
 #if true
 
@@ -447,7 +446,91 @@ template <> struct Stencil::Visitor<CLOpts2::InstallOptions> : Stencil::VisitorT
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_ProductId, obj.ProductId);
+        lambda(Fields::Field_Repair, obj.Repair);
+        lambda(Fields::Field_ForceNonSD, obj.ForceNonSD);
+        lambda(Fields::Field_TargetVolume, obj.TargetVolume);
+        lambda(Fields::Field_User, obj.User);
+    }
+};
+
+template <> struct Stencil::Comparator<CLOpts2::InstallOptions, CLOpts2::InstallOptions>
+{
+    using ThisType = CLOpts2::InstallOptions;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.ProductId, obj2.ProductId)
+               && Stencil::AreEqual(obj1.Repair, obj2.Repair)
+               && Stencil::AreEqual(obj1.ForceNonSD, obj2.ForceNonSD)
+               && Stencil::AreEqual(obj1.TargetVolume, obj2.TargetVolume)
+               && Stencil::AreEqual(obj1.User, obj2.User)
+            ;
+    }
+};
+
+template <>
+struct Stencil::Database::Record<CLOpts2::InstallOptions> :
+    public Stencil::Database::RecordT<CLOpts2::InstallOptions>
+{
+    public:
+    Stencil::Database::RecordNest<shared_string>::Type ProductId{};
+    Stencil::Database::RecordNest<bool>::Type Repair{};
+    Stencil::Database::RecordNest<bool>::Type ForceNonSD{};
+    Stencil::Database::RecordNest<shared_string>::Type TargetVolume{};
+    Stencil::Database::RecordNest<shared_string>::Type User{};
+};
+
+template <> struct Stencil::Database::RecordTraits<CLOpts2::InstallOptions>
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<
+        typename Stencil::Database::RecordTraits<shared_string>::RecordTypes,
+        typename Stencil::Database::RecordTraits<bool>::RecordTypes,
+        typename Stencil::Database::RecordTraits<bool>::RecordTypes,
+        typename Stencil::Database::RecordTraits<shared_string>::RecordTypes,
+        typename Stencil::Database::RecordTraits<shared_string>::RecordTypes,
+        std::tuple<CLOpts2::InstallOptions>>;
+
+    static constexpr size_t Size() { return sizeof(Stencil::Database::Record<CLOpts2::InstallOptions>); }
+
+    template <typename TDb>
+    static void WriteToBuffer(TDb&                                                          db,
+                              Stencil::Database::RWLock const&                              lock,
+                              CLOpts2::InstallOptions const&                      obj,
+                              Stencil::Database::Record<CLOpts2::InstallOptions>& rec)
+    {
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.ProductId, rec.ProductId);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.Repair, rec.Repair);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.ForceNonSD, rec.ForceNonSD);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.TargetVolume, rec.TargetVolume);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.User, rec.User);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Stencil::Database::Record<CLOpts2::InstallOptions>>
+    : Stencil::VisitorT<Stencil::Database::Record<CLOpts2::InstallOptions>>
+{
+    using TData  = Stencil::Database::Record<CLOpts2::InstallOptions>;
+    using Fields = TypeTraitsForIndexable<CLOpts2::InstallOptions>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_ProductId: return lambda(obj.ProductId);
+        case Fields::Field_Repair: return lambda(obj.Repair);
+        case Fields::Field_ForceNonSD: return lambda(obj.ForceNonSD);
+        case Fields::Field_TargetVolume: return lambda(obj.TargetVolume);
+        case Fields::Field_User: return lambda(obj.User);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_ProductId, obj.ProductId);
         lambda(Fields::Field_Repair, obj.Repair);
@@ -638,7 +721,67 @@ template <> struct Stencil::Visitor<CLOpts2::QueueOptions> : Stencil::VisitorT<C
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_ProductId, obj.ProductId);
+    }
+};
+
+template <> struct Stencil::Comparator<CLOpts2::QueueOptions, CLOpts2::QueueOptions>
+{
+    using ThisType = CLOpts2::QueueOptions;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.ProductId, obj2.ProductId)
+            ;
+    }
+};
+
+template <>
+struct Stencil::Database::Record<CLOpts2::QueueOptions> :
+    public Stencil::Database::RecordT<CLOpts2::QueueOptions>
+{
+    public:
+    Stencil::Database::RecordNest<shared_string>::Type ProductId{};
+};
+
+template <> struct Stencil::Database::RecordTraits<CLOpts2::QueueOptions>
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<
+        typename Stencil::Database::RecordTraits<shared_string>::RecordTypes,
+        std::tuple<CLOpts2::QueueOptions>>;
+
+    static constexpr size_t Size() { return sizeof(Stencil::Database::Record<CLOpts2::QueueOptions>); }
+
+    template <typename TDb>
+    static void WriteToBuffer(TDb&                                                          db,
+                              Stencil::Database::RWLock const&                              lock,
+                              CLOpts2::QueueOptions const&                      obj,
+                              Stencil::Database::Record<CLOpts2::QueueOptions>& rec)
+    {
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.ProductId, rec.ProductId);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Stencil::Database::Record<CLOpts2::QueueOptions>>
+    : Stencil::VisitorT<Stencil::Database::Record<CLOpts2::QueueOptions>>
+{
+    using TData  = Stencil::Database::Record<CLOpts2::QueueOptions>;
+    using Fields = TypeTraitsForIndexable<CLOpts2::QueueOptions>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_ProductId: return lambda(obj.ProductId);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_ProductId, obj.ProductId);
     }
@@ -825,7 +968,67 @@ template <> struct Stencil::Visitor<CLOpts2::PauseOptions> : Stencil::VisitorT<C
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_ProductId, obj.ProductId);
+    }
+};
+
+template <> struct Stencil::Comparator<CLOpts2::PauseOptions, CLOpts2::PauseOptions>
+{
+    using ThisType = CLOpts2::PauseOptions;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.ProductId, obj2.ProductId)
+            ;
+    }
+};
+
+template <>
+struct Stencil::Database::Record<CLOpts2::PauseOptions> :
+    public Stencil::Database::RecordT<CLOpts2::PauseOptions>
+{
+    public:
+    Stencil::Database::RecordNest<shared_string>::Type ProductId{};
+};
+
+template <> struct Stencil::Database::RecordTraits<CLOpts2::PauseOptions>
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<
+        typename Stencil::Database::RecordTraits<shared_string>::RecordTypes,
+        std::tuple<CLOpts2::PauseOptions>>;
+
+    static constexpr size_t Size() { return sizeof(Stencil::Database::Record<CLOpts2::PauseOptions>); }
+
+    template <typename TDb>
+    static void WriteToBuffer(TDb&                                                          db,
+                              Stencil::Database::RWLock const&                              lock,
+                              CLOpts2::PauseOptions const&                      obj,
+                              Stencil::Database::Record<CLOpts2::PauseOptions>& rec)
+    {
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.ProductId, rec.ProductId);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Stencil::Database::Record<CLOpts2::PauseOptions>>
+    : Stencil::VisitorT<Stencil::Database::Record<CLOpts2::PauseOptions>>
+{
+    using TData  = Stencil::Database::Record<CLOpts2::PauseOptions>;
+    using Fields = TypeTraitsForIndexable<CLOpts2::PauseOptions>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_ProductId: return lambda(obj.ProductId);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_ProductId, obj.ProductId);
     }
@@ -1012,7 +1215,67 @@ template <> struct Stencil::Visitor<CLOpts2::CancelOptions> : Stencil::VisitorT<
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_ProductId, obj.ProductId);
+    }
+};
+
+template <> struct Stencil::Comparator<CLOpts2::CancelOptions, CLOpts2::CancelOptions>
+{
+    using ThisType = CLOpts2::CancelOptions;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.ProductId, obj2.ProductId)
+            ;
+    }
+};
+
+template <>
+struct Stencil::Database::Record<CLOpts2::CancelOptions> :
+    public Stencil::Database::RecordT<CLOpts2::CancelOptions>
+{
+    public:
+    Stencil::Database::RecordNest<shared_string>::Type ProductId{};
+};
+
+template <> struct Stencil::Database::RecordTraits<CLOpts2::CancelOptions>
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<
+        typename Stencil::Database::RecordTraits<shared_string>::RecordTypes,
+        std::tuple<CLOpts2::CancelOptions>>;
+
+    static constexpr size_t Size() { return sizeof(Stencil::Database::Record<CLOpts2::CancelOptions>); }
+
+    template <typename TDb>
+    static void WriteToBuffer(TDb&                                                          db,
+                              Stencil::Database::RWLock const&                              lock,
+                              CLOpts2::CancelOptions const&                      obj,
+                              Stencil::Database::Record<CLOpts2::CancelOptions>& rec)
+    {
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.ProductId, rec.ProductId);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Stencil::Database::Record<CLOpts2::CancelOptions>>
+    : Stencil::VisitorT<Stencil::Database::Record<CLOpts2::CancelOptions>>
+{
+    using TData  = Stencil::Database::Record<CLOpts2::CancelOptions>;
+    using Fields = TypeTraitsForIndexable<CLOpts2::CancelOptions>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_ProductId: return lambda(obj.ProductId);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_ProductId, obj.ProductId);
     }
@@ -1199,7 +1462,67 @@ template <> struct Stencil::Visitor<CLOpts2::ResumeOptions> : Stencil::VisitorT<
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_ProductId, obj.ProductId);
+    }
+};
+
+template <> struct Stencil::Comparator<CLOpts2::ResumeOptions, CLOpts2::ResumeOptions>
+{
+    using ThisType = CLOpts2::ResumeOptions;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.ProductId, obj2.ProductId)
+            ;
+    }
+};
+
+template <>
+struct Stencil::Database::Record<CLOpts2::ResumeOptions> :
+    public Stencil::Database::RecordT<CLOpts2::ResumeOptions>
+{
+    public:
+    Stencil::Database::RecordNest<shared_string>::Type ProductId{};
+};
+
+template <> struct Stencil::Database::RecordTraits<CLOpts2::ResumeOptions>
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<
+        typename Stencil::Database::RecordTraits<shared_string>::RecordTypes,
+        std::tuple<CLOpts2::ResumeOptions>>;
+
+    static constexpr size_t Size() { return sizeof(Stencil::Database::Record<CLOpts2::ResumeOptions>); }
+
+    template <typename TDb>
+    static void WriteToBuffer(TDb&                                                          db,
+                              Stencil::Database::RWLock const&                              lock,
+                              CLOpts2::ResumeOptions const&                      obj,
+                              Stencil::Database::Record<CLOpts2::ResumeOptions>& rec)
+    {
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.ProductId, rec.ProductId);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Stencil::Database::Record<CLOpts2::ResumeOptions>>
+    : Stencil::VisitorT<Stencil::Database::Record<CLOpts2::ResumeOptions>>
+{
+    using TData  = Stencil::Database::Record<CLOpts2::ResumeOptions>;
+    using Fields = TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_ProductId: return lambda(obj.ProductId);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_ProductId, obj.ProductId);
     }
@@ -1386,7 +1709,67 @@ template <> struct Stencil::Visitor<CLOpts2::UpdateOptions> : Stencil::VisitorT<
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_ProductId, obj.ProductId);
+    }
+};
+
+template <> struct Stencil::Comparator<CLOpts2::UpdateOptions, CLOpts2::UpdateOptions>
+{
+    using ThisType = CLOpts2::UpdateOptions;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.ProductId, obj2.ProductId)
+            ;
+    }
+};
+
+template <>
+struct Stencil::Database::Record<CLOpts2::UpdateOptions> :
+    public Stencil::Database::RecordT<CLOpts2::UpdateOptions>
+{
+    public:
+    Stencil::Database::RecordNest<shared_string>::Type ProductId{};
+};
+
+template <> struct Stencil::Database::RecordTraits<CLOpts2::UpdateOptions>
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<
+        typename Stencil::Database::RecordTraits<shared_string>::RecordTypes,
+        std::tuple<CLOpts2::UpdateOptions>>;
+
+    static constexpr size_t Size() { return sizeof(Stencil::Database::Record<CLOpts2::UpdateOptions>); }
+
+    template <typename TDb>
+    static void WriteToBuffer(TDb&                                                          db,
+                              Stencil::Database::RWLock const&                              lock,
+                              CLOpts2::UpdateOptions const&                      obj,
+                              Stencil::Database::Record<CLOpts2::UpdateOptions>& rec)
+    {
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.ProductId, rec.ProductId);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Stencil::Database::Record<CLOpts2::UpdateOptions>>
+    : Stencil::VisitorT<Stencil::Database::Record<CLOpts2::UpdateOptions>>
+{
+    using TData  = Stencil::Database::Record<CLOpts2::UpdateOptions>;
+    using Fields = TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_ProductId: return lambda(obj.ProductId);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_ProductId, obj.ProductId);
     }
@@ -1573,7 +1956,67 @@ template <> struct Stencil::Visitor<CLOpts2::HydrateOptions> : Stencil::VisitorT
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_ProductId, obj.ProductId);
+    }
+};
+
+template <> struct Stencil::Comparator<CLOpts2::HydrateOptions, CLOpts2::HydrateOptions>
+{
+    using ThisType = CLOpts2::HydrateOptions;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.ProductId, obj2.ProductId)
+            ;
+    }
+};
+
+template <>
+struct Stencil::Database::Record<CLOpts2::HydrateOptions> :
+    public Stencil::Database::RecordT<CLOpts2::HydrateOptions>
+{
+    public:
+    Stencil::Database::RecordNest<shared_string>::Type ProductId{};
+};
+
+template <> struct Stencil::Database::RecordTraits<CLOpts2::HydrateOptions>
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<
+        typename Stencil::Database::RecordTraits<shared_string>::RecordTypes,
+        std::tuple<CLOpts2::HydrateOptions>>;
+
+    static constexpr size_t Size() { return sizeof(Stencil::Database::Record<CLOpts2::HydrateOptions>); }
+
+    template <typename TDb>
+    static void WriteToBuffer(TDb&                                                          db,
+                              Stencil::Database::RWLock const&                              lock,
+                              CLOpts2::HydrateOptions const&                      obj,
+                              Stencil::Database::Record<CLOpts2::HydrateOptions>& rec)
+    {
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.ProductId, rec.ProductId);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Stencil::Database::Record<CLOpts2::HydrateOptions>>
+    : Stencil::VisitorT<Stencil::Database::Record<CLOpts2::HydrateOptions>>
+{
+    using TData  = Stencil::Database::Record<CLOpts2::HydrateOptions>;
+    using Fields = TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_ProductId: return lambda(obj.ProductId);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Fields::Field_ProductId, obj.ProductId);
     }
@@ -1654,7 +2097,7 @@ template <> struct Stencil::Visitor<CLOpts2::CommandLineOptions>
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllIndicies(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda)
     {
         auto fieldType = static_cast<Fields>(obj.index());
         std::visit([&](auto&& arg) { lambda(fieldType, arg); }, obj._variant);

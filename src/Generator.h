@@ -8,29 +8,9 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
-
-struct Generator
+struct TypeDefinitions
 {
-    virtual ~Generator() = default;
-
-    void LoadBuilltinTemplates();
-    void LoadTemplate(std::filesystem::path const& templatePath);
-
-    void FinalizeTypeDefinitions();
-
-    virtual void LoadFile(std::filesystem::path const& inputFile) = 0;
-
-    std::vector<std::filesystem::path> Generate(bool isDryRun, std::filesystem::path const& outDir);
-
-    static std::unique_ptr<Generator> CreateThriftGenerator();
-
-    static std::unique_ptr<Generator> Get(std::string const& type)
-    {
-        if (type == "thrift") return CreateThriftGenerator();
-
-        throw std::invalid_argument("Valid Generators [thrift]. Unknown Generator Type : " + type);
-    }
-
+    using StrType                   = Binding::Str::Type;
     using MutatorAccessorDefinition = IDL::Container::MutatorAccessorDefinition;
 
     struct FieldTypeDecl
@@ -53,33 +33,13 @@ struct Generator
             if (decl.args.size() != 0)
             {
                 if (args.size() == 0) { args = std::move(decl.args); }
-                else
-                {
-                    throw std::logic_error("Cannot reset args");
-                }
+                else { throw std::logic_error("Cannot reset args"); }
             }
             FieldTypeDecl::Merge(std::move(decl));
         }
     };
-
-    protected:
-    IDL::Program& Program_() { return *_program; }
-
-    private:
-    void _RegisterFieldDefForProgram(FieldTypeDecl& v);
-
-    using StrType = Binding::Str::Type;
-
-    bool _finalized{false};
-
-    std::vector<FieldTypeDecl>     _fieldTypeDecls;
-    std::vector<ContainerTypeDecl> _containerDecls;
-
-    std::map<StrType, size_t>                               _fieldTypeDeclMap;
-    std::map<StrType, size_t>                               _containerDeclMap;
-    std::map<StrType, std::unordered_map<StrType, StrType>> _attributeDefs;
-
-    FieldTypeDecl _structDefault, _interfaceDefault, _unionDefault, _typedefDefault, _fnargsDefault;
+    void _RegisterFieldDefForProgram(FieldTypeDecl const& v, IDL::Program& program) const;
+    void AddTypeDefinitions(std::string_view const& name, std::string_view const& text);
 
     FieldTypeDecl& _FindOrInsertFieldTypeDecl(StrType const& name)
     {
@@ -105,10 +65,53 @@ struct Generator
         return _containerDecls.at(it->second);
     }
 
-    void _AddTypeDefinitions(std::string_view const& name, std::string_view const& text);
+    std::vector<FieldTypeDecl>     _fieldTypeDecls;
+    std::vector<ContainerTypeDecl> _containerDecls;
+
+    std::map<StrType, size_t>                               _fieldTypeDeclMap;
+    std::map<StrType, size_t>                               _containerDeclMap;
+    std::map<StrType, std::unordered_map<StrType, StrType>> _attributeDefs;
+    FieldTypeDecl _structDefault, _interfaceDefault, _unionDefault, _typedefDefault, _fnargsDefault;
+
+    void LoadIntoProgram(IDL::Program& program) const;
+    void FinalizeTypeDefinitions();
+};
+
+struct Generator
+{
+    virtual ~Generator() = default;
+
+    void LoadBuilltinTemplates();
+    void LoadTemplate(std::filesystem::path const& templatePath);
+
+    void FinalizeTypeDefinitions();
+
+    virtual void LoadFile(std::filesystem::path const& inputFile) = 0;
+
+    std::vector<std::filesystem::path> Generate(bool isDryRun, std::filesystem::path const& outDir);
+
+    static std::unique_ptr<Generator> CreateThriftGenerator();
+
+    static std::unique_ptr<Generator> Get(std::string const& type)
+    {
+        if (type == "thrift") return CreateThriftGenerator();
+
+        throw std::invalid_argument("Valid Generators [thrift]. Unknown Generator Type : " + type);
+    }
+
+    std::shared_ptr<IDL::Program> Program() { return _program; }
+
+    protected:
+    IDL::Program&    Program_() { return *_program; }
+    TypeDefinitions& TypeDefinitions_() { return *_typeDefinitions; }
+
+    private:
+    bool _finalized{false};
 
     void _AddTemplate(std::string_view const& name, std::string_view const& text);
     void _AddContent(std::string_view const& name, std::string_view const& text);
+
+    std::shared_ptr<TypeDefinitions> _typeDefinitions = std::make_shared<TypeDefinitions>();
 
     std::shared_ptr<IDL::Program> _program = std::make_shared<IDL::Program>();
     std::vector<Template>         _templates;

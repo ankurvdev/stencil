@@ -49,9 +49,12 @@ target_include_directories(WavefrontObj PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
 target_include_directories(stencil_vcpkg_test PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
 
 file(APPEND ${srcfile} "
+#pragma warning(push, 3)
+#pragma warning(disable : 5262) /*xlocale(2010,13): implicit fall-through occurs here*/
 #include<WavefrontObj.h>
 #include<EmbeddedResource.h>
 #include <iostream>
+#pragma warning(pop)
 DECLARE_RESOURCE_COLLECTION(testdata);
 int main() { 
     auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
