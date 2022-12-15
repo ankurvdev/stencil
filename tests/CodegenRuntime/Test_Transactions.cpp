@@ -145,7 +145,7 @@ struct TestReplay
     {
         TestCommon::CheckResource<TestCommon::StrFormat>(_txn1str, "Deltas");
         TestCommon::CheckResource<TestCommon::StrFormat>(_txn2str, "CumulativeDeltas");
-        TestCommon::CheckResource<TestCommon::StrFormat>(_json_snapshots, "ChangeDataSnapshots");
+        TestCommon::CheckResource<TestCommon::JsonFormat>(_json_snapshots, "ChangeDataSnapshots");
         // Too many variations in CumulativeDeltaBin due to unordered_map unstable ordering
         // TestCommon::CheckOutputAgainstBinResource(_txn1bin, "DeltaBin");
         // TestCommon::CheckOutputAgainstBinResource(_txn2bin, "CumulativeDeltaBin");

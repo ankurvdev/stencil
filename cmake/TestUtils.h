@@ -355,7 +355,6 @@ template <typename TFormat> inline bool _CheckResource(std::vector<std::string> 
         std::stringstream ss(str);
         if (TFormat::Compare(actual, ss)) return true;
         TFormat::PrintDiff(actual, ss);
-        break;
     }
     auto outf = TFormat::WriteResource(actual, testresname);
     FAIL_CHECK(fmt::format("Comparison Failed: Output: \n{}", outf.string()));
