@@ -383,6 +383,9 @@ template <> struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzStruct_Na
         //<Field>
         typename Stencil::Database::RecordTraits<zzFieldType_NativeTypezz>::RecordTypes,
         //</Field>
+        //<AttributeTag>
+        typename Stencil::Database::RecordTraits<zzTagType_NativeTypezz>::RecordTypes,
+        //</AttributeTag>
         std::tuple<zzProgram_Namezz::zzStruct_Namezz>>;
 
     static constexpr size_t Size() { return sizeof(Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz>); }
@@ -393,6 +396,9 @@ template <> struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzStruct_Na
                               zzProgram_Namezz::zzStruct_Namezz const&                      obj,
                               Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz>& rec)
     {
+         //<AttributeTag>
+        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<zzTagType_NativeTypezz const&>(obj), static_cast<Stencil::Database::Record<zzTagType_NativeTypezz>&>(rec));
+        //</AttributeTag>
         //<Field>
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.zzNamezz, rec.zzNamezz);
         //</Field>

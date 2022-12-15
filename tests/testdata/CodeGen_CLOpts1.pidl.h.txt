@@ -1,6 +1,5 @@
 #pragma once
 #include <stencil/stencil.h>
-
 // SECTION START: DECLARATIONS
 #if true
 
@@ -434,6 +433,90 @@ template <> struct Stencil::Visitor<CLOpts1::CommandLineOptions> : Stencil::Visi
     }
 };
 
+template <> struct Stencil::Comparator<CLOpts1::CommandLineOptions, CLOpts1::CommandLineOptions>
+{
+    using ThisType = CLOpts1::CommandLineOptions;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.workingDirectory, obj2.workingDirectory)
+               && Stencil::AreEqual(obj1.libraries, obj2.libraries)
+               && Stencil::AreEqual(obj1.scan, obj2.scan)
+               && Stencil::AreEqual(obj1.httpsPort, obj2.httpsPort)
+               && Stencil::AreEqual(obj1.daemon, obj2.daemon)
+            ;
+    }
+};
+
+template <>
+struct Stencil::Database::Record<CLOpts1::CommandLineOptions> :
+    public Stencil::Database::RecordT<CLOpts1::CommandLineOptions>
+{
+    public:
+    Stencil::Database::RecordNest<shared_string>::Type workingDirectory{};
+    Stencil::Database::RecordNest<std::vector<shared_string>>::Type libraries{};
+    Stencil::Database::RecordNest<std::vector<shared_string>>::Type scan{};
+    Stencil::Database::RecordNest<int32_t>::Type httpsPort{};
+    Stencil::Database::RecordNest<bool>::Type daemon{};
+};
+
+template <> struct Stencil::Database::RecordTraits<CLOpts1::CommandLineOptions>
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<
+        typename Stencil::Database::RecordTraits<shared_string>::RecordTypes,
+        typename Stencil::Database::RecordTraits<std::vector<shared_string>>::RecordTypes,
+        typename Stencil::Database::RecordTraits<std::vector<shared_string>>::RecordTypes,
+        typename Stencil::Database::RecordTraits<int32_t>::RecordTypes,
+        typename Stencil::Database::RecordTraits<bool>::RecordTypes,
+        std::tuple<CLOpts1::CommandLineOptions>>;
+
+    static constexpr size_t Size() { return sizeof(Stencil::Database::Record<CLOpts1::CommandLineOptions>); }
+
+    template <typename TDb>
+    static void WriteToBuffer(TDb&                                                          db,
+                              Stencil::Database::RWLock const&                              lock,
+                              CLOpts1::CommandLineOptions const&                      obj,
+                              Stencil::Database::Record<CLOpts1::CommandLineOptions>& rec)
+    {
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.workingDirectory, rec.workingDirectory);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.libraries, rec.libraries);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.scan, rec.scan);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.httpsPort, rec.httpsPort);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.daemon, rec.daemon);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Stencil::Database::Record<CLOpts1::CommandLineOptions>>
+    : Stencil::VisitorT<Stencil::Database::Record<CLOpts1::CommandLineOptions>>
+{
+    using TData  = Stencil::Database::Record<CLOpts1::CommandLineOptions>;
+    using Fields = TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_workingDirectory: return lambda(obj.workingDirectory);
+        case Fields::Field_libraries: return lambda(obj.libraries);
+        case Fields::Field_scan: return lambda(obj.scan);
+        case Fields::Field_httpsPort: return lambda(obj.httpsPort);
+        case Fields::Field_daemon: return lambda(obj.daemon);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_workingDirectory, obj.workingDirectory);
+        lambda(Fields::Field_libraries, obj.libraries);
+        lambda(Fields::Field_scan, obj.scan);
+        lambda(Fields::Field_httpsPort, obj.httpsPort);
+        lambda(Fields::Field_daemon, obj.daemon);
+    }
+};
+
 template <> struct Stencil::TypeTraits<CLOpts1::SimpleObj>
 {
     using Categories = std::tuple<Stencil::Category::Indexable>;
@@ -658,6 +741,72 @@ template <> struct Stencil::Visitor<CLOpts1::SimpleObj> : Stencil::VisitorT<CLOp
     }
 };
 
+template <> struct Stencil::Comparator<CLOpts1::SimpleObj, CLOpts1::SimpleObj>
+{
+    using ThisType = CLOpts1::SimpleObj;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.field1, obj2.field1)
+               && Stencil::AreEqual(obj1.field2, obj2.field2)
+            ;
+    }
+};
+
+template <>
+struct Stencil::Database::Record<CLOpts1::SimpleObj> :
+    public Stencil::Database::RecordT<CLOpts1::SimpleObj>
+{
+    public:
+    Stencil::Database::RecordNest<shared_string>::Type field1{};
+    Stencil::Database::RecordNest<shared_string>::Type field2{};
+};
+
+template <> struct Stencil::Database::RecordTraits<CLOpts1::SimpleObj>
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<
+        typename Stencil::Database::RecordTraits<shared_string>::RecordTypes,
+        typename Stencil::Database::RecordTraits<shared_string>::RecordTypes,
+        std::tuple<CLOpts1::SimpleObj>>;
+
+    static constexpr size_t Size() { return sizeof(Stencil::Database::Record<CLOpts1::SimpleObj>); }
+
+    template <typename TDb>
+    static void WriteToBuffer(TDb&                                                          db,
+                              Stencil::Database::RWLock const&                              lock,
+                              CLOpts1::SimpleObj const&                      obj,
+                              Stencil::Database::Record<CLOpts1::SimpleObj>& rec)
+    {
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.field1, rec.field1);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.field2, rec.field2);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Stencil::Database::Record<CLOpts1::SimpleObj>>
+    : Stencil::VisitorT<Stencil::Database::Record<CLOpts1::SimpleObj>>
+{
+    using TData  = Stencil::Database::Record<CLOpts1::SimpleObj>;
+    using Fields = TypeTraitsForIndexable<CLOpts1::SimpleObj>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_field1: return lambda(obj.field1);
+        case Fields::Field_field2: return lambda(obj.field2);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_field1, obj.field1);
+        lambda(Fields::Field_field2, obj.field2);
+    }
+};
+
 template <> struct Stencil::TypeTraits<CLOpts1::ObjWithList>
 {
     using Categories = std::tuple<Stencil::Category::Indexable>;
@@ -846,6 +995,66 @@ template <> struct Stencil::Visitor<CLOpts1::ObjWithList> : Stencil::VisitorT<CL
 {
     using TData  = CLOpts1::ObjWithList;
     using Fields = TypeTraitsForIndexable<TData>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_field1: return lambda(obj.field1);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_field1, obj.field1);
+    }
+};
+
+template <> struct Stencil::Comparator<CLOpts1::ObjWithList, CLOpts1::ObjWithList>
+{
+    using ThisType = CLOpts1::ObjWithList;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.field1, obj2.field1)
+            ;
+    }
+};
+
+template <>
+struct Stencil::Database::Record<CLOpts1::ObjWithList> :
+    public Stencil::Database::RecordT<CLOpts1::ObjWithList>
+{
+    public:
+    Stencil::Database::RecordNest<std::vector<shared_string>>::Type field1{};
+};
+
+template <> struct Stencil::Database::RecordTraits<CLOpts1::ObjWithList>
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<
+        typename Stencil::Database::RecordTraits<std::vector<shared_string>>::RecordTypes,
+        std::tuple<CLOpts1::ObjWithList>>;
+
+    static constexpr size_t Size() { return sizeof(Stencil::Database::Record<CLOpts1::ObjWithList>); }
+
+    template <typename TDb>
+    static void WriteToBuffer(TDb&                                                          db,
+                              Stencil::Database::RWLock const&                              lock,
+                              CLOpts1::ObjWithList const&                      obj,
+                              Stencil::Database::Record<CLOpts1::ObjWithList>& rec)
+    {
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.field1, rec.field1);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Stencil::Database::Record<CLOpts1::ObjWithList>>
+    : Stencil::VisitorT<Stencil::Database::Record<CLOpts1::ObjWithList>>
+{
+    using TData  = Stencil::Database::Record<CLOpts1::ObjWithList>;
+    using Fields = TypeTraitsForIndexable<CLOpts1::ObjWithList>::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -1262,6 +1471,96 @@ template <> struct Stencil::Visitor<CLOpts1::CLOptsTest> : Stencil::VisitorT<CLO
 {
     using TData  = CLOpts1::CLOptsTest;
     using Fields = TypeTraitsForIndexable<TData>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_key1: return lambda(obj.key1);
+        case Fields::Field_listofint: return lambda(obj.listofint);
+        case Fields::Field_listoflist: return lambda(obj.listoflist);
+        case Fields::Field_listofobj: return lambda(obj.listofobj);
+        case Fields::Field_objoflist: return lambda(obj.objoflist);
+        case Fields::Field_key2: return lambda(obj.key2);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_key1, obj.key1);
+        lambda(Fields::Field_listofint, obj.listofint);
+        lambda(Fields::Field_listoflist, obj.listoflist);
+        lambda(Fields::Field_listofobj, obj.listofobj);
+        lambda(Fields::Field_objoflist, obj.objoflist);
+        lambda(Fields::Field_key2, obj.key2);
+    }
+};
+
+template <> struct Stencil::Comparator<CLOpts1::CLOptsTest, CLOpts1::CLOptsTest>
+{
+    using ThisType = CLOpts1::CLOptsTest;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.key1, obj2.key1)
+               && Stencil::AreEqual(obj1.listofint, obj2.listofint)
+               && Stencil::AreEqual(obj1.listoflist, obj2.listoflist)
+               && Stencil::AreEqual(obj1.listofobj, obj2.listofobj)
+               && Stencil::AreEqual(obj1.objoflist, obj2.objoflist)
+               && Stencil::AreEqual(obj1.key2, obj2.key2)
+            ;
+    }
+};
+
+template <>
+struct Stencil::Database::Record<CLOpts1::CLOptsTest> :
+    public Stencil::Database::RecordT<CLOpts1::CLOptsTest>
+{
+    public:
+    Stencil::Database::RecordNest<shared_string>::Type key1{};
+    Stencil::Database::RecordNest<std::vector<int32_t>>::Type listofint{};
+    Stencil::Database::RecordNest<std::vector<std::vector<int32_t>>>::Type listoflist{};
+    Stencil::Database::RecordNest<std::vector<::CLOpts1::SimpleObj>>::Type listofobj{};
+    Stencil::Database::RecordNest<::CLOpts1::ObjWithList>::Type objoflist{};
+    Stencil::Database::RecordNest<shared_string>::Type key2{};
+};
+
+template <> struct Stencil::Database::RecordTraits<CLOpts1::CLOptsTest>
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<
+        typename Stencil::Database::RecordTraits<shared_string>::RecordTypes,
+        typename Stencil::Database::RecordTraits<std::vector<int32_t>>::RecordTypes,
+        typename Stencil::Database::RecordTraits<std::vector<std::vector<int32_t>>>::RecordTypes,
+        typename Stencil::Database::RecordTraits<std::vector<::CLOpts1::SimpleObj>>::RecordTypes,
+        typename Stencil::Database::RecordTraits<::CLOpts1::ObjWithList>::RecordTypes,
+        typename Stencil::Database::RecordTraits<shared_string>::RecordTypes,
+        std::tuple<CLOpts1::CLOptsTest>>;
+
+    static constexpr size_t Size() { return sizeof(Stencil::Database::Record<CLOpts1::CLOptsTest>); }
+
+    template <typename TDb>
+    static void WriteToBuffer(TDb&                                                          db,
+                              Stencil::Database::RWLock const&                              lock,
+                              CLOpts1::CLOptsTest const&                      obj,
+                              Stencil::Database::Record<CLOpts1::CLOptsTest>& rec)
+    {
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.key1, rec.key1);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.listofint, rec.listofint);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.listoflist, rec.listoflist);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.listofobj, rec.listofobj);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.objoflist, rec.objoflist);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.key2, rec.key2);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Stencil::Database::Record<CLOpts1::CLOptsTest>>
+    : Stencil::VisitorT<Stencil::Database::Record<CLOpts1::CLOptsTest>>
+{
+    using TData  = Stencil::Database::Record<CLOpts1::CLOptsTest>;
+    using Fields = TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {

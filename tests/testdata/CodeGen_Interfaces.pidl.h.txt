@@ -1,25 +1,21 @@
 #pragma once
 #include <stencil/stencil.h>
-
+#include "Objects.pidl.h"
 // SECTION START: DECLARATIONS
 #if true
 
 namespace Interfaces
 {
-struct SimpleObject1;
-struct ListObject;
-struct DictObject;
-struct List;
-struct SimpleObject2;
-struct NestedObject;
+struct Server1;
+
+struct Server1_ObjectStore_obj1;
+struct Server1_ObjectStore_obj2;
 }    // namespace Interfaces
 
-template <> struct Stencil::TypeTraits<Interfaces::SimpleObject1>;
-template <> struct Stencil::TypeTraits<Interfaces::ListObject>;
-template <> struct Stencil::TypeTraits<Interfaces::DictObject>;
-template <> struct Stencil::TypeTraits<Interfaces::List>;
-template <> struct Stencil::TypeTraits<Interfaces::SimpleObject2>;
-template <> struct Stencil::TypeTraits<Interfaces::NestedObject>;
+template <> struct Stencil::InterfaceTraits<Interfaces::Server1>;
+
+template <> struct Stencil::TypeTraits<Interfaces::Server1_ObjectStore_obj1>;
+template <> struct Stencil::TypeTraits<Interfaces::Server1_ObjectStore_obj2>;
 #endif
 // SECTION END: DECLARATIONS
 
@@ -27,61 +23,10 @@ template <> struct Stencil::TypeTraits<Interfaces::NestedObject>;
 #if true
 namespace Interfaces
 {
-struct SimpleObject1 :
-    public ::Stencil::OptionalPropsT<::Interfaces::SimpleObject1>,
-    public ::Stencil::TimestampedT<::Interfaces::SimpleObject1>,
-    public Stencil::StructT<SimpleObject1>
-{
-    int32_t val1 = int32_t{/*Initial Value*/};
-    uint32_t val2 = uint32_t{/*Initial Value*/};
-    uint8_t val3 = uint8_t{/*Initial Value*/};
-    shared_string val4 = shared_string{/*Initial Value*/};
-    double val5 = double{/*Initial Value*/};
-};
-struct ListObject :
-    public ::Stencil::TimestampedT<::Interfaces::ListObject>,
-    public Stencil::StructT<ListObject>
-{
-    uint32_t value = uint32_t{/*Initial Value*/};
-    ::Interfaces::SimpleObject1 obj1 = ::Interfaces::SimpleObject1{/*Initial Value*/};
-};
-struct DictObject :
-    public Stencil::StructT<DictObject>
-{
-    std::unordered_map<uint32_t, ::Interfaces::SimpleObject1> dictobj = std::unordered_map<uint32_t, ::Interfaces::SimpleObject1>{/*Initial Value*/};
-    std::unordered_map<shared_string, Stencil::Timestamp> dictval = std::unordered_map<shared_string, Stencil::Timestamp>{/*Initial Value*/};
-    std::unordered_map<uint32_t, std::unordered_map<uint32_t, ::Interfaces::SimpleObject1>> dictdict = std::unordered_map<uint32_t, std::unordered_map<uint32_t, ::Interfaces::SimpleObject1>>{/*Initial Value*/};
-};
-struct List :
-    public ::Stencil::TimestampedT<::Interfaces::List>,
-    public Stencil::StructT<List>
-{
-    std::vector<::Interfaces::ListObject> listobj = std::vector<::Interfaces::ListObject>{/*Initial Value*/};
-};
-struct SimpleObject2 :
-    public ::Stencil::OptionalPropsT<::Interfaces::SimpleObject2>,
-    public ::Stencil::TimestampedT<::Interfaces::SimpleObject2>,
-    public Stencil::StructT<SimpleObject2>
-{
-    bool val1 = bool{/*Initial Value*/};
-    double val2 = double{/*Initial Value*/};
-    std::array<char, 8> val3 = std::array<char, 8>{/*Initial Value*/};
-    Stencil::Timestamp val4 = Stencil::Timestamp{/*Initial Value*/};
-    uint64_t val5 = uint64_t{/*Initial Value*/};
-    int64_t val6 = int64_t{/*Initial Value*/};
-    uint16_t val7 = uint16_t{/*Initial Value*/};
-    int16_t val8 = int16_t{/*Initial Value*/};
-};
-struct NestedObject :
-    public ::Stencil::TimestampedT<::Interfaces::NestedObject>,
-    public Stencil::StructT<NestedObject>
-{
-    ::Interfaces::SimpleObject1 obj1 = ::Interfaces::SimpleObject1{/*Initial Value*/};
-    ::Interfaces::SimpleObject2 obj2 = ::Interfaces::SimpleObject2{/*Initial Value*/};
-    ::Interfaces::ListObject obj3 = ::Interfaces::ListObject{/*Initial Value*/};
-    ::Interfaces::DictObject dict1 = ::Interfaces::DictObject{/*Initial Value*/};
-    ::Interfaces::List list1 = ::Interfaces::List{/*Initial Value*/};
-};
+struct Server1_ObjectStore_obj1 : ::Objects::SimpleObject1    //, Database::ObjectT<ObjectStore, ObjectStore_obj1>
+{};
+struct Server1_ObjectStore_obj2 : ::Objects::NestedObject    //, Database::ObjectT<ObjectStore, ObjectStore_obj2>
+{};
 }    // namespace Interfaces
 #endif
 
@@ -92,326 +37,172 @@ struct NestedObject :
 
 // SECTION:
 
-template <> struct Stencil::TypeTraits<Interfaces::SimpleObject1>
+template <>
+struct Stencil::TypeTraits<Interfaces::Server1_ObjectStore_obj1>
+    : public Stencil::TypeTraits<::Objects::SimpleObject1>
+{};
+
+template <>
+struct Stencil::Database::RecordTraits<Interfaces::Server1_ObjectStore_obj1>
+    : public Stencil::Database::RecordTraits<::Objects::SimpleObject1>
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<typename Stencil::Database::RecordTraits<::Objects::SimpleObject1>::RecordTypes,
+                                                       std::tuple<Interfaces::Server1_ObjectStore_obj1>>;
+};
+
+template <>
+struct Stencil::Database::Record<Interfaces::Server1_ObjectStore_obj1>
+    : public Stencil::Database::Record<::Objects::SimpleObject1>
+{};
+
+template <>
+struct Stencil::Visitor<Stencil::Database::Record<Interfaces::Server1_ObjectStore_obj1>>
+    : Stencil::Visitor<Stencil::Database::Record<::Objects::SimpleObject1>>
+{};
+
+template <>
+struct Stencil::TypeTraits<Interfaces::Server1_ObjectStore_obj2>
+    : public Stencil::TypeTraits<::Objects::NestedObject>
+{};
+
+template <>
+struct Stencil::Database::RecordTraits<Interfaces::Server1_ObjectStore_obj2>
+    : public Stencil::Database::RecordTraits<::Objects::NestedObject>
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<typename Stencil::Database::RecordTraits<::Objects::NestedObject>::RecordTypes,
+                                                       std::tuple<Interfaces::Server1_ObjectStore_obj2>>;
+};
+
+template <>
+struct Stencil::Database::Record<Interfaces::Server1_ObjectStore_obj2>
+    : public Stencil::Database::Record<::Objects::NestedObject>
+{};
+
+template <>
+struct Stencil::Visitor<Stencil::Database::Record<Interfaces::Server1_ObjectStore_obj2>>
+    : Stencil::Visitor<Stencil::Database::Record<::Objects::NestedObject>>
+{};
+
+namespace Interfaces
+{
+struct Server1 : public Stencil::InterfaceT<Server1>
+{
+    using BaseClass = Stencil::InterfaceT<Server1>;
+
+    public:
+    struct Dummy
+    {};
+
+    using ObjectStore = Stencil::Database::Database<
+        Server1_ObjectStore_obj1
+,        Server1_ObjectStore_obj2
+        >;
+
+    Server1()          = default;
+    virtual ~Server1() = default;
+    CLASS_DELETE_COPY_AND_MOVE(Server1);
+
+    virtual std::unordered_map<uint32_t, ::Objects::SimpleObject1> Function1(
+        uint32_t const& arg1
+,        ::Objects::SimpleObject1 const& arg2
+        )
+        = 0;
+    struct Args_Function1
+    {
+        uint32_t arg1{};
+        ::Objects::SimpleObject1 arg2{};
+    };
+
+    std::unordered_map<uint32_t, ::Objects::SimpleObject1> Function1(Args_Function1 const& args)
+    {
+        return this->Function1(
+            args.arg1
+,            args.arg2
+        );
+    }
+
+    std::unordered_map<uint32_t, ::Objects::SimpleObject1> Function1(Args_Function1&& args)
+    {
+        return this->Function1(
+            std::move(args.arg1)
+,            std::move(args.arg2)
+        );
+    }
+
+    struct Args_SomethingHappened
+    {
+        uint32_t arg1{};
+        ::Objects::SimpleObject1 arg2{};
+    };
+
+    void Raise_SomethingHappened(
+        uint32_t const& arg1
+,        ::Objects::SimpleObject1 const& arg2
+    )
+    {
+        BaseClass::RaiseEvent(Args_SomethingHappened{
+            arg1
+,            arg2
+        });
+    }
+    ObjectStore objects;
+
+    static std::unique_ptr<Server1> Create();
+    static std::shared_ptr<Server1> CreateShared();
+    static std::shared_ptr<Server1> Activate();
+};
+}    // namespace Interfaces
+template <> struct Stencil::TypeTraits<Interfaces::Server1::Args_Function1>
 {
     using Categories = std::tuple<Stencil::Category::Indexable>;
 };
 
-template <> struct Stencil::TypeTraitsForIndexable<Interfaces::SimpleObject1>
+template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function1>
 {
     enum class Fields
     {
         Invalid,
-        Field_val1
-,        Field_val2
-,        Field_val3
-,        Field_val4
-,        Field_val5
+        arg_arg1
+,        arg_arg2
     };
 
     using Key = Fields;
 };
 
-template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::SimpleObject1>::Fields>
+template <>
+struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function1>::Fields>
 {
-    using Enum = Stencil::TypeTraitsForIndexable<Interfaces::SimpleObject1>::Fields;
+    using Enum = Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function1>::Fields;
 
     static constexpr std::string_view Names[] = {
         "Invalid",
-        "val1"
-,        "val2"
-,        "val3"
-,        "val4"
-,        "val5"
+        "arg1"
+,        "arg2"
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
 
-    static Stencil::TypeTraitsForIndexable<Interfaces::SimpleObject1>::Fields ForIndex(size_t index)
+    static Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function1>::Fields
+    ForIndex(size_t index)
     {
-        return static_cast<Stencil::TypeTraitsForIndexable<Interfaces::SimpleObject1>::Fields>(index);
+        return static_cast<Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function1>::Fields>(
+            index);
     }
 };
 
-template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Interfaces::SimpleObject1, TContainer>
+template <>
+struct Stencil::Visitor<Interfaces::Server1::Args_Function1>
+    : Stencil::VisitorT<Interfaces::Server1::Args_Function1>
 {
-    using Fields = Stencil::TypeTraitsForIndexable<Interfaces::SimpleObject1>::Fields;
-
-    struct ElemTxnState
-    {
-        Fields field;
-    };
-
-    struct TxnStateForElem
-    {
-        ElemTxnState val1 = {Fields::Field_val1};
-        ElemTxnState val2 = {Fields::Field_val2};
-        ElemTxnState val3 = {Fields::Field_val3};
-        ElemTxnState val4 = {Fields::Field_val4};
-        ElemTxnState val5 = {Fields::Field_val5};
-    };
-
-    using Txn               = Stencil::Transaction<Interfaces::SimpleObject1, TContainer>;
-    using ElemType          = Interfaces::SimpleObject1;
-    using ContainerTxnState = typename TContainer::ElemTxnState;
-
-    using Transaction_val1 = Stencil::Transaction<int32_t, Txn>;
-    using Transaction_val2 = Stencil::Transaction<uint32_t, Txn>;
-    using Transaction_val3 = Stencil::Transaction<uint8_t, Txn>;
-    using Transaction_val4 = Stencil::Transaction<shared_string, Txn>;
-    using Transaction_val5 = Stencil::Transaction<double, Txn>;
-    struct TxnState
-    {
-        std::bitset<64> assigntracker;    // TODO1
-        std::bitset<64> edittracker;      // TODO1
-        typename Transaction_val1::TxnState val1{};
-        typename Transaction_val2::TxnState val2{};
-        typename Transaction_val3::TxnState val3{};
-        typename Transaction_val4::TxnState val4{};
-        typename Transaction_val5::TxnState val5{};
-    };
-
-    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
-        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
-    {}
-
-    ~Transaction()
-    {
-        if (IsChanged())
-        {
-            Stencil::TimestampedT<ElemType>::UpdateTimestamp(_elem);
-            _container.NotifyElementEdited_(_containerState);
-        }
-    }
-
-    CLASS_DELETE_COPY_AND_MOVE(Transaction);
-
-    ElemType const& Elem() const { return _elem; }
-
-    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
-    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
-    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
-
-    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
-
-    void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
-    {
-        _MarkFieldAssigned(elemTxnState.field);
-        Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
-    }
-
-    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
-
-    bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
-
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
-    {
-        if (_IsFieldAssigned(Fields::Field_val1))
-        {
-            auto txn = val1();
-            lambda(Fields::Field_val1, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val1))
-        {
-            auto txn = val1();
-            lambda(Fields::Field_val1, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val2))
-        {
-            auto txn = val2();
-            lambda(Fields::Field_val2, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val2))
-        {
-            auto txn = val2();
-            lambda(Fields::Field_val2, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val3))
-        {
-            auto txn = val3();
-            lambda(Fields::Field_val3, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val3))
-        {
-            auto txn = val3();
-            lambda(Fields::Field_val3, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val4))
-        {
-            auto txn = val4();
-            lambda(Fields::Field_val4, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val4))
-        {
-            auto txn = val4();
-            lambda(Fields::Field_val4, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val5))
-        {
-            auto txn = val5();
-            lambda(Fields::Field_val5, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val5))
-        {
-            auto txn = val5();
-            lambda(Fields::Field_val5, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
-
-    void Assign(ElemType&& elem)
-    {
-        // if (Stencil::AreEqual(_elem, elem)) return;
-        std::swap(_elem, elem);
-        _container.NotifyElementAssigned_(_containerState);
-    }
-
-    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
-    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
-
-    template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
-
-    private:
-    TxnStateForElem    _txnStateForElem{};
-    TxnState&          _elemState;
-    ContainerTxnState& _containerState;
-    TContainer&        _container;
-    ElemType&          _elem;
-
-    public:
-    auto val1()
-    {
-        return Stencil::CreateTransaction<Transaction_val1>(_elemState.val1, _txnStateForElem.val1, *this, _elem.val1);
-    }
-
-    auto val2()
-    {
-        return Stencil::CreateTransaction<Transaction_val2>(_elemState.val2, _txnStateForElem.val2, *this, _elem.val2);
-    }
-
-    auto val3()
-    {
-        return Stencil::CreateTransaction<Transaction_val3>(_elemState.val3, _txnStateForElem.val3, *this, _elem.val3);
-    }
-
-    auto val4()
-    {
-        return Stencil::CreateTransaction<Transaction_val4>(_elemState.val4, _txnStateForElem.val4, *this, _elem.val4);
-    }
-
-    auto val5()
-    {
-        return Stencil::CreateTransaction<Transaction_val5>(_elemState.val5, _txnStateForElem.val5, *this, _elem.val5);
-    }
-
-    void set_val1(int32_t&& val)
-    {
-        auto subtxn = val1();
-        subtxn.Assign(std::forward<int32_t>(val));
-    }
-
-    void set_val2(uint32_t&& val)
-    {
-        auto subtxn = val2();
-        subtxn.Assign(std::forward<uint32_t>(val));
-    }
-
-    void set_val3(uint8_t&& val)
-    {
-        auto subtxn = val3();
-        subtxn.Assign(std::forward<uint8_t>(val));
-    }
-
-    void set_val4(shared_string&& val)
-    {
-        auto subtxn = val4();
-        subtxn.Assign(std::forward<shared_string>(val));
-    }
-
-    void set_val5(double&& val)
-    {
-        auto subtxn = val5();
-        subtxn.Assign(std::forward<double>(val));
-    }
-
-    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
-    {
-        switch (index)
-        {
-        case Fields::Field_val1:
-        {
-            auto txn = val1();
-            return lambda(txn);
-        }
-        case Fields::Field_val2:
-        {
-            auto txn = val2();
-            return lambda(txn);
-        }
-        case Fields::Field_val3:
-        {
-            auto txn = val3();
-            return lambda(txn);
-        }
-        case Fields::Field_val4:
-        {
-            auto txn = val4();
-            return lambda(txn);
-        }
-        case Fields::Field_val5:
-        {
-            auto txn = val5();
-            return lambda(txn);
-        }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
-    {
-        return Edit(index, std::forward<TLambda>(lambda));
-    }
-
-    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
-    {
-        {
-            auto txn = val1();
-            lambda(Fields::Field_val1, txn, Elem().val1);
-        }
-        {
-            auto txn = val2();
-            lambda(Fields::Field_val2, txn, Elem().val2);
-        }
-        {
-            auto txn = val3();
-            lambda(Fields::Field_val3, txn, Elem().val3);
-        }
-        {
-            auto txn = val4();
-            lambda(Fields::Field_val4, txn, Elem().val4);
-        }
-        {
-            auto txn = val5();
-            lambda(Fields::Field_val5, txn, Elem().val5);
-        }
-    }
-};
-
-template <> struct Stencil::Visitor<Interfaces::SimpleObject1> : Stencil::VisitorT<Interfaces::SimpleObject1>
-{
-    using TData  = Interfaces::SimpleObject1;
+    using TData  = Interfaces::Server1::Args_Function1;
     using Fields = TypeTraitsForIndexable<TData>::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
         switch (field)
         {
-        case Fields::Field_val1: return lambda(obj.val1);
-        case Fields::Field_val2: return lambda(obj.val2);
-        case Fields::Field_val3: return lambda(obj.val3);
-        case Fields::Field_val4: return lambda(obj.val4);
-        case Fields::Field_val5: return lambda(obj.val5);
+        case Fields::arg_arg1: return lambda(obj.arg1);
+        case Fields::arg_arg2: return lambda(obj.arg2);
         case Fields::Invalid: [[fallthrough]];
         default: throw std::logic_error("Invalid Key");
         }
@@ -419,226 +210,90 @@ template <> struct Stencil::Visitor<Interfaces::SimpleObject1> : Stencil::Visito
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        lambda(Fields::Field_val1, obj.val1);
-        lambda(Fields::Field_val2, obj.val2);
-        lambda(Fields::Field_val3, obj.val3);
-        lambda(Fields::Field_val4, obj.val4);
-        lambda(Fields::Field_val5, obj.val5);
+        lambda(Fields::arg_arg1, obj.arg1);
+        lambda(Fields::arg_arg2, obj.arg2);
     }
 };
 
-template <> struct Stencil::TypeTraits<Interfaces::ListObject>
+template <>
+struct Stencil::Comparator<Interfaces::Server1::Args_Function1,
+                           Interfaces::Server1::Args_Function1>
+{
+    using ThisType = Interfaces::Server1::Args_Function1;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.arg1, obj2.arg1)
+               && Stencil::AreEqual(obj1.arg2, obj2.arg2)
+            ;
+    }
+};
+
+template <> struct Stencil::InterfaceApiTraits<Interfaces::Server1::Args_Function1>
+{
+    using ArgsStruct = Interfaces::Server1::Args_Function1;
+    static constexpr bool             IsStatic() { return false; }
+    static constexpr std::string_view Name() { return "Function1"; }
+
+    static auto Invoke(Interfaces::Server1& instance, ArgsStruct& args)
+    {
+        return instance.Function1(
+            args.arg1
+,            args.arg2
+        );
+    }
+};
+template <> struct Stencil::TypeTraits<Interfaces::Server1::Args_SomethingHappened>
 {
     using Categories = std::tuple<Stencil::Category::Indexable>;
 };
 
-template <> struct Stencil::TypeTraitsForIndexable<Interfaces::ListObject>
+template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_SomethingHappened>
 {
     enum class Fields
     {
         Invalid,
-        Field_value
-,        Field_obj1
+        arg_arg1
+,        arg_arg2
     };
 
     using Key = Fields;
 };
 
-template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::ListObject>::Fields>
+template <>
+struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_SomethingHappened>::Fields>
 {
-    using Enum = Stencil::TypeTraitsForIndexable<Interfaces::ListObject>::Fields;
+    using Enum = Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_SomethingHappened>::Fields;
 
     static constexpr std::string_view Names[] = {
         "Invalid",
-        "value"
-,        "obj1"
+        "arg1"
+,        "arg2"
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
 
-    static Stencil::TypeTraitsForIndexable<Interfaces::ListObject>::Fields ForIndex(size_t index)
+    static Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_SomethingHappened>::Fields
+    ForIndex(size_t index)
     {
-        return static_cast<Stencil::TypeTraitsForIndexable<Interfaces::ListObject>::Fields>(index);
+        return static_cast<Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_SomethingHappened>::Fields>(
+            index);
     }
 };
 
-template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Interfaces::ListObject, TContainer>
+template <>
+struct Stencil::Visitor<Interfaces::Server1::Args_SomethingHappened>
+    : Stencil::VisitorT<Interfaces::Server1::Args_SomethingHappened>
 {
-    using Fields = Stencil::TypeTraitsForIndexable<Interfaces::ListObject>::Fields;
-
-    struct ElemTxnState
-    {
-        Fields field;
-    };
-
-    struct TxnStateForElem
-    {
-        ElemTxnState value = {Fields::Field_value};
-        ElemTxnState obj1 = {Fields::Field_obj1};
-    };
-
-    using Txn               = Stencil::Transaction<Interfaces::ListObject, TContainer>;
-    using ElemType          = Interfaces::ListObject;
-    using ContainerTxnState = typename TContainer::ElemTxnState;
-
-    using Transaction_value = Stencil::Transaction<uint32_t, Txn>;
-    using Transaction_obj1 = Stencil::Transaction<::Interfaces::SimpleObject1, Txn>;
-    struct TxnState
-    {
-        std::bitset<64> assigntracker;    // TODO1
-        std::bitset<64> edittracker;      // TODO1
-        typename Transaction_value::TxnState value{};
-        typename Transaction_obj1::TxnState obj1{};
-    };
-
-    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
-        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
-    {}
-
-    ~Transaction()
-    {
-        if (IsChanged())
-        {
-            Stencil::TimestampedT<ElemType>::UpdateTimestamp(_elem);
-            _container.NotifyElementEdited_(_containerState);
-        }
-    }
-
-    CLASS_DELETE_COPY_AND_MOVE(Transaction);
-
-    ElemType const& Elem() const { return _elem; }
-
-    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
-    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
-    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
-
-    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
-
-    void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
-    {
-        _MarkFieldAssigned(elemTxnState.field);
-        Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
-    }
-
-    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
-
-    bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
-
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
-    {
-        if (_IsFieldAssigned(Fields::Field_value))
-        {
-            auto txn = value();
-            lambda(Fields::Field_value, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_value))
-        {
-            auto txn = value();
-            lambda(Fields::Field_value, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_obj1))
-        {
-            auto txn = obj1();
-            lambda(Fields::Field_obj1, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_obj1))
-        {
-            auto txn = obj1();
-            lambda(Fields::Field_obj1, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
-
-    void Assign(ElemType&& elem)
-    {
-        // if (Stencil::AreEqual(_elem, elem)) return;
-        std::swap(_elem, elem);
-        _container.NotifyElementAssigned_(_containerState);
-    }
-
-    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
-    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
-
-    template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
-
-    private:
-    TxnStateForElem    _txnStateForElem{};
-    TxnState&          _elemState;
-    ContainerTxnState& _containerState;
-    TContainer&        _container;
-    ElemType&          _elem;
-
-    public:
-    auto value()
-    {
-        return Stencil::CreateTransaction<Transaction_value>(_elemState.value, _txnStateForElem.value, *this, _elem.value);
-    }
-
-    auto obj1()
-    {
-        return Stencil::CreateTransaction<Transaction_obj1>(_elemState.obj1, _txnStateForElem.obj1, *this, _elem.obj1);
-    }
-
-    void set_value(uint32_t&& val)
-    {
-        auto subtxn = value();
-        subtxn.Assign(std::forward<uint32_t>(val));
-    }
-
-    void set_obj1(::Interfaces::SimpleObject1&& val)
-    {
-        auto subtxn = obj1();
-        subtxn.Assign(std::forward<::Interfaces::SimpleObject1>(val));
-    }
-
-    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
-    {
-        switch (index)
-        {
-        case Fields::Field_value:
-        {
-            auto txn = value();
-            return lambda(txn);
-        }
-        case Fields::Field_obj1:
-        {
-            auto txn = obj1();
-            return lambda(txn);
-        }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
-    {
-        return Edit(index, std::forward<TLambda>(lambda));
-    }
-
-    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
-    {
-        {
-            auto txn = value();
-            lambda(Fields::Field_value, txn, Elem().value);
-        }
-        {
-            auto txn = obj1();
-            lambda(Fields::Field_obj1, txn, Elem().obj1);
-        }
-    }
-};
-
-template <> struct Stencil::Visitor<Interfaces::ListObject> : Stencil::VisitorT<Interfaces::ListObject>
-{
-    using TData  = Interfaces::ListObject;
+    using TData  = Interfaces::Server1::Args_SomethingHappened;
     using Fields = TypeTraitsForIndexable<TData>::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
         switch (field)
         {
-        case Fields::Field_value: return lambda(obj.value);
-        case Fields::Field_obj1: return lambda(obj.obj1);
+        case Fields::arg_arg1: return lambda(obj.arg1);
+        case Fields::arg_arg2: return lambda(obj.arg2);
         case Fields::Invalid: [[fallthrough]];
         default: throw std::logic_error("Invalid Key");
         }
@@ -646,1257 +301,100 @@ template <> struct Stencil::Visitor<Interfaces::ListObject> : Stencil::VisitorT<
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        lambda(Fields::Field_value, obj.value);
-        lambda(Fields::Field_obj1, obj.obj1);
+        lambda(Fields::arg_arg1, obj.arg1);
+        lambda(Fields::arg_arg2, obj.arg2);
     }
 };
 
-template <> struct Stencil::TypeTraits<Interfaces::DictObject>
+template <>
+struct Stencil::Comparator<Interfaces::Server1::Args_SomethingHappened,
+                           Interfaces::Server1::Args_SomethingHappened>
 {
-    using Categories = std::tuple<Stencil::Category::Indexable>;
+    using ThisType = Interfaces::Server1::Args_SomethingHappened;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.arg1, obj2.arg1)
+               && Stencil::AreEqual(obj1.arg2, obj2.arg2)
+            ;
+    }
 };
 
-template <> struct Stencil::TypeTraitsForIndexable<Interfaces::DictObject>
+template <> struct Stencil::InterfaceApiTraits<Interfaces::Server1::Args_SomethingHappened>
 {
-    enum class Fields
-    {
-        Invalid,
-        Field_dictobj
-,        Field_dictval
-,        Field_dictdict
-    };
-
-    using Key = Fields;
+    using ArgsStruct = Interfaces::Server1::Args_SomethingHappened;
+    static constexpr std::string_view Name() { return "SomethingHappened"; }
 };
-
-template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::DictObject>::Fields>
+template <> struct Stencil::InterfaceTraits<Interfaces::Server1>
 {
-    using Enum = Stencil::TypeTraitsForIndexable<Interfaces::DictObject>::Fields;
+    static constexpr std::string_view Name() { return "Server1"; }
 
-    static constexpr std::string_view Names[] = {
-        "Invalid",
-        "dictobj"
-,        "dictval"
-,        "dictdict"
-    };
+    using ApiStructs = std::tuple<
+        Interfaces::Server1::Args_Function1
+        >;
 
-    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+    using Objects = std::tuple<
+        Interfaces::Server1_ObjectStore_obj1
+,        Interfaces::Server1_ObjectStore_obj2
+        >;
 
-    static Stencil::TypeTraitsForIndexable<Interfaces::DictObject>::Fields ForIndex(size_t index)
-    {
-        return static_cast<Stencil::TypeTraitsForIndexable<Interfaces::DictObject>::Fields>(index);
-    }
+    using EventStructs = std::tuple<
+        Interfaces::Server1::Args_SomethingHappened
+        >;
 };
 
-template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Interfaces::DictObject, TContainer>
+template <>
+struct Stencil::TypeTraitsForPrimitive<Interfaces::Server1_ObjectStore_obj1>
+    : public Stencil::TypeTraitsForPrimitive<::Objects::SimpleObject1>
+{};
+template <>
+struct Stencil::TypeTraitsForIterable<Interfaces::Server1_ObjectStore_obj1>
+    : public Stencil::TypeTraitsForIterable<::Objects::SimpleObject1>
+{};
+template <>
+struct Stencil::TypeTraitsForIndexable<Interfaces::Server1_ObjectStore_obj1>
+    : public Stencil::TypeTraitsForIndexable<::Objects::SimpleObject1>
+{};
+template <>
+struct Stencil::Visitor<Interfaces::Server1_ObjectStore_obj1> : public Stencil::Visitor<::Objects::SimpleObject1>
+{};
+template <>
+struct Stencil::TypeTraitsForPrimitive<Interfaces::Server1_ObjectStore_obj2>
+    : public Stencil::TypeTraitsForPrimitive<::Objects::NestedObject>
+{};
+template <>
+struct Stencil::TypeTraitsForIterable<Interfaces::Server1_ObjectStore_obj2>
+    : public Stencil::TypeTraitsForIterable<::Objects::NestedObject>
+{};
+template <>
+struct Stencil::TypeTraitsForIndexable<Interfaces::Server1_ObjectStore_obj2>
+    : public Stencil::TypeTraitsForIndexable<::Objects::NestedObject>
+{};
+template <>
+struct Stencil::Visitor<Interfaces::Server1_ObjectStore_obj2> : public Stencil::Visitor<::Objects::NestedObject>
+{};
+template <> struct Stencil::InterfaceObjectTraits<Interfaces::Server1_ObjectStore_obj1>
 {
-    using Fields = Stencil::TypeTraitsForIndexable<Interfaces::DictObject>::Fields;
-
-    struct ElemTxnState
-    {
-        Fields field;
-    };
-
-    struct TxnStateForElem
-    {
-        ElemTxnState dictobj = {Fields::Field_dictobj};
-        ElemTxnState dictval = {Fields::Field_dictval};
-        ElemTxnState dictdict = {Fields::Field_dictdict};
-    };
-
-    using Txn               = Stencil::Transaction<Interfaces::DictObject, TContainer>;
-    using ElemType          = Interfaces::DictObject;
-    using ContainerTxnState = typename TContainer::ElemTxnState;
-
-    using Transaction_dictobj = Stencil::Transaction<std::unordered_map<uint32_t, ::Interfaces::SimpleObject1>, Txn>;
-    using Transaction_dictval = Stencil::Transaction<std::unordered_map<shared_string, Stencil::Timestamp>, Txn>;
-    using Transaction_dictdict = Stencil::Transaction<std::unordered_map<uint32_t, std::unordered_map<uint32_t, ::Interfaces::SimpleObject1>>, Txn>;
-    struct TxnState
-    {
-        std::bitset<64> assigntracker;    // TODO1
-        std::bitset<64> edittracker;      // TODO1
-        typename Transaction_dictobj::TxnState dictobj{};
-        typename Transaction_dictval::TxnState dictval{};
-        typename Transaction_dictdict::TxnState dictdict{};
-    };
-
-    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
-        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
-    {}
-
-    ~Transaction()
-    {
-        if (IsChanged())
-        {
-            Stencil::TimestampedT<ElemType>::UpdateTimestamp(_elem);
-            _container.NotifyElementEdited_(_containerState);
-        }
-    }
-
-    CLASS_DELETE_COPY_AND_MOVE(Transaction);
-
-    ElemType const& Elem() const { return _elem; }
-
-    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
-    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
-    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
-
-    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
-
-    void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
-    {
-        _MarkFieldAssigned(elemTxnState.field);
-        Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
-    }
-
-    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
-
-    bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
-
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
-    {
-        if (_IsFieldAssigned(Fields::Field_dictobj))
-        {
-            auto txn = dictobj();
-            lambda(Fields::Field_dictobj, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_dictobj))
-        {
-            auto txn = dictobj();
-            lambda(Fields::Field_dictobj, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_dictval))
-        {
-            auto txn = dictval();
-            lambda(Fields::Field_dictval, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_dictval))
-        {
-            auto txn = dictval();
-            lambda(Fields::Field_dictval, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_dictdict))
-        {
-            auto txn = dictdict();
-            lambda(Fields::Field_dictdict, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_dictdict))
-        {
-            auto txn = dictdict();
-            lambda(Fields::Field_dictdict, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
-
-    void Assign(ElemType&& elem)
-    {
-        // if (Stencil::AreEqual(_elem, elem)) return;
-        std::swap(_elem, elem);
-        _container.NotifyElementAssigned_(_containerState);
-    }
-
-    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
-    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
-
-    template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
-
-    private:
-    TxnStateForElem    _txnStateForElem{};
-    TxnState&          _elemState;
-    ContainerTxnState& _containerState;
-    TContainer&        _container;
-    ElemType&          _elem;
-
-    public:
-    auto dictobj()
-    {
-        return Stencil::CreateTransaction<Transaction_dictobj>(_elemState.dictobj, _txnStateForElem.dictobj, *this, _elem.dictobj);
-    }
-
-    auto dictval()
-    {
-        return Stencil::CreateTransaction<Transaction_dictval>(_elemState.dictval, _txnStateForElem.dictval, *this, _elem.dictval);
-    }
-
-    auto dictdict()
-    {
-        return Stencil::CreateTransaction<Transaction_dictdict>(_elemState.dictdict, _txnStateForElem.dictdict, *this, _elem.dictdict);
-    }
-
-    void set_dictobj(std::unordered_map<uint32_t, ::Interfaces::SimpleObject1>&& val)
-    {
-        auto subtxn = dictobj();
-        subtxn.Assign(std::forward<std::unordered_map<uint32_t, ::Interfaces::SimpleObject1>>(val));
-    }
-
-    void set_dictval(std::unordered_map<shared_string, Stencil::Timestamp>&& val)
-    {
-        auto subtxn = dictval();
-        subtxn.Assign(std::forward<std::unordered_map<shared_string, Stencil::Timestamp>>(val));
-    }
-
-    void set_dictdict(std::unordered_map<uint32_t, std::unordered_map<uint32_t, ::Interfaces::SimpleObject1>>&& val)
-    {
-        auto subtxn = dictdict();
-        subtxn.Assign(std::forward<std::unordered_map<uint32_t, std::unordered_map<uint32_t, ::Interfaces::SimpleObject1>>>(val));
-    }
-
-    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
-    {
-        switch (index)
-        {
-        case Fields::Field_dictobj:
-        {
-            auto txn = dictobj();
-            return lambda(txn);
-        }
-        case Fields::Field_dictval:
-        {
-            auto txn = dictval();
-            return lambda(txn);
-        }
-        case Fields::Field_dictdict:
-        {
-            auto txn = dictdict();
-            return lambda(txn);
-        }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
-    {
-        return Edit(index, std::forward<TLambda>(lambda));
-    }
-
-    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
-    {
-        {
-            auto txn = dictobj();
-            lambda(Fields::Field_dictobj, txn, Elem().dictobj);
-        }
-        {
-            auto txn = dictval();
-            lambda(Fields::Field_dictval, txn, Elem().dictval);
-        }
-        {
-            auto txn = dictdict();
-            lambda(Fields::Field_dictdict, txn, Elem().dictdict);
-        }
-    }
+    static constexpr std::string_view Name() { return "obj1"; }
 };
-
-template <> struct Stencil::Visitor<Interfaces::DictObject> : Stencil::VisitorT<Interfaces::DictObject>
+template <> struct Stencil::InterfaceObjectTraits<Interfaces::Server1_ObjectStore_obj2>
 {
-    using TData  = Interfaces::DictObject;
-    using Fields = TypeTraitsForIndexable<TData>::Fields;
-
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
-    {
-        switch (field)
-        {
-        case Fields::Field_dictobj: return lambda(obj.dictobj);
-        case Fields::Field_dictval: return lambda(obj.dictval);
-        case Fields::Field_dictdict: return lambda(obj.dictdict);
-        case Fields::Invalid: [[fallthrough]];
-        default: throw std::logic_error("Invalid Key");
-        }
-    }
-
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
-    {
-        lambda(Fields::Field_dictobj, obj.dictobj);
-        lambda(Fields::Field_dictval, obj.dictval);
-        lambda(Fields::Field_dictdict, obj.dictdict);
-    }
+    static constexpr std::string_view Name() { return "obj2"; }
 };
-
-template <> struct Stencil::TypeTraits<Interfaces::List>
+#if ((defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0))
+template <> struct Stencil::WebServiceHandlerTraits<Interfaces::Server1>
 {
-    using Categories = std::tuple<Stencil::Category::Indexable>;
+    static constexpr const std::string_view Url() { return std::string_view("Server1"); }
+    // Name to api enum
+    // Name to funcptr mapping
+    // Name to argstruct mapping
+    // Invoke api for each arg struct
+    static void HandleRequest(Interfaces::Server1& obj,
+                              httplib::Request const&               req,
+                              httplib::Response&                    res,
+                              std::string_view const&               path);
 };
-
-template <> struct Stencil::TypeTraitsForIndexable<Interfaces::List>
-{
-    enum class Fields
-    {
-        Invalid,
-        Field_listobj
-    };
-
-    using Key = Fields;
-};
-
-template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::List>::Fields>
-{
-    using Enum = Stencil::TypeTraitsForIndexable<Interfaces::List>::Fields;
-
-    static constexpr std::string_view Names[] = {
-        "Invalid",
-        "listobj"
-    };
-
-    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-
-    static Stencil::TypeTraitsForIndexable<Interfaces::List>::Fields ForIndex(size_t index)
-    {
-        return static_cast<Stencil::TypeTraitsForIndexable<Interfaces::List>::Fields>(index);
-    }
-};
-
-template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Interfaces::List, TContainer>
-{
-    using Fields = Stencil::TypeTraitsForIndexable<Interfaces::List>::Fields;
-
-    struct ElemTxnState
-    {
-        Fields field;
-    };
-
-    struct TxnStateForElem
-    {
-        ElemTxnState listobj = {Fields::Field_listobj};
-    };
-
-    using Txn               = Stencil::Transaction<Interfaces::List, TContainer>;
-    using ElemType          = Interfaces::List;
-    using ContainerTxnState = typename TContainer::ElemTxnState;
-
-    using Transaction_listobj = Stencil::Transaction<std::vector<::Interfaces::ListObject>, Txn>;
-    struct TxnState
-    {
-        std::bitset<64> assigntracker;    // TODO1
-        std::bitset<64> edittracker;      // TODO1
-        typename Transaction_listobj::TxnState listobj{};
-    };
-
-    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
-        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
-    {}
-
-    ~Transaction()
-    {
-        if (IsChanged())
-        {
-            Stencil::TimestampedT<ElemType>::UpdateTimestamp(_elem);
-            _container.NotifyElementEdited_(_containerState);
-        }
-    }
-
-    CLASS_DELETE_COPY_AND_MOVE(Transaction);
-
-    ElemType const& Elem() const { return _elem; }
-
-    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
-    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
-    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
-
-    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
-
-    void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
-    {
-        _MarkFieldAssigned(elemTxnState.field);
-        Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
-    }
-
-    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
-
-    bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
-
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
-    {
-        if (_IsFieldAssigned(Fields::Field_listobj))
-        {
-            auto txn = listobj();
-            lambda(Fields::Field_listobj, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_listobj))
-        {
-            auto txn = listobj();
-            lambda(Fields::Field_listobj, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
-
-    void Assign(ElemType&& elem)
-    {
-        // if (Stencil::AreEqual(_elem, elem)) return;
-        std::swap(_elem, elem);
-        _container.NotifyElementAssigned_(_containerState);
-    }
-
-    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
-    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
-
-    template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
-
-    private:
-    TxnStateForElem    _txnStateForElem{};
-    TxnState&          _elemState;
-    ContainerTxnState& _containerState;
-    TContainer&        _container;
-    ElemType&          _elem;
-
-    public:
-    auto listobj()
-    {
-        return Stencil::CreateTransaction<Transaction_listobj>(_elemState.listobj, _txnStateForElem.listobj, *this, _elem.listobj);
-    }
-
-    void set_listobj(std::vector<::Interfaces::ListObject>&& val)
-    {
-        auto subtxn = listobj();
-        subtxn.Assign(std::forward<std::vector<::Interfaces::ListObject>>(val));
-    }
-
-    void add_listobj(::Interfaces::ListObject&& args)
-    {
-        _MarkFieldEdited(Fields::Field_listobj);
-        auto txn = listobj();
-        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::add(txn, std::move(args));
-    }
-    void remove_listobj(size_t&& args)
-    {
-        _MarkFieldEdited(Fields::Field_listobj);
-        auto txn = listobj();
-        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::remove(txn, std::move(args));
-    }
-    auto edit_listobj(size_t&& args)
-    {
-        _MarkFieldEdited(Fields::Field_listobj);
-        auto txn = listobj();
-        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::edit(txn, std::move(args));
-    }
-    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
-    {
-        switch (index)
-        {
-        case Fields::Field_listobj:
-        {
-            auto txn = listobj();
-            return lambda(txn);
-        }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
-    {
-        return Edit(index, std::forward<TLambda>(lambda));
-    }
-
-    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
-    {
-        {
-            auto txn = listobj();
-            lambda(Fields::Field_listobj, txn, Elem().listobj);
-        }
-    }
-};
-
-template <> struct Stencil::Visitor<Interfaces::List> : Stencil::VisitorT<Interfaces::List>
-{
-    using TData  = Interfaces::List;
-    using Fields = TypeTraitsForIndexable<TData>::Fields;
-
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
-    {
-        switch (field)
-        {
-        case Fields::Field_listobj: return lambda(obj.listobj);
-        case Fields::Invalid: [[fallthrough]];
-        default: throw std::logic_error("Invalid Key");
-        }
-    }
-
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
-    {
-        lambda(Fields::Field_listobj, obj.listobj);
-    }
-};
-
-template <> struct Stencil::TypeTraits<Interfaces::SimpleObject2>
-{
-    using Categories = std::tuple<Stencil::Category::Indexable>;
-};
-
-template <> struct Stencil::TypeTraitsForIndexable<Interfaces::SimpleObject2>
-{
-    enum class Fields
-    {
-        Invalid,
-        Field_val1
-,        Field_val2
-,        Field_val3
-,        Field_val4
-,        Field_val5
-,        Field_val6
-,        Field_val7
-,        Field_val8
-    };
-
-    using Key = Fields;
-};
-
-template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::SimpleObject2>::Fields>
-{
-    using Enum = Stencil::TypeTraitsForIndexable<Interfaces::SimpleObject2>::Fields;
-
-    static constexpr std::string_view Names[] = {
-        "Invalid",
-        "val1"
-,        "val2"
-,        "val3"
-,        "val4"
-,        "val5"
-,        "val6"
-,        "val7"
-,        "val8"
-    };
-
-    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-
-    static Stencil::TypeTraitsForIndexable<Interfaces::SimpleObject2>::Fields ForIndex(size_t index)
-    {
-        return static_cast<Stencil::TypeTraitsForIndexable<Interfaces::SimpleObject2>::Fields>(index);
-    }
-};
-
-template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Interfaces::SimpleObject2, TContainer>
-{
-    using Fields = Stencil::TypeTraitsForIndexable<Interfaces::SimpleObject2>::Fields;
-
-    struct ElemTxnState
-    {
-        Fields field;
-    };
-
-    struct TxnStateForElem
-    {
-        ElemTxnState val1 = {Fields::Field_val1};
-        ElemTxnState val2 = {Fields::Field_val2};
-        ElemTxnState val3 = {Fields::Field_val3};
-        ElemTxnState val4 = {Fields::Field_val4};
-        ElemTxnState val5 = {Fields::Field_val5};
-        ElemTxnState val6 = {Fields::Field_val6};
-        ElemTxnState val7 = {Fields::Field_val7};
-        ElemTxnState val8 = {Fields::Field_val8};
-    };
-
-    using Txn               = Stencil::Transaction<Interfaces::SimpleObject2, TContainer>;
-    using ElemType          = Interfaces::SimpleObject2;
-    using ContainerTxnState = typename TContainer::ElemTxnState;
-
-    using Transaction_val1 = Stencil::Transaction<bool, Txn>;
-    using Transaction_val2 = Stencil::Transaction<double, Txn>;
-    using Transaction_val3 = Stencil::Transaction<std::array<char, 8>, Txn>;
-    using Transaction_val4 = Stencil::Transaction<Stencil::Timestamp, Txn>;
-    using Transaction_val5 = Stencil::Transaction<uint64_t, Txn>;
-    using Transaction_val6 = Stencil::Transaction<int64_t, Txn>;
-    using Transaction_val7 = Stencil::Transaction<uint16_t, Txn>;
-    using Transaction_val8 = Stencil::Transaction<int16_t, Txn>;
-    struct TxnState
-    {
-        std::bitset<64> assigntracker;    // TODO1
-        std::bitset<64> edittracker;      // TODO1
-        typename Transaction_val1::TxnState val1{};
-        typename Transaction_val2::TxnState val2{};
-        typename Transaction_val3::TxnState val3{};
-        typename Transaction_val4::TxnState val4{};
-        typename Transaction_val5::TxnState val5{};
-        typename Transaction_val6::TxnState val6{};
-        typename Transaction_val7::TxnState val7{};
-        typename Transaction_val8::TxnState val8{};
-    };
-
-    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
-        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
-    {}
-
-    ~Transaction()
-    {
-        if (IsChanged())
-        {
-            Stencil::TimestampedT<ElemType>::UpdateTimestamp(_elem);
-            _container.NotifyElementEdited_(_containerState);
-        }
-    }
-
-    CLASS_DELETE_COPY_AND_MOVE(Transaction);
-
-    ElemType const& Elem() const { return _elem; }
-
-    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
-    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
-    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
-
-    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
-
-    void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
-    {
-        _MarkFieldAssigned(elemTxnState.field);
-        Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
-    }
-
-    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
-
-    bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
-
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
-    {
-        if (_IsFieldAssigned(Fields::Field_val1))
-        {
-            auto txn = val1();
-            lambda(Fields::Field_val1, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val1))
-        {
-            auto txn = val1();
-            lambda(Fields::Field_val1, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val2))
-        {
-            auto txn = val2();
-            lambda(Fields::Field_val2, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val2))
-        {
-            auto txn = val2();
-            lambda(Fields::Field_val2, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val3))
-        {
-            auto txn = val3();
-            lambda(Fields::Field_val3, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val3))
-        {
-            auto txn = val3();
-            lambda(Fields::Field_val3, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val4))
-        {
-            auto txn = val4();
-            lambda(Fields::Field_val4, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val4))
-        {
-            auto txn = val4();
-            lambda(Fields::Field_val4, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val5))
-        {
-            auto txn = val5();
-            lambda(Fields::Field_val5, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val5))
-        {
-            auto txn = val5();
-            lambda(Fields::Field_val5, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val6))
-        {
-            auto txn = val6();
-            lambda(Fields::Field_val6, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val6))
-        {
-            auto txn = val6();
-            lambda(Fields::Field_val6, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val7))
-        {
-            auto txn = val7();
-            lambda(Fields::Field_val7, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val7))
-        {
-            auto txn = val7();
-            lambda(Fields::Field_val7, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val8))
-        {
-            auto txn = val8();
-            lambda(Fields::Field_val8, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val8))
-        {
-            auto txn = val8();
-            lambda(Fields::Field_val8, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
-
-    void Assign(ElemType&& elem)
-    {
-        // if (Stencil::AreEqual(_elem, elem)) return;
-        std::swap(_elem, elem);
-        _container.NotifyElementAssigned_(_containerState);
-    }
-
-    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
-    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
-
-    template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
-
-    private:
-    TxnStateForElem    _txnStateForElem{};
-    TxnState&          _elemState;
-    ContainerTxnState& _containerState;
-    TContainer&        _container;
-    ElemType&          _elem;
-
-    public:
-    auto val1()
-    {
-        return Stencil::CreateTransaction<Transaction_val1>(_elemState.val1, _txnStateForElem.val1, *this, _elem.val1);
-    }
-
-    auto val2()
-    {
-        return Stencil::CreateTransaction<Transaction_val2>(_elemState.val2, _txnStateForElem.val2, *this, _elem.val2);
-    }
-
-    auto val3()
-    {
-        return Stencil::CreateTransaction<Transaction_val3>(_elemState.val3, _txnStateForElem.val3, *this, _elem.val3);
-    }
-
-    auto val4()
-    {
-        return Stencil::CreateTransaction<Transaction_val4>(_elemState.val4, _txnStateForElem.val4, *this, _elem.val4);
-    }
-
-    auto val5()
-    {
-        return Stencil::CreateTransaction<Transaction_val5>(_elemState.val5, _txnStateForElem.val5, *this, _elem.val5);
-    }
-
-    auto val6()
-    {
-        return Stencil::CreateTransaction<Transaction_val6>(_elemState.val6, _txnStateForElem.val6, *this, _elem.val6);
-    }
-
-    auto val7()
-    {
-        return Stencil::CreateTransaction<Transaction_val7>(_elemState.val7, _txnStateForElem.val7, *this, _elem.val7);
-    }
-
-    auto val8()
-    {
-        return Stencil::CreateTransaction<Transaction_val8>(_elemState.val8, _txnStateForElem.val8, *this, _elem.val8);
-    }
-
-    void set_val1(bool&& val)
-    {
-        auto subtxn = val1();
-        subtxn.Assign(std::forward<bool>(val));
-    }
-
-    void set_val2(double&& val)
-    {
-        auto subtxn = val2();
-        subtxn.Assign(std::forward<double>(val));
-    }
-
-    void set_val3(std::array<char, 8>&& val)
-    {
-        auto subtxn = val3();
-        subtxn.Assign(std::forward<std::array<char, 8>>(val));
-    }
-
-    void set_val4(Stencil::Timestamp&& val)
-    {
-        auto subtxn = val4();
-        subtxn.Assign(std::forward<Stencil::Timestamp>(val));
-    }
-
-    void set_val5(uint64_t&& val)
-    {
-        auto subtxn = val5();
-        subtxn.Assign(std::forward<uint64_t>(val));
-    }
-
-    void set_val6(int64_t&& val)
-    {
-        auto subtxn = val6();
-        subtxn.Assign(std::forward<int64_t>(val));
-    }
-
-    void set_val7(uint16_t&& val)
-    {
-        auto subtxn = val7();
-        subtxn.Assign(std::forward<uint16_t>(val));
-    }
-
-    void set_val8(int16_t&& val)
-    {
-        auto subtxn = val8();
-        subtxn.Assign(std::forward<int16_t>(val));
-    }
-
-    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
-    {
-        switch (index)
-        {
-        case Fields::Field_val1:
-        {
-            auto txn = val1();
-            return lambda(txn);
-        }
-        case Fields::Field_val2:
-        {
-            auto txn = val2();
-            return lambda(txn);
-        }
-        case Fields::Field_val3:
-        {
-            auto txn = val3();
-            return lambda(txn);
-        }
-        case Fields::Field_val4:
-        {
-            auto txn = val4();
-            return lambda(txn);
-        }
-        case Fields::Field_val5:
-        {
-            auto txn = val5();
-            return lambda(txn);
-        }
-        case Fields::Field_val6:
-        {
-            auto txn = val6();
-            return lambda(txn);
-        }
-        case Fields::Field_val7:
-        {
-            auto txn = val7();
-            return lambda(txn);
-        }
-        case Fields::Field_val8:
-        {
-            auto txn = val8();
-            return lambda(txn);
-        }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
-    {
-        return Edit(index, std::forward<TLambda>(lambda));
-    }
-
-    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
-    {
-        {
-            auto txn = val1();
-            lambda(Fields::Field_val1, txn, Elem().val1);
-        }
-        {
-            auto txn = val2();
-            lambda(Fields::Field_val2, txn, Elem().val2);
-        }
-        {
-            auto txn = val3();
-            lambda(Fields::Field_val3, txn, Elem().val3);
-        }
-        {
-            auto txn = val4();
-            lambda(Fields::Field_val4, txn, Elem().val4);
-        }
-        {
-            auto txn = val5();
-            lambda(Fields::Field_val5, txn, Elem().val5);
-        }
-        {
-            auto txn = val6();
-            lambda(Fields::Field_val6, txn, Elem().val6);
-        }
-        {
-            auto txn = val7();
-            lambda(Fields::Field_val7, txn, Elem().val7);
-        }
-        {
-            auto txn = val8();
-            lambda(Fields::Field_val8, txn, Elem().val8);
-        }
-    }
-};
-
-template <> struct Stencil::Visitor<Interfaces::SimpleObject2> : Stencil::VisitorT<Interfaces::SimpleObject2>
-{
-    using TData  = Interfaces::SimpleObject2;
-    using Fields = TypeTraitsForIndexable<TData>::Fields;
-
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
-    {
-        switch (field)
-        {
-        case Fields::Field_val1: return lambda(obj.val1);
-        case Fields::Field_val2: return lambda(obj.val2);
-        case Fields::Field_val3: return lambda(obj.val3);
-        case Fields::Field_val4: return lambda(obj.val4);
-        case Fields::Field_val5: return lambda(obj.val5);
-        case Fields::Field_val6: return lambda(obj.val6);
-        case Fields::Field_val7: return lambda(obj.val7);
-        case Fields::Field_val8: return lambda(obj.val8);
-        case Fields::Invalid: [[fallthrough]];
-        default: throw std::logic_error("Invalid Key");
-        }
-    }
-
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
-    {
-        lambda(Fields::Field_val1, obj.val1);
-        lambda(Fields::Field_val2, obj.val2);
-        lambda(Fields::Field_val3, obj.val3);
-        lambda(Fields::Field_val4, obj.val4);
-        lambda(Fields::Field_val5, obj.val5);
-        lambda(Fields::Field_val6, obj.val6);
-        lambda(Fields::Field_val7, obj.val7);
-        lambda(Fields::Field_val8, obj.val8);
-    }
-};
-
-template <> struct Stencil::TypeTraits<Interfaces::NestedObject>
-{
-    using Categories = std::tuple<Stencil::Category::Indexable>;
-};
-
-template <> struct Stencil::TypeTraitsForIndexable<Interfaces::NestedObject>
-{
-    enum class Fields
-    {
-        Invalid,
-        Field_obj1
-,        Field_obj2
-,        Field_obj3
-,        Field_dict1
-,        Field_list1
-    };
-
-    using Key = Fields;
-};
-
-template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::NestedObject>::Fields>
-{
-    using Enum = Stencil::TypeTraitsForIndexable<Interfaces::NestedObject>::Fields;
-
-    static constexpr std::string_view Names[] = {
-        "Invalid",
-        "obj1"
-,        "obj2"
-,        "obj3"
-,        "dict1"
-,        "list1"
-    };
-
-    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-
-    static Stencil::TypeTraitsForIndexable<Interfaces::NestedObject>::Fields ForIndex(size_t index)
-    {
-        return static_cast<Stencil::TypeTraitsForIndexable<Interfaces::NestedObject>::Fields>(index);
-    }
-};
-
-template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Interfaces::NestedObject, TContainer>
-{
-    using Fields = Stencil::TypeTraitsForIndexable<Interfaces::NestedObject>::Fields;
-
-    struct ElemTxnState
-    {
-        Fields field;
-    };
-
-    struct TxnStateForElem
-    {
-        ElemTxnState obj1 = {Fields::Field_obj1};
-        ElemTxnState obj2 = {Fields::Field_obj2};
-        ElemTxnState obj3 = {Fields::Field_obj3};
-        ElemTxnState dict1 = {Fields::Field_dict1};
-        ElemTxnState list1 = {Fields::Field_list1};
-    };
-
-    using Txn               = Stencil::Transaction<Interfaces::NestedObject, TContainer>;
-    using ElemType          = Interfaces::NestedObject;
-    using ContainerTxnState = typename TContainer::ElemTxnState;
-
-    using Transaction_obj1 = Stencil::Transaction<::Interfaces::SimpleObject1, Txn>;
-    using Transaction_obj2 = Stencil::Transaction<::Interfaces::SimpleObject2, Txn>;
-    using Transaction_obj3 = Stencil::Transaction<::Interfaces::ListObject, Txn>;
-    using Transaction_dict1 = Stencil::Transaction<::Interfaces::DictObject, Txn>;
-    using Transaction_list1 = Stencil::Transaction<::Interfaces::List, Txn>;
-    struct TxnState
-    {
-        std::bitset<64> assigntracker;    // TODO1
-        std::bitset<64> edittracker;      // TODO1
-        typename Transaction_obj1::TxnState obj1{};
-        typename Transaction_obj2::TxnState obj2{};
-        typename Transaction_obj3::TxnState obj3{};
-        typename Transaction_dict1::TxnState dict1{};
-        typename Transaction_list1::TxnState list1{};
-    };
-
-    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
-        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
-    {}
-
-    ~Transaction()
-    {
-        if (IsChanged())
-        {
-            Stencil::TimestampedT<ElemType>::UpdateTimestamp(_elem);
-            _container.NotifyElementEdited_(_containerState);
-        }
-    }
-
-    CLASS_DELETE_COPY_AND_MOVE(Transaction);
-
-    ElemType const& Elem() const { return _elem; }
-
-    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
-    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
-    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
-
-    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
-
-    void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
-    {
-        _MarkFieldAssigned(elemTxnState.field);
-        Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
-    }
-
-    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
-
-    bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
-
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
-    {
-        if (_IsFieldAssigned(Fields::Field_obj1))
-        {
-            auto txn = obj1();
-            lambda(Fields::Field_obj1, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_obj1))
-        {
-            auto txn = obj1();
-            lambda(Fields::Field_obj1, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_obj2))
-        {
-            auto txn = obj2();
-            lambda(Fields::Field_obj2, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_obj2))
-        {
-            auto txn = obj2();
-            lambda(Fields::Field_obj2, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_obj3))
-        {
-            auto txn = obj3();
-            lambda(Fields::Field_obj3, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_obj3))
-        {
-            auto txn = obj3();
-            lambda(Fields::Field_obj3, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_dict1))
-        {
-            auto txn = dict1();
-            lambda(Fields::Field_dict1, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_dict1))
-        {
-            auto txn = dict1();
-            lambda(Fields::Field_dict1, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_list1))
-        {
-            auto txn = list1();
-            lambda(Fields::Field_list1, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_list1))
-        {
-            auto txn = list1();
-            lambda(Fields::Field_list1, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
-
-    void Assign(ElemType&& elem)
-    {
-        // if (Stencil::AreEqual(_elem, elem)) return;
-        std::swap(_elem, elem);
-        _container.NotifyElementAssigned_(_containerState);
-    }
-
-    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
-    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
-
-    template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
-
-    private:
-    TxnStateForElem    _txnStateForElem{};
-    TxnState&          _elemState;
-    ContainerTxnState& _containerState;
-    TContainer&        _container;
-    ElemType&          _elem;
-
-    public:
-    auto obj1()
-    {
-        return Stencil::CreateTransaction<Transaction_obj1>(_elemState.obj1, _txnStateForElem.obj1, *this, _elem.obj1);
-    }
-
-    auto obj2()
-    {
-        return Stencil::CreateTransaction<Transaction_obj2>(_elemState.obj2, _txnStateForElem.obj2, *this, _elem.obj2);
-    }
-
-    auto obj3()
-    {
-        return Stencil::CreateTransaction<Transaction_obj3>(_elemState.obj3, _txnStateForElem.obj3, *this, _elem.obj3);
-    }
-
-    auto dict1()
-    {
-        return Stencil::CreateTransaction<Transaction_dict1>(_elemState.dict1, _txnStateForElem.dict1, *this, _elem.dict1);
-    }
-
-    auto list1()
-    {
-        return Stencil::CreateTransaction<Transaction_list1>(_elemState.list1, _txnStateForElem.list1, *this, _elem.list1);
-    }
-
-    void set_obj1(::Interfaces::SimpleObject1&& val)
-    {
-        auto subtxn = obj1();
-        subtxn.Assign(std::forward<::Interfaces::SimpleObject1>(val));
-    }
-
-    void set_obj2(::Interfaces::SimpleObject2&& val)
-    {
-        auto subtxn = obj2();
-        subtxn.Assign(std::forward<::Interfaces::SimpleObject2>(val));
-    }
-
-    void set_obj3(::Interfaces::ListObject&& val)
-    {
-        auto subtxn = obj3();
-        subtxn.Assign(std::forward<::Interfaces::ListObject>(val));
-    }
-
-    void set_dict1(::Interfaces::DictObject&& val)
-    {
-        auto subtxn = dict1();
-        subtxn.Assign(std::forward<::Interfaces::DictObject>(val));
-    }
-
-    void set_list1(::Interfaces::List&& val)
-    {
-        auto subtxn = list1();
-        subtxn.Assign(std::forward<::Interfaces::List>(val));
-    }
-
-    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
-    {
-        switch (index)
-        {
-        case Fields::Field_obj1:
-        {
-            auto txn = obj1();
-            return lambda(txn);
-        }
-        case Fields::Field_obj2:
-        {
-            auto txn = obj2();
-            return lambda(txn);
-        }
-        case Fields::Field_obj3:
-        {
-            auto txn = obj3();
-            return lambda(txn);
-        }
-        case Fields::Field_dict1:
-        {
-            auto txn = dict1();
-            return lambda(txn);
-        }
-        case Fields::Field_list1:
-        {
-            auto txn = list1();
-            return lambda(txn);
-        }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
-        }
-    }
-
-    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
-    {
-        return Edit(index, std::forward<TLambda>(lambda));
-    }
-
-    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
-    {
-        {
-            auto txn = obj1();
-            lambda(Fields::Field_obj1, txn, Elem().obj1);
-        }
-        {
-            auto txn = obj2();
-            lambda(Fields::Field_obj2, txn, Elem().obj2);
-        }
-        {
-            auto txn = obj3();
-            lambda(Fields::Field_obj3, txn, Elem().obj3);
-        }
-        {
-            auto txn = dict1();
-            lambda(Fields::Field_dict1, txn, Elem().dict1);
-        }
-        {
-            auto txn = list1();
-            lambda(Fields::Field_list1, txn, Elem().list1);
-        }
-    }
-};
-
-template <> struct Stencil::Visitor<Interfaces::NestedObject> : Stencil::VisitorT<Interfaces::NestedObject>
-{
-    using TData  = Interfaces::NestedObject;
-    using Fields = TypeTraitsForIndexable<TData>::Fields;
-
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
-    {
-        switch (field)
-        {
-        case Fields::Field_obj1: return lambda(obj.obj1);
-        case Fields::Field_obj2: return lambda(obj.obj2);
-        case Fields::Field_obj3: return lambda(obj.obj3);
-        case Fields::Field_dict1: return lambda(obj.dict1);
-        case Fields::Field_list1: return lambda(obj.list1);
-        case Fields::Invalid: [[fallthrough]];
-        default: throw std::logic_error("Invalid Key");
-        }
-    }
-
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
-    {
-        lambda(Fields::Field_obj1, obj.obj1);
-        lambda(Fields::Field_obj2, obj.obj2);
-        lambda(Fields::Field_obj3, obj.obj3);
-        lambda(Fields::Field_dict1, obj.dict1);
-        lambda(Fields::Field_list1, obj.list1);
-    }
-};
+#endif
 
 #endif
 // SECTION END: Template specializations

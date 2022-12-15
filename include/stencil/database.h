@@ -1,6 +1,9 @@
 #pragma once
 #include "CommonMacros.h"
 
+#include "optionalprops.h"
+#include "timestamped.h"
+
 #include <concepts>
 #include <memory>
 #include <mutex>
@@ -1461,3 +1464,29 @@ struct Stencil::TypeTraits<Stencil::Database::Record<Stencil::OptionalPropsT<T>>
 template <typename T>
 struct Stencil::TypeTraits<Stencil::Database::Record<Stencil::TimestampedT<T>>> : Stencil::TypeTraits<Stencil::TimestampedT<T>>
 {};
+
+template <typename T> struct Stencil::Database::RecordTraits<Stencil::OptionalPropsT<T>>
+{
+    using RecordTypes = std::tuple<T>;
+    static constexpr size_t Size() { return sizeof(T); }
+
+    template <typename TDb>
+    static void
+    WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, Stencil::OptionalPropsT<T> const& obj, Record<Stencil::OptionalPropsT<T>>& rec)
+    {
+        rec._fieldtracker = obj._fieldtracker;
+    }
+};
+
+template <typename T> struct Stencil::Database::RecordTraits<Stencil::TimestampedT<T>>
+{
+    using RecordTypes = std::tuple<T>;
+    static constexpr size_t Size() { return sizeof(T); }
+
+    template <typename TDb>
+    static void
+    WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, Stencil::TimestampedT<T> const& obj, Record<Stencil::TimestampedT<T>>& rec)
+    {
+        rec.lastmodified = obj.lastmodified;
+    }
+};

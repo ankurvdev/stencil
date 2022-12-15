@@ -261,7 +261,7 @@ TEST_CASE("Database File Storage", "[database]")
             ObjectsTester tester;
             auto          lock    = datastore.LockForEdit();
             auto          refobj1 = tester.create_simple_object1();
-            auto [id1, obj1]      = datastore.Create(lock, refobj1);
+            datastore.Create(lock, refobj1);
         }
 
         if (std::filesystem::last_write_time(dbFileName).time_since_epoch().count() > time.time_since_epoch().count())
@@ -274,12 +274,12 @@ TEST_CASE("Database File Storage", "[database]")
     {
         {
             DataStore datastore;
-            
+
             datastore.Init();
             ObjectsTester tester;
             auto          lock    = datastore.LockForEdit();
             auto          refobj1 = tester.create_simple_object1();
-            auto [id1, obj1]      = datastore.Create(lock, refobj1);
+            datastore.Create(lock, refobj1);
         }
         {
             // TODO : Verify nothing written
