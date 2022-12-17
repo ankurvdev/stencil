@@ -42,6 +42,7 @@ TEST_CASE("CodeGen", "[ThriftGenerator]")
         auto fname = std::filesystem::path(res.name());
         if (fname.extension().string() == ".pidl") { pidlfiles.push_back(fname.string()); }
     }
+    RunTest({"EnumConstsInitializers.pidl"});
     REQUIRE(!pidlfiles.empty());
     REQUIRE_NOTHROW(RunTest(pidlfiles));
 }

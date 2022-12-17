@@ -44,7 +44,7 @@ using FieldType = std::optional<std::shared_ptr<IDLGenerics::IFieldType>>;
 
 using Id = Str::Type;
 
-using ConstValue = std::shared_ptr<IDLGenerics::ConstValue const>;
+using ConstValue = std::shared_ptr<IDLGenerics::ConstValue>;
 using EnumValue  = std::pair<Str::Type, uint64_t>;
 
 using ConstValueList         = std::vector<ConstValue>;
@@ -264,15 +264,15 @@ inline Interface FindInterface(Context& /*program*/, Str::Type& /*name*/)
 
 inline ConstValue CreateConstValue(int value)
 {
-    return std::make_shared<IDLGenerics::ConstValue>(Primitives64Bit{value});
+    return std::make_shared<IDL::PrimitiveConstValue>(Primitives64Bit{value});
 }
 inline ConstValue CreateConstValue(double value)
 {
-    return std::make_shared<IDLGenerics::ConstValue>(Primitives64Bit{value});
+    return std::make_shared<IDL::PrimitiveConstValue>(Primitives64Bit{value});
 }
 inline ConstValue CreateConstValue(Str::Type&& value)
 {
-    return std::make_shared<IDLGenerics::ConstValue>(std::move(value));
+    return std::make_shared<IDL::PrimitiveConstValue>(std::move(value));
 }
 inline ConstValue FindConstValue(Context& context, Str::Type&& name)
 {
@@ -282,12 +282,9 @@ inline ConstValue FindConstValue(Context& context, Str::Type&& name)
     {
         auto& enumtype = context.program.Lookup<IDL::Enum>(name.substr(0, dotindex));
         auto& enumval  = enumtype.Lookup<IDL::EnumValue>(name.substr(dotindex + 1));
-        return enumval.value();
+        return enumval.shared_from_this();
     }
-    else
-    {
-        return context.program.Lookup<IDL::NamedConst>(name).value();
-    }
+    else { return context.program.Lookup<IDL::NamedConst>(name).shared_from_this(); }
 
     throw std::logic_error("Not Implement. Named Keyword (%s). Const Values not yet supported" /*, name.c_str()*/);
 }
@@ -311,7 +308,7 @@ inline ConstValueDict ConstValueAddValue(ConstValueDict&& /*vec*/, ConstValue&& 
 
 inline ConstValue CreateDefaultConstValue()
 {
-    return std::make_shared<IDLGenerics::ConstValue>();
+    return std::make_shared<IDL::PrimitiveConstValue>();
 }
 
 inline auto CreateNamedConst(Context& context, FieldType& fieldType, Str::Type& name, ConstValue& val)

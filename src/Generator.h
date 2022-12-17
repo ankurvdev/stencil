@@ -72,6 +72,7 @@ struct TypeDefinitions
     std::map<StrType, size_t>                               _containerDeclMap;
     std::map<StrType, std::unordered_map<StrType, StrType>> _attributeDefs;
     FieldTypeDecl _structDefault, _interfaceDefault, _unionDefault, _typedefDefault, _fnargsDefault, _enumDefault;
+    FieldTypeDecl _enumValueDefault, _namedConstDefault;
 
     void LoadIntoProgram(IDL::Program& program) const;
     void FinalizeTypeDefinitions();

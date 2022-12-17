@@ -80,6 +80,10 @@ enum class zzNamezz
 };
 //</Enum>
 
+//<NamedConst>
+static constexpr zzFieldType_NativeTypezz zzNamezz = zzFieldType_NativeTypezz{zzValue_NativeTypezz};
+//</NamedConst>
+
 //<Struct>
 struct zzStruct_Namezz :
     //<AttributeTag>
@@ -88,7 +92,7 @@ struct zzStruct_Namezz :
     public Stencil::StructT<zzStruct_Namezz>
 {
     //<Field>
-    zzFieldType_NativeTypezz zzNamezz = zzFieldType_NativeTypezz{zzInitialValuezz};
+    zzFieldType_NativeTypezz zzNamezz = zzInitialValuezz;
     //</Field>
 };
 //</Struct>

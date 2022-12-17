@@ -308,74 +308,10 @@ struct AttributeDefinition : public std::enable_shared_from_this<AttributeDefini
     Str::View getComponentName(Str::View const& name) const { return m_ComponentMap.at(name.data()); }
 };
 
-struct NamedConst : public std::enable_shared_from_this<NamedConst>, public IDLGenerics::NamedIndexT<Program, NamedConst>::NamedObject
-{
-    public:
-    OBJECTNAME(NamedConst);
-    CLASS_DELETE_COPY_AND_MOVE(NamedConst);
-
-    NamedConst(std::shared_ptr<Program>                              owner,
-               std::shared_ptr<IDLGenerics::IFieldType>              fieldType,
-               Str::Type&&                                           name,
-               std::shared_ptr<IDLGenerics::ConstValue const> const& val) :
-        IDLGenerics::NamedIndexT<Program, NamedConst>::NamedObject(owner, std::move(name)), _fieldType(fieldType), _value(val)
-    {}
-    auto value() const { return _value; }
-
-    std::shared_ptr<IDLGenerics::IFieldType>       _fieldType;
-    std::shared_ptr<IDLGenerics::ConstValue const> _value;
-};
-
+struct NamedConst;
+struct EnumValue;
+struct Program;
 struct Enum;
-
-struct EnumValue : public std::enable_shared_from_this<EnumValue>,
-                   IDLGenerics::ConstValue,
-                   public IDLGenerics::NamedIndexT<Enum, EnumValue>::NamedObject
-{
-    OBJECTNAME(EnumValue);
-    EnumValue(std::shared_ptr<Enum> owner, Str::Type&& name, uint64_t value) :
-        IDLGenerics::NamedIndexT<Enum, EnumValue>::NamedObject(owner, std::move(name)),
-        _value(std::make_shared<IDLGenerics::ConstValue>(Primitives64Bit{value}))
-    {}
-
-    CLASS_DELETE_COPY_AND_MOVE(EnumValue);
-
-    auto value() const { return _value; }
-
-    std::shared_ptr<IDLGenerics::ConstValue const> _value;
-};
-
-struct Enum : public std::enable_shared_from_this<Enum>,
-              // public Binding::BindableT<Enum>,
-              public IDLGenerics::NamedIndexT<Enum, EnumValue>::Owner,
-              public IDLGenerics::FieldTypeIndex<Program, Enum>::FieldType
-{
-    public:
-    OBJECTNAME(Enum);
-    CLASS_DELETE_COPY_AND_MOVE(Enum);
-
-    virtual Str::Type GetFieldName() override { return Str::Copy(Name()); }
-
-    Enum(std::shared_ptr<Program> program, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> unordered_map) :
-        // Binding::BindableT<Typedef>(Str::Create(L"ChildFieldType"), &Typedef::GetFieldTypeBindable),
-        IDLGenerics::FieldTypeIndex<Program, Enum>::FieldType(program, std::move(name), {}, unordered_map)
-    {
-        //        assert(basetype != {});
-    }
-
-    template <typename TObject, typename... TArgs> auto CreateNamedObject(TArgs&&... args)
-    {
-        return IDLGenerics::NamedIndexT<Enum, TObject>::Owner::CreateNamedObject(this->shared_from_this(), std::forward<TArgs>(args)...);
-    }
-
-    template <typename TObject, typename... TArgs> auto& Lookup(TArgs&&... args)
-    {
-        return IDLGenerics::NamedIndexT<Enum, TObject>::Owner::Lookup(std::forward<TArgs>(args)...);
-    }
-
-    // Binding::IBindable& GetFieldTypeBindable() const { return _basetype->GetBindable(); }
-};
-
 struct Struct;
 struct Variant;
 struct Interface;
@@ -546,6 +482,147 @@ struct Variant : public std::enable_shared_from_this<Variant>, public IDLGeneric
     Variant(std::shared_ptr<Program> program, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> unordered_map) :
         IDLGenerics::StorageIndexT<Program, Variant>::StorageType(program, std::move(name), {}, unordered_map)
     {}
+};
+
+struct PrimitiveConstValue : public std::enable_shared_from_this<PrimitiveConstValue>,
+                             Binding::BindableT<PrimitiveConstValue>,
+                             IDLGenerics::ConstValue
+{
+    enum class ValueType
+    {
+        Primitives64Bit,
+        String,
+        List,
+        Map,
+        Empty
+    };
+
+    ValueType       valueType = ValueType::Empty;
+    Primitives64Bit primitive{};
+    Str::Type       stringValue{};
+
+    std::vector<std::shared_ptr<IDLGenerics::ConstValue>>                                                  listValue{};
+    std::unordered_map<std::shared_ptr<IDLGenerics::ConstValue>, std::shared_ptr<IDLGenerics::ConstValue>> mapValue{};
+
+    PrimitiveConstValue() : Binding::BindableT<PrimitiveConstValue>(Str::Create(L"NativeType"), &PrimitiveConstValue::Stringify) {}
+    PrimitiveConstValue(Primitives64Bit value) : PrimitiveConstValue()
+    {
+        valueType = ValueType::Primitives64Bit;
+        primitive = value;
+    }
+
+    PrimitiveConstValue(Str::Type&& value) : PrimitiveConstValue()
+    {
+        valueType   = ValueType::String;
+        stringValue = std::move(value);
+    }
+
+    CLASS_DELETE_COPY_AND_MOVE(PrimitiveConstValue);
+    OBJECTNAME(PrimitiveConstValue);
+    void              _AddBaseObject() {}
+    virtual Str::Type Stringify() const override
+    {
+        switch (valueType)
+        {
+        case ValueType::Empty: return Str::Create(L"{}");
+        case ValueType::String: return stringValue.empty() ? Str::Create(L"{}") : Str::Create(L"\"" + Str::Value(stringValue) + L"\"");
+        case ValueType::List: throw std::invalid_argument("List Const Value Unsupported");
+        case ValueType::Map: throw std::invalid_argument("Map Const Value Unsupported");
+        case ValueType::Primitives64Bit:
+        {
+            switch (primitive.GetType().category)
+            {
+            case Primitives64Bit::Type::Category::Float: return Str::Convert(fmt::format("{}", primitive.cast<double>()));
+            case Primitives64Bit::Type::Category::Signed: return Str::Convert(fmt::format("{}", primitive.cast<int64_t>()));
+            case Primitives64Bit::Type::Category::Unsigned: return Str::Convert(fmt::format("{}", primitive.cast<uint64_t>()));
+            case Primitives64Bit::Type::Category::Unknown: throw std::invalid_argument("Unknown primitive const value type");
+            }
+        }
+        default: throw std::invalid_argument("Unknown const value type");
+        }
+    }
+};
+
+struct NamedConst : public std::enable_shared_from_this<NamedConst>,
+                    Binding::BindableT<NamedConst>,
+                    public IDLGenerics::NamedIndexT<Program, NamedConst>::NamedObject,
+                    IDLGenerics::ConstValue
+{
+    public:
+    OBJECTNAME(NamedConst);
+    CLASS_DELETE_COPY_AND_MOVE(NamedConst);
+
+    NamedConst(std::shared_ptr<Program>                        owner,
+               std::shared_ptr<IDLGenerics::IFieldType>        fieldType,
+               Str::Type&&                                     name,
+               std::shared_ptr<IDLGenerics::ConstValue> const& value) :
+        Binding::BindableT<NamedConst>(Str::Create(L"FieldType"),
+                                       &NamedConst::GetBindableFieldType,
+                                       Str::Create(L"Value"),
+                                       &NamedConst::GetBindableValue),
+        IDLGenerics::NamedIndexT<Program, NamedConst>::NamedObject(owner, std::move(name)),
+        _fieldType(fieldType),
+        _value(value)
+    {
+        auto base = owner->TryGetFieldTypeName(Str::Create(L"default_namedconst"));
+        AddBaseObject(base.value());
+    }
+
+    Binding::IBindable& GetBindableFieldType() const { return _fieldType->GetBindable(); }
+    Binding::IBindable& GetBindableValue() const { return _value->GetBindable(); }
+
+    virtual Str::Type Stringify() const { TODO("ConstStringify"); }
+
+    std::shared_ptr<IDLGenerics::IFieldType> _fieldType;
+    std::shared_ptr<IDLGenerics::ConstValue> _value;
+};
+
+struct Enum : public std::enable_shared_from_this<Enum>,
+              // public Binding::BindableT<Enum>,
+              public IDLGenerics::NamedIndexT<Enum, EnumValue>::Owner,
+              public IDLGenerics::FieldTypeIndex<Program, Enum>::FieldType
+{
+    public:
+    OBJECTNAME(Enum);
+    CLASS_DELETE_COPY_AND_MOVE(Enum);
+
+    virtual Str::Type GetFieldName() override { return Str::Copy(Name()); }
+
+    Enum(std::shared_ptr<Program> program, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> unordered_map) :
+        // Binding::BindableT<Typedef>(Str::Create(L"ChildFieldType"), &Typedef::GetFieldTypeBindable),
+        IDLGenerics::FieldTypeIndex<Program, Enum>::FieldType(program, std::move(name), {}, unordered_map)
+    {
+        //        assert(basetype != {});
+    }
+
+    template <typename TObject, typename... TArgs> auto CreateNamedObject(TArgs&&... args)
+    {
+        return IDLGenerics::NamedIndexT<Enum, TObject>::Owner::CreateNamedObject(this->shared_from_this(), std::forward<TArgs>(args)...);
+    }
+
+    template <typename TObject, typename... TArgs> auto& Lookup(TArgs&&... args)
+    {
+        return IDLGenerics::NamedIndexT<Enum, TObject>::Owner::Lookup(std::forward<TArgs>(args)...);
+    }
+
+    // Binding::IBindable& GetFieldTypeBindable() const { return _basetype->GetBindable(); }
+};
+
+struct EnumValue : public std::enable_shared_from_this<EnumValue>,
+                   IDLGenerics::ConstValue,
+                   public IDLGenerics::NamedIndexT<Enum, EnumValue>::NamedObject
+{
+    OBJECTNAME(EnumValue);
+    EnumValue(std::shared_ptr<Enum> owner, Str::Type&& name, uint64_t /* value */) :
+        IDLGenerics::NamedIndexT<Enum, EnumValue>::NamedObject(owner, Str::Copy(name))
+    {
+        auto base = owner->Parent().TryGetFieldTypeName(Str::Create(L"default_enumvalue"));
+        AddBaseObject(base.value());
+    }
+
+    virtual Str::Type Stringify() const { TODO("EnumStringify"); }
+
+    CLASS_DELETE_COPY_AND_MOVE(EnumValue);
 };
 
 struct FunctionArgs;

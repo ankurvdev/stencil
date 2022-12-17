@@ -376,54 +376,23 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
     };
 };
 
-class ConstValue
+class ConstValue : public virtual Binding::BindableBase
 {
     public:
-    enum class ValueType
-    {
-        Primitives64Bit,
-        String,
-        List,
-        Map,
-        Empty
-    } valueType;
+    ConstValue()          = default;
+    virtual ~ConstValue() = default;
+    CLASS_DELETE_COPY_AND_MOVE(ConstValue);
 
-    Primitives64Bit                                                              primitive;
-    Str::Type                                                                    stringValue{};
-    std::vector<std::unique_ptr<ConstValue>>                                     listValue{};
-    std::unordered_map<std::unique_ptr<ConstValue>, std::unique_ptr<ConstValue>> mapValue{};
-
-    ConstValue(Primitives64Bit value) : valueType(ValueType::Primitives64Bit), primitive(value) {}
-    ConstValue(Str::Type&& value) : valueType(ValueType::String), stringValue(std::move(value)) {}
-    ConstValue() : valueType(ValueType::Empty) {}
-
-    Str::Type Stringify() const
-    {
-        switch (valueType)
-        {
-        case ValueType::Empty: return Str::Create(L"{}");
-        case ValueType::String: return Str::Create(L"\"" + Str::Value(stringValue) + L"\"");
-        case ValueType::List: throw std::invalid_argument("List Const Value Unsupported");
-        case ValueType::Map: throw std::invalid_argument("Map Const Value Unsupported");
-        case ValueType::Primitives64Bit:
-        {
-            switch (primitive.GetType().category)
-            {
-            case Primitives64Bit::Type::Category::Float: return Str::Convert(fmt::format("{}", primitive.cast<double>()));
-            case Primitives64Bit::Type::Category::Signed: return Str::Convert(fmt::format("{}", primitive.cast<int64_t>()));
-            case Primitives64Bit::Type::Category::Unsigned: return Str::Convert(fmt::format("{}", primitive.cast<uint64_t>()));
-            case Primitives64Bit::Type::Category::Unknown: throw std::invalid_argument("Unknown primitive const value type");
-            }
-        }
-        default: throw std::invalid_argument("Unknown const value type");
-        }
-    }
+    OBJECTNAME(ConstValue);
 
     static Str::Type DefaultStringifiedValue()
     {
         throw std::logic_error("Specify a default type"); /*return Str::Create(L" "); */ /* Dont leave this empty */
     }
+
+    virtual Str::Type Stringify() const = 0;
 };
+
 template <typename TOwner, typename TObject> struct StorageIndexT
 {
     struct StorageType;
@@ -494,7 +463,7 @@ template <typename TOwner, typename TObject> struct StorageIndexT
         Field(std::shared_ptr<TObject>               owner,
               Str::Type&&                            name,
               std::shared_ptr<IFieldType>            fieldType,
-              std::shared_ptr<ConstValue const>      defaultValue,
+              std::shared_ptr<ConstValue>            defaultValue,
               std::shared_ptr<Binding::AttributeMap> map) :
             Binding::BindableT<Field>(Str::Create(L"FieldType"),
                                       &Field::GetFieldTypeBindable,
@@ -513,9 +482,11 @@ template <typename TOwner, typename TObject> struct StorageIndexT
 
         Str::Type GetInitialValue() const
         {
-            if (_defaultValue != nullptr) { return _defaultValue->Stringify(); }
-            Binding::BindingContext context;
-            auto                    defval = _fieldType->TryLookupOrNull(context, Str::Create(L"DefaultValue"));
+            Binding::BindingContext          context;
+            std::shared_ptr<Binding::IValue> defval;
+
+            if (_defaultValue != nullptr) { defval = _defaultValue->TryLookupOrNull(context, Str::Create(L"NativeType")); }
+            else { defval = _fieldType->TryLookupOrNull(context, Str::Create(L"DefaultValue")); }
             if (defval == nullptr)
             {
                 _fieldType->TryLookupOrNull(context, Str::Create(L"DefaultValue"));
@@ -535,7 +506,7 @@ template <typename TOwner, typename TObject> struct StorageIndexT
         bool                HasAttributes() const { return _map != nullptr; }
         const auto&         GetAttributes() const { return _map->GetAttributes(); }
 
-        std::shared_ptr<ConstValue const> _defaultValue;
+        std::shared_ptr<ConstValue> _defaultValue;
 
         std::shared_ptr<IFieldType>            _fieldType;
         std::shared_ptr<Binding::AttributeMap> _map;
@@ -558,7 +529,7 @@ template <typename TOwner, typename TObject> struct StorageIndexT
 
         void CreateField(std::shared_ptr<IDLGenerics::IFieldType> fieldType,
                          Str::Type&&                              name,
-                         std::shared_ptr<ConstValue const>        defaultValue,
+                         std::shared_ptr<ConstValue>              defaultValue,
                          std::shared_ptr<Binding::AttributeMap>   map)
         {
             auto field = NamedIndexT<TObject, Field>::Owner::CreateNamedObject(
