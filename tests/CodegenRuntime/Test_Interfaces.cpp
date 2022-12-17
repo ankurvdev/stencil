@@ -67,6 +67,7 @@ struct Tester : ObjectsTester
 
         bool _ChunkCallback(const char* data, size_t len)
         {
+            if (data[len - 1] == '\0') len--;
             std::unique_lock<std::mutex> guard(_mutex);
             _sseData.push_back(std::string(data, len));
             _responseRecieved = true;
@@ -125,12 +126,14 @@ struct Tester : ObjectsTester
         //_sseListener2.Start();
         // _sseListener3.Start();
     }
+
     ~Tester()
     {
-        // TODO: TestCommon::CheckResource<TestCommon::JsonFormat>(_json_lines, "json");
-        // TODO: TestCommon::CheckResource<TestCommon::JsonFormat>(_sseListener1._sseData, "server1_somethinghappened");
-        // TODO: TestCommon::CheckResource<TestCommon::JsonFormat>(_sseListener2._sseData, "server1_objectstore");
+        TestCommon::CheckResource<TestCommon::JsonFormat>(_json_lines, "json");
+        TestCommon::CheckResource<TestCommon::StrFormat>(_sseListener1._sseData, "server1_somethinghappened");
+        TestCommon::CheckResource<TestCommon::StrFormat>(_sseListener2._sseData, "server1_objectstore");
     }
+
     CLASS_DELETE_COPY_AND_MOVE(Tester);
 
     template <typename T> auto _create_http_params(T const& obj)

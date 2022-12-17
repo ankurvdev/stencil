@@ -302,7 +302,11 @@ struct StrFormat
     }
     static auto PrintDiff(std::vector<std::string> const& actualstring, std::istream& ss) { PrintLinesDiff(actualstring, ReadStream(ss)); }
 
-    static bool Compare(std::vector<std::string> const& actual, std::istream& ss) { return actual == ReadStream(ss); }
+    static bool Compare(std::vector<std::string> const& actual, std::istream& ss) { 
+        std::stringstream actualstrm;
+        for (auto const& line : actual) actualstrm << line << '\n';
+        return ReadStream(actualstrm) == ReadStream(ss); 
+    }
 };
 
 inline bool JsonStringEqual([[maybe_unused]] std::string const& lhs, [[maybe_unused]] std::string const& rhs)
