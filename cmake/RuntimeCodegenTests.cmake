@@ -14,6 +14,7 @@ add_executable(codegen_runtime_tests
     "${CMAKE_CURRENT_LIST_DIR}/../tests/CodegenRuntime/Test_Database.cpp"
     # TODO1 "${CMAKE_CURRENT_LIST_DIR}/../tests/CodegenRuntime/Test_ObservableOptionalProps.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../tests/CodegenRuntime/Test_Transactions.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/../tests/CodegenRuntime/Test_Codegen_EnumConstsInitializers.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../tests/CodegenRuntime/Test_Interfaces.cpp"
 )
 

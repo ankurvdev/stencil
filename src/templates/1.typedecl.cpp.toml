@@ -87,6 +87,9 @@ NativeType = "%Name%"
 [Variant]
 NativeType = "::%Variant:Parent:Name%::Variant  "
 
+[Enum]
+NativeType = "::%Program:Name%::%Enum:Name%"
+
 [Containers.ref]
 Params = [ "type"]
 NativeType = "Stencil::Ref<%type:NativeType%>"

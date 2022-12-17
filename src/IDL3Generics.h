@@ -1,6 +1,7 @@
 #pragma once
 #include "Binding.h"
 #include "DebugInfo.h"
+#include "primitives64bit.h"
 
 #include <algorithm>
 #include <optional>
@@ -380,35 +381,40 @@ class ConstValue
     public:
     enum class ValueType
     {
-        Null,
-        Integer,
-        Double,
+        Primitives64Bit,
         String,
         List,
-        Map
+        Map,
+        Empty
     } valueType;
-    //    typedef std::unordered_map<std::shared_ptr<ConstValue>, std::shared_ptr<ConstValue>> Map;
-    int                                                                          intValue{};
-    double                                                                       doubleValue{};
+
+    Primitives64Bit                                                              primitive;
     Str::Type                                                                    stringValue{};
     std::vector<std::unique_ptr<ConstValue>>                                     listValue{};
     std::unordered_map<std::unique_ptr<ConstValue>, std::unique_ptr<ConstValue>> mapValue{};
 
-    ConstValue(int value) : valueType(ValueType::Integer), intValue(value) {}
-    ConstValue(double value) : valueType(ValueType::Double), doubleValue(value) {}
+    ConstValue(Primitives64Bit value) : valueType(ValueType::Primitives64Bit), primitive(value) {}
     ConstValue(Str::Type&& value) : valueType(ValueType::String), stringValue(std::move(value)) {}
-    ConstValue() : valueType(ValueType::Null) {}
+    ConstValue() : valueType(ValueType::Empty) {}
 
     Str::Type Stringify() const
     {
         switch (valueType)
         {
-        case ValueType::Null: return Str::Create(L"nullptr");
-        case ValueType::Integer: return Str::Create(std::to_wstring(intValue));
-        case ValueType::Double: return Str::Create(std::to_wstring(doubleValue));
+        case ValueType::Empty: return Str::Create(L"{}");
         case ValueType::String: return Str::Create(L"\"" + Str::Value(stringValue) + L"\"");
         case ValueType::List: throw std::invalid_argument("List Const Value Unsupported");
         case ValueType::Map: throw std::invalid_argument("Map Const Value Unsupported");
+        case ValueType::Primitives64Bit:
+        {
+            switch (primitive.GetType().category)
+            {
+            case Primitives64Bit::Type::Category::Float: return Str::Convert(fmt::format("{}", primitive.cast<double>()));
+            case Primitives64Bit::Type::Category::Signed: return Str::Convert(fmt::format("{}", primitive.cast<int64_t>()));
+            case Primitives64Bit::Type::Category::Unsigned: return Str::Convert(fmt::format("{}", primitive.cast<uint64_t>()));
+            case Primitives64Bit::Type::Category::Unknown: throw std::invalid_argument("Unknown primitive const value type");
+            }
+        }
         default: throw std::invalid_argument("Unknown const value type");
         }
     }
@@ -488,7 +494,7 @@ template <typename TOwner, typename TObject> struct StorageIndexT
         Field(std::shared_ptr<TObject>               owner,
               Str::Type&&                            name,
               std::shared_ptr<IFieldType>            fieldType,
-              std::shared_ptr<ConstValue>            defaultValue,
+              std::shared_ptr<ConstValue const>      defaultValue,
               std::shared_ptr<Binding::AttributeMap> map) :
             Binding::BindableT<Field>(Str::Create(L"FieldType"),
                                       &Field::GetFieldTypeBindable,
@@ -529,7 +535,7 @@ template <typename TOwner, typename TObject> struct StorageIndexT
         bool                HasAttributes() const { return _map != nullptr; }
         const auto&         GetAttributes() const { return _map->GetAttributes(); }
 
-        std::shared_ptr<ConstValue> _defaultValue;
+        std::shared_ptr<ConstValue const> _defaultValue;
 
         std::shared_ptr<IFieldType>            _fieldType;
         std::shared_ptr<Binding::AttributeMap> _map;
@@ -552,7 +558,7 @@ template <typename TOwner, typename TObject> struct StorageIndexT
 
         void CreateField(std::shared_ptr<IDLGenerics::IFieldType> fieldType,
                          Str::Type&&                              name,
-                         std::shared_ptr<ConstValue>              defaultValue,
+                         std::shared_ptr<ConstValue const>        defaultValue,
                          std::shared_ptr<Binding::AttributeMap>   map)
         {
             auto field = NamedIndexT<TObject, Field>::Owner::CreateNamedObject(

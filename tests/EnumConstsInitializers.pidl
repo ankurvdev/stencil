@@ -1,0 +1,36 @@
+enum EnumType1 {
+    zero,
+    one,
+    two,
+    three,
+    unknown // TODO : non zero enum default
+}
+
+enum EnumType2 {
+    one
+    two,
+    three
+}
+
+const string    constval1 = "conststring"
+const uint8     constval2 = 100;
+const double    constval3 = 100.0;
+const float     constval4 = 101.1234;
+
+struct DefaultValues {
+    EnumType1 enum1 = EnumType1.unknown;
+    EnumType1 enum2;
+    EnumType2 enum3= EnumType1.three;
+    EnumType1 enum4;
+
+    string  val1 = constval1;
+    uint8   val2 = constval2;
+    double  val3 = constval3;
+    float   val4 = constval4;
+
+    string  val5;
+    uint8   val6;
+    double  val7;
+    float   val9;
+}
+

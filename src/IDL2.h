@@ -308,6 +308,74 @@ struct AttributeDefinition : public std::enable_shared_from_this<AttributeDefini
     Str::View getComponentName(Str::View const& name) const { return m_ComponentMap.at(name.data()); }
 };
 
+struct NamedConst : public std::enable_shared_from_this<NamedConst>, public IDLGenerics::NamedIndexT<Program, NamedConst>::NamedObject
+{
+    public:
+    OBJECTNAME(NamedConst);
+    DELETE_COPY_AND_MOVE(NamedConst);
+
+    NamedConst(std::shared_ptr<Program>                              owner,
+               std::shared_ptr<IDLGenerics::IFieldType>              fieldType,
+               Str::Type&&                                           name,
+               std::shared_ptr<IDLGenerics::ConstValue const> const& val) :
+        IDLGenerics::NamedIndexT<Program, NamedConst>::NamedObject(owner, std::move(name)), _fieldType(fieldType), _value(val)
+    {}
+    auto value() const { return _value; }
+
+    std::shared_ptr<IDLGenerics::IFieldType>       _fieldType;
+    std::shared_ptr<IDLGenerics::ConstValue const> _value;
+};
+
+struct Enum;
+
+struct EnumValue : public std::enable_shared_from_this<EnumValue>,
+                   IDLGenerics::ConstValue,
+                   public IDLGenerics::NamedIndexT<Enum, EnumValue>::NamedObject
+{
+    OBJECTNAME(EnumValue);
+    EnumValue(std::shared_ptr<Enum> owner, Str::Type&& name, uint64_t value) :
+        IDLGenerics::NamedIndexT<Enum, EnumValue>::NamedObject(owner, std::move(name)),
+        _value(std::make_shared<IDLGenerics::ConstValue>(Primitives64Bit{value}))
+    {}
+
+    CLASS_DELETE_COPY_AND_MOVE(EnumValue);
+
+    auto value() const { return _value; }
+
+    std::shared_ptr<IDLGenerics::ConstValue const> _value;
+};
+
+struct Enum : public std::enable_shared_from_this<Enum>,
+              // public Binding::BindableT<Enum>,
+              public IDLGenerics::NamedIndexT<Enum, EnumValue>::Owner,
+              public IDLGenerics::FieldTypeIndex<Program, Enum>::FieldType
+{
+    public:
+    OBJECTNAME(Enum);
+    DELETE_COPY_AND_MOVE(Enum);
+
+    virtual Str::Type GetFieldName() override { return Str::Copy(Name()); }
+
+    Enum(std::shared_ptr<Program> program, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> unordered_map) :
+        // Binding::BindableT<Typedef>(Str::Create(L"ChildFieldType"), &Typedef::GetFieldTypeBindable),
+        IDLGenerics::FieldTypeIndex<Program, Enum>::FieldType(program, std::move(name), {}, unordered_map)
+    {
+        //        assert(basetype != {});
+    }
+
+    template <typename TObject, typename... TArgs> auto CreateNamedObject(TArgs&&... args)
+    {
+        return IDLGenerics::NamedIndexT<Enum, TObject>::Owner::CreateNamedObject(this->shared_from_this(), std::forward<TArgs>(args)...);
+    }
+
+    template <typename TObject, typename... TArgs> auto& Lookup(TArgs&&... args)
+    {
+        return IDLGenerics::NamedIndexT<Enum, TObject>::Owner::Lookup(std::forward<TArgs>(args)...);
+    }
+
+    // Binding::IBindable& GetFieldTypeBindable() const { return _basetype->GetBindable(); }
+};
+
 struct Struct;
 struct Variant;
 struct Interface;
@@ -317,10 +385,12 @@ struct Program : public std::enable_shared_from_this<Program>,
                  public IDLGenerics::NamedIndexT<Program, DataSource>::Owner,
                  public IDLGenerics::NamedIndexT<Program, AttributeDefinition>::Owner,
                  public IDLGenerics::NamedIndexT<Program, Container>::Owner,
+                 public IDLGenerics::NamedIndexT<Program, NamedConst>::Owner,
 
                  public IDLGenerics::FieldTypeIndex<Program, Typedef>::Owner,
                  public IDLGenerics::FieldTypeIndex<Program, ContainerFieldType>::Owner,
                  public IDLGenerics::FieldTypeIndex<Program, NativeFieldType>::Owner,
+                 public IDLGenerics::FieldTypeIndex<Program, Enum>::Owner,
 
                  public IDLGenerics::StorageIndexT<Program, Struct>::Owner,
                  public IDLGenerics::StorageIndexT<Program, Variant>::Owner,

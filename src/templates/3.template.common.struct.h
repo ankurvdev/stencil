@@ -71,6 +71,14 @@ namespace zzProgram_Namezz
 typedef zzChildFieldType_NativeTypezz zzNamezz;
 //</Typedef>
 
+//<Enum>
+enum class zzNamezz {
+    //<EnumValue Join=','>
+    zzEnumValue_Namezz
+    //</EnumValue>
+};
+//</Enum>
+
 //<Struct>
 struct zzStruct_Namezz :
     //<AttributeTag>
