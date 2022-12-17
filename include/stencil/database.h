@@ -2,6 +2,8 @@
 #include "CommonMacros.h"
 
 #include "optionalprops.h"
+#include "ref.h"
+#include "shared_tree.h"
 #include "timestamped.h"
 
 #include <concepts>
@@ -1491,3 +1493,39 @@ template <typename T> struct Stencil::Database::RecordTraits<Stencil::Timestampe
         rec.lastmodified = obj.lastmodified;
     }
 };
+
+template <typename T> struct Stencil::Database::RecordTraits<Stencil::RefMap<T>>
+{
+    using RecordTypes = std::tuple<T>;
+    static constexpr size_t Size() { return 0; }
+
+    template <typename TDb>
+    static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, Stencil::RefMap<T> const& obj, Record<Stencil::RefMap<T>>& rec)
+    {
+        throw std::logic_error("TODO");
+    }
+};
+
+template <typename T> struct Stencil::Database::RecordTraits<shared_tree<T>>
+{
+    using RecordTypes = std::tuple<T>;
+    static constexpr size_t Size() { return 0; }
+
+    template <typename TDb>
+    static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, shared_tree<T> const& obj, Record<shared_tree<T>>& rec)
+    {
+        throw std::logic_error("TODO");
+    }
+};
+/*
+template <Stencil::ConceptEnum T> struct Stencil::Database::RecordTraits<T>
+{
+    using RecordTypes = std::tuple<uint16_t>;
+    template <typename TDb> static void WriteToBuffer(TDb& db, RWLock const& lock, T const& obj, Record<T>& rec)
+    {
+        throw std::logic_error("not implemented");
+    }
+
+    static constexpr size_t Size() { return sizeof(uint16_t); }
+    static size_t           GetDataSize(T const& obj) { return Size(); }
+};*/

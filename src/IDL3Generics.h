@@ -1,7 +1,7 @@
 #pragma once
 #include "Binding.h"
 #include "DebugInfo.h"
-#include "primitives64bit.h"
+#include "stencil/primitives64bit.h"
 
 #include <algorithm>
 #include <optional>

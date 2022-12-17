@@ -72,7 +72,8 @@ typedef zzChildFieldType_NativeTypezz zzNamezz;
 //</Typedef>
 
 //<Enum>
-enum class zzNamezz {
+enum class zzNamezz
+{
     //<EnumValue Join=','>
     zzEnumValue_Namezz
     //</EnumValue>
@@ -135,6 +136,24 @@ struct zzInterface_Namezz_ObjectStore_zzNamezz : zzObjectType_NativeTypezz    //
 #if true
 
 // SECTION:
+
+//<Enum>
+template <> struct Stencil::EnumTraits<zzProgram_Namezz::zzNamezz>
+{
+    using Enum = zzProgram_Namezz::zzNamezz;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        //<EnumValue Join=','>
+        "zzEnumValue_Namezz"
+        //</EnumValue>
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Enum ForIndex(size_t index) { return static_cast<Enum>(index); }
+};
+//</Enum>
 
 //<Struct>
 
@@ -404,8 +423,11 @@ template <> struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzStruct_Na
                               zzProgram_Namezz::zzStruct_Namezz const&                      obj,
                               Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz>& rec)
     {
-         //<AttributeTag>
-        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<zzTagType_NativeTypezz const&>(obj), static_cast<Stencil::Database::Record<zzTagType_NativeTypezz>&>(rec));
+        //<AttributeTag>
+        Stencil::Database::impl::WriteToBuffer(db,
+                                               lock,
+                                               static_cast<zzTagType_NativeTypezz const&>(obj),
+                                               static_cast<Stencil::Database::Record<zzTagType_NativeTypezz>&>(rec));
         //</AttributeTag>
         //<Field>
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.zzNamezz, rec.zzNamezz);

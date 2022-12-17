@@ -124,8 +124,9 @@ function(_add_stencil_target)
                DEPENDS ${STENCIL_EXECUTABLE} ${_IDLS}
                COMMENT "Generating IDL code :  ${STENCIL_EXECUTABLE} --outdir=${outdir} ${ARGN}"
                VERBATIM)
-
-    find_package(date REQUIRED)
+    if (NOT TARGET date::date)
+        find_package(date REQUIRED)
+    endif()
     add_library(${targetName} INTERFACE ${outputs})
     target_sources(${targetName} INTERFACE ${outputs} ${_IDLS})
     target_include_directories(${targetName} INTERFACE $<BUILD_INTERFACE:${outdir}>)

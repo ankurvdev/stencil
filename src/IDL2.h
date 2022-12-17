@@ -312,7 +312,7 @@ struct NamedConst : public std::enable_shared_from_this<NamedConst>, public IDLG
 {
     public:
     OBJECTNAME(NamedConst);
-    DELETE_COPY_AND_MOVE(NamedConst);
+    CLASS_DELETE_COPY_AND_MOVE(NamedConst);
 
     NamedConst(std::shared_ptr<Program>                              owner,
                std::shared_ptr<IDLGenerics::IFieldType>              fieldType,
@@ -352,7 +352,7 @@ struct Enum : public std::enable_shared_from_this<Enum>,
 {
     public:
     OBJECTNAME(Enum);
-    DELETE_COPY_AND_MOVE(Enum);
+    CLASS_DELETE_COPY_AND_MOVE(Enum);
 
     virtual Str::Type GetFieldName() override { return Str::Copy(Name()); }
 
