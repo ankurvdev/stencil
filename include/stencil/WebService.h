@@ -171,6 +171,8 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
     }
     CLASS_DELETE_COPY_AND_MOVE(WebService);
 
+    auto& Server() { return _server; }
+
     void StartOnPort(uint16_t port)
     {
         auto guardscope = std::unique_lock<std::mutex>();
