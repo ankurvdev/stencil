@@ -72,13 +72,14 @@ struct SSEListenerManager
 
         void Start(httplib::DataSink& sink, std::span<const char> const& msg)
         {
+            auto msgSize = msg[msg.size() - 1] == '\0' ? msg.size() - 1 : msg.size();
             {
                 auto lock = std::unique_lock<std::mutex>(_manager->_mutex);
                 _manager->Register(lock, shared_from_this());
                 if (_manager->_stopRequested) return;
                 if (_sink != nullptr) { throw std::logic_error("Duplicate sink"); }
                 _sink = &sink;
-                _sink->write(msg.data(), msg.size());
+                _sink->write(msg.data(), msgSize);
             }
             do {
                 auto lock = std::unique_lock<std::mutex>(_manager->_mutex);
@@ -104,6 +105,8 @@ struct SSEListenerManager
 
     void Send(std::span<const char> const& msg)
     {
+        auto msgSize = msg[msg.size() - 1] == '\0' ? msg.size() - 1 : msg.size();
+
         auto lock = std::unique_lock<std::mutex>(_mutex);
         for (auto const& inst : _sseListeners)
         {
@@ -112,7 +115,7 @@ struct SSEListenerManager
             try
             {
                 if (!inst->_sink->is_writable()) { continue; }
-                inst->_sink->write(msg.data(), msg.size());
+                inst->_sink->write(msg.data(), msgSize);
                 inst->_dataAvailable.notify_all();
             } catch (...)
             {}
@@ -204,8 +207,8 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
 
     template <typename TEventArgs> void OnEvent(TEventArgs const& args)
     {
-        auto msg = fmt::format("event: init\ndata: {}\n\n", Stencil::Json::Stringify(args));
-        _sseManager.Send(msg);    // Empty data
+        auto msg = fmt::format("event: {}\ndata: {}\n\n", Stencil::InterfaceApiTraits<TEventArgs>::Name(), Stencil::Json::Stringify(args));
+        _sseManager.Send(msg);
     }
 
     template <ConceptInterface T> auto& GetInterface() { return *std::get<std::unique_ptr<T>>(_impls).get(); }
@@ -355,6 +358,10 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
             uint32_t idint  = id.id;
             auto     rslt   = Stencil::Json::Stringify(idint);
             res.set_content(rslt, "application/json");
+            _sseManager.Send(fmt::format("event: objectstore_create\ndata: {{\'{}\': {{\'{}\': {}}}}}\n\n",
+                                         Stencil::InterfaceObjectTraits<TInterfaceObj>::Name(),
+                                         idint,
+                                         Stencil::Json::Stringify(Stencil::Database::CreateRecordView(obj.objects, lock, obj1))));
         }
         else if (action == "all")
         {
@@ -364,8 +371,9 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
             bool first = true;
             for (auto const& [ref, obj1] : obj.objects.template Items<TInterfaceObj>(lock))
             {
-                rslt << ref.id << ':' << Stencil::Json::Stringify(Stencil::Database::CreateRecordView(obj.objects, lock, obj1));
-                if (first) { rslt << ','; }
+                if (!first) { rslt << ','; }
+                rslt << '\"' << ref.id << '\"' << ':'
+                     << Stencil::Json::Stringify(Stencil::Database::CreateRecordView(obj.objects, lock, obj1));
                 first = false;
             }
             rslt << '}';
@@ -386,7 +394,10 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
         }
         else if (action == "edit")
         {
-            auto lock = obj.objects.LockForEdit();
+            _sseManager.Send(
+                fmt::format("event: objectstore_edit\ndata: {{\'{}\': {{", Stencil::InterfaceObjectTraits<TInterfaceObj>::Name()));
+            auto lock  = obj.objects.LockForEdit();
+            bool first = true;
             res.set_content(_ForeachObjId(req,
                                           subpath,
                                           [&](auto& rslt, uint32_t id) {
@@ -394,12 +405,18 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
                                               auto jsobj
                                                   = Stencil::Json::Stringify(Stencil::Database::CreateRecordView(obj.objects, lock, obj1));
                                               rslt << jsobj;
+                                              _sseManager.Send(fmt::format("{}\'{}\': {}", (first ? ' ' : ','), id, jsobj));
+                                              first = false;
                                           }),
                             "application/json");
+            _sseManager.Send("}}\n\n");
         }
         else if (action == "delete")
         {
-            auto lock = obj.objects.LockForEdit();
+            _sseManager.Send(
+                fmt::format("event: objectstore_delete\ndata: {{\'{}\': [", Stencil::InterfaceObjectTraits<TInterfaceObj>::Name()));
+            auto lock  = obj.objects.LockForEdit();
+            bool first = true;
             res.set_content(_ForeachObjId(req,
                                           subpath,
                                           [&](auto& rslt, uint32_t id) {
@@ -407,12 +424,15 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
                                               {
                                                   obj.objects.template Delete<TInterfaceObj>(lock, {id});
                                                   rslt << "true";
+                                                  _sseManager.Send(fmt::format("{}{}", (first ? ' ' : ','), id));
+                                                  first = false;
                                               } catch (std::exception const& /*ex*/)
                                               {
                                                   rslt << "false";
                                               }
                                           }),
                             "application/json");
+            _sseManager.Send("]}\n\n");
         }
         else { throw std::logic_error("Not implemented"); }
         res.status = 200;
