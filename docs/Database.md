@@ -8,6 +8,16 @@ TODO
 - Shared - Blobs and obects
 - Json Deserialization - Is it needed ? Do we really need to deserialize directly to database ?
 
+## Proposal: (__DENIED__) Do not deref Ref's during Json Deserialization but keep ids
+
+Reason: Too complex. Needs prototyping
+
+- `__id` field in json during serialization. Instead of dereferencing simply provide the `__id`
+  - Helps the client identify changes during SSE tracking
+  - Avoid expensive mapping/tracking
+  - What about strings ?
+    - Every type should be able to declare whether it's id'ed or deref'ed ?
+
 ## Type Categories
 
 Types are bucketed into the following categories
@@ -45,11 +55,12 @@ Its either `Ref<Record<T>>` or `Record<T>`
 
 - Fixed : Same as `Record<T>` by value
 - Blobs : `Ref<Record<T>>`
-- Complex : `Ref<Record<T>>` for some of the 
+- Complex : `Ref<Record<T>>` for some of the
 
 ### `RecordView<T>`
+
 A wrapper class to help incremental / on-demand access to data
-Contains db-ref and lock ref 
+Contains db-ref and lock ref
 Needed for visitor and json serialization etc that cannot pass along those additional context objects.
 
 `RecordView(db, lock, RecordNest<T>)`
@@ -85,7 +96,6 @@ Needed for visitor and json serialization etc that cannot pass along those addit
 - In memory + on-disk
 
 ### Types
-
 
 Type        | Example                                      | Record Types
 ------------|----------------------------------------------|---------------------------------------
