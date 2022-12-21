@@ -105,7 +105,7 @@ struct DatabaseTester
     {
         // auto& vec = ref.listobj;
         // for (size_t i = 0; i < vec.size(); i++) { check(lock, vec[i], datastore->Get(lock, rec.listobj)[i]); }
-        // REQUIRE(obj1.lastmodified == refobj1.lastmodified); TODO2
+        // REQUIRE(obj1.lastmodified == refobj1.lastmodified);
     }
 
     void test_create_simple_object1(Stencil::Database::RWLock& lock)

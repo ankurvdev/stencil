@@ -820,21 +820,6 @@ template <> struct Stencil::InterfaceObjectTraits<zzProgram_Namezz::zzInterface_
 };
 //</InterfaceObjectStore>
 
-#if ((defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0))
-template <> struct Stencil::WebServiceHandlerTraits<zzProgram_Namezz::zzInterface_Namezz>
-{
-    static constexpr const std::string_view Url() { return std::string_view("zzInterface_Namezz"); }
-    // Name to api enum
-    // Name to funcptr mapping
-    // Name to argstruct mapping
-    // Invoke api for each arg struct
-    static void HandleRequest(zzProgram_Namezz::zzInterface_Namezz& obj,
-                              httplib::Request const&               req,
-                              httplib::Response&                    res,
-                              std::string_view const&               path);
-};
-#endif
-
 //</Interface>
 
 //<Variant>
