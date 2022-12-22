@@ -3,6 +3,8 @@ set(stencil_INCLUDE_PATH "${CMAKE_CURRENT_LIST_DIR}/../include" CACHE PATH "Sten
 
 find_package(TestCommon REQUIRED MODULE)
 find_package(CppHttpLib REQUIRED MODULE)
+find_package(EmbedResource REQUIRED MODULE)
+
 file(GLOB test_data_files CONFIGURE_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/../tests/testdata/*")
 file(GLOB pidlfiles "${CMAKE_CURRENT_LIST_DIR}/../tests/*.pidl")
 

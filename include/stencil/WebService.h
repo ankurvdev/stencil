@@ -44,11 +44,12 @@ template <typename T1, typename T2> inline bool iequal(T1 const& a, T2 const& b)
     return std::equal(std::begin(a), std::end(a), std::begin(b), std::end(b), [](auto a1, auto b1) { return tolower(a1) == tolower(b1); });
 }
 
-std::tuple<std::string_view, std::string_view> Split(std::string_view const& path)
+std::tuple<std::string_view, std::string_view> Split(std::string_view const& path, char token = '/')
 {
-    if (path.empty() || path[0] != '/') throw std::logic_error("Invalid path");
-    auto index = path.find('/', 1);
-    auto str1  = path.substr(1, index - 1);
+    if (path.empty()) throw std::logic_error("Invalid path");
+    auto start = path[0] == token ? 1 : 0;
+    auto index = path.find(token, start);
+    auto str1  = path.substr(start, index - start);
     if (index == path.npos) return {str1, {}};
     return {str1, path.substr(index)};
 }
@@ -211,7 +212,6 @@ template <ConceptInterface T> struct WebRequestHandler
     template <typename TEventStructs> bool TryHandleEvents(std::string_view const& ifname, std::string_view const& /*path*/)
     {
         if (!impl::iequal(Stencil::InterfaceApiTraits<TEventStructs>::Name(), ifname)) { return false; }
-        res.set_header("Access-Control-Allow-Origin", "*");
         auto instance = sse.CreateInstance();
         res.set_chunked_content_provider(
             "text/event-stream",
@@ -254,7 +254,6 @@ template <ConceptInterface T> struct WebRequestHandler
                 first = false;
             }
             rslt << '}';
-            res.set_content(rslt.str(), "application/json");
         }
         else if (action == "read")
         {
@@ -299,7 +298,6 @@ template <ConceptInterface T> struct WebRequestHandler
             sse.Send("]}\n\n");
         }
         else { throw std::logic_error("Not implemented"); }
-        res.status = 200;
         return true;
     }
 
@@ -344,17 +342,34 @@ template <ConceptInterface T> struct WebRequestHandler
 
     void HandleRequest(std::string_view const& path)
     {
+        res.set_header("Access-Control-Allow-Origin", "*");
+
         auto [ifname, subpath] = Split(path);
         if (ifname == "objectstore")
         {
-            res.set_header("Access-Control-Allow-Origin", "*");
             auto instance = sse.CreateInstance();
+            auto it       = req.params.find("query");
+            rslt << '[';
+            bool first = true;
+            if (it != req.params.end())
+            {
+                std::string_view query = it->second;
+                do {
+                    rslt << (first ? ' ' : ',');
+                    first = false;
+                    auto [query1, remaining] = Split(query, ',');
+                    auto [qifname, qsubpath] = Split(query1);
+                    if (!HandleObjectStore(qifname, qsubpath)) throw std::runtime_error(fmt::format("Cannot handle query : {}", query1));
+                    query = remaining;
+                } while (!query.empty());
+            }
+            rslt << ']';
+            auto rsltstr = rslt.str();
             res.set_chunked_content_provider(
                 "text/event-stream",
-                [instance](size_t /*offset*/, httplib::DataSink& sink) {
-                    {
-                        instance->Start(sink, "event: init\ndata: {\n\n");
-                    }
+                [instance, rsltstr](size_t /*offset*/, httplib::DataSink& sink) {
+                    instance->Start(sink, fmt::format("event: init\ndata: {}\n\n", rsltstr));
+
                     return true;
                 },
                 [instance](bool /*success*/) { instance->Release(); });
@@ -373,14 +388,6 @@ template <ConceptInterface T> struct WebRequestHandler
 
 template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Interface::InterfaceEventHandlerT<WebService<Ts...>, Ts>...
 {
-    struct UnableToStartDaemonException
-    {};
-    struct InvalidUrlException
-    {};
-    struct EmptyUrlException
-    {};
-    struct HandlerNotFound
-    {};
 
     WebService() = default;
     ~WebService() override
