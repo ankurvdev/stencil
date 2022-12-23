@@ -220,6 +220,7 @@ TEST_CASE("Database", "[database]")
         tester.delete_half<Objects::SimpleObject1>(lock);
 
         tester.datastore->Flush(lock);
+        // TODO : delete during iterator
     }
     // Json Export
 }

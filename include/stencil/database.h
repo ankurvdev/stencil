@@ -36,11 +36,13 @@ concept ConceptBlob = ConceptRecord<T> && ConceptTrivial<T> && RecordTraits<T>::
 
 template <typename T>
 concept ConceptFixedSize = ConceptRecord<T> && ConceptTrivial<T> && RecordTraits<T>::Size() > 0;
-
+/*
 template <ConceptRecord T> struct Ref
 {
     uint32_t id{0};
 };
+*/
+template <typename T> using Ref = Stencil::Ref<T>;
 
 template <typename T> constexpr bool IsRef         = false;
 template <typename T> constexpr bool IsRef<Ref<T>> = true;
@@ -558,6 +560,13 @@ template <size_t RecordSize> struct PageForRecord
         return SlotView{slot, rec};
     }
 
+    SlotObj Edit(ROLock const& /*guardscope*/, Ref::SlotIndex slot)
+    {
+        assert(ValidSlot(slot));
+        auto& rec = _records->at(slot);
+        return SlotObj{slot, rec};
+    }
+
     PageRuntime&                                     _page;
     std::array<uint32_t, GetSlotUInt32s(SlotCount)>* _slots = nullptr;
     // Warning.. using bitset make this non portable across 32 bit and 64 bit
@@ -1047,8 +1056,23 @@ template <ConceptRecord... Ts> struct Database
         impl::PageForRecord<RecordSize> page(_pagemgr->LoadPage(dbId.page));
 
         auto slot = page.Get(lock, dbId.slot);
+        auto rec  = reinterpret_cast<Record<T> const*>(slot.data.data());
+        return *rec;
+    }
+
+    template <ConceptRecord T> Record<T>& Edit(RWLock const& lock, Ref<T> const& ref)
+    {
+        impl::Ref dbId{ref};
+        // assert(ref.id.Valid());
+        assert(dbId.page != 0);
+        assert(dbId.page < _pagemgr->GetPageCount());
+        static constexpr uint32_t RecordSize = static_cast<uint32_t>(RecordTraits<T>::Size());
+
+        impl::PageForRecord<RecordSize> page(_pagemgr->LoadPage(dbId.page));
+
+        auto slot = page.Edit(lock, dbId.slot);
         page._page.MarkDirty();
-        auto rec = reinterpret_cast<Record<T> const*>(slot.data.data());
+        auto rec = reinterpret_cast<Record<T>*>(slot.data.data());
         return *rec;
     }
     template <ConceptRecord T> auto Items(ROLock& lock) { return impl::RangeForView<T, ThisT, ROLock>(lock, *this); }
@@ -1517,6 +1541,7 @@ template <typename T> struct Stencil::Database::RecordTraits<shared_tree<T>>
         throw std::logic_error("TODO");
     }
 };
+
 /*
 template <Stencil::ConceptEnum T> struct Stencil::Database::RecordTraits<T>
 {
