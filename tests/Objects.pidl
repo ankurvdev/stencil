@@ -47,5 +47,12 @@ struct NestedObject
     List            list1;
 }
 
+struct SelfNested
+{
+    SimpleObject1 obj1;
+    ref<SelfNested> self;
+}
+
 attribute optionalprops  object = SimpleObject1, SimpleObject2
 attribute timestamped    object = NestedObject, SimpleObject1, ListObject, List, SimpleObject2
+# TODO Self reference 

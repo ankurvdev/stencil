@@ -159,7 +159,9 @@ inline EnumValue CreateEnumValue(Context& /*context*/, Str::Type& name, uint64_t
     return {name, value};
 }
 
-std::shared_ptr<IDL::Struct> CreateStruct(Context& context, Str::Type& name, FieldList& fields, TypeAttributeList& map);
+std::shared_ptr<IDL::Struct> CreateStruct(Context& context, Str::Type& name);
+
+void AddFieldsToStruct(Context& context, std::shared_ptr<IDL::Struct>, FieldList& fields, TypeAttributeList& map);
 
 std::shared_ptr<IDL::Variant> CreateVariant(Context& context, Str::Type& name, FieldList& fields, TypeAttributeList& map);
 

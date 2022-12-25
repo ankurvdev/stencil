@@ -239,7 +239,7 @@ template <ConceptInterface T> struct WebRequestHandler
             sse.Send(fmt::format("event: objectstore_create\ndata: {{\"{}\": {{\"{}\": {}}}}}\n\n",
                                  Stencil::InterfaceObjectTraits<TInterfaceObj>::Name(),
                                  idint,
-                                 Stencil::Json::Stringify(Stencil::Database::CreateRecordView(obj.objects, lock, obj1))));
+                                 Stencil::Json::Stringify(Stencil::Database::CreateRecordView(obj.objects, lock, id, obj1))));
         }
         else if (action == "all")
         {
@@ -250,7 +250,7 @@ template <ConceptInterface T> struct WebRequestHandler
             {
                 if (!first) { rslt << ','; }
                 rslt << '\"' << ref.id << '\"' << ':'
-                     << Stencil::Json::Stringify(Stencil::Database::CreateRecordView(obj.objects, lock, obj1));
+                     << Stencil::Json::Stringify(Stencil::Database::CreateRecordView(obj.objects, lock, ref, obj1));
                 first = false;
             }
             rslt << '}';
@@ -260,7 +260,7 @@ template <ConceptInterface T> struct WebRequestHandler
             auto lock = obj.objects.LockForRead();
             _ForeachObjId(subpath, [&](uint32_t id) {
                 auto obj1  = obj.objects.template Get<TInterfaceObj>(lock, {id});
-                auto jsobj = Stencil::Json::Stringify(Stencil::Database::CreateRecordView(obj.objects, lock, obj1));
+                auto jsobj = Stencil::Json::Stringify(Stencil::Database::CreateRecordView(obj.objects, lock, {id}, obj1));
                 rslt << jsobj;
             });
         }
@@ -271,7 +271,7 @@ template <ConceptInterface T> struct WebRequestHandler
             bool first = true;
             _ForeachObjId(subpath, [&](uint32_t id) {
                 auto obj1  = obj.objects.template Get<TInterfaceObj>(lock, {id});
-                auto jsobj = Stencil::Json::Stringify(Stencil::Database::CreateRecordView(obj.objects, lock, obj1));
+                auto jsobj = Stencil::Json::Stringify(Stencil::Database::CreateRecordView(obj.objects, lock, {id}, obj1));
                 rslt << jsobj;
                 sse.Send(fmt::format("{}\'{}\': {}", (first ? ' ' : ','), id, jsobj));
                 first = false;
@@ -356,7 +356,7 @@ template <ConceptInterface T> struct WebRequestHandler
                 std::string_view query = it->second;
                 do {
                     rslt << (first ? ' ' : ',');
-                    first = false;
+                    first                    = false;
                     auto [query1, remaining] = Split(query, ',');
                     auto [qifname, qsubpath] = Split(query1);
                     if (!HandleObjectStore(qifname, qsubpath)) throw std::runtime_error(fmt::format("Cannot handle query : {}", query1));

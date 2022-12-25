@@ -251,7 +251,7 @@ ConstMapContents: ConstMapContents ConstValue ':' ConstValue CommaOrSemicolonOpt
     | {}
 ;
 
-Struct: tok_struct tok_identifier  '{' FieldList '}' TypeAttributes    { $$ = CreateStruct(context, $2, $4, $6); }
+Struct: tok_struct tok_identifier  <Struct>{ $$ = CreateStruct(context, $2); } '{' FieldList '}' TypeAttributes    { $$ =$3 ;AddFieldsToStruct(context, $$.value(), $5, $7); }
 ;
 
 Attribute : tok_attribute tok_identifier AttributeComponents CommaOrSemicolonOptional { CreateAttribute(context, $2, $3); }

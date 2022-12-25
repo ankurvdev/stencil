@@ -2,6 +2,7 @@
 
 TODO
 
+- No need to add another ref for uint32_t/enums  as keys for indexable types
 - Differentiate between nested records and top-level records of the same type
   - Items : Iterator should not emit out nested records. Only toplevel records
   - Delete: should not be allowed on nested records.
@@ -73,10 +74,10 @@ Needed for visitor and json serialization etc that cannot pass along those addit
   - `Record<T>`: With read/write lock used to access sub-objects.
   
 - Create : Transform each nested type into a Ref<>. Recurisvely create ref objects. Return toplevel ref<> and ViewT.
-  - dict - Visit-All. Create Key, Create Value => Create Pair<Ref<K>, Ref<V>> => Create List<Ref<Pair>>
+  - dict - Visit-All. Create Key, Create Value => Create `Pair<Ref<K>, Ref<V>>` => Create `List<Ref<Pair>>`
   - struct - Visit-All. Create Refs => Create Fixed-Record
-  - list - Visit-All. Create<Ref<T>> => Create List<Ref<T>>
-  - shared-ptr - FindOrCreate<Ref<T>>
+  - list - Visit-All. `Create<Ref<T>>` => Create `List<Ref<T>>`
+  - shared-ptr - `FindOrCreate<Ref<T>>`
 
 - Read : Read Toplevel and fetch on-demand. ViewT for these types exposes helpers
 - Edit : ViewT with edit-lock
@@ -99,7 +100,7 @@ Needed for visitor and json serialization etc that cannot pass along those addit
 
 Type        | Example                                      | Record Types
 ------------|----------------------------------------------|---------------------------------------
-dict        | `unordered_map<K, V>`                        | K, V , Blob(List) Pair: Ref<K>, ref<V>      |
+dict        | `unordered_map<K, V>`                        | K, V , Blob(List) Pair: `Ref<K>`, `ref<V>`      |
 nested      | `struct Type { std::unique_ptr<NestedType> }`| Type, NestedType
 lists       | `vector<K>`                                  | K, Blob(List) : `Ref<K>`
 polymorphic | `struct Type1: Type{}; struct Type2: Type{}` | Type1, Type2, Type
@@ -194,7 +195,7 @@ How to construct a nested object recursively ?
 - Search / Filter
   - Only Query By ID
 
-# Reference Links
+## Reference Links
 
 <https://www.remi-coulom.fr/joedb/vectors.html>
 Apache arrow and parquet

@@ -7,9 +7,14 @@
 namespace IDL::Lang::Thrift
 {
 
-std::shared_ptr<IDL::Struct> CreateStruct(Context& context, Str::Type& id, FieldList& fields, TypeAttributeList& map)
+std::shared_ptr<IDL::Struct> CreateStruct(Context& context, Str::Type& id)
 {
-    auto strct = context.program.CreateStorageObject<IDL::Struct>(std::move(id), map);
+    return context.program.CreateStorageObject<IDL::Struct>(std::move(id), TypeAttributeList{});
+}
+
+void AddFieldsToStruct(Context& context, std::shared_ptr<IDL::Struct> strct, FieldList& fields, TypeAttributeList& map)
+{
+    strct->AddAttributes(map);
     for (auto& f : fields)
     {
         strct->CreateField(f.m_FieldType.value(), std::move(f.m_Id), std::move(f.m_FieldValue), std::move(f.m_AttributeMap));
@@ -17,7 +22,7 @@ std::shared_ptr<IDL::Struct> CreateStruct(Context& context, Str::Type& id, Field
 
     fields.clear();
     map.reset();
-    return strct;
+    // return strct;
 }
 
 std::shared_ptr<IDL::Variant> CreateVariant(Context& context, Str::Type& id, FieldList& fields, TypeAttributeList& map)
