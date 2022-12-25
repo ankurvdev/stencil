@@ -1424,7 +1424,6 @@ template <Stencil::Database::ConceptRecordView T> struct Stencil::Visitor<T>
                     {
                         auto& krec  = obj._db.Get(obj._lock, key);
                         auto  krecv = Stencil::Database::CreateRecordView(obj._db, obj._lock, key, krec);
-                        auto  krecv = Stencil::Database::CreateRecordView(obj._db, obj._lock, key, krec);
                         lambda(krecv, vrecv);
                     }
                     else { lambda(key, vrecv); }

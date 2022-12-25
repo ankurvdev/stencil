@@ -169,9 +169,9 @@ struct DatabaseTester
     }
 
     template <typename T>
-    void dump(Stencil::Database::RWLock& lock, Stencil::Database::Ref<T> const& /*ref*/, Stencil::Database::Record<T> const& rec)
+    void dump(Stencil::Database::RWLock& lock, Stencil::Database::Ref<T> const& ref, Stencil::Database::Record<T> const& rec)
     {
-        auto recview = Stencil::Database::CreateRecordView(*datastore, lock, rec);
+        auto recview = Stencil::Database::CreateRecordView(*datastore, lock, ref, rec);
         lines.push_back(Stencil::Json::Stringify(recview));
     }
 
