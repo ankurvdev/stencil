@@ -1448,6 +1448,14 @@ template <Stencil::Database::ConceptRecordView T> struct Stencil::Visitor<T>
     }
 };
 
+template <typename TProt> struct Stencil::SerDes<Stencil::Database::RefKeyType, TProt>
+{
+    template <typename Context> static auto Write(Context& ctx, Stencil::Database::RefKeyType const& /* obj */)
+    {
+        SerDes<std::string_view, TProt>::Write(ctx, "__id");
+    }
+    template <typename Context> static auto Read(Stencil::Database::RefKeyType& /* obj */, Context& /* ctx */);    // Undefined
+};
 template <Stencil::Database::ConceptTrivialRecordView T, typename TProt> struct Stencil::SerDes<T, TProt>
 {
     using Type       = typename Stencil::Database::RecordViewTraits<T>::Type;
