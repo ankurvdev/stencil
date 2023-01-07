@@ -81,7 +81,14 @@ enum class zzNamezz
 //</Enum>
 
 //<NamedConst>
+#pragma warning(push, 3)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wimplicit-float-conversion"
+
 static constexpr zzFieldType_NativeTypezz zzNamezz = zzFieldType_NativeTypezz{zzValue_NativeTypezz};
+
+#pragma clang diagnostic pop
+#pragma warning(pop)
 //</NamedConst>
 
 //<Struct>
