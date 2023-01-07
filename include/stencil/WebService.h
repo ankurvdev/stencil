@@ -44,12 +44,12 @@ template <typename T1, typename T2> inline bool iequal(T1 const& a, T2 const& b)
     return std::equal(std::begin(a), std::end(a), std::begin(b), std::end(b), [](auto a1, auto b1) { return tolower(a1) == tolower(b1); });
 }
 
-std::tuple<std::string_view, std::string_view> Split(std::string_view const& path, char token = '/')
+inline std::tuple<std::string_view, std::string_view> Split(std::string_view const& path, char token = '/')
 {
     if (path.empty()) throw std::logic_error("Invalid path");
-    auto start = path[0] == token ? 1 : 0;
-    auto index = path.find(token, start);
-    auto str1  = path.substr(start, index - start);
+    size_t start = path[0] == token ? 1u : 0u;
+    size_t index = path.find(token, start);
+    auto   str1  = path.substr(start, index - start);
     if (index == path.npos) return {str1, {}};
     return {str1, path.substr(index)};
 }

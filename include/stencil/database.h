@@ -1546,7 +1546,7 @@ template <typename T> struct Stencil::Database::RecordTraits<shared_tree<T>>
     static constexpr size_t Size() { return 0; }
 
     template <typename TDb>
-    static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, shared_tree<T> const& obj, Record<shared_tree<T>>& rec)
+    static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, shared_tree<T> const& /* obj */, Record<shared_tree<T>>& /* rec */)
     {
         throw std::logic_error("TODO");
     }

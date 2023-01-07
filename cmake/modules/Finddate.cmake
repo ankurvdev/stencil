@@ -6,7 +6,6 @@ if (NOT TARGET date::date)
         #SupressWarningForTarget(date)
     elseif (EXISTS "${VCPKG_ROOT}" AND DEFINED VCPKG_TARGET_TRIPLET)
         message(STATUS "Attempting to install vcpkg port fmt:${VCPKG_TARGET_TRIPLET}")
-        set(ENV{VCPKG_OVERLAY_PORTS} "${CMAKE_CURRENT_LIST_DIR}/../ci/vcpkg-additional-ports")
         find_program(VCPKG_EXECUTABLE vcpkg REQUIRED PATHS ${VCPKG_ROOT})
         execute_process(COMMAND "${VCPKG_EXECUTABLE}" install date:${VCPKG_TARGET_TRIPLET} 
             COMMAND_ERROR_IS_FATAL ANY
