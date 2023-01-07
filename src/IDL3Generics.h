@@ -379,11 +379,9 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
 class ConstValue : public virtual Binding::BindableBase
 {
     public:
-    ConstValue()          = default;
-    virtual ~ConstValue() = default;
+    ConstValue()                   = default;
+    virtual ~ConstValue() override = default;
     CLASS_DELETE_COPY_AND_MOVE(ConstValue);
-
-    OBJECTNAME(ConstValue);
 
     static Str::Type DefaultStringifiedValue()
     {

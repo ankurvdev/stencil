@@ -1533,7 +1533,8 @@ template <typename T> struct Stencil::Database::RecordTraits<Stencil::RefMap<T>>
     static constexpr size_t Size() { return 0; }
 
     template <typename TDb>
-    static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, Stencil::RefMap<T> const& obj, Record<Stencil::RefMap<T>>& rec)
+    static void
+    WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, Stencil::RefMap<T> const& /* obj */, Record<Stencil::RefMap<T>>& /* rec */)
     {
         throw std::logic_error("TODO");
     }

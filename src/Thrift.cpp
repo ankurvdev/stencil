@@ -12,7 +12,7 @@ std::shared_ptr<IDL::Struct> CreateStruct(Context& context, Str::Type& id)
     return context.program.CreateStorageObject<IDL::Struct>(std::move(id), TypeAttributeList{});
 }
 
-void AddFieldsToStruct(Context& context, std::shared_ptr<IDL::Struct> strct, FieldList& fields, TypeAttributeList& map)
+void AddFieldsToStruct(Context& /* context */, std::shared_ptr<IDL::Struct> strct, FieldList& fields, TypeAttributeList& map)
 {
     strct->AddAttributes(map);
     for (auto& f : fields)

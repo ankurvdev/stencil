@@ -535,8 +535,9 @@ struct PrimitiveConstValue : public std::enable_shared_from_this<PrimitiveConstV
             case Primitives64Bit::Type::Category::Float: return Str::Convert(fmt::format("{}", primitive.cast<double>()));
             case Primitives64Bit::Type::Category::Signed: return Str::Convert(fmt::format("{}", primitive.cast<int64_t>()));
             case Primitives64Bit::Type::Category::Unsigned: return Str::Convert(fmt::format("{}", primitive.cast<uint64_t>()));
-            case Primitives64Bit::Type::Category::Unknown: throw std::invalid_argument("Unknown primitive const value type");
+            case Primitives64Bit::Type::Category::Unknown: break;
             }
+            throw std::invalid_argument("Unknown primitive const value type");
         }
         default: throw std::invalid_argument("Unknown const value type");
         }
@@ -571,7 +572,7 @@ struct NamedConst : public std::enable_shared_from_this<NamedConst>,
     Binding::IBindable& GetBindableFieldType() const { return _fieldType->GetBindable(); }
     Binding::IBindable& GetBindableValue() const { return _value->GetBindable(); }
 
-    virtual Str::Type Stringify() const { TODO("ConstStringify"); }
+    virtual Str::Type Stringify() const override { TODO("ConstStringify"); }
 
     std::shared_ptr<IDLGenerics::IFieldType> _fieldType;
     std::shared_ptr<IDLGenerics::ConstValue> _value;
@@ -620,7 +621,7 @@ struct EnumValue : public std::enable_shared_from_this<EnumValue>,
         AddBaseObject(base.value());
     }
 
-    virtual Str::Type Stringify() const { TODO("EnumStringify"); }
+    virtual Str::Type Stringify() const override { TODO("EnumStringify"); }
 
     CLASS_DELETE_COPY_AND_MOVE(EnumValue);
 };

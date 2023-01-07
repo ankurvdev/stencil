@@ -25,32 +25,32 @@ namespace CLOpts1
 struct CommandLineOptions :
     public Stencil::StructT<CommandLineOptions>
 {
-    shared_string workingDirectory = shared_string{/*Initial Value*/};
-    std::vector<shared_string> libraries = std::vector<shared_string>{/*Initial Value*/};
-    std::vector<shared_string> scan = std::vector<shared_string>{/*Initial Value*/};
-    int32_t httpsPort = int32_t{3443};
-    bool daemon = bool{0};
+    shared_string workingDirectory = {};
+    std::vector<shared_string> libraries = {};
+    std::vector<shared_string> scan = {};
+    int32_t httpsPort = 3443;
+    bool daemon = 0;
 };
 struct SimpleObj :
     public Stencil::StructT<SimpleObj>
 {
-    shared_string field1 = shared_string{/*Initial Value*/};
-    shared_string field2 = shared_string{/*Initial Value*/};
+    shared_string field1 = {};
+    shared_string field2 = {};
 };
 struct ObjWithList :
     public Stencil::StructT<ObjWithList>
 {
-    std::vector<shared_string> field1 = std::vector<shared_string>{/*Initial Value*/};
+    std::vector<shared_string> field1 = {};
 };
 struct CLOptsTest :
     public Stencil::StructT<CLOptsTest>
 {
-    shared_string key1 = shared_string{/*Initial Value*/};
-    std::vector<int32_t> listofint = std::vector<int32_t>{/*Initial Value*/};
-    std::vector<std::vector<int32_t>> listoflist = std::vector<std::vector<int32_t>>{/*Initial Value*/};
-    std::vector<::CLOpts1::SimpleObj> listofobj = std::vector<::CLOpts1::SimpleObj>{/*Initial Value*/};
-    ::CLOpts1::ObjWithList objoflist = ::CLOpts1::ObjWithList{/*Initial Value*/};
-    shared_string key2 = shared_string{/*Initial Value*/};
+    shared_string key1 = {};
+    std::vector<int32_t> listofint = {};
+    std::vector<std::vector<int32_t>> listoflist = {};
+    std::vector<::CLOpts1::SimpleObj> listofobj = {};
+    ::CLOpts1::ObjWithList objoflist = {};
+    shared_string key2 = {};
 };
 }    // namespace CLOpts1
 #endif

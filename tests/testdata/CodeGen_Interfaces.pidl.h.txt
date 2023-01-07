@@ -381,7 +381,6 @@ template <> struct Stencil::InterfaceObjectTraits<Interfaces::Server1_ObjectStor
 {
     static constexpr std::string_view Name() { return "obj2"; }
 };
-
 #endif
 // SECTION END: Template specializations
 
