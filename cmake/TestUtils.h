@@ -274,6 +274,13 @@ inline std::vector<std::string> ReadStrStream(std::istream& istr)
     return lines;
 }
 
+inline auto ResplitLines(std::vector<std::string> const& actual)
+{
+    std::stringstream ss;
+    for (auto& line : actual) ss << line << std::endl;
+    return TestCommon::ReadStrStream(ss);
+}
+
 inline std::vector<std::string> ReadBinStream(std::istream& ss)
 {
     std::size_t              size;

@@ -26,18 +26,18 @@ dict<uint32, SimpleObject1> Function1(uint32 arg1, SimpleObject1 arg2);
 */
 /// Generated code begins
 
-
 struct SSEFormat : TestCommon::JsonFormat
 {
+
     static bool Compare(std::vector<std::string> const& actual, std::istream& ss)
     {
         auto expected = TestCommon::ReadStrStream(ss);
         if (actual.size() != expected.size()) return false;
 
         for (size_t i = 0; i != actual.size(); i++)
-        {   
-            auto& act = actual[i];
-            auto& exp = expected[i];
+        {
+            auto&            act    = actual[i];
+            auto&            exp    = expected[i];
             std::string_view prefix = "data: ";
             if (act == exp) continue;
             if (act.size() < prefix.size() || exp.size() < prefix.size()) return false;
@@ -161,8 +161,8 @@ struct Tester : ObjectsTester
         if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
 
         TestCommon::CheckResource<TestCommon::JsonFormat>(_json_lines, "json");
-        TestCommon::CheckResource<SSEFormat>(_sseListener1._sseData, "server1_somethinghappened");
-        TestCommon::CheckResource<SSEFormat>(_sseListener2._sseData, "server1_objectstore");
+        TestCommon::CheckResource<SSEFormat>(TestCommon::ResplitLines(_sseListener1._sseData), "server1_somethinghappened");
+        TestCommon::CheckResource<SSEFormat>(TestCommon::ResplitLines(_sseListener2._sseData), "server1_objectstore");
     }
 
     CLASS_DELETE_COPY_AND_MOVE(Tester);
