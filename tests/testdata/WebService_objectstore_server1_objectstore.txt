@@ -7,7 +7,7 @@ data: {"arg1":2,"arg2":{"val1":3,"val2":4,"val3":5,"val4":"str5","val5":601.07}}
 
 
 event: SomethingHappened
-data: {"arg1":17,"arg2":{"val1":10,"val2":11,"val3":12,"val4":"str12","val5":1301.14}}
+data: {"arg1":10,"arg2":{"val1":11,"val2":12,"val3":13,"val4":"str13","val5":1401.15}}
 
 
 event: objectstore_create
@@ -43,10 +43,10 @@ data: {'obj2': [
 
 
 event: SomethingHappened
-data: {"arg1":360,"arg2":{"val1":353,"val2":354,"val3":99,"val4":"str356","val5":35703.58}}
+data: {"arg1":353,"arg2":{"val1":354,"val2":355,"val3":100,"val4":"str357","val5":35803.59}}
 
 
 event: SomethingHappened
-data: {"arg1":369,"arg2":{"val1":362,"val2":363,"val3":108,"val4":"str364","val5":36504.66}}
+data: {"arg1":362,"arg2":{"val1":363,"val2":364,"val3":109,"val4":"str365","val5":36604.67}}
 
 

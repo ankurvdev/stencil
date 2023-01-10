@@ -241,9 +241,9 @@ struct Tester : ObjectsTester
     }
     void cli_call_function()
     {
-        _valid_cli_json_get(
-            "/api/server1/function1",
-            httplib::Params{{"arg1", fmt::format("{}", create_uint32())}, {"arg2", Stencil::Json::Stringify(create_simple_object1())}});
+        auto arg1 = fmt::format("{}", create_uint32());
+        auto arg2 = Stencil::Json::Stringify(create_simple_object1());
+        _valid_cli_json_get("/api/server1/function1", httplib::Params{{"arg1", arg1}, {"arg2", arg2}});
     }
 
     void svc_create_obj1() {}
@@ -256,8 +256,19 @@ struct Tester : ObjectsTester
     void svc_edit_obj2() {}
     void svc_destroy_obj2() {}
 
-    void svc_raise_event() { svc->GetInterface<Interfaces::Server1>().Raise_SomethingHappened(create_uint32(), create_simple_object1()); }
-    void svc_call_function() { svc->GetInterface<Interfaces::Server1>().Function1(create_uint32(), create_simple_object1()); }
+    void svc_raise_event()
+    {
+        auto arg1 = create_uint32();
+        auto arg2 = create_simple_object1();
+        svc->GetInterface<Interfaces::Server1>().Raise_SomethingHappened(arg1, arg2);
+    }
+
+    void svc_call_function()
+    {
+        auto arg1 = create_uint32();
+        auto arg2 = create_simple_object1();
+        svc->GetInterface<Interfaces::Server1>().Function1(arg1, arg2);
+    }
 
     std::vector<std::string> _json_lines;
     std::string              _cliObj1Id;
