@@ -321,6 +321,7 @@ inline bool JsonStringEqual([[maybe_unused]] std::string const& lhs, [[maybe_unu
     throw std::logic_error("RapidJson needed");
 #endif
 }
+
 struct JsonFormat : StrFormat
 {
     static bool Compare(std::vector<std::string> const& actual, std::istream& ss)
@@ -336,6 +337,7 @@ struct JsonFormat : StrFormat
         return true;
     }
 };
+
 struct BinFormat
 {
     static auto ReadStream(std::istream& ss) { return ReadBinStream(ss); }
