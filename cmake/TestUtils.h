@@ -302,10 +302,11 @@ struct StrFormat
     }
     static auto PrintDiff(std::vector<std::string> const& actualstring, std::istream& ss) { PrintLinesDiff(actualstring, ReadStream(ss)); }
 
-    static bool Compare(std::vector<std::string> const& actual, std::istream& ss) { 
+    static bool Compare(std::vector<std::string> const& actual, std::istream& ss)
+    {
         std::stringstream actualstrm;
         for (auto const& line : actual) actualstrm << line << '\n';
-        return ReadStream(actualstrm) == ReadStream(ss); 
+        return ReadStream(actualstrm) == ReadStream(ss);
     }
 };
 
@@ -358,8 +359,18 @@ template <typename TFormat> inline bool _CheckResource(std::vector<std::string> 
         std::string       str(r.string());
         std::stringstream ss(str);
         if (TFormat::Compare(actual, ss)) return true;
-        TFormat::PrintDiff(actual, ss);
     }
+
+    for (auto const r : LOAD_RESOURCE_COLLECTION(testdata))
+    {
+        auto resname = wstring_to_string(r.name());
+        if (resname.find(testresname) == std::string::npos) continue;
+        std::string       str(r.string());
+        std::stringstream ss(str);
+        TFormat::PrintDiff(actual, ss);
+        break;
+    }
+
     auto outf = TFormat::WriteResource(actual, testresname);
     FAIL_CHECK(fmt::format("Comparison Failed: Output: \n{}", outf.string()));
     return false;
