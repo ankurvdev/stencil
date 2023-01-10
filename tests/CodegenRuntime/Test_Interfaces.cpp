@@ -121,7 +121,8 @@ struct Tester : ObjectsTester
     Tester()
     {
         if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
-        svc.StartOnPort(44444);
+        svc = std::make_unique<Stencil::WebService<Interfaces::Server1>>();
+        svc->StartOnPort(44444);
         _sseListener1.Start();
         _sseListener2.Start();
         //_sseListener2.Start();
@@ -130,6 +131,8 @@ struct Tester : ObjectsTester
 
     ~Tester()
     {
+        svc->StopDaemon();
+        svc.reset();
         if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
 
         TestCommon::CheckResource<TestCommon::JsonFormat>(_json_lines, "json");
@@ -228,8 +231,8 @@ struct Tester : ObjectsTester
     void svc_edit_obj2() {}
     void svc_destroy_obj2() {}
 
-    void svc_raise_event() { svc.GetInterface<Interfaces::Server1>().Raise_SomethingHappened(create_uint32(), create_simple_object1()); }
-    void svc_call_function() { svc.GetInterface<Interfaces::Server1>().Function1(create_uint32(), create_simple_object1()); }
+    void svc_raise_event() { svc->GetInterface<Interfaces::Server1>().Raise_SomethingHappened(create_uint32(), create_simple_object1()); }
+    void svc_call_function() { svc->GetInterface<Interfaces::Server1>().Function1(create_uint32(), create_simple_object1()); }
 
     std::vector<std::string> _json_lines;
     std::string              _cliObj1Id;
@@ -241,13 +244,12 @@ struct Tester : ObjectsTester
     SSEListener _sseListener1{"/api/server1/somethinghappened"};
     SSEListener _sseListener2{"/api/server1/objectstore"};
     // SSEListener _sseListener3{"/api/server1/obj2/events"};
-    Stencil::WebService<Interfaces::Server1> svc;
+    std::unique_ptr<Stencil::WebService<Interfaces::Server1>> svc;
 };
 
 TEST_CASE("WebService-objectstore", "[interfaces]")
 {
     std::filesystem::path dbfile{"SaveAndLoad.bin"};
-    if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
 
     Tester tester;
     tester.cli_call_function();

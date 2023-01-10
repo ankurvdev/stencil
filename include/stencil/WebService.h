@@ -390,12 +390,7 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
 {
 
     WebService() = default;
-    ~WebService() override
-    {
-        _sseManager.Stop();
-        StopDaemon();
-        WaitForStop();
-    }
+    ~WebService() override { StopDaemon(); }
     CLASS_DELETE_COPY_AND_MOVE(WebService);
 
     auto& Server() { return _server; }
@@ -421,13 +416,21 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
     {
         {
             auto guardscope = std::unique_lock<std::mutex>();
-            std::apply([](auto& impl) { impl->handler = nullptr; }, _impls);
-            _server.stop();
+            if (_server.is_running())
+            {
+                std::apply([](auto& impl) { impl->handler = nullptr; }, _impls);
+                _server.stop();
+                _sseManager.Stop();
+                _cond.notify_all();
+            }
         }
-        _cond.notify_all();
+        if (_listenthread.joinable()) _listenthread.join();
     }
 
-    void WaitForStop() { _listenthread.join(); }
+    void WaitForStop()
+    {
+        if (_listenthread.joinable()) _listenthread.join();
+    }
 
     template <typename TEventArgs> void OnEvent(TEventArgs const& args)
     {
