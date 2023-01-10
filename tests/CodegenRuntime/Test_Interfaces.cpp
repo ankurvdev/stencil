@@ -235,7 +235,7 @@ struct Tester : ObjectsTester
     std::string              _cliObj1Id;
     std::string              _cliObj2Id;
 
-    uint32_t    _count{0};
+    uint32_t              _count{0};
     std::filesystem::path dbfile{"SaveAndLoad.bin"};
 
     SSEListener _sseListener1{"/api/server1/somethinghappened"};
@@ -246,6 +246,9 @@ struct Tester : ObjectsTester
 
 TEST_CASE("WebService-objectstore", "[interfaces]")
 {
+    std::filesystem::path dbfile{"SaveAndLoad.bin"};
+    if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
+
     Tester tester;
     tester.cli_call_function();
     tester.svc_call_function();
