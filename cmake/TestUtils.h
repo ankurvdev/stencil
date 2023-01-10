@@ -107,6 +107,9 @@ inline void PrintLinesDiff(std::vector<std::string> const& actualstring, std::ve
         {
             if (actualstring[i] != expectedstring[i])
             {
+                std::cout << "Line: " << i << " Expected: " << expectedstring[i] << std::endl;
+                std::cout << "Line: " << i << " Actual: " << actualstring[i] << std::endl;
+                std::cout << "Line: " << i << " Delta: "
                 dtl::Diff<char, std::string> ld(expectedstring[i], actualstring[i]);
                 ld.compose();
                 auto                     ses      = ld.getSes().getSequence();

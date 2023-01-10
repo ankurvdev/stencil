@@ -28,7 +28,6 @@ dict<uint32, SimpleObject1> Function1(uint32 arg1, SimpleObject1 arg2);
 
 struct SSEFormat : TestCommon::JsonFormat
 {
-
     static bool Compare(std::vector<std::string> const& actual, std::istream& ss)
     {
         auto expected = TestCommon::ReadStrStream(ss);
