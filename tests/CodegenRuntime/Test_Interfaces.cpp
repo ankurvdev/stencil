@@ -120,6 +120,7 @@ struct Tester : ObjectsTester
 
     Tester()
     {
+        if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
         svc.StartOnPort(44444);
         _sseListener1.Start();
         _sseListener2.Start();
@@ -129,9 +130,11 @@ struct Tester : ObjectsTester
 
     ~Tester()
     {
+        if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
+
         TestCommon::CheckResource<TestCommon::JsonFormat>(_json_lines, "json");
-        //TestCommon::CheckResource<TestCommon::StrFormat>(_sseListener1._sseData, "server1_somethinghappened");
-        //TestCommon::CheckResource<TestCommon::StrFormat>(_sseListener2._sseData, "server1_objectstore");
+        TestCommon::CheckResource<TestCommon::StrFormat>(_sseListener1._sseData, "server1_somethinghappened");
+        TestCommon::CheckResource<TestCommon::StrFormat>(_sseListener2._sseData, "server1_objectstore");
     }
 
     CLASS_DELETE_COPY_AND_MOVE(Tester);
@@ -233,6 +236,8 @@ struct Tester : ObjectsTester
     std::string              _cliObj2Id;
 
     uint32_t    _count{0};
+    std::filesystem::path dbfile{"SaveAndLoad.bin"};
+
     SSEListener _sseListener1{"/api/server1/somethinghappened"};
     SSEListener _sseListener2{"/api/server1/objectstore"};
     // SSEListener _sseListener3{"/api/server1/obj2/events"};
