@@ -1,6 +1,8 @@
 #include "ObjectsTester.h"
 #include "TestUtils.h"
 
+#include <unordered_set>
+
 using namespace Catch::literals;
 using namespace std::literals;
 using DataStore = Stencil::Database::Database<::Objects::NestedObject>;
@@ -177,14 +179,24 @@ struct DatabaseTester
 
     template <typename T> void delete_half_with_iterator(Stencil::Database::RWLock& lock)
     {
-        size_t i = 0;
-        for (auto [ref, rec] : tester.datastore->Items<T>(lock))
+        size_t                       i = 0;
+        std::unordered_set<uint32_t> todelete;
+        for (auto it = generated_ids.cbegin(); it != generated_ids.cend();)
         {
-            if ((++i) % 2 == 0)
+            if (it->first == Stencil::Database::TypeId<T, DataStore> && ((++i) % 2 == 0))
+            {
+                todelete.insert(it->second);
+                it = generated_ids.erase(it);
+            }
+            else { ++it; }
+        }
+
+        for (auto [ref, rec] : datastore->Items<T>(lock))
+        {
+            if (todelete.count(ref.id) > 0)
             {
                 datastore->Delete(lock, ref);
                 lines.push_back(fmt::format("{{\"delete\": {}}}", ref.id));
-                generated_ids.remove(ref.id));
             }
         }
     }
