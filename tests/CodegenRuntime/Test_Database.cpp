@@ -175,6 +175,20 @@ struct DatabaseTester
         lines.push_back(Stencil::Json::Stringify(recview));
     }
 
+    template <typename T> void delete_half_with_iterator(Stencil::Database::RWLock& lock)
+    {
+        size_t i = 0;
+        for (auto [ref, rec] : tester.datastore->Items<T>(lock))
+        {
+            if ((++i) % 2 == 0)
+            {
+                datastore->Delete(lock, ref);
+                lines.push_back(fmt::format("{{\"delete\": {}}}", ref.id));
+                generated_ids.remove(ref.id));
+            }
+        }
+    }
+
     template <typename T> void delete_half(Stencil::Database::RWLock& lock)
     {
         size_t i = 0;
@@ -212,15 +226,24 @@ TEST_CASE("Database", "[database]")
         for (auto [ref, rec] : tester.datastore->Items<Objects::SimpleObject2>(lock)) { tester.dump(lock, ref, rec); }
         for (size_t i = 0; i < count; i++) { tester.test_create_nested_object(lock); }
         for (auto [ref, rec] : tester.datastore->Items<Objects::NestedObject>(lock)) { tester.dump(lock, ref, rec); }
-
-        tester.delete_half<Objects::NestedObject>(lock);
-        tester.delete_half<Objects::DictObject>(lock);
-        tester.delete_half<Objects::List>(lock);
-        tester.delete_half<Objects::SimpleObject2>(lock);
-        tester.delete_half<Objects::SimpleObject1>(lock);
+        if (count % 2 == 0)
+        {
+            tester.delete_half_with_iterator<Objects::NestedObject>(lock);
+            tester.delete_half_with_iterator<Objects::DictObject>(lock);
+            tester.delete_half_with_iterator<Objects::List>(lock);
+            tester.delete_half_with_iterator<Objects::SimpleObject2>(lock);
+            tester.delete_half_with_iterator<Objects::SimpleObject1>(lock);
+        }
+        else
+        {
+            tester.delete_half<Objects::NestedObject>(lock);
+            tester.delete_half<Objects::DictObject>(lock);
+            tester.delete_half<Objects::List>(lock);
+            tester.delete_half<Objects::SimpleObject2>(lock);
+            tester.delete_half<Objects::SimpleObject1>(lock);
+        }
 
         tester.datastore->Flush(lock);
-        // TODO : delete during iterator
     }
     // Json Export
 }

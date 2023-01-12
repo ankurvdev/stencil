@@ -1,23 +1,49 @@
 # Database
 
-TODO
+[[__TOC__]]
 
-- No need to add another ref for uint32_t/enums  as keys for indexable types
-- Differentiate between nested records and top-level records of the same type
-  - Items : Iterator should not emit out nested records. Only toplevel records
-  - Delete: should not be allowed on nested records.
-- Shared - Blobs and obects
-- Json Deserialization - Is it needed ? Do we really need to deserialize directly to database ?
+## Dev Notes
 
-## Proposal: (__DENIED__) Do not deref Ref's during Json Deserialization but keep ids
+### TODOs
 
-Reason: Too complex. Needs prototyping
+- [Perf] In-situ (instead ref+record) key data for primitive-keys for indexables (ints, enums etc)
+- Export Database to json for comparison testing
+
+### Proposal: Separation of ROLock vs RWLock
+
+Status: _Prototyping_
+
+### Proposal: Differentiate between nested records and top-level records of the same type
+
+Status: _Prototyping_
+
+- Items : Iterator should not emit out nested records. Only toplevel records
+- Delete: should not be allowed on nested records.
+
+### Proposal: Shared - Blobs and obects
+
+Status: _Designing_
+
+### Proposal: Do not deref Ref's during Json Deserialization but keep ids
+
+Status: _Designing_
 
 - `__id` field in json during serialization. Instead of dereferencing simply provide the `__id`
   - Helps the client identify changes during SSE tracking
   - Avoid expensive mapping/tracking
   - What about strings ?
     - Every type should be able to declare whether it's id'ed or deref'ed ?
+
+### Proposal: Tree and self-containing (ref) support
+
+### Proposal: RefMap support
+
+### Proposal :  Json Deserialization to Records
+
+Status: _Justification Needed_
+
+- Is it needed ?
+- Do we really need to deserialize directly to database ?
 
 ## Type Categories
 

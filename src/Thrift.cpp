@@ -22,7 +22,6 @@ void AddFieldsToStruct(Context& /* context */, std::shared_ptr<IDL::Struct> strc
 
     fields.clear();
     map.reset();
-    // return strct;
 }
 
 std::shared_ptr<IDL::Variant> CreateVariant(Context& context, Str::Type& id, FieldList& fields, TypeAttributeList& map)
