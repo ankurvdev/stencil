@@ -107,6 +107,9 @@ inline void PrintLinesDiff(std::vector<std::string> const& actualstring, std::ve
         {
             if (actualstring[i] != expectedstring[i])
             {
+                std::cout << "Line: " << i << " Expected: " << expectedstring[i] << std::endl;
+                std::cout << "Line: " << i << " Actual: " << actualstring[i] << std::endl;
+                std::cout << "Line: " << i << " Delta: ";
                 dtl::Diff<char, std::string> ld(expectedstring[i], actualstring[i]);
                 ld.compose();
                 auto                     ses      = ld.getSes().getSequence();
@@ -274,6 +277,13 @@ inline std::vector<std::string> ReadStrStream(std::istream& istr)
     return lines;
 }
 
+inline auto ResplitLines(std::vector<std::string> const& actual)
+{
+    std::stringstream ss;
+    for (auto& line : actual) ss << line << std::endl;
+    return TestCommon::ReadStrStream(ss);
+}
+
 inline std::vector<std::string> ReadBinStream(std::istream& ss)
 {
     std::size_t              size;
@@ -302,7 +312,12 @@ struct StrFormat
     }
     static auto PrintDiff(std::vector<std::string> const& actualstring, std::istream& ss) { PrintLinesDiff(actualstring, ReadStream(ss)); }
 
-    static bool Compare(std::vector<std::string> const& actual, std::istream& ss) { return actual == ReadStream(ss); }
+    static bool Compare(std::vector<std::string> const& actual, std::istream& ss)
+    {
+        std::stringstream actualstrm;
+        for (auto const& line : actual) actualstrm << line << '\n';
+        return ReadStream(actualstrm) == ReadStream(ss);
+    }
 };
 
 inline bool JsonStringEqual([[maybe_unused]] std::string const& lhs, [[maybe_unused]] std::string const& rhs)
@@ -316,6 +331,7 @@ inline bool JsonStringEqual([[maybe_unused]] std::string const& lhs, [[maybe_unu
     throw std::logic_error("RapidJson needed");
 #endif
 }
+
 struct JsonFormat : StrFormat
 {
     static bool Compare(std::vector<std::string> const& actual, std::istream& ss)
@@ -331,6 +347,7 @@ struct JsonFormat : StrFormat
         return true;
     }
 };
+
 struct BinFormat
 {
     static auto ReadStream(std::istream& ss) { return ReadBinStream(ss); }
@@ -354,8 +371,18 @@ template <typename TFormat> inline bool _CheckResource(std::vector<std::string> 
         std::string       str(r.string());
         std::stringstream ss(str);
         if (TFormat::Compare(actual, ss)) return true;
-        TFormat::PrintDiff(actual, ss);
     }
+
+    for (auto const r : LOAD_RESOURCE_COLLECTION(testdata))
+    {
+        auto resname = wstring_to_string(r.name());
+        if (resname.find(testresname) == std::string::npos) continue;
+        std::string       str(r.string());
+        std::stringstream ss(str);
+        TFormat::PrintDiff(actual, ss);
+        break;
+    }
+
     auto outf = TFormat::WriteResource(actual, testresname);
     FAIL_CHECK(fmt::format("Comparison Failed: Output: \n{}", outf.string()));
     return false;

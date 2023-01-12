@@ -2,6 +2,8 @@
 #include "CommonMacros.h"
 
 #include "optionalprops.h"
+#include "ref.h"
+#include "shared_tree.h"
 #include "timestamped.h"
 
 #include <concepts>
@@ -35,10 +37,10 @@ concept ConceptBlob = ConceptRecord<T> && ConceptTrivial<T> && RecordTraits<T>::
 template <typename T>
 concept ConceptFixedSize = ConceptRecord<T> && ConceptTrivial<T> && RecordTraits<T>::Size() > 0;
 
-template <ConceptRecord T> struct Ref
-{
-    uint32_t id{0};
-};
+struct RefKeyType
+{};    // Special Type: for use when when visiting recordview to visit ref<> of self
+
+template <typename T> using Ref = Stencil::Ref<T>;
 
 template <typename T> constexpr bool IsRef         = false;
 template <typename T> constexpr bool IsRef<Ref<T>> = true;
@@ -556,6 +558,13 @@ template <size_t RecordSize> struct PageForRecord
         return SlotView{slot, rec};
     }
 
+    SlotObj Edit(ROLock const& /*guardscope*/, Ref::SlotIndex slot)
+    {
+        assert(ValidSlot(slot));
+        auto& rec = _records->at(slot);
+        return SlotObj{slot, rec};
+    }
+
     PageRuntime&                                     _page;
     std::array<uint32_t, GetSlotUInt32s(SlotCount)>* _slots = nullptr;
     // Warning.. using bitset make this non portable across 32 bit and 64 bit
@@ -1045,8 +1054,23 @@ template <ConceptRecord... Ts> struct Database
         impl::PageForRecord<RecordSize> page(_pagemgr->LoadPage(dbId.page));
 
         auto slot = page.Get(lock, dbId.slot);
+        auto rec  = reinterpret_cast<Record<T> const*>(slot.data.data());
+        return *rec;
+    }
+
+    template <ConceptRecord T> Record<T>& Edit(RWLock const& lock, Ref<T> const& ref)
+    {
+        impl::Ref dbId{ref};
+        // assert(ref.id.Valid());
+        assert(dbId.page != 0);
+        assert(dbId.page < _pagemgr->GetPageCount());
+        static constexpr uint32_t RecordSize = static_cast<uint32_t>(RecordTraits<T>::Size());
+
+        impl::PageForRecord<RecordSize> page(_pagemgr->LoadPage(dbId.page));
+
+        auto slot = page.Edit(lock, dbId.slot);
         page._page.MarkDirty();
-        auto rec = reinterpret_cast<Record<T> const*>(slot.data.data());
+        auto rec = reinterpret_cast<Record<T>*>(slot.data.data());
         return *rec;
     }
     template <ConceptRecord T> auto Items(ROLock& lock) { return impl::RangeForView<T, ThisT, ROLock>(lock, *this); }
@@ -1342,12 +1366,14 @@ template <typename T, typename TDb> struct RecordEdit;
 
 template <typename T, typename TDb> struct RecordView
 {
-    RecordView(TDb& db, ROLock& lock, Record<T> const& rec) : _db(db), _lock(lock), _rec(rec) {}
+
+    RecordView(TDb& db, ROLock& lock, Ref<T> const& id, Record<T> const& rec) : _db(db), _lock(lock), _id(id), _rec(rec) {}
     ~RecordView() = default;
     CLASS_DELETE_COPY_AND_MOVE(RecordView);
 
     TDb&             _db;
     ROLock&          _lock;
+    Ref<T> const&    _id;
     Record<T> const& _rec;
 };
 
@@ -1360,9 +1386,9 @@ template <typename T, typename TDb> struct RecordViewTraits<RecordView<T, TDb>>
     using NestType   = RecordNest<T>;
 };
 
-template <typename T, typename TDb> RecordView<T, TDb> CreateRecordView(TDb& db, ROLock& lock, Record<T> const& rec)
+template <typename T, typename TDb> RecordView<T, TDb> CreateRecordView(TDb& db, ROLock& lock, Ref<T> const& id, Record<T> const& rec)
 {
-    return RecordView<T, TDb>(db, lock, rec);
+    return RecordView<T, TDb>(db, lock, id, rec);
 }
 
 template <typename T> static constexpr bool               IsRecordView                     = false;
@@ -1388,15 +1414,16 @@ template <Stencil::Database::ConceptRecordView T> struct Stencil::Visitor<T>
         if constexpr (Stencil::ConceptPreferPrimitive<Type>) {}
         else if constexpr (Stencil::ConceptPreferIndexable<Type>)
         {
+            lambda(Stencil::Database::RefKeyType{}, obj._id);    // Visit the ref<> of itself as a special field
             Stencil::Visitor<RecType>::VisitAll(obj._rec, [&](auto key, auto& subobj) {
                 if constexpr (Stencil::Database::IsRef<std::remove_cvref_t<decltype(subobj)>>)
                 {
                     auto& vrec  = obj._db.Get(obj._lock, subobj);
-                    auto  vrecv = Stencil::Database::CreateRecordView(obj._db, obj._lock, vrec);
+                    auto  vrecv = Stencil::Database::CreateRecordView(obj._db, obj._lock, subobj, vrec);
                     if constexpr (Stencil::Database::IsRef<std::remove_cvref_t<decltype(key)>>)
                     {
                         auto& krec  = obj._db.Get(obj._lock, key);
-                        auto  krecv = Stencil::Database::CreateRecordView(obj._db, obj._lock, krec);
+                        auto  krecv = Stencil::Database::CreateRecordView(obj._db, obj._lock, key, krec);
                         lambda(krecv, vrecv);
                     }
                     else { lambda(key, vrecv); }
@@ -1410,7 +1437,7 @@ template <Stencil::Database::ConceptRecordView T> struct Stencil::Visitor<T>
                 if constexpr (Stencil::Database::IsRef<std::remove_cvref_t<decltype(subobj)>>)
                 {
                     auto& vrec     = obj._db.Get(obj._lock, subobj);
-                    auto  itemrecv = Stencil::Database::CreateRecordView(obj._db, obj._lock, vrec);
+                    auto  itemrecv = Stencil::Database::CreateRecordView(obj._db, obj._lock, subobj, vrec);
                     lambda(k, itemrecv);
                 }
                 else { lambda(k, subobj.get()); }
@@ -1420,6 +1447,14 @@ template <Stencil::Database::ConceptRecordView T> struct Stencil::Visitor<T>
     }
 };
 
+template <typename TProt> struct Stencil::SerDes<Stencil::Database::RefKeyType, TProt>
+{
+    template <typename Context> static auto Write(Context& ctx, Stencil::Database::RefKeyType const& /* obj */)
+    {
+        SerDes<std::string_view, TProt>::Write(ctx, "__id");
+    }
+    template <typename Context> static auto Read(Stencil::Database::RefKeyType& /* obj */, Context& /* ctx */);    // Undefined
+};
 template <Stencil::Database::ConceptTrivialRecordView T, typename TProt> struct Stencil::SerDes<T, TProt>
 {
     using Type       = typename Stencil::Database::RecordViewTraits<T>::Type;
@@ -1491,3 +1526,41 @@ template <typename T> struct Stencil::Database::RecordTraits<Stencil::Timestampe
         rec.lastmodified = obj.lastmodified;
     }
 };
+
+template <typename T> struct Stencil::Database::RecordTraits<Stencil::RefMap<T>>
+{
+    using RecordTypes = std::tuple<T>;
+    static constexpr size_t Size() { return 0; }
+
+    template <typename TDb>
+    static void
+    WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, Stencil::RefMap<T> const& /* obj */, Record<Stencil::RefMap<T>>& /* rec */)
+    {
+        throw std::logic_error("TODO");
+    }
+};
+
+template <typename T> struct Stencil::Database::RecordTraits<shared_tree<T>>
+{
+    using RecordTypes = std::tuple<T>;
+    static constexpr size_t Size() { return 0; }
+
+    template <typename TDb>
+    static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, shared_tree<T> const& /* obj */, Record<shared_tree<T>>& /* rec */)
+    {
+        throw std::logic_error("TODO");
+    }
+};
+
+/*
+template <Stencil::ConceptEnum T> struct Stencil::Database::RecordTraits<T>
+{
+    using RecordTypes = std::tuple<uint16_t>;
+    template <typename TDb> static void WriteToBuffer(TDb& db, RWLock const& lock, T const& obj, Record<T>& rec)
+    {
+        throw std::logic_error("not implemented");
+    }
+
+    static constexpr size_t Size() { return sizeof(uint16_t); }
+    static size_t           GetDataSize(T const& obj) { return Size(); }
+};*/

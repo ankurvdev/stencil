@@ -33,41 +33,41 @@ namespace CLOpts2
 struct InstallOptions :
     public Stencil::StructT<InstallOptions>
 {
-    shared_string ProductId = shared_string{/*Initial Value*/};
-    bool Repair = bool{0};
-    bool ForceNonSD = bool{0};
-    shared_string TargetVolume = shared_string{""};
-    shared_string User = shared_string{""};
+    shared_string ProductId = {};
+    bool Repair = 0;
+    bool ForceNonSD = 0;
+    shared_string TargetVolume = {};
+    shared_string User = {};
 };
 struct QueueOptions :
     public Stencil::StructT<QueueOptions>
 {
-    shared_string ProductId = shared_string{""};
+    shared_string ProductId = {};
 };
 struct PauseOptions :
     public Stencil::StructT<PauseOptions>
 {
-    shared_string ProductId = shared_string{/*Initial Value*/};
+    shared_string ProductId = {};
 };
 struct CancelOptions :
     public Stencil::StructT<CancelOptions>
 {
-    shared_string ProductId = shared_string{/*Initial Value*/};
+    shared_string ProductId = {};
 };
 struct ResumeOptions :
     public Stencil::StructT<ResumeOptions>
 {
-    shared_string ProductId = shared_string{/*Initial Value*/};
+    shared_string ProductId = {};
 };
 struct UpdateOptions :
     public Stencil::StructT<UpdateOptions>
 {
-    shared_string ProductId = shared_string{""};
+    shared_string ProductId = {};
 };
 struct HydrateOptions :
     public Stencil::StructT<HydrateOptions>
 {
-    shared_string ProductId = shared_string{/*Initial Value*/};
+    shared_string ProductId = {};
 };
 struct CommandLineOptions : public Stencil::VariantT<CommandLineOptions>
 {

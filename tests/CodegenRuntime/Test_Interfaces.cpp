@@ -25,6 +25,30 @@ dict<uint32, SimpleObject1> Function1(uint32 arg1, SimpleObject1 arg2);
 }
 */
 /// Generated code begins
+
+struct SSEFormat : TestCommon::JsonFormat
+{
+    static bool Compare(std::vector<std::string> const& actual, std::istream& ss)
+    {
+        auto expected = TestCommon::ReadStrStream(ss);
+        if (actual.size() != expected.size()) return false;
+
+        for (size_t i = 0; i != actual.size(); i++)
+        {
+            auto&            act    = actual[i];
+            auto&            exp    = expected[i];
+            std::string_view prefix = "data: ";
+            if (act == exp) continue;
+            if (act.size() < prefix.size() || exp.size() < prefix.size()) return false;
+            if (act.substr(0, prefix.size()) != exp.substr(0, prefix.size())) return false;
+            if (act.substr(0, prefix.size()) != prefix) return false;
+            if (!TestCommon::JsonStringEqual(act.substr(prefix.size()), exp.substr(prefix.size()))) return false;
+        }
+
+        return true;
+    }
+};
+
 struct Server1Impl : Interfaces::Server1
 {
     Server1Impl()           = default;
@@ -67,6 +91,7 @@ struct Tester : ObjectsTester
 
         bool _ChunkCallback(const char* data, size_t len)
         {
+            if (data[len - 1] == '\0') len--;
             std::unique_lock<std::mutex> guard(_mutex);
             _sseData.push_back(std::string(data, len));
             _responseRecieved = true;
@@ -119,18 +144,26 @@ struct Tester : ObjectsTester
 
     Tester()
     {
-        svc.StartOnPort(44444);
+        if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
+        svc = std::make_unique<Stencil::WebService<Interfaces::Server1>>();
+        svc->StartOnPort(44444);
         _sseListener1.Start();
         _sseListener2.Start();
         //_sseListener2.Start();
         // _sseListener3.Start();
     }
+
     ~Tester()
     {
-        // TODO: TestCommon::CheckResource<TestCommon::JsonFormat>(_json_lines, "json");
-        // TODO: TestCommon::CheckResource<TestCommon::JsonFormat>(_sseListener1._sseData, "server1_somethinghappened");
-        // TODO: TestCommon::CheckResource<TestCommon::JsonFormat>(_sseListener2._sseData, "server1_objectstore");
+        svc->StopDaemon();
+        svc.reset();
+        if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
+
+        TestCommon::CheckResource<TestCommon::JsonFormat>(_json_lines, "json");
+        TestCommon::CheckResource<SSEFormat>(TestCommon::ResplitLines(_sseListener1._sseData), "server1_somethinghappened");
+        TestCommon::CheckResource<SSEFormat>(TestCommon::ResplitLines(_sseListener2._sseData), "server1_objectstore");
     }
+
     CLASS_DELETE_COPY_AND_MOVE(Tester);
 
     template <typename T> auto _create_http_params(T const& obj)
@@ -207,9 +240,9 @@ struct Tester : ObjectsTester
     }
     void cli_call_function()
     {
-        _valid_cli_json_get(
-            "/api/server1/function1",
-            httplib::Params{{"arg1", fmt::format("{}", create_uint32())}, {"arg2", Stencil::Json::Stringify(create_simple_object1())}});
+        auto arg1 = fmt::format("{}", create_uint32());
+        auto arg2 = Stencil::Json::Stringify(create_simple_object1());
+        _valid_cli_json_get("/api/server1/function1", httplib::Params{{"arg1", arg1}, {"arg2", arg2}});
     }
 
     void svc_create_obj1() {}
@@ -222,22 +255,37 @@ struct Tester : ObjectsTester
     void svc_edit_obj2() {}
     void svc_destroy_obj2() {}
 
-    void svc_raise_event() { svc.GetInterface<Interfaces::Server1>().Raise_SomethingHappened(create_uint32(), create_simple_object1()); }
-    void svc_call_function() { svc.GetInterface<Interfaces::Server1>().Function1(create_uint32(), create_simple_object1()); }
+    void svc_raise_event()
+    {
+        auto arg1 = create_uint32();
+        auto arg2 = create_simple_object1();
+        svc->GetInterface<Interfaces::Server1>().Raise_SomethingHappened(arg1, arg2);
+    }
+
+    void svc_call_function()
+    {
+        auto arg1 = create_uint32();
+        auto arg2 = create_simple_object1();
+        svc->GetInterface<Interfaces::Server1>().Function1(arg1, arg2);
+    }
 
     std::vector<std::string> _json_lines;
     std::string              _cliObj1Id;
     std::string              _cliObj2Id;
 
-    uint32_t    _count{0};
+    uint32_t              _count{0};
+    std::filesystem::path dbfile{"SaveAndLoad.bin"};
+
     SSEListener _sseListener1{"/api/server1/somethinghappened"};
     SSEListener _sseListener2{"/api/server1/objectstore"};
     // SSEListener _sseListener3{"/api/server1/obj2/events"};
-    Stencil::WebService<Interfaces::Server1> svc;
+    std::unique_ptr<Stencil::WebService<Interfaces::Server1>> svc;
 };
 
 TEST_CASE("WebService-objectstore", "[interfaces]")
 {
+    std::filesystem::path dbfile{"SaveAndLoad.bin"};
+
     Tester tester;
     tester.cli_call_function();
     tester.svc_call_function();

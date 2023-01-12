@@ -325,12 +325,13 @@ void TypeDefinitions::AddTypeDefinitions(std::string_view const& /*name*/, std::
             }
         }
         else if (propname == "Struct") { _structDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
-
         else if (propname == "Variant") { _unionDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
-
         else if (propname == "Interface") { _interfaceDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
         else if (propname == "FunctionArgs") { _fnargsDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
         else if (propname == "Typedef") { _typedefDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
+        else if (propname == "Enum") { _enumDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
+        else if (propname == "EnumValue") { _enumValueDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
+        else if (propname == "NamedConst") { _namedConstDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
         else if (propname == "Containers")
         {
             for (auto [key, node1] : node.as_table())
@@ -654,6 +655,9 @@ void TypeDefinitions::LoadIntoProgram(IDL::Program& program) const
     program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_interface", emptyBaseField, _interfaceDefault.annotationMap);
     program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_typedef", emptyBaseField, _typedefDefault.annotationMap);
     program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_functionargs", emptyBaseField, _fnargsDefault.annotationMap);
+    program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_enum", emptyBaseField, _enumDefault.annotationMap);
+    program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_enumvalue", emptyBaseField, _enumValueDefault.annotationMap);
+    program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_namedconst", emptyBaseField, _namedConstDefault.annotationMap);
 }
 
 void Generator::LoadBuilltinTemplates()

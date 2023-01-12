@@ -1,0 +1,842 @@
+#pragma once
+#include <stencil/stencil.h>
+// SECTION START: DECLARATIONS
+#if true
+
+namespace EnumConstsInitializers
+{
+struct DefaultValues;
+}    // namespace EnumConstsInitializers
+
+template <> struct Stencil::TypeTraits<EnumConstsInitializers::DefaultValues>;
+#endif
+// SECTION END: DECLARATIONS
+
+// SECTION START: Definitions
+#if true
+namespace EnumConstsInitializers
+{
+enum class EnumType1
+{
+    zero
+,    one
+,    two
+,    three
+,    unknown
+};
+enum class EnumType2
+{
+    one
+,    two
+,    three
+};
+#pragma warning(push, 3)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wimplicit-float-conversion"
+
+static constexpr uint8_t constval2 = uint8_t{100};
+
+#pragma clang diagnostic pop
+#pragma warning(pop)
+#pragma warning(push, 3)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wimplicit-float-conversion"
+
+static constexpr double constval3 = double{100};
+
+#pragma clang diagnostic pop
+#pragma warning(pop)
+#pragma warning(push, 3)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wimplicit-float-conversion"
+
+static constexpr float constval4 = float{101.1234};
+
+#pragma clang diagnostic pop
+#pragma warning(pop)
+struct DefaultValues :
+    public Stencil::StructT<DefaultValues>
+{
+    ::EnumConstsInitializers::EnumType1 enum1 = ::EnumConstsInitializers::EnumType1::unknown;
+    ::EnumConstsInitializers::EnumType1 enum2 = {};
+    ::EnumConstsInitializers::EnumType2 enum3 = ::EnumConstsInitializers::EnumType2::three;
+    ::EnumConstsInitializers::EnumType1 enum4 = {};
+    shared_string val1 = {};
+    uint8_t val2 = ::EnumConstsInitializers::constval2;
+    double val3 = ::EnumConstsInitializers::constval3;
+    float val4 = ::EnumConstsInitializers::constval4;
+    shared_string val5 = {};
+    uint8_t val6 = {};
+    double val7 = {};
+    float val9 = {};
+};
+}    // namespace EnumConstsInitializers
+#endif
+
+// SECTION END: Definitions
+
+// SECTION START: Template specializations
+#if true
+
+// SECTION:
+
+template <> struct Stencil::EnumTraits<EnumConstsInitializers::EnumType1>
+{
+    using Enum = EnumConstsInitializers::EnumType1;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        "zero"
+,        "one"
+,        "two"
+,        "three"
+,        "unknown"
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Enum ForIndex(size_t index) { return static_cast<Enum>(index); }
+};
+template <> struct Stencil::EnumTraits<EnumConstsInitializers::EnumType2>
+{
+    using Enum = EnumConstsInitializers::EnumType2;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        "one"
+,        "two"
+,        "three"
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Enum ForIndex(size_t index) { return static_cast<Enum>(index); }
+};
+template <> struct Stencil::TypeTraits<EnumConstsInitializers::DefaultValues>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<EnumConstsInitializers::DefaultValues>
+{
+    enum class Fields
+    {
+        Invalid,
+        Field_enum1
+,        Field_enum2
+,        Field_enum3
+,        Field_enum4
+,        Field_val1
+,        Field_val2
+,        Field_val3
+,        Field_val4
+,        Field_val5
+,        Field_val6
+,        Field_val7
+,        Field_val9
+    };
+
+    using Key = Fields;
+};
+
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<EnumConstsInitializers::DefaultValues>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<EnumConstsInitializers::DefaultValues>::Fields;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        "enum1"
+,        "enum2"
+,        "enum3"
+,        "enum4"
+,        "val1"
+,        "val2"
+,        "val3"
+,        "val4"
+,        "val5"
+,        "val6"
+,        "val7"
+,        "val9"
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraitsForIndexable<EnumConstsInitializers::DefaultValues>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<EnumConstsInitializers::DefaultValues>::Fields>(index);
+    }
+};
+
+template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<EnumConstsInitializers::DefaultValues, TContainer>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<EnumConstsInitializers::DefaultValues>::Fields;
+
+    struct ElemTxnState
+    {
+        Fields field;
+    };
+
+    struct TxnStateForElem
+    {
+        ElemTxnState enum1 = {Fields::Field_enum1};
+        ElemTxnState enum2 = {Fields::Field_enum2};
+        ElemTxnState enum3 = {Fields::Field_enum3};
+        ElemTxnState enum4 = {Fields::Field_enum4};
+        ElemTxnState val1 = {Fields::Field_val1};
+        ElemTxnState val2 = {Fields::Field_val2};
+        ElemTxnState val3 = {Fields::Field_val3};
+        ElemTxnState val4 = {Fields::Field_val4};
+        ElemTxnState val5 = {Fields::Field_val5};
+        ElemTxnState val6 = {Fields::Field_val6};
+        ElemTxnState val7 = {Fields::Field_val7};
+        ElemTxnState val9 = {Fields::Field_val9};
+    };
+
+    using Txn               = Stencil::Transaction<EnumConstsInitializers::DefaultValues, TContainer>;
+    using ElemType          = EnumConstsInitializers::DefaultValues;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using Transaction_enum1 = Stencil::Transaction<::EnumConstsInitializers::EnumType1, Txn>;
+    using Transaction_enum2 = Stencil::Transaction<::EnumConstsInitializers::EnumType1, Txn>;
+    using Transaction_enum3 = Stencil::Transaction<::EnumConstsInitializers::EnumType2, Txn>;
+    using Transaction_enum4 = Stencil::Transaction<::EnumConstsInitializers::EnumType1, Txn>;
+    using Transaction_val1 = Stencil::Transaction<shared_string, Txn>;
+    using Transaction_val2 = Stencil::Transaction<uint8_t, Txn>;
+    using Transaction_val3 = Stencil::Transaction<double, Txn>;
+    using Transaction_val4 = Stencil::Transaction<float, Txn>;
+    using Transaction_val5 = Stencil::Transaction<shared_string, Txn>;
+    using Transaction_val6 = Stencil::Transaction<uint8_t, Txn>;
+    using Transaction_val7 = Stencil::Transaction<double, Txn>;
+    using Transaction_val9 = Stencil::Transaction<float, Txn>;
+    struct TxnState
+    {
+        std::bitset<64> assigntracker;    // TODO1
+        std::bitset<64> edittracker;      // TODO1
+        typename Transaction_enum1::TxnState enum1{};
+        typename Transaction_enum2::TxnState enum2{};
+        typename Transaction_enum3::TxnState enum3{};
+        typename Transaction_enum4::TxnState enum4{};
+        typename Transaction_val1::TxnState val1{};
+        typename Transaction_val2::TxnState val2{};
+        typename Transaction_val3::TxnState val3{};
+        typename Transaction_val4::TxnState val4{};
+        typename Transaction_val5::TxnState val5{};
+        typename Transaction_val6::TxnState val6{};
+        typename Transaction_val7::TxnState val7{};
+        typename Transaction_val9::TxnState val9{};
+    };
+
+    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~Transaction()
+    {
+        if (IsChanged())
+        {
+            Stencil::TimestampedT<ElemType>::UpdateTimestamp(_elem);
+            _container.NotifyElementEdited_(_containerState);
+        }
+    }
+
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
+
+    ElemType const& Elem() const { return _elem; }
+
+    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+
+    void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
+    {
+        _MarkFieldAssigned(elemTxnState.field);
+        Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
+    }
+
+    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+
+    bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
+    {
+        if (_IsFieldAssigned(Fields::Field_enum1))
+        {
+            auto txn = enum1();
+            lambda(Fields::Field_enum1, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_enum1))
+        {
+            auto txn = enum1();
+            lambda(Fields::Field_enum1, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_enum2))
+        {
+            auto txn = enum2();
+            lambda(Fields::Field_enum2, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_enum2))
+        {
+            auto txn = enum2();
+            lambda(Fields::Field_enum2, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_enum3))
+        {
+            auto txn = enum3();
+            lambda(Fields::Field_enum3, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_enum3))
+        {
+            auto txn = enum3();
+            lambda(Fields::Field_enum3, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_enum4))
+        {
+            auto txn = enum4();
+            lambda(Fields::Field_enum4, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_enum4))
+        {
+            auto txn = enum4();
+            lambda(Fields::Field_enum4, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val1))
+        {
+            auto txn = val1();
+            lambda(Fields::Field_val1, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val1))
+        {
+            auto txn = val1();
+            lambda(Fields::Field_val1, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val2))
+        {
+            auto txn = val2();
+            lambda(Fields::Field_val2, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val2))
+        {
+            auto txn = val2();
+            lambda(Fields::Field_val2, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val3))
+        {
+            auto txn = val3();
+            lambda(Fields::Field_val3, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val3))
+        {
+            auto txn = val3();
+            lambda(Fields::Field_val3, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val4))
+        {
+            auto txn = val4();
+            lambda(Fields::Field_val4, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val4))
+        {
+            auto txn = val4();
+            lambda(Fields::Field_val4, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val5))
+        {
+            auto txn = val5();
+            lambda(Fields::Field_val5, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val5))
+        {
+            auto txn = val5();
+            lambda(Fields::Field_val5, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val6))
+        {
+            auto txn = val6();
+            lambda(Fields::Field_val6, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val6))
+        {
+            auto txn = val6();
+            lambda(Fields::Field_val6, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val7))
+        {
+            auto txn = val7();
+            lambda(Fields::Field_val7, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val7))
+        {
+            auto txn = val7();
+            lambda(Fields::Field_val7, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val9))
+        {
+            auto txn = val9();
+            lambda(Fields::Field_val9, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val9))
+        {
+            auto txn = val9();
+            lambda(Fields::Field_val9, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    void Assign(ElemType&& elem)
+    {
+        // if (Stencil::AreEqual(_elem, elem)) return;
+        std::swap(_elem, elem);
+        _container.NotifyElementAssigned_(_containerState);
+    }
+
+    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
+    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
+
+    template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
+
+    private:
+    TxnStateForElem    _txnStateForElem{};
+    TxnState&          _elemState;
+    ContainerTxnState& _containerState;
+    TContainer&        _container;
+    ElemType&          _elem;
+
+    public:
+    auto enum1()
+    {
+        return Stencil::CreateTransaction<Transaction_enum1>(_elemState.enum1, _txnStateForElem.enum1, *this, _elem.enum1);
+    }
+
+    auto enum2()
+    {
+        return Stencil::CreateTransaction<Transaction_enum2>(_elemState.enum2, _txnStateForElem.enum2, *this, _elem.enum2);
+    }
+
+    auto enum3()
+    {
+        return Stencil::CreateTransaction<Transaction_enum3>(_elemState.enum3, _txnStateForElem.enum3, *this, _elem.enum3);
+    }
+
+    auto enum4()
+    {
+        return Stencil::CreateTransaction<Transaction_enum4>(_elemState.enum4, _txnStateForElem.enum4, *this, _elem.enum4);
+    }
+
+    auto val1()
+    {
+        return Stencil::CreateTransaction<Transaction_val1>(_elemState.val1, _txnStateForElem.val1, *this, _elem.val1);
+    }
+
+    auto val2()
+    {
+        return Stencil::CreateTransaction<Transaction_val2>(_elemState.val2, _txnStateForElem.val2, *this, _elem.val2);
+    }
+
+    auto val3()
+    {
+        return Stencil::CreateTransaction<Transaction_val3>(_elemState.val3, _txnStateForElem.val3, *this, _elem.val3);
+    }
+
+    auto val4()
+    {
+        return Stencil::CreateTransaction<Transaction_val4>(_elemState.val4, _txnStateForElem.val4, *this, _elem.val4);
+    }
+
+    auto val5()
+    {
+        return Stencil::CreateTransaction<Transaction_val5>(_elemState.val5, _txnStateForElem.val5, *this, _elem.val5);
+    }
+
+    auto val6()
+    {
+        return Stencil::CreateTransaction<Transaction_val6>(_elemState.val6, _txnStateForElem.val6, *this, _elem.val6);
+    }
+
+    auto val7()
+    {
+        return Stencil::CreateTransaction<Transaction_val7>(_elemState.val7, _txnStateForElem.val7, *this, _elem.val7);
+    }
+
+    auto val9()
+    {
+        return Stencil::CreateTransaction<Transaction_val9>(_elemState.val9, _txnStateForElem.val9, *this, _elem.val9);
+    }
+
+    void set_enum1(::EnumConstsInitializers::EnumType1&& val)
+    {
+        auto subtxn = enum1();
+        subtxn.Assign(std::forward<::EnumConstsInitializers::EnumType1>(val));
+    }
+
+    void set_enum2(::EnumConstsInitializers::EnumType1&& val)
+    {
+        auto subtxn = enum2();
+        subtxn.Assign(std::forward<::EnumConstsInitializers::EnumType1>(val));
+    }
+
+    void set_enum3(::EnumConstsInitializers::EnumType2&& val)
+    {
+        auto subtxn = enum3();
+        subtxn.Assign(std::forward<::EnumConstsInitializers::EnumType2>(val));
+    }
+
+    void set_enum4(::EnumConstsInitializers::EnumType1&& val)
+    {
+        auto subtxn = enum4();
+        subtxn.Assign(std::forward<::EnumConstsInitializers::EnumType1>(val));
+    }
+
+    void set_val1(shared_string&& val)
+    {
+        auto subtxn = val1();
+        subtxn.Assign(std::forward<shared_string>(val));
+    }
+
+    void set_val2(uint8_t&& val)
+    {
+        auto subtxn = val2();
+        subtxn.Assign(std::forward<uint8_t>(val));
+    }
+
+    void set_val3(double&& val)
+    {
+        auto subtxn = val3();
+        subtxn.Assign(std::forward<double>(val));
+    }
+
+    void set_val4(float&& val)
+    {
+        auto subtxn = val4();
+        subtxn.Assign(std::forward<float>(val));
+    }
+
+    void set_val5(shared_string&& val)
+    {
+        auto subtxn = val5();
+        subtxn.Assign(std::forward<shared_string>(val));
+    }
+
+    void set_val6(uint8_t&& val)
+    {
+        auto subtxn = val6();
+        subtxn.Assign(std::forward<uint8_t>(val));
+    }
+
+    void set_val7(double&& val)
+    {
+        auto subtxn = val7();
+        subtxn.Assign(std::forward<double>(val));
+    }
+
+    void set_val9(float&& val)
+    {
+        auto subtxn = val9();
+        subtxn.Assign(std::forward<float>(val));
+    }
+
+    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case Fields::Field_enum1:
+        {
+            auto txn = enum1();
+            return lambda(txn);
+        }
+        case Fields::Field_enum2:
+        {
+            auto txn = enum2();
+            return lambda(txn);
+        }
+        case Fields::Field_enum3:
+        {
+            auto txn = enum3();
+            return lambda(txn);
+        }
+        case Fields::Field_enum4:
+        {
+            auto txn = enum4();
+            return lambda(txn);
+        }
+        case Fields::Field_val1:
+        {
+            auto txn = val1();
+            return lambda(txn);
+        }
+        case Fields::Field_val2:
+        {
+            auto txn = val2();
+            return lambda(txn);
+        }
+        case Fields::Field_val3:
+        {
+            auto txn = val3();
+            return lambda(txn);
+        }
+        case Fields::Field_val4:
+        {
+            auto txn = val4();
+            return lambda(txn);
+        }
+        case Fields::Field_val5:
+        {
+            auto txn = val5();
+            return lambda(txn);
+        }
+        case Fields::Field_val6:
+        {
+            auto txn = val6();
+            return lambda(txn);
+        }
+        case Fields::Field_val7:
+        {
+            auto txn = val7();
+            return lambda(txn);
+        }
+        case Fields::Field_val9:
+        {
+            auto txn = val9();
+            return lambda(txn);
+        }
+        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        return Edit(index, std::forward<TLambda>(lambda));
+    }
+
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
+    {
+        {
+            auto txn = enum1();
+            lambda(Fields::Field_enum1, txn, Elem().enum1);
+        }
+        {
+            auto txn = enum2();
+            lambda(Fields::Field_enum2, txn, Elem().enum2);
+        }
+        {
+            auto txn = enum3();
+            lambda(Fields::Field_enum3, txn, Elem().enum3);
+        }
+        {
+            auto txn = enum4();
+            lambda(Fields::Field_enum4, txn, Elem().enum4);
+        }
+        {
+            auto txn = val1();
+            lambda(Fields::Field_val1, txn, Elem().val1);
+        }
+        {
+            auto txn = val2();
+            lambda(Fields::Field_val2, txn, Elem().val2);
+        }
+        {
+            auto txn = val3();
+            lambda(Fields::Field_val3, txn, Elem().val3);
+        }
+        {
+            auto txn = val4();
+            lambda(Fields::Field_val4, txn, Elem().val4);
+        }
+        {
+            auto txn = val5();
+            lambda(Fields::Field_val5, txn, Elem().val5);
+        }
+        {
+            auto txn = val6();
+            lambda(Fields::Field_val6, txn, Elem().val6);
+        }
+        {
+            auto txn = val7();
+            lambda(Fields::Field_val7, txn, Elem().val7);
+        }
+        {
+            auto txn = val9();
+            lambda(Fields::Field_val9, txn, Elem().val9);
+        }
+    }
+};
+
+template <> struct Stencil::Visitor<EnumConstsInitializers::DefaultValues> : Stencil::VisitorT<EnumConstsInitializers::DefaultValues>
+{
+    using TData  = EnumConstsInitializers::DefaultValues;
+    using Fields = TypeTraitsForIndexable<TData>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_enum1: return lambda(obj.enum1);
+        case Fields::Field_enum2: return lambda(obj.enum2);
+        case Fields::Field_enum3: return lambda(obj.enum3);
+        case Fields::Field_enum4: return lambda(obj.enum4);
+        case Fields::Field_val1: return lambda(obj.val1);
+        case Fields::Field_val2: return lambda(obj.val2);
+        case Fields::Field_val3: return lambda(obj.val3);
+        case Fields::Field_val4: return lambda(obj.val4);
+        case Fields::Field_val5: return lambda(obj.val5);
+        case Fields::Field_val6: return lambda(obj.val6);
+        case Fields::Field_val7: return lambda(obj.val7);
+        case Fields::Field_val9: return lambda(obj.val9);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_enum1, obj.enum1);
+        lambda(Fields::Field_enum2, obj.enum2);
+        lambda(Fields::Field_enum3, obj.enum3);
+        lambda(Fields::Field_enum4, obj.enum4);
+        lambda(Fields::Field_val1, obj.val1);
+        lambda(Fields::Field_val2, obj.val2);
+        lambda(Fields::Field_val3, obj.val3);
+        lambda(Fields::Field_val4, obj.val4);
+        lambda(Fields::Field_val5, obj.val5);
+        lambda(Fields::Field_val6, obj.val6);
+        lambda(Fields::Field_val7, obj.val7);
+        lambda(Fields::Field_val9, obj.val9);
+    }
+};
+
+template <> struct Stencil::Comparator<EnumConstsInitializers::DefaultValues, EnumConstsInitializers::DefaultValues>
+{
+    using ThisType = EnumConstsInitializers::DefaultValues;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.enum1, obj2.enum1)
+               && Stencil::AreEqual(obj1.enum2, obj2.enum2)
+               && Stencil::AreEqual(obj1.enum3, obj2.enum3)
+               && Stencil::AreEqual(obj1.enum4, obj2.enum4)
+               && Stencil::AreEqual(obj1.val1, obj2.val1)
+               && Stencil::AreEqual(obj1.val2, obj2.val2)
+               && Stencil::AreEqual(obj1.val3, obj2.val3)
+               && Stencil::AreEqual(obj1.val4, obj2.val4)
+               && Stencil::AreEqual(obj1.val5, obj2.val5)
+               && Stencil::AreEqual(obj1.val6, obj2.val6)
+               && Stencil::AreEqual(obj1.val7, obj2.val7)
+               && Stencil::AreEqual(obj1.val9, obj2.val9)
+            ;
+    }
+};
+
+template <>
+struct Stencil::Database::Record<EnumConstsInitializers::DefaultValues> :
+    public Stencil::Database::RecordT<EnumConstsInitializers::DefaultValues>
+{
+    public:
+    Stencil::Database::RecordNest<::EnumConstsInitializers::EnumType1>::Type enum1{};
+    Stencil::Database::RecordNest<::EnumConstsInitializers::EnumType1>::Type enum2{};
+    Stencil::Database::RecordNest<::EnumConstsInitializers::EnumType2>::Type enum3{};
+    Stencil::Database::RecordNest<::EnumConstsInitializers::EnumType1>::Type enum4{};
+    Stencil::Database::RecordNest<shared_string>::Type val1{};
+    Stencil::Database::RecordNest<uint8_t>::Type val2{};
+    Stencil::Database::RecordNest<double>::Type val3{};
+    Stencil::Database::RecordNest<float>::Type val4{};
+    Stencil::Database::RecordNest<shared_string>::Type val5{};
+    Stencil::Database::RecordNest<uint8_t>::Type val6{};
+    Stencil::Database::RecordNest<double>::Type val7{};
+    Stencil::Database::RecordNest<float>::Type val9{};
+};
+
+template <> struct Stencil::Database::RecordTraits<EnumConstsInitializers::DefaultValues>
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<
+        typename Stencil::Database::RecordTraits<::EnumConstsInitializers::EnumType1>::RecordTypes,
+        typename Stencil::Database::RecordTraits<::EnumConstsInitializers::EnumType1>::RecordTypes,
+        typename Stencil::Database::RecordTraits<::EnumConstsInitializers::EnumType2>::RecordTypes,
+        typename Stencil::Database::RecordTraits<::EnumConstsInitializers::EnumType1>::RecordTypes,
+        typename Stencil::Database::RecordTraits<shared_string>::RecordTypes,
+        typename Stencil::Database::RecordTraits<uint8_t>::RecordTypes,
+        typename Stencil::Database::RecordTraits<double>::RecordTypes,
+        typename Stencil::Database::RecordTraits<float>::RecordTypes,
+        typename Stencil::Database::RecordTraits<shared_string>::RecordTypes,
+        typename Stencil::Database::RecordTraits<uint8_t>::RecordTypes,
+        typename Stencil::Database::RecordTraits<double>::RecordTypes,
+        typename Stencil::Database::RecordTraits<float>::RecordTypes,
+        std::tuple<EnumConstsInitializers::DefaultValues>>;
+
+    static constexpr size_t Size() { return sizeof(Stencil::Database::Record<EnumConstsInitializers::DefaultValues>); }
+
+    template <typename TDb>
+    static void WriteToBuffer(TDb&                                                          db,
+                              Stencil::Database::RWLock const&                              lock,
+                              EnumConstsInitializers::DefaultValues const&                      obj,
+                              Stencil::Database::Record<EnumConstsInitializers::DefaultValues>& rec)
+    {
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.enum1, rec.enum1);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.enum2, rec.enum2);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.enum3, rec.enum3);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.enum4, rec.enum4);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.val1, rec.val1);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.val2, rec.val2);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.val3, rec.val3);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.val4, rec.val4);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.val5, rec.val5);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.val6, rec.val6);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.val7, rec.val7);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.val9, rec.val9);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Stencil::Database::Record<EnumConstsInitializers::DefaultValues>>
+    : Stencil::VisitorT<Stencil::Database::Record<EnumConstsInitializers::DefaultValues>>
+{
+    using TData  = Stencil::Database::Record<EnumConstsInitializers::DefaultValues>;
+    using Fields = TypeTraitsForIndexable<EnumConstsInitializers::DefaultValues>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_enum1: return lambda(obj.enum1);
+        case Fields::Field_enum2: return lambda(obj.enum2);
+        case Fields::Field_enum3: return lambda(obj.enum3);
+        case Fields::Field_enum4: return lambda(obj.enum4);
+        case Fields::Field_val1: return lambda(obj.val1);
+        case Fields::Field_val2: return lambda(obj.val2);
+        case Fields::Field_val3: return lambda(obj.val3);
+        case Fields::Field_val4: return lambda(obj.val4);
+        case Fields::Field_val5: return lambda(obj.val5);
+        case Fields::Field_val6: return lambda(obj.val6);
+        case Fields::Field_val7: return lambda(obj.val7);
+        case Fields::Field_val9: return lambda(obj.val9);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_enum1, obj.enum1);
+        lambda(Fields::Field_enum2, obj.enum2);
+        lambda(Fields::Field_enum3, obj.enum3);
+        lambda(Fields::Field_enum4, obj.enum4);
+        lambda(Fields::Field_val1, obj.val1);
+        lambda(Fields::Field_val2, obj.val2);
+        lambda(Fields::Field_val3, obj.val3);
+        lambda(Fields::Field_val4, obj.val4);
+        lambda(Fields::Field_val5, obj.val5);
+        lambda(Fields::Field_val6, obj.val6);
+        lambda(Fields::Field_val7, obj.val7);
+        lambda(Fields::Field_val9, obj.val9);
+    }
+};
+
+#endif
+// SECTION END: Template specializations
+
+// SECTION START: Inline Function Definitions
+#if true
+
+#endif
+// SECTION END: Inline Function Definitions

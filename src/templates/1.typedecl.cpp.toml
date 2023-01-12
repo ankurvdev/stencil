@@ -15,7 +15,7 @@ boolean = "bool"
 
   [FieldTypes.default]
   NativeType = "void"
-  DefaultValue = "/*Initial Value*/"
+  DefaultValue = "{}"
 
   [FieldTypes.auto]
   NativeType = "auto"
@@ -64,6 +64,8 @@ boolean = "bool"
 
   [FieldTypes.string]
   NativeType = "shared_string"
+  DefaultValue = "{}"
+
 
   [FieldTypes.wstring]
   NativeType = "shared_wstring"
@@ -73,7 +75,7 @@ boolean = "bool"
 
 [Struct]
 NativeType = "::%Struct:Parent:Name%::%Struct:Name%"
-DefaultValue = "/*Initial Value*/"
+DefaultValue = "{}"
 
 [Interface]
 NativeType = "long"
@@ -86,6 +88,15 @@ NativeType = "%Name%"
 
 [Variant]
 NativeType = "::%Variant:Parent:Name%::Variant  "
+
+[Enum]
+NativeType = "::%Program:Name%::%Enum:Name%"
+
+[EnumValue]
+NativeType = "::%Program:Name%::%Enum:Name%::%EnumValue:Name%"
+
+[NamedConst]
+NativeType = "::%Program:Name%::%NamedConst:Name%"
 
 [Containers.ref]
 Params = [ "type"]

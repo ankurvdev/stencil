@@ -144,9 +144,8 @@ Static
 %type<double>       tok_dub_constant
 
 %type<Typedef>              Typedef
-%type<ConstValue>           ConstValue     FieldValue
 %type<Struct>               Struct
-%type<Variant>                Variant
+%type<Variant>              Variant
 %type<Interface>            Interface
 %type<Interface>            Extends
 %type<InterfaceMember>      InterfaceMember
@@ -155,11 +154,10 @@ Static
 %type<InterfaceObjectStore> InterfaceObjectStore
 %type<Field>                Field
 %type<FieldType>            FieldType FunctionType ContainerType ArrayType
-%type<AttributeComponent>           AttributeComponent
+%type<AttributeComponent>   AttributeComponent
 
-%type<TypeAttribute>  TypeAttribute
-
-%type<TypeAttributeList>        TypeAttributes TypeAttributeList
+%type<TypeAttribute>        TypeAttribute
+%type<TypeAttributeList>    TypeAttributes TypeAttributeList
 
 %type<FieldTypeList>  ContainerFieldList
 %type<FieldList>      FieldList Throws
@@ -167,6 +165,13 @@ Static
 %type<ConstValueList>      ConstListContents
 %type<ConstValueDict>       ConstMapContents
 %type<IdList>            identifierlist
+
+%type<Enum>             Enum
+%type<EnumValue>        EnumValue
+%type<EnumValueList>    EnumValueList
+
+%type<ConstValue>   ConstValue FieldValue
+%type<NamedConst>   Const
 
 %type<AttributeComponentList>          AttributeComponents
 %type<Program>        Program
@@ -202,9 +207,9 @@ Definition:
     | Attribute
     | Variant
     | Interface
-    /*
     | Enum
     | Const
+    /*
     | Xception
     */
     ;
@@ -214,28 +219,28 @@ Typedef: tok_typedef FieldType tok_identifier TypeAttributes    { $$ = CreateTyp
 
 CommaOrSemicolonOptional: ',' | ';' |
     ;
-/*
-Enum: tok_enum tok_identifier '{' EnumDefList '}' TypeAttributes  { $$ = CreateEnum($2, $4, $6); }
+
+Enum: tok_enum tok_identifier '{' EnumValueList '}' TypeAttributes  { $$ = CreateEnum(context, $2, $4, $6); }
     ;
 
-EnumDefList: EnumDefList EnumDef    {  $1.push_back($2); $$ = std::move($1);  }
-    |
+EnumValueList: EnumValueList EnumValue    {  $1.push_back($2); $$ = std::move($1);  }
+    | {}
     ;
 
-EnumDef: CaptureDocText tok_identifier '=' tok_int_constant TypeAttributes CommaOrSemicolonOptional    { $$ = EnumDef::Create($2, $4, $5); }
-    | CaptureDocText tok_identifier TypeAttributes CommaOrSemicolonOptional                            { $$ = EnumDef::Create($2, $3); }
+EnumValue: CaptureDocText tok_identifier '=' tok_int_constant TypeAttributes CommaOrSemicolonOptional    { $$ = CreateEnumValue(context, $2, $4/*, $5*/); }
+    | CaptureDocText tok_identifier TypeAttributes CommaOrSemicolonOptional                            { $$ = CreateEnumValue(context, $2/*, $3*/); }
     ;
-    */
-/*
-Const: tok_const FieldType tok_identifier '=' ConstValue CommaOrSemicolonOptional { $$ = Const::Create($2, $3, $5); }
+
+Const: tok_const FieldType tok_identifier '=' ConstValue CommaOrSemicolonOptional { $$ = CreateNamedConst(context, $2, $3, $5); }
     ;
-    */
+
 ConstValue: tok_int_constant    { $$ = CreateConstValue(std::move($1)); }
     | tok_dub_constant          { $$ = CreateConstValue(std::move($1)); }
     | tok_literal               { $$ = CreateConstValue(std::move($1)); }
-    | tok_identifier            { $$ = FindConstValue(std::move($1));   }
+    | tok_identifier            { $$ = FindConstValue(context, std::move($1)); }
     | '[' ConstListContents ']' { $$ = CreateConstValue(std::move($2)); }
     | '{' ConstMapContents '}'  { $$ = CreateConstValue(std::move($2)); }
+    | '{' '}'                   { $$ = CreateDefaultConstValue();       }
     ;
 
 ConstListContents: ConstListContents ConstValue CommaOrSemicolonOptional    {  $$ = ConstValueAddValue(std::move($1), std::move($2)); }
@@ -246,7 +251,7 @@ ConstMapContents: ConstMapContents ConstValue ':' ConstValue CommaOrSemicolonOpt
     | {}
 ;
 
-Struct: tok_struct tok_identifier  '{' FieldList '}' TypeAttributes    { $$ = CreateStruct(context, $2, $4, $6); }
+Struct: tok_struct tok_identifier  <Struct>{ $$ = CreateStruct(context, $2); } '{' FieldList '}' TypeAttributes    { $$ =$3 ;AddFieldsToStruct(context, $$.value(), $5, $7); }
 ;
 
 Attribute : tok_attribute tok_identifier AttributeComponents CommaOrSemicolonOptional { CreateAttribute(context, $2, $3); }

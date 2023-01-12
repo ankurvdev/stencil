@@ -11,6 +11,7 @@ struct DictObject;
 struct List;
 struct SimpleObject2;
 struct NestedObject;
+struct SelfNested;
 }    // namespace Objects
 
 template <> struct Stencil::TypeTraits<Objects::SimpleObject1>;
@@ -19,6 +20,7 @@ template <> struct Stencil::TypeTraits<Objects::DictObject>;
 template <> struct Stencil::TypeTraits<Objects::List>;
 template <> struct Stencil::TypeTraits<Objects::SimpleObject2>;
 template <> struct Stencil::TypeTraits<Objects::NestedObject>;
+template <> struct Stencil::TypeTraits<Objects::SelfNested>;
 #endif
 // SECTION END: DECLARATIONS
 
@@ -31,55 +33,61 @@ struct SimpleObject1 :
     public ::Stencil::TimestampedT<::Objects::SimpleObject1>,
     public Stencil::StructT<SimpleObject1>
 {
-    int32_t val1 = int32_t{/*Initial Value*/};
-    uint32_t val2 = uint32_t{/*Initial Value*/};
-    uint8_t val3 = uint8_t{/*Initial Value*/};
-    shared_string val4 = shared_string{/*Initial Value*/};
-    double val5 = double{/*Initial Value*/};
+    int32_t val1 = {};
+    uint32_t val2 = {};
+    uint8_t val3 = {};
+    shared_string val4 = {};
+    double val5 = {};
 };
 struct ListObject :
     public ::Stencil::TimestampedT<::Objects::ListObject>,
     public Stencil::StructT<ListObject>
 {
-    uint32_t value = uint32_t{/*Initial Value*/};
-    ::Objects::SimpleObject1 obj1 = ::Objects::SimpleObject1{/*Initial Value*/};
+    uint32_t value = {};
+    ::Objects::SimpleObject1 obj1 = {};
 };
 struct DictObject :
     public Stencil::StructT<DictObject>
 {
-    std::unordered_map<uint32_t, ::Objects::SimpleObject1> dictobj = std::unordered_map<uint32_t, ::Objects::SimpleObject1>{/*Initial Value*/};
-    std::unordered_map<shared_string, Stencil::Timestamp> dictval = std::unordered_map<shared_string, Stencil::Timestamp>{/*Initial Value*/};
-    std::unordered_map<uint32_t, std::unordered_map<uint32_t, ::Objects::SimpleObject1>> dictdict = std::unordered_map<uint32_t, std::unordered_map<uint32_t, ::Objects::SimpleObject1>>{/*Initial Value*/};
+    std::unordered_map<uint32_t, ::Objects::SimpleObject1> dictobj = {};
+    std::unordered_map<shared_string, Stencil::Timestamp> dictval = {};
+    std::unordered_map<uint32_t, std::unordered_map<uint32_t, ::Objects::SimpleObject1>> dictdict = {};
 };
 struct List :
     public ::Stencil::TimestampedT<::Objects::List>,
     public Stencil::StructT<List>
 {
-    std::vector<::Objects::ListObject> listobj = std::vector<::Objects::ListObject>{/*Initial Value*/};
+    std::vector<::Objects::ListObject> listobj = {};
 };
 struct SimpleObject2 :
     public ::Stencil::OptionalPropsT<::Objects::SimpleObject2>,
     public ::Stencil::TimestampedT<::Objects::SimpleObject2>,
     public Stencil::StructT<SimpleObject2>
 {
-    bool val1 = bool{/*Initial Value*/};
-    double val2 = double{/*Initial Value*/};
-    std::array<char, 8> val3 = std::array<char, 8>{/*Initial Value*/};
-    Stencil::Timestamp val4 = Stencil::Timestamp{/*Initial Value*/};
-    uint64_t val5 = uint64_t{/*Initial Value*/};
-    int64_t val6 = int64_t{/*Initial Value*/};
-    uint16_t val7 = uint16_t{/*Initial Value*/};
-    int16_t val8 = int16_t{/*Initial Value*/};
+    bool val1 = {};
+    double val2 = {};
+    std::array<char, 8> val3 = {};
+    Stencil::Timestamp val4 = {};
+    uint64_t val5 = {};
+    int64_t val6 = {};
+    uint16_t val7 = {};
+    int16_t val8 = {};
 };
 struct NestedObject :
     public ::Stencil::TimestampedT<::Objects::NestedObject>,
     public Stencil::StructT<NestedObject>
 {
-    ::Objects::SimpleObject1 obj1 = ::Objects::SimpleObject1{/*Initial Value*/};
-    ::Objects::SimpleObject2 obj2 = ::Objects::SimpleObject2{/*Initial Value*/};
-    ::Objects::ListObject obj3 = ::Objects::ListObject{/*Initial Value*/};
-    ::Objects::DictObject dict1 = ::Objects::DictObject{/*Initial Value*/};
-    ::Objects::List list1 = ::Objects::List{/*Initial Value*/};
+    ::Objects::SimpleObject1 obj1 = {};
+    ::Objects::SimpleObject2 obj2 = {};
+    ::Objects::ListObject obj3 = {};
+    ::Objects::DictObject dict1 = {};
+    ::Objects::List list1 = {};
+};
+struct SelfNested :
+    public Stencil::StructT<SelfNested>
+{
+    ::Objects::SimpleObject1 obj1 = {};
+    Stencil::Ref<::Objects::SelfNested> self = {};
 };
 }    // namespace Objects
 #endif
@@ -475,8 +483,14 @@ template <> struct Stencil::Database::RecordTraits<Objects::SimpleObject1>
                               Objects::SimpleObject1 const&                      obj,
                               Stencil::Database::Record<Objects::SimpleObject1>& rec)
     {
-        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<::Stencil::OptionalPropsT<::Objects::SimpleObject1> const&>(obj), static_cast<Stencil::Database::Record<::Stencil::OptionalPropsT<::Objects::SimpleObject1>>&>(rec));
-        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<::Stencil::TimestampedT<::Objects::SimpleObject1> const&>(obj), static_cast<Stencil::Database::Record<::Stencil::TimestampedT<::Objects::SimpleObject1>>&>(rec));
+        Stencil::Database::impl::WriteToBuffer(db,
+                                               lock,
+                                               static_cast<::Stencil::OptionalPropsT<::Objects::SimpleObject1> const&>(obj),
+                                               static_cast<Stencil::Database::Record<::Stencil::OptionalPropsT<::Objects::SimpleObject1>>&>(rec));
+        Stencil::Database::impl::WriteToBuffer(db,
+                                               lock,
+                                               static_cast<::Stencil::TimestampedT<::Objects::SimpleObject1> const&>(obj),
+                                               static_cast<Stencil::Database::Record<::Stencil::TimestampedT<::Objects::SimpleObject1>>&>(rec));
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.val1, rec.val1);
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.val2, rec.val2);
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.val3, rec.val3);
@@ -778,7 +792,10 @@ template <> struct Stencil::Database::RecordTraits<Objects::ListObject>
                               Objects::ListObject const&                      obj,
                               Stencil::Database::Record<Objects::ListObject>& rec)
     {
-        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<::Stencil::TimestampedT<::Objects::ListObject> const&>(obj), static_cast<Stencil::Database::Record<::Stencil::TimestampedT<::Objects::ListObject>>&>(rec));
+        Stencil::Database::impl::WriteToBuffer(db,
+                                               lock,
+                                               static_cast<::Stencil::TimestampedT<::Objects::ListObject> const&>(obj),
+                                               static_cast<Stencil::Database::Record<::Stencil::TimestampedT<::Objects::ListObject>>&>(rec));
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.value, rec.value);
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.obj1, rec.obj1);
     }
@@ -1382,7 +1399,10 @@ template <> struct Stencil::Database::RecordTraits<Objects::List>
                               Objects::List const&                      obj,
                               Stencil::Database::Record<Objects::List>& rec)
     {
-        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<::Stencil::TimestampedT<::Objects::List> const&>(obj), static_cast<Stencil::Database::Record<::Stencil::TimestampedT<::Objects::List>>&>(rec));
+        Stencil::Database::impl::WriteToBuffer(db,
+                                               lock,
+                                               static_cast<::Stencil::TimestampedT<::Objects::List> const&>(obj),
+                                               static_cast<Stencil::Database::Record<::Stencil::TimestampedT<::Objects::List>>&>(rec));
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.listobj, rec.listobj);
     }
 };
@@ -1914,8 +1934,14 @@ template <> struct Stencil::Database::RecordTraits<Objects::SimpleObject2>
                               Objects::SimpleObject2 const&                      obj,
                               Stencil::Database::Record<Objects::SimpleObject2>& rec)
     {
-        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<::Stencil::OptionalPropsT<::Objects::SimpleObject2> const&>(obj), static_cast<Stencil::Database::Record<::Stencil::OptionalPropsT<::Objects::SimpleObject2>>&>(rec));
-        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<::Stencil::TimestampedT<::Objects::SimpleObject2> const&>(obj), static_cast<Stencil::Database::Record<::Stencil::TimestampedT<::Objects::SimpleObject2>>&>(rec));
+        Stencil::Database::impl::WriteToBuffer(db,
+                                               lock,
+                                               static_cast<::Stencil::OptionalPropsT<::Objects::SimpleObject2> const&>(obj),
+                                               static_cast<Stencil::Database::Record<::Stencil::OptionalPropsT<::Objects::SimpleObject2>>&>(rec));
+        Stencil::Database::impl::WriteToBuffer(db,
+                                               lock,
+                                               static_cast<::Stencil::TimestampedT<::Objects::SimpleObject2> const&>(obj),
+                                               static_cast<Stencil::Database::Record<::Stencil::TimestampedT<::Objects::SimpleObject2>>&>(rec));
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.val1, rec.val1);
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.val2, rec.val2);
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.val3, rec.val3);
@@ -2346,7 +2372,10 @@ template <> struct Stencil::Database::RecordTraits<Objects::NestedObject>
                               Objects::NestedObject const&                      obj,
                               Stencil::Database::Record<Objects::NestedObject>& rec)
     {
-        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<::Stencil::TimestampedT<::Objects::NestedObject> const&>(obj), static_cast<Stencil::Database::Record<::Stencil::TimestampedT<::Objects::NestedObject>>&>(rec));
+        Stencil::Database::impl::WriteToBuffer(db,
+                                               lock,
+                                               static_cast<::Stencil::TimestampedT<::Objects::NestedObject> const&>(obj),
+                                               static_cast<Stencil::Database::Record<::Stencil::TimestampedT<::Objects::NestedObject>>&>(rec));
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.obj1, rec.obj1);
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.obj2, rec.obj2);
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.obj3, rec.obj3);
@@ -2383,6 +2412,296 @@ struct Stencil::Visitor<Stencil::Database::Record<Objects::NestedObject>>
         lambda(Fields::Field_obj3, obj.obj3);
         lambda(Fields::Field_dict1, obj.dict1);
         lambda(Fields::Field_list1, obj.list1);
+    }
+};
+
+template <> struct Stencil::TypeTraits<Objects::SelfNested>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<Objects::SelfNested>
+{
+    enum class Fields
+    {
+        Invalid,
+        Field_obj1
+,        Field_self
+    };
+
+    using Key = Fields;
+};
+
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Objects::SelfNested>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<Objects::SelfNested>::Fields;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        "obj1"
+,        "self"
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Stencil::TypeTraitsForIndexable<Objects::SelfNested>::Fields ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<Objects::SelfNested>::Fields>(index);
+    }
+};
+
+template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Objects::SelfNested, TContainer>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<Objects::SelfNested>::Fields;
+
+    struct ElemTxnState
+    {
+        Fields field;
+    };
+
+    struct TxnStateForElem
+    {
+        ElemTxnState obj1 = {Fields::Field_obj1};
+        ElemTxnState self = {Fields::Field_self};
+    };
+
+    using Txn               = Stencil::Transaction<Objects::SelfNested, TContainer>;
+    using ElemType          = Objects::SelfNested;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using Transaction_obj1 = Stencil::Transaction<::Objects::SimpleObject1, Txn>;
+    using Transaction_self = Stencil::Transaction<Stencil::Ref<::Objects::SelfNested>, Txn>;
+    struct TxnState
+    {
+        std::bitset<64> assigntracker;    // TODO1
+        std::bitset<64> edittracker;      // TODO1
+        typename Transaction_obj1::TxnState obj1{};
+        typename Transaction_self::TxnState self{};
+    };
+
+    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~Transaction()
+    {
+        if (IsChanged())
+        {
+            Stencil::TimestampedT<ElemType>::UpdateTimestamp(_elem);
+            _container.NotifyElementEdited_(_containerState);
+        }
+    }
+
+    CLASS_DELETE_COPY_AND_MOVE(Transaction);
+
+    ElemType const& Elem() const { return _elem; }
+
+    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+
+    void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
+    {
+        _MarkFieldAssigned(elemTxnState.field);
+        Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
+    }
+
+    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+
+    bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
+    {
+        if (_IsFieldAssigned(Fields::Field_obj1))
+        {
+            auto txn = obj1();
+            lambda(Fields::Field_obj1, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_obj1))
+        {
+            auto txn = obj1();
+            lambda(Fields::Field_obj1, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_self))
+        {
+            auto txn = self();
+            lambda(Fields::Field_self, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_self))
+        {
+            auto txn = self();
+            lambda(Fields::Field_self, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    void Assign(ElemType&& elem)
+    {
+        // if (Stencil::AreEqual(_elem, elem)) return;
+        std::swap(_elem, elem);
+        _container.NotifyElementAssigned_(_containerState);
+    }
+
+    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
+    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
+
+    template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
+
+    private:
+    TxnStateForElem    _txnStateForElem{};
+    TxnState&          _elemState;
+    ContainerTxnState& _containerState;
+    TContainer&        _container;
+    ElemType&          _elem;
+
+    public:
+    auto obj1()
+    {
+        return Stencil::CreateTransaction<Transaction_obj1>(_elemState.obj1, _txnStateForElem.obj1, *this, _elem.obj1);
+    }
+
+    auto self()
+    {
+        return Stencil::CreateTransaction<Transaction_self>(_elemState.self, _txnStateForElem.self, *this, _elem.self);
+    }
+
+    void set_obj1(::Objects::SimpleObject1&& val)
+    {
+        auto subtxn = obj1();
+        subtxn.Assign(std::forward<::Objects::SimpleObject1>(val));
+    }
+
+    void set_self(Stencil::Ref<::Objects::SelfNested>&& val)
+    {
+        auto subtxn = self();
+        subtxn.Assign(std::forward<Stencil::Ref<::Objects::SelfNested>>(val));
+    }
+
+    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (index)
+        {
+        case Fields::Field_obj1:
+        {
+            auto txn = obj1();
+            return lambda(txn);
+        }
+        case Fields::Field_self:
+        {
+            auto txn = self();
+            return lambda(txn);
+        }
+        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        }
+    }
+
+    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
+    {
+        return Edit(index, std::forward<TLambda>(lambda));
+    }
+
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
+    {
+        {
+            auto txn = obj1();
+            lambda(Fields::Field_obj1, txn, Elem().obj1);
+        }
+        {
+            auto txn = self();
+            lambda(Fields::Field_self, txn, Elem().self);
+        }
+    }
+};
+
+template <> struct Stencil::Visitor<Objects::SelfNested> : Stencil::VisitorT<Objects::SelfNested>
+{
+    using TData  = Objects::SelfNested;
+    using Fields = TypeTraitsForIndexable<TData>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_obj1: return lambda(obj.obj1);
+        case Fields::Field_self: return lambda(obj.self);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_obj1, obj.obj1);
+        lambda(Fields::Field_self, obj.self);
+    }
+};
+
+template <> struct Stencil::Comparator<Objects::SelfNested, Objects::SelfNested>
+{
+    using ThisType = Objects::SelfNested;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.obj1, obj2.obj1)
+               && Stencil::AreEqual(obj1.self, obj2.self)
+            ;
+    }
+};
+
+template <>
+struct Stencil::Database::Record<Objects::SelfNested> :
+    public Stencil::Database::RecordT<Objects::SelfNested>
+{
+    public:
+    Stencil::Database::RecordNest<::Objects::SimpleObject1>::Type obj1{};
+    Stencil::Database::RecordNest<Stencil::Ref<::Objects::SelfNested>>::Type self{};
+};
+
+template <> struct Stencil::Database::RecordTraits<Objects::SelfNested>
+{
+    using RecordTypes = Stencil::Database::tuple_cat_t<
+        typename Stencil::Database::RecordTraits<::Objects::SimpleObject1>::RecordTypes,
+        typename Stencil::Database::RecordTraits<Stencil::Ref<::Objects::SelfNested>>::RecordTypes,
+        std::tuple<Objects::SelfNested>>;
+
+    static constexpr size_t Size() { return sizeof(Stencil::Database::Record<Objects::SelfNested>); }
+
+    template <typename TDb>
+    static void WriteToBuffer(TDb&                                                          db,
+                              Stencil::Database::RWLock const&                              lock,
+                              Objects::SelfNested const&                      obj,
+                              Stencil::Database::Record<Objects::SelfNested>& rec)
+    {
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.obj1, rec.obj1);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.self, rec.self);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Stencil::Database::Record<Objects::SelfNested>>
+    : Stencil::VisitorT<Stencil::Database::Record<Objects::SelfNested>>
+{
+    using TData  = Stencil::Database::Record<Objects::SelfNested>;
+    using Fields = TypeTraitsForIndexable<Objects::SelfNested>::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Field_obj1: return lambda(obj.obj1);
+        case Fields::Field_self: return lambda(obj.self);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::Field_obj1, obj.obj1);
+        lambda(Fields::Field_self, obj.self);
     }
 };
 

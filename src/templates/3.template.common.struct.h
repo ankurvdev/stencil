@@ -71,6 +71,26 @@ namespace zzProgram_Namezz
 typedef zzChildFieldType_NativeTypezz zzNamezz;
 //</Typedef>
 
+//<Enum>
+enum class zzNamezz
+{
+    //<EnumValue Join=','>
+    zzEnumValue_Namezz
+    //</EnumValue>
+};
+//</Enum>
+
+//<NamedConst>
+#pragma warning(push, 3)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wimplicit-float-conversion"
+
+static constexpr zzFieldType_NativeTypezz zzNamezz = zzFieldType_NativeTypezz{zzValue_NativeTypezz};
+
+#pragma clang diagnostic pop
+#pragma warning(pop)
+//</NamedConst>
+
 //<Struct>
 struct zzStruct_Namezz :
     //<AttributeTag>
@@ -79,7 +99,7 @@ struct zzStruct_Namezz :
     public Stencil::StructT<zzStruct_Namezz>
 {
     //<Field>
-    zzFieldType_NativeTypezz zzNamezz = zzFieldType_NativeTypezz{zzInitialValuezz};
+    zzFieldType_NativeTypezz zzNamezz = zzInitialValuezz;
     //</Field>
 };
 //</Struct>
@@ -127,6 +147,24 @@ struct zzInterface_Namezz_ObjectStore_zzNamezz : zzObjectType_NativeTypezz    //
 #if true
 
 // SECTION:
+
+//<Enum>
+template <> struct Stencil::EnumTraits<zzProgram_Namezz::zzNamezz>
+{
+    using Enum = zzProgram_Namezz::zzNamezz;
+
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        //<EnumValue Join=','>
+        "zzEnumValue_Namezz"
+        //</EnumValue>
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+
+    static Enum ForIndex(size_t index) { return static_cast<Enum>(index); }
+};
+//</Enum>
 
 //<Struct>
 
@@ -396,8 +434,11 @@ template <> struct Stencil::Database::RecordTraits<zzProgram_Namezz::zzStruct_Na
                               zzProgram_Namezz::zzStruct_Namezz const&                      obj,
                               Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz>& rec)
     {
-         //<AttributeTag>
-        Stencil::Database::impl::WriteToBuffer(db, lock, static_cast<zzTagType_NativeTypezz const&>(obj), static_cast<Stencil::Database::Record<zzTagType_NativeTypezz>&>(rec));
+        //<AttributeTag>
+        Stencil::Database::impl::WriteToBuffer(db,
+                                               lock,
+                                               static_cast<zzTagType_NativeTypezz const&>(obj),
+                                               static_cast<Stencil::Database::Record<zzTagType_NativeTypezz>&>(rec));
         //</AttributeTag>
         //<Field>
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.zzNamezz, rec.zzNamezz);
@@ -785,21 +826,6 @@ template <> struct Stencil::InterfaceObjectTraits<zzProgram_Namezz::zzInterface_
     static constexpr std::string_view Name() { return "zzNamezz"; }
 };
 //</InterfaceObjectStore>
-
-#if ((defined STENCIL_USING_WEBSERVICE) and (STENCIL_USING_WEBSERVICE > 0))
-template <> struct Stencil::WebServiceHandlerTraits<zzProgram_Namezz::zzInterface_Namezz>
-{
-    static constexpr const std::string_view Url() { return std::string_view("zzInterface_Namezz"); }
-    // Name to api enum
-    // Name to funcptr mapping
-    // Name to argstruct mapping
-    // Invoke api for each arg struct
-    static void HandleRequest(zzProgram_Namezz::zzInterface_Namezz& obj,
-                              httplib::Request const&               req,
-                              httplib::Response&                    res,
-                              std::string_view const&               path);
-};
-#endif
 
 //</Interface>
 

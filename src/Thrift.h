@@ -27,11 +27,13 @@ struct InterfaceObjectStore;
 using TypeAttribute     = std::pair<Str::Type, Str::Type>;
 using TypeAttributeList = std::shared_ptr<Binding::AttributeMap>;
 
-using Program   = std::optional<std::shared_ptr<IDL::Program>>;
-using Typedef   = std::optional<std::shared_ptr<IDL::Typedef>>;
-using Struct    = std::optional<std::shared_ptr<IDL::Struct>>;
-using Variant   = std::optional<std::shared_ptr<IDL::Variant>>;
-using Interface = std::optional<std::shared_ptr<IDL::Interface>>;
+using Program    = std::optional<std::shared_ptr<IDL::Program>>;
+using Typedef    = std::optional<std::shared_ptr<IDL::Typedef>>;
+using Struct     = std::optional<std::shared_ptr<IDL::Struct>>;
+using Variant    = std::optional<std::shared_ptr<IDL::Variant>>;
+using Interface  = std::optional<std::shared_ptr<IDL::Interface>>;
+using Enum       = std::optional<std::shared_ptr<IDL::Enum>>;
+using NamedConst = std::optional<std::shared_ptr<IDL::NamedConst>>;
 
 // using InterfaceFunction    = std::optional<std::shared_ptr<IDL::InterfaceFunction>>;
 // using InterfaceEvent       = std::optional<std::shared_ptr<IDL::InterfaceEvent>>;
@@ -43,14 +45,15 @@ using FieldType = std::optional<std::shared_ptr<IDLGenerics::IFieldType>>;
 using Id = Str::Type;
 
 using ConstValue = std::shared_ptr<IDLGenerics::ConstValue>;
+using EnumValue  = std::pair<Str::Type, uint64_t>;
 
-using ConstValueList      = std::vector<ConstValue>;
-using ConstValueDict      = std::vector<std::pair<ConstValue, ConstValue>>;
-using InterfaceMemberList = std::vector<InterfaceMember>;
-using FieldList           = std::vector<Field>;
-using FieldTypeList       = std::vector<FieldType>;
-using IdList              = std::vector<Str::Type>;
-
+using ConstValueList         = std::vector<ConstValue>;
+using ConstValueDict         = std::vector<std::pair<ConstValue, ConstValue>>;
+using InterfaceMemberList    = std::vector<InterfaceMember>;
+using FieldList              = std::vector<Field>;
+using FieldTypeList          = std::vector<FieldType>;
+using IdList                 = std::vector<Str::Type>;
+using EnumValueList          = std::vector<EnumValue>;
 using AttributeComponent     = std::pair<Str::Type, std::vector<Str::Type>>;
 using AttributeComponentList = std::unordered_map<Str::Type, std::vector<Str::Type>>;
 using ComponentList          = std::unordered_map<Str::Type, Str::Type>;
@@ -144,7 +147,21 @@ inline std::shared_ptr<IDL::Typedef> CreateTypedef(Context& context, FieldType f
     return context.program.CreateFieldTypeObject<IDL::Typedef>(std::move(name), fieldType.value(), map);
 }
 
-std::shared_ptr<IDL::Struct> CreateStruct(Context& context, Str::Type& name, FieldList& fields, TypeAttributeList& map);
+inline std::shared_ptr<IDL::Enum> CreateEnum(Context& context, Str::Type& name, EnumValueList& enumvalues, TypeAttributeList& map)
+{
+    auto enumobj = context.program.CreateFieldTypeObject<IDL::Enum>(std::move(name), map);
+    for (auto& ev : enumvalues) { enumobj->template CreateNamedObject<IDL::EnumValue>(std::move(ev.first), ev.second); }
+    return enumobj;
+}
+
+inline EnumValue CreateEnumValue(Context& /*context*/, Str::Type& name, uint64_t value = std::numeric_limits<uint64_t>::max())
+{
+    return {name, value};
+}
+
+std::shared_ptr<IDL::Struct> CreateStruct(Context& context, Str::Type& name);
+
+void AddFieldsToStruct(Context& context, std::shared_ptr<IDL::Struct>, FieldList& fields, TypeAttributeList& map);
 
 std::shared_ptr<IDL::Variant> CreateVariant(Context& context, Str::Type& name, FieldList& fields, TypeAttributeList& map);
 
@@ -249,19 +266,28 @@ inline Interface FindInterface(Context& /*program*/, Str::Type& /*name*/)
 
 inline ConstValue CreateConstValue(int value)
 {
-    return std::make_shared<IDLGenerics::ConstValue>(value);
+    return std::make_shared<IDL::PrimitiveConstValue>(Primitives64Bit{value});
 }
 inline ConstValue CreateConstValue(double value)
 {
-    return std::make_shared<IDLGenerics::ConstValue>(value);
+    return std::make_shared<IDL::PrimitiveConstValue>(Primitives64Bit{value});
 }
 inline ConstValue CreateConstValue(Str::Type&& value)
 {
-    return std::make_shared<IDLGenerics::ConstValue>(std::move(value));
+    return std::make_shared<IDL::PrimitiveConstValue>(std::move(value));
 }
-inline ConstValue FindConstValue(Str::Type&& name)
+inline ConstValue FindConstValue(Context& context, Str::Type&& name)
 {
     if (Str::IEqual(name, Str::Create(L"null"))) return nullptr;
+    auto dotindex = name.find('.');
+    if (dotindex != name.npos)
+    {
+        auto& enumtype = context.program.Lookup<IDL::Enum>(name.substr(0, dotindex));
+        auto& enumval  = enumtype.Lookup<IDL::EnumValue>(name.substr(dotindex + 1));
+        return enumval.shared_from_this();
+    }
+    else { return context.program.Lookup<IDL::NamedConst>(name).shared_from_this(); }
+
     throw std::logic_error("Not Implement. Named Keyword (%s). Const Values not yet supported" /*, name.c_str()*/);
 }
 inline ConstValue CreateConstValue(ConstValueList&& /*value*/)
@@ -276,9 +302,19 @@ inline ConstValueList ConstValueAddValue(ConstValueList&& /*vec*/, ConstValue&& 
 {
     throw std::logic_error("Not Implement. List Const Values not yet supported");
 }
+
 inline ConstValueDict ConstValueAddValue(ConstValueDict&& /*vec*/, ConstValue&& /*key*/, ConstValue&& /*value*/)
 {
     throw std::logic_error("Not Implement. Map Const Values not yet supported");
 }
 
+inline ConstValue CreateDefaultConstValue()
+{
+    return std::make_shared<IDL::PrimitiveConstValue>();
+}
+
+inline auto CreateNamedConst(Context& context, FieldType& fieldType, Str::Type& name, ConstValue& val)
+{
+    return context.program.CreateNamedObject<IDL::NamedConst>(fieldType.value(), std::move(name), val);
+}
 }    // namespace IDL::Lang::Thrift

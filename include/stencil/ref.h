@@ -8,9 +8,9 @@ namespace Stencil
 {
 template <typename T> struct Ref
 {
-    uint32_t objId{0};
+    uint32_t id{0};
 
-    bool           Valid() const { return objId != 0; }
+    bool           Valid() const { return id != 0; }
     constexpr auto operator<=>(Ref<T> const& rhs) const = default;
 
     static Ref<T> Invalid() { return Ref<T>{}; }
@@ -181,5 +181,5 @@ template <typename T> struct Primitives64Bit::Traits<Stencil::Ref<T>>
     static void           Assign(Primitives64Bit& obj, _ThisType& val) { obj._uVal = Repr(val); }
     static auto           Get(Primitives64Bit const& obj) { return _ThisType(static_cast<uint32_t>(obj._uVal)); }
     static auto           Convert(uint64_t val) { return _ThisType(static_cast<uint32_t>(val)); }
-    static uint64_t       Repr(_ThisType const& val) { return val.objId; }
+    static uint64_t       Repr(_ThisType const& val) { return val.id; }
 };

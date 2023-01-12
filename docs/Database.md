@@ -1,12 +1,49 @@
 # Database
 
-TODO
+[[__TOC__]]
 
-- Differentiate between nested records and top-level records of the same type
-  - Items : Iterator should not emit out nested records. Only toplevel records
-  - Delete: should not be allowed on nested records.
-- Shared - Blobs and obects
-- Json Deserialization - Is it needed ? Do we really need to deserialize directly to database ?
+## Dev Notes
+
+### TODOs
+
+- [Perf] In-situ (instead ref+record) key data for primitive-keys for indexables (ints, enums etc)
+- Export Database to json for comparison testing
+
+### Proposal: Separation of ROLock vs RWLock
+
+Status: _Prototyping_
+
+### Proposal: Differentiate between nested records and top-level records of the same type
+
+Status: _Prototyping_
+
+- Items : Iterator should not emit out nested records. Only toplevel records
+- Delete: should not be allowed on nested records.
+
+### Proposal: Shared - Blobs and obects
+
+Status: _Designing_
+
+### Proposal: Do not deref Ref's during Json Deserialization but keep ids
+
+Status: _Designing_
+
+- `__id` field in json during serialization. Instead of dereferencing simply provide the `__id`
+  - Helps the client identify changes during SSE tracking
+  - Avoid expensive mapping/tracking
+  - What about strings ?
+    - Every type should be able to declare whether it's id'ed or deref'ed ?
+
+### Proposal: Tree and self-containing (ref) support
+
+### Proposal: RefMap support
+
+### Proposal :  Json Deserialization to Records
+
+Status: _Justification Needed_
+
+- Is it needed ?
+- Do we really need to deserialize directly to database ?
 
 ## Type Categories
 
@@ -45,11 +82,12 @@ Its either `Ref<Record<T>>` or `Record<T>`
 
 - Fixed : Same as `Record<T>` by value
 - Blobs : `Ref<Record<T>>`
-- Complex : `Ref<Record<T>>` for some of the 
+- Complex : `Ref<Record<T>>` for some of the
 
 ### `RecordView<T>`
+
 A wrapper class to help incremental / on-demand access to data
-Contains db-ref and lock ref 
+Contains db-ref and lock ref
 Needed for visitor and json serialization etc that cannot pass along those additional context objects.
 
 `RecordView(db, lock, RecordNest<T>)`
@@ -62,10 +100,10 @@ Needed for visitor and json serialization etc that cannot pass along those addit
   - `Record<T>`: With read/write lock used to access sub-objects.
   
 - Create : Transform each nested type into a Ref<>. Recurisvely create ref objects. Return toplevel ref<> and ViewT.
-  - dict - Visit-All. Create Key, Create Value => Create Pair<Ref<K>, Ref<V>> => Create List<Ref<Pair>>
+  - dict - Visit-All. Create Key, Create Value => Create `Pair<Ref<K>, Ref<V>>` => Create `List<Ref<Pair>>`
   - struct - Visit-All. Create Refs => Create Fixed-Record
-  - list - Visit-All. Create<Ref<T>> => Create List<Ref<T>>
-  - shared-ptr - FindOrCreate<Ref<T>>
+  - list - Visit-All. `Create<Ref<T>>` => Create `List<Ref<T>>`
+  - shared-ptr - `FindOrCreate<Ref<T>>`
 
 - Read : Read Toplevel and fetch on-demand. ViewT for these types exposes helpers
 - Edit : ViewT with edit-lock
@@ -86,10 +124,9 @@ Needed for visitor and json serialization etc that cannot pass along those addit
 
 ### Types
 
-
 Type        | Example                                      | Record Types
 ------------|----------------------------------------------|---------------------------------------
-dict        | `unordered_map<K, V>`                        | K, V , Blob(List) Pair: Ref<K>, ref<V>      |
+dict        | `unordered_map<K, V>`                        | K, V , Blob(List) Pair: `Ref<K>`, `ref<V>`      |
 nested      | `struct Type { std::unique_ptr<NestedType> }`| Type, NestedType
 lists       | `vector<K>`                                  | K, Blob(List) : `Ref<K>`
 polymorphic | `struct Type1: Type{}; struct Type2: Type{}` | Type1, Type2, Type
@@ -184,7 +221,7 @@ How to construct a nested object recursively ?
 - Search / Filter
   - Only Query By ID
 
-# Reference Links
+## Reference Links
 
 <https://www.remi-coulom.fr/joedb/vectors.html>
 Apache arrow and parquet

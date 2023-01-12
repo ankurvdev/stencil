@@ -1,6 +1,7 @@
 #pragma once
 #include "Binding.h"
 #include "DebugInfo.h"
+#include "stencil/primitives64bit.h"
 
 #include <algorithm>
 #include <optional>
@@ -375,49 +376,21 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
     };
 };
 
-class ConstValue
+class ConstValue : public virtual Binding::BindableBase
 {
     public:
-    enum class ValueType
-    {
-        Null,
-        Integer,
-        Double,
-        String,
-        List,
-        Map
-    } valueType;
-    //    typedef std::unordered_map<std::shared_ptr<ConstValue>, std::shared_ptr<ConstValue>> Map;
-    int                                                                          intValue{};
-    double                                                                       doubleValue{};
-    Str::Type                                                                    stringValue{};
-    std::vector<std::unique_ptr<ConstValue>>                                     listValue{};
-    std::unordered_map<std::unique_ptr<ConstValue>, std::unique_ptr<ConstValue>> mapValue{};
-
-    ConstValue(int value) : valueType(ValueType::Integer), intValue(value) {}
-    ConstValue(double value) : valueType(ValueType::Double), doubleValue(value) {}
-    ConstValue(Str::Type&& value) : valueType(ValueType::String), stringValue(std::move(value)) {}
-    ConstValue() : valueType(ValueType::Null) {}
-
-    Str::Type Stringify() const
-    {
-        switch (valueType)
-        {
-        case ValueType::Null: return Str::Create(L"nullptr");
-        case ValueType::Integer: return Str::Create(std::to_wstring(intValue));
-        case ValueType::Double: return Str::Create(std::to_wstring(doubleValue));
-        case ValueType::String: return Str::Create(L"\"" + Str::Value(stringValue) + L"\"");
-        case ValueType::List: throw std::invalid_argument("List Const Value Unsupported");
-        case ValueType::Map: throw std::invalid_argument("Map Const Value Unsupported");
-        default: throw std::invalid_argument("Unknown const value type");
-        }
-    }
+    ConstValue()                   = default;
+    virtual ~ConstValue() override = default;
+    CLASS_DELETE_COPY_AND_MOVE(ConstValue);
 
     static Str::Type DefaultStringifiedValue()
     {
         throw std::logic_error("Specify a default type"); /*return Str::Create(L" "); */ /* Dont leave this empty */
     }
+
+    virtual Str::Type Stringify() const = 0;
 };
+
 template <typename TOwner, typename TObject> struct StorageIndexT
 {
     struct StorageType;
@@ -507,9 +480,11 @@ template <typename TOwner, typename TObject> struct StorageIndexT
 
         Str::Type GetInitialValue() const
         {
-            if (_defaultValue != nullptr) { return _defaultValue->Stringify(); }
-            Binding::BindingContext context;
-            auto                    defval = _fieldType->TryLookupOrNull(context, Str::Create(L"DefaultValue"));
+            Binding::BindingContext          context;
+            std::shared_ptr<Binding::IValue> defval;
+
+            if (_defaultValue != nullptr) { defval = _defaultValue->TryLookupOrNull(context, Str::Create(L"NativeType")); }
+            else { defval = _fieldType->TryLookupOrNull(context, Str::Create(L"DefaultValue")); }
             if (defval == nullptr)
             {
                 _fieldType->TryLookupOrNull(context, Str::Create(L"DefaultValue"));

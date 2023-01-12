@@ -1,6 +1,8 @@
 #include "ObjectsTester.h"
 #include "TestUtils.h"
 
+#include <unordered_set>
+
 using namespace Catch::literals;
 using namespace std::literals;
 using DataStore = Stencil::Database::Database<::Objects::NestedObject>;
@@ -105,7 +107,7 @@ struct DatabaseTester
     {
         // auto& vec = ref.listobj;
         // for (size_t i = 0; i < vec.size(); i++) { check(lock, vec[i], datastore->Get(lock, rec.listobj)[i]); }
-        // REQUIRE(obj1.lastmodified == refobj1.lastmodified); TODO2
+        // REQUIRE(obj1.lastmodified == refobj1.lastmodified);
     }
 
     void test_create_simple_object1(Stencil::Database::RWLock& lock)
@@ -169,10 +171,34 @@ struct DatabaseTester
     }
 
     template <typename T>
-    void dump(Stencil::Database::RWLock& lock, Stencil::Database::Ref<T> const& /*ref*/, Stencil::Database::Record<T> const& rec)
+    void dump(Stencil::Database::RWLock& lock, Stencil::Database::Ref<T> const& ref, Stencil::Database::Record<T> const& rec)
     {
-        auto recview = Stencil::Database::CreateRecordView(*datastore, lock, rec);
+        auto recview = Stencil::Database::CreateRecordView(*datastore, lock, ref, rec);
         lines.push_back(Stencil::Json::Stringify(recview));
+    }
+
+    template <typename T> void delete_half_with_iterator(Stencil::Database::RWLock& lock)
+    {
+        size_t                       i = 0;
+        std::unordered_set<uint32_t> todelete;
+        for (auto it = generated_ids.cbegin(); it != generated_ids.cend();)
+        {
+            if (it->first == Stencil::Database::TypeId<T, DataStore> && ((++i) % 2 == 0))
+            {
+                todelete.insert(it->second);
+                it = generated_ids.erase(it);
+            }
+            else { ++it; }
+        }
+
+        for (auto [ref, rec] : datastore->Items<T>(lock))
+        {
+            if (todelete.count(ref.id) > 0)
+            {
+                datastore->Delete(lock, ref);
+                lines.push_back(fmt::format("{{\"delete\": {}}}", ref.id));
+            }
+        }
     }
 
     template <typename T> void delete_half(Stencil::Database::RWLock& lock)
@@ -212,12 +238,22 @@ TEST_CASE("Database", "[database]")
         for (auto [ref, rec] : tester.datastore->Items<Objects::SimpleObject2>(lock)) { tester.dump(lock, ref, rec); }
         for (size_t i = 0; i < count; i++) { tester.test_create_nested_object(lock); }
         for (auto [ref, rec] : tester.datastore->Items<Objects::NestedObject>(lock)) { tester.dump(lock, ref, rec); }
-
-        tester.delete_half<Objects::NestedObject>(lock);
-        tester.delete_half<Objects::DictObject>(lock);
-        tester.delete_half<Objects::List>(lock);
-        tester.delete_half<Objects::SimpleObject2>(lock);
-        tester.delete_half<Objects::SimpleObject1>(lock);
+        if (count % 2 == 0)
+        {
+            tester.delete_half_with_iterator<Objects::NestedObject>(lock);
+            tester.delete_half_with_iterator<Objects::DictObject>(lock);
+            tester.delete_half_with_iterator<Objects::List>(lock);
+            tester.delete_half_with_iterator<Objects::SimpleObject2>(lock);
+            tester.delete_half_with_iterator<Objects::SimpleObject1>(lock);
+        }
+        else
+        {
+            tester.delete_half<Objects::NestedObject>(lock);
+            tester.delete_half<Objects::DictObject>(lock);
+            tester.delete_half<Objects::List>(lock);
+            tester.delete_half<Objects::SimpleObject2>(lock);
+            tester.delete_half<Objects::SimpleObject1>(lock);
+        }
 
         tester.datastore->Flush(lock);
     }
