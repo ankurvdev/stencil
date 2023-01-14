@@ -271,6 +271,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
 
     void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
 
+    bool IsElementChanged(ElemTxnState const& elemTxnState) { return _IsFieldChanged(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
     template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
