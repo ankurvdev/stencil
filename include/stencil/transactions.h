@@ -17,7 +17,7 @@
 namespace Stencil
 {
 
-template <typename TElem, typename TContainer = TElem> struct Transaction;
+template <typename TElem, typename TContainer = void> struct Transaction;
 
 // template <typename T> struct Transaction<T, T>
 //{};
@@ -115,7 +115,7 @@ template <Stencil::ConceptPreferPrimitive TElem, typename TContainer> struct Ste
         throw std::logic_error("Elem Not supported on Transaction");
     }
 
-    bool IsChanged() { return false; }    // What about doing AreEqual in the destructor ?
+    bool IsChanged() { return _container.IsElementChanged(_containerState); }
 
     void Assign(ElemType&& elem)
     {
