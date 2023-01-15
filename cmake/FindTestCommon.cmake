@@ -8,6 +8,6 @@ if (NOT TARGET TestCommon)
     target_include_directories(TestCommon INTERFACE "${CMAKE_CURRENT_LIST_DIR}")
     target_link_libraries(TestCommon INTERFACE dtl::dtl Catch2::Catch2WithMain)
     if (MSVC)
-        target_compile_options(Catch2::Catch2WithMain INTERFACE "/wd4868") #not enforce evaluation order in braced initializer list
+        target_compile_options(TestCommon INTERFACE "/wd4868") # Catch2: not enforce evaluation order in braced initializer list
     endif()
 endif()
