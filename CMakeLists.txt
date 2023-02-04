@@ -215,7 +215,7 @@ if(STENCIL_INSTALL_BUILDTOOLS)
     if (TARGET lexyacc)
         install(TARGETS lexyacc EXPORT lexyaccTargets)
     elseif(EXISTS "${LEXYACC_EXECUTABLE}")
-        install(FILES LEXYACC_EXECUTABLE DESTINATION bin)
+        install(FILES "${LEXYACC_EXECUTABLE}" DESTINATION bin)
     endif()
 
     install(FILES
