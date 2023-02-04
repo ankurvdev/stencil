@@ -139,10 +139,6 @@ struct Primitives64Bit
     public:
     struct UnsupportedCast
     {};
-    // void _check(Type type) const
-    //{
-    //     if (_type != type) throw 1;
-    // }
 
     Type GetType() const { return _type; }
 
@@ -189,8 +185,12 @@ struct Primitives64Bit
         else { throw std::logic_error("Unknown type"); }
     }
 };
+
+#ifdef __EMSCRIPTEN__
 template <> struct Primitives64Bit::Traits<unsigned long> : public Primitives64Bit::UnsignedTraits<unsigned long>
 {};
+#endif
+
 template <> struct Primitives64Bit::Traits<uint64_t> : public Primitives64Bit::UnsignedTraits<uint64_t>
 {};
 template <> struct Primitives64Bit::Traits<uint32_t> : public Primitives64Bit::UnsignedTraits<uint32_t>
