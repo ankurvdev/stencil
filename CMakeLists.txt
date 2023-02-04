@@ -211,6 +211,15 @@ install(FILES
     DESTINATION share/stencil
 )
 
+if(STENCIL_INSTALL_BUILDTOOLS)
+    install(TARGETS lexyacc       EXPORT lexyaccTargets)
+    install(FILES
+        ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc/FlexLexer.h
+        ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc/LexYaccConfig.cmake
+        DESTINATION share/stencil
+    )
+endif()
+
 #install(EXPORT stencilTargets
 #    NAMESPACE stencil::
 #    DESTINATION share/stencil

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 include(CMakePackageConfigHelpers)
 
-project(embedresource VERSION 0.0.1)
+project(lexyacc VERSION 0.0.1)
 
 add_executable(lexyacc LexYacc.cpp)
 install(
