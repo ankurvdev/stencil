@@ -160,7 +160,7 @@ def DownloadTo(path: pathlib.Path) -> dict[str, str | pathlib.Path]:
     packages = [
         "ndk-bundle",
         f"ndk;{AndroidNDKVersion}",
-        "build-tools;33.0.0",
+        "build-tools;33.0.1",
         "platform-tools",
         "platforms;android-33",
     ]

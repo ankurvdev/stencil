@@ -88,7 +88,8 @@ struct Tester : ObjectsTester
     {
         SSEListener(std::string_view const& url) : _url(url) {}
         CLASS_DELETE_COPY_AND_MOVE(SSEListener);
-
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
         bool _ChunkCallback(const char* data, size_t len)
         {
             if (data[len - 1] == '\0') len--;
@@ -98,6 +99,8 @@ struct Tester : ObjectsTester
             _cv.notify_all();
             return true;
         }
+#pragma clang diagnostic pop
+
         void _SSEListener()
         {
             _ssecli.set_follow_location(true);

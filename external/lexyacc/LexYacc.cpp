@@ -39,7 +39,8 @@ static void generate(stdfs::path fname, std::string tmpl, std::unordered_map<std
     of.write(tmpl.data(), static_cast<std::streamsize>(tmpl.size()));
     of.close();
 }
-
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
 int main(int argc, char* argv[])
 try
 {
@@ -69,6 +70,7 @@ try
             throw std::invalid_argument("unexpected");
         }
     }
+#pragma clang diagnostic pop
 
     if (prefix.empty()) { prefix = stdfs::path(lyfile).stem().string(); }
 
