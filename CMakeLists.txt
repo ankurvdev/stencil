@@ -212,7 +212,12 @@ install(FILES
 )
 
 if(STENCIL_INSTALL_BUILDTOOLS)
-    install(TARGETS lexyacc       EXPORT lexyaccTargets)
+    if (TARGET lexyacc)
+        install(TARGETS lexyacc EXPORT lexyaccTargets)
+    elseif(EXISTS "${LEXYACC_EXECUTABLE}")
+        install(FILES LEXYACC_EXECUTABLE DESTINATION bin)
+    endif()
+
     install(FILES
         ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc/FlexLexer.h
         ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc/LexYaccConfig.cmake
