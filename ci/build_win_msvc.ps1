@@ -2,6 +2,10 @@ param (
     [ValidateSet("x86", "x64")] $arch
 )
 
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+$PSDefaultParameterValues['*:ErrorAction'] = 'Stop'
+
 if (-not (Get-Command -Name "cmake")) {
     $vspath = (@() + (&"C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -version 16.0 -prerelease -property installationpath))[-1]
     $cmake_path = $vspath + "Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
