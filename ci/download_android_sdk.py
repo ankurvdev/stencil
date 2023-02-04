@@ -137,6 +137,7 @@ def DownloadJava(path: pathlib.Path):
 
 
 def GetJava(path: pathlib.Path) -> pathlib.Path:
+    os.environ.pop('JAVA_HOME')
     return _download_or_get_Binary("java", path, DownloadJava)
 
 
