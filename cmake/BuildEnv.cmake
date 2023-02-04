@@ -141,7 +141,7 @@ macro(EnableStrictCompilation)
         endif()
 
         if (EMSCRIPTEN)
-            list(APPEND extraflags -pthread)
+            list(APPEND extraflags -pthread -Wno-limited-postlink-optimizations)
         endif()
         if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL Clang)
             list(APPEND extraflags
