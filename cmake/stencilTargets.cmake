@@ -49,46 +49,48 @@ if (NOT TARGET stencil::runtime)
     add_library(stencil::runtime ALIAS stencil_runtime)
 endif()
 
-function(build_stencil workdir)
-    set(workdir ${CMAKE_CURRENT_BINARY_DIR}/buildtool_stencil)
-    set(srcdir ${workdir}/stencil)
+FetchContent_Declare(
+    STENCIL
+    GIT_REPOSITORY https://github.com/ankurvdev/stencil.git
+    GIT_TAG        6aedc08492efade9029cdd083c4cf5bcc692cc78
+)
+
+function(build_stencil_impl workdir)
+    if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/../src/Thrift.cpp")
+        set(STENCIL_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/..")
+    else()
+        FetchContent_MakeAvailable(STENCIL)
+    endif()
     set(builddir ${workdir}/build)
     set(installdir ${workdir})
     file(MAKE_DIRECTORY ${builddir})
     file(MAKE_DIRECTORY ${installdir})
-    file(MAKE_DIRECTORY ${srcdir})
 
-    find_package(Git REQUIRED)
-    set(giturl "https://github.com/ankurverma85/stencil")
+    unset(ENV{CMAKE_CXX_COMPILER})
+    unset(ENV{CMAKE_C_COMPILER})
+    unset(ENV{CC})
+    unset(ENV{CXX})
 
-    execute_process(
-        COMMAND ${GIT_EXECUTABLE} clone ${giturl} ${srcdir} 
-        RESULT_VARIABLE rslt WORKING_DIRECTORY ${workdir})
-    if (NOT rslt STREQUAL 0)
-        message(FATAL_ERROR "Unable to clone git repo for building stencil")
+    set(CMD "${CMAKE_COMMAND}" "-DCMAKE_INSTALL_PREFIX:PATH=${installdir}")
+    if (CMAKE_GENERATOR)
+        list(APPEND CMD "-G" "${CMAKE_GENERATOR}")
     endif()
-
-    execute_process(
-        COMMAND ${CMAKE_COMMAND} ${srcdir}
-        RESULT_VARIABLE rslt WORKING_DIRECTORY ${builddir})
-    if (NOT rslt STREQUAL 0)
-        message(FATAL_ERROR "Unable to configure stencil ${rslt}")
-    endif()
-
-    execute_process(
-        COMMAND ${CMAKE_COMMAND} --build . -j --config Debug --target install --prefix ${installdir}
-        RESULT_VARIABLE rslt WORKING_DIRECTORY ${builddir})
-    if (NOT rslt STREQUAL 0)
-        message(FATAL_ERROR "Unable to build stencil ${rslt}")
-    endif()
-
-    find_program(binfile stencil HINTS ${installdir})
-    if (not exists binfile)
-        message(FATAL_ERROR "Unable to find installed binary")
-    endif()
-
-    set(STENCIL_EXECUTABLE "${binfile}" CACHE PATH "Location of the stencil binary to use")
+    list(APPEND CMD -DBUILD_TESTING=OFF)
+    list(APPEND CMD "${STENCIL_SOURCE_DIR}")
+    
+    execute_process(COMMAND_ERROR_IS_FATAL ANY WORKING_DIRECTORY ${builddir} COMMAND ${CMD})
+    execute_process(COMMAND_ERROR_IS_FATAL ANY COMMAND ${CMAKE_COMMAND} --build ${builddir} -j )
+    execute_process(COMMAND_ERROR_IS_FATAL ANY COMMAND ${CMAKE_COMMAND} --install ${builddir} -j --prefix "${installdir}")
 endfunction()
+
+macro(build_stencil workdir)
+    set(stencil_build_dir "${workdir}/buildtool_stencil")
+    build_stencil_impl(${stencil_build_dir})
+    find_program(STENCIL_EXECUTABLE REQUIRED NAMES stencil HINTS
+        ${stencil_build_dir}
+        ${stencil_build_dir}/bin
+    )
+endmacro()
 
 function(_add_stencil_target)
     cmake_parse_arguments("" "" "TARGET" "IDLS" ${ARGN})
@@ -135,18 +137,23 @@ endfunction()
 
 # IDL Compiler
 macro(add_stencil_library)
-    if (NOT DEFINED STENCIL_EXECUTABLE)
+    if (NOT EXISTS "${STENCIL_EXECUTABLE}")
         find_program(STENCIL_EXECUTABLE stencil)
         if (NOT EXISTS "${STENCIL_EXECUTABLE}")
-            if (TARGET stencil)
-                unset(STENCIL_EXECUTABLE CACHE)
-                set(STENCIL_EXECUTABLE stencil CACHE STRING "Stencil Executable")
-            else()
+            if (CMAKE_CROSSCOMPILING)
                 build_stencil(${CMAKE_CURRENT_BINARY_DIR})
+            else()
+                if (TARGET stencil)
+                    unset(STENCIL_EXECUTABLE CACHE)
+                    set(STENCIL_EXECUTABLE stencil CACHE STRING "Stencil Executable")
+                else()
+                    build_stencil(${CMAKE_CURRENT_BINARY_DIR})
+                endif()
             endif()
         endif()
     endif()
-    if (NOT DEFINED STENCIL_EXECUTABLE)
+
+    if (NOT EXISTS "${STENCIL_EXECUTABLE}" AND NOT TARGET stencil)
         message(FATAL_ERROR "Cannot find or build stencil")
     endif()
     
