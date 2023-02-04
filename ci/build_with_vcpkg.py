@@ -90,7 +90,7 @@ if "android" in host_triplet or "android" in runtime_triplet:
     import download_android_sdk
     paths = download_android_sdk.DownloadTo((workdir / "android"))
     myenv['ANDROID_NDK_HOME'] = paths['ndk'].as_posix()
-if "wasm32" in host_triplet or "android" in runtime_triplet:
+if "wasm32" in host_triplet or "wasm32" in runtime_triplet:
     import download_emscripten
     info = download_emscripten.DownloadTo(workdir/"emsdk")
     alreadypaths = set([pathlib.Path(onepath).absolute() for onepath in os.environ['PATH'].split(os.pathsep)])
