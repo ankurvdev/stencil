@@ -59,7 +59,7 @@ parser.add_argument("--host-triplet", type=str, default=None, help="Triplet")
 parser.add_argument("--runtime-triplet", type=str, default=None, help="Triplet")
 args = parser.parse_args()
 scriptdir = pathlib.Path(__file__).parent.absolute()
-portname = "embedresource"
+portname = "stencil"
 workdir = pathlib.Path(args.workdir).absolute()
 workdir.mkdir(exist_ok=True)
 vcpkgroot = (workdir / "vcpkg")
@@ -139,6 +139,9 @@ def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str):
     cmakebuildextraargs = (["--config", config] if sys.platform == "win32" else [])
     cmakeconfigargs: list[str] = []
     if "android" in runtime_triplet:
+        subprocess.check_call([vcpkgexe, "install", "catch2:" + runtime_triplet], env=myenv, cwd=vcpkgroot)
+        subprocess.check_call([vcpkgexe, "install", "dtl:" + runtime_triplet], env=myenv, cwd=vcpkgroot)
+
         cmakeconfigargs += [
             "-DCMAKE_TOOLCHAIN_FILE:PATH=" + myenv['ANDROID_NDK_HOME'] + "/build/cmake/android.toolchain.cmake",
             "-DANDROID=1",
@@ -152,6 +155,8 @@ def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str):
         if sys.platform == "win32":
             cmakeconfigargs += ["-G", "Ninja", f"-DCMAKE_MAKE_PROGRAM:FILEPATH={find_binary('ninja')}"]
     if "wasm32" in runtime_triplet:
+        subprocess.check_call([vcpkgexe, "install", "catch2:" + runtime_triplet], env=myenv, cwd=vcpkgroot)
+        subprocess.check_call([vcpkgexe, "install", "dtl:" + runtime_triplet], env=myenv, cwd=vcpkgroot)
         cmakeconfigargs += [
             "-DCMAKE_TOOLCHAIN_FILE:PATH=" + myenv['EMSDK'] + "/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
         ]
