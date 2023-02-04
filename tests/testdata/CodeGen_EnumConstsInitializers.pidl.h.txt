@@ -83,7 +83,8 @@ struct DefaultValues :
 template <> struct Stencil::EnumTraits<EnumConstsInitializers::EnumType1>
 {
     using Enum = EnumConstsInitializers::EnumType1;
-
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
     static constexpr std::string_view Names[] = {
         "Invalid",
         "zero"
@@ -94,13 +95,15 @@ template <> struct Stencil::EnumTraits<EnumConstsInitializers::EnumType1>
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+#pragma clang diagnostic pop
 
     static Enum ForIndex(size_t index) { return static_cast<Enum>(index); }
 };
 template <> struct Stencil::EnumTraits<EnumConstsInitializers::EnumType2>
 {
     using Enum = EnumConstsInitializers::EnumType2;
-
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
     static constexpr std::string_view Names[] = {
         "Invalid",
         "one"
@@ -109,6 +112,7 @@ template <> struct Stencil::EnumTraits<EnumConstsInitializers::EnumType2>
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+#pragma clang diagnostic pop
 
     static Enum ForIndex(size_t index) { return static_cast<Enum>(index); }
 };
@@ -142,7 +146,8 @@ template <> struct Stencil::TypeTraitsForIndexable<EnumConstsInitializers::Defau
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<EnumConstsInitializers::DefaultValues>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<EnumConstsInitializers::DefaultValues>::Fields;
-
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
     static constexpr std::string_view Names[] = {
         "Invalid",
         "enum1"
@@ -160,6 +165,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<EnumConst
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+#pragma clang diagnostic pop
 
     static Stencil::TypeTraitsForIndexable<EnumConstsInitializers::DefaultValues>::Fields ForIndex(size_t index)
     {
