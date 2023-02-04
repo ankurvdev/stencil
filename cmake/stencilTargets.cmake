@@ -1,3 +1,5 @@
+include(FetchContent)
+
 if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/EmbedResourceConfig.cmake)
     include(${CMAKE_CURRENT_LIST_DIR}/EmbedResourceConfig.cmake)
 endif()
