@@ -144,7 +144,8 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Fields;
-
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
     static constexpr std::string_view Names[] = {
         "Invalid",
         "ProductId"
@@ -155,6 +156,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+#pragma clang diagnostic pop
 
     static Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Fields ForIndex(size_t index)
     {
@@ -560,13 +562,15 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::Fields;
-
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
     static constexpr std::string_view Names[] = {
         "Invalid",
         "ProductId"
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+#pragma clang diagnostic pop
 
     static Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::Fields ForIndex(size_t index)
     {
@@ -808,13 +812,15 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::Fields;
-
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
     static constexpr std::string_view Names[] = {
         "Invalid",
         "ProductId"
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+#pragma clang diagnostic pop
 
     static Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::Fields ForIndex(size_t index)
     {
@@ -1056,13 +1062,15 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::Fields;
-
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
     static constexpr std::string_view Names[] = {
         "Invalid",
         "ProductId"
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+#pragma clang diagnostic pop
 
     static Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::Fields ForIndex(size_t index)
     {
@@ -1304,13 +1312,15 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Fields;
-
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
     static constexpr std::string_view Names[] = {
         "Invalid",
         "ProductId"
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+#pragma clang diagnostic pop
 
     static Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Fields ForIndex(size_t index)
     {
@@ -1552,13 +1562,15 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Fields;
-
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
     static constexpr std::string_view Names[] = {
         "Invalid",
         "ProductId"
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+#pragma clang diagnostic pop
 
     static Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Fields ForIndex(size_t index)
     {
@@ -1800,13 +1812,15 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Fields;
-
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
     static constexpr std::string_view Names[] = {
         "Invalid",
         "ProductId"
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+#pragma clang diagnostic pop
 
     static Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Fields ForIndex(size_t index)
     {
@@ -2043,7 +2057,8 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::CommandLineOptions>
 template <> struct Stencil::EnumTraits<CLOpts2::CommandLineOptions::VariantType>
 {
     using Enum = CLOpts2::CommandLineOptions::VariantType;
-
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
     static constexpr std::string_view Names[] = {
         "Invalid",
         "install"
@@ -2056,6 +2071,7 @@ template <> struct Stencil::EnumTraits<CLOpts2::CommandLineOptions::VariantType>
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+#pragma clang diagnostic pop
 
     static CLOpts2::CommandLineOptions::VariantType ForIndex(size_t index)
     {

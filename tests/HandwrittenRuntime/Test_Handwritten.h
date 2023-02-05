@@ -8,7 +8,8 @@ SUPPRESS_STL_WARNINGS
 #include <string>
 #include <variant>
 SUPPRESS_WARNINGS_END
-
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
 struct WithPrimitives64Bit
 {
     int64_t  f1;
@@ -686,3 +687,4 @@ template <> struct Stencil::Visitor<TestObj> : Stencil::VisitorT<TestObj>
 
     template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda) { lambda(Fields::Field_f1, obj.f1); }
 };
+#pragma clang diagnostic pop

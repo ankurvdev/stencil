@@ -66,7 +66,7 @@ if (NOT stduuid_FOUND)
     add_library(stduuid INTERFACE)
     add_library(stduuid::stduuid ALIAS stduuid)
     target_include_directories(stduuid INTERFACE external/stduuid/include)
-    find_file(UUIDHEADER REQUIRED NAMES uuid.h HINTS external/stduuid/include)
+    set(UUIDHEADER "external/stduuid/include/uuid.h")
     list(APPEND public_headers "${UUIDHEADER}")
 endif()
 
@@ -212,7 +212,12 @@ install(FILES
 )
 
 if(STENCIL_INSTALL_BUILDTOOLS)
-    install(TARGETS lexyacc       EXPORT lexyaccTargets)
+    if (TARGET lexyacc)
+        install(TARGETS lexyacc EXPORT lexyaccTargets)
+    elseif(EXISTS "${LEXYACC_EXECUTABLE}")
+        install(FILES "${LEXYACC_EXECUTABLE}" DESTINATION bin)
+    endif()
+
     install(FILES
         ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc/FlexLexer.h
         ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc/LexYaccConfig.cmake

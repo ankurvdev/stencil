@@ -137,6 +137,7 @@ def DownloadJava(path: pathlib.Path):
 
 
 def GetJava(path: pathlib.Path) -> pathlib.Path:
+    os.environ.pop('JAVA_HOME')
     return _download_or_get_Binary("java", path, DownloadJava)
 
 
@@ -160,7 +161,7 @@ def DownloadTo(path: pathlib.Path) -> dict[str, str | pathlib.Path]:
     packages = [
         "ndk-bundle",
         f"ndk;{AndroidNDKVersion}",
-        "build-tools;33.0.0",
+        "build-tools;33.0.1",
         "platform-tools",
         "platforms;android-33",
     ]

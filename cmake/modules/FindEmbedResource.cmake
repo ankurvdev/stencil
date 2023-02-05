@@ -1,11 +1,6 @@
 find_package(EmbedResource CONFIG QUIET)
+
 if (NOT EmbedResource_FOUND)
-    if (NOT TARGET embedresource)
-        init_submodule(embedresource)
-        set(EMBEDRESOURCE_INSTALL OFF CACHE BOOL "Do not install embedresource bits")
-        add_subdirectory(${INIT_SUBMODULE_DIRECTORY}/embedresource embedresource)
-    endif()
-    if (NOT TARGET embedresource)
-        message(FATAL_ERROR "Cannot find embedresource")
-    endif()
+    init_submodule(embedresource)
+    include(${INIT_SUBMODULE_DIRECTORY}/embedresource/cmake/EmbedResourceTargets.cmake) # For add_subdirectory mode
 endif()

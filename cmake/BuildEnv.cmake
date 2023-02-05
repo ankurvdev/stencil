@@ -13,6 +13,9 @@ set(BuildEnvCMAKE_LOCATION "${CMAKE_CURRENT_LIST_DIR}")
 if (UNIX AND NOT ANDROID)
     set(LINUX 1)
 endif()
+if (EMSCRIPTEN)
+    set(Threads_FOUND 1)
+endif()
 if (IS_DIRECTORY ${BuildEnvCMAKE_LOCATION}/../Format.cmake AND NOT SKIP_FORMAT)
     if (NOT TARGET fix-clang-format)
         add_subdirectory(${BuildEnvCMAKE_LOCATION}/../Format.cmake Format.cmake)
@@ -116,7 +119,6 @@ macro(EnableStrictCompilation)
         set(extraflags
             -g
             -fPIC
-            -Wl,--exclude-libs,ALL
             -fvisibility=hidden
             -Wall   # Enable all errors
             -Werror     # All warnings as errors
@@ -134,6 +136,13 @@ macro(EnableStrictCompilation)
             -fvisibility-inlines-hidden
         )
 
+        if (NOT EMSCRIPTEN)
+            list(APPEND extraflags -Wl,--exclude-libs,ALL)
+        endif()
+
+        if (EMSCRIPTEN)
+            list(APPEND extraflags -pthread -Wno-limited-postlink-optimizations)
+        endif()
         if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL Clang)
             list(APPEND extraflags
                 -Weverything
