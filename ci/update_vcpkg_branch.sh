@@ -25,4 +25,6 @@ git -C ${vcpkgdir} diff
 git -c user.email="ankur.verma@outlook.com" -c  user.name="Ankur Verma" -C ${vcpkgdir} commit -a -m "Update VCPKG Port to ${commitId}"
 git -C ${vcpkgdir} log
 
-git -C ${vcpkgdir} push
+if [[ "$1" == "push" ]]; then
+    git -C ${vcpkgdir} push
+fi

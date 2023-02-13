@@ -11,16 +11,18 @@ pr:
 jobs:
 - job: Update_VCPKG
   displayName: 'Update VCPKG Port Branch'
-  condition: or(in(variables['Build.Reason'], 'Manual'), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  condition: 
   pool:
     vmImage: 'ubuntu-latest'
   steps:
   - checkout: self
     persistCredentials: true
     clean: true
-  - bash: bash $(Build.SourcesDirectory)/ci/update_vcpkg_port.sh
-    env:
-      GIT_COMMIT_PAT: $(System.AccessToken)
+  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+    - bash: bash $(Build.SourcesDirectory)/ci/update_vcpkg_port.sh push
+  - ${{ else }}:
+    - bash: bash $(Build.SourcesDirectory)/ci/update_vcpkg_port.sh
+
 
 - job: Build_Ubuntu
   displayName: '[x64] Build Ubuntu'

@@ -5,6 +5,7 @@ import pprint
 import shutil
 import subprocess
 import sys
+import externaltools
 
 
 def _find_from_path(name: str):
@@ -87,12 +88,10 @@ myenv['VCPKG_ROOT'] = vcpkgroot.as_posix()
 myenv['VCPKG_KEEP_ENV_VARS'] = 'ANDROID_NDK_HOME'
 myenv['VERBOSE'] = "1"
 if "android" in host_triplet or "android" in runtime_triplet:
-    import download_android_sdk
-    paths = download_android_sdk.DownloadTo((workdir / "android"))
+    paths = externaltools.DownloadAndroidTo((workdir / "android"))
     myenv['ANDROID_NDK_HOME'] = paths['ndk'].as_posix()
 if "wasm32" in host_triplet or "wasm32" in runtime_triplet:
-    import download_emscripten
-    info = download_emscripten.DownloadTo(workdir/"emsdk")
+    info = externaltools.DownloadEmscriptenInfoTo(workdir/"emsdk")
     alreadypaths = set([pathlib.Path(onepath).absolute() for onepath in myenv['PATH'].split(os.pathsep)])
     appendpaths = list([onepath.as_posix() for onepath in info.paths if onepath.absolute() not in alreadypaths])
     appendpathsstr = os.pathsep.join(appendpaths)

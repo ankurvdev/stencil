@@ -24,6 +24,7 @@ git -C ${scriptdir} rev-parse --short HEAD
 git -c user.email="ankur.verma@outlook.com" -c  user.name="Ankur Verma" -C ${scriptdir} commit ${portfile} ${portjson} -m "Update VCPKG Port to ${commitId}"
 git -C ${scriptdir} checkout -b vcpkg.${shortCommitId}
 git -C ${scriptdir} checkout -b vcpkg
-
-git -C ${scriptdir} push origin vcpkg.${shortCommitId} --set-upstream
-git -C ${scriptdir} push origin vcpkg --force --set-upstream
+if [[ "$1" == "push" ]]; then
+    git -C ${scriptdir} push origin vcpkg.${shortCommitId} --set-upstream
+    git -C ${scriptdir} push origin vcpkg --force --set-upstream
+fi
