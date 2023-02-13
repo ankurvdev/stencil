@@ -2,38 +2,61 @@ cmake_minimum_required(VERSION 3.19)
 include(GenerateExportHeader)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+if (UNIX AND NOT ANDROID AND NOT EMSCRIPTEN)
+    set(LINUX 1)
+endif()
+
+
+# We directly enable flto=full on android
+# using this causes build failures
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO ON)
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_MINSIZEREL ON)
+if (ANDROID OR EMSCRIPTEN)
+    # Flto=thin has issues with emscripten. We want to use full anyway
+    set(CMAKE_CXX_COMPILE_OPTIONS_IPO "-flto=full")
+endif()
+
 if (MINGW)
-set(CMAKE_C_USE_RESPONSE_FILE_FOR_INCLUDES   OFF)
-set(CMAKE_CXX_USE_RESPONSE_FILE_FOR_INCLUDES OFF)
+    set(CMAKE_C_USE_RESPONSE_FILE_FOR_INCLUDES   OFF)
+    set(CMAKE_CXX_USE_RESPONSE_FILE_FOR_INCLUDES OFF)
 endif()
 
 set(BuildEnvCMAKE_LOCATION "${CMAKE_CURRENT_LIST_DIR}")
-if (UNIX AND NOT ANDROID)
-    set(LINUX 1)
-endif()
+
 if (EMSCRIPTEN)
     set(Threads_FOUND 1)
+    # set(CMAKE_EXECUTABLE_SUFFIX ".html")
+    set(CMAKE_CXX_COMPILE_OPTIONS_IPO "-flto=full")
 endif()
+
 if (IS_DIRECTORY ${BuildEnvCMAKE_LOCATION}/../Format.cmake AND NOT SKIP_FORMAT)
     if (NOT TARGET fix-clang-format)
         add_subdirectory(${BuildEnvCMAKE_LOCATION}/../Format.cmake Format.cmake)
     endif()
 endif()
+
 macro(_PrintFlags)
-    message(STATUS "CMAKE_C_FLAGS_INIT             : ${CMAKE_C_FLAGS_INIT}")
-    message(STATUS "CMAKE_CXX_FLAGS_INIT           : ${CMAKE_CXX_FLAGS_INIT}")
-    message(STATUS "CMAKE_C_FLAGS                  : ${CMAKE_C_FLAGS}")
-    message(STATUS "CMAKE_C_FLAGS_DEBUG            : ${CMAKE_C_FLAGS_DEBUG}")
-    message(STATUS "CMAKE_C_FLAGS_MINSIZEREL       : ${CMAKE_C_FLAGS_MINSIZEREL}")
-    message(STATUS "CMAKE_C_FLAGS_RELEASE          : ${CMAKE_C_FLAGS_RELEASE}")
-    message(STATUS "CMAKE_C_FLAGS_RELWITHDEBINFO   : ${CMAKE_C_FLAGS_RELWITHDEBINFO}")
-    message(STATUS "CMAKE_CXX_FLAGS                : ${CMAKE_CXX_FLAGS}")
-    message(STATUS "CMAKE_CXX_FLAGS_DEBUG          : ${CMAKE_CXX_FLAGS_DEBUG}")
-    message(STATUS "CMAKE_CXX_FLAGS_MINSIZEREL     : ${CMAKE_CXX_FLAGS_MINSIZEREL}")
-    message(STATUS "CMAKE_CXX_FLAGS_RELEASE        : ${CMAKE_CXX_FLAGS_RELEASE}")
-    message(STATUS "CMAKE_CXX_FLAGS_RELWITHDEBINFO : ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+    foreach (flagname
+            CMAKE_C_FLAGS CMAKE_CXX_FLAGS
+            CMAKE_EXE_LINKER_FLAGS CMAKE_SHARED_LINKER_FLAGS
+            CMAKE_INTERPROCEDURAL_OPTIMIZATION)
+        foreach(variantstr _INIT
+                    "               "
+                    "_DEBUG         "
+                    "_RELEASE       "
+                    "_RELWITHDEBINFO"
+                    "_MINSIZEREL    ")
+            set(varname ${flagname}${variant})
+            message(STATUS "${flagname}${variant}:${${varname}}")
+        endforeach()
+    endforeach()
+
     message(STATUS "CMAKE_SYSTEM_PROCESSOR         : ${CMAKE_SYSTEM_PROCESSOR}")
 endmacro()
 
@@ -62,7 +85,7 @@ function(_FixFlags name)
     list(REMOVE_DUPLICATES cflags)
     list(JOIN cflags " " cflagsstr)
 
-    message(STATUS "${name}: ${_VALUE} ==> ${cflagsstr}")
+    message(STATUS "${name}: \n\t<== ${_VALUE}\n\t==> ${cflagsstr}")
     set(${name} "${cflagsstr}" PARENT_SCOPE)
 endfunction()
 
@@ -117,11 +140,9 @@ macro(EnableStrictCompilation)
         _FixFlags(CMAKE_C_FLAGS_DEBUG APPEND /RTCsu)
     elseif(("${CMAKE_CXX_COMPILER_ID}" STREQUAL Clang) OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL GNU))
         set(extraflags
-            -g
-            -fPIC
-            -fvisibility=hidden
+            # -fPIC via cmake CMAKE_POSITION_INDEPENDENT_CODE
+            # -fvisibility=hidden Done via cmake CMAKE_CXX_VISIBILITY_PRESET
             -Wall   # Enable all errors
-            -Werror     # All warnings as errors
             -Wextra
             -pedantic
             -pedantic-errors
@@ -129,19 +150,22 @@ macro(EnableStrictCompilation)
             # Remove unused code
             -ffunction-sections
             -fdata-sections
-            -Wl,--gc-sections
         )
         set(extracxxflags
-            -std=c++20
-            -fvisibility-inlines-hidden
+            # -std=c++20 via CMAKE_CXX_STANDARD
+            # -fvisibility-inlines-hidden via CMAKE_VISIBILITY_INLINES_HIDDEN
         )
 
         if (NOT EMSCRIPTEN)
-            list(APPEND extraflags -Wl,--exclude-libs,ALL)
+            list(APPEND extraflags
+                    -Wl,--exclude-libs,ALL
+                    -Werror     # All warnings as errors
+                    -Wl,--gc-sections
+           )
         endif()
 
         if (EMSCRIPTEN)
-            list(APPEND extraflags -pthread -Wno-limited-postlink-optimizations)
+            list(APPEND extraflags -pthread -Wno-limited-postlink-optimizations -sASYNCIFY)
         endif()
         if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL Clang)
             list(APPEND extraflags
@@ -169,7 +193,6 @@ macro(EnableStrictCompilation)
             # TODO GCC Bug: Compiling with -O1 can sometimes result errors
             # due to running out of string slots (file too big)
             list(APPEND extraflags -O1)
-
             list(APPEND extraflags -Wa,-mbig-obj)
             list(APPEND extraflags -DWIN32=1 -D_WINDOWS=1 -DWIN32_LEAN_AND_MEAN=1)
             list(APPEND extracxxflags -DNOMINMAX=1)
@@ -185,6 +208,17 @@ macro(EnableStrictCompilation)
         set(exclusions "[-/]W[a-zA-Z1-9]+")
         _FixFlags(CMAKE_C_FLAGS     EXCLUDE ${exclusions} APPEND ${extraflags})
         _FixFlags(CMAKE_CXX_FLAGS   EXCLUDE ${exclusions} APPEND ${extraflags} ${extracxxflags})
+
+        _FixFlags(CMAKE_CXX_FLAGS_RELEASE EXCLUDE "-O." APPEND "-O3")
+        _FixFlags(CMAKE_CXX_FLAGS_RELWITHDEBINFO EXCLUDE "-O." APPEND "-O3")
+        _FixFlags(CMAKE_C_FLAGS_RELEASE EXCLUDE "-O." APPEND "-O3")
+        _FixFlags(CMAKE_C_FLAGS_RELWITHDEBINFO EXCLUDE "-O." APPEND "-O3")
+
+        if (ANDROID)
+            _FixFlags(CMAKE_CXX_LINK_OPTIONS_IPO EXCLUDE "-fuse-ld=gold")
+            _FixFlags(CMAKE_C_LINK_OPTIONS_IPO EXCLUDE "-fuse-ld=gold")
+        endif()
+
         _PrintFlags()
     else()
         _PrintFlags()
@@ -224,10 +258,10 @@ macro (SupressWarningForTarget targetName)
 endmacro()
 
 function(init_submodule path)
-    cmake_parse_arguments("" "" "SUBDMODULE_DIRECTORY" "" ${ARGN})
+    cmake_parse_arguments("" "" "SUBMODULE_DIRECTORY" "" ${ARGN})
     set(srcdir "${CMAKE_CURRENT_SOURCE_DIR}")
-    if (DEFINED _SUBDMODULE_DIRECTORY)
-        set(srcdir "${_SUBDMODULE_DIRECTORY}")
+    if (DEFINED _SUBMODULE_DIRECTORY)
+        set(srcdir "${_SUBMODULE_DIRECTORY}")
     elseif (DEFINED INIT_SUBMODULE_DIRECTORY)
         set(srcdir "${INIT_SUBMODULE_DIRECTORY}")
     endif()
