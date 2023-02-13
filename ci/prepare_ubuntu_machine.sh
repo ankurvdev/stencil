@@ -42,7 +42,7 @@ apt-get update && \
 apt-get install --yes --no-install-recommends --quiet \
     g++-12 clang-${CLANG_VERSION} clang-format-${CLANG_VERSION} \
     libc++-${CLANG_VERSION}-dev libc++abi-${CLANG_VERSION}-dev \
-    llvm cmake flex bison gettext \
+    llvm-${CLANG_VERSION} cmake flex bison gettext \
 
 
 update-alternatives --install /usr/bin/cc cc /usr/bin/clang-${CLANG_VERSION} 100
