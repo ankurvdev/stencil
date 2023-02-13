@@ -193,8 +193,10 @@ template <typename TClock> struct SerDes<std::chrono::time_point<TClock>, Protoc
 
     template <typename Context> static auto Write(Context& ctx, TObj const& obj)
     {
-        fmt::print(ctx, "{}", date::format("%FT%T", std::chrono::time_point_cast<std::chrono::microseconds>(obj)));
-        //    fmt::print(ctx, "{}", obj.time_since_epoch().count());
+        // date::format doesnt seem to be thread-safe
+        fmt::print(ctx, "{%FT%T}", std::chrono::time_point_cast<std::chrono::microseconds>(obj));
+        // fmt::print(ctx, "{}", date::format("%FT%T", std::chrono::time_point_cast<std::chrono::microseconds>(obj)));
+        // fmt::print(ctx, "{}", obj.time_since_epoch().count());
     }
 
     template <typename Context> static auto Read(TObj& obj, Context& ctx)
