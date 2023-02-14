@@ -37,11 +37,12 @@ echo "-- Configure package repository for gcc toolchain"
 add-apt-repository --yes --no-update "ppa:ubuntu-toolchain-r/test"
 
 # Install build pre-requisites.
+# llvm-ar and llvm-ranlib are needed if the compiler is clang
 apt-get update && \
 apt-get install --yes --no-install-recommends --quiet \
     g++-12 clang-${CLANG_VERSION} clang-format-${CLANG_VERSION} \
     libc++-${CLANG_VERSION}-dev libc++abi-${CLANG_VERSION}-dev \
-    cmake flex bison gettext \
+    llvm-${CLANG_VERSION} cmake flex bison gettext \
 
 
 update-alternatives --install /usr/bin/cc cc /usr/bin/clang-${CLANG_VERSION} 100

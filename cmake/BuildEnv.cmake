@@ -57,7 +57,14 @@ macro(_PrintFlags)
         endforeach()
     endforeach()
 
-    message(STATUS "CMAKE_SYSTEM_PROCESSOR         : ${CMAKE_SYSTEM_PROCESSOR}")
+    foreach (varname
+		    CMAKE_SYSTEM_PROCESSOR CMAKE_HOST_SYSTEM CMAKE_SYSTEM_NAME
+		    CMAKE_CXX_COMPILER_ID CMAKE_C_COMPILER_ID
+		    CMAKE_CXX_COMPILER CMAKE_C_COMPILER
+		    CMAKE_CXX_COMPILER_AR CMAKE_C_COMPILER_AR
+		    CMAKE_CXX_COMPILER_RANLIB CMAKE_C_COMPILER_RANLIB)
+         message(STATUS "${varname}: ${${varname}}")
+    endforeach()
 endmacro()
 
 function(_FixFlags name)
