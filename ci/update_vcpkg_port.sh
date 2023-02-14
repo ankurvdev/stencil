@@ -24,18 +24,7 @@ git -C ${scriptdir} rev-parse --short HEAD
 git -c user.email="ankur.verma@outlook.com" -c  user.name="Ankur Verma" -C ${scriptdir} commit ${portfile} ${portjson} -m "Update VCPKG Port to ${commitId}"
 git -C ${scriptdir} checkout -b vcpkg.${shortCommitId}
 git -C ${scriptdir} checkout -b vcpkg
-
-# Uppdate vcpkg
-vcpkgurl=$(git -C ${scriptdir} config remote.origin.url | grep -oE '.*ankurvdev')/vcpkg
-vcpkgdir=${scriptdir}/vcpkg.tmp
-echo "${vcpkgurl} ${vcpkgdir}"
-git clone ${vcpkgurl} ${vcpkgdir} --depth 1 -b ankurv/${project}
-cp ${portfile} ${vcpkgdir}/ports/${project}/portfile.json
-cp ${portjson} ${vcpkgdir}/ports/${project}/vcpkg.json
-git -C ${vcpkgdir} diff
-git -c user.email="ankur.verma@outlook.com" -c  user.name="Ankur Verma" -C ${vcpkgdir} commit -a -m "Update VCPKG Port to ${commitId}"
-git -C ${vcpkgdir} log
-
-git -C ${scriptdir} push origin vcpkg.${shortCommitId} --set-upstream
-git -C ${scriptdir} push origin vcpkg --force --set-upstream
-git -C ${vcpkgdir} push
+if [[ "$1" == "push" ]]; then
+    git -C ${scriptdir} push origin vcpkg.${shortCommitId} --set-upstream
+    git -C ${scriptdir} push origin vcpkg --force --set-upstream
+fi
