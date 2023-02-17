@@ -171,7 +171,8 @@ template <size_t N> struct SerDes<std::array<char, N>, ProtocolJsonVal>
     template <typename Context> static auto Read(TObj& obj, Context& ctx)
     {
         obj = {};
-        if (!ctx.empty()) { std::copy(std::begin(ctx), std::end(ctx), std::begin(obj)); }
+        if (ctx == "null") return;
+        _ReadQuotedString(obj, ctx);
     }
 };
 
