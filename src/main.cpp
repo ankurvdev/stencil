@@ -1,12 +1,11 @@
 #include "Generator.h"
 #include "Thrift.h"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Weverything"
-#pragma warning(push, 3)
+SUPPRESS_WARNINGS_START
+SUPPRESS_STL_WARNINGS
 #include <cxxopts.hpp>
-#pragma warning(pop)
-#pragma clang diagnostic pop
+SUPPRESS_WARNINGS_END
+
 #include <iostream>
 #include <string>
 

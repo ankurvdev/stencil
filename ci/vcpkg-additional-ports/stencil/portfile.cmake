@@ -1,7 +1,7 @@
 # sha512sum can be obtained using
 # wget -O - -q  https://github.com/ankurdev/stencil/archive/b6429f8b92947273a5e66d5f10210b960616a89d.tar.gz | sha512sum
-set(commitId 1d3e31137d811c2e0a42cfcd063a617e7db4467b)
-set(sha512 91fa2073004aa089b952b606921b2eb6f432bf939434b8ad5237bf33baeae393be46c96364ea0878040e0eb8ff3e955519fc544af22460f0a160efba9eb3e7d1)
+set(commitId 9f033f4d534c5d391e332697f026004f222c5d86)
+set(sha512 a02173739073a45df05b634ff0cd9740d02a4fcf59470e83eeb977b89e4d4c9ac5c15262bb502162713f8205c069db73a8017d5a64dc4ff823ae84c8b680db83)
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO ankurvdev/stencil
