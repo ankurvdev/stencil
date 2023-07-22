@@ -9,6 +9,7 @@
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
 SUPPRESS_FMT_WARNINGS
+#pragma warning(disable : 5232)    // 5232: in C++20 this comparison calls
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
 #include <rapidjson/rapidjson.h>
