@@ -138,7 +138,7 @@ def DownloadEmscriptenInfoTo(path: pathlib.Path):
     if not emconfig.exists():
         script = sdkpath/"emsdk.bat" if sys.platform == "win32" else sdkpath/"emsdk"
         if not script.exists():
-            subprocess.check_call(["git", "clone", "https://github.com/emscripten-core/emsdk.git", "-b", "3.1.41", sdkpath])
+            subprocess.check_call(["git", "clone", "https://github.com/emscripten-core/emsdk.git", "-b", "3.1.40", sdkpath])
         subprocess.check_call(f"{script.as_posix()} install {EMSDK_VERSION}", shell=True, cwd=sdkpath)
         subprocess.check_call(f"{script.as_posix()} activate  {EMSDK_VERSION}", shell=True, cwd=sdkpath)
         lines = emconfig.read_text(encoding='utf-8').splitlines()
