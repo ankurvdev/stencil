@@ -203,7 +203,7 @@ TEST_CASE("Transactions", "[transaction]")
     replay.Replay("obj3.obj1.val2 = 222000000");
 }
 
-TEST_CASE("Timestamped_Transactions", "[transaction][timestamp")
+TEST_CASE("Timestamped_Transactions", "[transaction][timestamp]")
 {
 
     SECTION("Auto Update On Assign", "Timestamp should automatically update when a field value is assigned")

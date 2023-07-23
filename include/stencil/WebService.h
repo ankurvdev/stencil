@@ -86,7 +86,7 @@ struct SSEListenerManager
                 if (_manager->_stopRequested) return;
                 _dataAvailable.wait(lock, [&](...) { return _sink != nullptr || _manager->_stopRequested; });
                 if (_manager->_stopRequested) return;
-                if (!_sink->is_writable())
+                if (_sink->os.fail())
                 {
                     _manager->Remove(lock, shared_from_this());
                     _sink->done();
@@ -114,7 +114,6 @@ struct SSEListenerManager
             if (inst->_stopRequested) continue;
             try
             {
-                if (!inst->_sink->is_writable()) { continue; }
                 inst->_sink->write(msg.data(), msgSize);
                 inst->_dataAvailable.notify_all();
             } catch (...)

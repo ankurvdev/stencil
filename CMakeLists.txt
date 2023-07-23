@@ -129,7 +129,10 @@ target_include_directories(libstencil PUBLIC src)
 add_lexyacc_library(TARGET Thrift LYFILE src/Thrift.ly SOURCES src/Thrift.cpp)
 target_include_directories(Thrift PUBLIC src)
 target_link_libraries(Thrift PUBLIC CommonMacros fmt::fmt-header-only)
-
+if (MSVC)
+    # TOML11 has a nasty usage of insecure apis
+    set_source_files_properties("src/ModelGenerator.cpp" PROPERTIES COMPILE_FLAGS "/D_CRT_SECURE_NO_WARNINGS")
+endif()
 target_link_libraries(libstencil PUBLIC Thrift)
 target_add_resource(libstencil templates ${resfiles})
 list(APPEND resfiles ${public_headers})
@@ -173,7 +176,7 @@ if (BUILD_TESTING)
     target_include_directories(codegen_tests PRIVATE src include tests)
     target_link_libraries(codegen_tests PRIVATE libstencil Thrift TestCommon)
     target_add_resource(codegen_tests testdata ${resfiles} ${pidlfiles})
-
+    target_compile_definitions(codegen_tests PRIVATE HAVE_EMBEDRESOURCE=1)
     add_executable(runtime_tests
         tests/HandwrittenRuntime/Test_Handwritten_CLOpts.cpp
         tests/HandwrittenRuntime/Test_Handwritten_Json.cpp
@@ -187,6 +190,7 @@ if (BUILD_TESTING)
     add_test(NAME runtime_tests COMMAND runtime_tests)
 
     target_add_resource(runtime_tests testdata ${resfiles})
+    target_compile_definitions(runtime_tests PRIVATE HAVE_EMBEDRESOURCE=1)
     target_include_directories(runtime_tests PRIVATE src include tests)
  
 endif()

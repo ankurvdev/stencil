@@ -19,6 +19,6 @@ add_executable(codegen_runtime_tests
     "${CMAKE_CURRENT_LIST_DIR}/../tests/CodegenRuntime/Test_Codegen_EnumConstsInitializers.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../tests/CodegenRuntime/Test_Interfaces.cpp"
 )
-
+target_compile_definitions(codegen_runtime_tests PRIVATE HAVE_EMBEDRESOURCE=1)
 target_link_libraries(codegen_runtime_tests PRIVATE codegen testdata TestCommon CppHttpLib)
 add_test(NAME codegen_runtime_tests COMMAND codegen_runtime_tests)

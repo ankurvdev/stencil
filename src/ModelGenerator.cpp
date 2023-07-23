@@ -11,7 +11,6 @@ SUPPRESS_STL_WARNINGS
 #pragma warning(disable : 4061)    // switch case not handled
 #pragma warning(disable : 4583)    // destructor not implicitly called
 #pragma warning(disable : 4582)    // constructor not implicitly called
-
 #include <tinyxml2.h>
 #include <toml.hpp>
 #include <tsl/ordered_map.h>
