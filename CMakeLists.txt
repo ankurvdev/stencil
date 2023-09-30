@@ -56,6 +56,88 @@ FetchContent_Declare(
   GIT_PROGRESS TRUE
   FIND_PACKAGE_ARGS NAMES Boost COMPONENTS beast
 )
+
+FetchContent_Declare(
+  date
+  GIT_REPOSITORY https://github.com/HowardHinnant/date
+  GIT_TAG        v3.0.1
+  SOURCE_SUBDIR .
+  GIT_PROGRESS TRUE
+  FIND_PACKAGE_ARGS NAMES date
+)
+
+FetchContent_Declare(
+  cpp-httplib
+  GIT_REPOSITORY https://github.com/yhirose/cpp-httplib
+  GIT_TAG        v0.13.1
+  SOURCE_SUBDIR .
+  GIT_PROGRESS TRUE
+  FIND_PACKAGE_ARGS NAMES CppHttpLib
+)
+
+FetchContent_Declare(
+  ordered-map
+  GIT_REPOSITORY https://github.com/Tessil/ordered-map
+  GIT_TAG        v1.1.0
+  SOURCE_SUBDIR .
+  GIT_PROGRESS TRUE
+  FIND_PACKAGE_ARGS NAMES tsl-ordered-map 
+)
+
+FetchContent_Declare(
+  fmt
+  GIT_REPOSITORY https://github.com/fmtlib/fmt
+  GIT_TAG        10.1.1
+  SOURCE_SUBDIR .
+  GIT_PROGRESS TRUE
+  FIND_PACKAGE_ARGS NAMES fmt
+)
+
+FetchContent_Declare(
+  stduuid
+  GIT_REPOSITORY https://github.com/mariusbancila/stduuid
+  GIT_TAG        v1.2.3
+  SOURCE_SUBDIR .
+  GIT_PROGRESS TRUE
+  FIND_PACKAGE_ARGS NAMES stduuid
+)
+
+FetchContent_Declare(
+  rapidjson
+  GIT_REPOSITORY https://github.com/Tencent/rapidjson
+  GIT_TAG        f9d53419e912910fd8fa57d5705fa41425428c35
+  SOURCE_SUBDIR .
+  GIT_PROGRESS TRUE
+  FIND_PACKAGE_ARGS NAMES RapidJSON
+)
+
+FetchContent_Declare(
+  embedresource
+  GIT_REPOSITORY https://github.com/ankurvdev/embedresource
+  GIT_TAG        v0.0.5
+  SOURCE_SUBDIR .
+  GIT_PROGRESS TRUE
+  FIND_PACKAGE_ARGS NAMES embedresource
+)
+
+FetchContent_Declare(
+    catch2
+    GIT_REPOSITORY https://github.com/catchorg/Catch2
+    GIT_TAG v3.4.0
+    SOURCE_SUBDIR .
+    GIT_PROGRESS TRUE
+    FIND_PACKAGE_ARGS NAMES Catch2
+)
+
+FetchContent_Declare(
+    dtl
+    GIT_REPOSITORY hhttps://github.com/cubicdaiya/dtl
+    GIT_TAG v1.20
+    SOURCE_SUBDIR .
+    GIT_PROGRESS TRUE
+    FIND_PACKAGE_ARGS NAMES dtl
+)
+
 set(BOOST_INCLUDE_LIBRARIES beast)
 set(BOOST_ENABLE_CMAKE ON)
 
@@ -71,18 +153,19 @@ FetchContent_MakeAvailable(tomlplusplus)
 FetchContent_MakeAvailable(embedresource)
 FetchContent_MakeAvailable(tinyxml2)
 FetchContent_MakeAvailable(cxxopts)
+FetchContent_MakeAvailable(ordered-map)
+FetchContent_MakeAvailable(stduuid)
+FetchContent_MakeAvailable(fmt)
+FetchContent_MakeAvailable(date)
+FetchContent_MakeAvailable(rapidjson)
 
-find_package(tsl-ordered-map QUIET)
-if (NOT tsl-ordered-map_FOUND)
-    init_submodule(ordered-map)
+if (NOT TARGET tsl_ordered_map)
     add_library(tsl_ordered_map INTERFACE)
     add_library(tsl::ordered_map ALIAS tsl_ordered_map)
     target_include_directories(tsl_ordered_map INTERFACE external/ordered-map/include)
 endif()
 
-find_package(stduuid QUIET)
-if (NOT stduuid_FOUND)
-    init_submodule(stduuid)
+if (NOT TARGET stduuid)
     add_library(stduuid INTERFACE)
     add_library(stduuid::stduuid ALIAS stduuid)
     target_include_directories(stduuid INTERFACE external/stduuid/include)
@@ -90,12 +173,7 @@ if (NOT stduuid_FOUND)
     list(APPEND public_headers "${UUIDHEADER}")
 endif()
 
-find_package(fmt QUIET MODULE REQUIRED)
-find_package(date QUIET MODULE REQUIRED)
-
-find_package(RapidJSON QUIET)
-if (NOT RapidJSON_FOUND)
-    init_submodule(rapidjson)
+if (NOT TARGET rapidjson)
     add_library(rapidjson INTERFACE)
     #SupressWarningForTarget(rapidjson)
     target_compile_definitions(rapidjson INTERFACE USE_RAPIDJSON=1)
@@ -103,13 +181,6 @@ if (NOT RapidJSON_FOUND)
 endif()
 find_package(CommonMacros QUIET MODULE REQUIRED)
 list(APPEND public_headers "${COMMONMACROS_INCLUDE_FILE}")
-
-#find_package(simdjson QUIET)
-#if (NOT simdjson_FOUND)
-#    init_submodule(simdjson)
-#    add_library(simdjson INTERFACE)
-#endif()
-
 
 if (BUILD_TESTING)
     enable_testing()
