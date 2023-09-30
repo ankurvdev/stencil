@@ -4,6 +4,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/modules)
 set(INIT_SUBMODULE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/external)
 
 include(BuildEnv)
+include(FetchContent)
 
 project(stencil VERSION 0.0.3)
 
@@ -15,6 +16,49 @@ option(STENCIL_INSTALL_BUILDTOOLS "Install Extra Build Tools with install" ON)
 set(CMAKE_CXX_STANDARD 20)
 EnableStrictCompilation()
 
+FetchContent_Declare(
+  tomlplusplus
+  GIT_REPOSITORY https://github.com/marzer/tomlplusplus
+  GIT_TAG        master
+  SOURCE_SUBDIR .
+  FIND_PACKAGE_ARGS NAMES tomlplusplus
+)
+
+FetchContent_Declare(
+  embedresource
+  GIT_REPOSITORY https://github.com/ankurvdev/embedresource
+  GIT_TAG        v0.0.5
+  SOURCE_SUBDIR .
+  FIND_PACKAGE_ARGS NAMES EmbeddedResource
+)
+
+FetchContent_Declare(
+  tinyxml2
+  GIT_REPOSITORY https://github.com/leethomason/tinyxml2
+  GIT_TAG        master
+  SOURCE_SUBDIR .
+  FIND_PACKAGE_ARGS NAMES tinyxml2
+)
+
+FetchContent_Declare(
+  cxxopts
+  GIT_REPOSITORY https://github.com/jarro2783/cxxopts
+  GIT_TAG        master
+  SOURCE_SUBDIR .
+  FIND_PACKAGE_ARGS NAMES cxxopts
+)
+
+FetchContent_Declare(
+  boostbeast
+  GIT_REPOSITORY https://github.com/boostorg/boost.git
+  GIT_TAG        boost-1.83.0
+  SOURCE_SUBDIR .
+  GIT_PROGRESS TRUE
+  FIND_PACKAGE_ARGS NAMES Boost COMPONENTS beast
+)
+set(BOOST_INCLUDE_LIBRARIES beast)
+set(BOOST_ENABLE_CMAKE ON)
+
 find_package (Threads REQUIRED)
 
 set(LexYacc_DIR       ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc)
@@ -23,15 +67,10 @@ file(GLOB public_headers ${CMAKE_CURRENT_LIST_DIR}/include/stencil/*)
 
 find_package(LexYacc)
 
-find_package(EmbedResource)
-
-find_package(toml11 QUIET)
-if (NOT toml11_FOUND)
-    init_submodule(toml11)
-    add_library(toml11 INTERFACE)
-    add_library(toml11::toml11 ALIAS toml11)
-    target_include_directories(toml11 INTERFACE external/toml11)
-endif()
+FetchContent_MakeAvailable(tomlplusplus)
+FetchContent_MakeAvailable(embedresource)
+FetchContent_MakeAvailable(tinyxml2)
+FetchContent_MakeAvailable(cxxopts)
 
 find_package(tsl-ordered-map QUIET)
 if (NOT tsl-ordered-map_FOUND)
@@ -40,25 +79,6 @@ if (NOT tsl-ordered-map_FOUND)
     add_library(tsl::ordered_map ALIAS tsl_ordered_map)
     target_include_directories(tsl_ordered_map INTERFACE external/ordered-map/include)
 endif()
-
-find_package(tinyxml2 QUIET)
-if (NOT tinyxml2_FOUND)
-    init_submodule(tinyxml2)
-    add_library(tinyxml2 external/tinyxml2/tinyxml2.cpp external/tinyxml2/tinyxml2.h)
-    target_compile_definitions(tinyxml2 PUBLIC $<$<CONFIG:Debug>:TINYXML2_DEBUG>)
-    target_include_directories(tinyxml2 PUBLIC external/tinyxml2)
-    add_library(tinyxml2::tinyxml2 ALIAS tinyxml2)
-    SupressWarningForTarget(tinyxml2)
-endif()
-
-find_package(cxxopts QUIET)
-if (NOT cxxopts_FOUND)
-    init_submodule(cxxopts)
-    add_library(cxxopts INTERFACE)
-    add_library(cxxopts::cxxopts ALIAS cxxopts)
-    target_include_directories(cxxopts INTERFACE external/cxxopts/include)
-endif()
-
 
 find_package(stduuid QUIET)
 if (NOT stduuid_FOUND)
@@ -95,18 +115,10 @@ if (BUILD_TESTING)
     enable_testing()
 
     find_package(Catch2 QUIET REQUIRED)
+    add_library(websvc INTERFACE)
 
-    find_path(CPP_HTTPLIB_INCLUDE_DIRS "httplib.h")
-    if (NOT EXISTS "${CPP_HTTPLIB_INCLUDE_DIRS}")
-        init_submodule(cpp-httplib)
-        set(CPP_HTTPLIB_INCLUDE_DIRS "external/cpp-httplib")
-    endif()
-    add_library(cpp_httplib INTERFACE)
-    add_library(cpp_httplib::cpp_httplib ALIAS cpp_httplib)
-    target_include_directories(cpp_httplib INTERFACE "${CPP_HTTPLIB_INCLUDE_DIRS}")
-    if (WIN32 OR MSYS)
-        target_link_libraries(cpp_httplib INTERFACE ws2_32)
-    endif()
+    FetchContent_MakeAvailable(boostbeast)
+    target_link_libraries(websvc INTERFACE Boost::beast)
 endif()
 
 build_lexyacc()
@@ -141,7 +153,7 @@ if (NOT BUILD_TESTING)
 endif()
 
 target_link_libraries(libstencil PUBLIC
-    toml11::toml11
+    tomlplusplus::tomlplusplus
     tinyxml2::tinyxml2
     tsl::ordered_map
     fmt::fmt-header-only
@@ -183,9 +195,9 @@ if (BUILD_TESTING)
         tests/HandwrittenRuntime/Test_Handwritten_Binary.cpp
     )
 
-    target_compile_definitions(runtime_tests PRIVATE HAVE_NLOHMANN_JSON HAVE_CPP_HTTPLIB)
+    target_compile_definitions(runtime_tests PRIVATE HAVE_NLOHMANN_JSON)
     target_link_libraries(runtime_tests PRIVATE stencil_runtime)
-    target_link_libraries(runtime_tests PRIVATE TestCommon cpp_httplib::cpp_httplib stencil::runtime)
+    target_link_libraries(runtime_tests PRIVATE TestCommon websvc stencil::runtime)
     target_link_libraries (runtime_tests PRIVATE Threads::Threads)
     add_test(NAME runtime_tests COMMAND runtime_tests)
 

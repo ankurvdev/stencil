@@ -43,3 +43,9 @@
 [submodule "external/embedresource"]
 	path = external/embedresource
 	url = https://github.com/ankurvdev/embedresource
+[submodule "external/beast"]
+	path = external/beast
+	url = https://github.com/boostorg/beast.git
+[submodule "external/tomlplusplus"]
+	path = external/tomlplusplus
+	url = https://github.com/marzer/tomlplusplus
