@@ -1,23 +1,22 @@
-find_path(DTL_INCLUDE_DIRS "dtl/Diff.hpp")
+include_guard()
 
-if (NOT EXISTS "${DTL_INCLUDE_DIRS}")
-    if (COMMAND init_submodule)
-        init_submodule(dtl)
-        set(DTL_INCLUDE_DIRS "${INIT_SUBMODULE_DIRECTORY}/dtl")
-    elseif (EXISTS "${VCPKG_ROOT}" AND DEFINED VCPKG_TARGET_TRIPLET)
-        message(STATUS "Attempting to install vcpkg port dtl:${VCPKG_TARGET_TRIPLET}")
-        find_program(VCPKG_EXECUTABLE vcpkg REQUIRED PATHS "${VCPKG_ROOT}")
-        execute_process(COMMAND "${VCPKG_EXECUTABLE}" install dtl:${VCPKG_TARGET_TRIPLET} 
-            COMMAND_ERROR_IS_FATAL ANY
-            WORKING_DIRECTORY "${VCPKG_ROOT}"
-        )
-        unset(DTL_INCLUDE_DIRS CACHE)
-        find_path(DTL_INCLUDE_DIRS "dtl/Diff.hpp")
-    else()
-        message(FATAL_ERROR "Cannot find dtl")
-    endif()
+FetchContent_Declare(
+    dtl
+    GIT_REPOSITORY https://github.com/cubicdaiya/dtl
+    GIT_TAG v1.20
+    SOURCE_SUBDIR .
+    GIT_PROGRESS TRUE
+    FIND_PACKAGE_ARGS NAMES dtl
+)
+if (COMMAND vcpkg_install)
+    vcpkg_install(dtl)
 endif()
 
-add_library(dtl INTERFACE)
-add_library(dtl::dtl ALIAS dtl)
-target_include_directories(dtl INTERFACE "${DTL_INCLUDE_DIRS}")
+FetchContent_MakeAvailable(dtl)
+
+if (NOT TARGET dtl)
+    find_path(DTL_INCLUDE_DIRS "dtl/Diff.hpp")
+    add_library(dtl INTERFACE)
+    add_library(dtl::dtl ALIAS dtl)
+    target_include_directories(dtl INTERFACE "${DTL_INCLUDE_DIRS}")
+endif()

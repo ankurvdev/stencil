@@ -1,32 +1,16 @@
-if (NOT TARGET CppHttpLib)
-    find_path(CPP_HTTPLIB_INCLUDE_DIRS "httplib.h")
-    if (NOT EXISTS "${CPP_HTTPLIB_INCLUDE_DIRS}")
-        if (COMMAND init_submodule)
-            init_submodule(cpp-httplib)
-            set(CPP_HTTPLIB_INCLUDE_DIRS "${INIT_SUBMODULE_DIRECTORY}/cpp-httplib")
-        elseif (EXISTS "${VCPKG_ROOT}" AND DEFINED VCPKG_TARGET_TRIPLET)
-            message(FATAL_ERROR "2 CPP_HTTPLIB_INCLUDE_DIRS not found")
+include_guard()
 
-            message(STATUS "Attempting to install vcpkg port cpp-httplib:${VCPKG_TARGET_TRIPLET}")
-            find_program(VCPKG_EXECUTABLE vcpkg REQUIRED PATHS "${VCPKG_ROOT}")
-            execute_process(COMMAND "${VCPKG_EXECUTABLE}" install cpp-httplib:${VCPKG_TARGET_TRIPLET} 
-                COMMAND_ERROR_IS_FATAL ANY
-                WORKING_DIRECTORY "${VCPKG_ROOT}"
-            )
-            unset(DTL_INCLUDE_DIRS CACHE)
-            find_path(CPP_HTTPLIB_INCLUDE_DIRS "httplib.h")
-        else()
-            message(FATAL_ERROR "3 CPP_HTTPLIB_INCLUDE_DIRS not found")
-        endif()
-    endif()
-    if (EXISTS "${CPP_HTTPLIB_INCLUDE_DIRS}")
-        add_library(CppHttpLib INTERFACE)
-        target_include_directories(CppHttpLib INTERFACE "${CPP_HTTPLIB_INCLUDE_DIRS}")
-        target_compile_definitions(CppHttpLib INTERFACE HAVE_CPP_HTTPLIB=1)
-        if (WIN32 OR MSYS)
-            target_link_libraries(CppHttpLib INTERFACE ws2_32)
-        endif()
-    else()
-        message(FATAL_ERROR "CPP_HTTPLIB_INCLUDE_DIRS:: ${CPP_HTTPLIB_INCLUDE_DIRS} not found")
-    endif()
+FetchContent_Declare(
+  cpp-httplib
+  GIT_REPOSITORY https://github.com/yhirose/cpp-httplib
+  GIT_TAG        v0.13.1
+  SOURCE_SUBDIR .
+  GIT_PROGRESS TRUE
+  FIND_PACKAGE_ARGS NAMES CppHttpLib
+)
+
+if (COMMAND vcpkg_install)
+    vcpkg_install(cpp-httplib)
 endif()
+
+FetchContent_MakeAvailable(cpp-httplib)

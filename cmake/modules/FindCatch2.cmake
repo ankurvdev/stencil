@@ -1,22 +1,28 @@
-find_package(Catch2 CONFIG QUIET)
-if (NOT TARGET Catch2::Catch2)
-    if (COMMAND init_submodule)
-        init_submodule(Catch2)
-        add_subdirectory(${INIT_SUBMODULE_DIRECTORY}/Catch2 Catch2)
-        SupressWarningForTarget(Catch2)
-        SupressWarningForTarget(Catch2WithMain)
-        if (MSVC)
-            target_compile_options(Catch2 PUBLIC /wd4868)
-        endif()
-    elseif (EXISTS "${VCPKG_ROOT}" AND DEFINED VCPKG_TARGET_TRIPLET)
-        message(STATUS "Attempting to install vcpkg port Catch2:${VCPKG_TARGET_TRIPLET}")
-        find_program(VCPKG_EXECUTABLE vcpkg REQUIRED PATHS "${VCPKG_ROOT}")
-        execute_process(COMMAND "${VCPKG_EXECUTABLE}" install Catch2:${VCPKG_TARGET_TRIPLET} 
-            COMMAND_ERROR_IS_FATAL ANY
-            WORKING_DIRECTORY "${VCPKG_ROOT}"
-        )
-        find_package(Catch2 CONFIG QUIET REQUIRED)
-    else()
-        message(FATAL_ERROR "Cannot find Catch2")
-    endif()
+
+include_guard()
+
+FetchContent_Declare(
+    catch2
+    GIT_REPOSITORY https://github.com/catchorg/Catch2
+    GIT_TAG v3.4.0
+    SOURCE_SUBDIR .
+    GIT_PROGRESS TRUE
+    FIND_PACKAGE_ARGS NAMES Catch2
+)
+if (COMMAND vcpkg_install)
+    vcpkg_install(Catch2)
+endif()
+
+FetchContent_MakeAvailable(catch2)
+if (TARGET Catch2)
+if (COMMAND SupressWarningForTarget)
+    SupressWarningForTarget(Catch2)
+endif()
+if(MSVC)
+target_compile_options(Catch2 PUBLIC /wd4868)
+endif()
+endif()
+
+if (COMMAND SupressWarningForTarget AND TARGET Catch2WithMain)
+    SupressWarningForTarget(Catch2WithMain)
 endif()

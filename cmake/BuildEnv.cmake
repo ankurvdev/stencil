@@ -201,7 +201,7 @@ macro(EnableStrictCompilation)
             # list(APPEND extraflags -O1)
             # list(APPEND extraflags -Wa,-mbig-obj)
             # list(APPEND extraflags -mconsole  -Wl,-subsystem,console)
-            list(APPEND extraflags -DWIN32=1 -D_WINDOWS=1 -DWIN32_LEAN_AND_MEAN=1)
+            list(APPEND extraflags -DWIN32=1 -D_WINDOWS=1 -DWIN32_LEAN_AND_MEAN1=1)
             list(APPEND extracxxflags -DNOMINMAX=1)
         endif()
 

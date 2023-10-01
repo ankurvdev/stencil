@@ -1,6 +1,15 @@
-find_package(EmbedResource CONFIG QUIET)
+include_guard()
 
-if (NOT EmbedResource_FOUND)
-    init_submodule(embedresource)
-    include(${INIT_SUBMODULE_DIRECTORY}/embedresource/cmake/EmbedResourceTargets.cmake) # For add_subdirectory mode
+FetchContent_Declare(
+  embedresource
+  GIT_REPOSITORY https://github.com/ankurvdev/embedresource
+  GIT_TAG        v0.0.5
+  SOURCE_SUBDIR .
+  FIND_PACKAGE_ARGS NAMES EmbeddedResource
+)
+
+if (COMMAND vcpkg_install)
+    vcpkg_install(embedresource)
 endif()
+
+FetchContent_MakeAvailable(embedresource)

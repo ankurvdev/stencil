@@ -24,13 +24,6 @@ FetchContent_Declare(
   FIND_PACKAGE_ARGS NAMES tomlplusplus
 )
 
-FetchContent_Declare(
-  embedresource
-  GIT_REPOSITORY https://github.com/ankurvdev/embedresource
-  GIT_TAG        v0.0.5
-  SOURCE_SUBDIR .
-  FIND_PACKAGE_ARGS NAMES EmbeddedResource
-)
 
 FetchContent_Declare(
   tinyxml2
@@ -38,14 +31,6 @@ FetchContent_Declare(
   GIT_TAG        master
   SOURCE_SUBDIR .
   FIND_PACKAGE_ARGS NAMES tinyxml2
-)
-
-FetchContent_Declare(
-  cxxopts
-  GIT_REPOSITORY https://github.com/jarro2783/cxxopts
-  GIT_TAG        master
-  SOURCE_SUBDIR .
-  FIND_PACKAGE_ARGS NAMES cxxopts
 )
 
 FetchContent_Declare(
@@ -58,39 +43,12 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
-  date
-  GIT_REPOSITORY https://github.com/HowardHinnant/date
-  GIT_TAG        v3.0.1
-  SOURCE_SUBDIR .
-  GIT_PROGRESS TRUE
-  FIND_PACKAGE_ARGS NAMES date
-)
-
-FetchContent_Declare(
-  cpp-httplib
-  GIT_REPOSITORY https://github.com/yhirose/cpp-httplib
-  GIT_TAG        v0.13.1
-  SOURCE_SUBDIR .
-  GIT_PROGRESS TRUE
-  FIND_PACKAGE_ARGS NAMES CppHttpLib
-)
-
-FetchContent_Declare(
   ordered-map
   GIT_REPOSITORY https://github.com/Tessil/ordered-map
   GIT_TAG        v1.1.0
   SOURCE_SUBDIR .
   GIT_PROGRESS TRUE
   FIND_PACKAGE_ARGS NAMES tsl-ordered-map 
-)
-
-FetchContent_Declare(
-  fmt
-  GIT_REPOSITORY https://github.com/fmtlib/fmt
-  GIT_TAG        10.1.1
-  SOURCE_SUBDIR .
-  GIT_PROGRESS TRUE
-  FIND_PACKAGE_ARGS NAMES fmt
 )
 
 FetchContent_Declare(
@@ -105,37 +63,10 @@ FetchContent_Declare(
 FetchContent_Declare(
   rapidjson
   GIT_REPOSITORY https://github.com/Tencent/rapidjson
-  GIT_TAG        f9d53419e912910fd8fa57d5705fa41425428c35
+  GIT_TAG        949c771b03de448bdedea80c44a4a5f65284bfeb
   SOURCE_SUBDIR .
   GIT_PROGRESS TRUE
   FIND_PACKAGE_ARGS NAMES RapidJSON
-)
-
-FetchContent_Declare(
-  embedresource
-  GIT_REPOSITORY https://github.com/ankurvdev/embedresource
-  GIT_TAG        v0.0.5
-  SOURCE_SUBDIR .
-  GIT_PROGRESS TRUE
-  FIND_PACKAGE_ARGS NAMES embedresource
-)
-
-FetchContent_Declare(
-    catch2
-    GIT_REPOSITORY https://github.com/catchorg/Catch2
-    GIT_TAG v3.4.0
-    SOURCE_SUBDIR .
-    GIT_PROGRESS TRUE
-    FIND_PACKAGE_ARGS NAMES Catch2
-)
-
-FetchContent_Declare(
-    dtl
-    GIT_REPOSITORY hhttps://github.com/cubicdaiya/dtl
-    GIT_TAG v1.20
-    SOURCE_SUBDIR .
-    GIT_PROGRESS TRUE
-    FIND_PACKAGE_ARGS NAMES dtl
 )
 
 set(BOOST_INCLUDE_LIBRARIES beast)
@@ -148,16 +79,18 @@ set(LexYacc_DIR       ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc)
 file(GLOB public_headers ${CMAKE_CURRENT_LIST_DIR}/include/stencil/*)
 
 find_package(LexYacc)
+find_package(cxxopts REQUIRED MODULE)
+find_package(fmt REQUIRED MODULE)
+find_package(EmbedResource REQUIRED MODULE)
+find_package(date REQUIRED MODULE)
 
 FetchContent_MakeAvailable(tomlplusplus)
 FetchContent_MakeAvailable(embedresource)
 FetchContent_MakeAvailable(tinyxml2)
-FetchContent_MakeAvailable(cxxopts)
 FetchContent_MakeAvailable(ordered-map)
 FetchContent_MakeAvailable(stduuid)
-FetchContent_MakeAvailable(fmt)
-FetchContent_MakeAvailable(date)
 FetchContent_MakeAvailable(rapidjson)
+FetchContent_MakeAvailable(boostbeast)
 
 if (NOT TARGET tsl_ordered_map)
     add_library(tsl_ordered_map INTERFACE)
@@ -184,11 +117,8 @@ list(APPEND public_headers "${COMMONMACROS_INCLUDE_FILE}")
 
 if (BUILD_TESTING)
     enable_testing()
-
-    find_package(Catch2 QUIET REQUIRED)
+    find_package(Catch2 REQUIRED MODULE)
     add_library(websvc INTERFACE)
-
-    FetchContent_MakeAvailable(boostbeast)
     target_link_libraries(websvc INTERFACE Boost::beast)
 endif()
 

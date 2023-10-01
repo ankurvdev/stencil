@@ -1,6 +1,7 @@
+include_guard()
 if (NOT TARGET TestCommon)
-    find_package(dtl REQUIRED MODULE)
-    find_package(Catch2 REQUIRED)
+    find_package(dtl MODULE)
+    find_package(Catch2 MODULE)
     find_package(EmbedResource REQUIRED)
 
     add_library(TestCommon INTERFACE)

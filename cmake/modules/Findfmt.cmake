@@ -1,18 +1,16 @@
-find_package(fmt CONFIG QUIET)
-if (NOT TARGET fmt::fmt-header-only)
-    if (COMMAND init_submodule)
-        init_submodule(fmt)
-        add_subdirectory(${INIT_SUBMODULE_DIRECTORY}/fmt EXCLUDE_FROM_ALL fmt)
-        SupressWarningForTarget(fmt)
-    elseif (EXISTS "${VCPKG_ROOT}" AND DEFINED VCPKG_TARGET_TRIPLET)
-        message(STATUS "Attempting to install vcpkg port fmt:${VCPKG_TARGET_TRIPLET}")
-        find_program(VCPKG_EXECUTABLE vcpkg REQUIRED PATHS ${VCPKG_ROOT})
-        execute_process(COMMAND "${VCPKG_EXECUTABLE}" install fmt:${VCPKG_TARGET_TRIPLET} 
-            COMMAND_ERROR_IS_FATAL ANY
-            WORKING_DIRECTORY "${VCPKG_ROOT}"
-        )
-        find_package(fmt CONFIG REQUIRED)
-    else()
-        message(FATAL_ERROR "Cannot find fmt")
-    endif()
+include_guard()
+
+FetchContent_Declare(
+    fmt
+    GIT_REPOSITORY https://github.com/fmtlib/fmt
+    GIT_TAG        10.1.1
+    SOURCE_SUBDIR  .
+    GIT_PROGRESS TRUE
+    FIND_PACKAGE_ARGS NAMES fmt
+)
+
+if (COMMAND vcpkg_install)
+    vcpkg_install(fmt)
 endif()
+
+FetchContent_MakeAvailable(fmt)
