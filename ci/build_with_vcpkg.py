@@ -5,6 +5,7 @@ import pprint
 import shutil
 import subprocess
 import sys
+
 import externaltools
 
 
@@ -27,10 +28,23 @@ def _find_from_vcpkg(name: str):
 def _find_from_vs_win(name: str):
     if sys.platform != "win32":
         return pathlib.Path()
-    vs_path = subprocess.run([
-        pathlib.Path("C:/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe").as_posix(),
-        "-prerelease", "-version", "16.0", "-property", "installationPath", "-products", "*", "-requires", "Microsoft.VisualStudio.Component.VC.CMake.Project"
-    ], check=True, capture_output=True, universal_newlines=True).stdout.splitlines()[-1]
+    vs_path = subprocess.run(
+        [
+            pathlib.Path("C:/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe").as_posix(),
+            "-prerelease",
+            "-version",
+            "16.0",
+            "-property",
+            "installationPath",
+            "-products",
+            "*",
+            "-requires",
+            "Microsoft.VisualStudio.Component.VC.CMake.Project",
+        ],
+        check=True,
+        capture_output=True,
+        universal_newlines=True,
+    ).stdout.splitlines()[-1]
     return pathlib.Path(list(pathlib.Path(vs_path).rglob(f"{name}.exe"))[0])
 
 
@@ -45,7 +59,12 @@ def _find_cached_paths(name: str):
 
 
 def find_binary(name: str):
-    for fn in [_find_cached_paths, _find_from_path, _find_from_vcpkg, _find_from_vs_win]:
+    for fn in [
+        _find_cached_paths,
+        _find_from_path,
+        _find_from_vcpkg,
+        _find_from_vs_win,
+    ]:
         pth: pathlib.Path = fn(name)
         if pth != pathlib.Path():
             CACHED_PATHS[name] = pth.absolute()
@@ -63,45 +82,56 @@ scriptdir = pathlib.Path(__file__).parent.absolute()
 portname = "stencil"
 workdir = pathlib.Path(args.workdir).absolute()
 workdir.mkdir(exist_ok=True)
-vcpkgroot = (workdir / "vcpkg")
-vcpkgportfile = vcpkgroot / "ports" / portname / 'portfile.cmake'
-androidroot = (workdir / "android")
+vcpkgroot = workdir / "vcpkg"
+vcpkgportfile = vcpkgroot / "ports" / portname / "portfile.cmake"
+androidroot = workdir / "android"
 
 if not vcpkgroot.exists():
-    subprocess.check_call([find_binary("git"), "clone", "-q", "https://github.com/ankurvdev/vcpkg.git",
-                          "--branch", "lkg_patched", "--depth", "1"], cwd=workdir.as_posix())
+    subprocess.check_call(
+        [
+            find_binary("git"),
+            "clone",
+            "-q",
+            "https://github.com/ankurvdev/vcpkg.git",
+            "--branch",
+            "lkg_patched",
+            "--depth",
+            "1",
+        ],
+        cwd=workdir.as_posix(),
+    )
 
 bootstrapscript = "bootstrap-vcpkg.bat" if sys.platform == "win32" else "bootstrap-vcpkg.sh"
 defaulttriplet = "x64-windows-static" if sys.platform == "win32" else "x64-linux"
 host_triplet = args.host_triplet or defaulttriplet
 runtime_triplet = args.runtime_triplet or defaulttriplet
 
-for portdir in (scriptdir / 'vcpkg-additional-ports').glob("*"):
+for portdir in (scriptdir / "vcpkg-additional-ports").glob("*"):
     dst = vcpkgroot / "ports" / portdir.name
     shutil.rmtree(dst.as_posix(), ignore_errors=True)
     shutil.copytree(portdir.as_posix(), dst)
 
-vcpkgportfile.write_text(vcpkgportfile.read_text().replace('SOURCE_PATH ${SOURCE_PATH}', f'SOURCE_PATH "{scriptdir.parent.as_posix()}"'))
+vcpkgportfile.write_text(vcpkgportfile.read_text().replace("SOURCE_PATH ${SOURCE_PATH}", f'SOURCE_PATH "{scriptdir.parent.as_posix()}"'))
 
 myenv = os.environ.copy()
-myenv['VCPKG_ROOT'] = vcpkgroot.as_posix()
-myenv['VCPKG_KEEP_ENV_VARS'] = 'ANDROID_NDK_HOME'
-myenv['VERBOSE'] = "1"
+myenv["VCPKG_ROOT"] = vcpkgroot.as_posix()
+myenv["VCPKG_KEEP_ENV_VARS"] = "ANDROID_NDK_HOME"
+myenv["VERBOSE"] = "1"
 if "android" in host_triplet or "android" in runtime_triplet:
     paths = externaltools.DownloadAndroidTo((workdir / "android"))
-    myenv['ANDROID_NDK_HOME'] = paths['ndk'].as_posix()
+    myenv["ANDROID_NDK_HOME"] = paths["ndk"].as_posix()
 if "wasm32" in host_triplet or "wasm32" in runtime_triplet:
-    info = externaltools.DownloadEmscriptenInfoTo(workdir/"emsdk")
-    alreadypaths = set([pathlib.Path(onepath).absolute() for onepath in myenv['PATH'].split(os.pathsep)])
+    info = externaltools.DownloadEmscriptenInfoTo(workdir / "emsdk")
+    alreadypaths = set([pathlib.Path(onepath).absolute() for onepath in myenv["PATH"].split(os.pathsep)])
     appendpaths = list([onepath.as_posix() for onepath in info.paths if onepath.absolute() not in alreadypaths])
     appendpathsstr = os.pathsep.join(appendpaths)
     if len(appendpathsstr) > 0:
-        newpath = os.pathsep.join([appendpathsstr, myenv['PATH']])
-        myenv['PATH'] = newpath
+        newpath = os.pathsep.join([appendpathsstr, myenv["PATH"]])
+        myenv["PATH"] = newpath
         sys.stderr.write(f"PATH += {appendpathsstr}\n")
         sys.stderr.write(f"PATH = {newpath}\n")
     for envvarname, envvarval in info.envvars.items():
-        sys.stderr.write(f'{envvarname} = {envvarval}\n')
+        sys.stderr.write(f"{envvarname} = {envvarval}\n")
         myenv[envvarname] = envvarval
 
 subprocess.check_call((vcpkgroot / bootstrapscript).as_posix(), shell=True, cwd=workdir, env=myenv)
@@ -118,17 +148,17 @@ def vcpkg_install(port: str):
 print(f"VCPKG_ROOT = {vcpkgroot}")
 
 try:
-    for log in pathlib.Path(vcpkgroot / "buildtrees").rglob('*.log'):
-        if log.parent.parent.name == 'buildtrees':
+    for log in pathlib.Path(vcpkgroot / "buildtrees").rglob("*.log"):
+        if log.parent.parent.name == "buildtrees":
             log.unlink()
     pprint.pprint(myenv)
     vcpkg_install(portname + ":" + host_triplet)
     if host_triplet != runtime_triplet:
         vcpkg_install(portname + ":" + runtime_triplet)
 except subprocess.CalledProcessError:
-    logs = list(pathlib.Path(vcpkgroot / "buildtrees").rglob('*.log'))
+    logs = list(pathlib.Path(vcpkgroot / "buildtrees").rglob("*.log"))
     for log in logs:
-        if log.parent.parent.name == 'buildtrees':
+        if log.parent.parent.name == "buildtrees":
             print(f"\n\n ========= START: {log} ===========")
             print(log.read_text())
             print(f" ========= END: {log} =========== \n\n")
@@ -140,53 +170,81 @@ def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str):
     if testdir.exists():
         shutil.rmtree(testdir.as_posix())
     testdir.mkdir()
-    cmakebuildextraargs = (["--config", config] if sys.platform == "win32" else [])
+    cmakebuildextraargs = ["--config", config] if sys.platform == "win32" else []
     cmakeconfigargs: list[str] = []
     if "android" in runtime_triplet:
         vcpkg_install("catch2:" + runtime_triplet)
         vcpkg_install("dtl:" + runtime_triplet)
 
         cmakeconfigargs += [
-            "-DCMAKE_TOOLCHAIN_FILE:PATH=" + myenv['ANDROID_NDK_HOME'] + "/build/cmake/android.toolchain.cmake",
+            "-DCMAKE_TOOLCHAIN_FILE:PATH=" + myenv["ANDROID_NDK_HOME"] + "/build/cmake/android.toolchain.cmake",
             "-DANDROID=1",
             "-DANDROID_NATIVE_API_LEVEL=21",
-            "-DANDROID_ABI=arm64-v8a"
+            "-DANDROID_ABI=arm64-v8a",
         ]
         if runtime_triplet == "arm64-android":
             cmakeconfigargs += ["-DANDROID_ABI=arm64-v8a"]
         else:
             cmakeconfigargs += ["-DANDROID_ABI=armeabi-v7a"]
-        if shutil.which('make') is not None:
+        if shutil.which("make") is not None:
             cmakeconfigargs += ["-G", "Unix Makefiles"]
         else:
-            cmakeconfigargs += ["-G", "Ninja", f"-DCMAKE_MAKE_PROGRAM:FILEPATH={find_binary('ninja')}"]
+            cmakeconfigargs += [
+                "-G",
+                "Ninja",
+                f"-DCMAKE_MAKE_PROGRAM:FILEPATH={find_binary('ninja')}",
+            ]
     if "wasm32" in runtime_triplet:
         vcpkg_install("catch2:" + runtime_triplet)
         vcpkg_install("dtl:" + runtime_triplet)
         cmakeconfigargs += [
-            "-DCMAKE_TOOLCHAIN_FILE:PATH=" + myenv['EMSDK'] + "/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
+            "-DCMAKE_TOOLCHAIN_FILE:PATH=" + myenv["EMSDK"] + "/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
         ]
         if sys.platform == "win32":
-            if shutil.which('make') is not None:
-                cmakeconfigargs += ["-G", "Unix Makefiles"]
+            if shutil.which("make") is not None:
+                cmakeconfigargs += ["-G", "MinGW Makefiles"]
             else:
-                cmakeconfigargs += ["-G", "Ninja", f"-DCMAKE_MAKE_PROGRAM:FILEPATH={find_binary('ninja')}"]
+                cmakeconfigargs += [
+                    "-G",
+                    "Ninja",
+                    f"-DCMAKE_MAKE_PROGRAM:FILEPATH={find_binary('ninja')}",
+                ]
 
     if "windows" in runtime_triplet:
-        cmakeconfigargs += ["-G", "Visual Studio 17 2022", "-A", ("Win32" if "x86" in runtime_triplet else "x64")]
-    ctestextraargs = (["-C", config] if sys.platform == "win32" else [])
-    cmd: list[str] = [find_binary("cmake"),
-                      f"-DCMAKE_BUILD_TYPE:STR={config}",
-                      f"-DVCPKG_ROOT:PATH={vcpkgroot.as_posix()}",
-                      f"-DVCPKG_HOST_TRIPLET:STR={host_triplet}",
-                      f"-DVCPKG_TARGET_TRIPLET:STR={runtime_triplet}",
-                      "-DVCPKG_VERBOSE:BOOL=ON"] + cmakeconfigargs + [
-        (scriptdir / "sample").as_posix()]
+        cmakeconfigargs += [
+            "-G",
+            "Visual Studio 17 2022",
+            "-A",
+            ("Win32" if "x86" in runtime_triplet else "x64"),
+        ]
+    ctestextraargs = ["-C", config] if sys.platform == "win32" else []
+    cmd: list[str] = (
+        [
+            find_binary("cmake"),
+            f"-DCMAKE_BUILD_TYPE:STR={config}",
+            f"-DVCPKG_ROOT:PATH={vcpkgroot.as_posix()}",
+            f"-DVCPKG_HOST_TRIPLET:STR={host_triplet}",
+            f"-DVCPKG_TARGET_TRIPLET:STR={runtime_triplet}",
+            "-DVCPKG_VERBOSE:BOOL=ON",
+        ]
+        + cmakeconfigargs
+        + [(scriptdir / "sample").as_posix()]
+    )
     subprocess.check_call(cmd, cwd=testdir.as_posix())
-    subprocess.check_call([find_binary("cmake"), "--build", ".", "--verbose", "-j"] + cmakebuildextraargs, cwd=testdir)
+    subprocess.check_call(
+        [find_binary("cmake"), "--build", ".", "--verbose", "-j"] + cmakebuildextraargs,
+        cwd=testdir,
+    )
     if runtime_triplet == host_triplet:
-        subprocess.check_call([find_binary("ctest"), ".", "--output-on-failure"] + ctestextraargs, cwd=testdir)
+        subprocess.check_call(
+            [find_binary("ctest"), ".", "--output-on-failure"] + ctestextraargs,
+            cwd=testdir,
+        )
 
 
-test_vcpkg_build("Debug", host_triplet, runtime_triplet, )
+test_vcpkg_build(
+    "Debug",
+    host_triplet,
+    runtime_triplet,
+)
 test_vcpkg_build("Release", host_triplet, runtime_triplet)

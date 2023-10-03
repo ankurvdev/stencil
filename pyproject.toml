@@ -5,5 +5,4 @@ line-length = 140
 line-length = 140
 fixable = ["ALL"]
 select = ["I", "E", "PL", "F", "PTH"]
-ignore = [
-    ]
+ignore = []
