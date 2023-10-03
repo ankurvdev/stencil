@@ -43,30 +43,12 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
-  ordered-map
-  GIT_REPOSITORY https://github.com/Tessil/ordered-map
-  GIT_TAG        v1.1.0
-  SOURCE_SUBDIR .
-  GIT_PROGRESS TRUE
-  FIND_PACKAGE_ARGS NAMES tsl-ordered-map 
-)
-
-FetchContent_Declare(
   stduuid
   GIT_REPOSITORY https://github.com/mariusbancila/stduuid
   GIT_TAG        v1.2.3
   SOURCE_SUBDIR .
   GIT_PROGRESS TRUE
   FIND_PACKAGE_ARGS NAMES stduuid
-)
-
-FetchContent_Declare(
-  rapidjson
-  GIT_REPOSITORY https://github.com/Tencent/rapidjson
-  GIT_TAG        949c771b03de448bdedea80c44a4a5f65284bfeb
-  SOURCE_SUBDIR .
-  GIT_PROGRESS TRUE
-  FIND_PACKAGE_ARGS NAMES RapidJSON
 )
 
 set(BOOST_INCLUDE_LIBRARIES beast)
@@ -87,16 +69,10 @@ find_package(date REQUIRED MODULE)
 FetchContent_MakeAvailable(tomlplusplus)
 FetchContent_MakeAvailable(embedresource)
 FetchContent_MakeAvailable(tinyxml2)
-FetchContent_MakeAvailable(ordered-map)
 FetchContent_MakeAvailable(stduuid)
-FetchContent_MakeAvailable(rapidjson)
 FetchContent_MakeAvailable(boostbeast)
-
-if (NOT TARGET tsl_ordered_map)
-    add_library(tsl_ordered_map INTERFACE)
-    add_library(tsl::ordered_map ALIAS tsl_ordered_map)
-    target_include_directories(tsl_ordered_map INTERFACE external/ordered-map/include)
-endif()
+find_package(tsl-ordered-map)
+find_package(RapidJSON)
 
 if (NOT TARGET stduuid)
     add_library(stduuid INTERFACE)
@@ -106,12 +82,6 @@ if (NOT TARGET stduuid)
     list(APPEND public_headers "${UUIDHEADER}")
 endif()
 
-if (NOT TARGET rapidjson)
-    add_library(rapidjson INTERFACE)
-    #SupressWarningForTarget(rapidjson)
-    target_compile_definitions(rapidjson INTERFACE USE_RAPIDJSON=1)
-    target_include_directories(rapidjson INTERFACE external/rapidjson/include)
-endif()
 find_package(CommonMacros QUIET MODULE REQUIRED)
 list(APPEND public_headers "${COMMONMACROS_INCLUDE_FILE}")
 
@@ -173,7 +143,7 @@ set_target_properties(stencil PROPERTIES PUBLIC_HEADER "${public_headers}")
 target_link_libraries(stencil PRIVATE libstencil Thrift cxxopts::cxxopts)
 
 if (BUILD_TESTING)
-    include(RuntimeCodegenTests)
+    add_subdirectory(tests/CodegenRuntime)
 endif()
 
 if (BUILD_TESTING)

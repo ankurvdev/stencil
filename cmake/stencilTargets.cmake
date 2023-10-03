@@ -128,13 +128,10 @@ function(_add_stencil_target)
                DEPENDS ${STENCIL_EXECUTABLE} ${_IDLS}
                COMMENT "Generating IDL code :  ${STENCIL_EXECUTABLE} --outdir=${outdir} ${ARGN}"
                VERBATIM)
-    if (NOT TARGET date::date)
-        find_package(date REQUIRED)
-    endif()
     add_library(${targetName} INTERFACE ${outputs})
     target_sources(${targetName} INTERFACE ${outputs} ${_IDLS})
     target_include_directories(${targetName} INTERFACE $<BUILD_INTERFACE:${outdir}>)
-    target_link_libraries(${targetName} INTERFACE stencil::runtime date::date fmt::fmt-header-only)
+    target_link_libraries(${targetName} INTERFACE stencil::runtime)
 endfunction()
 
 # IDL Compiler

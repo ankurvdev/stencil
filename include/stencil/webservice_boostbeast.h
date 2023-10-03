@@ -1,7 +1,7 @@
 #include "CommonMacros.h"
-#define STENCIL_USING_WEBSERVICE
-
+#include "interfaces.h"
 #include "protocol_json.h"
+
 SUPPRESS_WARNINGS_START
 #pragma GCC diagnostic ignored "-Wsubobject-linkage"
 #include <boost/asio/awaitable.hpp>
@@ -24,6 +24,8 @@ SUPPRESS_WARNINGS_END
 #include <thread>
 #include <vector>
 
+#define STENCIL_USING_WEBSERVICE
+
 #if !defined(BOOST_ASIO_HAS_CO_AWAIT)
 #error Need co await
 #endif
@@ -41,6 +43,16 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
     WebService()   = default;
     ~WebService() override { StopDaemon(); }
     CLASS_DELETE_COPY_AND_MOVE(WebService);
+
+    inline std::tuple<std::string_view, std::string_view> Split(std::string_view const& path, char token = '/')
+    {
+        if (path.empty()) throw std::logic_error("Invalid path");
+        size_t start = path[0] == token ? 1u : 0u;
+        size_t index = path.find(token, start);
+        auto   str1  = path.substr(start, index - start);
+        if (index == path.npos) return {str1, {}};
+        return {str1, path.substr(index)};
+    }
 
     // auto& Server() { return *this; }
 
@@ -157,14 +169,10 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
         if (req.method() != boost::beast::http::verb::get && req.method() != boost::beast::http::verb::head)
             return bad_request("Unknown HTTP-method");
 
-        // Request path must be absolute and not contain "..".
-        if (req.target().empty() || req.target()[0] != '/' || req.target().find("..") != boost::beast::string_view::npos)
-            return bad_request("Illegal request-target");
-
         Response res{};
         res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
-        res.set(boost::beast::http::field::content_type, mime_type(path));
-        res.content_length(size);
+        res.set(boost::beast::http::field::content_type, "application/json");
+        // res.content_length(size);
         res.keep_alive(req.keep_alive());
 
         // Build the path to the requested file
@@ -287,18 +295,18 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
 
     bool _HandleRequest(const Request& req, Response& res)
     {
-        std::string_view const& path = req.path;
-        auto [ifname, subpath]       = impl::Split(path);
+        std::string_view const& path = req.target();
+        auto [ifname, subpath]       = Split(path);
         if (ifname != "api" || subpath.empty()) return false;
         try
         {
-            auto [ifname1, subpath1] = impl::Split(subpath);
+            auto [ifname1, subpath1] = Split(subpath);
             bool found               = (_TryHandleRequest<Ts>(req, res, ifname1, subpath1) || ...);
             if (!found) throw std::runtime_error(fmt::format("No matching interface found for {}", ifname1));
         } catch (std::exception const& ex)
         {
-            res.status = 500;
-            res.body   = ex.what();
+            res.result(500);
+            res.body() = ex.what();
         }
         return true;
     }

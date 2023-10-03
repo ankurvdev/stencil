@@ -53,8 +53,8 @@ macro(_PrintFlags)
                     "_RELEASE       "
                     "_RELWITHDEBINFO"
                     "_MINSIZEREL    ")
-            set(varname ${flagname}${variant})
-            message(STATUS "${flagname}${variant}:${${varname}}")
+            set(varname ${flagname}${variantstr})
+            message(STATUS "${varname}:${${varname}}")
         endforeach()
     endforeach()
 
@@ -92,9 +92,10 @@ function(_FixFlags name)
     list(APPEND cflags ${_APPEND})
     list(REMOVE_DUPLICATES cflags)
     list(JOIN cflags " " cflagsstr)
-
-    message(STATUS "${name}: \n\t<== ${_VALUE}\n\t==> ${cflagsstr}")
-    set(${name} "${cflagsstr}" PARENT_SCOPE)
+    if (NOT "${_VALUE}" STREQUAL "${cflagsstr}")
+        message(STATUS "${name}: \n\t<== ${_VALUE}\n\t==> ${cflagsstr}")
+        set(${name} "${cflagsstr}" PARENT_SCOPE)
+    endif()
 endfunction()
 
 macro(EnableStrictCompilation)
@@ -216,10 +217,10 @@ macro(EnableStrictCompilation)
         _FixFlags(CMAKE_C_FLAGS     EXCLUDE ${exclusions} APPEND ${extraflags})
         _FixFlags(CMAKE_CXX_FLAGS   EXCLUDE ${exclusions} APPEND ${extraflags} ${extracxxflags})
 
-        _FixFlags(CMAKE_CXX_FLAGS_RELEASE EXCLUDE "-O." APPEND "-O3")
-        _FixFlags(CMAKE_CXX_FLAGS_RELWITHDEBINFO EXCLUDE "-O." APPEND "-O3")
-        _FixFlags(CMAKE_C_FLAGS_RELEASE EXCLUDE "-O." APPEND "-O3")
-        _FixFlags(CMAKE_C_FLAGS_RELWITHDEBINFO EXCLUDE "-O." APPEND "-O3")
+        _FixFlags(CMAKE_CXX_FLAGS_RELEASE EXCLUDE "-O[^3]+" APPEND "-O3")
+        _FixFlags(CMAKE_CXX_FLAGS_RELWITHDEBINFO EXCLUDE "-O[^3]+" APPEND "-O3")
+        _FixFlags(CMAKE_C_FLAGS_RELEASE EXCLUDE "-O[^3]+" APPEND "-O3")
+        _FixFlags(CMAKE_C_FLAGS_RELWITHDEBINFO EXCLUDE "-O[^3]+" APPEND "-O3")
 
         if (MINGW)
             # TODO GCC Bug: Compiling with -O1 can sometimes result errors
