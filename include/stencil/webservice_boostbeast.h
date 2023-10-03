@@ -44,6 +44,12 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
     ~WebService() override { StopDaemon(); }
     CLASS_DELETE_COPY_AND_MOVE(WebService);
 
+    template <typename T1, typename T2> inline bool iequal(T1 const& a, T2 const& b)
+    {
+        return std::equal(
+            std::begin(a), std::end(a), std::begin(b), std::end(b), [](auto a1, auto b1) { return tolower(a1) == tolower(b1); });
+    }
+
     inline std::tuple<std::string_view, std::string_view> Split(std::string_view const& path, char token = '/')
     {
         if (path.empty()) throw std::logic_error("Invalid path");
@@ -142,6 +148,7 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
             return res;
         };
 
+#if 0
         // Returns a not found response
         auto const not_found = [&req](boost::beast::string_view target) {
             boost::beast::http::response<boost::beast::http::string_body> res{boost::beast::http::status::not_found, req.version()};
@@ -164,7 +171,7 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
             res.prepare_payload();
             return res;
         };
-
+#endif
         // Make sure we can handle the method
         if (req.method() != boost::beast::http::verb::get && req.method() != boost::beast::http::verb::head)
             return bad_request("Unknown HTTP-method");
@@ -175,33 +182,18 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
         // res.content_length(size);
         res.keep_alive(req.keep_alive());
 
-        // Build the path to the requested file
-        std::string path;    //= path_cat(doc_root, req.target());
-        if (req.target().back() == '/') path.append("index.html");
-
-        // Attempt to open the file
-        boost::beast::error_code                  ec;
-        boost::beast::http::file_body::value_type body;
-        body.open(path.c_str(), boost::beast::file_mode::scan, ec);
-
-        // Handle the case where the file doesn't exist
-        if (ec == boost::beast::errc::no_such_file_or_directory) return not_found(req.target());
-
-        // Handle an unknown error
-        if (ec) return server_error(ec.message());
-
-        // Cache the size since we need it after the move
-        auto const size = body.size();
-
         // Respond to HEAD request
         if (req.method() == boost::beast::http::verb::head)
         {
+            TODO("HEAD");
+#if 0
             boost::beast::http::response<boost::beast::http::empty_body> res{boost::beast::http::status::ok, req.version()};
             res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
             res.set(boost::beast::http::field::content_type, mime_type(path));
             res.content_length(size);
             res.keep_alive(req.keep_alive());
             return res;
+#endif
         }
         _HandleRequest(req, res);
 
@@ -311,16 +303,18 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
         return true;
     }
 
-    void _HandleError(const Request& /* req */, Response& res)
+    void _HandleError(const Request& /* req */, Response& /* res */)
     {
-        res.set_content(fmt::format("<p>Error Status: <span style='color:red;'>{}</span></p>", res.status), "text/html");
+        TODO("_HANDLE_ERROR");
+        // res.set_content(fmt::format("<p>Error Status: <span style='color:red;'>{}</span></p>", res.status), "text/html");
     }
 
     template <ConceptInterface T>
-    bool _TryHandleRequest(Request const& req, Response& res, std::string_view const& ifname, std::string_view const& path)
+    bool
+    _TryHandleRequest(Request const& /* req */, Response& /* res */, std::string_view const& ifname, std::string_view const& /* path */)
     {
-        if (!impl::iequal(Stencil::InterfaceTraits<T>::Name(), ifname)) { return false; }
-        impl::WebRequestHandler<T>{*std::get<std::unique_ptr<T>>(_impls).get(), req, res, _sseManager}.HandleRequest(path);
+        if (!iequal(Stencil::InterfaceTraits<T>::Name(), ifname)) { return false; }
+        // impl::WebRequestHandler<T>{*std::get<std::unique_ptr<T>>(_impls).get(), req, res, _sseManager}.HandleRequest(path);
         return true;
     }
 

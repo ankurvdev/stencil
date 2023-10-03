@@ -26,23 +26,6 @@ FetchContent_Declare(
 
 
 FetchContent_Declare(
-  tinyxml2
-  GIT_REPOSITORY https://github.com/leethomason/tinyxml2
-  GIT_TAG        master
-  SOURCE_SUBDIR .
-  FIND_PACKAGE_ARGS NAMES tinyxml2
-)
-
-FetchContent_Declare(
-  boostbeast
-  GIT_REPOSITORY https://github.com/boostorg/boost.git
-  GIT_TAG        boost-1.83.0
-  SOURCE_SUBDIR .
-  GIT_PROGRESS TRUE
-  FIND_PACKAGE_ARGS NAMES Boost COMPONENTS beast
-)
-
-FetchContent_Declare(
   stduuid
   GIT_REPOSITORY https://github.com/mariusbancila/stduuid
   GIT_TAG        v1.2.3
@@ -50,9 +33,6 @@ FetchContent_Declare(
   GIT_PROGRESS TRUE
   FIND_PACKAGE_ARGS NAMES stduuid
 )
-
-set(BOOST_INCLUDE_LIBRARIES beast)
-set(BOOST_ENABLE_CMAKE ON)
 
 find_package (Threads REQUIRED)
 
@@ -65,12 +45,11 @@ find_package(cxxopts REQUIRED MODULE)
 find_package(fmt REQUIRED MODULE)
 find_package(EmbedResource REQUIRED MODULE)
 find_package(date REQUIRED MODULE)
+find_package(tinyxml2 REQUIRED MODULE)
 
 FetchContent_MakeAvailable(tomlplusplus)
 FetchContent_MakeAvailable(embedresource)
-FetchContent_MakeAvailable(tinyxml2)
 FetchContent_MakeAvailable(stduuid)
-FetchContent_MakeAvailable(boostbeast)
 find_package(tsl-ordered-map)
 
 if (NOT TARGET stduuid)
