@@ -6,7 +6,7 @@ FetchContent_Declare(
   GIT_TAG        v0.13.1
   SOURCE_SUBDIR .
   GIT_PROGRESS TRUE
-  FIND_PACKAGE_ARGS NAMES CppHttpLib
+  FIND_PACKAGE_ARGS NAMES httplib
 )
 
 if (COMMAND vcpkg_install)

@@ -2,8 +2,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/stencilTargets.cmake)
 set(stencil_INCLUDE_PATH "${CMAKE_CURRENT_LIST_DIR}/../include" CACHE PATH "Stencil include path")
 
 find_package(TestCommon REQUIRED MODULE)
-FetchContent_MakeAvailable(cpp-httplib)
-FetchContent_MakeAvailable(embedresource)
+find_package(httplib REQUIRED)
 
 file(GLOB test_data_files CONFIGURE_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/../tests/testdata/*")
 file(GLOB pidlfiles "${CMAKE_CURRENT_LIST_DIR}/../tests/*.pidl")
@@ -20,5 +19,5 @@ add_executable(codegen_runtime_tests
     "${CMAKE_CURRENT_LIST_DIR}/../tests/CodegenRuntime/Test_Interfaces.cpp"
 )
 target_compile_definitions(codegen_runtime_tests PRIVATE HAVE_EMBEDRESOURCE=1)
-target_link_libraries(codegen_runtime_tests PRIVATE codegen testdata TestCommon websvc CppHttpLib)
+target_link_libraries(codegen_runtime_tests PRIVATE codegen testdata TestCommon websvc httplib::httplib)
 add_test(NAME codegen_runtime_tests COMMAND codegen_runtime_tests)

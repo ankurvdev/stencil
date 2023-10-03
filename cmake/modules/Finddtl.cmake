@@ -15,7 +15,7 @@ endif()
 FetchContent_MakeAvailable(dtl)
 
 if (NOT TARGET dtl)
-    find_path(DTL_INCLUDE_DIRS "dtl/Diff.hpp")
+    find_path(DTL_INCLUDE_DIRS "dtl/Diff.hpp" HINTS "${dtl_SOURCE_DIR}" REQUIRED)
     add_library(dtl INTERFACE)
     add_library(dtl::dtl ALIAS dtl)
     target_include_directories(dtl INTERFACE "${DTL_INCLUDE_DIRS}")
