@@ -1,5 +1,5 @@
 include_guard(GLOBAL)
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.26)
 include(GenerateExportHeader)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
@@ -195,6 +195,7 @@ macro(EnableStrictCompilation)
                 -Wno-c++98-compat-pedantic
                 -Wno-reserved-identifier # Allow names starting with underscore
                 -Wno-reserved-id-macro
+                -Wno-unsafe-buffer-usage
                 )
         endif()
 
@@ -202,7 +203,7 @@ macro(EnableStrictCompilation)
             # list(APPEND extraflags -O1)
             # list(APPEND extraflags -Wa,-mbig-obj)
             # list(APPEND extraflags -mconsole  -Wl,-subsystem,console)
-            list(APPEND extraflags -DWIN32=1 -D_WINDOWS=1 -DWIN32_LEAN_AND_MEAN1=1)
+            list(APPEND extraflags -DWIN32=1 -D_WINDOWS=1 -DWIN32_LEAN_AND_MEAN=1)
             list(APPEND extracxxflags -DNOMINMAX=1)
         endif()
 

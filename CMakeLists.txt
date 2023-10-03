@@ -72,7 +72,6 @@ FetchContent_MakeAvailable(tinyxml2)
 FetchContent_MakeAvailable(stduuid)
 FetchContent_MakeAvailable(boostbeast)
 find_package(tsl-ordered-map)
-find_package(RapidJSON)
 
 if (NOT TARGET stduuid)
     add_library(stduuid INTERFACE)
