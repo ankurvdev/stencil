@@ -18,6 +18,6 @@ set(RAPIDJSON_BUILD_EXAMPLES OFF)
 set(RAPIDJSON_BUILD_TESTS OFF)
 set(RAPIDJSON_ENABLE_INSTRUMENTATION_OPT OFF)
 
-FetchContent_MakeAvailable(rapidjson)
+FetchContent_Populate(rapidjson)
 add_library(rapidjson INTERFACE)
 target_include_directories(rapidjson INTERFACE "${rapidjson_SOURCE_DIR}/include")
