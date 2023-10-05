@@ -1,5 +1,6 @@
 .vs
 .vscode
+.clangd
 build
 out
 CMakeSettings.json

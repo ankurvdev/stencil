@@ -101,7 +101,8 @@ endfunction()
 macro(EnableStrictCompilation)
     find_package(Threads)
     file(TIMESTAMP ${CMAKE_CURRENT_LIST_FILE} filetime)
-
+    file(GENERATE OUTPUT "${PROJECT_SOURCE_DIR}/.clangd"
+        CONTENT "CompileFlags:\n\tCompilationDatabase: \"${CMAKE_CURRENT_BINARY_DIR}\"")
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
         set(extraflags
             /external:W3 /external:anglebrackets /external:templates-
