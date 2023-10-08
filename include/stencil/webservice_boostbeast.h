@@ -33,7 +33,7 @@ SUPPRESS_WARNINGS_END
 namespace Stencil::impl
 {
 using Request  = boost::beast::http::request<boost::beast::http::string_body>;
-using Response = boost::beast::http::response<boost::beast::http::string_body>;
+using Response = boost::beast::http::response<boost::beast::http::buffer_body>;
 
 template <typename T1, typename T2> inline bool iequal(T1 const& a, T2 const& b)
 {
@@ -212,7 +212,32 @@ template <ConceptInterface T> struct WebRequestHandler
     {
         if (!impl::iequal(Stencil::InterfaceApiTraits<TEventStructs>::Name(), ifname)) { return false; }
         auto instance = sse.CreateInstance();
+
         TODO("Chunked");
+        // https://github.com/pgit/cppcoro-devcontainer/blob/master/http_echo_awaitable.cpp
+        // https://github.com/fantasy-peak/cpp-freegpt-webui/blob/main/src/main.cpp#L241
+        // https://github.com/chimaoshu/CatPlusPlus/blob/main/src/http.cpp#L230
+        // (no co_await )
+        // https://github.com/jamestiotio/PhotonLibOS/blob/main/net/http/server.cpp#L321
+        // (sse)
+        // https://github.com/openbmc/bmcweb/blob/master/http/server_sent_event.hpp#L95
+        // https://github.com/jgaa/mobile-events/blob/main/eventsd/lib/HttpServer.cpp
+        // boost::beast::http::response<boost::beast::http::buffer_body> res;
+        res.result(boost::beast::http::status::ok);
+        res.version(request.version());
+        res.set(boost::beast::http::field::server, "CppFreeGpt");
+        res.set(boost::beast::http::field::transfer_encoding, "chunked");
+        res.set(boost::beast::http::field::content_type, "text/event-stream");
+        res.body().data = nullptr;
+        res.body().more = true;
+
+        boost::beast::http::response_serializer<boost::beast::http::buffer_body, boost::beast::http::fields> sr{res};
+        auto [ec, count] = co_await boost::beast::http::async_write_header(stream, sr, use_nothrow_awaitable);
+        if (ec)
+        {
+            SPDLOG_ERROR("{}", ec.message());
+            co_return;
+        }
 #if 0
         res.set_chunked_content_provider(
             "text/event-stream",
