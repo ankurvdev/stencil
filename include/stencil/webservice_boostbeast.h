@@ -52,6 +52,16 @@ inline std::tuple<std::string_view, std::string_view> Split(std::string_view con
     return {str1, path.substr(index)};
 }
 
+template <typename Type, typename... Types> struct Selector
+{
+    template <typename... TArgs> static auto Invoke(TArgs&&... args)
+    {
+        if (Type::Matches(std::forward<TArgs>(args)...)) { return Type::Invoke(std::forward<TArgs>(args)...); }
+        if constexpr (sizeof...(Types) == 0) { throw std::runtime_error("Cannot match any"); }
+        else { return Selector<Types...>::Invoke(std::forward<TArgs>(args)...); }
+    }
+};
+
 struct SSEListenerManager
 {
     SSEListenerManager() = default;
@@ -157,12 +167,13 @@ template <ConceptInterface T> struct WebRequestContext
     impl::SSEListenerManager& sse;
     std::ostringstream        rslt;
     std::string_view          ifname;
+    std::string_view          subpath;
 };
 
 template <typename TContext> struct RequestHandlerForEvents
 {
     static bool Matches(TContext& ctx) { return impl::iequal(Stencil::InterfaceApiTraits<TEventStructs>::Name(), ctx.ifname); }
-    static auto Handle(TContext& ctx)
+    static auto Invoke(TContext& ctx)
     {
         auto instance = ctx.sse.CreateInstance();
 
@@ -320,6 +331,49 @@ template <typename TContext> struct RequestHandlerForFunctions
     }
 };
 
+template <typename TContext> struct RequestHandlerError
+{
+    static bool Matches(TContext& ctx) { return true; }
+
+    static auto Handle(TContext& ctx)
+    {
+        using Traits = ::Stencil::InterfaceApiTraits<TArgsStruct>;
+        auto args    = _CreateArgStruct<TArgsStruct>();
+        if constexpr (std::is_same_v<void, decltype(Traits::Invoke(ctx.obj, args))>) { Traits::Invoke(ctx, obj, args); }
+        else
+        {
+            auto retval = Traits::Invoke(ctx.obj, args);
+            rslt << Stencil::Json::Stringify<decltype(retval)>(retval);
+        }
+        return true;
+    }
+};
+
+template <typename TContext> struct RequestHandler
+{
+    static bool Matches(TContext& ctx)
+    {
+        if (ifname != "api" || subpath.empty()) return false;
+        return iequal(Stencil::InterfaceTraits<T>::Name(), ifname);
+    }
+
+    static auto Handle(TContext& ctx)
+    {
+        try
+        {
+            auto [ifname1, subpath1] = impl::Split(subpath);
+
+            bool found = (_TryHandleRequest<Ts>(stream, req, res, ifname1, subpath1) || ...);
+            if (!found) throw std::runtime_error(fmt::format("No matching interface found for {}", ifname1));
+        } catch (std::exception const& ex)
+        {
+            res.result(500);
+            res.body() = ex.what();
+        }
+        return true;
+    }
+};
+
 template <ConceptInterface T> struct WebRequestHandler
 {
 
@@ -383,124 +437,119 @@ template <ConceptInterface T> struct WebRequestHandler
 #endif
             return;
         }
-
-        return SelectOne<HandlerEvents, HandlerObjectStore, HandlerFunction>(ifname, subpath);
-        bool found = HandleEvents(ifname, subpath) || HandleObjectStore(ifname, subpath) || HandleFunction(ifname, subpath);
-
-        if (!found) { throw std::runtime_error(fmt::format("No Matching api found for {}", path)); }
-        // res.set_content(rslt.str(), "application/json");
-    }
-};
+    };
 
 }    // namespace Stencil::impl
+
 namespace Stencil
 {
 
-template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Interface::InterfaceEventHandlerT<WebService<Ts...>, Ts>...
-{
-    using tcp        = boost::asio::ip::tcp;    // from <boost/asio/ip/tcp.hpp>
-    using tcp_stream = typename boost::beast::tcp_stream::rebind_executor<
-        boost::asio::use_awaitable_t<>::executor_with_default<boost::asio::any_io_executor>>::other;
-
-    using Request  = boost::beast::http::request<boost::beast::http::string_body>;
-    using Response = boost::beast::http::response<boost::beast::http::string_body>;
-    WebService()   = default;
-    ~WebService() override { StopDaemon(); }
-    CLASS_DELETE_COPY_AND_MOVE(WebService);
-
-    template <typename T1, typename T2> inline bool iequal(T1 const& a, T2 const& b)
+    template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Interface::InterfaceEventHandlerT<WebService<Ts...>, Ts>...
     {
-        return std::equal(
-            std::begin(a), std::end(a), std::begin(b), std::end(b), [](auto a1, auto b1) { return tolower(a1) == tolower(b1); });
-    }
+        using tcp        = boost::asio::ip::tcp;    // from <boost/asio/ip/tcp.hpp>
+        using tcp_stream = typename boost::beast::tcp_stream::rebind_executor<
+            boost::asio::use_awaitable_t<>::executor_with_default<boost::asio::any_io_executor>>::other;
 
-    // auto& Server() { return *this; }
+        using Request  = boost::beast::http::request<boost::beast::http::string_body>;
+        using Response = boost::beast::http::response<boost::beast::http::string_body>;
+        WebService()   = default;
+        ~WebService() override { StopDaemon(); }
+        CLASS_DELETE_COPY_AND_MOVE(WebService);
 
-    void StartOnPort(uint16_t port)
-    {
-        auto const address = boost::asio::ip::make_address("0.0.0.0");
-        boost::asio::co_spawn(ioc, _do_listen(tcp::endpoint{address, port}), [](std::exception_ptr e) {
-            if (e) try
-                {
-                    std::rethrow_exception(e);
-                } catch (std::exception& e)
-                {
-                    std::cerr << "Error in acceptor: " << e.what() << "\n";
-                }
-        });
+        template <typename T1, typename T2> inline bool iequal(T1 const& a, T2 const& b)
+        {
+            return std::equal(
+                std::begin(a), std::end(a), std::begin(b), std::end(b), [](auto a1, auto b1) { return tolower(a1) == tolower(b1); });
+        }
 
-        _listenthread = std::thread([this]() { ioc.run(); });
+        // auto& Server() { return *this; }
 
-        std::apply([&](auto& impl) { impl->handler = this; }, _impls);
-    }
+        void StartOnPort(uint16_t port)
+        {
+            auto const address = boost::asio::ip::make_address("0.0.0.0");
+            boost::asio::co_spawn(ioc, _do_listen(tcp::endpoint{address, port}), [](std::exception_ptr e) {
+                if (e) try
+                    {
+                        std::rethrow_exception(e);
+                    } catch (std::exception& e)
+                    {
+                        std::cerr << "Error in acceptor: " << e.what() << "\n";
+                    }
+            });
 
-    void StopDaemon() { ioc.stop(); }
+            _listenthread = std::thread([this]() { ioc.run(); });
 
-    void WaitForStop()
-    {
-        if (_listenthread.joinable()) _listenthread.join();
-    }
+            std::apply([&](auto& impl) { impl->handler = this; }, _impls);
+        }
 
-    template <typename TEventArgs> void OnEvent(TEventArgs const& args)
-    {
-        auto msg = fmt::format("event: {}\ndata: {}\n\n", Stencil::InterfaceApiTraits<TEventArgs>::Name(), Stencil::Json::Stringify(args));
-        _sseManager.Send(msg);
-    }
+        void StopDaemon() { ioc.stop(); }
 
-    template <ConceptInterface T> auto& GetInterface() { return *std::get<std::unique_ptr<T>>(_impls).get(); }
+        void WaitForStop()
+        {
+            if (_listenthread.joinable()) _listenthread.join();
+        }
 
-    private:
-    // Return a reasonable mime type based on the extension of a file.
-    static boost::beast::string_view mime_type(boost::beast::string_view path)
-    {
-        using boost::beast::iequals;
-        auto const ext = [&path] {
-            auto const pos = path.rfind(".");
-            if (pos == boost::beast::string_view::npos) return boost::beast::string_view{};
-            return path.substr(pos);
-        }();
-        if (iequals(ext, ".htm")) return "text/html";
-        if (iequals(ext, ".html")) return "text/html";
-        if (iequals(ext, ".php")) return "text/html";
-        if (iequals(ext, ".css")) return "text/css";
-        if (iequals(ext, ".txt")) return "text/plain";
-        if (iequals(ext, ".js")) return "application/javascript";
-        if (iequals(ext, ".json")) return "application/json";
-        if (iequals(ext, ".xml")) return "application/xml";
-        if (iequals(ext, ".swf")) return "application/x-shockwave-flash";
-        if (iequals(ext, ".flv")) return "video/x-flv";
-        if (iequals(ext, ".png")) return "image/png";
-        if (iequals(ext, ".jpe")) return "image/jpeg";
-        if (iequals(ext, ".jpeg")) return "image/jpeg";
-        if (iequals(ext, ".jpg")) return "image/jpeg";
-        if (iequals(ext, ".gif")) return "image/gif";
-        if (iequals(ext, ".bmp")) return "image/bmp";
-        if (iequals(ext, ".ico")) return "image/vnd.microsoft.icon";
-        if (iequals(ext, ".tiff")) return "image/tiff";
-        if (iequals(ext, ".tif")) return "image/tiff";
-        if (iequals(ext, ".svg")) return "image/svg+xml";
-        if (iequals(ext, ".svgz")) return "image/svg+xml";
-        return "application/text";
-    }
+        template <typename TEventArgs> void OnEvent(TEventArgs const& args)
+        {
+            auto msg
+                = fmt::format("event: {}\ndata: {}\n\n", Stencil::InterfaceApiTraits<TEventArgs>::Name(), Stencil::Json::Stringify(args));
+            _sseManager.Send(msg);
+        }
 
-    // Return a response for the given request.
-    //
-    // The concrete type of the response message (which depends on the
-    // request), is type-erased in message_generator.
-    template <class Body, class Allocator>
-    boost::beast::http::message_generator
-    _handle_request(tcp_stream& stream, boost::beast::http::request<Body, boost::beast::http::basic_fields<Allocator>>&& req)
-    {
-        // Returns a bad request response
-        auto const bad_request = [&req](boost::beast::string_view why) {
-            boost::beast::http::response<boost::beast::http::string_body> res{boost::beast::http::status::bad_request, req.version()};
-            res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
-            res.set(boost::beast::http::field::content_type, "text/html");
-            res.keep_alive(req.keep_alive());
-            res.body() = std::string(why);
-            res.prepare_payload();
-            return res;
-        };
+        template <ConceptInterface T> auto& GetInterface() { return *std::get<std::unique_ptr<T>>(_impls).get(); }
+
+        private:
+        // Return a reasonable mime type based on the extension of a file.
+        static boost::beast::string_view mime_type(boost::beast::string_view path)
+        {
+            using boost::beast::iequals;
+            auto const ext = [&path] {
+                auto const pos = path.rfind(".");
+                if (pos == boost::beast::string_view::npos) return boost::beast::string_view{};
+                return path.substr(pos);
+            }();
+            if (iequals(ext, ".htm")) return "text/html";
+            if (iequals(ext, ".html")) return "text/html";
+            if (iequals(ext, ".php")) return "text/html";
+            if (iequals(ext, ".css")) return "text/css";
+            if (iequals(ext, ".txt")) return "text/plain";
+            if (iequals(ext, ".js")) return "application/javascript";
+            if (iequals(ext, ".json")) return "application/json";
+            if (iequals(ext, ".xml")) return "application/xml";
+            if (iequals(ext, ".swf")) return "application/x-shockwave-flash";
+            if (iequals(ext, ".flv")) return "video/x-flv";
+            if (iequals(ext, ".png")) return "image/png";
+            if (iequals(ext, ".jpe")) return "image/jpeg";
+            if (iequals(ext, ".jpeg")) return "image/jpeg";
+            if (iequals(ext, ".jpg")) return "image/jpeg";
+            if (iequals(ext, ".gif")) return "image/gif";
+            if (iequals(ext, ".bmp")) return "image/bmp";
+            if (iequals(ext, ".ico")) return "image/vnd.microsoft.icon";
+            if (iequals(ext, ".tiff")) return "image/tiff";
+            if (iequals(ext, ".tif")) return "image/tiff";
+            if (iequals(ext, ".svg")) return "image/svg+xml";
+            if (iequals(ext, ".svgz")) return "image/svg+xml";
+            return "application/text";
+        }
+
+        // Return a response for the given request.
+        //
+        // The concrete type of the response message (which depends on the
+        // request), is type-erased in message_generator.
+        template <class Body, class Allocator>
+        boost::beast::http::message_generator
+        _handle_request(tcp_stream& stream, boost::beast::http::request<Body, boost::beast::http::basic_fields<Allocator>>&& req)
+        {
+            // Returns a bad request response
+            auto const bad_request = [&req](boost::beast::string_view why) {
+                boost::beast::http::response<boost::beast::http::string_body> res{boost::beast::http::status::bad_request, req.version()};
+                res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
+                res.set(boost::beast::http::field::content_type, "text/html");
+                res.keep_alive(req.keep_alive());
+                res.body() = std::string(why);
+                res.prepare_payload();
+                return res;
+            };
 
 #if 0
         // Returns a not found response
@@ -526,20 +575,20 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
             return res;
         };
 #endif
-        // Make sure we can handle the method
-        if (req.method() != boost::beast::http::verb::get && req.method() != boost::beast::http::verb::head)
-            return bad_request("Unknown HTTP-method");
+            // Make sure we can handle the method
+            if (req.method() != boost::beast::http::verb::get && req.method() != boost::beast::http::verb::head)
+                return bad_request("Unknown HTTP-method");
 
-        Response res{};
-        res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
-        res.set(boost::beast::http::field::content_type, "application/json");
-        // res.content_length(size);
-        res.keep_alive(req.keep_alive());
+            Response res{};
+            res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
+            res.set(boost::beast::http::field::content_type, "application/json");
+            // res.content_length(size);
+            res.keep_alive(req.keep_alive());
 
-        // Respond to HEAD request
-        if (req.method() == boost::beast::http::verb::head)
-        {
-            TODO("HEAD");
+            // Respond to HEAD request
+            if (req.method() == boost::beast::http::verb::head)
+            {
+                TODO("HEAD");
 #if 0
             boost::beast::http::response<boost::beast::http::empty_body> res{boost::beast::http::status::ok, req.version()};
             res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
@@ -548,137 +597,105 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
             res.keep_alive(req.keep_alive());
             return res;
 #endif
-        }
-        _HandleRequest(stream, req, res);
-
-        // Respond to GET request
-        return res;
-    }
-
-    //------------------------------------------------------------------------------
-
-    // Handles an HTTP server connection
-    boost::asio::awaitable<void> _do_session(boost::asio::ip::tcp::socket&& socket)
-    {
-        tcp_stream stream(socket);
-        // This buffer is required to persist across reads
-        boost::beast::flat_buffer buffer;
-
-        // This lambda is used to send messages
-        try
-        {
-            for (;;)
-            {
-                // Set the timeout.
-                stream.expires_after(std::chrono::seconds(30));
-
-                // Read a request
-                boost::beast::http::request<boost::beast::http::string_body> req;
-                co_await boost::beast::http::async_read(stream, buffer, req);
-
-                // Handle the request
-                boost::beast::http::message_generator msg = _handle_request(stream, std::move(req));
-
-                // Determine if we should close the connection
-                bool keep_alive = msg.keep_alive();
-
-                // Send the response
-                co_await boost::beast::async_write(stream, std::move(msg), boost::asio::use_awaitable);
-
-                if (!keep_alive)
-                {
-                    // This means we should close the connection, usually because
-                    // the response indicated the "Connection: close" semantic.
-                    break;
-                }
             }
-        } catch (boost::system::system_error& se)
-        {
-            if (se.code() != boost::beast::http::error::end_of_stream) throw;
+            {
+                std::string_view const& path = req.target();
+                auto [ifname, subpath]       = impl::Split(path);
+                return Selector<RequestHandler<Ts>...>::Invoke(stream, req, res, ifname, subpath);
+            }
+            // Respond to GET request
+            // return res;
         }
 
-        // Send a TCP shutdown
-        boost::beast::error_code ec;
-        stream.socket().shutdown(tcp::socket::shutdown_send, ec);
+        //------------------------------------------------------------------------------
 
-        // At this point the connection is closed gracefully
-        // we ignore the error because the client might have
-        // dropped the connection already.
-    }
+        // Handles an HTTP server connection
+        boost::asio::awaitable<void> _do_session(boost::asio::ip::tcp::socket&& socket)
+        {
+            tcp_stream stream(socket);
+            // This buffer is required to persist across reads
+            boost::beast::flat_buffer buffer;
 
-    //------------------------------------------------------------------------------
+            // This lambda is used to send messages
+            try
+            {
+                for (;;)
+                {
+                    // Set the timeout.
+                    stream.expires_after(std::chrono::seconds(30));
 
-    // Accepts incoming connections and launches the sessions
-    boost::asio::awaitable<void> _do_listen(tcp::endpoint endpoint)
-    {
-        // Open the acceptor
-        auto acceptor = boost::asio::use_awaitable.as_default_on(tcp::acceptor(co_await boost::asio::this_coro::executor));
-        acceptor.open(endpoint.protocol());
+                    // Read a request
+                    boost::beast::http::request<boost::beast::http::string_body> req;
+                    co_await boost::beast::http::async_read(stream, buffer, req);
 
-        // Allow address reuse
-        acceptor.set_option(boost::asio::socket_base::reuse_address(true));
+                    // Handle the request
+                    boost::beast::http::message_generator msg = _handle_request(stream, std::move(req));
 
-        // Bind to the server address
-        acceptor.bind(endpoint);
+                    // Determine if we should close the connection
+                    bool keep_alive = msg.keep_alive();
 
-        // Start listening for connections
-        acceptor.listen(boost::asio::socket_base::max_listen_connections);
+                    // Send the response
+                    co_await boost::beast::async_write(stream, std::move(msg), boost::asio::use_awaitable);
 
-        for (;;)
-            boost::asio::co_spawn(acceptor.get_executor(), _do_session(co_await acceptor.async_accept()), [](std::exception_ptr e) {
-                if (e) try
+                    if (!keep_alive)
                     {
-                        std::rethrow_exception(e);
-                    } catch (std::exception& e)
-                    {
-                        std::cerr << "Error in session: " << e.what() << "\n";
+                        // This means we should close the connection, usually because
+                        // the response indicated the "Connection: close" semantic.
+                        break;
                     }
-            });
-    }
+                }
+            } catch (boost::system::system_error& se)
+            {
+                if (se.code() != boost::beast::http::error::end_of_stream) throw;
+            }
 
-    bool _HandleRequest(tcp_stream& stream, const Request& req, Response& res)
-    {
-        std::string_view const& path = req.target();
-        auto [ifname, subpath]       = impl::Split(path);
-        if (ifname != "api" || subpath.empty()) return false;
-        try
-        {
-            auto [ifname1, subpath1] = impl::Split(subpath);
-            bool found               = (_TryHandleRequest<Ts>(stream, req, res, ifname1, subpath1) || ...);
-            if (!found) throw std::runtime_error(fmt::format("No matching interface found for {}", ifname1));
-        } catch (std::exception const& ex)
-        {
-            res.result(500);
-            res.body() = ex.what();
+            // Send a TCP shutdown
+            boost::beast::error_code ec;
+            stream.socket().shutdown(tcp::socket::shutdown_send, ec);
+
+            // At this point the connection is closed gracefully
+            // we ignore the error because the client might have
+            // dropped the connection already.
         }
-        return true;
-    }
 
-    void _HandleError(const Request& /* req */, Response& /* res */)
-    {
-        TODO("_HANDLE_ERROR");
-        // res.set_content(fmt::format("<p>Error Status: <span style='color:red;'>{}</span></p>", res.status), "text/html");
-    }
+        //------------------------------------------------------------------------------
 
-    template <ConceptInterface T> bool _CanHandleRequest(std::string_view const& ifname, std::string_view const& path)
-    {
-        retrurn iequal(Stencil::InterfaceTraits<T>::Name(), ifname);
-    }
+        // Accepts incoming connections and launches the sessions
+        boost::asio::awaitable<void> _do_listen(tcp::endpoint endpoint)
+        {
+            // Open the acceptor
+            auto acceptor = boost::asio::use_awaitable.as_default_on(tcp::acceptor(co_await boost::asio::this_coro::executor));
+            acceptor.open(endpoint.protocol());
 
-    template <ConceptInterface T>
-    auto _HandleRequest(tcp_stream& stream, Request const& req, Response& res, std::string_view const& ifname, std::string_view const& path)
-    {
-        return impl::WebRequestHandler<T>{*std::get<std::unique_ptr<T>>(_impls).get(), stream, req, res, _sseManager}.HandleRequest(path);
-    }
+            // Allow address reuse
+            acceptor.set_option(boost::asio::socket_base::reuse_address(true));
 
-    boost::asio::io_context ioc{1};
+            // Bind to the server address
+            acceptor.bind(endpoint);
 
-    std::thread             _listenthread;
-    std::condition_variable _cond;
-    std::mutex              _mutex;
+            // Start listening for connections
+            acceptor.listen(boost::asio::socket_base::max_listen_connections);
 
-    int                                _port;
-    impl::SSEListenerManager           _sseManager;
-    std::tuple<std::unique_ptr<Ts>...> _impls = {Ts::Create()...};
-};
+            for (;;)
+                boost::asio::co_spawn(acceptor.get_executor(), _do_session(co_await acceptor.async_accept()), [](std::exception_ptr e) {
+                    if (e) try
+                        {
+                            std::rethrow_exception(e);
+                        } catch (std::exception& e)
+                        {
+                            std::cerr << "Error in session: " << e.what() << "\n";
+                        }
+                });
+        }
+
+        boost::asio::io_context ioc{1};
+
+        std::thread             _listenthread;
+        std::condition_variable _cond;
+        std::mutex              _mutex;
+
+        int                                _port;
+        impl::SSEListenerManager           _sseManager;
+        std::tuple<std::unique_ptr<Ts>...> _impls = {Ts::Create()...};
+    };
 }    // namespace Stencil
