@@ -160,6 +160,7 @@ macro(EnableStrictCompilation)
             # Remove unused code
             -ffunction-sections
             -fdata-sections
+            -fexceptions
         )
         set(extracxxflags
             # -std=c++20 via CMAKE_CXX_STANDARD

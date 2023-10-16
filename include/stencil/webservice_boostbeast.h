@@ -162,14 +162,16 @@ struct SSEListenerManager
 
 template <ConceptInterface T> struct WebRequestContext
 {
-    T&                        obj;
-    tcp_stream&               stream;
-    Request const&            req;
-    Response&                 res;
     impl::SSEListenerManager& sse;
-    std::ostringstream        rslt;
-    std::string_view          ifname;
-    std::string_view          subpath;
+    T&                        obj;
+
+    tcp_stream&      stream;
+    Request const&   req;
+    Response&        res;
+    std::string_view ifname;
+    std::string_view subpath;
+
+    std::ostringstream rslt;
 };
 
 template <typename TContext, typename TEventStructs> struct RequestHandlerForEvents
@@ -179,7 +181,6 @@ template <typename TContext, typename TEventStructs> struct RequestHandlerForEve
     {
         auto instance = ctx.sse.CreateInstance();
 
-        TODO("Chunked");
         // https://github.com/pgit/cppcoro-devcontainer/blob/master/http_echo_awaitable.cpp
         // https://github.com/fantasy-peak/cpp-freegpt-webui/blob/main/src/main.cpp#L241
         // https://github.com/chimaoshu/CatPlusPlus/blob/main/src/http.cpp#L230
@@ -200,8 +201,7 @@ template <typename TContext, typename TEventStructs> struct RequestHandlerForEve
         ctx.res.body().more = true;
 
         boost::beast::http::response_serializer<boost::beast::http::buffer_body, boost::beast::http::fields> sr{ctx.res};
-        auto count = co_await boost::beast::http::async_write_header(ctx.stream, sr, boost::asio::use_awaitable);
-        co_return;
+        return boost::beast::http::async_write_header(ctx.stream, sr, boost::asio::use_awaitable);
     }
 };
 
@@ -239,7 +239,8 @@ template <typename TContext, typename TInterfaceObj> struct RequestHandlerForObj
         }
         return ctx.rslt.str();
     }
-    template <typename TArgsStruct> auto _CreateArgStruct(TContext& ctx)
+
+    template <typename TArgsStruct> static auto _CreateArgStruct(TContext& ctx)
     {
         TArgsStruct args{};
         for (auto const& [keystr, valjson] : ctx.req.params)
@@ -253,7 +254,7 @@ template <typename TContext, typename TInterfaceObj> struct RequestHandlerForObj
         return args;
     }
 
-    static auto Handle(TContext& ctx)
+    static auto Invoke(TContext& ctx)
     {
         // auto [action, subpath] = Split(path);
         auto action  = ctx.ifname;
@@ -348,10 +349,10 @@ template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunct
         return args;
     }
 
-    static auto Handle(TContext& ctx)
+    static auto Invoke(TContext& ctx)
     {
         using Traits = ::Stencil::InterfaceApiTraits<TArgsStruct>;
-        auto args    = _CreateArgStruct<TArgsStruct>();
+        auto args    = _CreateArgStruct();
         if constexpr (std::is_same_v<void, decltype(Traits::Invoke(ctx.obj, args))>) { Traits::Invoke(ctx, ctx.obj, args); }
         else
         {
@@ -364,19 +365,66 @@ template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunct
 
 template <typename TContext> struct RequestHandlerError
 {
-    static bool Matches(TContext& ctx) { return true; }
-    static auto Handle(TContext& ctx) { TODO("Fix"); }
+    static bool Matches(TContext& /* ctx */) { return true; }
+    static auto Invoke(TContext& ctx)
+    {
+        auto instance = ctx.sse.CreateInstance();
+
+        // https://github.com/pgit/cppcoro-devcontainer/blob/master/http_echo_awaitable.cpp
+        // https://github.com/fantasy-peak/cpp-freegpt-webui/blob/main/src/main.cpp#L241
+        // https://github.com/chimaoshu/CatPlusPlus/blob/main/src/http.cpp#L230
+
+        // (no co_await )
+        // https://github.com/jamestiotio/PhotonLibOS/blob/main/net/http/server.cpp#L321
+
+        // (sse)
+        // https://github.com/openbmc/bmcweb/blob/master/http/server_sent_event.hpp#L95
+        // https://github.com/jgaa/mobile-events/blob/main/eventsd/lib/HttpServer.cpp
+
+        ctx.res.result(boost::beast::http::status::ok);
+        ctx.res.version(ctx.req.version());
+        ctx.res.set(boost::beast::http::field::server, "CppFreeGpt");
+        ctx.res.set(boost::beast::http::field::transfer_encoding, "chunked");
+        ctx.res.set(boost::beast::http::field::content_type, "text/event-stream");
+        ctx.res.body().data = nullptr;
+        ctx.res.body().more = true;
+
+        boost::beast::http::response_serializer<boost::beast::http::buffer_body, boost::beast::http::fields> sr{ctx.res};
+        return boost::beast::http::async_write_header(ctx.stream, sr, boost::asio::use_awaitable);
+    }
 };
 
-template <typename T, typename TContext = WebRequestContext<T>> struct RequestHandler
+template <typename T> struct RequestHandler
 {
-    static bool Matches(TContext& ctx)
+    template <typename TTup>
+    static bool Matches(SSEListenerManager& /* sseMgr */,
+                        TTup& /* impls */,
+                        tcp_stream& /* stream */,
+                        Request const& /* req */,
+                        Response& /* res */,
+                        std::string_view& ifname,
+                        std::string_view& subpath)
     {
-        if (ctx.ifname != "api" || ctx.subpath.empty()) return false;
-        return iequal(Stencil::InterfaceTraits<T>::Name(), ctx.ifname);
+        if (ifname != "api" || subpath.empty()) return false;
+        return iequal(Stencil::InterfaceTraits<T>::Name(), ifname);
     }
 
-    static auto Handle(TContext& ctx) {}
+    template <typename TTup>
+    static auto Invoke(SSEListenerManager& sseMgr,
+                       TTup&               impls,
+                       tcp_stream&         stream,
+                       Request const&      req,
+                       Response&           res,
+                       std::string_view&   ifname,
+                       std::string_view&   subpath)
+    {
+        auto&                obj = std::get<std::unique_ptr<T>>(impls);
+        WebRequestContext<T> ctx{sseMgr, *obj.get(), stream, req, res, ifname, subpath, {}};
+        return Selector<RequestHandlerForEvents<WebRequestContext<T>, T>,
+                        // RequestHandlerForObjectStore<WebRequestContext<T>, T>,
+                        // RequestHandlerForFunctions<WebRequestContext<T>, T>,
+                        RequestHandlerError<WebRequestContext<T>>>::Invoke(ctx);
+    }
 };
 
 }    // namespace Stencil::impl
@@ -390,10 +438,11 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
     using tcp_stream = typename boost::beast::tcp_stream::rebind_executor<
         boost::asio::use_awaitable_t<>::executor_with_default<boost::asio::any_io_executor>>::other;
 
-    using Request  = boost::beast::http::request<boost::beast::http::string_body>;
-    using Response = boost::beast::http::response<boost::beast::http::string_body>;
+    using Request  = impl::Request;
+    using Response = impl::Response;
     WebService()   = default;
     ~WebService() override { StopDaemon(); }
+
     CLASS_DELETE_COPY_AND_MOVE(WebService);
 
     template <typename T1, typename T2> inline bool iequal(T1 const& a, T2 const& b)
@@ -540,7 +589,7 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
         {
             std::string_view const& path = req.target();
             auto [ifname, subpath]       = impl::Split(path);
-            return impl::Selector<impl::RequestHandler<Ts>...>::Invoke(stream, req, res, ifname, subpath);
+            return impl::Selector<impl::RequestHandler<Ts>...>::Invoke(_sseManager, _impls, stream, req, res, ifname, subpath);
         }
         // Respond to GET request
         // return res;
@@ -551,7 +600,7 @@ template <ConceptInterface... Ts> struct WebService : public Stencil::impl::Inte
     // Handles an HTTP server connection
     boost::asio::awaitable<void> _do_session(boost::asio::ip::tcp::socket&& socket)
     {
-        tcp_stream stream(socket);
+        tcp_stream stream(std::move(socket));
         // This buffer is required to persist across reads
         boost::beast::flat_buffer buffer;
 

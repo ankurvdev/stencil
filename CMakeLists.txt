@@ -5,8 +5,11 @@ set(INIT_SUBMODULE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/external)
 
 include(BuildEnv)
 include(FetchContent)
-
 project(stencil VERSION 0.0.3)
+if (DEFINED Quick_DIR)
+    find_package(Quick)
+    QuickInit()
+endif()
 
 include(CMakePackageConfigHelpers)
 
@@ -67,7 +70,7 @@ if (BUILD_TESTING)
     enable_testing()
     find_package(Catch2 REQUIRED MODULE)
     add_library(websvc INTERFACE)
-    target_link_libraries(websvc INTERFACE Boost::beast)
+    target_link_libraries(websvc INTERFACE Boost::boost)
 endif()
 
 build_lexyacc()
@@ -86,9 +89,9 @@ add_library(libstencil OBJECT
     src/Thrift.h
     src/tree.h
 )
-target_include_directories(libstencil PUBLIC src)
+target_include_directories(libstencil PUBLIC src include)
 add_lexyacc_library(TARGET Thrift LYFILE src/Thrift.ly SOURCES src/Thrift.cpp)
-target_include_directories(Thrift PUBLIC src)
+target_include_directories(Thrift PUBLIC src include)
 target_link_libraries(Thrift PUBLIC CommonMacros fmt::fmt-header-only)
 if (MSVC)
     # TOML11 has a nasty usage of insecure apis
