@@ -14,7 +14,7 @@ endif()
 
 find_path(DTL_INCLUDE_DIRS "dtl/Diff.hpp")
 
-if (DTL_INCLUDE_DIRS-NOTFOUND)
+if (DTL_INCLUDE_DIRS STREQUAL "DTL_INCLUDE_DIRS-NOTFOUND")
     FetchContent_MakeAvailable(dtl)
     find_path(DTL_INCLUDE_DIRS "dtl/Diff.hpp" HINTS "${dtl_SOURCE_DIR}" REQUIRED)
 endif()
