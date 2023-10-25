@@ -35,6 +35,7 @@ find_package(tinyxml2 REQUIRED MODULE)
 find_package(tomlplusplus REQUIRED MODULE)
 find_package(tsl-ordered-map REQUIRED MODULE)
 find_package(stduuid REQUIRED MODULE)
+find_package(httplib REQUIRED MODULE)
 
 find_package(CommonMacros QUIET MODULE REQUIRED)
 list(APPEND public_headers "${COMMONMACROS_INCLUDE_FILE}")
