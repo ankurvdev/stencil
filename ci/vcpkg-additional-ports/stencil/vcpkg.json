@@ -1,12 +1,12 @@
 {
-  "name": "ankurvdev-stencil",
+  "name": "stencil",
   "version": "0.0.10",
   "description": "Cross Platform Resource Embedding",
   "homepage": "https://github.com/ankurvdev/stencil",
   "license": "BSD-3-Clause",
   "dependencies": [
     {
-      "name": "ankurvdev-stencil",
+      "name": "stencil",
       "host": true
     },
     {
