@@ -14,3 +14,6 @@ if (COMMAND vcpkg_install)
 endif()
 
 FetchContent_MakeAvailable(fmt)
+if (COMMAND SupressWarningForTarget)
+    SupressWarningForTarget(fmt)
+endif()
