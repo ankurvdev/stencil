@@ -13,6 +13,6 @@ if (COMMAND vcpkg_install)
 endif()
 
 FetchContent_MakeAvailable(tinyxml2)
-if (COMMAND SupressWarningForTarget AND TARGET tinyxml2)
+if (COMMAND SupressWarningForTarget)
     SupressWarningForTarget(tinyxml2)
 endif()
