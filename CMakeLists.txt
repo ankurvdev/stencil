@@ -19,23 +19,6 @@ option(STENCIL_INSTALL_BUILDTOOLS "Install Extra Build Tools with install" ON)
 set(CMAKE_CXX_STANDARD 20)
 EnableStrictCompilation()
 
-FetchContent_Declare(
-  tomlplusplus
-  GIT_REPOSITORY https://github.com/marzer/tomlplusplus
-  GIT_TAG        master
-  SOURCE_SUBDIR .
-  FIND_PACKAGE_ARGS NAMES tomlplusplus
-)
-
-
-FetchContent_Declare(
-  stduuid
-  GIT_REPOSITORY https://github.com/mariusbancila/stduuid
-  GIT_TAG        v1.2.3
-  SOURCE_SUBDIR .
-  GIT_PROGRESS TRUE
-  FIND_PACKAGE_ARGS NAMES stduuid
-)
 
 find_package (Threads REQUIRED)
 
@@ -49,19 +32,9 @@ find_package(fmt REQUIRED MODULE)
 find_package(EmbedResource REQUIRED MODULE)
 find_package(date REQUIRED MODULE)
 find_package(tinyxml2 REQUIRED MODULE)
-
-FetchContent_MakeAvailable(tomlplusplus)
-FetchContent_MakeAvailable(embedresource)
-FetchContent_MakeAvailable(stduuid)
-find_package(tsl-ordered-map)
-
-if (NOT TARGET stduuid)
-    add_library(stduuid INTERFACE)
-    add_library(stduuid::stduuid ALIAS stduuid)
-    target_include_directories(stduuid INTERFACE external/stduuid/include)
-    set(UUIDHEADER "external/stduuid/include/uuid.h")
-    list(APPEND public_headers "${UUIDHEADER}")
-endif()
+find_package(tomlplusplus REQUIRED MODULE)
+find_package(tsl-ordered-map REQUIRED MODULE)
+find_package(stduuid REQUIRED MODULE)
 
 find_package(CommonMacros QUIET MODULE REQUIRED)
 list(APPEND public_headers "${COMMONMACROS_INCLUDE_FILE}")

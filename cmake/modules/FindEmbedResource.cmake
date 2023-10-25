@@ -9,7 +9,7 @@ FetchContent_Declare(
 )
 
 if (COMMAND vcpkg_install)
-    vcpkg_install(embedresource)
+    vcpkg_install(ankurvdev-embedresource)
 endif()
 
 FetchContent_MakeAvailable(embedresource)
