@@ -44,7 +44,7 @@ if (BUILD_TESTING)
     enable_testing()
     find_package(Catch2 REQUIRED MODULE)
     add_library(websvc INTERFACE)
-    target_link_libraries(websvc INTERFACE Boost::boost)
+    target_link_libraries(websvc INTERFACE httplib::httplib)
 endif()
 
 build_lexyacc()
