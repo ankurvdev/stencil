@@ -98,6 +98,11 @@ function(_FixFlags name)
     endif()
 endfunction()
 
+macro(InitClangDIntellisense)
+    file(GENERATE OUTPUT "${PROJECT_SOURCE_DIR}/.clangd"
+        CONTENT "CompileFlags:\n\tCompilationDatabase: \"${CMAKE_CURRENT_BINARY_DIR}\"")
+endmacro()
+
 macro(EnableStrictCompilation)
     find_package(Threads)
     file(TIMESTAMP ${CMAKE_CURRENT_LIST_FILE} filetime)
