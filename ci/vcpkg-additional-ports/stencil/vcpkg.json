@@ -13,17 +13,17 @@
       "name": "vcpkg-cmake",
       "host": true
     },
-    "date",
-    "embedresource",
-    "toml11",
-    "tsl-ordered-map",
-    "tinyxml2",
-    "cxxopts",
+    "ankurvdev-embedresource",
     "cpp-httplib",
+    "cxxopts",
+    "date",
+    "fmt",
+    "gsl",
     "rapidjson",
     "stduuid",
-    "gsl",
-    "fmt"
+    "tinyxml2",
+    "toml11",
+    "tsl-ordered-map"
   ],
   "features": {
     "tests": {
