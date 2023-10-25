@@ -110,7 +110,6 @@ for portdir in (scriptdir / "vcpkg-additional-ports").glob("*"):
     dst = vcpkgroot / "ports" / portdir.name
     shutil.rmtree(dst.as_posix(), ignore_errors=True)
     shutil.copytree(portdir.as_posix(), dst)
-
 vcpkgportfile.write_text(vcpkgportfile.read_text().replace("SOURCE_PATH ${SOURCE_PATH}", f'SOURCE_PATH "{scriptdir.parent.as_posix()}"'))
 
 myenv = os.environ.copy()

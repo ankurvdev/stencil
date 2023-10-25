@@ -19,6 +19,10 @@ if (DTL_INCLUDE_DIRS-NOTFOUND)
     find_path(DTL_INCLUDE_DIRS "dtl/Diff.hpp" HINTS "${dtl_SOURCE_DIR}" REQUIRED)
 endif()
 
+if (NOT EXISTS "${DTL_INCLUDE_DIRS}/dtl/Diff.hpp")
+    message(FATAL_ERROR "dtl not found at ${DTL_INCLUDE_DIRS}/dtl/Diff.hpp")
+endif()
+
 if (NOT TARGET dtl)
     add_library(dtl INTERFACE)
     add_library(dtl::dtl ALIAS dtl)
