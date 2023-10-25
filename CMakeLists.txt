@@ -71,10 +71,10 @@ if (MSVC)
     set_source_files_properties("src/ModelGenerator.cpp" PROPERTIES COMPILE_FLAGS "/D_CRT_SECURE_NO_WARNINGS")
 endif()
 target_link_libraries(libstencil PUBLIC Thrift)
-target_add_resource(libstencil templates ${resfiles})
+target_add_resource(libstencil RESOURCE_COLLECTION_NAME templates RESOURCES ${resfiles})
 list(APPEND resfiles ${public_headers})
 if (NOT BUILD_TESTING)
-    target_add_resource(libstencil commonheaders ${resfiles})
+    target_add_resource(libstencil RESOURCE_COLLECTION_NAME commonheaders RESOURCES ${resfiles})
 endif()
 
 target_link_libraries(libstencil PUBLIC
@@ -112,7 +112,7 @@ if (BUILD_TESTING)
     add_test(NAME codegen_tests COMMAND codegen_tests)
     target_include_directories(codegen_tests PRIVATE src include tests)
     target_link_libraries(codegen_tests PRIVATE libstencil Thrift TestCommon)
-    target_add_resource(codegen_tests testdata ${resfiles} ${pidlfiles})
+    target_add_resource(codegen_tests RESOURCE_COLLECTION_NAME testdata RESOURCES ${resfiles} ${pidlfiles})
     target_compile_definitions(codegen_tests PRIVATE HAVE_EMBEDRESOURCE=1)
     add_executable(runtime_tests
         tests/HandwrittenRuntime/Test_Handwritten_CLOpts.cpp
@@ -126,7 +126,7 @@ if (BUILD_TESTING)
     target_link_libraries (runtime_tests PRIVATE Threads::Threads)
     add_test(NAME runtime_tests COMMAND runtime_tests)
 
-    target_add_resource(runtime_tests testdata ${resfiles})
+    target_add_resource(runtime_tests RESOURCE_COLLECTION_NAME testdata RESOURCES ${resfiles})
     target_compile_definitions(runtime_tests PRIVATE HAVE_EMBEDRESOURCE=1)
     target_include_directories(runtime_tests PRIVATE src include tests)
  

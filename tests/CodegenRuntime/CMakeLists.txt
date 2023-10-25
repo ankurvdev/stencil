@@ -8,8 +8,9 @@ file(GLOB test_data_files CONFIGURE_DEPENDS "../tests/testdata/*")
 file(GLOB pidlfiles "../*.pidl")
 
 add_stencil_library(TARGET codegen IDLS ${pidlfiles})
-add_resource_library(TARGET testdata RESOURCES ${test_data_files} ${pidlfiles})
-
+add_resource_library(testdata OBJECT RESOURCES ${test_data_files} ${pidlfiles})
+target_compile_definitions(testdata PUBLIC HAVE_EMBEDRESOURCE=1)
+target_include_directories(testdata PUBLIC "${EMBEDRESOURCE_INCLUDE_DIR}")
 add_executable(codegen_runtime_tests
     "Test_Codegen_CLOpts.cpp"
     "Test_Database.cpp"
