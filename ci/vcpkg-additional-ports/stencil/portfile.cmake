@@ -11,10 +11,9 @@ vcpkg_find_acquire_program(BISON)
 vcpkg_cmake_configure(
     SOURCE_PATH ${SOURCE_PATH}
     OPTIONS
-    -DSTENCIL_INSTALL_BUILDTOOLS=ON
-    -DBUILD_TESTING=OFF
-    -DBISON_EXECUTABLE=${BISON}
-    -DFLEX_EXECUTABLE=${FLEX}
+        -DBUILD_TESTING=OFF
+        -DBISON_EXECUTABLE=${BISON}
+        -DFLEX_EXECUTABLE=${FLEX}
 )
 
 vcpkg_cmake_install()
