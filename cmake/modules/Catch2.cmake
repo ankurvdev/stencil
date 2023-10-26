@@ -1,5 +1,5 @@
-
 include_guard()
+include(FetchContent)
 
 FetchContent_Declare(
     catch2
@@ -10,7 +10,7 @@ FetchContent_Declare(
     FIND_PACKAGE_ARGS NAMES Catch2
 )
 if (COMMAND vcpkg_install)
-    vcpkg_install(Catch2)
+    vcpkg_install(catch2)
 endif()
 
 FetchContent_MakeAvailable(catch2)

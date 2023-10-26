@@ -1,5 +1,5 @@
-
 include_guard()
+include(FetchContent)
 
 FetchContent_Declare(
   stduuid

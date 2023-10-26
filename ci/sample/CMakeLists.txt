@@ -3,12 +3,15 @@ if(NOT EXISTS "${VCPKG_ROOT}")
     message(FATAL_ERROR "Please run with -DVCPKG_ROOT=<vcpkg-root> ${VCPKG_ROOT} not found")
 endif()
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../../cmake)
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../../cmake/modules)
+# list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../../cmake)
+# list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../../cmake/modules)
 
-set(INIT_SUBMODULE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../external)
+# set(INIT_SUBMODULE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../external)
 
-include(BuildEnv)
+include(${CMAKE_CURRENT_LIST_DIR}/../../cmake/BuildEnv.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/../../external/lexyacc/LexYaccConfig.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/../../cmake/modules/EmbedResource.cmake)
+
 include(${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
 message(STATUS " 
     CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}
@@ -26,21 +29,6 @@ set(CMAKE_CXX_STANDARD 20)
 EnableStrictCompilation()
 #set(CMAKE_FIND_DEBUG_MODE TRUE)
 
-if (NOT "${VCPKG_HOST_TRIPLET}" STREQUAL "${VCPKG_TARGET_TRIPLET}")
-    find_program(STENCIL_HOST_EXECUTABLE stencil REQUIRED NO_DEFAULT_PATH PATHS ${VCPKG_ROOT}/installed/${VCPKG_HOST_TRIPLET}/tools)
-    find_program(LEXYACC_HOST_EXECUTABLE lexyacc REQUIRED NO_DEFAULT_PATH PATHS ${VCPKG_ROOT}/installed/${VCPKG_HOST_TRIPLET}/tools)
-    find_program(EMBEDRES_HOST_EXECUTABLE embedresource REQUIRED NO_DEFAULT_PATH PATHS ${VCPKG_ROOT}/installed/${VCPKG_HOST_TRIPLET}/tools)
-    set(STENCIL_EXECUTABLE "${STENCIL_HOST_EXECUTABLE}" CACHE PATH "" FORCE )
-    set(EMBEDRESOURCE_EXECUTABLE "${EMBEDRES_HOST_EXECUTABLE}" CACHE PATH "" FORCE )
-    set(LEXYACC_EXECUTABLE "${LEXYACC_HOST_EXECUTABLE}" CACHE PATH "" FORCE )
-    message(STATUS " 
-        STENCIL_EXECUTABLE: ${STENCIL_EXECUTABLE}
-        EMBEDRESOURCE_EXECUTABLE: ${EMBEDRESOURCE_EXECUTABLE}
-        LEXYACC_EXECUTABLE: ${LEXYACC_EXECUTABLE}
-    ")
-endif()
-
-find_package(EmbedResource)
 find_package(stencil REQUIRED)
 set(srcfile ${CMAKE_CURRENT_BINARY_DIR}/main.cpp)
 file(WRITE ${srcfile} "")

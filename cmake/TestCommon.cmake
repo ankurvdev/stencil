@@ -1,8 +1,9 @@
 include_guard()
+
 if (NOT TARGET TestCommon)
-    find_package(dtl MODULE)
-    find_package(Catch2 MODULE)
-    find_package(EmbedResource REQUIRED)
+    include(${CMAKE_CURRENT_LIST_DIR}/modules/dtl.cmake)
+    include(${CMAKE_CURRENT_LIST_DIR}/modules/Catch2.cmake)
+    include(${CMAKE_CURRENT_LIST_DIR}/modules/EmbedResource.cmake)
 
     add_library(TestCommon INTERFACE)
     target_sources(TestCommon INTERFACE ${CMAKE_CURRENT_LIST_DIR}/TestUtils.h)
