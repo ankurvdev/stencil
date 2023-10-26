@@ -14,7 +14,7 @@ endif()
 include(CMakePackageConfigHelpers)
 
 option(BUILD_TESTING "Build Test" ON)
-option(STENCIL_INSTALL_BUILDTOOLS "Install Extra Build Tools with install" ON)
+option(STENCIL_INSTALL_BUILDTOOLS "Install Extra Build Tools with install" OFF)
 
 set(CMAKE_CXX_STANDARD 20)
 EnableStrictCompilation()
