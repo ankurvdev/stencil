@@ -296,17 +296,17 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         auto txn = libraries();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::add(txn, std::move(args));
     }
-    void remove_libraries(size_t&& args)
-    {
-        _MarkFieldEdited(Fields::Field_libraries);
-        auto txn = libraries();
-        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::remove(txn, std::move(args));
-    }
     auto edit_libraries(size_t&& args)
     {
         _MarkFieldEdited(Fields::Field_libraries);
         auto txn = libraries();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::edit(txn, std::move(args));
+    }
+    void remove_libraries(size_t&& args)
+    {
+        _MarkFieldEdited(Fields::Field_libraries);
+        auto txn = libraries();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::remove(txn, std::move(args));
     }
     void set_scan(std::vector<shared_string>&& val)
     {
@@ -320,17 +320,17 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         auto txn = scan();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::add(txn, std::move(args));
     }
-    void remove_scan(size_t&& args)
-    {
-        _MarkFieldEdited(Fields::Field_scan);
-        auto txn = scan();
-        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::remove(txn, std::move(args));
-    }
     auto edit_scan(size_t&& args)
     {
         _MarkFieldEdited(Fields::Field_scan);
         auto txn = scan();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::edit(txn, std::move(args));
+    }
+    void remove_scan(size_t&& args)
+    {
+        _MarkFieldEdited(Fields::Field_scan);
+        auto txn = scan();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::remove(txn, std::move(args));
     }
     void set_httpsPort(int32_t&& val)
     {
@@ -961,17 +961,17 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         auto txn = field1();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::add(txn, std::move(args));
     }
-    void remove_field1(size_t&& args)
-    {
-        _MarkFieldEdited(Fields::Field_field1);
-        auto txn = field1();
-        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::remove(txn, std::move(args));
-    }
     auto edit_field1(size_t&& args)
     {
         _MarkFieldEdited(Fields::Field_field1);
         auto txn = field1();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::edit(txn, std::move(args));
+    }
+    void remove_field1(size_t&& args)
+    {
+        _MarkFieldEdited(Fields::Field_field1);
+        auto txn = field1();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::remove(txn, std::move(args));
     }
     template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
     {
@@ -1335,17 +1335,17 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         auto txn = listofint();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::add(txn, std::move(args));
     }
-    void remove_listofint(size_t&& args)
-    {
-        _MarkFieldEdited(Fields::Field_listofint);
-        auto txn = listofint();
-        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::remove(txn, std::move(args));
-    }
     auto edit_listofint(size_t&& args)
     {
         _MarkFieldEdited(Fields::Field_listofint);
         auto txn = listofint();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::edit(txn, std::move(args));
+    }
+    void remove_listofint(size_t&& args)
+    {
+        _MarkFieldEdited(Fields::Field_listofint);
+        auto txn = listofint();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::remove(txn, std::move(args));
     }
     void set_listoflist(std::vector<std::vector<int32_t>>&& val)
     {
@@ -1359,17 +1359,17 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         auto txn = listoflist();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::add(txn, std::move(args));
     }
-    void remove_listoflist(size_t&& args)
-    {
-        _MarkFieldEdited(Fields::Field_listoflist);
-        auto txn = listoflist();
-        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::remove(txn, std::move(args));
-    }
     auto edit_listoflist(size_t&& args)
     {
         _MarkFieldEdited(Fields::Field_listoflist);
         auto txn = listoflist();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::edit(txn, std::move(args));
+    }
+    void remove_listoflist(size_t&& args)
+    {
+        _MarkFieldEdited(Fields::Field_listoflist);
+        auto txn = listoflist();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::remove(txn, std::move(args));
     }
     void set_listofobj(std::vector<::CLOpts1::SimpleObj>&& val)
     {
@@ -1383,17 +1383,17 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         auto txn = listofobj();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::add(txn, std::move(args));
     }
-    void remove_listofobj(size_t&& args)
-    {
-        _MarkFieldEdited(Fields::Field_listofobj);
-        auto txn = listofobj();
-        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::remove(txn, std::move(args));
-    }
     auto edit_listofobj(size_t&& args)
     {
         _MarkFieldEdited(Fields::Field_listofobj);
         auto txn = listofobj();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::edit(txn, std::move(args));
+    }
+    void remove_listofobj(size_t&& args)
+    {
+        _MarkFieldEdited(Fields::Field_listofobj);
+        auto txn = listofobj();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::remove(txn, std::move(args));
     }
     void set_objoflist(::CLOpts1::ObjWithList&& val)
     {
