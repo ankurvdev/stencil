@@ -2,7 +2,7 @@
 #include "TestUtils.h"
 
 #include <httplib.h>
-#include <stencil/Webservice.h>
+#include <stencil/WebService.h>
 
 static_assert(Stencil::Database::ConceptRecord<uint32_t>);
 static_assert(Stencil::Database::ConceptTrivial<uint32_t>);
