@@ -1316,17 +1316,17 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
         auto txn = listobj();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::add(txn, std::move(args));
     }
-    auto edit_listobj(size_t&& args)
-    {
-        _MarkFieldEdited(Fields::Field_listobj);
-        auto txn = listobj();
-        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::edit(txn, std::move(args));
-    }
     void remove_listobj(size_t&& args)
     {
         _MarkFieldEdited(Fields::Field_listobj);
         auto txn = listobj();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::remove(txn, std::move(args));
+    }
+    auto edit_listobj(size_t&& args)
+    {
+        _MarkFieldEdited(Fields::Field_listobj);
+        auto txn = listobj();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::edit(txn, std::move(args));
     }
     template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
     {
