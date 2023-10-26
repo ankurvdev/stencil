@@ -25,8 +25,6 @@ vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE")
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug")
 if(HOST_TRIPLET STREQUAL TARGET_TRIPLET)
     vcpkg_copy_tools(TOOL_NAMES stencil AUTO_CLEAN)
-else()
-    message(FATAL_ERROR "Skipping stencil installation for ${HOST_TRIPLET} != ${TARGET_TRIPLET}")
 endif()
 
 file(READ "${CURRENT_PACKAGES_DIR}/share/stencil/stencilConfig.cmake" config_contents)
