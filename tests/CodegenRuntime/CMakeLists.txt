@@ -4,11 +4,11 @@ set(stencil_INCLUDE_PATH "../../include" CACHE PATH "Stencil include path")
 find_package(TestCommon REQUIRED MODULE)
 find_package(httplib REQUIRED)
 
-file(GLOB test_data_files CONFIGURE_DEPENDS "../tests/testdata/*")
+file(GLOB test_data_files CONFIGURE_DEPENDS "../testdata/*")
 file(GLOB pidlfiles "../*.pidl")
 
 add_stencil_library(TARGET codegen IDLS ${pidlfiles})
-add_resource_library(testdata OBJECT RESOURCES ${test_data_files} ${pidlfiles})
+add_resource_library(testdata OBJECT RESOURCE_COLLECTION_NAME testdata RESOURCES ${test_data_files} ${pidlfiles})
 target_compile_definitions(testdata PUBLIC HAVE_EMBEDRESOURCE=1)
 target_include_directories(testdata PUBLIC "${EMBEDRESOURCE_INCLUDE_DIR}")
 add_executable(codegen_runtime_tests
