@@ -13,28 +13,40 @@ SUPPRESS_STL_WARNINGS
 #pragma warning(disable : 4583)    // destructor not implicitly called
 #pragma warning(disable : 4582)    // constructor not implicitly called
 #include <tinyxml2.h>
-#include <toml++/toml.h>
+#include <toml.hpp>
+// #include <toml++/toml.h>
 #include <tsl/ordered_map.h>
 
 #include <fstream>
 #include <iostream>
 #include <regex>
-#include <set>
 #include <stdexcept>
 #include <string_view>
 #include <vector>
 SUPPRESS_WARNINGS_END
 
 DECLARE_RESOURCE_COLLECTION(templates);
+// GCC doesnt like auto& return type from functions.
+// Too many from toml++
+#pragma GCC diagnostic ignored "-Wdangling-reference"
 
 using namespace tinyxml2;
 using Str = Binding::Str;
 
-using TTableNode = toml::node;
-static inline auto TOML_NODE_AS_STRING(toml::node const& node)
+using TTableNode = toml::value;
+static inline auto TOML_NODE_AS_STRING(TTableNode const& node)
 {
-    auto val = node.as_string();
-    return Str::Convert(val->get());
+    return Str::Convert(node.as_string().str);
+}
+
+static inline auto& TOML_NODE_AS_TABLE(TTableNode const& node)
+{
+    return node.as_table();
+}
+
+static inline auto& TOML_NODE_AS_ARRAY(TTableNode const& node)
+{
+    return node.as_array();
 }
 
 inline std::string wstring_to_string(std::wstring_view wstr)
@@ -224,10 +236,10 @@ static void debug(YAML::Node const& node)
 
 static TypeDefinitions::MutatorAccessorDefinition ParseMutatorAccessorDefinitionFromTomlNode(TTableNode const& node, std::wstring&& key)
 {
-    auto&                                      valtbl = *node.as_table();
+    auto&                                      valtbl = TOML_NODE_AS_TABLE(node);
     TypeDefinitions::MutatorAccessorDefinition val;
     val.name = std::move(key);
-    val.id   = static_cast<uint8_t>(valtbl.at("Id").as_integer()->get());
+    val.id   = static_cast<uint8_t>(valtbl.at("Id").as_integer());
     val.returnType
         = Binding::Expression::Create((TOML_NODE_AS_STRING(valtbl.at("ReturnType"))), Str::Create(L"%"), Str::Create(L"%"), L':');
     auto& args = valtbl.at("Args");
@@ -239,7 +251,7 @@ static TypeDefinitions::MutatorAccessorDefinition ParseMutatorAccessorDefinition
     }
     else
     {
-        for (auto const& sub : *args.as_array())
+        for (auto const& sub : TOML_NODE_AS_ARRAY(args))
         {
             val.args.push_back(Binding::Expression::Create(TOML_NODE_AS_STRING(sub), Str::Create(L"%"), Str::Create(L"%"), L':'));
         }
@@ -250,7 +262,10 @@ static TypeDefinitions::MutatorAccessorDefinition ParseMutatorAccessorDefinition
 static std::vector<TypeDefinitions::MutatorAccessorDefinition> ParseMutatorAccessorDefinitionArrFromTomlNode(TTableNode const& node)
 {
     std::vector<TypeDefinitions::MutatorAccessorDefinition> valarr;
-    for (auto [key, value] : *node.as_table()) { valarr.push_back(ParseMutatorAccessorDefinitionFromTomlNode(value, Str::Convert(key))); }
+    for (auto [key, value] : TOML_NODE_AS_TABLE(node))
+    {
+        valarr.push_back(ParseMutatorAccessorDefinitionFromTomlNode(value, Str::Convert(key)));
+    }
 
     return valarr;
 }
@@ -263,7 +278,7 @@ static TypeDefinitions::ContainerTypeDecl ContainerTypeDeclFromTomlNode(TTableNo
         val.baseField = (TOML_NODE_AS_STRING(node));
         return val;
     }
-    for (auto [key, value] : *node.as_table())
+    for (auto [key, value] : TOML_NODE_AS_TABLE(node))
     {
         auto propname = Str::Convert(key);
         if (propname == L"Mutators") { val.mutators = ParseMutatorAccessorDefinitionArrFromTomlNode(value); }
@@ -271,7 +286,7 @@ static TypeDefinitions::ContainerTypeDecl ContainerTypeDeclFromTomlNode(TTableNo
         else if (propname == L"Inherits") { val.baseField = (TOML_NODE_AS_STRING(value)); }
         else if (propname == L"Params")
         {
-            for (auto const& sub : *value.as_array()) { val.args.push_back(TOML_NODE_AS_STRING(sub)); }
+            for (auto const& sub : TOML_NODE_AS_ARRAY(value)) { val.args.push_back(TOML_NODE_AS_STRING(sub)); }
         }
         else
         {
@@ -294,7 +309,7 @@ static TypeDefinitions::FieldTypeDecl FieldTypeDeclFromTomlNode(TTableNode const
         val.baseField = (TOML_NODE_AS_STRING(node));
         return val;
     }
-    for (auto [key, value] : *node.as_table())
+    for (auto [key, value] : TOML_NODE_AS_TABLE(node))
     {
         auto propname = Str::Convert(key);
         if (propname == L"Mutators") { val.mutators = ParseMutatorAccessorDefinitionArrFromTomlNode(value); }
@@ -316,12 +331,14 @@ void TypeDefinitions::AddTypeDefinitions(std::string_view const& /*name*/, std::
 {
     std::string       tomltext(text);
     std::stringstream tomlstrm(tomltext);
-    auto              config = toml::parse(tomlstrm);
-    for (auto [propname, node] : config)
+    //    auto              config = toml::parse(tomlstrm);
+    auto config = toml::parse<toml::preserve_comments, tsl::ordered_map>(tomlstrm);
+
+    for (auto [propname, node] : config.as_table())
     {
         if (propname == "FieldTypes")
         {
-            for (auto [key, node1] : *node.as_table())
+            for (auto [key, node1] : TOML_NODE_AS_TABLE(node))
             {
                 auto fieldTypeDecl = FieldTypeDeclFromTomlNode(node1);
                 fieldTypeDecl.name = Str::Convert(key);
@@ -338,7 +355,7 @@ void TypeDefinitions::AddTypeDefinitions(std::string_view const& /*name*/, std::
         else if (propname == "NamedConst") { _namedConstDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
         else if (propname == "Containers")
         {
-            for (auto [key, node1] : *node.as_table())
+            for (auto [key, node1] : TOML_NODE_AS_TABLE(node))
             {
                 auto typedecl = ContainerTypeDeclFromTomlNode(node1);
                 typedecl.name = Str::Convert(key);
@@ -347,10 +364,10 @@ void TypeDefinitions::AddTypeDefinitions(std::string_view const& /*name*/, std::
         }
         else if (propname == "Attributes")
         {
-            for (auto [key, node1] : *node.as_table())
+            for (auto [key, node1] : TOML_NODE_AS_TABLE(node))
             {
                 auto& objmap = _attributeDefs[Str::Convert(key)];
-                for (auto const& [key1, node2] : *node1.as_table()) { objmap[Str::Convert(key1)] = (TOML_NODE_AS_STRING(node2)); }
+                for (auto const& [key1, node2] : TOML_NODE_AS_TABLE(node1)) { objmap[Str::Convert(key1)] = (TOML_NODE_AS_STRING(node2)); }
             }
         }
         else { throw std::logic_error("Unrecognized type"); }

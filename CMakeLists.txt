@@ -32,7 +32,7 @@ find_package(fmt REQUIRED MODULE)
 find_package(EmbedResource REQUIRED MODULE)
 find_package(date REQUIRED MODULE)
 find_package(tinyxml2 REQUIRED MODULE)
-find_package(tomlplusplus REQUIRED MODULE)
+find_package(toml11 REQUIRED MODULE)
 find_package(tsl-ordered-map REQUIRED MODULE)
 find_package(stduuid REQUIRED MODULE)
 find_package(httplib REQUIRED MODULE)
@@ -79,7 +79,7 @@ if (NOT BUILD_TESTING)
 endif()
 
 target_link_libraries(libstencil PUBLIC
-    tomlplusplus::tomlplusplus
+    toml11::toml11
     tinyxml2::tinyxml2
     tsl::ordered_map
     fmt::fmt-header-only

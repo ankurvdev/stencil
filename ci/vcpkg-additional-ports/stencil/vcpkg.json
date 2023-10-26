@@ -22,7 +22,7 @@
     "rapidjson",
     "stduuid",
     "tinyxml2",
-    "tomlplusplus",
+    "toml11",
     "tsl-ordered-map"
   ],
   "features": {
