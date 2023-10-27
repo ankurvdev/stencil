@@ -47,8 +47,6 @@ if (BUILD_TESTING)
     include(cmake/modules/Catch2.cmake)
 endif()
 
-build_lexyacc()
-
 file(GLOB resfiles src/templates/*)
 
 add_library(libstencil OBJECT
