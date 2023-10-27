@@ -28,7 +28,7 @@ endif()
 
 file(READ "${CURRENT_PACKAGES_DIR}/share/stencil/stencilConfig.cmake" config_contents)
 file(WRITE "${CURRENT_PACKAGES_DIR}/share/stencil/stencilConfig.cmake" "find_program(
-    STENCIL_EXECUTABLE stencil
+    stencil_EXECUTABLE stencil
     PATHS
         \"\${CMAKE_CURRENT_LIST_DIR}/../../../${HOST_TRIPLET}/tools/${PORT}\"
     NO_DEFAULT_PATH

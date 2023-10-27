@@ -1,66 +1,15 @@
 include_guard()
 include(FetchContent)
+include(${CMAKE_CURRENT_LIST_DIR}/FindOrBuild.cmake)
 
 FetchContent_Declare(
     stencil
     GIT_REPOSITORY https://github.com/ankurvdev/stencil.git
-    GIT_TAG        v0.1.3
+    GIT_TAG        main
 )
 if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/../src/Thrift.cpp")
-    set(STENCIL_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/..")
+    set(stencil_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/..")
 endif()
-
-function(build_stencil)
-    if (PROJECT_NAME STREQUAL stencil OR STENCIL_INSTALL)
-        message(FATAL_ERROR "Something is wrong:${STENCIL_SOURCE_DIR}::${PROJECT_NAME}")
-    endif()
-
-    if (NOT EXISTS "${STENCIL_SOURCE_DIR}")
-        FetchContent_MakeAvailable(stencil)
-    endif()
-
-    set(STENCIL_INSTALL OFF CACHE BOOL "Do not install stencil bits")
-    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/stencil-build")
-    set(CMD "${CMAKE_COMMAND}" "-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_CURRENT_BINARY_DIR}/stencil-install")
-    if (CMAKE_GENERATOR)
-        list(APPEND CMD "-G" "${CMAKE_GENERATOR}")
-    endif()
-
-    if (CMAKE_CROSSCOMPILING)
-        unset(ENV{CMAKE_CXX_COMPILER})
-        unset(ENV{CMAKE_C_COMPILER})
-        unset(ENV{CC})
-        unset(ENV{CXX})
-    endif()
-
-
-    list(APPEND CMD "${STENCIL_SOURCE_DIR}")
-
-    execute_process(COMMAND ${CMD} WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/stencil-build")
-    execute_process(COMMAND "${CMAKE_COMMAND}" --build  "${CMAKE_CURRENT_BINARY_DIR}/stencil-build")
-    execute_process(COMMAND "${CMAKE_COMMAND}" --install "${CMAKE_CURRENT_BINARY_DIR}/stencil-build" --prefix "${CMAKE_CURRENT_BINARY_DIR}/stencil-install")
-endfunction()
-
-macro(find_or_build_stencil)
-    # On Android cross compilation systems avoid the crosscompiled exe
-    find_program(STENCIL_EXECUTABLE stencil NO_CMAKE_PATH)
-    if (NOT EXISTS "${STENCIL_EXECUTABLE}")
-        find_program(STENCIL_EXECUTABLE stencil NO_CACHE)
-    endif()
-    if (NOT EXISTS "${STENCIL_EXECUTABLE}")
-        if ((TARGET stencil) AND (NOT CMAKE_CROSSCOMPILING))
-            set(STENCIL_EXECUTABLE stencil)
-        elseif((NOT TARGET stencil) AND (NOT CMAKE_CROSSCOMPILING))
-            if ((DEFINED VCPKG_ROOT) OR (DEFINED VCPKG_TOOLCHAIN))
-                message(FATAL_ERROR "Cannot find_program(stencil). Please install stencil via : vcpkg install stencil")
-            endif()
-            add_subdirectory("${STENCIL_SOURCE_DIR}" stencil)
-        else()
-            build_stencil()
-            find_program(STENCIL_EXECUTABLE REQUIRED NAMES stencil PATHS "${CMAKE_CURRENT_BINARY_DIR}/stencil-install/bin")
-        endif()
-    endif()
-endmacro()
 
 if (NOT TARGET stencil_runtime)
     add_library(stencil_runtime INTERFACE)
@@ -114,14 +63,14 @@ function(_add_stencil_target target libkind)
     set(outdir "${CMAKE_CURRENT_BINARY_DIR}/stencil_${target}")
     file(MAKE_DIRECTORY ${outdir})
     set(outputs)
-    if(TARGET "${STENCIL_EXECUTABLE}")
+    if(TARGET "${stencil_EXECUTABLE}")
         foreach(f ${_IDLS})
             get_filename_component(fname "${f}" NAME)
             list(APPEND outputs "${outdir}/${fname}.h")
         endforeach()
-    elseif (EXISTS "${STENCIL_EXECUTABLE}")
+    elseif (EXISTS "${stencil_EXECUTABLE}")
         execute_process(
-            COMMAND "${STENCIL_EXECUTABLE}" --dryrun --outdir=${outdir} ${_IDLS}
+            COMMAND "${stencil_EXECUTABLE}" --dryrun --outdir=${outdir} ${_IDLS}
             COMMAND_ECHO STDOUT
             RESULT_VARIABLE rslt
             OUTPUT_VARIABLE files)
@@ -134,14 +83,14 @@ function(_add_stencil_target target libkind)
             list(APPEND outputs ${tmp})
         endforeach()
     else()
-        message(FATAL_ERROR "Cannot find stencil executable or target ${STENCIL_EXECUTABLE}")
+        message(FATAL_ERROR "Cannot find stencil executable or target ${stencil_EXECUTABLE}")
     endif()
     list(APPEND outputs "${outdir}/empty.cpp")
     add_custom_command(OUTPUT ${outputs}
-                COMMAND ${STENCIL_EXECUTABLE} --outdir=${outdir} ${_IDLS}
+                COMMAND ${stencil_EXECUTABLE} --outdir=${outdir} ${_IDLS}
                 COMMAND "${CMAKE_COMMAND}" -E touch "${outdir}/empty.cpp"
-                DEPENDS ${STENCIL_EXECUTABLE} ${_IDLS}
-                COMMENT "Generating IDL code :  ${STENCIL_EXECUTABLE} --outdir=${outdir} ${ARGN}"
+                DEPENDS ${stencil_EXECUTABLE} ${_IDLS}
+                COMMENT "Generating IDL code :  ${stencil_EXECUTABLE} --outdir=${outdir} ${ARGN}"
                 VERBATIM)
     add_library(${target} ${libkind} ${outputs} ${_IDLS})
     target_include_directories(${target} PUBLIC $<BUILD_INTERFACE:${outdir}>)
@@ -150,6 +99,6 @@ endfunction()
 
 # IDL Compiler
 macro(add_stencil_library target libkind)
-    find_or_build_stencil()
+    FindOrBuildTool(stencil)
     _add_stencil_target(${target} ${libkind} ${ARGN})
 endmacro()
