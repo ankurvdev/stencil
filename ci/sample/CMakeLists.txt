@@ -9,7 +9,7 @@ endif()
 # set(INIT_SUBMODULE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../external)
 
 include(${CMAKE_CURRENT_LIST_DIR}/../../cmake/BuildEnv.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/../../external/lexyacc/LexYaccConfig.cmake)
+# include(${CMAKE_CURRENT_LIST_DIR}/../../external/lexyacc/LexYaccConfig.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/../../cmake/modules/EmbedResource.cmake)
 
 include(${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
@@ -34,7 +34,18 @@ set(srcfile ${CMAKE_CURRENT_BINARY_DIR}/main.cpp)
 file(WRITE ${srcfile} "")
 add_executable(stencil_vcpkg_test ${srcfile})
 
-add_lexyacc_library(TARGET WavefrontObj LYFILE ${CMAKE_CURRENT_LIST_DIR}/WavefrontObj.ly)
+add_library(WavefrontObj OBJECT
+    WavefrontObj/WavefrontObj.flex.cpp
+    WavefrontObj/WavefrontObj.yacc.cpp
+    WavefrontObj/WavefrontObj.ly.h
+    WavefrontObj/WavefrontObj.ly.impl.h
+    WavefrontObj/WavefrontObj.yacc.h
+    WavefrontObj/location.hh
+    WavefrontObj/position.hh
+    WavefrontObj/stack.hh
+)
+target_include_directories(WavefrontObj PRIVATE WavefrontObj)
+# add_lexyacc_library(TARGET WavefrontObj LYFILE ${CMAKE_CURRENT_LIST_DIR}/WavefrontObj.ly)
 target_include_directories(WavefrontObj PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
 target_include_directories(stencil_vcpkg_test PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
 
