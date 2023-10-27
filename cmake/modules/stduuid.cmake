@@ -7,6 +7,7 @@ FetchContent_Declare(
   GIT_TAG        v1.2.3
   SOURCE_SUBDIR .
   GIT_PROGRESS TRUE
+  SYSTEM
   FIND_PACKAGE_ARGS NAMES stduuid
 )
 

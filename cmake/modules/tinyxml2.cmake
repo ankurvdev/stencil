@@ -6,6 +6,7 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/leethomason/tinyxml2
   GIT_TAG        master
   SOURCE_SUBDIR .
+  SYSTEM
   FIND_PACKAGE_ARGS NAMES tinyxml2
 )
 

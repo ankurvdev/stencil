@@ -7,6 +7,7 @@ FetchContent_Declare(
     GIT_TAG        10.1.1
     SOURCE_SUBDIR  .
     GIT_PROGRESS TRUE
+    SYSTEM
     FIND_PACKAGE_ARGS NAMES fmt
 )
 
