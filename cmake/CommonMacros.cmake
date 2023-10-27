@@ -1,3 +1,5 @@
+include_guard()
+
 if (NOT TARGET CommonMacros)
     add_library(CommonMacros INTERFACE)
     set(COMMONMACROS_INCLUDE_FILE "${CMAKE_CURRENT_LIST_DIR}/CommonMacros.h")

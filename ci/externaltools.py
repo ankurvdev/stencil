@@ -12,45 +12,63 @@ import time
 import urllib.parse
 import urllib.request
 from typing import Any, Callable, Dict, Optional
+
 # EMSDK_VERSION = "3.1.14"  #This is what qt likes
 EMSDK_VERSION = "latest"
-ANDROID_NDK_VERSION = "25.2.9519653"
+ANDROID_NDK_VERSION = "26.0.10792818"
 
 URLS = {}
-URLS['cmake_Windows'] = "https://github.com/Kitware/CMake/releases/download/v3.24.0/cmake-3.24.0-windows-x86_64.zip"
-URLS['patch_Windows'] = ""
-URLS['gradle_Linux'] = URLS['gradle_Windows'] = "https://services.gradle.org/distributions/gradle-7.5-bin.zip"
-URLS['flexbison_Windows'] = "https://github.com/lexxmark/winflexbison/releases/download/v2.5.25/win_flex_bison-2.5.25.zip"
-URLS['ninja_Windows'] = "https://github.com/ninja-build/ninja/releases/download/v1.11.0/ninja-win.zip"
-URLS['ninja_Linux'] = "https://github.com/ninja-build/ninja/releases/download/v1.11.0/ninja-linux.zip"
-URLS['rclone_Windows'] = "https://downloads.rclone.org/v1.54.1/rclone-v1.54.1-windows-amd64.zip"
-URLS['rclone_Linux'] = "https://downloads.rclone.org/v1.54.1/rclone-v1.54.1-linux-amd64.zip"
-URLS['node_Windows'] = {
-    "downloadpage": "https://nodejs.org/dist/latest/",
-    "urlpattern": "https://nodejs.org/dist/latest/node-.*-win-x64.zip"
+URLS["cmake_Windows_amd64"] = {
+    "downloadpage": "https://cmake.org/download/",
+    "urlpattern": "https://github.com/Kitware/CMake/releases/download/v.*/cmake-.*-windows-x86_64.zip",
 }
 
-URLS['node_Linux'] = {
-    "downloadpage": "https://nodejs.org/dist/latest/",
-    "urlpattern": "https://nodejs.org/dist/latest/node-.*-linux-x64.tar.xz"
+URLS["patch_Windows_amd64"] = ""
+URLS["gradle_Linux_x86_64"] = URLS["gradle_Windows_amd64"] = "https://services.gradle.org/distributions/gradle-8.0-bin.zip"
+URLS["flexbison_Windows_amd64"] = "https://github.com/lexxmark/winflexbison/releases/download/v2.5.25/win_flex_bison-2.5.25.zip"
+URLS["ninja_Windows_amd64"] = "https://github.com/ninja-build/ninja/releases/download/v1.11.1/ninja-win.zip"
+URLS["ninja_Linux_x86_64"] = "https://github.com/ninja-build/ninja/releases/download/v1.11.1/ninja-linux.zip"
+URLS["rclone_Windows_amd64"] = "https://downloads.rclone.org/v1.54.1/rclone-v1.54.1-windows-amd64.zip"
+URLS["rclone_Linux_x86_64"] = "https://downloads.rclone.org/v1.54.1/rclone-v1.54.1-linux-amd64.zip"
+URLS["node_Windows_arm64"] = {
+    "downloadpage": "https://nodejs.org/dist/latest-v20.x/",
+    "urlpattern": "https://nodejs.org/dist/latest-v20.x/node-.*-win-arm64.zip",
 }
-URLS['magick_Windows'] = {
-    "downloadpage": 'https://imagemagick.org/download/binaries/',
-    "urlpattern": "https://imagemagick.org/download/binaries/ImageMagick-7.*-portable-Q16-x64.zip"
+URLS["node_Windows_amd64"] = {
+    "downloadpage": "https://nodejs.org/dist/latest-v20.x/",
+    "urlpattern": "https://nodejs.org/dist/latest-v20.x/node-.*-win-x64.zip",
 }
 
-URLS['magick_Linux'] = {
-    "downloadpage": 'https://imagemagick.org/script/download.php#linux',
+URLS["node_Linux_x86_64"] = {
+    "downloadpage": "https://nodejs.org/dist/latest-v20.x/",
+    "urlpattern": "https://nodejs.org/dist/latest-v20.x/node-.*-linux-x64.tar.xz",
+}
+URLS["magick_Windows_amd64"] = {
+    "downloadpage": "https://imagemagick.org/download/binaries/",
+    "urlpattern": "https://imagemagick.org/download/binaries/ImageMagick-7.*-portable-Q16-x64.zip",
+}
+
+URLS["magick_Linux_x86_64"] = {
+    "downloadpage": "https://imagemagick.org/script/download.php#linux",
     "urlpattern": "https://download.imagemagick.org/ImageMagick/download/binaries/magick",
-    "archiveext": "bin"
+    "archiveext": "bin",
 }
-URLS["rsvg-convert_Linux"] = {
+URLS["rsvg-convert_Linux_x86_64"] = {
     "url": "https://github.com/ankurvdev/binaries/raw/main/rsvg-convert",
+    "archiveext": "bin",
+}
+URLS["typesense-server_Linux_x86_64"] = {
+    "url":"https://dl.typesense.org/releases/0.25.1/typesense-server-0.25.1-linux-amd64.tar.gz",
     "archiveext": "bin"
 }
-URLS["rsvg-convert_Windows"] = "https://github.com/ankurvdev/binaries/raw/main/rsvg-convert.exe"
-URLS["resvg_Windows"] = "https://github.com/RazrFalcon/resvg/releases/download/v0.28.0/resvg-win64.zip"
-URLS["resvg_Linux"] = "https://github.com/RazrFalcon/resvg/releases/download/v0.28.0/resvg-linux-x86_64.tar.gz"
+URLS["typesense-server_Linux_arm64"] = {
+    "url":"https://dl.typesense.org/releases/0.25.1/typesense-server-0.25.1-linux-arm64.tar.gz",
+    "archiveext": "bin"
+}
+URLS["rsvg-convert_Windows_amd64"] = "https://github.com/ankurvdev/binaries/raw/main/rsvg-convert.exe"
+URLS["resvg_Windows_arm64"] = "https://github.com/RazrFalcon/resvg/releases/latest/download/resvg-win64.zip"
+URLS["resvg_Windows_amd64"] = "https://github.com/RazrFalcon/resvg/releases/latest/download/resvg-win64.zip"
+URLS["resvg_Linux_x86_64"] = "https://github.com/RazrFalcon/resvg/releases/latest/download/resvg-linux-x86_64.tar.gz"
 URL_NOTEPAD = "http://download.notepad-plus-plus.org/repository/7.x/7.8.1/npp.7.8.1.bin.x64.zip"
 URL_VSWHERE = "https://github.com/Microsoft/vswhere/releases/download/2.6.7/vswhere.exe"
 
@@ -61,7 +79,9 @@ class ExternalToolsDownloadError(Exception):
 
 class HTMLUrlExtractor(html.parser.HTMLParser):
     def __init__(self, url: str):
-        text = urllib.request.urlopen(url, timeout=10).read().decode("utf-8")
+        opener = urllib.request.URLopener()
+        opener.addheader("User-Agent", "whatever")
+        text = opener.open(url).read().decode("utf-8")
         self.baseurl = url
         self.urls: Dict[str, str] = {}
         self.href: Optional[str] = None
@@ -72,7 +92,10 @@ class HTMLUrlExtractor(html.parser.HTMLParser):
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]):
         if tag == "a":
             self.text = ""
-            self.href = next((urllib.parse.urljoin(self.baseurl, attr[1]) for attr in attrs if attr[0] == "href"), None)
+            self.href = next(
+                (urllib.parse.urljoin(self.baseurl, attr[1]) for attr in attrs if attr[0] == "href"),
+                None,
+            )
 
     def handle_endtag(self, tag: str):
         if self.href is not None:
@@ -118,17 +141,23 @@ def MoveUp(path: pathlib.Path):
 def GetBinPath():
     try:
         import configenv  # pylint: ignore
+
         return pathlib.Path(configenv.ConfigEnv(None).GetConfigPath("DEVEL_BINPATH", make=True))
     except ImportError:
         return pathlib.Path().absolute()
 
 
 class EmscriptenInfo:
-    def __init__(self, sdkpath: pathlib.Path, envvars:  dict[str: str], paths: list[str | pathlib.Path]):
+    def __init__(
+        self,
+        sdkpath: pathlib.Path,
+        envvars: dict[str:str],
+        paths: list[str | pathlib.Path],
+    ):
         self.sdkpath = sdkpath
         self.envvars = envvars
         self.paths = set([pathlib.Path(pathlike).absolute() for pathlike in paths])
-        self.cmake_toolchain_file = sdkpath/"upstream"/"emscripten"/"cmake"/"Modules"/"Platform"/"Emscripten.cmake"
+        self.cmake_toolchain_file = sdkpath / "upstream" / "emscripten" / "cmake" / "Modules" / "Platform" / "Emscripten.cmake"
 
 
 def DownloadEmscriptenInfoTo(path: pathlib.Path):
@@ -136,25 +165,38 @@ def DownloadEmscriptenInfoTo(path: pathlib.Path):
     sdkpath = path
     emconfig = sdkpath / ".emscripten"
     if not emconfig.exists():
-        script = sdkpath/"emsdk.bat" if sys.platform == "win32" else sdkpath/"emsdk"
+        script = sdkpath / "emsdk.bat" if sys.platform == "win32" else sdkpath / "emsdk"
         if not script.exists():
-            subprocess.check_call(["git", "clone", "https://github.com/emscripten-core/emsdk.git", "-b", "3.1.36", sdkpath])
+            subprocess.check_call(
+                [
+                    "git",
+                    "clone",
+                    "https://github.com/emscripten-core/emsdk.git",
+                    sdkpath,
+                ]
+            )
         subprocess.check_call(f"{script.as_posix()} install {EMSDK_VERSION}", shell=True, cwd=sdkpath)
         subprocess.check_call(f"{script.as_posix()} activate  {EMSDK_VERSION}", shell=True, cwd=sdkpath)
-        lines = emconfig.read_text(encoding='utf-8').splitlines()
-        newlines = [line if not line.split('=')[0].strip() == "NODE_JS" else f"NODE_JS = '{GetNodeJS().as_posix()}'" for line in lines]
-        emconfig.write_text("\n".join(newlines), encoding='utf-8')
-    os.environ['EM_CONFIG'] = emconfig.as_posix()
+        lines = emconfig.read_text(encoding="utf-8").splitlines()
+        newlines = [line if not line.split("=")[0].strip() == "NODE_JS" else f"NODE_JS = '{GetNodeJS().as_posix()}'" for line in lines]
+        emconfig.write_text("\n".join(newlines), encoding="utf-8")
+    os.environ["EM_CONFIG"] = emconfig.as_posix()
     _globals = {}
     _locals = {}
-    exec(emconfig.read_text(encoding='utf-8'), _globals, _locals)  # pylint: disable=exec-used
-    return EmscriptenInfo(sdkpath,
-                          {"EMSDK": sdkpath.as_posix(), "EMSDK_NODE": _locals["NODE_JS"], },
-                          [  # pathlib.Path(_locals["NODE_JS"]).parent,
-                              sdkpath,
-                              _locals["LLVM_ROOT"],
-                              _locals["BINARYEN_ROOT"],
-                              _locals["EMSCRIPTEN_ROOT"]])
+    exec(emconfig.read_text(encoding="utf-8"), _globals, _locals)  # pylint: disable=exec-used
+    return EmscriptenInfo(
+        sdkpath,
+        {
+            "EMSDK": sdkpath.as_posix(),
+            "EMSDK_NODE": _locals["NODE_JS"],
+        },
+        [  # pathlib.Path(_locals["NODE_JS"]).parent,
+            sdkpath,
+            _locals["LLVM_ROOT"],
+            _locals["BINARYEN_ROOT"],
+            _locals["EMSCRIPTEN_ROOT"],
+        ],
+    )
 
 
 def _download_or_get_Binary(binname: str, bindir: pathlib.Path, downloadFn: Callable[[pathlib.Path], None]) -> pathlib.Path:
@@ -202,13 +244,17 @@ def DownloadAndroidStudio(path: pathlib.Path):
 
 
 def AcceptSDKLicenses(path: pathlib.Path):
-    sdkpath = path / 'sdk'
-    cmd = [str(_download_or_get_Binary('sdkmanager', path, DownloadSdkManager)), f"--sdk_root={sdkpath}", '--licenses']
+    sdkpath = path / "sdk"
+    cmd = [
+        str(_download_or_get_Binary("sdkmanager", path, DownloadSdkManager)),
+        f"--sdk_root={sdkpath}",
+        "--licenses",
+    ]
     sys.stderr.write(" ".join(cmd) + "\n")
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     while proc.poll() is None:
         time.sleep(1)
-        proc.communicate(input=b'y\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\n')
+        proc.communicate(input=b"y\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\n")
 
 
 def GetAndroidSdkManager(path: pathlib.Path) -> pathlib.Path:
@@ -224,8 +270,8 @@ def DownloadJava(path: pathlib.Path):
 
 
 def AndroidGetJavaAt(path: pathlib.Path) -> pathlib.Path:
-    if 'JAVA_HOME' in os.environ:
-        os.environ.pop('JAVA_HOME')
+    if "JAVA_HOME" in os.environ:
+        os.environ.pop("JAVA_HOME")
     return _download_or_get_Binary("java", path, DownloadJava)
 
 
@@ -237,35 +283,37 @@ def DownloadAndroidTo(path: pathlib.Path) -> dict[str, str | pathlib.Path]:
     java = AndroidGetJavaAt(path)
     sdkmanager = GetAndroidSdkManager(path)
     sdkpath = path / "sdk"
-    os.environ["PATH"] = os.pathsep.join(
-        [str(java.parent), str(sdkmanager.parent), os.environ["PATH"]]
-    )
+    runenv = os.environ.copy()
+    runenv["PATH"] = os.pathsep.join([str(java.parent), str(sdkmanager.parent), runenv["PATH"]])
+    runenv["ANDROID_SDK_HOME"] = (path / "tmp").as_posix()
+    runenv["ANDROID_USER_HOME"] = (path / "tmp").as_posix()
+
     dirs = {""}
     for d in os.scandir(sdkpath):
         dirs.add(d.name)
     packages = [
-        "ndk-bundle",
+        # "ndk-bundle",
         f"ndk;{ANDROID_NDK_VERSION}",
-        "build-tools;33.0.1",
+        "build-tools;34.0.0",
         "platform-tools",
-        "platforms;android-33",
+        "platforms;android-34",
     ]
 
     def IsNeeded():
         for p in packages:
-            if not p.split(";", maxsplit=1)[0] in dirs:
+            if p.split(";", maxsplit=1)[0] not in dirs:
                 return True
         return False
 
     if IsNeeded():
         cmd = [str(sdkmanager), f"--sdk_root={sdkpath}"] + packages
         sys.stderr.write(" ".join(cmd) + "\n")
-        subprocess.check_call(cmd)
+        subprocess.check_call(cmd, env=runenv)
         AcceptSDKLicenses(path)
     return {
         "ndk": (sorted(list((sdkpath / "ndk").glob("*")))[-1]).absolute(),
         "ndk_version": ANDROID_NDK_VERSION,
-        "sdk_version": "33",
+        "sdk_version": "34",
         "java_home": java.parent.parent,
         "sdk_root": sdkpath,
     }
@@ -274,14 +322,25 @@ def DownloadAndroidTo(path: pathlib.Path) -> dict[str, str | pathlib.Path]:
 binarycache: Dict[str, pathlib.Path] = {}
 
 
-def GetBinary(packname: str, urldir: Optional[str] = None, binname: Optional[str] = None) -> pathlib.Path:
+def GetBinary(
+    packname: str,
+    urldir: Optional[str] = None,
+    binname: Optional[str] = None,
+    binpath: Optional[str] = None,
+) -> pathlib.Path:
     if packname in binarycache:
         return binarycache[packname]
-    rslt = binarycache[packname] = _GetBinary(packname, urldir, binname)
+    rslt = binarycache[packname] = _GetBinary(packname, urldir, binname, binpath)
     return rslt
 
 
-def _GetBinary(packname: str, _urldir: Optional[str] = None, binname: Optional[str] = None, which=True) -> pathlib.Path:
+def _GetBinary(
+    packname: str,
+    _urldir: Optional[str] = None,
+    binname: Optional[str] = None,
+    binpath: Optional[str] = None,
+    which=True,
+) -> pathlib.Path:
     binname = binname or packname
     exe = pathlib.Path(shutil.which(binname) or "") if which else pathlib.Path()
     if exe.is_file():
@@ -289,13 +348,13 @@ def _GetBinary(packname: str, _urldir: Optional[str] = None, binname: Optional[s
             return pathlib.Path(exe)
         else:
             return pathlib.Path(exe)
-    bindir = GetBinPath() / packname
+    bindir = (binpath and pathlib.Path(binpath)) or GetBinPath() / packname
     bindir.mkdir(exist_ok=True)
     localexe = SearchExecutable(bindir, binname)
     if localexe.is_file():
         return localexe
 
-    urlinfo: Any = URLS[packname + "_" + platform.system()]
+    urlinfo: Any = URLS["_".join([packname, platform.system(), platform.machine().lower()])]
 
     archiveext = None
     if not isinstance(urlinfo, str):
@@ -322,18 +381,17 @@ def _GetBinary(packname: str, _urldir: Optional[str] = None, binname: Optional[s
         else:
             raise ExternalToolsDownloadError(f"Unrecognized Archive format:{archiveext} in url{url}")
     downloadtofile = bindir.parent / f"tmp_{packname}{(archiveext or '')}"
-    sys.stderr.write(f"Found LocalFile: {downloadtofile} URL: {url}\n")
     if (not bindir.exists()) or (not SearchExecutable(bindir, binname).is_file()):
         if not downloadtofile.is_file():
             urllib.request.urlretrieve(url, downloadtofile)
-        if archiveext != 'bin':
+        if archiveext != "bin":
             shutil.unpack_archive(downloadtofile, bindir)
-            os.remove(downloadtofile)
         else:
             binext = ".exe" if sys.platform == "win32" else ""
             shutil.copyfile(downloadtofile, bindir / (packname + binext))
+        downloadtofile.unlink(missing_ok=True)
         subdir = list(os.scandir(bindir))
-        while (len(subdir) == 1 and os.path.isdir(subdir[0].path)):
+        while len(subdir) == 1 and os.path.isdir(subdir[0].path):
             MoveUp(pathlib.Path(subdir[0].path))
             subdir = list(os.scandir(bindir))
 
@@ -367,22 +425,49 @@ def GetVSVars() -> dict[str, str]:
     vswhere = pathlib.Path("C:/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe")
     if not vswhere.exists():
         return {}
-    vspath = subprocess.check_output([vswhere.as_posix(), "-version", "16.0", "-property", "installationpath",
-                                      "-prerelease", "-all", "-latest", "-property", "installationpath"], text=True).splitlines()[-1]
+    vspath = subprocess.check_output(
+        [
+            vswhere.as_posix(),
+            "-version",
+            "16.0",
+            "-property",
+            "installationpath",
+            "-prerelease",
+            "-all",
+            "-latest",
+            "-property",
+            "installationpath",
+        ],
+        text=True,
+    ).splitlines()[-1]
     # script = pathlib.Path(__file__).parent / "run_in_devenv.ps1"
     command = [
-        "Import-Module", f'"{vspath}/Common7/Tools/Microsoft.VisualStudio.DevShell.dll"', ";",
-        "Enter-VsDevShell", "-VsInstallPath", f'"{vspath}"',
-        "-SkipAutomaticLocation", "-DevCmdArguments", "'-host_arch=amd64 -arch=x64 -no_logo'", ";",
-        "gci env:/ | %{$_.Name+'='+$_.Value}"
+        "Import-Module",
+        f'"{vspath}/Common7/Tools/Microsoft.VisualStudio.DevShell.dll"',
+        ";",
+        "Enter-VsDevShell",
+        "-VsInstallPath",
+        f'"{vspath}"',
+        "-SkipAutomaticLocation",
+        "-DevCmdArguments",
+        "'-host_arch=amd64 -arch=x64 -no_logo'",
+        ";",
+        "gci env:/ | %{$_.Name+'='+$_.Value}",
     ]
     # command = ["powershell", script.as_posix(), "x64", ";", "gci env:/ | %{$_.Name+'='+$_.Value}"]
-    rslt = subprocess.run(command, capture_output=True, text=True, check=False, shell=True, executable=shutil.which("powershell"),)
+    rslt = subprocess.run(
+        command,
+        capture_output=True,
+        text=True,
+        check=False,
+        shell=True,
+        executable=shutil.which("powershell"),
+    )
     if rslt.returncode != 0:
         return {}
     commandout = rslt.stdout.splitlines()[4:]
     localvars = dict(line.strip().split("=") for line in commandout)
-    captureset = {'PATH', 'INCLUDE', 'LIB', 'LIBPATH'}
+    captureset = {"PATH", "INCLUDE", "LIB", "LIBPATH"}
     vsvars = {k.upper(): v for k, v in localvars.items() if k.upper() in captureset}
     vsvars["PATH"] += f";{vspath}/VC/Tools/Llvm/x64/bin"
     return vsvars
@@ -402,58 +487,62 @@ def DetectVSPath(name: str, excpt: bool = False) -> pathlib.Path | None:
 
 def GetCMAKE() -> pathlib.Path:
     if sys.platform == "win32":
-        return DetectVSPath('cmake') or GetBinary('cmake')
-    return GetBinary('cmake')
+        return DetectVSPath("cmake") or GetBinary("cmake")
+    return GetBinary("cmake")
 
 
 def GetClangFormat() -> pathlib.Path:
     if sys.platform == "win32":
-        return DetectVSPath('clang-format') or GetBinary('clang-format')
-    return GetBinary('clang-format')
+        return DetectVSPath("clang-format") or GetBinary("clang-format")
+    return GetBinary("clang-format")
 
 
 def GetMSVCCompiler():
-    return DetectVSPath('cl', excpt=True)
+    return DetectVSPath("cl", excpt=True)
 
 
 def GetNinja():
     if sys.platform == "win32":
-        return DetectVSPath('ninja') or GetBinary('ninja')
-    return GetBinary('ninja')
+        return DetectVSPath("ninja") or GetBinary("ninja")
+    return GetBinary("ninja")
 
 
 def GetRSVGConvert() -> pathlib.Path:
-    return GetBinary('rsvg-convert')
+    return GetBinary("rsvg-convert")
+
+
+def GetRESVG() -> pathlib.Path:
+    return GetBinary("resvg")
 
 
 def GetCTEST() -> pathlib.Path:
     cmake = GetCMAKE().parent.as_posix()
-    ctest = shutil.which('ctest', path=cmake)
+    ctest = shutil.which("ctest", path=cmake)
     if not ctest:
         raise ExternalToolsDownloadError(f"Cannot find ctest in {cmake}")
     return pathlib.Path(ctest)
 
 
 def GetGit() -> pathlib.Path:
-    git = shutil.which('git')
+    git = shutil.which("git")
     if git is None:
         raise ExternalToolsDownloadError("Cannot find Git")
     return pathlib.Path(git)
 
 
 def GetReSVG() -> pathlib.Path:
-    return GetBinary('resvg')
+    return GetBinary("resvg")
 
 
 def GetImageMagickConvert() -> pathlib.Path:
     if sys.platform == "win32":
-        return GetBinary('magick')
+        return GetBinary("magick")
     else:
-        return GetBinary('magick')
+        return GetBinary("magick")
 
 
 def GetWinFlexBison() -> pathlib.Path:
-    return GetBinary('flexbison', binname="win_flex").parent
+    return GetBinary("flexbison", binname="win_flex").parent
 
 
 def GetJava() -> pathlib.Path:
@@ -461,7 +550,7 @@ def GetJava() -> pathlib.Path:
 
 
 def GetJavaHome() -> pathlib.Path:
-    return pathlib.Path(DownloadAndroidTo(GetBinPath() / "android")['java_home'])
+    return pathlib.Path(DownloadAndroidTo(GetBinPath() / "android")["java_home"])
 
 
 def GetJarSigner() -> pathlib.Path:
@@ -469,46 +558,53 @@ def GetJarSigner() -> pathlib.Path:
 
 
 def GetGradle() -> pathlib.Path:
-    return GetBinary('gradle')
+    return GetBinary("gradle")
 
 
 def GetRclone() -> pathlib.Path:
-    return GetBinary('rclone')
+    return GetBinary("rclone")
 
 
 def GetNodeJS():
-    return GetBinary('node')
+    return GetBinary("node")
+
+
+def GetTypesense() -> pathlib.Path:
+    return GetBinary("typesense")
 
 
 def GetNPM():
-    npm = pathlib.Path(shutil.which('npm', path=GetNodeJS().parent))
+    if sys.platform == "win32":
+        npm = pathlib.Path(shutil.which("npm.cmd", path=GetNodeJS().parent))
+    else:
+        npm = pathlib.Path(shutil.which("npm", path=GetNodeJS().parent))
     AddToPath([npm.parent])
     return npm
 
 
 def AddToPath(paths: list[pathlib.Path], environ=None):
     environ = environ or os.environ
-    alreadypaths = set([pathlib.Path(onepath).absolute() for onepath in environ['PATH'].split(os.pathsep)])
+    alreadypaths = set([pathlib.Path(onepath).absolute() for onepath in environ["PATH"].split(os.pathsep)])
     appendpaths = list([onepath.as_posix() for onepath in paths if onepath.absolute() not in alreadypaths])
     appendpathsstr = os.pathsep.join(appendpaths)
     if len(appendpathsstr) > 0:
-        newpath = os.pathsep.join([appendpathsstr, environ['PATH']])
-        environ['PATH'] = newpath
+        newpath = os.pathsep.join([appendpathsstr, environ["PATH"]])
+        environ["PATH"] = newpath
         sys.stderr.write(f"PATH += {appendpathsstr}\n")
         sys.stderr.write(f"PATH = {newpath}\n")
     return environ
 
 
 def GetPatch():
-    return GetBinary('patch')
+    return GetBinary("patch")
 
 
 def GetAndroidSdkRoot() -> pathlib.Path:
-    return pathlib.Path(DownloadAndroidTo(GetBinPath() / "android")['sdk_root'])
+    return pathlib.Path(DownloadAndroidTo(GetBinPath() / "android")["sdk_root"])
 
 
 def GetAndroidNDKRoot() -> pathlib.Path:
-    return pathlib.Path(DownloadAndroidTo(GetBinPath() / "android")['ndk'])
+    return pathlib.Path(DownloadAndroidTo(GetBinPath() / "android")["ndk"])
 
 
 def GetAndroidStudio():

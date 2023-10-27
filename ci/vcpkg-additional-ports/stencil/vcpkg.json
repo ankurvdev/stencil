@@ -1,31 +1,38 @@
 {
-    "name": "stencil",
-    "version": "0.1.14",
-    "description": "Stencil",
-    "dependencies": [
-        {
-            "name": "stencil",
-            "host": true
-        },
-        "date",
-        "embedresource",
-        "toml11",
-        "tsl-ordered-map",
-        "tinyxml2",
-        "cxxopts",
-        "cpp-httplib",
-        "rapidjson",
-        "stduuid",
-        "gsl",
-        "fmt"
-    ],
-    "features": {
-        "tests": {
-            "description": "Build with unittests",
-            "dependencies": [
-                "dtl",
-                "catch2"
-            ]
-        }
+  "name": "stencil",
+  "version": "0.1.3",
+  "description": "Cross Platform Resource Embedding",
+  "homepage": "https://github.com/ankurvdev/stencil",
+  "license": "BSD-3-Clause",
+  "dependencies": [
+    {
+      "name": "stencil",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    "ankurvdev-embedresource",
+    "ankurvdev-lexyacc",
+    "cpp-httplib",
+    "cxxopts",
+    "date",
+    "fmt",
+    "gsl",
+    "rapidjson",
+    "stduuid",
+    "tinyxml2",
+    "toml11",
+    "tsl-ordered-map"
+  ],
+  "features": {
+    "tests": {
+      "description": "Build with unittests",
+      "dependencies": [
+        "dtl",
+        "catch2"
+      ]
     }
+  }
 }

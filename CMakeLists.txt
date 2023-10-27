@@ -1,115 +1,49 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.26)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/modules)
 set(INIT_SUBMODULE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/external)
 
 include(BuildEnv)
-
+include(FetchContent)
 project(stencil VERSION 0.0.3)
+if (DEFINED Quick_DIR)
+    find_package(Quick)
+    QuickInit()
+endif()
 
 include(CMakePackageConfigHelpers)
 
 option(BUILD_TESTING "Build Test" ON)
-option(STENCIL_INSTALL_BUILDTOOLS "Install Extra Build Tools with install" ON)
+option(STENCIL_INSTALL_BUILDTOOLS "Install Extra Build Tools with install" OFF)
 
 set(CMAKE_CXX_STANDARD 20)
 EnableStrictCompilation()
 
-find_package (Threads REQUIRED)
 
-set(LexYacc_DIR       ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc)
+find_package(Threads REQUIRED)
 
 file(GLOB public_headers ${CMAKE_CURRENT_LIST_DIR}/include/stencil/*)
 
-find_package(LexYacc)
+include(cmake/modules/cxxopts.cmake)
+include(cmake/modules/date.cmake)
+include(cmake/modules/EmbedResource.cmake)
+include(cmake/modules/fmt.cmake)
+include(cmake/modules/httplib.cmake)
+include(cmake/modules/LexYacc.cmake)
+include(cmake/modules/RapidJSON.cmake)
+include(cmake/modules/stduuid.cmake)
+include(cmake/modules/tinyxml2.cmake)
+include(cmake/modules/toml11.cmake)
+include(cmake/modules/tsl-ordered-map.cmake)
 
-find_package(EmbedResource)
+include(cmake/CommonMacros.cmake)
 
-find_package(toml11 QUIET)
-if (NOT toml11_FOUND)
-    init_submodule(toml11)
-    add_library(toml11 INTERFACE)
-    add_library(toml11::toml11 ALIAS toml11)
-    target_include_directories(toml11 INTERFACE external/toml11)
-endif()
-
-find_package(tsl-ordered-map QUIET)
-if (NOT tsl-ordered-map_FOUND)
-    init_submodule(ordered-map)
-    add_library(tsl_ordered_map INTERFACE)
-    add_library(tsl::ordered_map ALIAS tsl_ordered_map)
-    target_include_directories(tsl_ordered_map INTERFACE external/ordered-map/include)
-endif()
-
-find_package(tinyxml2 QUIET)
-if (NOT tinyxml2_FOUND)
-    init_submodule(tinyxml2)
-    add_library(tinyxml2 external/tinyxml2/tinyxml2.cpp external/tinyxml2/tinyxml2.h)
-    target_compile_definitions(tinyxml2 PUBLIC $<$<CONFIG:Debug>:TINYXML2_DEBUG>)
-    target_include_directories(tinyxml2 PUBLIC external/tinyxml2)
-    add_library(tinyxml2::tinyxml2 ALIAS tinyxml2)
-    SupressWarningForTarget(tinyxml2)
-endif()
-
-find_package(cxxopts QUIET)
-if (NOT cxxopts_FOUND)
-    init_submodule(cxxopts)
-    add_library(cxxopts INTERFACE)
-    add_library(cxxopts::cxxopts ALIAS cxxopts)
-    target_include_directories(cxxopts INTERFACE external/cxxopts/include)
-endif()
-
-
-find_package(stduuid QUIET)
-if (NOT stduuid_FOUND)
-    init_submodule(stduuid)
-    add_library(stduuid INTERFACE)
-    add_library(stduuid::stduuid ALIAS stduuid)
-    target_include_directories(stduuid INTERFACE external/stduuid/include)
-    set(UUIDHEADER "external/stduuid/include/uuid.h")
-    list(APPEND public_headers "${UUIDHEADER}")
-endif()
-
-find_package(fmt QUIET MODULE REQUIRED)
-find_package(date QUIET MODULE REQUIRED)
-
-find_package(RapidJSON QUIET)
-if (NOT RapidJSON_FOUND)
-    init_submodule(rapidjson)
-    add_library(rapidjson INTERFACE)
-    #SupressWarningForTarget(rapidjson)
-    target_compile_definitions(rapidjson INTERFACE USE_RAPIDJSON=1)
-    target_include_directories(rapidjson INTERFACE external/rapidjson/include)
-endif()
-find_package(CommonMacros QUIET MODULE REQUIRED)
 list(APPEND public_headers "${COMMONMACROS_INCLUDE_FILE}")
-
-#find_package(simdjson QUIET)
-#if (NOT simdjson_FOUND)
-#    init_submodule(simdjson)
-#    add_library(simdjson INTERFACE)
-#endif()
-
 
 if (BUILD_TESTING)
     enable_testing()
-
-    find_package(Catch2 QUIET REQUIRED)
-
-    find_path(CPP_HTTPLIB_INCLUDE_DIRS "httplib.h")
-    if (NOT EXISTS "${CPP_HTTPLIB_INCLUDE_DIRS}")
-        init_submodule(cpp-httplib)
-        set(CPP_HTTPLIB_INCLUDE_DIRS "external/cpp-httplib")
-    endif()
-    add_library(cpp_httplib INTERFACE)
-    add_library(cpp_httplib::cpp_httplib ALIAS cpp_httplib)
-    target_include_directories(cpp_httplib INTERFACE "${CPP_HTTPLIB_INCLUDE_DIRS}")
-    if (WIN32 OR MSYS)
-        target_link_libraries(cpp_httplib INTERFACE ws2_32)
-    endif()
+    include(cmake/modules/Catch2.cmake)
 endif()
-
-build_lexyacc()
 
 file(GLOB resfiles src/templates/*)
 
@@ -125,19 +59,19 @@ add_library(libstencil OBJECT
     src/Thrift.h
     src/tree.h
 )
-target_include_directories(libstencil PUBLIC src)
+target_include_directories(libstencil PUBLIC src include)
 add_lexyacc_library(TARGET Thrift LYFILE src/Thrift.ly SOURCES src/Thrift.cpp)
-target_include_directories(Thrift PUBLIC src)
+target_include_directories(Thrift PUBLIC src include)
 target_link_libraries(Thrift PUBLIC CommonMacros fmt::fmt-header-only)
 if (MSVC)
     # TOML11 has a nasty usage of insecure apis
     set_source_files_properties("src/ModelGenerator.cpp" PROPERTIES COMPILE_FLAGS "/D_CRT_SECURE_NO_WARNINGS")
 endif()
 target_link_libraries(libstencil PUBLIC Thrift)
-target_add_resource(libstencil templates ${resfiles})
+target_add_resource(libstencil RESOURCE_COLLECTION_NAME templates RESOURCES ${resfiles})
 list(APPEND resfiles ${public_headers})
 if (NOT BUILD_TESTING)
-    target_add_resource(libstencil commonheaders ${resfiles})
+    target_add_resource(libstencil RESOURCE_COLLECTION_NAME commonheaders RESOURCES ${resfiles})
 endif()
 
 target_link_libraries(libstencil PUBLIC
@@ -160,12 +94,12 @@ set_target_properties(stencil PROPERTIES PUBLIC_HEADER "${public_headers}")
 target_link_libraries(stencil PRIVATE libstencil Thrift cxxopts::cxxopts)
 
 if (BUILD_TESTING)
-    include(RuntimeCodegenTests)
+    add_subdirectory(tests/CodegenRuntime)
 endif()
 
 if (BUILD_TESTING)
     enable_testing()
-    find_package(TestCommon REQUIRED MODULE)
+    include(cmake/TestCommon.cmake)
     file(GLOB resfiles CONFIGURE_DEPENDS tests/testdata/*)
     file(GLOB pidlfiles tests/*.pidl)
 
@@ -175,7 +109,7 @@ if (BUILD_TESTING)
     add_test(NAME codegen_tests COMMAND codegen_tests)
     target_include_directories(codegen_tests PRIVATE src include tests)
     target_link_libraries(codegen_tests PRIVATE libstencil Thrift TestCommon)
-    target_add_resource(codegen_tests testdata ${resfiles} ${pidlfiles})
+    target_add_resource(codegen_tests RESOURCE_COLLECTION_NAME testdata RESOURCES ${resfiles} ${pidlfiles})
     target_compile_definitions(codegen_tests PRIVATE HAVE_EMBEDRESOURCE=1)
     add_executable(runtime_tests
         tests/HandwrittenRuntime/Test_Handwritten_CLOpts.cpp
@@ -183,13 +117,13 @@ if (BUILD_TESTING)
         tests/HandwrittenRuntime/Test_Handwritten_Binary.cpp
     )
 
-    target_compile_definitions(runtime_tests PRIVATE HAVE_NLOHMANN_JSON HAVE_CPP_HTTPLIB)
+    target_compile_definitions(runtime_tests PRIVATE HAVE_NLOHMANN_JSON)
     target_link_libraries(runtime_tests PRIVATE stencil_runtime)
-    target_link_libraries(runtime_tests PRIVATE TestCommon cpp_httplib::cpp_httplib stencil::runtime)
+    target_link_libraries(runtime_tests PRIVATE TestCommon httplib::httplib stencil::runtime)
     target_link_libraries (runtime_tests PRIVATE Threads::Threads)
     add_test(NAME runtime_tests COMMAND runtime_tests)
 
-    target_add_resource(runtime_tests testdata ${resfiles})
+    target_add_resource(runtime_tests RESOURCE_COLLECTION_NAME testdata RESOURCES ${resfiles})
     target_compile_definitions(runtime_tests PRIVATE HAVE_EMBEDRESOURCE=1)
     target_include_directories(runtime_tests PRIVATE src include tests)
  
@@ -211,23 +145,10 @@ install(
 
 install(FILES
     cmake/stencilTargets.cmake
+    cmake/FindOrBuildTool.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/stencilConfig.cmake
     DESTINATION share/stencil
 )
-
-if(STENCIL_INSTALL_BUILDTOOLS)
-    if (TARGET lexyacc)
-        install(TARGETS lexyacc EXPORT lexyaccTargets)
-    elseif(EXISTS "${LEXYACC_EXECUTABLE}")
-        install(FILES "${LEXYACC_EXECUTABLE}" DESTINATION bin)
-    endif()
-
-    install(FILES
-        ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc/FlexLexer.h
-        ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc/LexYaccConfig.cmake
-        DESTINATION share/stencil
-    )
-endif()
 
 #install(EXPORT stencilTargets
 #    NAMESPACE stencil::

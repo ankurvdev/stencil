@@ -1,10 +1,14 @@
+include_guard()
 include(FetchContent)
+include(${CMAKE_CURRENT_LIST_DIR}/FindOrBuildTool.cmake)
 
-if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/EmbedResourceConfig.cmake)
-    include(${CMAKE_CURRENT_LIST_DIR}/EmbedResourceConfig.cmake)
-endif()
-if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/LexYaccConfig.cmake)
-    include(${CMAKE_CURRENT_LIST_DIR}/LexYaccConfig.cmake)
+FetchContent_Declare(
+    stencil
+    GIT_REPOSITORY https://github.com/ankurvdev/stencil.git
+    GIT_TAG        main
+)
+if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/../src/Thrift.cpp")
+    set(stencil_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/..")
 endif()
 
 if (NOT TARGET stencil_runtime)
@@ -15,7 +19,7 @@ if (NOT TARGET stencil_runtime)
     find_package(RapidJSON QUIET)
     find_package(date REQUIRED QUIET)
     # Optional
-    find_package(CppHttpLib QUIET)
+    find_package(httplib QUIET)
 
     if (TARGET stduuid)
         target_link_libraries(stencil_runtime INTERFACE stduuid)
@@ -28,6 +32,8 @@ if (NOT TARGET stencil_runtime)
     if (TARGET rapidjson)
         target_link_libraries(stencil_runtime INTERFACE rapidjson)
         target_compile_definitions(stencil_runtime INTERFACE HAVE_RAPIDJSON=1)
+    else()
+        message(FATAL_ERROR "Cannot find rapidjson")
     endif()
     if (TARGET date::date)
         target_link_libraries(stencil_runtime INTERFACE date::date)
@@ -35,9 +41,10 @@ if (NOT TARGET stencil_runtime)
     else()
         message(FATAL_ERROR "Cannot find date")
     endif()
-    if (TARGET CppHttpLib)
-        target_link_libraries(stencil_runtime INTERFACE CppHttpLib)
+    if (TARGET httplib::httplib)
+        target_link_libraries(stencil_runtime INTERFACE httplib::httplib)
     endif()
+
     if (NOT EXISTS "${stencil_INCLUDE_PATH}/stencil/stencil.h")
         find_path(stencil_INCLUDE_PATH "stencil/stencil.h" REQUIRED)
         #set(stencil_INCLUDE_PATH "${stencil_INCLUDE_PATH}" CACHE PATH FORCE "Stencil include path")
@@ -51,63 +58,19 @@ if (NOT TARGET stencil::runtime)
     add_library(stencil::runtime ALIAS stencil_runtime)
 endif()
 
-FetchContent_Declare(
-    STENCIL
-    GIT_REPOSITORY https://github.com/ankurvdev/stencil.git
-    GIT_TAG        6aedc08492efade9029cdd083c4cf5bcc692cc78
-)
-
-function(build_stencil_impl workdir)
-    if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/../src/Thrift.cpp")
-        set(STENCIL_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/..")
-    else()
-        FetchContent_MakeAvailable(STENCIL)
-    endif()
-    set(builddir ${workdir}/build)
-    set(installdir ${workdir})
-    file(MAKE_DIRECTORY ${builddir})
-    file(MAKE_DIRECTORY ${installdir})
-
-    unset(ENV{CMAKE_CXX_COMPILER})
-    unset(ENV{CMAKE_C_COMPILER})
-    unset(ENV{CC})
-    unset(ENV{CXX})
-
-    set(CMD "${CMAKE_COMMAND}" "-DCMAKE_INSTALL_PREFIX:PATH=${installdir}")
-    if (CMAKE_GENERATOR)
-        list(APPEND CMD "-G" "${CMAKE_GENERATOR}")
-    endif()
-    list(APPEND CMD -DBUILD_TESTING=OFF)
-    list(APPEND CMD "${STENCIL_SOURCE_DIR}")
-    
-    execute_process(COMMAND_ERROR_IS_FATAL ANY WORKING_DIRECTORY ${builddir} COMMAND ${CMD})
-    execute_process(COMMAND_ERROR_IS_FATAL ANY COMMAND ${CMAKE_COMMAND} --build ${builddir} -j )
-    execute_process(COMMAND_ERROR_IS_FATAL ANY COMMAND ${CMAKE_COMMAND} --install ${builddir} -j --prefix "${installdir}")
-endfunction()
-
-macro(build_stencil workdir)
-    set(stencil_build_dir "${workdir}/buildtool_stencil")
-    build_stencil_impl(${stencil_build_dir})
-    find_program(STENCIL_EXECUTABLE REQUIRED NAMES stencil HINTS
-        ${stencil_build_dir}
-        ${stencil_build_dir}/bin
-    )
-endmacro()
-
-function(_add_stencil_target)
-    cmake_parse_arguments("" "" "TARGET" "IDLS" ${ARGN})
-    set(targetName ${_TARGET})
-    set(outdir "${CMAKE_CURRENT_BINARY_DIR}/stencil_${targetName}")
+function(_add_stencil_target target libkind)
+    cmake_parse_arguments("" "" "" "IDLS" ${ARGN})
+    set(outdir "${CMAKE_CURRENT_BINARY_DIR}/stencil_${target}")
     file(MAKE_DIRECTORY ${outdir})
     set(outputs)
-    if(TARGET "${STENCIL_EXECUTABLE}")
+    if(TARGET "${stencil_EXECUTABLE}")
         foreach(f ${_IDLS})
             get_filename_component(fname "${f}" NAME)
             list(APPEND outputs "${outdir}/${fname}.h")
         endforeach()
-    elseif (EXISTS "${STENCIL_EXECUTABLE}")
+    elseif (EXISTS "${stencil_EXECUTABLE}")
         execute_process(
-            COMMAND "${STENCIL_EXECUTABLE}" --dryrun --outdir=${outdir} ${_IDLS}
+            COMMAND "${stencil_EXECUTABLE}" --dryrun --outdir=${outdir} ${_IDLS}
             COMMAND_ECHO STDOUT
             RESULT_VARIABLE rslt
             OUTPUT_VARIABLE files)
@@ -120,44 +83,22 @@ function(_add_stencil_target)
             list(APPEND outputs ${tmp})
         endforeach()
     else()
-        message(FATAL_ERROR "Cannot find stencil executable or target ${STENCIL_EXECUTABLE}")
+        message(FATAL_ERROR "Cannot find stencil executable or target ${stencil_EXECUTABLE}")
     endif()
-
+    list(APPEND outputs "${outdir}/empty.cpp")
     add_custom_command(OUTPUT ${outputs}
-               COMMAND ${STENCIL_EXECUTABLE} --outdir=${outdir} ${_IDLS}
-               DEPENDS ${STENCIL_EXECUTABLE} ${_IDLS}
-               COMMENT "Generating IDL code :  ${STENCIL_EXECUTABLE} --outdir=${outdir} ${ARGN}"
-               VERBATIM)
-    if (NOT TARGET date::date)
-        find_package(date REQUIRED)
-    endif()
-    add_library(${targetName} INTERFACE ${outputs})
-    target_sources(${targetName} INTERFACE ${outputs} ${_IDLS})
-    target_include_directories(${targetName} INTERFACE $<BUILD_INTERFACE:${outdir}>)
-    target_link_libraries(${targetName} INTERFACE stencil::runtime date::date fmt::fmt-header-only)
+                COMMAND ${stencil_EXECUTABLE} --outdir=${outdir} ${_IDLS}
+                COMMAND "${CMAKE_COMMAND}" -E touch "${outdir}/empty.cpp"
+                DEPENDS ${stencil_EXECUTABLE} ${_IDLS}
+                COMMENT "Generating IDL code :  ${stencil_EXECUTABLE} --outdir=${outdir} ${ARGN}"
+                VERBATIM)
+    add_library(${target} ${libkind} ${outputs} ${_IDLS})
+    target_include_directories(${target} PUBLIC $<BUILD_INTERFACE:${outdir}>)
+    target_link_libraries(${target} PUBLIC stencil::runtime)
 endfunction()
 
 # IDL Compiler
-macro(add_stencil_library)
-    if (NOT EXISTS "${STENCIL_EXECUTABLE}")
-        find_program(STENCIL_EXECUTABLE stencil)
-        if (NOT EXISTS "${STENCIL_EXECUTABLE}")
-            if (CMAKE_CROSSCOMPILING)
-                build_stencil(${CMAKE_CURRENT_BINARY_DIR})
-            else()
-                if (TARGET stencil)
-                    unset(STENCIL_EXECUTABLE CACHE)
-                    set(STENCIL_EXECUTABLE stencil CACHE STRING "Stencil Executable")
-                else()
-                    build_stencil(${CMAKE_CURRENT_BINARY_DIR})
-                endif()
-            endif()
-        endif()
-    endif()
-
-    if (NOT EXISTS "${STENCIL_EXECUTABLE}" AND NOT TARGET stencil)
-        message(FATAL_ERROR "Cannot find or build stencil")
-    endif()
-    
-    _add_stencil_target(${ARGN})
+macro(add_stencil_library target libkind)
+    FindOrBuildTool(stencil)
+    _add_stencil_target(${target} ${libkind} ${ARGN})
 endmacro()
