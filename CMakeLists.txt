@@ -20,18 +20,16 @@ set(CMAKE_CXX_STANDARD 20)
 EnableStrictCompilation()
 
 
-find_package (Threads REQUIRED)
-
-set(LexYacc_DIR       ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc)
+find_package(Threads REQUIRED)
 
 file(GLOB public_headers ${CMAKE_CURRENT_LIST_DIR}/include/stencil/*)
 
-include(external/lexyacc/LexYaccConfig.cmake)
 include(cmake/modules/cxxopts.cmake)
 include(cmake/modules/date.cmake)
 include(cmake/modules/EmbedResource.cmake)
 include(cmake/modules/fmt.cmake)
 include(cmake/modules/httplib.cmake)
+include(cmake/modules/LexYacc.cmake)
 include(cmake/modules/RapidJSON.cmake)
 include(cmake/modules/stduuid.cmake)
 include(cmake/modules/tinyxml2.cmake)
@@ -150,20 +148,6 @@ install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/stencilConfig.cmake
     DESTINATION share/stencil
 )
-
-if(STENCIL_INSTALL_BUILDTOOLS)
-    if (TARGET lexyacc)
-        install(TARGETS lexyacc EXPORT lexyaccTargets)
-    elseif(EXISTS "${LEXYACC_EXECUTABLE}")
-        install(FILES "${LEXYACC_EXECUTABLE}" DESTINATION bin)
-    endif()
-
-    install(FILES
-        ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc/FlexLexer.h
-        ${CMAKE_CURRENT_LIST_DIR}/external/lexyacc/LexYaccConfig.cmake
-        DESTINATION share/stencil
-    )
-endif()
 
 #install(EXPORT stencilTargets
 #    NAMESPACE stencil::

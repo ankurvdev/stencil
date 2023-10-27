@@ -9,7 +9,6 @@ endif()
 # set(INIT_SUBMODULE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../external)
 
 include(${CMAKE_CURRENT_LIST_DIR}/../../cmake/BuildEnv.cmake)
-# include(${CMAKE_CURRENT_LIST_DIR}/../../external/lexyacc/LexYaccConfig.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/../../cmake/modules/EmbedResource.cmake)
 
 include(${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
