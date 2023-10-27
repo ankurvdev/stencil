@@ -115,6 +115,7 @@ vcpkgportfile.write_text(vcpkgportfile.read_text().replace("SOURCE_PATH ${SOURCE
 
 myenv = os.environ.copy()
 myenv["VCPKG_ROOT"] = vcpkgroot.as_posix()
+myenv["VCPKG_BINARY_SOURCES"] = "clear"
 myenv["VCPKG_KEEP_ENV_VARS"] = "ANDROID_NDK_HOME"
 myenv["VERBOSE"] = "1"
 if "android" in host_triplet or "android" in runtime_triplet:
@@ -139,6 +140,12 @@ vcpkgexe = pathlib.Path(shutil.which("vcpkg", path=vcpkgroot) or "")
 VCPKG_EXE = vcpkgexe
 
 
+def vcpkg_remove(port: str):
+    cmd = [vcpkgexe.as_posix(), f"--host-triplet={host_triplet}", "remove", port, "--recurse"]
+    print(" ".join(cmd))
+    subprocess.check_call(cmd, env=myenv, cwd=vcpkgroot)
+
+
 def vcpkg_install(port: str):
     cmd = [vcpkgexe.as_posix(), f"--host-triplet={host_triplet}", "install", port]
     print(" ".join(cmd))
@@ -152,6 +159,8 @@ try:
         if log.parent.parent.name == "buildtrees":
             log.unlink()
     pprint.pprint(myenv)
+    vcpkg_remove(portname + ":" + host_triplet)
+    vcpkg_remove(portname + ":" + runtime_triplet)
     vcpkg_install(portname + ":" + host_triplet)
     if host_triplet != runtime_triplet:
         vcpkg_install(portname + ":" + runtime_triplet)
