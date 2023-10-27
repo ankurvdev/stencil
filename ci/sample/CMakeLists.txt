@@ -2,16 +2,11 @@ cmake_minimum_required(VERSION 3.26)
 if(NOT EXISTS "${VCPKG_ROOT}")
     message(FATAL_ERROR "Please run with -DVCPKG_ROOT=<vcpkg-root> ${VCPKG_ROOT} not found")
 endif()
-
-# list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../../cmake)
-# list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../../cmake/modules)
-
-# set(INIT_SUBMODULE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../external)
+include(${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
 
 include(${CMAKE_CURRENT_LIST_DIR}/../../cmake/BuildEnv.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/../../cmake/modules/EmbedResource.cmake)
 
-include(${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
 message(STATUS " 
     CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}
     CMAKE_LIBRARY_PATH: ${CMAKE_LIBRARY_PATH}
