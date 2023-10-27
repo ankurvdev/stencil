@@ -47,6 +47,7 @@ add_library(WavefrontObj OBJECT
 target_include_directories(WavefrontObj PRIVATE WavefrontObj)
 # add_lexyacc_library(TARGET WavefrontObj LYFILE ${CMAKE_CURRENT_LIST_DIR}/WavefrontObj.ly)
 target_include_directories(WavefrontObj PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
+SupressWarningForTarget(WavefrontObj)
 target_include_directories(stencil_vcpkg_test PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
 
 file(APPEND ${srcfile} "
