@@ -26,7 +26,7 @@ endif()
 
 if (NOT TARGET httplib)
     add_library(httplib INTERFACE)
-    target_include_directories(httplib INTERFACE SYSTEM "${CPP_HTTPLIB_INCLUDE_DIRS}")
+    target_include_directories(httplib SYSTEM INTERFACE "${CPP_HTTPLIB_INCLUDE_DIRS}")
     target_compile_definitions(httplib INTERFACE HAVE_CPP_HTTPLIB=1)
     if (WIN32 OR MSYS)
         target_link_libraries(httplib INTERFACE ws2_32)
