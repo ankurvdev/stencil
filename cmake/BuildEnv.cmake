@@ -180,6 +180,7 @@ macro(EnableStrictCompilation)
 
         if (EMSCRIPTEN)
             list(APPEND extraflags -pthread -Wno-limited-postlink-optimizations -sASYNCIFY)
+            list(APPEND extraflags -sEXPORTED_FUNCTIONS=_main,_malloc)
         endif()
         if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL Clang)
             list(APPEND extraflags
