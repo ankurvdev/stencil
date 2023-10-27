@@ -32,27 +32,11 @@ find_package(stencil REQUIRED)
 set(srcfile ${CMAKE_CURRENT_BINARY_DIR}/main.cpp)
 file(WRITE ${srcfile} "")
 add_executable(stencil_vcpkg_test ${srcfile})
-
-add_library(WavefrontObj OBJECT
-    WavefrontObj/WavefrontObj.flex.cpp
-    WavefrontObj/WavefrontObj.yacc.cpp
-    WavefrontObj/WavefrontObj.ly.h
-    WavefrontObj/WavefrontObj.ly.impl.h
-    WavefrontObj/WavefrontObj.yacc.h
-    WavefrontObj/location.hh
-    WavefrontObj/position.hh
-    WavefrontObj/stack.hh
-)
-target_include_directories(WavefrontObj PRIVATE WavefrontObj)
-# add_lexyacc_library(TARGET WavefrontObj LYFILE ${CMAKE_CURRENT_LIST_DIR}/WavefrontObj.ly)
-target_include_directories(WavefrontObj PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
-SupressWarningForTarget(WavefrontObj)
 target_include_directories(stencil_vcpkg_test PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
 
 file(APPEND ${srcfile} "
 #pragma warning(push, 3)
 #pragma warning(disable : 5262) /*xlocale(2010,13): implicit fall-through occurs here*/
-#include<WavefrontObj.h>
 #include<EmbeddedResource.h>
 #include <iostream>
 #pragma warning(pop)
