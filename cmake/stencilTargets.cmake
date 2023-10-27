@@ -1,6 +1,6 @@
 include_guard()
 include(FetchContent)
-include(${CMAKE_CURRENT_LIST_DIR}/FindOrBuild.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/FindOrBuildTool.cmake)
 
 FetchContent_Declare(
     stencil
