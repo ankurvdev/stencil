@@ -16,3 +16,7 @@ if (COMMAND vcpkg_install)
 endif()
 
 FetchContent_MakeAvailable(cpp-httplib)
+
+if (TARGET httplib AND  (WIN32 OR MSYS))
+    target_link_libraries(httplib INTERFACE ws2_32)
+endif()
