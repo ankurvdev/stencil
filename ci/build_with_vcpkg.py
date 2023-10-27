@@ -129,6 +129,8 @@ if "wasm32" in host_triplet or "wasm32" in runtime_triplet:
     appendpaths = list([onepath.as_posix() for onepath in info.paths if onepath.absolute() not in alreadypaths])
     appendpathsstr = os.pathsep.join(appendpaths)
     myenv["VCPKG_KEEP_ENV_VARS"] += ";EMSDK;PATH;EMSCRIPTEN_ROOT"
+    myenv["CFLAGS"] = "-pthread"
+    myenv["CXXFLAGS"] = "-pthread"
     if len(appendpathsstr) > 0:
         newpath = os.pathsep.join([appendpathsstr, myenv["PATH"]])
         myenv["PATH"] = newpath
