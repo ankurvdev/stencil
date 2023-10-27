@@ -115,7 +115,6 @@ for portdir in (scriptdir / "vcpkg-additional-ports").glob("*"):
 
 vcpkgportfile.write_text(vcpkgportfile.read_text().replace("SOURCE_PATH ${SOURCE_PATH}", f'SOURCE_PATH "{scriptdir.parent.as_posix()}"'))
 
-def append_to_string(value: , separator: str, append: str):
 myenv = os.environ.copy()
 myenv["VCPKG_ROOT"] = vcpkgroot.as_posix()
 myenv["VCPKG_BINARY_SOURCES"] = "clear"
