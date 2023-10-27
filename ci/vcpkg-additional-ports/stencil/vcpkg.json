@@ -14,6 +14,7 @@
       "host": true
     },
     "ankurvdev-embedresource",
+    "ankurvdev-lexyacc",
     "cpp-httplib",
     "cxxopts",
     "date",
