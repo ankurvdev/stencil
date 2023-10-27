@@ -145,6 +145,7 @@ install(
 
 install(FILES
     cmake/stencilTargets.cmake
+    cmake/FindOrBuildTool.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/stencilConfig.cmake
     DESTINATION share/stencil
 )
