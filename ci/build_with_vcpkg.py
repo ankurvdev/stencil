@@ -188,7 +188,7 @@ def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str):
         cmakeconfigargs += [
             "-DCMAKE_TOOLCHAIN_FILE:PATH=" + myenv["ANDROID_NDK_HOME"] + "/build/cmake/android.toolchain.cmake",
             "-DANDROID=1",
-            "-DANDROID_NATIVE_API_LEVEL=21",
+            "-DANDROID_NATIVE_API_LEVEL=26",
             "-DANDROID_ABI=arm64-v8a",
         ]
         if runtime_triplet == "arm64-android":
