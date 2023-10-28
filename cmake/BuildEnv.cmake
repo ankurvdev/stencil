@@ -180,6 +180,7 @@ macro(EnableStrictCompilation)
 
         if (EMSCRIPTEN)
             list(APPEND extraflags -pthread -Wno-limited-postlink-optimizations -sASYNCIFY)
+	    list(APPEND extraflags -Wl,-u,htonl  -Wl,-u,htons ) #https://github.com/emscripten-core/emscripten/issues/16836
         endif()
         if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL Clang)
             list(APPEND extraflags
