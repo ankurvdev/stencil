@@ -1,5 +1,5 @@
 include_guard(GLOBAL)
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.26)
 include(GenerateExportHeader)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
@@ -53,8 +53,8 @@ macro(_PrintFlags)
                     "_RELEASE       "
                     "_RELWITHDEBINFO"
                     "_MINSIZEREL    ")
-            set(varname ${flagname}${variant})
-            message(STATUS "${flagname}${variant}:${${varname}}")
+            set(varname ${flagname}${variantstr})
+            message(STATUS "${varname}:${${varname}}")
         endforeach()
     endforeach()
 
@@ -92,15 +92,20 @@ function(_FixFlags name)
     list(APPEND cflags ${_APPEND})
     list(REMOVE_DUPLICATES cflags)
     list(JOIN cflags " " cflagsstr)
-
-    message(STATUS "${name}: \n\t<== ${_VALUE}\n\t==> ${cflagsstr}")
-    set(${name} "${cflagsstr}" PARENT_SCOPE)
+    if (NOT "${_VALUE}" STREQUAL "${cflagsstr}")
+        message(STATUS "${name}: \n\t<== ${_VALUE}\n\t==> ${cflagsstr}")
+        set(${name} "${cflagsstr}" PARENT_SCOPE)
+    endif()
 endfunction()
+
+macro(InitClangDIntellisense)
+    file(GENERATE OUTPUT "${PROJECT_SOURCE_DIR}/.clangd"
+        CONTENT "CompileFlags:\n\tCompilationDatabase: \"${CMAKE_CURRENT_BINARY_DIR}\"")
+endmacro()
 
 macro(EnableStrictCompilation)
     find_package(Threads)
     file(TIMESTAMP ${CMAKE_CURRENT_LIST_FILE} filetime)
-
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
         set(extraflags
             /external:W3 /external:anglebrackets /external:templates-
@@ -158,6 +163,7 @@ macro(EnableStrictCompilation)
             # Remove unused code
             -ffunction-sections
             -fdata-sections
+            -fexceptions
         )
         set(extracxxflags
             # -std=c++20 via CMAKE_CXX_STANDARD
@@ -174,6 +180,8 @@ macro(EnableStrictCompilation)
 
         if (EMSCRIPTEN)
             list(APPEND extraflags -pthread -Wno-limited-postlink-optimizations -sASYNCIFY)
+            #TODO https://github.com/emscripten-core/emscripten/issues/16836
+            list(APPEND extraflags -Wl,-u,htonl -Wl,-u,htons )
         endif()
         if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL Clang)
             list(APPEND extraflags
@@ -194,6 +202,7 @@ macro(EnableStrictCompilation)
                 -Wno-c++98-compat-pedantic
                 -Wno-reserved-identifier # Allow names starting with underscore
                 -Wno-reserved-id-macro
+                -Wno-unsafe-buffer-usage
                 )
         endif()
 
@@ -216,10 +225,10 @@ macro(EnableStrictCompilation)
         _FixFlags(CMAKE_C_FLAGS     EXCLUDE ${exclusions} APPEND ${extraflags})
         _FixFlags(CMAKE_CXX_FLAGS   EXCLUDE ${exclusions} APPEND ${extraflags} ${extracxxflags})
 
-        _FixFlags(CMAKE_CXX_FLAGS_RELEASE EXCLUDE "-O." APPEND "-O3")
-        _FixFlags(CMAKE_CXX_FLAGS_RELWITHDEBINFO EXCLUDE "-O." APPEND "-O3")
-        _FixFlags(CMAKE_C_FLAGS_RELEASE EXCLUDE "-O." APPEND "-O3")
-        _FixFlags(CMAKE_C_FLAGS_RELWITHDEBINFO EXCLUDE "-O." APPEND "-O3")
+        _FixFlags(CMAKE_CXX_FLAGS_RELEASE EXCLUDE "-O[^3]+" APPEND "-O3")
+        _FixFlags(CMAKE_CXX_FLAGS_RELWITHDEBINFO EXCLUDE "-O[^3]+" APPEND "-O3")
+        _FixFlags(CMAKE_C_FLAGS_RELEASE EXCLUDE "-O[^3]+" APPEND "-O3")
+        _FixFlags(CMAKE_C_FLAGS_RELWITHDEBINFO EXCLUDE "-O[^3]+" APPEND "-O3")
 
         if (MINGW)
             # TODO GCC Bug: Compiling with -O1 can sometimes result errors
@@ -260,13 +269,15 @@ endmacro()
 
 
 macro (SupressWarningForTarget targetName)
-    message(STATUS "Suppressing Warnings for ${targetName}")
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-        target_compile_options(${targetName} PRIVATE /W3 /WX-)
-    elseif((${CMAKE_CXX_COMPILER_ID} STREQUAL Clang) OR (${CMAKE_CXX_COMPILER_ID} STREQUAL GNU))
-        target_compile_options(${targetName} PRIVATE -Wno-error -w)
-    else()
-        message(FATAL_ERROR "Unknown compiler : ${CMAKE_CXX_COMPILER_ID}")
+    if (TARGET ${targetName})
+        message(STATUS "Suppressing Warnings for ${targetName}")
+        if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+            target_compile_options(${targetName} PRIVATE /W3 /WX-)
+        elseif((${CMAKE_CXX_COMPILER_ID} STREQUAL Clang) OR (${CMAKE_CXX_COMPILER_ID} STREQUAL GNU))
+            target_compile_options(${targetName} PRIVATE -Wno-error -w)
+        else()
+            message(FATAL_ERROR "Unknown compiler : ${CMAKE_CXX_COMPILER_ID}")
+        endif()
     endif()
 endmacro()
 
