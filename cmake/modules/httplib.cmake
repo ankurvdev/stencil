@@ -2,7 +2,7 @@ include_guard()
 include(FetchContent)
 
 FetchContent_Declare(
-  cpp-httplib
+  httplib
   GIT_REPOSITORY https://github.com/yhirose/cpp-httplib
   GIT_TAG        v0.13.1
   SOURCE_SUBDIR .
@@ -14,9 +14,24 @@ FetchContent_Declare(
 if (COMMAND vcpkg_install)
     vcpkg_install(cpp-httplib)
 endif()
+find_package(httplib QUIET)
+if (NOT httplib_FOUND)
+  find_path(CPP_HTTPLIB_INCLUDE_DIRS "httplib.h")
+  if (NOT EXISTS "${CPP_HTTPLIB_INCLUDE_DIRS}")
+    FetchContent_Populate(httplib)
+    set(CPP_HTTPLIB_INCLUDE_DIRS "${httplib_SOURCE_DIR}")
+  endif()
+  if (NOT EXISTS "${CPP_HTTPLIB_INCLUDE_DIRS}")
+    message(FATAL_ERROR "Cannot find httplib.h at ${CPP_HTTPLIB_INCLUDE_DIRS}")
+  endif()
 
-FetchContent_MakeAvailable(cpp-httplib)
-
-if (TARGET httplib AND  (WIN32 OR MSYS))
-    target_link_libraries(httplib INTERFACE ws2_32)
+  if (NOT TARGET httplib)
+      add_library(httplib INTERFACE)
+      target_include_directories(httplib SYSTEM INTERFACE "${CPP_HTTPLIB_INCLUDE_DIRS}")
+      target_compile_definitions(httplib INTERFACE HAVE_CPP_HTTPLIB=1)
+      if (WIN32 OR MSYS)
+          target_link_libraries(httplib INTERFACE ws2_32)
+      endif()
+      add_library(httplib::httplib ALIAS httplib)
+  endif()
 endif()
