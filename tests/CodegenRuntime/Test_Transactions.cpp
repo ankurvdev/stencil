@@ -264,6 +264,10 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp]")
 
 struct UnorderedMapTester : public ObjectsTester
 {
+    CLASS_DELETE_COPY_AND_MOVE(UnorderedMapTester);
+    UnorderedMapTester()  = default;
+    ~UnorderedMapTester() = default;
+
     TestReplay replay;
     auto       dict_value_create(shared_string const& key)
     {

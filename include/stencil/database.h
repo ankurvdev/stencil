@@ -355,8 +355,8 @@ struct SerDes
         stream.read(reinterpret_cast<char*>(&page), Page::PageSizeInBytes);
         assert(!stream.fail());
     }
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
 
     static void _WritePage(Page const& page, uint32_t index, std::ostream& stream)
     {
@@ -376,8 +376,7 @@ struct SerDes
         stream.write(reinterpret_cast<const char*>(&page), sizeof(Page));
         assert(!stream.fail());
     }
-#pragma clang diagnostic pop
-
+    SUPPRESS_WARNINGS_END
     std::unordered_map<uint32_t, std::unique_ptr<Page>> _loadedPages;    // for in-memory
 
     Header        _fileheader;
@@ -426,16 +425,15 @@ struct PageRuntime
 
     std::span<uint8_t>       RawData() { return _page->buffer; }
     std::span<uint8_t const> RawData() const { return _page->buffer; }
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+    SUPPRESS_WARNINGS_START  SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
 
-    template <typename T> std::span<T> Get(size_t offset = 0)
+        template <typename T>
+        std::span<T> Get(size_t offset = 0)
     {
         auto ptr = reinterpret_cast<T*>(_page->buffer + offset);
         return std::span<T>(ptr, std::size(_page->buffer) - offset);
     }
-#pragma clang diagnostic pop
-
+    SUPPRESS_WARNINGS_END
     template <typename T> std::span<T const> Get(size_t offset = 0) const
     {
         auto ptr = reinterpret_cast<T*>(_page->buffer + offset);
@@ -501,8 +499,8 @@ template <size_t RecordSize> struct PageForRecord
 
     PageForRecord(PageRuntime& page) : _page(page)
     {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+        SUPPRESS_WARNINGS_START
+        SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
         static_assert((sizeof(*_slots) + sizeof(*_records)) <= Page::PageSizeInBytes);
 
         _slots   = reinterpret_cast<decltype(_slots)>(page.RawData().data());
@@ -513,7 +511,7 @@ template <size_t RecordSize> struct PageForRecord
 
         while (_page._availableSlot < GetSlotCount() && ValidSlot(_page._availableSlot)) ++_page._availableSlot;
         // TODO unit test
-#pragma clang diagnostic pop
+        SUPPRESS_WARNINGS_END
     }
 
     CLASS_DELETE_COPY_AND_MOVE(PageForRecord);
@@ -611,8 +609,8 @@ template <> struct PageForRecord<0>
         size_t SlotsWithSlotTracking    = (Page::PageDataSize - SlotTrackingCost) / AlignedRecordSize;
         return SlotsWithSlotTracking;
     }
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
 
     void _SetRecordSize(uint16_t recordSize)
     {
@@ -679,8 +677,7 @@ template <> struct PageForRecord<0>
         _page.MarkSlotFree(slot);
         return 0;
     }
-#pragma clang diagnostic pop
-
+    SUPPRESS_WARNINGS_END
     PageRuntime& _page;
     uint16_t     _recordSize{0};
     uint8_t*     _slots   = nullptr;
@@ -1002,12 +999,11 @@ struct Blob
     uint32_t blobSize{};
 
     private:
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
     uint8_t*       _GetDataPtr() { return reinterpret_cast<uint8_t*>(this) + sizeof(Blob); }
     uint8_t const* _GetDataPtr() const { return reinterpret_cast<uint8_t const*>(this) + sizeof(Blob); }
-#pragma clang diagnostic pop
-
+    SUPPRESS_WARNINGS_END
     public:
     template <typename T> size_t   Count() const { return static_cast<size_t>(blobSize) / sizeof(T); }
     template <typename T> T const* Data() const { return reinterpret_cast<T const*>(_GetDataPtr()); }

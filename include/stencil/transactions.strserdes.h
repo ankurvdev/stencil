@@ -174,11 +174,11 @@ struct StringTransactionSerDes
                 TKey key    = Stencil::Deserialize<TKey, ProtocolString>(keystr);
                 ++it;
                 size_t retval = 0;
-#pragma warning(push, 3)
-#pragma warning(disable : 4702)    // unreachable code
-                                   // Sometime its a bad visit and we throw exceptions for error
+                SUPPRESS_WARNINGS_START
+                SUPPRESS_MSVC_WARNING(4702) /*Unreachable code*/
+                // Sometime its a bad visit and we throw exceptions for error
                 txn.Edit(key, [&](auto& args) { retval = _Apply(it, args); });
-#pragma warnin(pop)
+                SUPPRESS_WARNINGS_END
                 return retval;
             }
             else if constexpr (Stencil::ConceptTransactionForIterable<T>)

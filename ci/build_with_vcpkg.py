@@ -104,7 +104,7 @@ if not vcpkgroot.exists():
     )
 
 bootstrapscript = "bootstrap-vcpkg.bat" if sys.platform == "win32" else "bootstrap-vcpkg.sh"
-defaulttriplet = "x64-windows-static" if sys.platform == "win32" else "x64-linux"
+defaulttriplet = f"{externaltools.DefaultArch}-windows-static" if sys.platform == "win32" else f"{externaltools.DefaultArch}-linux"
 host_triplet = args.host_triplet or defaulttriplet
 runtime_triplet = args.runtime_triplet or defaulttriplet
 
@@ -121,10 +121,10 @@ myenv["VCPKG_BINARY_SOURCES"] = "clear"
 myenv["VCPKG_KEEP_ENV_VARS"] = "ANDROID_NDK_HOME"
 myenv["VERBOSE"] = "1"
 if "android" in host_triplet or "android" in runtime_triplet:
-    paths = externaltools.DownloadAndroidTo((workdir / "android"))
+    paths = externaltools.download_android_to((workdir / "android"))
     myenv["ANDROID_NDK_HOME"] = paths["ndk"].as_posix()
 if "wasm32" in host_triplet or "wasm32" in runtime_triplet:
-    info = externaltools.DownloadEmscriptenInfoTo(workdir / "emsdk")
+    info = externaltools.download_emscripten_info_to(workdir / "emsdk")
     alreadypaths = set([pathlib.Path(onepath).absolute() for onepath in myenv["PATH"].split(os.pathsep)])
     appendpaths = list([onepath.as_posix() for onepath in info.paths if onepath.absolute() not in alreadypaths])
     appendpathsstr = os.pathsep.join(appendpaths)
@@ -229,7 +229,7 @@ def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str):
             "-G",
             "Visual Studio 17 2022",
             "-A",
-            ("Win32" if "x86" in runtime_triplet else "x64"),
+            ("Win32" if "x86" in runtime_triplet else externaltools.DefaultArch),
         ]
     ctestextraargs = ["-C", config] if sys.platform == "win32" else []
     cmd: list[str] = (

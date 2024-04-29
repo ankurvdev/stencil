@@ -31,29 +31,26 @@ enum class EnumType2
 ,    three
 };
 #pragma warning(push, 3)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wimplicit-float-conversion"
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("implicit-float-conversion")
 
 static constexpr uint8_t constval2 = uint8_t{100};
 
-#pragma clang diagnostic pop
-#pragma warning(pop)
+SUPPRESS_WARNINGS_END#pragma warning(pop)
 #pragma warning(push, 3)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wimplicit-float-conversion"
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("implicit-float-conversion")
 
 static constexpr double constval3 = double{100};
 
-#pragma clang diagnostic pop
-#pragma warning(pop)
+SUPPRESS_WARNINGS_END#pragma warning(pop)
 #pragma warning(push, 3)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wimplicit-float-conversion"
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("implicit-float-conversion")
 
 static constexpr float constval4 = float{101.1234};
 
-#pragma clang diagnostic pop
-#pragma warning(pop)
+SUPPRESS_WARNINGS_END#pragma warning(pop)
 struct DefaultValues :
     public Stencil::StructT<DefaultValues>
 {
@@ -83,8 +80,8 @@ struct DefaultValues :
 template <> struct Stencil::EnumTraits<EnumConstsInitializers::EnumType1>
 {
     using Enum = EnumConstsInitializers::EnumType1;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "zero"
@@ -95,15 +92,14 @@ template <> struct Stencil::EnumTraits<EnumConstsInitializers::EnumType1>
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-#pragma clang diagnostic pop
-
+SUPPRESS_WARNINGS_END
     static Enum ForIndex(size_t index) { return static_cast<Enum>(index); }
 };
 template <> struct Stencil::EnumTraits<EnumConstsInitializers::EnumType2>
 {
     using Enum = EnumConstsInitializers::EnumType2;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "one"
@@ -112,8 +108,7 @@ template <> struct Stencil::EnumTraits<EnumConstsInitializers::EnumType2>
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-#pragma clang diagnostic pop
-
+SUPPRESS_WARNINGS_END
     static Enum ForIndex(size_t index) { return static_cast<Enum>(index); }
 };
 template <> struct Stencil::TypeTraits<EnumConstsInitializers::DefaultValues>
@@ -146,8 +141,8 @@ template <> struct Stencil::TypeTraitsForIndexable<EnumConstsInitializers::Defau
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<EnumConstsInitializers::DefaultValues>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<EnumConstsInitializers::DefaultValues>::Fields;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "enum1"
@@ -165,8 +160,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<EnumConst
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-#pragma clang diagnostic pop
-
+SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<EnumConstsInitializers::DefaultValues>::Fields ForIndex(size_t index)
     {
         return static_cast<Stencil::TypeTraitsForIndexable<EnumConstsInitializers::DefaultValues>::Fields>(index);

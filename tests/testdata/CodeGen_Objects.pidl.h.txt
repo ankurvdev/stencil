@@ -122,8 +122,8 @@ template <> struct Stencil::TypeTraitsForIndexable<Objects::SimpleObject1>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Objects::SimpleObject1>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<Objects::SimpleObject1>::Fields;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "val1"
@@ -134,8 +134,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Objects::
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-#pragma clang diagnostic pop
-
+SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<Objects::SimpleObject1>::Fields ForIndex(size_t index)
     {
         return static_cast<Stencil::TypeTraitsForIndexable<Objects::SimpleObject1>::Fields>(index);
@@ -553,8 +552,8 @@ template <> struct Stencil::TypeTraitsForIndexable<Objects::ListObject>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Objects::ListObject>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<Objects::ListObject>::Fields;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "value"
@@ -562,8 +561,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Objects::
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-#pragma clang diagnostic pop
-
+SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<Objects::ListObject>::Fields ForIndex(size_t index)
     {
         return static_cast<Stencil::TypeTraitsForIndexable<Objects::ListObject>::Fields>(index);
@@ -853,8 +851,8 @@ template <> struct Stencil::TypeTraitsForIndexable<Objects::DictObject>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Objects::DictObject>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<Objects::DictObject>::Fields;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "dictobj"
@@ -863,8 +861,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Objects::
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-#pragma clang diagnostic pop
-
+SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<Objects::DictObject>::Fields ForIndex(size_t index)
     {
         return static_cast<Stencil::TypeTraitsForIndexable<Objects::DictObject>::Fields>(index);
@@ -1187,16 +1184,15 @@ template <> struct Stencil::TypeTraitsForIndexable<Objects::List>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Objects::List>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<Objects::List>::Fields;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "listobj"
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-#pragma clang diagnostic pop
-
+SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<Objects::List>::Fields ForIndex(size_t index)
     {
         return static_cast<Stencil::TypeTraitsForIndexable<Objects::List>::Fields>(index);
@@ -1468,8 +1464,8 @@ template <> struct Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::Fields;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "val1"
@@ -1483,8 +1479,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Objects::
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-#pragma clang diagnostic pop
-
+SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::Fields ForIndex(size_t index)
     {
         return static_cast<Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::Fields>(index);
@@ -2028,8 +2023,8 @@ template <> struct Stencil::TypeTraitsForIndexable<Objects::NestedObject>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Objects::NestedObject>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<Objects::NestedObject>::Fields;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "obj1"
@@ -2040,8 +2035,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Objects::
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-#pragma clang diagnostic pop
-
+SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<Objects::NestedObject>::Fields ForIndex(size_t index)
     {
         return static_cast<Stencil::TypeTraitsForIndexable<Objects::NestedObject>::Fields>(index);
@@ -2453,8 +2447,8 @@ template <> struct Stencil::TypeTraitsForIndexable<Objects::SelfNested>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Objects::SelfNested>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<Objects::SelfNested>::Fields;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "obj1"
@@ -2462,8 +2456,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Objects::
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-#pragma clang diagnostic pop
-
+SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<Objects::SelfNested>::Fields ForIndex(size_t index)
     {
         return static_cast<Stencil::TypeTraitsForIndexable<Objects::SelfNested>::Fields>(index);

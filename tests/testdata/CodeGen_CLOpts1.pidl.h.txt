@@ -85,8 +85,8 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Fields;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "workingDirectory"
@@ -97,8 +97,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts1::
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-#pragma clang diagnostic pop
-
+SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Fields ForIndex(size_t index)
     {
         return static_cast<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Fields>(index);
@@ -540,8 +539,8 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>::Fields;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "field1"
@@ -549,8 +548,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts1::
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-#pragma clang diagnostic pop
-
+SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>::Fields ForIndex(size_t index)
     {
         return static_cast<Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>::Fields>(index);
@@ -832,16 +830,15 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>::Fields;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "field1"
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-#pragma clang diagnostic pop
-
+SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>::Fields ForIndex(size_t index)
     {
         return static_cast<Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>::Fields>(index);
@@ -1105,8 +1102,8 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Fields;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "key1"
@@ -1118,8 +1115,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts1::
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-#pragma clang diagnostic pop
-
+SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Fields ForIndex(size_t index)
     {
         return static_cast<Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Fields>(index);

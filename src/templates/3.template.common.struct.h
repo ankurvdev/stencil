@@ -81,14 +81,12 @@ enum class zzNamezz
 //</Enum>
 
 //<NamedConst>
-#pragma warning(push, 3)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wimplicit-float-conversion"
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("implicit-float-conversion")
 
 static constexpr zzFieldType_NativeTypezz zzNamezz = zzFieldType_NativeTypezz{zzValue_NativeTypezz};
 
-#pragma clang diagnostic pop
-#pragma warning(pop)
+SUPPRESS_WARNINGS_END
 //</NamedConst>
 
 //<Struct>
@@ -152,8 +150,8 @@ struct zzInterface_Namezz_ObjectStore_zzNamezz : zzObjectType_NativeTypezz    //
 template <> struct Stencil::EnumTraits<zzProgram_Namezz::zzNamezz>
 {
     using Enum = zzProgram_Namezz::zzNamezz;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         //<EnumValue Join=','>
@@ -162,8 +160,7 @@ template <> struct Stencil::EnumTraits<zzProgram_Namezz::zzNamezz>
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-#pragma clang diagnostic pop
-
+    SUPPRESS_WARNINGS_END
     static Enum ForIndex(size_t index) { return static_cast<Enum>(index); }
 };
 //</Enum>
@@ -191,8 +188,8 @@ template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Na
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         //<Field Join=','>
@@ -201,8 +198,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-#pragma clang diagnostic pop
-
+    SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields ForIndex(size_t index)
     {
         return static_cast<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields>(index);
@@ -616,8 +612,8 @@ template <>
 struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>::Fields;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         //<Args_Field Join=','>
@@ -626,8 +622,7 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzI
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-#pragma clang diagnostic pop
-
+    SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>::Fields
     ForIndex(size_t index)
     {
@@ -718,8 +713,8 @@ template <>
 struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>::Fields;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         //<Args_Field Join=','>
@@ -728,8 +723,7 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzI
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-#pragma clang diagnostic pop
-
+    SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>::Fields
     ForIndex(size_t index)
     {
@@ -854,8 +848,8 @@ template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzVariant_N
 template <> struct Stencil::EnumTraits<zzProgram_Namezz::zzVariant_Namezz::VariantType>
 {
     using Enum = zzProgram_Namezz::zzVariant_Namezz::VariantType;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         //<Field Join=','>
@@ -864,8 +858,7 @@ template <> struct Stencil::EnumTraits<zzProgram_Namezz::zzVariant_Namezz::Varia
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-#pragma clang diagnostic pop
-
+    SUPPRESS_WARNINGS_END
     static zzProgram_Namezz::zzVariant_Namezz::VariantType ForIndex(size_t index)
     {
         return static_cast<zzProgram_Namezz::zzVariant_Namezz::VariantType>(index);

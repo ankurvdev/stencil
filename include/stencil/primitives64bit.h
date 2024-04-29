@@ -315,8 +315,7 @@ struct Primitives64Bit::Traits<std::array<uint16_t, N>>
 };
 
 template <typename T>
-concept ConceptPrimitives64Bit = !
-Primitives64Bit::Type::IsUnknown(Primitives64Bit::Traits<T>::Type());
+concept ConceptPrimitives64Bit = !Primitives64Bit::Type::IsUnknown(Primitives64Bit::Traits<T>::Type());
 
 template <typename T>
 concept ConceptPrimitives64BitFloat = Primitives64Bit::Type::IsFloat(Primitives64Bit::Traits<T>::Type());

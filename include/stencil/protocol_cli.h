@@ -345,8 +345,8 @@ struct SerDes<std::array<uint16_t, N>, ProtocolCLI>
 
 namespace Stencil::CLI
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
 
 struct ArgcArgv
 {
@@ -385,8 +385,7 @@ template <typename T, typename TStrArr> inline T Parse(TStrArr const& args)
 {
     return _Parse<T>(ArgsIterator<SpanStr<TStrArr>>(SpanStr<TStrArr>{&args}));
 }
-#pragma clang diagnostic pop
-
+SUPPRESS_WARNINGS_END
 template <typename T> inline std::vector<std::string> Stringify(T const& obj)
 {
     std::vector<std::string> args;
