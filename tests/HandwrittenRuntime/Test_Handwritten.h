@@ -475,12 +475,15 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<MultiAttr
         return static_cast<Stencil::TypeTraitsForIndexable<MultiAttributed>::Fields>(index);
     }
 };
+SUPPRESS_WARNINGS_START
+SUPPRESS_MSVC_WARNING(4702) /*Unreachable code*/    // Seems to only work in global scope
 
 template <> struct Stencil::StructFieldsVisitor<MultiAttributed>
 {
     using Fields = TypeTraitsForIndexable<MultiAttributed>::Fields;
     template <typename T, typename TLambda> static bool VisitField(T& obj, Fields fields, TLambda&& lambda)
     {
+
         switch (fields)
         {
         case Fields::Field_f1: lambda(obj.f1); return true;
@@ -498,6 +501,7 @@ template <> struct Stencil::StructFieldsVisitor<MultiAttributed>
         lambda(Fields::Field_f3, obj.f3);
     }
 };
+SUPPRESS_WARNINGS_END
 
 template <>
 struct Stencil::Visitor<MultiAttributed>
@@ -536,7 +540,8 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<WithVaria
         return static_cast<Stencil::TypeTraitsForIndexable<WithVariant>::Fields>(index);
     }
 };
-
+SUPPRESS_WARNINGS_START
+SUPPRESS_MSVC_WARNING(4702) /*Unreachable code*/    // Seems to only work in global scope
 template <> struct Stencil::StructFieldsVisitor<WithVariant>
 {
     using Fields = TypeTraitsForIndexable<WithVariant>::Fields;
@@ -561,6 +566,7 @@ template <> struct Stencil::StructFieldsVisitor<WithVariant>
         lambda(Fields::Field_f4, obj.f4);
     }
 };
+SUPPRESS_WARNINGS_END
 
 template <> struct Stencil::Visitor<WithVariant> : Stencil::StructVisitor<WithVariant>
 {};
