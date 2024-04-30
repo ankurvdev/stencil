@@ -4,7 +4,7 @@ include(FetchContent)
 FetchContent_Declare(
   embedresource
   GIT_REPOSITORY https://github.com/ankurvdev/embedresource
-  GIT_TAG        v0.0.11
+  GIT_TAG        main
   SOURCE_SUBDIR .
   FIND_PACKAGE_ARGS NAMES EmbedResource
 )
