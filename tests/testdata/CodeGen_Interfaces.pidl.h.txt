@@ -173,8 +173,8 @@ template <>
 struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function1>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function1>::Fields;
-SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "arg1"
@@ -182,7 +182,7 @@ SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-SUPPRESS_WARNINGS_END
+    SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function1>::Fields
     ForIndex(size_t index)
     {
@@ -265,8 +265,8 @@ template <>
 struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_SomethingHappened>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_SomethingHappened>::Fields;
-SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "arg1"
@@ -274,7 +274,7 @@ SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-SUPPRESS_WARNINGS_END
+    SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_SomethingHappened>::Fields
     ForIndex(size_t index)
     {

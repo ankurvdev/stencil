@@ -144,8 +144,8 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Fields;
-SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "ProductId"
@@ -156,7 +156,7 @@ SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-SUPPRESS_WARNINGS_END
+    SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Fields ForIndex(size_t index)
     {
         return static_cast<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Fields>(index);
@@ -395,7 +395,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
             auto txn = User();
             return lambda(txn);
         }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
 
@@ -561,15 +562,15 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::Fields;
-SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "ProductId"
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-SUPPRESS_WARNINGS_END
+    SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::Fields ForIndex(size_t index)
     {
         return static_cast<Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::Fields>(index);
@@ -692,7 +693,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
             auto txn = ProductId();
             return lambda(txn);
         }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
 
@@ -810,15 +812,15 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::Fields;
-SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "ProductId"
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-SUPPRESS_WARNINGS_END
+    SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::Fields ForIndex(size_t index)
     {
         return static_cast<Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::Fields>(index);
@@ -941,7 +943,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
             auto txn = ProductId();
             return lambda(txn);
         }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
 
@@ -1059,15 +1062,15 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::Fields;
-SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "ProductId"
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-SUPPRESS_WARNINGS_END
+    SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::Fields ForIndex(size_t index)
     {
         return static_cast<Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::Fields>(index);
@@ -1190,7 +1193,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
             auto txn = ProductId();
             return lambda(txn);
         }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
 
@@ -1308,15 +1312,15 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Fields;
-SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "ProductId"
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-SUPPRESS_WARNINGS_END
+    SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Fields ForIndex(size_t index)
     {
         return static_cast<Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Fields>(index);
@@ -1439,7 +1443,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
             auto txn = ProductId();
             return lambda(txn);
         }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
 
@@ -1557,15 +1562,15 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Fields;
-SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "ProductId"
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-SUPPRESS_WARNINGS_END
+    SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Fields ForIndex(size_t index)
     {
         return static_cast<Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Fields>(index);
@@ -1688,7 +1693,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
             auto txn = ProductId();
             return lambda(txn);
         }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
 
@@ -1806,15 +1812,15 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Fields;
-SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "ProductId"
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-SUPPRESS_WARNINGS_END
+    SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Fields ForIndex(size_t index)
     {
         return static_cast<Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Fields>(index);
@@ -1937,7 +1943,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
             auto txn = ProductId();
             return lambda(txn);
         }
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
 
@@ -2050,8 +2057,8 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::CommandLineOptions>
 template <> struct Stencil::EnumTraits<CLOpts2::CommandLineOptions::VariantType>
 {
     using Enum = CLOpts2::CommandLineOptions::VariantType;
-SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "install"
@@ -2064,7 +2071,7 @@ SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
-SUPPRESS_WARNINGS_END
+    SUPPRESS_WARNINGS_END
     static CLOpts2::CommandLineOptions::VariantType ForIndex(size_t index)
     {
         return static_cast<CLOpts2::CommandLineOptions::VariantType>(index);
