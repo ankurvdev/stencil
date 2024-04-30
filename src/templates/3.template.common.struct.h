@@ -82,7 +82,7 @@ enum class zzNamezz
 
 //<NamedConst>
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("implicit-float-conversion")
+SUPPRESS_CLANG_WARNING("-Wimplicit-float-conversion")
 
 static constexpr zzFieldType_NativeTypezz zzNamezz = zzFieldType_NativeTypezz{zzValue_NativeTypezz};
 
@@ -345,7 +345,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
             return lambda(txn);
         }
         //</Field>
-        case Fields::Invalid: throw std::invalid_argument("Asked to visit invalid field");
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::invalid_argument("Asked to visit invalid field");
         }
     }
 

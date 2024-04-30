@@ -3,8 +3,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cstdint>
-#include <iostream>
 #include <memory>
 #include <optional>
 #include <sstream>
@@ -18,7 +16,7 @@
 #define TODO(...) throw std::logic_error("Not Implemented")
 #endif
 
-#pragma warning(push)
+SUPPRESS_WARNINGS_START
 SUPPRESS_MSVC_WARNING(4371)    // Object layout under /vd2 will change due to virtual base
 #define SUPER(T) (*static_cast<T*>(this))
 
@@ -479,6 +477,7 @@ struct IValue
                        + GetArray().GetObjectAt(0).ObjectTypeName();
         }
         case Type::Object: return L"Value[Object] Type: " + GetBindable().ObjectTypeName() + L"Id:" + GetBindable().ObjectId();
+        default: break;
         }
         throw std::logic_error("Cannot identify Value Type");
     }
@@ -839,11 +838,11 @@ template <typename TParent, typename TObject> struct BindableParent : public vir
         Str::Type                         _ownerName{Str::Create(TParent::BindingKeyName())};
         Str::Type                         _objectName{Str::Create(TObject::BindingKeyName())};
     };
-#pragma warning(push)
+    SUPPRESS_WARNINGS_START
     SUPPRESS_MSVC_WARNING(4355)    // this used in base member initializer list
                                    // TODO remove this disable
     BindableParent() : _bindableComponent(std::make_shared<BindableComponent>(*this)) { Register(_bindableComponent); }
-#pragma warning(pop)
+    SUPPRESS_WARNINGS_END
 
     CLASS_DELETE_COPY_AND_MOVE(BindableParent);
 
@@ -1076,4 +1075,4 @@ template <typename TOwner, typename TParent = TOwner> struct BindableDictionaryT
 };
 
 }    // namespace Binding
-#pragma warning(pop)
+SUPPRESS_WARNINGS_END

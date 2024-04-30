@@ -2,7 +2,7 @@
 
 SUPPRESS_WARNINGS_START
 SUPPRESS_MSVC_WARNING(4355)
-SUPPRESS_CLANG_WARNING("everything")
+SUPPRESS_CLANG_WARNING("-Weverything")
 SUPPRESS_GCC_WARNING("maybe-uninitialized")
 #include <limits.h>
 

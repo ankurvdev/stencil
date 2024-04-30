@@ -42,10 +42,10 @@ namespace TestCommon
 inline std::string wstring_to_string(std::wstring_view wstr)
 {
     std::string out(wstr.size(), 0);
-#pragma warning(push)
+    SUPPRESS_WARNINGS_START
     SUPPRESS_MSVC_WARNING(4996)
     wcstombs(out.data(), wstr.data(), wstr.size());
-#pragma warning(pop)
+    SUPPRESS_WARNINGS_END
     return out;
 }
 

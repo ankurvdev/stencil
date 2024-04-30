@@ -11,7 +11,7 @@
 #include <type_traits>
 #include <vector>
 
-#pragma warning(push)
+SUPPRESS_WARNINGS_START
 SUPPRESS_MSVC_WARNING(4435)    // Object layout under /vd2 will change due to virtual base
 
 #define WIDENSTR(x) WIDENSTR_(x)
@@ -554,4 +554,4 @@ template <typename TOwner, typename TObject> struct StorageIndexT
 
 }    // namespace IDLGenerics
 
-#pragma warning(pop)
+SUPPRESS_WARNINGS_END

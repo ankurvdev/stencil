@@ -9,7 +9,7 @@
 
 #define SUPPRESS_CLANG_WARNING(warning)
 #define SUPPRESS_GCC_WARNING(warning)
-#define SUPPRESS_MSVC_WARNING(warn) _PRAGMA_STRINGIFY2(warning(disable : warn))
+#define SUPPRESS_MSVC_WARNING(warn) _PRAGMA_STRINGIFY(warning(disable : warn))
 #define SUPPRESS_WARNING(msvcwarning, clangwarning, gccwarning) SUPPRESS_MSVC_WARNING(msvcwarning)
 
 #define SUPPRESS_WARNINGS_END _Pragma("warning(pop)")
@@ -65,8 +65,8 @@
 
 #define SUPPRESS_WARNINGS_END _Pragma("GCC diagnostic pop")
 
-#define SUPPRESS_CLANG_WARNING("warning")
-#define SUPPRESS_GCC_WARNING(warning) _Pragma("GCC diagnostic ignored \"-W" warning "\"")
+#define SUPPRESS_CLANG_WARNING(warning)
+#define SUPPRESS_GCC_WARNING(warning) _PRAGMA_STRINGIFY(GCC diagnostic ignored warning)
 #define SUPPRESS_MSVC_WARNING(warning)
 #define SUPPRESS_WARNING(msvcwarning, clangwarning, gccwarning) SUPPRESS_GCC_WARNING(gccwarning)
 

@@ -32,25 +32,25 @@ enum class EnumType2
 };
 #pragma warning(push, 3)
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("implicit-float-conversion")
+SUPPRESS_CLANG_WARNING("-Wimplicit-float-conversion")
 
 static constexpr uint8_t constval2 = uint8_t{100};
 
-SUPPRESS_WARNINGS_END#pragma warning(pop)
+SUPPRESS_WARNINGS_END
 #pragma warning(push, 3)
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("implicit-float-conversion")
+SUPPRESS_CLANG_WARNING("-Wimplicit-float-conversion")
 
 static constexpr double constval3 = double{100};
 
-SUPPRESS_WARNINGS_END#pragma warning(pop)
+SUPPRESS_WARNINGS_END
 #pragma warning(push, 3)
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("implicit-float-conversion")
+SUPPRESS_CLANG_WARNING("-Wimplicit-float-conversion")
 
 static constexpr float constval4 = float{101.1234};
 
-SUPPRESS_WARNINGS_END#pragma warning(pop)
+SUPPRESS_WARNINGS_END
 struct DefaultValues :
     public Stencil::StructT<DefaultValues>
 {
