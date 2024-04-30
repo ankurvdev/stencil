@@ -92,7 +92,7 @@ struct Tester : ObjectsTester
         SSEListener(std::string_view const& url) : _url(url) {}
         CLASS_DELETE_COPY_AND_MOVE(SSEListener);
         SUPPRESS_WARNINGS_START
-        SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+        SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
         bool _ChunkCallback(const char* data, size_t len)
         {
             if (data[len - 1] == '\0') len--;

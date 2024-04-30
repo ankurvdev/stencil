@@ -31,7 +31,7 @@ target_include_directories(stencil_vcpkg_test PRIVATE "${CMAKE_CURRENT_LIST_DIR}
 
 file(APPEND ${srcfile} "
 #pragma warning(push, 3)
-#pragma warning(disable : 5262) /*xlocale(2010,13): implicit fall-through occurs here*/
+SUPPRESS_MSVC_WARNING(5262) /*xlocale(2010,13): implicit fall-through occurs here*/
 #include<EmbeddedResource.h>
 #include <iostream>
 #pragma warning(pop)

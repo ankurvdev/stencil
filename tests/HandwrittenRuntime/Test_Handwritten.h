@@ -9,7 +9,7 @@ SUPPRESS_STL_WARNINGS
 #include <variant>
 SUPPRESS_WARNINGS_END
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("unsafe-buffer-usage") struct WithPrimitives64Bit
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage") struct WithPrimitives64Bit
 {
     int64_t  f1;
     int16_t  f2;

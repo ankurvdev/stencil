@@ -9,7 +9,7 @@
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
 SUPPRESS_FMT_WARNINGS
-#pragma warning(disable : 5232)    // 5232: in C++20 this comparison calls
+SUPPRESS_MSVC_WARNING(5232)    // 5232: in C++20 this comparison calls
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
 #include <rapidjson/rapidjson.h>
@@ -19,7 +19,7 @@ SUPPRESS_WARNINGS_END
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
 SUPPRESS_FMT_WARNINGS
-#pragma warning(disable : 4388)    // signed / unsigned mismatch (Catch2)
+SUPPRESS_MSVC_WARNING(4388)    // signed / unsigned mismatch (Catch2)
 #include <catch2/catch_all.hpp>
 #include <dtl/dtl.hpp>
 #include <fmt/ostream.h>
@@ -43,14 +43,14 @@ inline std::string wstring_to_string(std::wstring_view wstr)
 {
     std::string out(wstr.size(), 0);
 #pragma warning(push)
-#pragma warning(disable : 4996)
+    SUPPRESS_MSVC_WARNING(4996)
     wcstombs(out.data(), wstr.data(), wstr.size());
 #pragma warning(pop)
     return out;
 }
 
 #if !defined _WIN32
-inline bool  IsDebuggerPresent()
+inline bool IsDebuggerPresent()
 {
     return true;
 }

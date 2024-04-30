@@ -174,7 +174,7 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Server1::
 {
     using Enum = Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function1>::Fields;
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "arg1"
@@ -266,7 +266,7 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Server1::
 {
     using Enum = Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_SomethingHappened>::Fields;
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "arg1"

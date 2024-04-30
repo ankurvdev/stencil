@@ -1,15 +1,15 @@
 #pragma once
+#ifndef _PRAGMA_STRINGIFY
+#define _PRAGMA_STRINGIFY2(x) _Pragma(#x)
+#define _PRAGMA_STRINGIFY(x) _PRAGMA_STRINGIFY2(x)
+#endif
 #if !(defined SUPPRESS_WARNINGS_START)
 #if defined _MSC_VER
 #define SUPPRESS_WARNINGS_START _Pragma("warning(push, 3)")
-#ifndef STRINGIFY
-#define STRINGIFY2(x) #x
-#define STRINGIFY(x) STRINGIFY2(x)
-#endif
 
 #define SUPPRESS_CLANG_WARNING(warning)
 #define SUPPRESS_GCC_WARNING(warning)
-#define SUPPRESS_MSVC_WARNING(warn) _Pragma(STRINGIFY(warning(disable : warn)))
+#define SUPPRESS_MSVC_WARNING(warn) _PRAGMA_STRINGIFY2(warning(disable : warn))
 #define SUPPRESS_WARNING(msvcwarning, clangwarning, gccwarning) SUPPRESS_MSVC_WARNING(msvcwarning)
 
 #define SUPPRESS_WARNINGS_END _Pragma("warning(pop)")
@@ -51,8 +51,7 @@
 
 #define SUPPRESS_WARNINGS_END _Pragma("clang diagnostic pop")
 
-#define SUPPRESS_CLANG_WARNING("warning) _Pragma(" clang diagnostic ignored \"-W" warning "\"" \
-                                                                             ")
+#define SUPPRESS_CLANG_WARNING(warning) _PRAGMA_STRINGIFY(clang diagnostic ignored warning)
 #define SUPPRESS_GCC_WARNING(warning)
 #define SUPPRESS_MSVC_WARNING(warning)
 #define SUPPRESS_WARNING(msvcwarning, clangwarning, gccwarning) SUPPRESS_CLANG_WARNING("clangwarning")

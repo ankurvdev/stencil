@@ -6,7 +6,7 @@
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
 SUPPRESS_FMT_WARNINGS
-#pragma warning(disable : 5219)    // implicit conversion (int to double), possible loss of data
+SUPPRESS_MSVC_WARNING(5219)    // implicit conversion (int to double), possible loss of data
 #include <charconv>
 #include <chrono>
 #include <date/date.h>

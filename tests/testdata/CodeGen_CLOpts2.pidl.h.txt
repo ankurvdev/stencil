@@ -145,7 +145,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Fields;
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "ProductId"
@@ -562,7 +562,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::Fields;
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "ProductId"
@@ -811,7 +811,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::Fields;
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "ProductId"
@@ -1060,7 +1060,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::Fields;
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "ProductId"
@@ -1309,7 +1309,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Fields;
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "ProductId"
@@ -1558,7 +1558,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Fields;
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "ProductId"
@@ -1807,7 +1807,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Fields;
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "ProductId"
@@ -2051,7 +2051,7 @@ template <> struct Stencil::EnumTraits<CLOpts2::CommandLineOptions::VariantType>
 {
     using Enum = CLOpts2::CommandLineOptions::VariantType;
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "install"

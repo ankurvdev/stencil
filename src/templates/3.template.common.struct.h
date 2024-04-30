@@ -151,7 +151,7 @@ template <> struct Stencil::EnumTraits<zzProgram_Namezz::zzNamezz>
 {
     using Enum = zzProgram_Namezz::zzNamezz;
     SUPPRESS_WARNINGS_START
-    SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         //<EnumValue Join=','>
@@ -189,7 +189,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram
 {
     using Enum = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields;
     SUPPRESS_WARNINGS_START
-    SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         //<Field Join=','>
@@ -613,7 +613,7 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzI
 {
     using Enum = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>::Fields;
     SUPPRESS_WARNINGS_START
-    SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         //<Args_Field Join=','>
@@ -714,7 +714,7 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzI
 {
     using Enum = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>::Fields;
     SUPPRESS_WARNINGS_START
-    SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         //<Args_Field Join=','>
@@ -849,7 +849,7 @@ template <> struct Stencil::EnumTraits<zzProgram_Namezz::zzVariant_Namezz::Varia
 {
     using Enum = zzProgram_Namezz::zzVariant_Namezz::VariantType;
     SUPPRESS_WARNINGS_START
-    SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         //<Field Join=','>

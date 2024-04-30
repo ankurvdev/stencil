@@ -346,7 +346,7 @@ struct SerDes<std::array<uint16_t, N>, ProtocolCLI>
 namespace Stencil::CLI
 {
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
 
 struct ArgcArgv
 {

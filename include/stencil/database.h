@@ -356,7 +356,7 @@ struct SerDes
         assert(!stream.fail());
     }
     SUPPRESS_WARNINGS_START
-    SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
 
     static void _WritePage(Page const& page, uint32_t index, std::ostream& stream)
     {
@@ -425,7 +425,7 @@ struct PageRuntime
 
     std::span<uint8_t>       RawData() { return _page->buffer; }
     std::span<uint8_t const> RawData() const { return _page->buffer; }
-    SUPPRESS_WARNINGS_START  SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+    SUPPRESS_WARNINGS_START  SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
 
         template <typename T>
         std::span<T> Get(size_t offset = 0)
@@ -500,7 +500,7 @@ template <size_t RecordSize> struct PageForRecord
     PageForRecord(PageRuntime& page) : _page(page)
     {
         SUPPRESS_WARNINGS_START
-        SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+        SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
         static_assert((sizeof(*_slots) + sizeof(*_records)) <= Page::PageSizeInBytes);
 
         _slots   = reinterpret_cast<decltype(_slots)>(page.RawData().data());
@@ -610,7 +610,7 @@ template <> struct PageForRecord<0>
         return SlotsWithSlotTracking;
     }
     SUPPRESS_WARNINGS_START
-    SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
 
     void _SetRecordSize(uint16_t recordSize)
     {
@@ -1000,7 +1000,7 @@ struct Blob
 
     private:
     SUPPRESS_WARNINGS_START
-    SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     uint8_t*       _GetDataPtr() { return reinterpret_cast<uint8_t*>(this) + sizeof(Blob); }
     uint8_t const* _GetDataPtr() const { return reinterpret_cast<uint8_t const*>(this) + sizeof(Blob); }
     SUPPRESS_WARNINGS_END

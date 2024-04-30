@@ -19,7 +19,7 @@
 #endif
 
 #pragma warning(push)
-#pragma warning(disable : 4371)    // Object layout under /vd2 will change due to virtual base
+SUPPRESS_MSVC_WARNING(4371)    // Object layout under /vd2 will change due to virtual base
 #define SUPER(T) (*static_cast<T*>(this))
 
 namespace Binding
@@ -840,7 +840,7 @@ template <typename TParent, typename TObject> struct BindableParent : public vir
         Str::Type                         _objectName{Str::Create(TObject::BindingKeyName())};
     };
 #pragma warning(push)
-#pragma warning(disable : 4355)    // this used in base member initializer list
+    SUPPRESS_MSVC_WARNING(4355)    // this used in base member initializer list
                                    // TODO remove this disable
     BindableParent() : _bindableComponent(std::make_shared<BindableComponent>(*this)) { Register(_bindableComponent); }
 #pragma warning(pop)

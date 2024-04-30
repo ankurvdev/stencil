@@ -182,11 +182,6 @@ macro(EnableStrictCompilation)
             #TODO https://github.com/emscripten-core/emscripten/issues/16836
             list(APPEND extraflags -Wl,-u,htonl -Wl,-u,htons ) 
         endif()
-        if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL GNU)
-            list(APPEND extraflags
-                -Wno-unknown-pragmas
-            )
-        endif()
         if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL Clang)
             list(APPEND extraflags
                 -Weverything

@@ -9,7 +9,7 @@
 #include <vector>
 
 #pragma warning(push)
-#pragma warning(disable : 4435)    // Object layout under /vd2 will change due to virtual base
+SUPPRESS_MSVC_WARNING(4435)    // Object layout under /vd2 will change due to virtual base
 
 namespace IDL
 {
@@ -163,8 +163,7 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
         virtual Str::Type GetKeyAt(size_t index) override
         {
             auto it = m_ContainerFieldTypeMap.begin();
-            for (index++; index > 0; --index, ++it)
-                ;
+            for (index++; index > 0; --index, ++it);
             return Str::Copy(it->first);
         }
         virtual Str::Type               ComponentName() override { return Str::Create(L"ContainerFieldTypeMap"); }

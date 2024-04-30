@@ -81,7 +81,7 @@ template <> struct Stencil::EnumTraits<EnumConstsInitializers::EnumType1>
 {
     using Enum = EnumConstsInitializers::EnumType1;
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "zero"
@@ -99,7 +99,7 @@ template <> struct Stencil::EnumTraits<EnumConstsInitializers::EnumType2>
 {
     using Enum = EnumConstsInitializers::EnumType2;
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "one"
@@ -142,7 +142,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<EnumConst
 {
     using Enum = Stencil::TypeTraitsForIndexable<EnumConstsInitializers::DefaultValues>::Fields;
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "enum1"

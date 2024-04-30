@@ -123,7 +123,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Objects::
 {
     using Enum = Stencil::TypeTraitsForIndexable<Objects::SimpleObject1>::Fields;
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "val1"
@@ -553,7 +553,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Objects::
 {
     using Enum = Stencil::TypeTraitsForIndexable<Objects::ListObject>::Fields;
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "value"
@@ -852,7 +852,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Objects::
 {
     using Enum = Stencil::TypeTraitsForIndexable<Objects::DictObject>::Fields;
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "dictobj"
@@ -1185,7 +1185,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Objects::
 {
     using Enum = Stencil::TypeTraitsForIndexable<Objects::List>::Fields;
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "listobj"
@@ -1465,7 +1465,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Objects::
 {
     using Enum = Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::Fields;
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "val1"
@@ -2024,7 +2024,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Objects::
 {
     using Enum = Stencil::TypeTraitsForIndexable<Objects::NestedObject>::Fields;
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "obj1"
@@ -2448,7 +2448,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Objects::
 {
     using Enum = Stencil::TypeTraitsForIndexable<Objects::SelfNested>::Fields;
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("unsafe-buffer-usage")
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
         "Invalid",
         "obj1"

@@ -3,7 +3,7 @@
 
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
-#pragma warning(disable : 4866)    // left to right evaluation not guaranteed
+SUPPRESS_MSVC_WARNING(4866)    // left to right evaluation not guaranteed
 #include <array>
 #include <bit>
 #include <chrono>
