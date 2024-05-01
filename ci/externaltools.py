@@ -182,7 +182,7 @@ def move_up(path: Path) -> None:
 DEVEL_BIN_PATH: Path | None = None
 
 
-def get_bin_path() -> Path:
+def get_bin_path(default_path: Path | None = Path().absolute()) -> Path | None:  # noqa: B008
     if DEVEL_BIN_PATH:
         return DEVEL_BIN_PATH
     try:
@@ -190,7 +190,7 @@ def get_bin_path() -> Path:
 
         return Path(configenv.ConfigEnv(None).GetConfigPath("DEVEL_BINPATH", make=True))
     except ImportError:
-        return Path().absolute()
+        return default_path
 
 
 def _download_or_get_binary(binname: str, bindir: Path, download_callback: Callable[[Path], None] | None = None) -> Path:
@@ -351,7 +351,10 @@ def get_vswhere() -> Path:
 vsvars: Optional[Dict[str, str]] = None
 
 
-def init_envvars(fpath: Path, envvars: dict[str, str] | _Environ[str] | None) -> dict[str, str | Path | _Environ[str] | dict[str, Path]]:
+def init_envvars(
+    fpath: Path,
+    envvars: dict[str, str] | _Environ[str] | None = None,
+) -> dict[str, str | Path | _Environ[str] | dict[str, Path]]:
     envvars = envvars or os.environ.copy()
     info = json.loads(fpath.read_text())
     for k, v in info["env"].items():
@@ -369,15 +372,16 @@ def init_envvars(fpath: Path, envvars: dict[str, str] | _Environ[str] | None) ->
     return info
 
 
-def get_vsvars() -> dict[str, str] | _Environ[str]:
+def get_vsvars(environ: dict[str, str] | _Environ[str] | None = None) -> dict[str, str] | _Environ[str]:
     global vsvars  # noqa: PLW0603
-    for plat in ["msvs", "msys2"]:
+    environ = environ or os.environ.copy()
+    for plat in ["msvs", "mingw"]:
         envvarsf = get_bin_path() / f"toolchain_{plat}.json"
         if envvarsf.exists():
-            return init_envvars(envvarsf)["env"]
+            return init_envvars(envvarsf, environ)["environ"]
         envvarsf = get_bin_path().parent / f"toolchain_{plat}.json"
         if envvarsf.exists():
-            return init_envvars(envvarsf)["env"]
+            return init_envvars(envvarsf, environ)["environ"]
 
     if vsvars is not None:
         return vsvars
@@ -438,9 +442,8 @@ def detect_vspath(name: str, excpt: bool = False) -> Path | None:
     bin_exe = shutil.which(name)
     if bin_exe and Path(bin_exe).is_file():
         return Path(bin_exe).absolute()
-    command = ["powershell", f"(Get-Command {name}).Path"]
-    envvars = os.environ.copy() | get_vsvars()
-    output = subprocess.check_output(command, env=envvars)
+    envvars = get_vsvars()
+    output = subprocess.check_output([shutil.which("powershell"), f"(Get-Command {name}).Path"], env=envvars)
     p = Path(output.splitlines()[-1].decode()).absolute()
     if not p.is_file():
         if excpt:
@@ -567,14 +570,8 @@ def acquire_tool(name: str) -> Path:
         return get_imagemagick_convert()
     if name == "flexbison":
         return get_win_flexbison()
-    if name == "toolchain:mingw":
-        return get_win_mingw_toolchain()
-    if name == "toolchain:android":
-        return get_android_toolchain()
-    if name == "toolchain:emscripten":
-        return get_emscripten_toolchain()
-    if name == "toolchain:msvc":
-        return get_portable_msvc_toolchain()
+    if "toolchain:" in name:
+        return init_toolchain(name.split(":", maxsplit=1)[-1])
     return get_binary(name)
 
 
@@ -660,7 +657,7 @@ def get_emscripten_toolchain() -> dict[str, str | Path | _Environ[str] | dict[st
 
 def init_toolchain(
     toolchain: str,
-    environ: dict[str, str] | _Environ[str] | None,
+    environ: dict[str, str] | _Environ[str] | None = None,
     expiry: int = 30,
 ) -> dict[str, str | Path | _Environ[str] | dict[str, Path]]:
     envvarsf = get_bin_path() / f"toolchain_{toolchain}.json"
@@ -670,6 +667,7 @@ def init_toolchain(
             "mingw": get_win_mingw_toolchain,
             "android": get_android_toolchain,
             "emscripten": get_emscripten_toolchain,
+            "msvc": get_portable_msvc_toolchain,
         }
         info = func_map[toolchain]()
         envvarsf.write_text(json.dumps(info, cls=CustomEncoder, indent=2))

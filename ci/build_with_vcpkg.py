@@ -70,10 +70,22 @@ if False:
                 return pth.absolute().as_posix()
         raise Exception(f"Cannot find {name}")
 
+def get_vcpkg_root() -> Path | None:
+    try:
+        import configenv  # noqa: ignore
+
+        return Path(configenv.ConfigEnv(None).GetConfigPath("VCPKG_ROOT", make=True))
+    except ImportError:
+        return Path().absolute() / "vcpkg"
+
+
 
 parser = argparse.ArgumentParser(description="Test VCPKG Workflow")
 parser.add_argument("--reporoot", type=Path, default=None, help="Repository")
-parser.add_argument("--workdir", type=str, default=".", help="Root")
+parser.add_argument("--vcpkg", type=Path, default=None, help="Repository")
+parser.add_argument("--bindir", type=Path, default=None, help="Repository" )
+parser.add_argument("--workdir", type=Path, default=None, help="Root")
+
 parser.add_argument("--clean", action="store_true", help="Clean")
 parser.add_argument("--quiet", action="store_true", help="Quiet")
 parser.add_argument("--host-triplet", type=str, default=None, help="Triplet")
@@ -81,15 +93,16 @@ parser.add_argument("--runtime-triplet", type=str, default=None, help="Triplet")
 args = parser.parse_args()
 
 reporoot = args.reporoot or pathlib.Path(__file__).parent.parent.absolute()
-
 scriptdir = (reporoot / "ci").absolute()
 portname = next((reporoot / "ci" / "vcpkg-additional-ports").glob("*")).name
-workdir = pathlib.Path(args.workdir).absolute()
+workdir  = pathlib.Path(args.workdir or ".").absolute()
 workdir.mkdir(exist_ok=True)
-vcpkgroot = workdir / "vcpkg"
+vcpkgroot = args.vcpkg or get_vcpkg_root() or (workdir / "vcpkg")
+bindir = externaltools.get_bin_path(None) or workdir / "bin"
+externaltools.DEVEL_BIN_PATH = bindir
+
 vcpkgportfile = vcpkgroot / "ports" / portname / "portfile.cmake"
-androidroot = workdir / "android"
-externaltools.DEVEL_BIN_PATH = workdir / "bin"
+
 if not vcpkgroot.exists():
     subprocess.check_call(
         [
@@ -102,7 +115,7 @@ if not vcpkgroot.exists():
             "--depth",
             "1",
         ],
-        cwd=workdir.as_posix(),
+        cwd=vcpkgroot.parent.as_posix(),
     )
 
 bootstrapscript = "bootstrap-vcpkg.bat" if sys.platform == "win32" else "bootstrap-vcpkg.sh"
@@ -122,7 +135,6 @@ myenv["VCPKG_ROOT"] = vcpkgroot.as_posix()
 myenv["VCPKG_BINARY_SOURCES"] = "clear"
 myenv["VCPKG_KEEP_ENV_VARS"] = "ANDROID_NDK_HOME"
 myenv["VERBOSE"] = "1"
-externaltools.DEVEL_BIN_PATH = workdir / "bin"
 if "android" in host_triplet or "android" in runtime_triplet:
     externaltools.init_toolchain("android", myenv)
 if "mingw" in host_triplet or "mingw" in runtime_triplet:
@@ -131,7 +143,7 @@ if "wasm32" in host_triplet or "wasm32" in runtime_triplet:
     externaltools.init_toolchain("emscripten", myenv)
 
 
-subprocess.check_call((vcpkgroot / bootstrapscript).as_posix(), shell=True, cwd=workdir, env=myenv)
+subprocess.check_call((vcpkgroot / bootstrapscript).as_posix(), shell=True, cwd=vcpkgroot, env=myenv)
 vcpkgexe = pathlib.Path(shutil.which("vcpkg", path=vcpkgroot) or "")
 VCPKG_EXE = vcpkgexe
 
@@ -175,7 +187,6 @@ def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str) -> No
     testdir.mkdir()
     cmakebuildextraargs = ["--config", config] if sys.platform == "win32" else []
     cmakeconfigargs: list[str] = []
-
     if "mingw" in host_triplet or "mingw" in runtime_triplet:
         info = externaltools.init_toolchain("mingw", os.environ)
         cmakeconfigargs += [
