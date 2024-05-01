@@ -194,7 +194,7 @@ def get_bin_path() -> Path:
 
 
 def _download_or_get_binary(binname: str, bindir: Path, download_callback: Callable[[Path], None] | None = None) -> Path:
-    bindir.mkdir(exist_ok=True)
+    bindir.mkdir(exist_ok=True, parents=True)
     exe = search_executable(bindir, binname)
     if exe.is_file():
         add_to_path([exe.parent])
@@ -359,6 +359,12 @@ def init_envvars(fpath: Path, envvars: dict[str, str] | _Environ[str] | None) ->
             add_to_env_path_list(k, [Path(fpath) for fpath in v], envvars)
         else:
             envvars[k] = v
+    for k, v in info.items():
+        if isinstance(v, str):
+            fpath = Path(v)
+            fpath = fpath if fpath.is_absolute() else get_bin_path() / fpath
+            if fpath.exists():
+                info[k] = fpath
     info["environ"] = envvars
     return info
 
