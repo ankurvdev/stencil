@@ -20,7 +20,7 @@ if ("${DTL_INCLUDE_DIRS}" STREQUAL "DTL_INCLUDE_DIRS-NOTFOUND")
     # find_path will search for ctl.framwwork/Headers in vcpkg directories
     find_path(DTL_INCLUDE_DIRS "dtl/Diff.hpp" PATHS "${dtl_SOURCE_DIR}")
     if ("${DTL_INCLUDE_DIRS}" STREQUAL "DTL_INCLUDE_DIRS-NOTFOUND")
-        set(DTL_INCLUDE_DIRS "${dtl_SOURCE_DIR}" CACHE PATH FORCE "DTL path")
+        set(DTL_INCLUDE_DIRS "${dtl_SOURCE_DIR}" CACHE PATH "DTL path" FORCE)
     endif()
 endif()
 
