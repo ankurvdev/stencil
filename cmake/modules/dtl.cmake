@@ -15,10 +15,13 @@ if (COMMAND vcpkg_install)
 endif()
 
 find_path(DTL_INCLUDE_DIRS "dtl/Diff.hpp")
-
-if (DTL_INCLUDE_DIRS STREQUAL "DTL_INCLUDE_DIRS-NOTFOUND")
+if ("${DTL_INCLUDE_DIRS}" STREQUAL "DTL_INCLUDE_DIRS-NOTFOUND")
     FetchContent_MakeAvailable(dtl)
-    find_path(DTL_INCLUDE_DIRS "dtl/Diff.hpp" HINTS "${dtl_SOURCE_DIR}" REQUIRED)
+    # find_path will search for ctl.framwwork/Headers in vcpkg directories
+    find_path(DTL_INCLUDE_DIRS "dtl/Diff.hpp" PATHS "${dtl_SOURCE_DIR}")
+    if ("${DTL_INCLUDE_DIRS}" STREQUAL "DTL_INCLUDE_DIRS-NOTFOUND")
+        set(DTL_INCLUDE_DIRS "${dtl_SOURCE_DIR}" CACHE PATH "DTL path" FORCE)
+    endif()
 endif()
 
 if (NOT EXISTS "${DTL_INCLUDE_DIRS}/dtl/Diff.hpp")

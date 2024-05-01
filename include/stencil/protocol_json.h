@@ -7,7 +7,7 @@
 
 // #if defined USE_SIMDJSON
 SUPPRESS_WARNINGS_START
-#pragma warning(disable : 4061) /* Not all labels are EXPLICITLY handled in switch */
+SUPPRESS_MSVC_WARNING(4061) /* Not all labels are EXPLICITLY handled in switch */
 #include <rapidjson/memorystream.h>
 #include <rapidjson/reader.h>
 SUPPRESS_WARNINGS_END
@@ -148,8 +148,8 @@ template <typename T, typename TContext> auto _WriteQuotedString(TContext& ctx, 
 }
 
 // template <typename T, typename TContext> void _ReadQuotedString(T& obj, TContext const& ctx);
-#pragma clang diagnostic   push
-#pragma clang diagnostic   ignored "-Wunsafe-buffer-usage"
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
 template <typename T> void _ReadQuotedString(T& obj, std::string_view const& ctx)
 {
     if (ctx.size() == 0 || ctx.data()[0] != '\"') { return SerDes<T, ProtocolString>::Read(obj, ctx); }
@@ -157,7 +157,7 @@ template <typename T> void _ReadQuotedString(T& obj, std::string_view const& ctx
     auto ctx1 = ctx.substr(1, ctx.size() - 2);
     SerDes<T, ProtocolString>::Read(obj, ctx1);
 }
-#pragma clang diagnostic pop
+SUPPRESS_WARNINGS_END
 template <size_t N> struct SerDes<std::array<char, N>, ProtocolJsonVal>
 {
     using TObj = std::array<char, N>;

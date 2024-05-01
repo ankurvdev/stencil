@@ -3,7 +3,7 @@
 
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
-#pragma warning(disable : 4866)    // left to right evaluation not guaranteed
+SUPPRESS_MSVC_WARNING(4866)    // left to right evaluation not guaranteed
 #include <array>
 #include <bit>
 #include <chrono>
@@ -315,8 +315,7 @@ struct Primitives64Bit::Traits<std::array<uint16_t, N>>
 };
 
 template <typename T>
-concept ConceptPrimitives64Bit = !
-Primitives64Bit::Type::IsUnknown(Primitives64Bit::Traits<T>::Type());
+concept ConceptPrimitives64Bit = !Primitives64Bit::Type::IsUnknown(Primitives64Bit::Traits<T>::Type());
 
 template <typename T>
 concept ConceptPrimitives64BitFloat = Primitives64Bit::Type::IsFloat(Primitives64Bit::Traits<T>::Type());

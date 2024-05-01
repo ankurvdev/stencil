@@ -124,7 +124,6 @@ macro(EnableStrictCompilation)
 
             #suppression list
             /wd4619  # pragma warning: there is no warning number
-            /wd4068  # unknown pragma
             /wd4514  # unreferenced inline function has been removed
             /wd4820  # bytes padding added after data member in struct
             /wd5039  #  pointer or reference to potentially throwing function passed to 'extern "C"' function under -EHc.
@@ -181,7 +180,7 @@ macro(EnableStrictCompilation)
         if (EMSCRIPTEN)
             list(APPEND extraflags -pthread -Wno-limited-postlink-optimizations -sASYNCIFY)
             #TODO https://github.com/emscripten-core/emscripten/issues/16836
-            list(APPEND extraflags -Wl,-u,htonl -Wl,-u,htons )
+            list(APPEND extraflags -Wl,-u,htonl -Wl,-u,htons ) 
         endif()
         if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL Clang)
             list(APPEND extraflags
@@ -217,7 +216,6 @@ macro(EnableStrictCompilation)
         list(APPEND extracxxflags
             #suppression list
             -Wno-ctad-maybe-unsupported
-            -Wno-unknown-pragmas
             -Wno-padded # Dont care about auto padding
         )
 
@@ -251,9 +249,6 @@ macro(EnableStrictCompilation)
     _PrintFlags()
 
     set(STRICT_COMPILATION_MODE ${filetime} CACHE INTERNAL "Is Strict Compilation mode enabled" FORCE)
-    if (EXISTS ${BuildEnvCMAKE_LOCATION}/../include)
-        include_directories(${BuildEnvCMAKE_LOCATION}/../include)
-    endif()
 endmacro()
 
 macro (SupressWarningForFile f)

@@ -6,6 +6,7 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/Tencent/rapidjson
   GIT_TAG        f9d53419e912910fd8fa57d5705fa41425428c35
   GIT_PROGRESS TRUE
+  SYSTEM
   FIND_PACKAGE_ARGS NAMES RapidJSON
 )
 
@@ -23,5 +24,5 @@ if(NOT rapidjson_FOUND)
 
   FetchContent_Populate(rapidjson)
   add_library(rapidjson INTERFACE)
-  target_include_directories(rapidjson INTERFACE "${rapidjson_SOURCE_DIR}/include")
+  target_include_directories(rapidjson SYSTEM INTERFACE "${rapidjson_SOURCE_DIR}/include")
 endif()

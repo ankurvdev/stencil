@@ -8,9 +8,8 @@ SUPPRESS_STL_WARNINGS
 #include <string>
 #include <variant>
 SUPPRESS_WARNINGS_END
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
-struct WithPrimitives64Bit
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage") struct WithPrimitives64Bit
 {
     int64_t  f1;
     int16_t  f2;
@@ -476,12 +475,15 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<MultiAttr
         return static_cast<Stencil::TypeTraitsForIndexable<MultiAttributed>::Fields>(index);
     }
 };
+SUPPRESS_WARNINGS_START
+SUPPRESS_MSVC_WARNING(4702) /*Unreachable code*/    // Seems to only work in global scope
 
 template <> struct Stencil::StructFieldsVisitor<MultiAttributed>
 {
     using Fields = TypeTraitsForIndexable<MultiAttributed>::Fields;
     template <typename T, typename TLambda> static bool VisitField(T& obj, Fields fields, TLambda&& lambda)
     {
+
         switch (fields)
         {
         case Fields::Field_f1: lambda(obj.f1); return true;
@@ -499,6 +501,7 @@ template <> struct Stencil::StructFieldsVisitor<MultiAttributed>
         lambda(Fields::Field_f3, obj.f3);
     }
 };
+SUPPRESS_WARNINGS_END
 
 template <>
 struct Stencil::Visitor<MultiAttributed>
@@ -537,7 +540,8 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<WithVaria
         return static_cast<Stencil::TypeTraitsForIndexable<WithVariant>::Fields>(index);
     }
 };
-
+SUPPRESS_WARNINGS_START
+SUPPRESS_MSVC_WARNING(4702) /*Unreachable code*/    // Seems to only work in global scope
 template <> struct Stencil::StructFieldsVisitor<WithVariant>
 {
     using Fields = TypeTraitsForIndexable<WithVariant>::Fields;
@@ -562,6 +566,7 @@ template <> struct Stencil::StructFieldsVisitor<WithVariant>
         lambda(Fields::Field_f4, obj.f4);
     }
 };
+SUPPRESS_WARNINGS_END
 
 template <> struct Stencil::Visitor<WithVariant> : Stencil::StructVisitor<WithVariant>
 {};
@@ -687,4 +692,4 @@ template <> struct Stencil::Visitor<TestObj> : Stencil::VisitorT<TestObj>
 
     template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda) { lambda(Fields::Field_f1, obj.f1); }
 };
-#pragma clang diagnostic pop
+SUPPRESS_WARNINGS_END

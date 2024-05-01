@@ -1,31 +1,18 @@
 #include "protocol_json.h"
 
-#pragma warning(push, 3)
-#pragma warning(disable : 4365)    // conversion from 'const char' to 'unsigned char', signed/unsigned mismatch
-#pragma warning(disable : 4355)    //'this' : used in base member initializer list
-#pragma warning(disable : 4855)    // implicit capture of 'this' via '[=]' is deprecated
-#pragma warning(disable : 4548)    // expression before comma has no effect; expected expression with side - effect
-#pragma warning(disable : 4702)    // Unreachable code
-#pragma warning(disable : 4668)    // not defined as a preprocessor macro
-#pragma warning(disable : 5039)    // pointer or reference to potentially throwing function passed to 'extern)
-#pragma warning(disable : 4191)    // type cast': unsafe conversion
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Weverything"
-#pragma GCC diagnostics  push
-#pragma GCC diagnostic   ignored "-Wmaybe-uninitialized"
-
+SUPPRESS_WARNINGS_START
+SUPPRESS_MSVC_WARNING(4355)
+SUPPRESS_CLANG_WARNING("-Weverything")
+SUPPRESS_GCC_WARNING("-Wmaybe-uninitialized")
 #include <limits.h>
 
 #include <httplib.h>
 
-#pragma GCC diagnostic   pop
-#pragma clang diagnostic pop
-#pragma warning(pop)
-
 #include <algorithm>
 #include <string_view>
 #include <unordered_set>
+
+SUPPRESS_WARNINGS_END
 
 #define STENCIL_USING_WEBSERVICE 1
 namespace Stencil

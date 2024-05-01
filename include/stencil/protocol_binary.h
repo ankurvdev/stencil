@@ -133,6 +133,8 @@ template <ConceptPreferIndexable T> struct SerDes<T, ProtocolBinary>
         }
     }
 };
+SUPPRESS_WARNINGS_START
+SUPPRESS_MSVC_WARNING(4702) /*Unreachable code*/    // Seems to only work in global scope
 
 template <ConceptPreferIterable T> struct SerDes<T, ProtocolBinary>
 {
@@ -155,9 +157,9 @@ template <ConceptPreferIterable T> struct SerDes<T, ProtocolBinary>
         }
         typename Visitor<T>::Iterator it;
         Visitor<T>::IteratorBegin(it, obj);
-
         while (true)
         {
+
             if (!Visitor<T>::IteratorValid(it, obj)) { throw std::runtime_error("Cannot Visit Next Item on the iterable"); }
             Visitor<T>::Visit(it, obj, [&](auto& val) { SerDes<std::remove_cvref_t<decltype(val)>, ProtocolBinary>::Read(val, ctx); });
             auto marker = ctx.template read<uint8_t>();
@@ -168,6 +170,7 @@ template <ConceptPreferIterable T> struct SerDes<T, ProtocolBinary>
         }
     }
 };
+SUPPRESS_WARNINGS_END
 
 template <ConceptPrimitives64Bit T> struct SerDes<T, ProtocolBinary>
 {

@@ -1,7 +1,6 @@
 #include "ObjectsTester.h"
 #include "TestUtils.h"
 
-#include <httplib.h>
 #include <stencil/WebService.h>
 
 static_assert(Stencil::Database::ConceptRecord<uint32_t>);
@@ -92,8 +91,8 @@ struct Tester : ObjectsTester
     {
         SSEListener(std::string_view const& url) : _url(url) {}
         CLASS_DELETE_COPY_AND_MOVE(SSEListener);
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+        SUPPRESS_WARNINGS_START
+        SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
         bool _ChunkCallback(const char* data, size_t len)
         {
             if (data[len - 1] == '\0') len--;
@@ -103,8 +102,7 @@ struct Tester : ObjectsTester
             _cv.notify_all();
             return true;
         }
-#pragma clang diagnostic pop
-
+        SUPPRESS_WARNINGS_END
         void _SSEListener()
         {
             _ssecli.set_follow_location(true);

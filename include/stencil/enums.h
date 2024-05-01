@@ -1,4 +1,5 @@
 #pragma once
+#include "CommonMacros.h"
 #include "typetraits.h"
 
 SUPPRESS_WARNINGS_START

@@ -8,9 +8,9 @@
 
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
-#pragma warning(disable : 4061)    // switch case not handled
-#pragma warning(disable : 4583)    // destructor not implicitly called
-#pragma warning(disable : 4582)    // constructor not implicitly called
+SUPPRESS_MSVC_WARNING(4061)    // switch case not handled
+SUPPRESS_MSVC_WARNING(4583)    // destructor not implicitly called
+SUPPRESS_MSVC_WARNING(4582)    // constructor not implicitly called
 #include <tinyxml2.h>
 #include <toml.hpp>
 #include <tsl/ordered_map.h>
@@ -32,10 +32,10 @@ using Str = Binding::Str;
 inline std::string wstring_to_string(std::wstring_view wstr)
 {
     std::string out(wstr.size(), 0);
-#pragma warning(push)
-#pragma warning(disable : 4996)
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_MSVC_WARNING(4996)
     wcstombs(out.data(), wstr.data(), wstr.size());
-#pragma warning(pop)
+    SUPPRESS_WARNINGS_END
     return out;
 }
 

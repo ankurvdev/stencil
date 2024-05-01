@@ -1,15 +1,14 @@
 #pragma once
+#include "CommonMacros.h"
 #include "IDL3Generics.h"
 
 #include <filesystem>
 #include <optional>
-#include <string>
-#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
-#pragma warning(push)
-#pragma warning(disable : 4435)    // Object layout under /vd2 will change due to virtual base
+SUPPRESS_WARNINGS_START
+SUPPRESS_MSVC_WARNING(4435)    // Object layout under /vd2 will change due to virtual base
 
 namespace IDL
 {
@@ -163,8 +162,7 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
         virtual Str::Type GetKeyAt(size_t index) override
         {
             auto it = m_ContainerFieldTypeMap.begin();
-            for (index++; index > 0; --index, ++it)
-                ;
+            for (index++; index > 0; --index, ++it);
             return Str::Copy(it->first);
         }
         virtual Str::Type               ComponentName() override { return Str::Create(L"ContainerFieldTypeMap"); }
@@ -536,6 +534,7 @@ struct PrimitiveConstValue : public std::enable_shared_from_this<PrimitiveConstV
             case Primitives64Bit::Type::Category::Signed: return Str::Convert(fmt::format("{}", primitive.cast<int64_t>()));
             case Primitives64Bit::Type::Category::Unsigned: return Str::Convert(fmt::format("{}", primitive.cast<uint64_t>()));
             case Primitives64Bit::Type::Category::Unknown: break;
+            default: break;
             }
             throw std::invalid_argument("Unknown primitive const value type");
         }
@@ -842,4 +841,4 @@ inline std::shared_ptr<Container> Container::FindOrCreate(std::shared_ptr<Progra
     return program->CreateNamedObject<Container>(std::move(name), std::move(components), base, unordered_map);
 }
 }    // namespace IDL
-#pragma warning(pop)
+SUPPRESS_WARNINGS_END
