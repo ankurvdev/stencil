@@ -444,7 +444,7 @@ def detect_vspath(name: str, excpt: bool = False) -> Path | None:
         return Path(bin_exe).absolute()
     envvars = get_vsvars()
     output = subprocess.check_output([shutil.which("powershell"), f"(Get-Command {name}).Path"], env=envvars)
-    p = Path(output.splitlines()[-1].decode()).absolute()
+    p = Path(output.splitlines()[-1].decode()).absolute() if output else Path()
     if not p.is_file():
         if excpt:
             raise ExternalToolsDownloadError(f"Cannot find {name} : {p} \nenv = {envvars} \n output = {output}")
