@@ -1,7 +1,7 @@
 import argparse
+import logging
 import os
 import pathlib
-import pprint
 import shutil
 import subprocess
 import sys
@@ -81,16 +81,19 @@ def get_vcpkg_root() -> Path | None:
 
 
 parser = argparse.ArgumentParser(description="Test VCPKG Workflow")
+parser.add_argument("--verbose",action="store_true", help="Clean")
 parser.add_argument("--reporoot", type=Path, default=None, help="Repository")
 parser.add_argument("--vcpkg", type=Path, default=None, help="Repository")
 parser.add_argument("--bindir", type=Path, default=None, help="Repository" )
 parser.add_argument("--workdir", type=Path, default=None, help="Root")
 
 parser.add_argument("--clean", action="store_true", help="Clean")
-parser.add_argument("--quiet", action="store_true", help="Quiet")
 parser.add_argument("--host-triplet", type=str, default=None, help="Triplet")
 parser.add_argument("--runtime-triplet", type=str, default=None, help="Triplet")
 args = parser.parse_args()
+
+if args.verbose:
+    logging.basicConfig(level=logging.DEBUG)
 
 reporoot = args.reporoot or pathlib.Path(__file__).parent.parent.absolute()
 scriptdir = (reporoot / "ci").absolute()
@@ -162,7 +165,7 @@ try:
     for log in pathlib.Path(vcpkgroot / "buildtrees").rglob("*.log"):
         if log.parent.parent.name == "buildtrees":
             log.unlink()
-    pprint.pprint(myenv)
+    logging.debug(myenv)
     if args.clean:
         vcpkg_remove(portname + ":" + host_triplet)
         vcpkg_remove(portname + ":" + runtime_triplet)
@@ -170,13 +173,13 @@ try:
     if host_triplet != runtime_triplet:
         vcpkg_install(portname + ":" + runtime_triplet)
 except subprocess.CalledProcessError:
-    if not args.quiet:
+    if args.verbose:
         logs = list(pathlib.Path(vcpkgroot / "buildtrees").rglob("*.log"))
         for log in logs:
             if log.parent.parent.name == "buildtrees":
-                print(f"\n\n ========= START: {log} ===========")
-                print(log.read_text())
-                print(f" ========= END: {log} =========== \n\n")
+                logging.debug(f"\n\n ========= START: {log} ===========")
+                logging.debug(log.read_text())
+                logging.debug(f" ========= END: {log} =========== \n\n")
     raise
 
 

@@ -98,7 +98,7 @@ jobs:
     - task: PythonScript@0
       inputs:
         scriptPath: $(Build.SourcesDirectory)/ci/build_with_vcpkg.py
-        arguments: --host-triplet $(HostTriplet) --runtime-triplet $(RuntimeTriplet) --workdir vcpkg-build
+        arguments: --verbose --host-triplet $(HostTriplet) --runtime-triplet $(RuntimeTriplet) --workdir vcpkg-build
 
 - job: Build_VS2019
   strategy:
