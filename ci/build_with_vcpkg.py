@@ -175,6 +175,7 @@ def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str) -> No
     testdir.mkdir()
     cmakebuildextraargs = ["--config", config] if sys.platform == "win32" else []
     cmakeconfigargs: list[str] = []
+
     if "mingw" in host_triplet or "mingw" in runtime_triplet:
         info = externaltools.init_toolchain("mingw", os.environ)
         cmakeconfigargs += [
@@ -184,8 +185,6 @@ def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str) -> No
             ]
     if "android" in runtime_triplet:
         info = externaltools.init_toolchain("android", os.environ)
-        vcpkg_install("catch2:" + runtime_triplet)
-        vcpkg_install("dtl:" + runtime_triplet)
 
         cmakeconfigargs += [
             f"-DCMAKE_TOOLCHAIN_FILE:PATH={info["cmake_toolchain_file"].as_posix()}" ,
@@ -206,7 +205,7 @@ def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str) -> No
                 f"-DCMAKE_MAKE_PROGRAM:FILEPATH={externaltools.get_ninja().as_posix()}",
             ]
     if "wasm32" in runtime_triplet:
-        info = externaltools.init_toolchain("android", os.environ)
+        info = externaltools.init_toolchain("emscripten", os.environ)
         cmakeconfigargs += [
             f"-DCMAKE_TOOLCHAIN_FILE:PATH={info["cmake_toolchain_file"].as_posix()}" ,
         ]
