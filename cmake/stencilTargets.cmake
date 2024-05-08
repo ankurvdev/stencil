@@ -20,6 +20,7 @@ if (NOT TARGET stencil_runtime)
     find_package(date REQUIRED QUIET)
     # Optional
     find_package(httplib QUIET)
+    find_package(Boost QUIET COMPONENTS beast url)
 
     if (TARGET stduuid)
         target_link_libraries(stencil_runtime INTERFACE stduuid)
@@ -43,6 +44,10 @@ if (NOT TARGET stencil_runtime)
     endif()
     if (TARGET httplib::httplib)
         target_link_libraries(stencil_runtime INTERFACE httplib::httplib)
+    endif()
+    if (TARGET Boost::boost)
+        target_compile_definitions(stencil_runtime INTERFACE HAVE_BOOSTBEAST=1)
+        target_link_libraries(stencil_runtime INTERFACE Boost::boost Boost::url)
     endif()
 
     if (NOT EXISTS "${stencil_INCLUDE_PATH}/stencil/stencil.h")
