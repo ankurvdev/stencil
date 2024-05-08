@@ -1,6 +1,6 @@
 include_guard()
 FetchContent_Declare(
-    Boost
+    BoostBuild
     GIT_REPOSITORY https://github.com/boostorg/boost.git
     GIT_TAG        boost-1.85.0
     GIT_PROGRESS TRUE
@@ -18,10 +18,10 @@ endif()
 
 find_package(Boost QUIET COMPONENTS beast url)
 if(NOT Boost_FOUND)
-    FetchContent_GetProperties(Boost)
-    if(NOT Boost_POPULATED)
-        FetchContent_Populate(Boost)
-        add_subdirectory(${Boost_SOURCE_DIR} ${Boost_BINARY_DIR} EXCLUDE_FROM_ALL)
+    FetchContent_GetProperties(BoostBuild)
+    if(NOT BoostBuild_POPULATED)
+        FetchContent_Populate(BoostBuild)
+        add_subdirectory(${BoostBuild_SOURCE_DIR} ${BoostBuild_BINARY_DIR} EXCLUDE_FROM_ALL)
     endif()
 endif()
 
