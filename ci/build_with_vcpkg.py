@@ -102,7 +102,7 @@ workdir  = pathlib.Path(args.workdir or ".").absolute()
 workdir.mkdir(exist_ok=True)
 vcpkgroot = args.vcpkg or get_vcpkg_root() or (workdir / "vcpkg")
 bindir = externaltools.get_bin_path(None) or workdir / "bin"
-externaltools.DEVEL_BIN_PATH = bindir
+externaltools.DEVEL_BINPATH = bindir
 
 vcpkgportfile = vcpkgroot / "ports" / portname / "portfile.cmake"
 
