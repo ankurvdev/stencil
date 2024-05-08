@@ -86,6 +86,7 @@ target_link_libraries(libstencil PUBLIC
 )
 
 set(stencil_INCLUDE_PATH "${CMAKE_CURRENT_LIST_DIR}/include" CACHE PATH "Stencil include path")
+# For add_subdirectory mode
 include(stencilTargets)
 
 target_link_libraries(stencil_runtime INTERFACE CommonMacros)

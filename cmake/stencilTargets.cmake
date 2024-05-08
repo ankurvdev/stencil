@@ -20,7 +20,7 @@ if (NOT TARGET stencil_runtime)
     find_package(date REQUIRED QUIET)
     # Optional
     find_package(httplib QUIET)
-    find_package(Boost COMPONENTS url) # beast is header only. Components are for non-header libs
+    find_package(Boost COMPONENTS beast url) # beast is header only. Components are for non-header libs
 
     if (TARGET stduuid)
         target_link_libraries(stencil_runtime INTERFACE stduuid)
@@ -48,6 +48,8 @@ if (NOT TARGET stencil_runtime)
     if (TARGET Boost::beast)
         target_compile_definitions(stencil_runtime INTERFACE HAVE_BOOSTBEAST=1)
         target_link_libraries(stencil_runtime INTERFACE Boost::beast Boost::url)
+    else()
+        message(FATAL_ERROR "Boost::beast not found")
     endif()
 
     if (NOT EXISTS "${stencil_INCLUDE_PATH}/stencil/stencil.h")
