@@ -157,7 +157,7 @@ def vcpkg_remove(port: str) -> None:
 
 
 def vcpkg_install(port: str) -> None:
-    cmd = [vcpkgexe.as_posix(), f"--host-triplet={host_triplet}", "install", port]
+    cmd = [vcpkgexe.as_posix(), f"--host-triplet={host_triplet}", "install", "--allow-unsupported", port]
     subprocess.check_call(cmd, env=myenv, cwd=vcpkgroot)
 
 
