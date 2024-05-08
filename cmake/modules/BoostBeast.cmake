@@ -1,10 +1,8 @@
 include_guard()
+set(BOOST_VERSION 1.85.0)
 FetchContent_Declare(
-    BoostBuild
-    GIT_REPOSITORY https://github.com/boostorg/boost.git
-    GIT_TAG        boost-1.85.0
-    GIT_PROGRESS TRUE
-    GIT_SHALLOW 1
+    boostbuild
+    URL https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}/boost-${BOOST_VERSION}-cmake.tar.gz
     SYSTEM
 )
 
@@ -18,10 +16,10 @@ endif()
 
 find_package(Boost QUIET COMPONENTS beast url)
 if(NOT Boost_FOUND)
-    FetchContent_GetProperties(BoostBuild)
-    if(NOT BoostBuild_POPULATED)
-        FetchContent_Populate(BoostBuild)
-        add_subdirectory(${BoostBuild_SOURCE_DIR} ${BoostBuild_BINARY_DIR} EXCLUDE_FROM_ALL)
+    FetchContent_GetProperties(boostbuild)
+    if(NOT boostbuild_POPULATED)
+        FetchContent_Populate(boostbuild)
+        add_subdirectory(${boostbuild_SOURCE_DIR} ${boostbuild_BINARY_DIR} EXCLUDE_FROM_ALL)
     endif()
 endif()
 
@@ -33,11 +31,4 @@ if (COMMAND SupressWarningForTarget)
     SupressWarningForTarget(boost_date_time)
     SupressWarningForTarget(boost_coroutine)
     SupressWarningForTarget(boost_url)
-endif()
-
-if (MINGW AND TARGET boost_beast)
-    target_link_libraries(boost_beast INTERFACE ws2_32 mswsock)
-endif()
-if (MINGW AND TARGET Boost::beast)
-    target_link_libraries(Boost::beast INTERFACE ws2_32 mswsock)
 endif()
