@@ -1,12 +1,9 @@
+include(${CMAKE_CURRENT_LIST_DIR}/../../cmake/stencilTargets.cmake)
+set(stencil_INCLUDE_PATH "../../include" CACHE PATH "Stencil include path")
 include(../../cmake/TestCommon.cmake)
 include(../../cmake/modules/httplib.cmake)
 include(../../cmake/modules/Asio.cmake)
 include(../../cmake/modules/BoostBeast.cmake)
-
-if (NOT stencil_FOUND)
-    include(${CMAKE_CURRENT_LIST_DIR}/../../cmake/stencilTargets.cmake)
-    set(stencil_INCLUDE_PATH "../../include" CACHE PATH "Stencil include path")
-endif()
 
 file(GLOB test_data_files CONFIGURE_DEPENDS "../testdata/*")
 file(GLOB pidlfiles "../*.pidl")
