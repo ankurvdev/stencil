@@ -314,8 +314,8 @@ def _get_binary(  # noqa: PLR0912, PLR0915, C901
         toolsdir = vcpkg_root / "downloads" / "tools"
         portsdir = vcpkg_root / "ports"
         for searchdir in toolsdir.glob(f"{packname}*"):
-            localexe = search_executable(searchdir, binname).is_file()
-            if localexe:
+            localexe = search_executable(searchdir, binname)
+            if localexe.is_file():
                 return localexe
         if (portsdir / packname).exists():
             return get_vcpkg_port_tool(vcpkg_root, packname, binname)

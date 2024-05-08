@@ -11,75 +11,6 @@ sys.path.append(pathlib.Path(__file__).parent.parent.as_posix())
 
 import externaltools
 
-if False:
-
-    def _find_from_path(name: str):
-        return pathlib.Path(shutil.which(name) or "")
-
-    def _find_from_vcpkg(name: str):
-        if not VCPKG_EXE.exists():
-            return pathlib.Path()
-        try:
-            if sys.platform == "win32":
-                return pathlib.Path(subprocess.check_output([VCPKG_EXE, "env", f"where {name}"], text=True).splitlines()[0])
-            else:
-                return pathlib.Path(subprocess.check_output([VCPKG_EXE, "env", f"which {name}"], text=True).splitlines()[0])
-        except subprocess.CalledProcessError:
-            return pathlib.Path()
-
-    def _find_from_vs_win(name: str):
-        if sys.platform != "win32":
-            return pathlib.Path()
-        vs_path = subprocess.run(
-            [
-                pathlib.Path("C:/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe").as_posix(),
-                "-prerelease",
-                "-version",
-                "16.0",
-                "-property",
-                "installationPath",
-                "-products",
-                "*",
-                "-requires",
-                "Microsoft.VisualStudio.Component.VC.CMake.Project",
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout.splitlines()[-1]
-        return pathlib.Path(next(iter(pathlib.Path(vs_path).rglob(f"{name}.exe"))))
-
-    CACHED_PATHS: dict[str, pathlib.Path] = {}
-    VCPKG_EXE = pathlib.Path()
-
-    def _find_cached_paths(name: str):
-        if name in CACHED_PATHS:
-            return CACHED_PATHS[name]
-        return pathlib.Path()
-
-    def find_binary(name: str):
-        for fn in [
-            _find_cached_paths,
-            _find_from_path,
-            _find_from_vcpkg,
-            _find_from_vs_win,
-        ]:
-            pth: pathlib.Path = fn(name)
-            if pth != pathlib.Path():
-                CACHED_PATHS[name] = pth.absolute()
-                return pth.absolute().as_posix()
-        raise Exception(f"Cannot find {name}")
-
-def get_vcpkg_root() -> Path | None:
-    try:
-        import configenv  # noqa: ignore
-
-        return Path(configenv.ConfigEnv(None).GetConfigPath("VCPKG_ROOT", make=True))
-    except ImportError:
-        return Path().absolute() / "vcpkg"
-
-
-
 parser = argparse.ArgumentParser(description="Test VCPKG Workflow")
 parser.add_argument("--verbose",action="store_true", help="Clean")
 parser.add_argument("--reporoot", type=Path, default=None, help="Repository")
@@ -100,7 +31,7 @@ scriptdir = (reporoot / "ci").absolute()
 portname = next((reporoot / "ci" / "vcpkg-additional-ports").glob("*")).name
 workdir  = pathlib.Path(args.workdir or ".").absolute()
 workdir.mkdir(exist_ok=True)
-vcpkgroot = args.vcpkg or get_vcpkg_root() or (workdir / "vcpkg")
+vcpkgroot = args.vcpkg or externaltools.get_vcpkg_root() or (workdir / "vcpkg")
 bindir = externaltools.get_bin_path(None) or workdir / "bin"
 externaltools.DEVEL_BINPATH = bindir
 
