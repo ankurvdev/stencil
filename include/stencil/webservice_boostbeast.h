@@ -11,14 +11,10 @@ SUPPRESS_MSVC_WARNING(4242)
 SUPPRESS_MSVC_WARNING(5219)
 SUPPRESS_MSVC_WARNING(4702)
 SUPPRESS_MSVC_WARNING(5262)    // implicit fall-through occurs here;
-#include <boost/asio/awaitable.hpp>
 #include <boost/asio/co_spawn.hpp>
-#include <boost/asio/io_context.hpp>
-#include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/use_awaitable.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
-#include <boost/beast/http/write.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/config.hpp>
 #include <boost/url.hpp>
