@@ -1,5 +1,9 @@
 #include "CommonMacros.h"
 
+#if !defined HAVE_BOOSTBEAST
+#error "Need boost::beast to be linked"
+#endif
+
 #include "database.h"
 #include "interfaces.h"
 #include "protocol_json.h"
@@ -29,8 +33,6 @@ SUPPRESS_WARNINGS_END
 #include <thread>
 #include <unordered_set>
 #include <vector>
-
-#define STENCIL_USING_WEBSERVICE 1
 
 #if !defined(BOOST_ASIO_HAS_CO_AWAIT)
 #error Need co await
