@@ -150,6 +150,16 @@ macro(EnableStrictCompilation)
         # RTCs Enables stack frame run-time error checking, as follows:
         # RTCu Reports when a variable is used without having been initialized
         _FixFlags(CMAKE_C_FLAGS_DEBUG APPEND /RTCsu)
+        if (DEFINED VCPKG_TARGET_TRIPLET AND DEFINED VCPKG_ROOT AND NOT DEFINED VCPKG_CRT_LINKAGE)
+            if (EXISTS "${VCPKG_ROOT}/triplets/${VCPKG_TARGET_TRIPLET}.cmake")
+                include("${VCPKG_ROOT}/triplets/${VCPKG_TARGET_TRIPLET}.cmake")
+            elseif (EXISTS "${VCPKG_ROOT}/triplets/community/${VCPKG_TARGET_TRIPLET}.cmake")
+                include("${VCPKG_ROOT}/triplets/community/${VCPKG_TARGET_TRIPLET}.cmake")
+            endif()
+        endif()
+        if (DEFINED VCPKG_CRT_LINKAGE)
+            set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<STREQUAL:${VCPKG_CRT_LINKAGE},dynamic>:DLL>")
+        endif()
     elseif(("${CMAKE_CXX_COMPILER_ID}" STREQUAL Clang) OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL GNU))
         set(extraflags
             # -fPIC via cmake CMAKE_POSITION_INDEPENDENT_CODE

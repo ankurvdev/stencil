@@ -198,19 +198,12 @@ def get_env_config_var(name: str, default_val: str | None = None) -> str | None:
         return default_val
 
 
-def get_path_var(name: str, default_path: Path | None = Path().absolute()) -> Path | None:  # noqa: B008
-    val = get_env_config_var(name, None)
-    if val:
-        return Path(os.path.expandvars(val)).expanduser()
-    return default_path
-
-
 def get_bin_path(default_path: Path | None = Path().absolute()) -> Path | None:  # noqa: B008
-    return get_path_var("DEVEL_BINPATH", default_path)
+    return Path(os.path.expandvars(get_env_config_var("DEVEL_BINPATH", default_path))).expanduser()
 
 
 def get_vcpkg_root(default_path: Path | None = Path().absolute() / "vcpkg") -> Path | None:  # noqa: B008
-    return get_path_var("VCPKG_ROOT", default_path)
+    return Path(os.path.expandvars(get_env_config_var("vCPKG_ROOT", default_path))).expanduser()
 
 
 def get_vcpkg_port_tool(vcpkg_root: Path, packname: str, binname: str) -> Path | None:
@@ -287,7 +280,7 @@ def get_binary(
     return rslt
 
 
-def _get_binary(  # noqa: PLR0912, PLR0915, C901
+def _get_binary(  # noqa: PLR0912, PLR0915, C901, PLR0911
     packname: str,
     binname: Optional[str] = None,
     binpath: Path | str | None = None,
