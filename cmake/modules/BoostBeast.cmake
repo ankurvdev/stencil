@@ -2,13 +2,13 @@ include_guard()
 FetchContent_Declare(
     Boost
     GIT_REPOSITORY https://github.com/boostorg/boost.git
-    GIT_TAG        boost-1.84.0
+    GIT_TAG        boost-1.85.0
     SOURCE_SUBDIR .
     GIT_PROGRESS TRUE
     FIND_PACKAGE_ARGS
 )
 
-set(BOOST_INCLUDE_LIBRARIES beast url)
+set(BOOST_INCLUDE_LIBRARIES beast asio url)
 set(BOOST_ENABLE_CMAKE ON)
 
 if (COMMAND vcpkg_install)
