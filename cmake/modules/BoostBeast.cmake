@@ -1,10 +1,11 @@
 include_guard()
 FetchContent_Declare(
     Boost
-    SYSTEM
     GIT_REPOSITORY https://github.com/boostorg/boost.git
     GIT_TAG        boost-1.85.0
     GIT_PROGRESS TRUE
+    GIT_SHALLOW 1
+    SYSTEM
 )
 
 set(BOOST_INCLUDE_LIBRARIES beast asio url)

@@ -483,7 +483,7 @@ template <typename T> struct RequestHandler
                     // auto [qifname, qsubpath] = Split(query1);
                     ctx.url         = query1;
                     ctx.url_seg_it  = ctx.url.segments().begin();
-                    using TypesT    = ObjectStoreTransform<typename Stencil::InterfaceTraits<T>::Objects>::Handler;
+                    using TypesT    = typename ObjectStoreTransform<typename Stencil::InterfaceTraits<T>::Objects>::Handler;
                     using SelectorT = typename SelectorTransform<TypesT>::SelectorT;
                     SelectorT::Invoke(ctx);
                     query = remaining;

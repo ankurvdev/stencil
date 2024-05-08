@@ -7,6 +7,7 @@ FetchContent_Declare(
   GIT_TAG        v3.0.1
   SOURCE_SUBDIR .
   GIT_PROGRESS TRUE
+  GIT_SHALLOW 1
   SYSTEM
   FIND_PACKAGE_ARGS NAMES date
 )

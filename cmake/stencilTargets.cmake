@@ -6,6 +6,8 @@ FetchContent_Declare(
     stencil
     GIT_REPOSITORY https://github.com/ankurvdev/stencil.git
     GIT_TAG        main
+    GIT_SHALLOW 1
+    SYSTEM
 )
 if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/../src/Thrift.cpp")
     set(stencil_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/..")
@@ -48,8 +50,6 @@ if (NOT TARGET stencil_runtime)
     if (TARGET Boost::beast)
         target_compile_definitions(stencil_runtime INTERFACE HAVE_BOOSTBEAST=1)
         target_link_libraries(stencil_runtime INTERFACE Boost::beast Boost::url)
-    else()
-        message(FATAL_ERROR "Boost::beast not found")
     endif()
 
     if (NOT EXISTS "${stencil_INCLUDE_PATH}/stencil/stencil.h")
