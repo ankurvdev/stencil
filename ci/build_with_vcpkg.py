@@ -114,11 +114,11 @@ except subprocess.CalledProcessError:
     raise
 
 
-def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str) -> None:
+def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str, clean: bool = False) -> None:
     testdir = workdir / f"{runtime_triplet}_Test_{config}"
-    if testdir.exists():
+    if clean and testdir.exists():
         shutil.rmtree(testdir.as_posix())
-    testdir.mkdir()
+    testdir.mkdir(exist_ok=True)
     cmakebuildextraargs = ["--config", config] if sys.platform == "win32" else []
     cmakeconfigargs: list[str] = []
     if "mingw" in host_triplet or "mingw" in runtime_triplet:
@@ -193,5 +193,5 @@ def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str) -> No
         )
 
 
-test_vcpkg_build("Debug", host_triplet, runtime_triplet)
-test_vcpkg_build("Release", host_triplet, runtime_triplet)
+#test_vcpkg_build("Debug", host_triplet, runtime_triplet, clean=args.clean)
+test_vcpkg_build("Release", host_triplet, runtime_triplet, clean=args.clean)

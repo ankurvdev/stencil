@@ -23,11 +23,6 @@ if (ANDROID OR EMSCRIPTEN)
     set(CMAKE_CXX_COMPILE_OPTIONS_IPO "-flto=full")
 endif()
 
-if (MINGW)
-    set(CMAKE_C_USE_RESPONSE_FILE_FOR_INCLUDES   OFF)
-    set(CMAKE_CXX_USE_RESPONSE_FILE_FOR_INCLUDES OFF)
-endif()
-
 set(BuildEnvCMAKE_LOCATION "${CMAKE_CURRENT_LIST_DIR}")
 
 if (EMSCRIPTEN)
@@ -106,6 +101,21 @@ endmacro()
 macro(EnableStrictCompilation)
     find_package(Threads)
     file(TIMESTAMP ${CMAKE_CURRENT_LIST_FILE} filetime)
+    if (MINGW)
+        # set(CMAKE_C_USE_RESPONSE_FILE_FOR_INCLUDES   OFF)
+        # set(CMAKE_CXX_USE_RESPONSE_FILE_FOR_INCLUDES OFF)
+
+        # TODO : stencil : x64-mingw-static fails linking with the error
+        # Disable LTO on mingw for now
+        # Investigate if no-lto in vcpkg toolchain could be causing this
+
+        # `_ZThn8_N5boost10wrapexceptINS_6system12system_errorEED1Ev' referenced in section `.rdata$_ZTVN5boost10wrapexceptINS_6system12system_errorEEE' of C:\Users\VSSADM~1\AppData\Local\Temp\cc6jZeRp.ltrans0.ltrans.o: defined in discarded section `.gnu.linkonce.t._ZN5boost10wrapexceptINS_6system12system_errorEED1Ev[_ZThn8_N5boost10wrapexceptINS_6system12system_errorEED1Ev]' of CodegenRuntime/CMakeFiles/codegen_runtime_tests.dir/Test_Interfaces.cpp.obj (symbol from plugin)
+        # `_ZThn48_N5boost10wrapexceptINS_6system12system_errorEED0Ev' referenced in section `.rdata$_ZTVN5boost10wrapexceptINS_6system12system_errorEEE' of C:\Users\VSSADM~1\AppData\Local\Temp\cc6jZeRp.ltrans0.ltrans.o: defined in discarded section `.gnu.linkonce.t._ZN5boost10wrapexceptINS_6system12system_errorEED0Ev[_ZThn48_N5boost10wrapexceptINS_6system12system_errorEED0Ev]' of CodegenRuntime/CMakeFiles/codegen_runtime_tests.dir/Test_Interfaces.cpp.obj (symbol from plugin)
+        # `_ZThn8_N5boost10wrapexceptISt12out_of_rangeED1Ev' referenced in section `.rdata$_ZTVN5boost10wrapexceptISt12out_of_rangeEE' of C:\Users\VSSADM~1\AppData\Local\Temp\cc6jZeRp.ltrans0.ltrans.o: defined in discarded section `.gnu.linkonce.t._ZN5boost10wrapexceptISt12out_of_rangeED1Ev[_ZThn8_N5boost10wrapexceptISt12out_of_rangeED1Ev]' of CodegenRuntime/CMakeFiles/codegen_runtime_tests.dir/Test_Interfaces.cpp.obj (symbol from plugin)
+        # `_ZThn24_N5boost10wrapexceptISt12out_of_rangeED0Ev' referenced in section `.rdata$_ZTVN5boost10wrapexceptISt12out_of_rangeEE' of C:\Users\VSSADM~1\AppData\Local\Temp\cc6jZeRp.ltrans0.ltrans.o: defined in discarded section `.gnu.linkonce.t._ZN5boost10wrapexceptISt12out_of_rangeED0Ev[_ZThn24_N5boost10wrapexceptISt12out_of_rangeED0Ev]' of CodegenRuntime/CMakeFiles/codegen_runtime_tests.dir/Test_Interfaces.cpp.obj (symbol from plugin)
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE OFF)
+    endif()
+
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
         set(extraflags
             /external:W3 /external:anglebrackets /external:templates-
