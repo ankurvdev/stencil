@@ -334,4 +334,5 @@ TEST_CASE("WebService-objectstore", "[interfaces]")
 
     tester.svc_raise_event();
     tester.svc_call_function();
+    std::this_thread::sleep_for(std::chrono::milliseconds(100ms));
 }
