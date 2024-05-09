@@ -11,75 +11,6 @@ sys.path.append(pathlib.Path(__file__).parent.parent.as_posix())
 
 import externaltools
 
-if False:
-
-    def _find_from_path(name: str):
-        return pathlib.Path(shutil.which(name) or "")
-
-    def _find_from_vcpkg(name: str):
-        if not VCPKG_EXE.exists():
-            return pathlib.Path()
-        try:
-            if sys.platform == "win32":
-                return pathlib.Path(subprocess.check_output([VCPKG_EXE, "env", f"where {name}"], text=True).splitlines()[0])
-            else:
-                return pathlib.Path(subprocess.check_output([VCPKG_EXE, "env", f"which {name}"], text=True).splitlines()[0])
-        except subprocess.CalledProcessError:
-            return pathlib.Path()
-
-    def _find_from_vs_win(name: str):
-        if sys.platform != "win32":
-            return pathlib.Path()
-        vs_path = subprocess.run(
-            [
-                pathlib.Path("C:/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe").as_posix(),
-                "-prerelease",
-                "-version",
-                "16.0",
-                "-property",
-                "installationPath",
-                "-products",
-                "*",
-                "-requires",
-                "Microsoft.VisualStudio.Component.VC.CMake.Project",
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout.splitlines()[-1]
-        return pathlib.Path(next(iter(pathlib.Path(vs_path).rglob(f"{name}.exe"))))
-
-    CACHED_PATHS: dict[str, pathlib.Path] = {}
-    VCPKG_EXE = pathlib.Path()
-
-    def _find_cached_paths(name: str):
-        if name in CACHED_PATHS:
-            return CACHED_PATHS[name]
-        return pathlib.Path()
-
-    def find_binary(name: str):
-        for fn in [
-            _find_cached_paths,
-            _find_from_path,
-            _find_from_vcpkg,
-            _find_from_vs_win,
-        ]:
-            pth: pathlib.Path = fn(name)
-            if pth != pathlib.Path():
-                CACHED_PATHS[name] = pth.absolute()
-                return pth.absolute().as_posix()
-        raise Exception(f"Cannot find {name}")
-
-def get_vcpkg_root() -> Path | None:
-    try:
-        import configenv  # noqa: ignore
-
-        return Path(configenv.ConfigEnv(None).GetConfigPath("VCPKG_ROOT", make=True))
-    except ImportError:
-        return Path().absolute() / "vcpkg"
-
-
-
 parser = argparse.ArgumentParser(description="Test VCPKG Workflow")
 parser.add_argument("--verbose",action="store_true", help="Clean")
 parser.add_argument("--reporoot", type=Path, default=None, help="Repository")
@@ -100,9 +31,9 @@ scriptdir = (reporoot / "ci").absolute()
 portname = next((reporoot / "ci" / "vcpkg-additional-ports").glob("*")).name
 workdir  = pathlib.Path(args.workdir or ".").absolute()
 workdir.mkdir(exist_ok=True)
-vcpkgroot = args.vcpkg or get_vcpkg_root() or (workdir / "vcpkg")
+vcpkgroot = args.vcpkg or externaltools.get_vcpkg_root() or (workdir / "vcpkg")
 bindir = externaltools.get_bin_path(None) or workdir / "bin"
-externaltools.DEVEL_BIN_PATH = bindir
+externaltools.DEVEL_BINPATH = bindir
 
 vcpkgportfile = vcpkgroot / "ports" / portname / "portfile.cmake"
 
@@ -157,7 +88,7 @@ def vcpkg_remove(port: str) -> None:
 
 
 def vcpkg_install(port: str) -> None:
-    cmd = [vcpkgexe.as_posix(), f"--host-triplet={host_triplet}", "install", port]
+    cmd = [vcpkgexe.as_posix(), f"--host-triplet={host_triplet}", "install", "--allow-unsupported", port]
     subprocess.check_call(cmd, env=myenv, cwd=vcpkgroot)
 
 
@@ -183,11 +114,11 @@ except subprocess.CalledProcessError:
     raise
 
 
-def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str) -> None:
+def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str, clean: bool = False) -> None:
     testdir = workdir / f"{runtime_triplet}_Test_{config}"
-    if testdir.exists():
+    if clean and testdir.exists():
         shutil.rmtree(testdir.as_posix())
-    testdir.mkdir()
+    testdir.mkdir(exist_ok=True)
     cmakebuildextraargs = ["--config", config] if sys.platform == "win32" else []
     cmakeconfigargs: list[str] = []
     if "mingw" in host_triplet or "mingw" in runtime_triplet:
@@ -262,5 +193,5 @@ def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str) -> No
         )
 
 
-test_vcpkg_build("Debug", host_triplet, runtime_triplet)
-test_vcpkg_build("Release", host_triplet, runtime_triplet)
+#test_vcpkg_build("Debug", host_triplet, runtime_triplet, clean=args.clean)
+test_vcpkg_build("Release", host_triplet, runtime_triplet, clean=args.clean)

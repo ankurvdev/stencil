@@ -5,7 +5,9 @@ set(INIT_SUBMODULE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/external)
 
 include(BuildEnv)
 include(FetchContent)
-project(stencil VERSION 0.0.3)
+file(READ ci/vcpkg-additional-ports/stencil/vcpkg.json VCPKG_MANIFEST_INFO)
+string(JSON PROJECT_VERSION GET "${VCPKG_MANIFEST_INFO}" "version")
+project(stencil VERSION "${PROJECT_VERSION}")
 if (DEFINED Quick_DIR)
     find_package(Quick)
     QuickInit()
@@ -28,7 +30,7 @@ include(cmake/modules/cxxopts.cmake)
 include(cmake/modules/date.cmake)
 include(cmake/modules/EmbedResource.cmake)
 include(cmake/modules/fmt.cmake)
-include(cmake/modules/httplib.cmake)
+include(cmake/modules/BoostBeast.cmake)
 include(cmake/modules/LexYacc.cmake)
 include(cmake/modules/RapidJSON.cmake)
 include(cmake/modules/stduuid.cmake)
@@ -83,6 +85,7 @@ target_link_libraries(libstencil PUBLIC
 )
 
 set(stencil_INCLUDE_PATH "${CMAKE_CURRENT_LIST_DIR}/include" CACHE PATH "Stencil include path")
+# For add_subdirectory mode
 include(stencilTargets)
 
 target_link_libraries(stencil_runtime INTERFACE CommonMacros)

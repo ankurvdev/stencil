@@ -1,18 +1,27 @@
+#include "CommonMacros.h"
 #include "protocol_json.h"
-
 SUPPRESS_WARNINGS_START
-SUPPRESS_MSVC_WARNING(4355)
+
+SUPPRESS_MSVC_WARNING(4365)    // conversion from 'const char' to 'unsigned char', signed/unsigned mismatch
+SUPPRESS_MSVC_WARNING(4355)    //'this' : used in base member initializer list
+SUPPRESS_MSVC_WARNING(4855)    // implicit capture of 'this' via '[=]' is deprecated
+SUPPRESS_MSVC_WARNING(4548)    // expression before comma has no effect; expected expression with side - effect
+SUPPRESS_MSVC_WARNING(4702)    // Unreachable code
+SUPPRESS_MSVC_WARNING(4668)    // not defined as a preprocessor macro
+SUPPRESS_MSVC_WARNING(5039)    // pointer or reference to potentially throwing function passed to 'extern)
+SUPPRESS_MSVC_WARNING(4191)    // type cast': unsafe conversion
 SUPPRESS_CLANG_WARNING("-Weverything")
 SUPPRESS_GCC_WARNING("-Wmaybe-uninitialized")
+
 #include <limits.h>
 
 #include <httplib.h>
 
+SUPPRESS_WARNINGS_END
+
 #include <algorithm>
 #include <string_view>
 #include <unordered_set>
-
-SUPPRESS_WARNINGS_END
 
 #define STENCIL_USING_WEBSERVICE 1
 namespace Stencil

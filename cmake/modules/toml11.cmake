@@ -6,6 +6,7 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/ToruNiina/toml11
   GIT_TAG        master
   SOURCE_SUBDIR .
+  GIT_SHALLOW 1
   SYSTEM
   FIND_PACKAGE_ARGS NAMES toml11
 )

@@ -1,6 +1,6 @@
 {
   "name": "stencil",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "description": "Cross Platform Resource Embedding",
   "homepage": "https://github.com/ankurvdev/stencil",
   "license": "BSD-3-Clause",
@@ -15,7 +15,8 @@
     },
     "ankurvdev-embedresource",
     "ankurvdev-lexyacc",
-    "cpp-httplib",
+    "boost-beast",
+    "boost-url",
     "cxxopts",
     "date",
     "fmt",

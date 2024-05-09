@@ -2,6 +2,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/../../cmake/stencilTargets.cmake)
 set(stencil_INCLUDE_PATH "../../include" CACHE PATH "Stencil include path")
 include(../../cmake/TestCommon.cmake)
 include(../../cmake/modules/httplib.cmake)
+include(../../cmake/modules/BoostBeast.cmake)
 
 file(GLOB test_data_files CONFIGURE_DEPENDS "../testdata/*")
 file(GLOB pidlfiles "../*.pidl")

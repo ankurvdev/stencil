@@ -23,11 +23,6 @@ if (ANDROID OR EMSCRIPTEN)
     set(CMAKE_CXX_COMPILE_OPTIONS_IPO "-flto=full")
 endif()
 
-if (MINGW)
-    set(CMAKE_C_USE_RESPONSE_FILE_FOR_INCLUDES   OFF)
-    set(CMAKE_CXX_USE_RESPONSE_FILE_FOR_INCLUDES OFF)
-endif()
-
 set(BuildEnvCMAKE_LOCATION "${CMAKE_CURRENT_LIST_DIR}")
 
 if (EMSCRIPTEN)
@@ -106,6 +101,21 @@ endmacro()
 macro(EnableStrictCompilation)
     find_package(Threads)
     file(TIMESTAMP ${CMAKE_CURRENT_LIST_FILE} filetime)
+    if (MINGW)
+        # set(CMAKE_C_USE_RESPONSE_FILE_FOR_INCLUDES   OFF)
+        # set(CMAKE_CXX_USE_RESPONSE_FILE_FOR_INCLUDES OFF)
+
+        # TODO : stencil : x64-mingw-static fails linking with the error
+        # Disable LTO on mingw for now
+        # Investigate if no-lto in vcpkg toolchain could be causing this
+
+        # `_ZThn8_N5boost10wrapexceptINS_6system12system_errorEED1Ev' referenced in section `.rdata$_ZTVN5boost10wrapexceptINS_6system12system_errorEEE' of C:\Users\VSSADM~1\AppData\Local\Temp\cc6jZeRp.ltrans0.ltrans.o: defined in discarded section `.gnu.linkonce.t._ZN5boost10wrapexceptINS_6system12system_errorEED1Ev[_ZThn8_N5boost10wrapexceptINS_6system12system_errorEED1Ev]' of CodegenRuntime/CMakeFiles/codegen_runtime_tests.dir/Test_Interfaces.cpp.obj (symbol from plugin)
+        # `_ZThn48_N5boost10wrapexceptINS_6system12system_errorEED0Ev' referenced in section `.rdata$_ZTVN5boost10wrapexceptINS_6system12system_errorEEE' of C:\Users\VSSADM~1\AppData\Local\Temp\cc6jZeRp.ltrans0.ltrans.o: defined in discarded section `.gnu.linkonce.t._ZN5boost10wrapexceptINS_6system12system_errorEED0Ev[_ZThn48_N5boost10wrapexceptINS_6system12system_errorEED0Ev]' of CodegenRuntime/CMakeFiles/codegen_runtime_tests.dir/Test_Interfaces.cpp.obj (symbol from plugin)
+        # `_ZThn8_N5boost10wrapexceptISt12out_of_rangeED1Ev' referenced in section `.rdata$_ZTVN5boost10wrapexceptISt12out_of_rangeEE' of C:\Users\VSSADM~1\AppData\Local\Temp\cc6jZeRp.ltrans0.ltrans.o: defined in discarded section `.gnu.linkonce.t._ZN5boost10wrapexceptISt12out_of_rangeED1Ev[_ZThn8_N5boost10wrapexceptISt12out_of_rangeED1Ev]' of CodegenRuntime/CMakeFiles/codegen_runtime_tests.dir/Test_Interfaces.cpp.obj (symbol from plugin)
+        # `_ZThn24_N5boost10wrapexceptISt12out_of_rangeED0Ev' referenced in section `.rdata$_ZTVN5boost10wrapexceptISt12out_of_rangeEE' of C:\Users\VSSADM~1\AppData\Local\Temp\cc6jZeRp.ltrans0.ltrans.o: defined in discarded section `.gnu.linkonce.t._ZN5boost10wrapexceptISt12out_of_rangeED0Ev[_ZThn24_N5boost10wrapexceptISt12out_of_rangeED0Ev]' of CodegenRuntime/CMakeFiles/codegen_runtime_tests.dir/Test_Interfaces.cpp.obj (symbol from plugin)
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE OFF)
+    endif()
+
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
         set(extraflags
             /external:W3 /external:anglebrackets /external:templates-
@@ -150,6 +160,16 @@ macro(EnableStrictCompilation)
         # RTCs Enables stack frame run-time error checking, as follows:
         # RTCu Reports when a variable is used without having been initialized
         _FixFlags(CMAKE_C_FLAGS_DEBUG APPEND /RTCsu)
+        if (DEFINED VCPKG_TARGET_TRIPLET AND DEFINED VCPKG_ROOT AND NOT DEFINED VCPKG_CRT_LINKAGE)
+            if (EXISTS "${VCPKG_ROOT}/triplets/${VCPKG_TARGET_TRIPLET}.cmake")
+                include("${VCPKG_ROOT}/triplets/${VCPKG_TARGET_TRIPLET}.cmake")
+            elseif (EXISTS "${VCPKG_ROOT}/triplets/community/${VCPKG_TARGET_TRIPLET}.cmake")
+                include("${VCPKG_ROOT}/triplets/community/${VCPKG_TARGET_TRIPLET}.cmake")
+            endif()
+        endif()
+        if (DEFINED VCPKG_CRT_LINKAGE)
+            set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<STREQUAL:${VCPKG_CRT_LINKAGE},dynamic>:DLL>")
+        endif()
     elseif(("${CMAKE_CXX_COMPILER_ID}" STREQUAL Clang) OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL GNU))
         set(extraflags
             # -fPIC via cmake CMAKE_POSITION_INDEPENDENT_CODE
@@ -267,7 +287,7 @@ macro (SupressWarningForTarget targetName)
     if (TARGET ${targetName})
         message(STATUS "Suppressing Warnings for ${targetName}")
         if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-            target_compile_options(${targetName} PRIVATE /W3 /WX-)
+            target_compile_options(${targetName} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/W3 /WX->)
         elseif((${CMAKE_CXX_COMPILER_ID} STREQUAL Clang) OR (${CMAKE_CXX_COMPILER_ID} STREQUAL GNU))
             target_compile_options(${targetName} PRIVATE -Wno-error -w)
         else()
