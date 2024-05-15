@@ -545,8 +545,8 @@ SUPPRESS_MSVC_WARNING(4702)
 
 template <typename TImpl, ConceptInterface TInterface> struct WebServiceInterfaceImplT : TInterface
 {
-    WebServiceInterfaceImplT()          = default;
-    virtual ~WebServiceInterfaceImplT() = default;
+    WebServiceInterfaceImplT()                   = default;
+    virtual ~WebServiceInterfaceImplT() override = default;
     CLASS_DELETE_COPY_AND_MOVE(WebServiceInterfaceImplT);
 };
 
@@ -564,7 +564,7 @@ struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TInterfaces>...,
     using Request = impl::Request;
 
     WebServiceT() = default;
-    virtual ~WebServiceT() { StopDaemon(); }
+    virtual ~WebServiceT() override { StopDaemon(); }
 
     CLASS_DELETE_COPY_AND_MOVE(WebServiceT);
 
