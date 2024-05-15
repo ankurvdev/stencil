@@ -28,6 +28,7 @@ SUPPRESS_WARNINGS_END
 #include <algorithm>
 #include <condition_variable>
 #include <cstdlib>
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <thread>
@@ -39,8 +40,20 @@ SUPPRESS_WARNINGS_END
 #endif
 namespace Stencil::impl
 {
-using Request    = boost::beast::http::request<boost::beast::http::string_body>;
-using Response   = boost::beast::http::response<boost::beast::http::buffer_body>;
+using Request = boost::beast::http::request<boost::beast::http::string_body>;
+
+template <typename T> auto create_response(Request const& req, std::string_view const& content_type)
+{
+    boost::beast::http::response<T, boost::beast::http::fields> res;
+    res.result(boost::beast::http::status::ok);
+    res.version(req.version());
+    res.keep_alive(req.keep_alive());
+    res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
+    res.set(boost::beast::http::field::content_type, content_type);
+    res.set(boost::beast::http::field::access_control_allow_origin, "*");
+    res.set(boost::beast::http::field::server, "stencil_webserver");
+    return res;
+}
 using tcp_stream = typename boost::beast::tcp_stream::rebind_executor<
     boost::asio::use_awaitable_t<>::executor_with_default<boost::asio::any_io_executor>>::other;
 
@@ -90,10 +103,21 @@ struct SSEListenerManager
     {
         struct SSEContext
         {
-            using ResponseSerializer = boost::beast::http::response_serializer<boost::beast::http::buffer_body, boost::beast::http::fields>;
-            tcp_stream&         stream;
-            Response&           res;
-            ResponseSerializer& sr;
+            SSEContext(tcp_stream& streamIn, Request const& reqIn) : stream(streamIn), req(reqIn), res(), sr(res)
+            {
+                res.result(boost::beast::http::status::ok);
+                res.version(req.version());
+                res.keep_alive(req.keep_alive());
+                res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
+                res.set(boost::beast::http::field::content_type, "text/event-stream");
+            }
+
+            tcp_stream&                                                                                          stream;
+            Request const&                                                                                       req;
+            boost::beast::http::response<boost::beast::http::buffer_body>                                        res;
+            boost::beast::http::response_serializer<boost::beast::http::buffer_body, boost::beast::http::fields> sr;
+
+            auto& serializer() { return sr; }
         };
 
         SSEListenerManager*     _manager{nullptr};
@@ -113,8 +137,9 @@ struct SSEListenerManager
                 ctx.res.body().data = nullptr;
                 ctx.res.body().size = 0;
                 ctx.res.body().more = true;
+                ctx.res.set(boost::beast::http::field::content_type, "text/event-stream");
                 ctx.res.set(boost::beast::http::field::transfer_encoding, "chunked");
-                boost::beast::http::write_header(ctx.stream, ctx.sr);
+                boost::beast::http::write_header(ctx.stream, ctx.serializer());
                 _ctx = &ctx;
 
                 Send(msg);
@@ -197,16 +222,13 @@ template <typename TImpl, ConceptInterface TInterface> struct WebRequestContext
 {
     using Interface = TInterface;
     using Impl      = TImpl;
-    impl::SSEListenerManager& sse;
-    TImpl&                    impl;
 
+    impl::SSEListenerManager&             sse;
+    TImpl&                                impl;
     tcp_stream&                           stream;
     Request const&                        req;
-    Response&                             res;
     boost::urls::url_view&                url;
     boost::urls::segments_base::iterator& url_seg_it;
-
-    std::ostringstream rslt;
 };
 
 template <typename TContext, typename TEventStructs> struct RequestHandlerForEvents
@@ -214,16 +236,8 @@ template <typename TContext, typename TEventStructs> struct RequestHandlerForEve
     static bool Matches(TContext& ctx) { return impl::iequal(Stencil::InterfaceApiTraits<TEventStructs>::Name(), *ctx.url_seg_it); }
     static auto Invoke(TContext& ctx)
     {
-        auto instance = ctx.sse.CreateInstance();
-        boost::beast::http::response_serializer<boost::beast::http::buffer_body, boost::beast::http::fields> sr{ctx.res};
-
-        SSEListenerManager::Instance::SSEContext ctx1{ctx.stream, ctx.res, sr};
-
-        // ctx1.res    = ctx.res;
-        // ctx1.sr     = ctx.sr;
-        // ctx1.stream = ctx.stream;
-
-        instance->Start(ctx1, "event: init\ndata: \n\n");
+        SSEListenerManager::Instance::SSEContext ctx1(ctx.stream, ctx.req);
+        ctx.sse.CreateInstance()->Start(ctx1, "event: init\ndata: \n\n");
     }
 };
 
@@ -233,34 +247,36 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
 
     template <typename TLambda> static auto _ForeachObjId(TContext& ctx, TLambda&& lambda)
     {
+        std::ostringstream rslt;
+
         auto subpath = *(++ctx.url_seg_it);
         if (subpath.empty())
         {
             auto it = ctx.req.find("ids");
             if (it == ctx.req.end()) { throw std::invalid_argument("No Id specified for read"); }
             auto ids = it->value();
-            ctx.rslt << '{';
+            rslt << '{';
             bool   first  = true;
             size_t sindex = 0;
             do {
                 auto eindex = ids.find(',', sindex);
                 if (eindex == std::string_view::npos) eindex = ids.size();
                 auto idstr = ids.substr(sindex, eindex - sindex);
-                if (!first) { ctx.rslt << ','; }
-                ctx.rslt << idstr;
+                if (!first) { rslt << ','; }
+                rslt << idstr;
                 first       = false;
                 uint32_t id = static_cast<uint32_t>(std::stoul(idstr));
                 lambda(id);
                 sindex = eindex + 1;
             } while (sindex < ids.size());
-            ctx.rslt << '}';
+            rslt << '}';
         }
         else
         {
             uint32_t id = static_cast<uint32_t>(std::stoul(subpath));
             lambda(id);
         }
-        return ctx.rslt.str();
+        return rslt.str();
     }
 
     template <typename TArgsStruct> static auto _CreateArgStruct(TContext& ctx)
@@ -282,17 +298,17 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
     {
         // auto [action, subpath] = Split(path);
         auto action = *(++ctx.url_seg_it);
-        Handle(ctx, action);
-        auto msg            = ctx.rslt.str();
-        ctx.res.body().data = msg.data();
-        ctx.res.body().size = msg.size();
-        ctx.res.body().more = false;
-        boost::beast::http::response_serializer<boost::beast::http::buffer_body, boost::beast::http::fields> sr{ctx.res};
+        auto msg    = Handle(ctx, action);
+        auto res    = impl::create_response<boost::beast::http::string_body>(ctx.req, "application/json");
+        res.body()  = msg;
+        boost::beast::http::response_serializer<boost::beast::http::string_body, boost::beast::http::fields> sr{res};
         boost::beast::http::write(ctx.stream, sr);
     }
 
     static auto Handle(TContext& ctx, std::string_view action)
     {
+        std::ostringstream rslt;
+
         auto& ifobj   = ctx.impl.template GetInterface<typename TContext::Interface>();
         auto& objects = ifobj.objects;
         if (action == "create")
@@ -300,7 +316,7 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
             auto lock       = objects.LockForEdit();
             auto [id, obj1] = objects.template Create<TObjectStoreObj>(lock, _CreateArgStruct<TObjectStoreObj>(ctx));
             uint32_t idint  = id.id;
-            fmt::print(ctx.rslt, "{}", Stencil::Json::Stringify(idint));
+            fmt::print(rslt, "{}", Stencil::Json::Stringify(idint));
             ctx.sse.Send(fmt::format("event: objectstore_create\ndata: {{\"{}\": {{\"{}\": {}}}}}\n\n",
                                      Stencil::InterfaceObjectTraits<TObjectStoreObj>::Name(),
                                      idint,
@@ -309,16 +325,16 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
         else if (action == "all")
         {
             auto lock = objects.LockForRead();
-            ctx.rslt << '{';
+            rslt << '{';
             bool first = true;
             for (auto const& [ref, obj1] : objects.template Items<TObjectStoreObj>(lock))
             {
-                if (!first) { ctx.rslt << ','; }
-                ctx.rslt << '\"' << ref.id << '\"' << ':'
-                         << Stencil::Json::Stringify(Stencil::Database::CreateRecordView(objects, lock, ref, obj1));
+                if (!first) { rslt << ','; }
+                rslt << '\"' << ref.id << '\"' << ':'
+                     << Stencil::Json::Stringify(Stencil::Database::CreateRecordView(objects, lock, ref, obj1));
                 first = false;
             }
-            ctx.rslt << '}';
+            rslt << '}';
         }
         else if (action == "read")
         {
@@ -326,7 +342,7 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
             _ForeachObjId(ctx, [&](uint32_t id) {
                 auto obj1  = objects.template Get<TObjectStoreObj>(lock, {id});
                 auto jsobj = Stencil::Json::Stringify(Stencil::Database::CreateRecordView(objects, lock, {id}, obj1));
-                ctx.rslt << jsobj;
+                rslt << jsobj;
             });
         }
         else if (action == "edit")
@@ -338,7 +354,7 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
             _ForeachObjId(ctx, [&](uint32_t id) {
                 auto obj1  = objects.template Get<TObjectStoreObj>(lock, {id});
                 auto jsobj = Stencil::Json::Stringify(Stencil::Database::CreateRecordView(objects, lock, {id}, obj1));
-                ctx.rslt << jsobj;
+                rslt << jsobj;
                 ctx.sse.Send(fmt::format("{}\'{}\': {}", (first ? ' ' : ','), id, jsobj));
                 first = false;
             });
@@ -354,17 +370,18 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
                 try
                 {
                     objects.template Delete<TObjectStoreObj>(lock, {id});
-                    ctx.rslt << "true";
+                    rslt << "true";
                     ctx.sse.Send(fmt::format("{}{}", (first ? ' ' : ','), id));
                     first = false;
                 } catch (std::exception const& /*ex*/)
                 {
-                    ctx.rslt << "false";
+                    rslt << "false";
                 }
             });
             ctx.sse.Send("]}\n\n");
         }
         else { throw std::logic_error("Not implemented"); }
+        return rslt.str();
     }
 };
 
@@ -389,18 +406,19 @@ template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunct
     static auto Invoke(TContext& ctx)
     {
         using Traits = ::Stencil::InterfaceApiTraits<TArgsStruct>;
-        auto args    = _CreateArgStruct(ctx);
+        std::ostringstream rslt;
+
+        auto args = _CreateArgStruct(ctx);
         if constexpr (std::is_same_v<void, decltype(Traits::Invoke(ctx.impl, args))>) { return Traits::Invoke(ctx, ctx.impl, args); }
         else
         {
             auto retval = Traits::Invoke(ctx.impl, args);
-            ctx.rslt << Stencil::Json::Stringify<decltype(retval)>(retval);
+            rslt << Stencil::Json::Stringify<decltype(retval)>(retval);
         }
-        auto msg            = ctx.rslt.str();
-        ctx.res.body().data = msg.data();
-        ctx.res.body().size = msg.size();
-        ctx.res.body().more = false;
-        boost::beast::http::response_serializer<boost::beast::http::buffer_body, boost::beast::http::fields> sr{ctx.res};
+        auto msg   = rslt.str();
+        auto res   = impl::create_response<boost::beast::http::string_body>(ctx.req, "application/json");
+        res.body() = msg;
+        boost::beast::http::response_serializer<boost::beast::http::string_body, boost::beast::http::fields> sr{res};
         boost::beast::http::write(ctx.stream, sr);
     }
 };
@@ -410,29 +428,7 @@ template <typename TContext> struct RequestHandlerFallback
     static bool Matches(TContext& /* ctx */) { return true; }
     static auto Invoke(TContext& ctx)
     {
-        if (!ctx.impl.HandleRequest(ctx.stream, ctx.req, ctx.res)) throw std::runtime_error("url not found");
-        /*auto instance = ctx.sse.CreateInstance();
-        // auto instance = ctx.sse.CreateInstance();
-
-        // https://github.com/pgit/cppcoro-devcontainer/blob/master/http_echo_awaitable.cpp
-        // https://github.com/fantasy-peak/cpp-freegpt-webui/blob/main/src/main.cpp#L241
-        // https://github.com/chimaoshu/CatPlusPlus/blob/main/src/http.cpp#L230
-
-        // (no co_await )
-        // https://github.com/jamestiotio/PhotonLibOS/blob/main/net/http/server.cpp#L321
-
-        // (sse)
-        // https://github.com/openbmc/bmcweb/blob/master/http/server_sent_event.hpp#L95
-        // https://github.com/jgaa/mobile-events/blob/main/eventsd/lib/HttpServer.cpp
-
-        ctx.res.result(boost::beast::http::status::not_found);
-        ctx.res.set(boost::beast::http::field::content_type, "text/html");
-        ctx.res.body().data = nullptr;
-        ctx.res.body().more = false;
-
-        boost::beast::http::response_serializer<boost::beast::http::buffer_body, boost::beast::http::fields> sr{ctx.res};
-        boost::beast::http::write(ctx.stream, sr);
-        */
+        if (!ctx.impl.HandleRequest(ctx.stream, ctx.req)) throw std::runtime_error("url not found");
     }
 };
 
@@ -443,7 +439,6 @@ template <typename TImpl, typename TInterface> struct RequestHandler
                         TTup& /* impls */,
                         tcp_stream& /* stream */,
                         Request const& /* req */,
-                        Response& /* res */,
                         boost::urls::url_view& /*url*/,
                         boost::urls::segments_base::iterator& it)
     {
@@ -482,11 +477,10 @@ template <typename TImpl, typename TInterface> struct RequestHandler
 
         static auto Invoke(TContext& ctx)
         {
-            auto instance = ctx.sse.CreateInstance();
-            boost::beast::http::response_serializer<boost::beast::http::buffer_body, boost::beast::http::fields> sr{ctx.res};
+            SSEListenerManager::Instance::SSEContext ctx1(ctx.stream, ctx.req);
+            std::ostringstream                       rslt;
 
-            SSEListenerManager::Instance::SSEContext ctx1{ctx.stream, ctx.res, sr};
-            ctx.rslt << '[';
+            rslt << '[';
 
             auto it    = ctx.url.params().find("query");
             bool first = true;
@@ -494,7 +488,7 @@ template <typename TImpl, typename TInterface> struct RequestHandler
             {
                 std::string_view query = (*it).value;
                 do {
-                    ctx.rslt << (first ? ' ' : ',');
+                    rslt << (first ? ' ' : ',');
                     first                    = false;
                     auto [query1, remaining] = Split(query, ',');
                     // auto [qifname, qsubpath] = Split(query1);
@@ -506,28 +500,25 @@ template <typename TImpl, typename TInterface> struct RequestHandler
                     query = remaining;
                 } while (!query.empty());
             }
-            ctx.rslt << ']';
-            auto rsltstr = ctx.rslt.str();
-            instance->Start(ctx1, fmt::format("event: init\ndata: {}\n\n", rsltstr));
+            rslt << ']';
+            auto rsltstr = rslt.str();
+            ctx.sse.CreateInstance()->Start(ctx1, fmt::format("event: init\ndata: {}\n\n", rsltstr));
         }
     };
-    template <typename TImpl>
+
     static void Invoke(SSEListenerManager&                   sseMgr,
                        TImpl&                                impl,
                        tcp_stream&                           stream,
                        Request const&                        req,
-                       Response&                             res,
                        boost::urls::url_view&                url,
                        boost::urls::segments_base::iterator& it)
     {
         ++it;
-        WebRequestContext<TImpl, TInterface> ctx{sseMgr, impl, stream, req, res, url, it, {}};
+        WebRequestContext<TImpl, TInterface> ctx{sseMgr, impl, stream, req, url, it};
         using RequestHandlerForEventsT    = typename EventTransform<typename Stencil::InterfaceTraits<TInterface>::EventStructs>::Handler;
         using RequestHandlerForFunctionsT = typename ApiStructTransform<typename Stencil::InterfaceTraits<TInterface>::ApiStructs>::Handler;
         using RequestHandlerForObjectStoreT =
             typename ObjectStoreTransform<typename Stencil::InterfaceTraits<TInterface>::Objects>::Handler;
-
-        ctx.res.set(boost::beast::http::field::server, Stencil::InterfaceTraits<TInterface>::Name());
 
         using TypesT    = tuple_cat_t<RequestHandlerForEventsT,
                                       RequestHandlerForObjectStoreT,
@@ -566,10 +557,13 @@ struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TInterfaces>...,
     using tcp        = boost::asio::ip::tcp;    // from <boost/asio/ip/tcp.hpp>
     using tcp_stream = typename boost::beast::tcp_stream::rebind_executor<
         boost::asio::use_awaitable_t<>::executor_with_default<boost::asio::any_io_executor>>::other;
+    using Field                                    = boost::beast::http::field;
+    template <typename T> using Response           = boost::beast::http::response<T>;
+    template <typename T> using ResponseSerializer = boost::beast::http::response_serializer<T>;
 
-    using Request  = impl::Request;
-    using Response = impl::Response;
-    WebServiceT()  = default;
+    using Request = impl::Request;
+
+    WebServiceT() = default;
     virtual ~WebServiceT() { StopDaemon(); }
 
     CLASS_DELETE_COPY_AND_MOVE(WebServiceT);
@@ -622,9 +616,31 @@ struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TInterfaces>...,
 
     template <ConceptInterface T> auto& GetInterface() { return *static_cast<T*>(this); }
 
-    virtual bool HandleRequest(tcp_stream& /* stream */, Request const& /* req */, Response& /* res */) { return false; }
+    void WriteStringResponse(tcp_stream& stream, Request const& req, std::string_view const& content_type, std::string_view const& content)
+    {
+        auto res   = impl::create_response<boost::beast::http::string_body>(req, content_type);
+        res.body() = content;
+        ResponseSerializer<boost::beast::http::string_body> sr(res);
+        boost::beast::http::write(stream, sr);
+    }
 
-    private:
+    void WriteFileResponse(tcp_stream& stream, Request const& req, std::filesystem::path const& path)
+    {
+        if (!std::filesystem::exists(path)) { throw std::runtime_error(fmt::format("file does not exist: {}", path.string())); }
+        std::ifstream file(path, std::ios::binary);
+        if (!file.is_open()) throw std::runtime_error(fmt::format("Failed to open file: {}", path.string()));
+        std::vector<uint8_t> buffer(std::filesystem::file_size(path));
+        file.read(reinterpret_cast<char*>(buffer.data()), static_cast<std::streamsize>(buffer.size()));
+        auto res        = impl::create_response<boost::beast::http::buffer_body>(req, mime_type(path.extension().string()));
+        res.body().data = buffer.data();
+        res.body().size = buffer.size();
+        res.body().more = false;
+        boost::beast::http::response_serializer<boost::beast::http::buffer_body> sr{res};
+        boost::beast::http::write(stream, sr);
+    }
+
+    virtual bool HandleRequest(tcp_stream& /* stream */, Request const& /* req */) { return false; }
+
     // Return a reasonable mime type based on the extension of a file.
     static boost::beast::string_view mime_type(boost::beast::string_view path)
     {
@@ -658,6 +674,7 @@ struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TInterfaces>...,
         return "application/text";
     }
 
+    private:
     // Return a response for the given request.
     //
     // The concrete type of the response message (which depends on the
@@ -665,14 +682,6 @@ struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TInterfaces>...,
     template <class Body, class Allocator>
     auto _handle_request(tcp_stream& stream, boost::beast::http::request<Body, boost::beast::http::basic_fields<Allocator>>&& req)
     {
-        Response res{};
-        res.result(boost::beast::http::status::ok);
-        res.version(req.version());
-        res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
-        res.set(boost::beast::http::field::content_type, "application/json");
-
-        res.keep_alive(req.keep_alive());
-
         // Respond to HEAD request
         if (req.method() == boost::beast::http::verb::head) { throw std::runtime_error("Not implemented"); }
         {
@@ -683,11 +692,12 @@ struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TInterfaces>...,
             auto it = segs.begin();
             if (it == segs.end() || *it != "api")
             {
-                if (!HandleRequest(stream, req, res)) throw std::runtime_error("Not found");
+                if (!HandleRequest(stream, req)) throw std::runtime_error("Not found");
+                return;
             }
             ++it;
             auto& impl = *static_cast<TImpl*>(this);
-            return impl::Selector<impl::RequestHandler<TImpl, TInterfaces>...>::Invoke(_sseManager, impl, stream, req, res, url, it);
+            return impl::Selector<impl::RequestHandler<TImpl, TInterfaces>...>::Invoke(_sseManager, impl, stream, req, url, it);
         }
     }
 
@@ -697,23 +707,14 @@ struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TInterfaces>...,
         tcp_stream stream(std::move(socket));
         // This buffer is required to persist across reads
         boost::beast::flat_buffer buffer;
-
-        // This lambda is used to send messages
         try
         {
-            //            for (;;)
-            //            {
-            // Set the timeout.
             stream.expires_after(std::chrono::seconds(30000));
 
             // Read a request
             boost::beast::http::request<boost::beast::http::string_body> req;
             co_await boost::beast::http::async_read(stream, buffer, req, boost::asio::use_awaitable);
-
-            // Handle the request
-            // boost::beast::http::message_generator msg =
             _handle_request(stream, std::move(req));
-            //        }
         } catch (boost::system::system_error& se)
         {
             if (se.code() != boost::beast::http::error::end_of_stream) throw;
@@ -726,9 +727,6 @@ struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TInterfaces>...,
         // dropped the connection already.
     }
 
-    //------------------------------------------------------------------------------
-
-    // Accepts incoming connections and launches the sessions
     boost::asio::awaitable<void> _do_listen(tcp::endpoint endpoint)
     {
         // Open the acceptor
