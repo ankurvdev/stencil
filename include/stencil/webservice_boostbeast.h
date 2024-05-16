@@ -63,7 +63,6 @@ using tcp_stream = typename boost::beast::tcp_stream::rebind_executor<
 
 inline std::tuple<std::string_view, std::string_view> Split(std::string_view const& path, char token = '/')
 {
-    if (path.empty()) throw std::logic_error("Invalid path");
     size_t start = path[0] == token ? 1u : 0u;
     size_t index = path.find(token, start);
     auto   str1  = path.substr(start, index - start);
@@ -84,12 +83,13 @@ template <typename... Types> struct Selector
     }
     template <typename... TArgs> static auto Invoke(TArgs&&... args)
     {
-        if constexpr (sizeof...(Types) == 0) { throw std::runtime_error("Cannot match any"); }
+        if constexpr (sizeof...(Types) == 0) {}
         else
         {
             auto result = (InvokeIfMatch<Types>(std::forward<TArgs>(args)...) || ...);
-            if (!result) throw std::runtime_error("No match found");
+            if (result) return;
         }
+        throw std::logic_error("Unexpected error. Unreachable code encountered. Did not match any selector");
     }
 };
 
@@ -246,7 +246,11 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
         if (subpath.empty())
         {
             auto it = ctx.req.find("ids");
-            if (it == ctx.req.end()) { throw std::invalid_argument("No Id specified for read"); }
+            if (it == ctx.req.end())
+            {
+                throw std::invalid_argument(
+                    fmt::format("Missing Param: \"ids\" for object-store request: {}", std::string_view(ctx.req.target())));
+            }
             auto ids = it->value();
             rslt << '{';
             bool   first  = true;
@@ -372,7 +376,7 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
             });
             ctx.sse.Send("]}\n\n");
         }
-        else { throw std::logic_error("Not implemented"); }
+        else { throw std::invalid_argument(fmt::format("Unknown object store action: {}", action)); }
         return rslt.str();
     }
 };
@@ -420,7 +424,10 @@ template <typename TContext> struct RequestHandlerFallback
     static bool Matches(TContext& /* ctx */) { return true; }
     static auto Invoke(TContext& ctx)
     {
-        if (!ctx.impl.HandleRequest(ctx.stream, ctx.req)) throw std::runtime_error("url not found");
+        if (!ctx.impl.HandleRequest(ctx.stream, ctx.req))
+        {
+            throw std::invalid_argument(fmt::format("Cannot determine handler for api : {}", std::string_view(ctx.req.target())));
+        }
     }
 };
 
@@ -479,7 +486,8 @@ template <typename TImpl, typename TInterface> struct RequestHandler
             if (it != ctx.url.params().end())
             {
                 std::string_view query = (*it).value;
-                do {
+                while (!query.empty())
+                {
                     rslt << (first ? ' ' : ',');
                     first                    = false;
                     auto [query1, remaining] = Split(query, ',');
@@ -489,7 +497,7 @@ template <typename TImpl, typename TInterface> struct RequestHandler
                     using SelectorT = typename SelectorTransform<TypesT>::SelectorT;
                     SelectorT::Invoke(ctx);
                     query = remaining;
-                } while (!query.empty());
+                }
             }
             rslt << ']';
             auto rsltstr = rslt.str();
@@ -609,9 +617,13 @@ template <typename TImpl, ConceptInterface... TInterfaces> struct WebServiceT : 
 
     void WriteFileResponse(tcp_stream& stream, Request const& req, std::filesystem::path const& path)
     {
-        if (!std::filesystem::exists(path)) { throw std::runtime_error(fmt::format("file does not exist: {}", path.string())); }
+        if (!std::filesystem::exists(path))
+        {
+            throw std::invalid_argument(fmt::format("Cannot send File Response. File does not exist: {}", path.string()));
+        }
+
         std::ifstream file(path, std::ios::binary);
-        if (!file.is_open()) throw std::runtime_error(fmt::format("Failed to open file: {}", path.string()));
+        if (!file.is_open()) throw std::runtime_error(fmt::format("Cannot send File Response. Failed to open file: {}", path.string()));
         std::vector<uint8_t> buffer(std::filesystem::file_size(path));
         file.read(reinterpret_cast<char*>(buffer.data()), static_cast<std::streamsize>(buffer.size()));
         auto res        = impl::create_response<boost::beast::http::buffer_body>(req, mime_type(path.extension().string()));
@@ -665,7 +677,10 @@ template <typename TImpl, ConceptInterface... TInterfaces> struct WebServiceT : 
     auto _handle_request(tcp_stream& stream, boost::beast::http::request<Body, boost::beast::http::basic_fields<Allocator>>&& req)
     {
         // Respond to HEAD request
-        if (req.method() == boost::beast::http::verb::head) { throw std::runtime_error("Not implemented"); }
+        switch (req.method())
+        {
+        case boost::beast::http::verb::get: [[fallthrough]];
+        case boost::beast::http::verb::put:
         {
             auto target = req.target();
             auto url    = boost::urls::parse_origin_form(target).value();
@@ -674,12 +689,19 @@ template <typename TImpl, ConceptInterface... TInterfaces> struct WebServiceT : 
             auto it = segs.begin();
             if (it == segs.end() || *it != "api")
             {
-                if (!HandleRequest(stream, req)) throw std::runtime_error("Not found");
+                if (!HandleRequest(stream, req))
+                {
+                    throw std::invalid_argument(fmt::format("Unable to fulfill request: {}. No Handler found", std::string_view(target)));
+                }
                 return;
             }
             ++it;
             auto& impl = *static_cast<TImpl*>(this);
             return impl::Selector<impl::RequestHandler<TImpl, TInterfaces>...>::Invoke(_sseManager, impl, stream, req, url, it);
+        }
+        default:
+            throw std::invalid_argument(
+                fmt::format("Request Verb:{} Not implemented", std::string_view(boost::beast::http::to_string(req.method()))));
         }
     }
 
@@ -731,7 +753,7 @@ template <typename TImpl, ConceptInterface... TInterfaces> struct WebServiceT : 
                         std::rethrow_exception(e);
                     } catch (std::exception& e)
                     {
-                        fmt::print(stderr, "Error in session:  {}\n", e.what());
+                        fmt::print(stderr, "Session Terminated with Error:  {}\n", e.what());
                     }
             });
     }
