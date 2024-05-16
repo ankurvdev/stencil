@@ -32,14 +32,14 @@ template <typename TImpl, typename TEventArgs> struct EventHandler : public IEve
     virtual void HandleEvent(TEventArgs const& args) override { static_cast<TImpl*>(this)->OnEvent(args); }
 };
 
+template <typename T> struct _Transform;
+template <typename... TInterfaceEventStructs> struct _Transform<std::tuple<TInterfaceEventStructs...>>
+{
+    using Type = std::tuple<IEventHandler<TInterfaceEventStructs>*...>;
+};
+
 template <ConceptInterface TInterface> struct InterfaceEventHandlers
 {
-    template <typename T> struct _Transform;
-    template <typename... TInterfaceEventStructs> struct _Transform<std::tuple<TInterfaceEventStructs>...>
-    {
-        using Type = std::tuple<IEventHandler<TInterfaceEventStructs>*...>;
-    };
-
     using Handlers = _Transform<typename Stencil::InterfaceTraits<TInterface>::EventStructs>::Type;
     Handlers handlers;
 };
