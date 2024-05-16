@@ -677,6 +677,9 @@ template <typename TImpl, ConceptInterface... TInterfaces> struct WebServiceT : 
     auto _handle_request(tcp_stream& stream, boost::beast::http::request<Body, boost::beast::http::basic_fields<Allocator>>&& req)
     {
         // Respond to HEAD request
+        SUPPRESS_WARNINGS_START
+        SUPPRESS_CLANG_WARNING("-Wswitch-enum")
+        SUPPRESS_MSVC_WARNING(4061)    // swtich enum not handled
         switch (req.method())
         {
         case boost::beast::http::verb::get: [[fallthrough]];
@@ -703,6 +706,7 @@ template <typename TImpl, ConceptInterface... TInterfaces> struct WebServiceT : 
             throw std::invalid_argument(
                 fmt::format("Request Verb:{} Not implemented", std::string_view(boost::beast::http::to_string(req.method()))));
         }
+        SUPPRESS_WARNINGS_END
     }
 
     // Handles an HTTP server connection

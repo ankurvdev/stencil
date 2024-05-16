@@ -799,7 +799,7 @@ template <> struct Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz
         >;
 
     using EventStructs = std::tuple<
-        //<InterfaceEvent>
+        //<InterfaceEvent Join=','>
         zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz
         //</InterfaceEvent>
         >;

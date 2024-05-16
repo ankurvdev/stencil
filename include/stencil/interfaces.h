@@ -56,7 +56,7 @@ struct InterfaceEventHandlerT : _InterfaceEventHandlers<TImpl, typename Stencil:
 {
     InterfaceEventHandlerT()
     {
-        std::apply([&](auto& handler) { handler = this; }, InterfaceEventHandlers<TInterface>::handlers);
+        std::apply([&](auto&&... handler) { ((handler = this), ...); }, InterfaceEventHandlers<TInterface>::handlers);
     }
 };
 
