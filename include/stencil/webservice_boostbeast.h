@@ -224,6 +224,16 @@ template <typename TImpl, ConceptInterface TInterface> struct WebRequestContext
     boost::urls::segments_base::iterator& url_seg_it;
 };
 
+template <typename TContext> struct RequestHandlerForAllEvents
+{
+    static bool Matches(TContext& ctx) { return impl::iequals(*ctx.url_seg_it, "events"); }
+    static auto Invoke(TContext& ctx)
+    {
+        SSEListenerManager::Instance::SSEContext ctx1(ctx.stream, ctx.req);
+        ctx.sse.CreateInstance()->Start(ctx1, "event: init\ndata: \n\n");
+    }
+};
+
 template <typename TContext, typename TEventStructs> struct RequestHandlerForEvents
 {
     static bool Matches(TContext& ctx) { return impl::iequals(Stencil::InterfaceApiTraits<TEventStructs>::Name(), *ctx.url_seg_it); }
@@ -424,7 +434,7 @@ template <typename TContext> struct RequestHandlerFallback
     static bool Matches(TContext& /* ctx */) { return true; }
     static auto Invoke(TContext& ctx)
     {
-        if (!ctx.impl.HandleRequest(ctx.stream, ctx.req))
+        if (!ctx.impl.HandleRequest(ctx.stream, ctx.req, ctx.url))
         {
             throw std::invalid_argument(fmt::format("Cannot determine handler for api : {}", std::string_view(ctx.req.target())));
         }
@@ -519,7 +529,8 @@ template <typename TImpl, typename TInterface> struct RequestHandler
         using RequestHandlerForObjectStoreT =
             typename ObjectStoreTransform<typename Stencil::InterfaceTraits<TInterface>::Objects>::Handler;
 
-        using TypesT    = tuple_cat_t<RequestHandlerForEventsT,
+        using TypesT    = tuple_cat_t<std::tuple<RequestHandlerForAllEvents<WebRequestContext<TImpl, TInterface>>>,
+                                      RequestHandlerForEventsT,
                                       RequestHandlerForObjectStoreT,
                                       std::tuple<RequestHandlerForObjectStoreListener<WebRequestContext<TImpl, TInterface>>>,
                                       RequestHandlerForFunctionsT,
@@ -634,7 +645,7 @@ template <typename TImpl, ConceptInterface... TInterfaces> struct WebServiceT : 
         boost::beast::http::write(stream, sr);
     }
 
-    virtual bool HandleRequest(tcp_stream& /* stream */, Request const& /* req */) { return false; }
+    virtual bool HandleRequest(tcp_stream& /* stream */, Request const& /* req */, boost::urls::url_view const& /* url */) { return false; }
 
     // Return a reasonable mime type based on the extension of a file.
     static boost::beast::string_view mime_type(boost::beast::string_view path)
@@ -692,7 +703,7 @@ template <typename TImpl, ConceptInterface... TInterfaces> struct WebServiceT : 
             auto it = segs.begin();
             if (it == segs.end() || *it != "api")
             {
-                if (!HandleRequest(stream, req))
+                if (!HandleRequest(stream, req, url))
                 {
                     throw std::invalid_argument(fmt::format("Unable to fulfill request: {}. No Handler found", std::string_view(target)));
                 }
