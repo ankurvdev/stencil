@@ -1,4 +1,6 @@
 #pragma once
+#include <tuple>
+
 namespace Stencil
 {
 
@@ -30,36 +32,50 @@ template <typename TImpl, typename TEventArgs> struct EventHandler : public IEve
     virtual void HandleEvent(TEventArgs const& args) override { static_cast<TImpl*>(this)->OnEvent(args); }
 };
 
-template <typename TImpl, typename TInterfaceEventStruct> struct _InterfaceEventHandlers;
+template <ConceptInterface TInterface> struct InterfaceEventHandlers
+{
+    template <typename T> struct _Transform;
+    template <typename... TInterfaceEventStructs> struct _Transform<std::tuple<TInterfaceEventStructs>...>
+    {
+        using Type = std::tuple<IEventHandler<TInterfaceEventStructs>*...>;
+    };
+
+    using Handlers = _Transform<typename Stencil::InterfaceTraits<TInterface>::EventStructs>::Type;
+    Handlers handlers;
+};
+
+template <typename TImpl, typename TInterfaceEventStructs> struct _InterfaceEventHandlers;
 
 template <typename TImpl, typename... TInterfaceEventStructs>
-struct _InterfaceEventHandlers<TImpl, std::tuple<TInterfaceEventStructs...>> : public EventHandler<TImpl, TInterfaceEventStructs>...
+struct _InterfaceEventHandlers<TImpl, std::tuple<TInterfaceEventStructs...>> : EventHandler<TImpl, TInterfaceEventStructs>...
 {};
 
-template <typename TImpl, typename TInterface>
-struct InterfaceEventHandlerT : _InterfaceEventHandlers<TImpl, typename Stencil::InterfaceTraits<TInterface>::EventStructs>
-{};
+template <typename TImpl, ConceptInterface TInterface>
+struct InterfaceEventHandlerT : _InterfaceEventHandlers<TImpl, typename Stencil::InterfaceTraits<TInterface>::EventStructs>,
+                                InterfaceEventHandlers<TInterface>
+{
+    InterfaceEventHandlerT()
+    {
+        std::apply([&](auto& handler) { handler = this; }, InterfaceEventHandlers<TInterface>::handlers);
+    }
+};
 
-template <typename TInterfaceEventStruct> struct _IInterfaceEventHandlers;
-
-template <typename... TInterfaceEventStructs>
-struct _IInterfaceEventHandlers<std::tuple<TInterfaceEventStructs...>> : public IEventHandler<TInterfaceEventStructs>...
-{};
 }    // namespace impl::Interface
 
 template <typename T> struct InterfaceT
 {
     template <typename TArgStruct> void RaiseEvent(TArgStruct const& args)
     {
-        if (handler != nullptr)
-        {
-            auto ptr
-                = reinterpret_cast<impl::Interface::_IInterfaceEventHandlers<typename Stencil::InterfaceTraits<T>::EventStructs>*>(handler);
-            (static_cast<impl::Interface::IEventHandler<TArgStruct>*>(ptr))->HandleEvent(args);
-        }
+        auto handlers = reinterpret_cast<impl::Interface::InterfaceEventHandlers<T>*>(handlerptr);
+        std::get<impl::Interface::IEventHandler<TArgStruct>*>(handlers->handlers)->HandleEvent(args);
     }
 
-    void* handler{nullptr};
+    template <typename THandler> void SetHandler(THandler* ptr)
+    {
+        handlerptr = static_cast<impl::Interface::InterfaceEventHandlers<T>*>(ptr);
+    }
+
+    void* handlerptr{nullptr};
 };
 
 }    // namespace Stencil

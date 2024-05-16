@@ -25,7 +25,9 @@ SUPPRESS_MSVC_WARNING(5262)    // implicit fall-through occurs here;
 
 SUPPRESS_WARNINGS_END
 
-#include <algorithm>
+#include <fmt/format.h>
+#include <fmt/ostream.h>
+
 #include <condition_variable>
 #include <cstdlib>
 #include <filesystem>
@@ -54,13 +56,10 @@ template <typename T> auto create_response(Request const& req, std::string_view 
     res.set(boost::beast::http::field::server, "stencil_webserver");
     return res;
 }
+using boost::beast::iequals;
+
 using tcp_stream = typename boost::beast::tcp_stream::rebind_executor<
     boost::asio::use_awaitable_t<>::executor_with_default<boost::asio::any_io_executor>>::other;
-
-template <typename T1, typename T2> inline bool iequal(T1 const& a, T2 const& b)
-{
-    return std::equal(std::begin(a), std::end(a), std::begin(b), std::end(b), [](auto a1, auto b1) { return tolower(a1) == tolower(b1); });
-}
 
 inline std::tuple<std::string_view, std::string_view> Split(std::string_view const& path, char token = '/')
 {
@@ -103,21 +102,18 @@ struct SSEListenerManager
     {
         struct SSEContext
         {
-            SSEContext(tcp_stream& streamIn, Request const& reqIn) : stream(streamIn), req(reqIn), res(), sr(res)
+            SSEContext(tcp_stream& streamIn, Request const& reqIn) : stream(streamIn)
             {
-                res.result(boost::beast::http::status::ok);
-                res.version(req.version());
-                res.keep_alive(req.keep_alive());
-                res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
-                res.set(boost::beast::http::field::content_type, "text/event-stream");
+                auto res = impl::create_response<boost::beast::http::buffer_body>(reqIn, "text/event-stream");
+                boost::beast::http::response_serializer<boost::beast::http::buffer_body> sr(res);
+                res.set(boost::beast::http::field::transfer_encoding, "chunked");
+                res.body().data = nullptr;
+                res.body().size = 0;
+                res.body().more = true;
+                boost::beast::http::write_header(stream, sr);
             }
 
-            tcp_stream&                                                                                          stream;
-            Request const&                                                                                       req;
-            boost::beast::http::response<boost::beast::http::buffer_body>                                        res;
-            boost::beast::http::response_serializer<boost::beast::http::buffer_body, boost::beast::http::fields> sr;
-
-            auto& serializer() { return sr; }
+            tcp_stream& stream;
         };
 
         SSEListenerManager*     _manager{nullptr};
@@ -125,8 +121,10 @@ struct SSEListenerManager
         std::condition_variable _dataAvailable{};
         bool                    _stopRequested = false;
 
-        Instance() = default;
+        Instance()  = default;
+        ~Instance() = default;
         CLASS_DELETE_COPY_AND_MOVE(Instance);
+
         bool _streamEnded() const { return _ctx == nullptr; }
         void Start(SSEContext& ctx, std::span<const char> const& msg)
         {
@@ -134,12 +132,6 @@ struct SSEListenerManager
                 auto lock = std::unique_lock<std::mutex>(_manager->_mutex);
                 _manager->Register(lock, shared_from_this());
                 if (_manager->_stopRequested) return;
-                ctx.res.body().data = nullptr;
-                ctx.res.body().size = 0;
-                ctx.res.body().more = true;
-                ctx.res.set(boost::beast::http::field::content_type, "text/event-stream");
-                ctx.res.set(boost::beast::http::field::transfer_encoding, "chunked");
-                boost::beast::http::write_header(ctx.stream, ctx.serializer());
                 _ctx = &ctx;
 
                 Send(msg);
@@ -213,6 +205,7 @@ struct SSEListenerManager
             inst->_dataAvailable.notify_all();
         }
     }
+
     std::unordered_set<std::shared_ptr<Instance>> _sseListeners;
     bool                                          _stopRequested = false;
     std::mutex                                    _mutex;
@@ -233,7 +226,7 @@ template <typename TImpl, ConceptInterface TInterface> struct WebRequestContext
 
 template <typename TContext, typename TEventStructs> struct RequestHandlerForEvents
 {
-    static bool Matches(TContext& ctx) { return impl::iequal(Stencil::InterfaceApiTraits<TEventStructs>::Name(), *ctx.url_seg_it); }
+    static bool Matches(TContext& ctx) { return impl::iequals(Stencil::InterfaceApiTraits<TEventStructs>::Name(), *ctx.url_seg_it); }
     static auto Invoke(TContext& ctx)
     {
         SSEListenerManager::Instance::SSEContext ctx1(ctx.stream, ctx.req);
@@ -243,7 +236,7 @@ template <typename TContext, typename TEventStructs> struct RequestHandlerForEve
 
 template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForObjectStore
 {
-    static bool Matches(TContext& ctx) { return impl::iequal(Stencil::InterfaceObjectTraits<TObjectStoreObj>::Name(), *ctx.url_seg_it); }
+    static bool Matches(TContext& ctx) { return impl::iequals(Stencil::InterfaceObjectTraits<TObjectStoreObj>::Name(), *ctx.url_seg_it); }
 
     template <typename TLambda> static auto _ForeachObjId(TContext& ctx, TLambda&& lambda)
     {
@@ -296,7 +289,6 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
 
     static auto Invoke(TContext& ctx)
     {
-        // auto [action, subpath] = Split(path);
         auto action = *(++ctx.url_seg_it);
         auto msg    = Handle(ctx, action);
         auto res    = impl::create_response<boost::beast::http::string_body>(ctx.req, "application/json");
@@ -387,7 +379,7 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
 
 template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunctions
 {
-    static bool Matches(TContext& ctx) { return impl::iequal(Stencil::InterfaceApiTraits<TArgsStruct>::Name(), *ctx.url_seg_it); }
+    static bool Matches(TContext& ctx) { return impl::iequals(Stencil::InterfaceApiTraits<TArgsStruct>::Name(), *ctx.url_seg_it); }
     static auto _CreateArgStruct(TContext& ctx)
     {
         TArgsStruct args{};
@@ -442,7 +434,7 @@ template <typename TImpl, typename TInterface> struct RequestHandler
                         boost::urls::url_view& /*url*/,
                         boost::urls::segments_base::iterator& it)
     {
-        return iequal(Stencil::InterfaceTraits<TInterface>::Name(), *it);
+        return iequals(Stencil::InterfaceTraits<TInterface>::Name(), *it);
     }
 
     template <typename T1> struct EventTransform;
@@ -473,7 +465,7 @@ template <typename TImpl, typename TInterface> struct RequestHandler
 
     template <typename TContext> struct RequestHandlerForObjectStoreListener
     {
-        static bool Matches(TContext& ctx) { return impl::iequal(*ctx.url_seg_it, std::string_view("objectstore")); }
+        static bool Matches(TContext& ctx) { return impl::iequals(*ctx.url_seg_it, std::string_view("objectstore")); }
 
         static auto Invoke(TContext& ctx)
         {
@@ -491,9 +483,8 @@ template <typename TImpl, typename TInterface> struct RequestHandler
                     rslt << (first ? ' ' : ',');
                     first                    = false;
                     auto [query1, remaining] = Split(query, ',');
-                    // auto [qifname, qsubpath] = Split(query1);
-                    ctx.url         = query1;
-                    ctx.url_seg_it  = ctx.url.segments().begin();
+                    ctx.url                  = query1;
+                    ctx.url_seg_it           = ctx.url.segments().begin();
                     using TypesT    = typename ObjectStoreTransform<typename Stencil::InterfaceTraits<TInterface>::Objects>::Handler;
                     using SelectorT = typename SelectorTransform<TypesT>::SelectorT;
                     SelectorT::Invoke(ctx);
@@ -543,16 +534,16 @@ SUPPRESS_MSVC_WARNING(4583)
 SUPPRESS_MSVC_WARNING(4582)
 SUPPRESS_MSVC_WARNING(4702)
 
-template <typename TImpl, ConceptInterface TInterface> struct WebServiceInterfaceImplT : TInterface
+template <typename TImpl, ConceptInterface TInterface>
+struct WebServiceInterfaceImplT : TInterface,    // TImpl implements the virtual functions in this interface,
+                                  Stencil::impl::Interface::InterfaceEventHandlerT<TImpl, TInterface>
 {
-    WebServiceInterfaceImplT()                   = default;
+    WebServiceInterfaceImplT() { TInterface::template SetHandler(this); }
     virtual ~WebServiceInterfaceImplT() override = default;
     CLASS_DELETE_COPY_AND_MOVE(WebServiceInterfaceImplT);
 };
 
-template <typename TImpl, ConceptInterface... TInterfaces>
-struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TInterfaces>...,
-                     public Stencil::impl::Interface::InterfaceEventHandlerT<TImpl, TInterfaces>...
+template <typename TImpl, ConceptInterface... TInterfaces> struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TInterfaces>...
 {
     using tcp        = boost::asio::ip::tcp;    // from <boost/asio/ip/tcp.hpp>
     using tcp_stream = typename boost::beast::tcp_stream::rebind_executor<
@@ -567,14 +558,6 @@ struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TInterfaces>...,
     virtual ~WebServiceT() override { StopDaemon(); }
 
     CLASS_DELETE_COPY_AND_MOVE(WebServiceT);
-
-    template <typename T1, typename T2> inline bool iequal(T1 const& a, T2 const& b)
-    {
-        return std::equal(
-            std::begin(a), std::end(a), std::begin(b), std::end(b), [](auto a1, auto b1) { return tolower(a1) == tolower(b1); });
-    }
-
-    // auto& Server() { return *this; }
 
     void StartOnPort(uint16_t port)
     {
@@ -644,33 +627,32 @@ struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TInterfaces>...,
     // Return a reasonable mime type based on the extension of a file.
     static boost::beast::string_view mime_type(boost::beast::string_view path)
     {
-        using boost::beast::iequals;
         auto const ext = [&path] {
             auto const pos = path.rfind(".");
             if (pos == boost::beast::string_view::npos) return boost::beast::string_view{};
             return path.substr(pos);
         }();
-        if (iequals(ext, ".htm")) return "text/html";
-        if (iequals(ext, ".html")) return "text/html";
-        if (iequals(ext, ".php")) return "text/html";
-        if (iequals(ext, ".css")) return "text/css";
-        if (iequals(ext, ".txt")) return "text/plain";
-        if (iequals(ext, ".js")) return "application/javascript";
-        if (iequals(ext, ".json")) return "application/json";
-        if (iequals(ext, ".xml")) return "application/xml";
-        if (iequals(ext, ".swf")) return "application/x-shockwave-flash";
-        if (iequals(ext, ".flv")) return "video/x-flv";
-        if (iequals(ext, ".png")) return "image/png";
-        if (iequals(ext, ".jpe")) return "image/jpeg";
-        if (iequals(ext, ".jpeg")) return "image/jpeg";
-        if (iequals(ext, ".jpg")) return "image/jpeg";
-        if (iequals(ext, ".gif")) return "image/gif";
-        if (iequals(ext, ".bmp")) return "image/bmp";
-        if (iequals(ext, ".ico")) return "image/vnd.microsoft.icon";
-        if (iequals(ext, ".tiff")) return "image/tiff";
-        if (iequals(ext, ".tif")) return "image/tiff";
-        if (iequals(ext, ".svg")) return "image/svg+xml";
-        if (iequals(ext, ".svgz")) return "image/svg+xml";
+        if (impl::iequals(ext, ".htm")) return "text/html";
+        if (impl::iequals(ext, ".html")) return "text/html";
+        if (impl::iequals(ext, ".php")) return "text/html";
+        if (impl::iequals(ext, ".css")) return "text/css";
+        if (impl::iequals(ext, ".txt")) return "text/plain";
+        if (impl::iequals(ext, ".js")) return "application/javascript";
+        if (impl::iequals(ext, ".json")) return "application/json";
+        if (impl::iequals(ext, ".xml")) return "application/xml";
+        if (impl::iequals(ext, ".swf")) return "application/x-shockwave-flash";
+        if (impl::iequals(ext, ".flv")) return "video/x-flv";
+        if (impl::iequals(ext, ".png")) return "image/png";
+        if (impl::iequals(ext, ".jpe")) return "image/jpeg";
+        if (impl::iequals(ext, ".jpeg")) return "image/jpeg";
+        if (impl::iequals(ext, ".jpg")) return "image/jpeg";
+        if (impl::iequals(ext, ".gif")) return "image/gif";
+        if (impl::iequals(ext, ".bmp")) return "image/bmp";
+        if (impl::iequals(ext, ".ico")) return "image/vnd.microsoft.icon";
+        if (impl::iequals(ext, ".tiff")) return "image/tiff";
+        if (impl::iequals(ext, ".tif")) return "image/tiff";
+        if (impl::iequals(ext, ".svg")) return "image/svg+xml";
+        if (impl::iequals(ext, ".svgz")) return "image/svg+xml";
         return "application/text";
     }
 
