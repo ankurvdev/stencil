@@ -40,7 +40,7 @@ template <typename... TInterfaceEventStructs> struct _Transform<std::tuple<TInte
 
 template <ConceptInterface TInterface> struct InterfaceEventHandlers
 {
-    using Handlers = _Transform<typename Stencil::InterfaceTraits<TInterface>::EventStructs>::Type;
+    using Handlers = typename _Transform<typename Stencil::InterfaceTraits<TInterface>::EventStructs>::Type;
     Handlers handlers;
 };
 
