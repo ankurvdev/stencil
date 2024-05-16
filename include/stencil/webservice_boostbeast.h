@@ -141,20 +141,15 @@ struct SSEListenerManager
                 if (_manager->_stopRequested) return;
                 _dataAvailable.wait(lock, [&](...) { return _streamEnded() || _manager->_stopRequested; });
                 if (_manager->_stopRequested) return;
-                if (_streamEnded())
-                {
-                    _manager->Remove(lock, shared_from_this());
-                    // TODO : _stream.Close() ?
-                    return;
-                }
+                if (_streamEnded()) { return; }
             } while (true);
         }
 
-        void Release()
+        void Release(std::unique_lock<std::mutex> const& /* lock */)
         {
-            auto lock = std::unique_lock<std::mutex>(_manager->_mutex);
-            _manager->Remove(lock, shared_from_this());
+            if (_ctx) _ctx->stream.close();
             _ctx = nullptr;
+            _dataAvailable.notify_all();
         }
 
         void Send(std::span<const char> const& msg)
@@ -170,16 +165,21 @@ struct SSEListenerManager
     void Send(std::span<const char> const& msg)
     {
         auto lock = std::unique_lock<std::mutex>(_mutex);
-        for (auto const& inst : _sseListeners)
+        for (auto it = _sseListeners.begin(); it != _sseListeners.end();)
         {
             if (_stopRequested) return;
+            auto inst = *it;
             if (inst->_stopRequested) continue;
             try
             {
                 inst->Send(msg);
                 inst->_dataAvailable.notify_all();
+                ++it;
             } catch (...)
-            {}
+            {
+                inst->Release(lock);
+                it = _sseListeners.erase(it);
+            }
         }
     }
 
@@ -191,8 +191,6 @@ struct SSEListenerManager
     }
 
     void Register(std::unique_lock<std::mutex> const& /* lock */, std::shared_ptr<Instance> instance) { _sseListeners.insert(instance); }
-
-    void Remove(std::unique_lock<std::mutex> const& /* lock */, std::shared_ptr<Instance> instance) { _sseListeners.erase(instance); }
 
     void Stop()
     {
