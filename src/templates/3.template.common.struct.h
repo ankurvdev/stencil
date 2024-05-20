@@ -182,8 +182,25 @@ template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Na
         //</Field>
     };
 
+    //<Field>
+    struct Field_zzNamezzT
+    {};
+    //</Field>
+
     using Key = Fields;
 };
+
+//<Field>
+//<Attribute>
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::zzAttribute_Keyzz,
+                          Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Field_zzField_NamezzT>
+{
+    static auto Value() { return "zzAttribute_Valuezz"; }
+};
+
+//</Attribute>
+//</Field>
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields>
 {
@@ -893,7 +910,7 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzVariant_Namezz>
 
     template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda)
     {
-        auto fieldType = static_cast<Fields>(obj.index());
+        auto fieldType = static_cast<Fields>(obj._variant.index());
         std::visit([&](auto&& arg) { lambda(fieldType, arg); }, obj._variant);
     }
 };

@@ -26,7 +26,7 @@ template <typename T> struct shared_stringT
 
     using value_type = typename TString::value_type;
 
-    template <size_t N> explicit shared_stringT(T const (&str)[N]) { *this = make(str); }
+    template <size_t N> shared_stringT(T const (&str)[N]) { *this = make(str); }
 
     explicit shared_stringT(const TStringView& str)
     {
@@ -42,6 +42,17 @@ template <typename T> struct shared_stringT
     shared_stringT(shared_stringT&& str) noexcept : _str(std::move(str._str)) {}
 
     public:
+    template <size_t N> shared_stringT& operator=(T const (&str)[N])
+    {
+        *this = make(str);
+        return *this;
+    }
+    template <size_t N> shared_stringT& operator=(TStringView const& str)
+    {
+        if (str.length() == 0) return *this;
+        *this = make(str);
+        return *this;
+    }
     static shared_stringT make(auto&&... args)
     {
         shared_stringT obj;
@@ -66,6 +77,8 @@ template <typename T> struct shared_stringT
     }
 
     TStringView view() const { return empty() ? TStringView() : TStringView(*_str.get()); }
+
+    template <size_t N> bool operator==(T const (&str)[N]) const { return view() == str; }
 
     bool operator==(const shared_stringT& str) const { return view() == str.view(); }
     bool operator==(const TStringView& str) const { return view() == str; }
