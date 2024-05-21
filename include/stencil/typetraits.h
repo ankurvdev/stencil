@@ -89,4 +89,13 @@ template <typename T> struct StructT
 template <typename T> struct VariantT
 {};
 
+template <typename TAttr, typename TObj> struct Attribute;
+
+namespace AttributeType
+{
+struct Description
+{};
+struct Name1
+{};
+};    // namespace AttributeType
 }    // namespace Stencil

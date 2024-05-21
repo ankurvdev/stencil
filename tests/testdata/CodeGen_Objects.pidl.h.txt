@@ -116,6 +116,16 @@ template <> struct Stencil::TypeTraitsForIndexable<Objects::SimpleObject1>
 ,        Field_val5
     };
 
+    struct Field_val1T
+    {};
+    struct Field_val2T
+    {};
+    struct Field_val3T
+    {};
+    struct Field_val4T
+    {};
+    struct Field_val5T
+    {};
     using Key = Fields;
 };
 
@@ -547,6 +557,10 @@ template <> struct Stencil::TypeTraitsForIndexable<Objects::ListObject>
 ,        Field_obj1
     };
 
+    struct Field_valueT
+    {};
+    struct Field_obj1T
+    {};
     using Key = Fields;
 };
 
@@ -847,6 +861,12 @@ template <> struct Stencil::TypeTraitsForIndexable<Objects::DictObject>
 ,        Field_dictdict
     };
 
+    struct Field_dictobjT
+    {};
+    struct Field_dictvalT
+    {};
+    struct Field_dictdictT
+    {};
     using Key = Fields;
 };
 
@@ -1181,6 +1201,8 @@ template <> struct Stencil::TypeTraitsForIndexable<Objects::List>
         Field_listobj
     };
 
+    struct Field_listobjT
+    {};
     using Key = Fields;
 };
 
@@ -1462,6 +1484,22 @@ template <> struct Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>
 ,        Field_val8
     };
 
+    struct Field_val1T
+    {};
+    struct Field_val2T
+    {};
+    struct Field_val3T
+    {};
+    struct Field_val4T
+    {};
+    struct Field_val5T
+    {};
+    struct Field_val6T
+    {};
+    struct Field_val7T
+    {};
+    struct Field_val8T
+    {};
     using Key = Fields;
 };
 
@@ -2022,6 +2060,16 @@ template <> struct Stencil::TypeTraitsForIndexable<Objects::NestedObject>
 ,        Field_list1
     };
 
+    struct Field_obj1T
+    {};
+    struct Field_obj2T
+    {};
+    struct Field_obj3T
+    {};
+    struct Field_dict1T
+    {};
+    struct Field_list1T
+    {};
     using Key = Fields;
 };
 
@@ -2447,6 +2495,10 @@ template <> struct Stencil::TypeTraitsForIndexable<Objects::SelfNested>
 ,        Field_self
     };
 
+    struct Field_obj1T
+    {};
+    struct Field_selfT
+    {};
     using Key = Fields;
 };
 

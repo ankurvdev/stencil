@@ -32,7 +32,7 @@ find_package(RapidJSON QUIET)
 find_package(date REQUIRED QUIET)
 # Optional
 find_package(httplib QUIET)
-find_package(Boost COMPONENTS beast url) # beast is header only. Components are for non-header libs
+find_package(Boost QUIET COMPONENTS beast url) # beast is header only. Components are for non-header libs
 
 if (TARGET stduuid)
     target_link_libraries(stencil_runtime INTERFACE stduuid)
