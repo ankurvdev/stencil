@@ -98,17 +98,17 @@ template <typename T> struct shared_stringT
     bool operator<(const TStringView& str) const { return *(_str.get()) < str; }
     */
 
-    shared_stringT                     operator+(const shared_stringT& str) const { return make(*_str.get() + *str.get()); }
+    shared_stringT                     operator+(const shared_stringT& str) const { return make(*_str.get() + *str._str.get()); }
     template <size_t N> shared_stringT operator+(T const (&str)[N]) const { return make(*_str.get() + str); }
 
     shared_stringT  operator+(const std::basic_string_view<T>& str) const { return make(*_str.get() + std::basic_string<T>(str)); }
     shared_stringT& operator+=(const shared_stringT& str)
     {
-        if (_str.get() == nullptr || str.get() == nullptr)
+        if (_str.get() == nullptr || str._str.get() == nullptr)
         {
             if (_str.get() == nullptr) { *this = str; }
         }
-        else { (*_str.get() += *str.get()); }
+        else { (*_str.get() += *str._str.get()); }
 
         return *this;
     }

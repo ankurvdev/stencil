@@ -29,7 +29,7 @@ template <typename T> struct UuidBasedId
     template <typename TStr> static constexpr UuidBasedId<T> FromString(TStr const& str)
     {
         UuidBasedId<T> uuid;
-        uuid.guid = uuids::uuid(str);
+        uuid.uuid = uuids::uuid(str);
     }
 
     public:
