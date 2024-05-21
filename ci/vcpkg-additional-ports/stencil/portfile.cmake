@@ -1,8 +1,8 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO ankurvdev/stencil
-    REF "0df3c0b59759f3c63b832c1de2b35a0fabe12d0e"
-    SHA512 8ddec1eee4ecd1ac8643f9f6b55e6510e7d5bd4b3f473c6a10cec38fba46c2bd7163d4644d0a48e11756927ba27f2ccf871609478f1dcddd72e984e1c770a074
+    REF "643d80a603dfe4e5bc61bcf586568a89a4d1b664"
+    SHA512 2010de57a3628358c18a79f6357ca781d96d18edeec48a1a223fd7a280e32e3f14055f121c6b52ce6d12397e375d32e6f95cd475924644a103299dd8ce8c1e27
     HEAD_REF main)
 
 vcpkg_cmake_configure(
