@@ -138,7 +138,52 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>
 ,        Field_User
     };
 
+    struct Field_ProductIdT
+    {};
+    struct Field_RepairT
+    {};
+    struct Field_ForceNonSDT
+    {};
+    struct Field_TargetVolumeT
+    {};
+    struct Field_UserT
+    {};
     using Key = Fields;
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Description,
+                          Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_ProductIdT>
+{
+    static auto Value() { return "Catalog/Product:Sku:Bundle"; }
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Description,
+                          Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_RepairT>
+{
+    static auto Value() { return "Repair existing installated product"; }
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Description,
+                          Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_ForceNonSDT>
+{
+    static auto Value() { return "Force installation to non SD"; }
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Description,
+                          Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_TargetVolumeT>
+{
+    static auto Value() { return "Target Volume"; }
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Description,
+                          Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_UserT>
+{
+    static auto Value() { return "User to install for"; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Fields>
@@ -556,7 +601,16 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>
         Field_ProductId
     };
 
+    struct Field_ProductIdT
+    {};
     using Key = Fields;
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Description,
+                          Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::Field_ProductIdT>
+{
+    static auto Value() { return "Catalog/Product:Sku:Bundle"; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::Fields>
@@ -806,7 +860,16 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>
         Field_ProductId
     };
 
+    struct Field_ProductIdT
+    {};
     using Key = Fields;
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Description,
+                          Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::Field_ProductIdT>
+{
+    static auto Value() { return "Catalog/Product:Sku:Bundle"; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::Fields>
@@ -1056,7 +1119,16 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>
         Field_ProductId
     };
 
+    struct Field_ProductIdT
+    {};
     using Key = Fields;
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Description,
+                          Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::Field_ProductIdT>
+{
+    static auto Value() { return "Catalog/Product:Sku:Bundle"; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::Fields>
@@ -1306,7 +1378,16 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>
         Field_ProductId
     };
 
+    struct Field_ProductIdT
+    {};
     using Key = Fields;
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Description,
+                          Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Field_ProductIdT>
+{
+    static auto Value() { return "Catalog/Product:Sku:Bundle"; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Fields>
@@ -1556,7 +1637,16 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>
         Field_ProductId
     };
 
+    struct Field_ProductIdT
+    {};
     using Key = Fields;
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Description,
+                          Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Field_ProductIdT>
+{
+    static auto Value() { return "Catalog/Product:Sku:Bundle"; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Fields>
@@ -1806,7 +1896,16 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>
         Field_ProductId
     };
 
+    struct Field_ProductIdT
+    {};
     using Key = Fields;
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Description,
+                          Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Field_ProductIdT>
+{
+    static auto Value() { return "Catalog/Product:Sku:Bundle"; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Fields>
@@ -2121,7 +2220,7 @@ template <> struct Stencil::Visitor<CLOpts2::CommandLineOptions>
 
     template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda)
     {
-        auto fieldType = static_cast<Fields>(obj.index());
+        auto fieldType = static_cast<Fields>(obj._variant.index());
         std::visit([&](auto&& arg) { lambda(fieldType, arg); }, obj._variant);
     }
 };

@@ -132,6 +132,30 @@ template <> struct Stencil::TypeTraitsForIndexable<EnumConstsInitializers::Defau
 ,        Field_val9
     };
 
+    struct Field_enum1T
+    {};
+    struct Field_enum2T
+    {};
+    struct Field_enum3T
+    {};
+    struct Field_enum4T
+    {};
+    struct Field_val1T
+    {};
+    struct Field_val2T
+    {};
+    struct Field_val3T
+    {};
+    struct Field_val4T
+    {};
+    struct Field_val5T
+    {};
+    struct Field_val6T
+    {};
+    struct Field_val7T
+    {};
+    struct Field_val9T
+    {};
     using Key = Fields;
 };
 

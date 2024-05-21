@@ -30,6 +30,8 @@ struct CommandLineOptions :
     std::vector<shared_string> scan = {};
     int32_t httpsPort = 3443;
     bool daemon = 0;
+    bool quiet = 1;
+    shared_string out_dir = ".";
 };
 struct SimpleObj :
     public Stencil::StructT<SimpleObj>
@@ -77,9 +79,123 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>
 ,        Field_scan
 ,        Field_httpsPort
 ,        Field_daemon
+,        Field_quiet
+,        Field_out_dir
     };
 
+    struct Field_workingDirectoryT
+    {};
+    struct Field_librariesT
+    {};
+    struct Field_scanT
+    {};
+    struct Field_httpsPortT
+    {};
+    struct Field_daemonT
+    {};
+    struct Field_quietT
+    {};
+    struct Field_out_dirT
+    {};
     using Key = Fields;
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Description,
+                          Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_workingDirectoryT>
+{
+    static auto Value() { return "Location of path where it'll store its database and other info"; }
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Name1,
+                          Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_workingDirectoryT>
+{
+    static auto Value() { return "Working Directory"; }
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Description,
+                          Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_librariesT>
+{
+    static auto Value() { return "Locations of Directories to store files"; }
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Name1,
+                          Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_librariesT>
+{
+    static auto Value() { return "Library Directories"; }
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Description,
+                          Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_scanT>
+{
+    static auto Value() { return "List of Directories to scan for Document files"; }
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Name1,
+                          Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_scanT>
+{
+    static auto Value() { return "Scan Directories"; }
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Description,
+                          Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_httpsPortT>
+{
+    static auto Value() { return "TCP port on which to listen for incoming HTTP connections"; }
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Name1,
+                          Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_httpsPortT>
+{
+    static auto Value() { return "Listen Port"; }
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Description,
+                          Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_daemonT>
+{
+    static auto Value() { return "Run as daemon"; }
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Name1,
+                          Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_daemonT>
+{
+    static auto Value() { return "Run as Daemon"; }
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Description,
+                          Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_quietT>
+{
+    static auto Value() { return "Run Quietly"; }
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Name1,
+                          Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_quietT>
+{
+    static auto Value() { return "Run Quietly"; }
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Description,
+                          Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_out_dirT>
+{
+    static auto Value() { return "Location of the output directory"; }
+};
+
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::Name1,
+                          Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_out_dirT>
+{
+    static auto Value() { return "Output Directory"; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Fields>
@@ -94,6 +210,8 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts1::
 ,        "scan"
 ,        "httpsPort"
 ,        "daemon"
+,        "quiet"
+,        "out_dir"
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
@@ -120,6 +238,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         ElemTxnState scan = {Fields::Field_scan};
         ElemTxnState httpsPort = {Fields::Field_httpsPort};
         ElemTxnState daemon = {Fields::Field_daemon};
+        ElemTxnState quiet = {Fields::Field_quiet};
+        ElemTxnState out_dir = {Fields::Field_out_dir};
     };
 
     using Txn               = Stencil::Transaction<CLOpts1::CommandLineOptions, TContainer>;
@@ -131,6 +251,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     using Transaction_scan = Stencil::Transaction<std::vector<shared_string>, Txn>;
     using Transaction_httpsPort = Stencil::Transaction<int32_t, Txn>;
     using Transaction_daemon = Stencil::Transaction<bool, Txn>;
+    using Transaction_quiet = Stencil::Transaction<bool, Txn>;
+    using Transaction_out_dir = Stencil::Transaction<shared_string, Txn>;
     struct TxnState
     {
         std::bitset<64> assigntracker;    // TODO1
@@ -140,6 +262,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         typename Transaction_scan::TxnState scan{};
         typename Transaction_httpsPort::TxnState httpsPort{};
         typename Transaction_daemon::TxnState daemon{};
+        typename Transaction_quiet::TxnState quiet{};
+        typename Transaction_out_dir::TxnState out_dir{};
     };
 
     Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
@@ -230,6 +354,26 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
             auto txn = daemon();
             lambda(Fields::Field_daemon, uint8_t{3u}, uint32_t{0u}, txn);
         }
+        if (_IsFieldAssigned(Fields::Field_quiet))
+        {
+            auto txn = quiet();
+            lambda(Fields::Field_quiet, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_quiet))
+        {
+            auto txn = quiet();
+            lambda(Fields::Field_quiet, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_out_dir))
+        {
+            auto txn = out_dir();
+            lambda(Fields::Field_out_dir, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_out_dir))
+        {
+            auto txn = out_dir();
+            lambda(Fields::Field_out_dir, uint8_t{3u}, uint32_t{0u}, txn);
+        }
     }
 
     void Assign(ElemType&& elem)
@@ -275,6 +419,16 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     auto daemon()
     {
         return Stencil::CreateTransaction<Transaction_daemon>(_elemState.daemon, _txnStateForElem.daemon, *this, _elem.daemon);
+    }
+
+    auto quiet()
+    {
+        return Stencil::CreateTransaction<Transaction_quiet>(_elemState.quiet, _txnStateForElem.quiet, *this, _elem.quiet);
+    }
+
+    auto out_dir()
+    {
+        return Stencil::CreateTransaction<Transaction_out_dir>(_elemState.out_dir, _txnStateForElem.out_dir, *this, _elem.out_dir);
     }
 
     void set_workingDirectory(shared_string&& val)
@@ -343,6 +497,18 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         subtxn.Assign(std::forward<bool>(val));
     }
 
+    void set_quiet(bool&& val)
+    {
+        auto subtxn = quiet();
+        subtxn.Assign(std::forward<bool>(val));
+    }
+
+    void set_out_dir(shared_string&& val)
+    {
+        auto subtxn = out_dir();
+        subtxn.Assign(std::forward<shared_string>(val));
+    }
+
     template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
     {
         switch (index)
@@ -370,6 +536,16 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         case Fields::Field_daemon:
         {
             auto txn = daemon();
+            return lambda(txn);
+        }
+        case Fields::Field_quiet:
+        {
+            auto txn = quiet();
+            return lambda(txn);
+        }
+        case Fields::Field_out_dir:
+        {
+            auto txn = out_dir();
             return lambda(txn);
         }
         case Fields::Invalid: [[fallthrough]];
@@ -404,6 +580,14 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
             auto txn = daemon();
             lambda(Fields::Field_daemon, txn, Elem().daemon);
         }
+        {
+            auto txn = quiet();
+            lambda(Fields::Field_quiet, txn, Elem().quiet);
+        }
+        {
+            auto txn = out_dir();
+            lambda(Fields::Field_out_dir, txn, Elem().out_dir);
+        }
     }
 };
 
@@ -421,6 +605,8 @@ template <> struct Stencil::Visitor<CLOpts1::CommandLineOptions> : Stencil::Visi
         case Fields::Field_scan: return lambda(obj.scan);
         case Fields::Field_httpsPort: return lambda(obj.httpsPort);
         case Fields::Field_daemon: return lambda(obj.daemon);
+        case Fields::Field_quiet: return lambda(obj.quiet);
+        case Fields::Field_out_dir: return lambda(obj.out_dir);
         case Fields::Invalid: [[fallthrough]];
         default: throw std::logic_error("Invalid Key");
         }
@@ -433,6 +619,8 @@ template <> struct Stencil::Visitor<CLOpts1::CommandLineOptions> : Stencil::Visi
         lambda(Fields::Field_scan, obj.scan);
         lambda(Fields::Field_httpsPort, obj.httpsPort);
         lambda(Fields::Field_daemon, obj.daemon);
+        lambda(Fields::Field_quiet, obj.quiet);
+        lambda(Fields::Field_out_dir, obj.out_dir);
     }
 };
 
@@ -447,6 +635,8 @@ template <> struct Stencil::Comparator<CLOpts1::CommandLineOptions, CLOpts1::Com
                && Stencil::AreEqual(obj1.scan, obj2.scan)
                && Stencil::AreEqual(obj1.httpsPort, obj2.httpsPort)
                && Stencil::AreEqual(obj1.daemon, obj2.daemon)
+               && Stencil::AreEqual(obj1.quiet, obj2.quiet)
+               && Stencil::AreEqual(obj1.out_dir, obj2.out_dir)
             ;
     }
 };
@@ -461,6 +651,8 @@ struct Stencil::Database::Record<CLOpts1::CommandLineOptions> :
     Stencil::Database::RecordNest<std::vector<shared_string>>::Type scan{};
     Stencil::Database::RecordNest<int32_t>::Type httpsPort{};
     Stencil::Database::RecordNest<bool>::Type daemon{};
+    Stencil::Database::RecordNest<bool>::Type quiet{};
+    Stencil::Database::RecordNest<shared_string>::Type out_dir{};
 };
 
 template <> struct Stencil::Database::RecordTraits<CLOpts1::CommandLineOptions>
@@ -471,6 +663,8 @@ template <> struct Stencil::Database::RecordTraits<CLOpts1::CommandLineOptions>
         typename Stencil::Database::RecordTraits<std::vector<shared_string>>::RecordTypes,
         typename Stencil::Database::RecordTraits<int32_t>::RecordTypes,
         typename Stencil::Database::RecordTraits<bool>::RecordTypes,
+        typename Stencil::Database::RecordTraits<bool>::RecordTypes,
+        typename Stencil::Database::RecordTraits<shared_string>::RecordTypes,
         std::tuple<CLOpts1::CommandLineOptions>>;
 
     static constexpr size_t Size() { return sizeof(Stencil::Database::Record<CLOpts1::CommandLineOptions>); }
@@ -486,6 +680,8 @@ template <> struct Stencil::Database::RecordTraits<CLOpts1::CommandLineOptions>
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.scan, rec.scan);
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.httpsPort, rec.httpsPort);
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.daemon, rec.daemon);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.quiet, rec.quiet);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.out_dir, rec.out_dir);
     }
 };
 
@@ -505,6 +701,8 @@ struct Stencil::Visitor<Stencil::Database::Record<CLOpts1::CommandLineOptions>>
         case Fields::Field_scan: return lambda(obj.scan);
         case Fields::Field_httpsPort: return lambda(obj.httpsPort);
         case Fields::Field_daemon: return lambda(obj.daemon);
+        case Fields::Field_quiet: return lambda(obj.quiet);
+        case Fields::Field_out_dir: return lambda(obj.out_dir);
         case Fields::Invalid: [[fallthrough]];
         default: throw std::logic_error("Invalid Key");
         }
@@ -517,6 +715,8 @@ struct Stencil::Visitor<Stencil::Database::Record<CLOpts1::CommandLineOptions>>
         lambda(Fields::Field_scan, obj.scan);
         lambda(Fields::Field_httpsPort, obj.httpsPort);
         lambda(Fields::Field_daemon, obj.daemon);
+        lambda(Fields::Field_quiet, obj.quiet);
+        lambda(Fields::Field_out_dir, obj.out_dir);
     }
 };
 
@@ -534,6 +734,10 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>
 ,        Field_field2
     };
 
+    struct Field_field1T
+    {};
+    struct Field_field2T
+    {};
     using Key = Fields;
 };
 
@@ -826,6 +1030,8 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>
         Field_field1
     };
 
+    struct Field_field1T
+    {};
     using Key = Fields;
 };
 
@@ -1099,6 +1305,18 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>
 ,        Field_key2
     };
 
+    struct Field_key1T
+    {};
+    struct Field_listofintT
+    {};
+    struct Field_listoflistT
+    {};
+    struct Field_listofobjT
+    {};
+    struct Field_objoflistT
+    {};
+    struct Field_key2T
+    {};
     using Key = Fields;
 };
 
