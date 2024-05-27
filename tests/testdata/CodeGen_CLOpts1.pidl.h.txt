@@ -383,7 +383,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         _container.NotifyElementAssigned_(_containerState);
     }
 
-    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
+    // void Assign(ElemType const& /* elem */);
     void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
 
     template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
@@ -856,7 +856,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         _container.NotifyElementAssigned_(_containerState);
     }
 
-    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
+    // void Assign(ElemType const& /* elem */);
     void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
 
     template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
@@ -1136,7 +1136,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         _container.NotifyElementAssigned_(_containerState);
     }
 
-    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
+    // void Assign(ElemType const& /* elem */);
     void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
 
     template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
@@ -1491,7 +1491,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         _container.NotifyElementAssigned_(_containerState);
     }
 
-    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
+    // void Assign(ElemType const& /* elem */);
     void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
 
     template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }

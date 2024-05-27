@@ -314,7 +314,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
         _container.NotifyElementAssigned_(_containerState);
     }
 
-    void Assign(ElemType const& /* elem */) { TODO("DoNotCommit"); }
+    // void Assign(ElemType const& /* elem */);
     void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
 
     template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
@@ -557,7 +557,7 @@ struct zzInterface_Namezz : public Stencil::InterfaceT<zzInterface_Namezz>
         //</Args_Field>
     };
 
-    zzReturnType_NativeTypezz zzInterfaceFunction_Namezz(Args_zzInterfaceFunction_Namezz const& args)
+    zzReturnType_NativeTypezz zzInterfaceFunction_Namezz([[maybe_unused]] Args_zzInterfaceFunction_Namezz const& args)
     {
         return this->zzInterfaceFunction_Namezz(
             //<Args_Field Join=','>
@@ -566,7 +566,7 @@ struct zzInterface_Namezz : public Stencil::InterfaceT<zzInterface_Namezz>
         );
     }
 
-    zzReturnType_NativeTypezz zzInterfaceFunction_Namezz(Args_zzInterfaceFunction_Namezz&& args)
+    zzReturnType_NativeTypezz zzInterfaceFunction_Namezz([[maybe_unused]] Args_zzInterfaceFunction_Namezz&& args)
     {
         return this->zzInterfaceFunction_Namezz(
             //<Args_Field Join=','>
@@ -697,7 +697,7 @@ template <> struct Stencil::InterfaceApiTraits<zzProgram_Namezz::zzInterface_Nam
     static constexpr bool             IsStatic() { return false; }
     static constexpr std::string_view Name() { return "zzNamezz"; }
 
-    static auto Invoke(zzProgram_Namezz::zzInterface_Namezz& instance, ArgsStruct& args)
+    static auto Invoke(zzProgram_Namezz::zzInterface_Namezz& instance, [[maybe_unused]] ArgsStruct& args)
     {
         return instance.zzNamezz(
             //<Args_Field Join=','>
