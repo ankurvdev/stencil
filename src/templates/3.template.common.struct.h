@@ -120,6 +120,13 @@ struct zzVariant_Namezz : public Stencil::VariantT<zzVariant_Namezz>
         //</Field>
     };
 
+    struct Variant_Invalid
+    {};
+    //<Field>
+    struct Variant_zzNamezzT
+    {};
+    //</Field>
+
     VariantType Type() const { return static_cast<VariantType>(_variant.index()); }
 
     //<Field>
@@ -189,6 +196,43 @@ template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Na
 
     using Key = Fields;
 };
+//<Field>
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Field_zzField_NamezzT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Field_zzField_NamezzT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "zzNamezz"); }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        std::string_view name = "zzNamezz";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Field_zzField_NamezzT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Field_zzField_NamezzT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_zzNamezz);
+    }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_zzNamezz) { throw std::invalid_argument("Invalid"); }
+    }
+};
+//</Field>
 
 //<Field>
 //<Attribute>
@@ -224,7 +268,9 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram
 
 template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TContainer>
 {
-    using Fields = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>;
+
+    using Fields = Traits::Fields;
 
     struct ElemTxnState
     {
@@ -377,7 +423,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
         //<Field>
         {
             auto txn = zzNamezz();
-            lambda(Fields::Field_zzNamezz, txn, Elem().zzNamezz);
+            lambda(Traits::Field_zzNamezzT{}, txn, Elem().zzNamezz);
         }
         //</Field>
     }
@@ -386,7 +432,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
 template <> struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz> : Stencil::VisitorT<zzProgram_Namezz::zzStruct_Namezz>
 {
     using TData  = zzProgram_Namezz::zzStruct_Namezz;
-    using Fields = TypeTraitsForIndexable<TData>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -403,7 +450,7 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz> : Stencil
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         //<Field>
-        lambda(Fields::Field_zzNamezz, obj.zzNamezz);
+        lambda(Traits::Field_zzNamezzT{}, obj.zzNamezz);
         //</Field>
     }
 };
@@ -469,8 +516,9 @@ template <>
 struct Stencil::Visitor<Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz>>
     : Stencil::VisitorT<Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz>>
 {
-    using TData  = Stencil::Database::Record<zzProgram_Namezz::zzStruct_Namezz>;
-    using Fields = TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields;
+    using TData  = zzProgram_Namezz::zzStruct_Namezz;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -487,7 +535,7 @@ struct Stencil::Visitor<Stencil::Database::Record<zzProgram_Namezz::zzStruct_Nam
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         //<Field>
-        lambda(Fields::Field_zzNamezz, obj.zzNamezz);
+        lambda(Traits::Field_zzNamezzT{}, obj.zzNamezz);
         //</Field>
     }
 };
@@ -623,6 +671,10 @@ template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface
         //</Args_Field>
     };
 
+    //<Args_Field>
+    struct Field_arg_zzNamezzT
+    {};
+    //</Args_Field>
     using Key = Fields;
 };
 
@@ -654,7 +706,8 @@ struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFu
     : Stencil::VisitorT<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
 {
     using TData  = zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz;
-    using Fields = TypeTraitsForIndexable<TData>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -666,6 +719,15 @@ struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFu
         case Fields::Invalid: [[fallthrough]];
         default: throw std::logic_error("Invalid Key");
         }
+    }
+
+    template <typename T, typename TField, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda&& lambda)
+    {
+        //<Args_Field>
+        if constexpr (std::is_same_v<TField, typename Traits::Field_arg_zzNamezzT>) { return lambda(obj.zzNamezz); }
+        //</Args_Field>
+        throw std::logic_error("Invalid Key");
     }
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
@@ -724,6 +786,11 @@ template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface
         //</Args_Field>
     };
 
+    //<Args_Field>
+    struct Field_arg_zzNamezzT
+    {};
+    //</Args_Field>
+
     using Key = Fields;
 };
 
@@ -755,7 +822,8 @@ struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEv
     : Stencil::VisitorT<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>
 {
     using TData  = zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz;
-    using Fields = TypeTraitsForIndexable<TData>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -767,6 +835,15 @@ struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEv
         case Fields::Invalid: [[fallthrough]];
         default: throw std::logic_error("Invalid Key");
         }
+    }
+
+    template <typename T, typename TField, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda&& lambda)
+    {
+        //<Args_Field>
+        if constexpr (std::is_same_v<TField, typename Traits::Field_arg_zzNamezzT>) { return lambda(obj.zzNamezz); }
+        //</Args_Field>
+        throw std::logic_error("Invalid Key");
     }
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
@@ -862,6 +939,38 @@ template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzVariant_N
     using Key    = zzProgram_Namezz::zzVariant_Namezz::VariantType;
     using Fields = Key;
 };
+//<Field>
+template <> struct Stencil::SerDes<zzProgram_Namezz::zzVariant_Namezz::Variant_zzNamezzT, Stencil::ProtocolString>
+{
+    using T = zzProgram_Namezz::zzVariant_Namezz::Variant_zzNamezzT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "zzNamezz"); }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        std::string_view name = "zzNamezz";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <> struct Stencil::SerDes<zzProgram_Namezz::zzVariant_Namezz::Variant_zzNamezzT, Stencil::ProtocolBinary>
+{
+    using Fields = zzProgram_Namezz::zzVariant_Namezz::VariantType;
+    using T      = zzProgram_Namezz::zzVariant_Namezz::Variant_zzNamezzT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { ctx << static_cast<uint32_t>(Fields::zzNamezz); }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::zzNamezz) { throw std::invalid_argument("Invalid"); }
+    }
+};
+//</Field>
 
 template <> struct Stencil::EnumTraits<zzProgram_Namezz::zzVariant_Namezz::VariantType>
 {
@@ -885,8 +994,8 @@ template <> struct Stencil::EnumTraits<zzProgram_Namezz::zzVariant_Namezz::Varia
 
 template <> struct Stencil::Visitor<zzProgram_Namezz::zzVariant_Namezz>
 {
-    using Fields = zzProgram_Namezz::zzVariant_Namezz::VariantType;
-
+    using Fields  = zzProgram_Namezz::zzVariant_Namezz::VariantType;
+    using Variant = zzProgram_Namezz::zzVariant_Namezz;
     template <typename TType, typename TObj, typename TLambda> static void _SetAndVisit(TObj& obj, TLambda&& lambda)
     {
         using Type = std::remove_cvref_t<TType>;
@@ -908,10 +1017,25 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzVariant_Namezz>
         }
     }
 
+    template <typename T, typename TField, typename TLambda> static void VisitKey(T& obj, TField /* field */, TLambda&& lambda)
+    {
+        //<Field>
+        if constexpr (std::is_same_v<TField, Variant::Variant_zzNamezzT>)
+        {
+            _SetAndVisit<zzFieldType_NativeTypezz>(obj._variant, std::forward<TLambda>(lambda));
+        }
+        //</Field>
+    }
+
     template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda)
     {
-        auto fieldType = static_cast<Fields>(obj._variant.index());
-        std::visit([&](auto&& arg) { lambda(fieldType, arg); }, obj._variant);
+        // auto fieldType = static_cast<Fields>(obj._variant.index());
+        //<Field>
+        if (std::holds_alternative<zzFieldType_NativeTypezz>(obj._variant))
+        {
+            lambda(Variant::Variant_zzNamezzT{}, std::get<zzFieldType_NativeTypezz>(obj._variant));
+        }
+        //</Field>
     }
 };
 

@@ -193,5 +193,5 @@ def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str, clean
         )
 
 
-#test_vcpkg_build("Debug", host_triplet, runtime_triplet, clean=args.clean)
+test_vcpkg_build("Debug", host_triplet, runtime_triplet, clean=args.clean)
 test_vcpkg_build("Release", host_triplet, runtime_triplet, clean=args.clean)

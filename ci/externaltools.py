@@ -40,7 +40,7 @@ URLS["cmake_Windows_arm64"] = {
 }
 
 URLS["patch_Windows_x64"] = ""
-URLS["gradle_Linux_x64"] = URLS["gradle_Windows_x64"] = "https://services.gradle.org/distributions/gradle-8.0-bin.zip"
+URLS["gradle_Linux_x64"] = URLS["gradle_Windows_x64"] = "https://services.gradle.org/distributions/gradle-8.6-bin.zip"
 URLS["flexbison_Windows_x64"] = "https://github.com/lexxmark/winflexbison/releases/download/v2.5.25/win_flex_bison-2.5.25.zip"
 URLS["ninja_Windows_x64"] = "https://github.com/ninja-build/ninja/releases/latest/download/ninja-win.zip"
 URLS["ninja_Windows_arm64"] = "https://github.com/ninja-build/ninja/releases/latest/download/ninja-winarm64.zip"
@@ -414,6 +414,10 @@ def init_envvars_from_file(
             fpath = fpath if fpath.is_absolute() else get_bin_path() / fpath
             if fpath.exists():
                 outinfo[k] = fpath
+            else:
+                outinfo[k] = v
+        else:
+            outinfo[k] = v
     return outinfo
 
 
@@ -718,6 +722,20 @@ def init_toolchain(
     environ: dict[str, str] | _Environ[str] | None = None,
     expiry: int = 30,
 ) -> dict[str, str | Path | _Environ[str] | dict[str, Path]]:
+    mapping = {
+        "and": "android",
+        "android": "android",
+        "mingw": "mingw",
+        "msvc": "msvc",
+        "ms": "msvc",
+        "vs": "visualstudio",
+        "uwp": "visualstudio",
+        "visualstudio": "visualstudio",
+        "wasm": "emscripten",
+        "emscripten": "emscripten",
+    }
+    toolchain = mapping.get(toolchain, toolchain)
+
     envvarsf = get_bin_path() / f"toolchain_{toolchain}.json"
     now = datetime.datetime.now(tz=datetime.timezone.utc)
     if not envvarsf.exists() or (now - datetime.datetime.fromtimestamp(envvarsf.stat().st_mtime, tz=datetime.timezone.utc)).days > expiry:

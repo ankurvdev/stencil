@@ -99,7 +99,251 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>
     {};
     using Key = Fields;
 };
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_workingDirectoryT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_workingDirectoryT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "workingDirectory"); }
 
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        std::string_view name = "workingDirectory";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_workingDirectoryT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_workingDirectoryT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_workingDirectory);
+    }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_workingDirectory) { throw std::invalid_argument("Invalid"); }
+    }
+};
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_librariesT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_librariesT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "libraries"); }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        std::string_view name = "libraries";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_librariesT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_librariesT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_libraries);
+    }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_libraries) { throw std::invalid_argument("Invalid"); }
+    }
+};
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_scanT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_scanT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "scan"); }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        std::string_view name = "scan";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_scanT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_scanT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_scan);
+    }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_scan) { throw std::invalid_argument("Invalid"); }
+    }
+};
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_httpsPortT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_httpsPortT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "httpsPort"); }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        std::string_view name = "httpsPort";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_httpsPortT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_httpsPortT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_httpsPort);
+    }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_httpsPort) { throw std::invalid_argument("Invalid"); }
+    }
+};
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_daemonT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_daemonT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "daemon"); }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        std::string_view name = "daemon";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_daemonT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_daemonT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_daemon);
+    }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_daemon) { throw std::invalid_argument("Invalid"); }
+    }
+};
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_quietT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_quietT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "quiet"); }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        std::string_view name = "quiet";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_quietT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_quietT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_quiet);
+    }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_quiet) { throw std::invalid_argument("Invalid"); }
+    }
+};
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_out_dirT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_out_dirT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "out_dir"); }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        std::string_view name = "out_dir";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_out_dirT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_out_dirT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_out_dir);
+    }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_out_dir) { throw std::invalid_argument("Invalid"); }
+    }
+};
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_workingDirectoryT>
@@ -224,7 +468,9 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts1::
 
 template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CLOpts1::CommandLineOptions, TContainer>
 {
-    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>;
+
+    using Fields = Traits::Fields;
 
     struct ElemTxnState
     {
@@ -562,31 +808,31 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     {
         {
             auto txn = workingDirectory();
-            lambda(Fields::Field_workingDirectory, txn, Elem().workingDirectory);
+            lambda(Traits::Field_workingDirectoryT{}, txn, Elem().workingDirectory);
         }
         {
             auto txn = libraries();
-            lambda(Fields::Field_libraries, txn, Elem().libraries);
+            lambda(Traits::Field_librariesT{}, txn, Elem().libraries);
         }
         {
             auto txn = scan();
-            lambda(Fields::Field_scan, txn, Elem().scan);
+            lambda(Traits::Field_scanT{}, txn, Elem().scan);
         }
         {
             auto txn = httpsPort();
-            lambda(Fields::Field_httpsPort, txn, Elem().httpsPort);
+            lambda(Traits::Field_httpsPortT{}, txn, Elem().httpsPort);
         }
         {
             auto txn = daemon();
-            lambda(Fields::Field_daemon, txn, Elem().daemon);
+            lambda(Traits::Field_daemonT{}, txn, Elem().daemon);
         }
         {
             auto txn = quiet();
-            lambda(Fields::Field_quiet, txn, Elem().quiet);
+            lambda(Traits::Field_quietT{}, txn, Elem().quiet);
         }
         {
             auto txn = out_dir();
-            lambda(Fields::Field_out_dir, txn, Elem().out_dir);
+            lambda(Traits::Field_out_dirT{}, txn, Elem().out_dir);
         }
     }
 };
@@ -594,7 +840,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 template <> struct Stencil::Visitor<CLOpts1::CommandLineOptions> : Stencil::VisitorT<CLOpts1::CommandLineOptions>
 {
     using TData  = CLOpts1::CommandLineOptions;
-    using Fields = TypeTraitsForIndexable<TData>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -614,13 +861,13 @@ template <> struct Stencil::Visitor<CLOpts1::CommandLineOptions> : Stencil::Visi
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        lambda(Fields::Field_workingDirectory, obj.workingDirectory);
-        lambda(Fields::Field_libraries, obj.libraries);
-        lambda(Fields::Field_scan, obj.scan);
-        lambda(Fields::Field_httpsPort, obj.httpsPort);
-        lambda(Fields::Field_daemon, obj.daemon);
-        lambda(Fields::Field_quiet, obj.quiet);
-        lambda(Fields::Field_out_dir, obj.out_dir);
+        lambda(Traits::Field_workingDirectoryT{}, obj.workingDirectory);
+        lambda(Traits::Field_librariesT{}, obj.libraries);
+        lambda(Traits::Field_scanT{}, obj.scan);
+        lambda(Traits::Field_httpsPortT{}, obj.httpsPort);
+        lambda(Traits::Field_daemonT{}, obj.daemon);
+        lambda(Traits::Field_quietT{}, obj.quiet);
+        lambda(Traits::Field_out_dirT{}, obj.out_dir);
     }
 };
 
@@ -689,8 +936,9 @@ template <>
 struct Stencil::Visitor<Stencil::Database::Record<CLOpts1::CommandLineOptions>>
     : Stencil::VisitorT<Stencil::Database::Record<CLOpts1::CommandLineOptions>>
 {
-    using TData  = Stencil::Database::Record<CLOpts1::CommandLineOptions>;
-    using Fields = TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Fields;
+    using TData  = CLOpts1::CommandLineOptions;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -710,13 +958,13 @@ struct Stencil::Visitor<Stencil::Database::Record<CLOpts1::CommandLineOptions>>
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        lambda(Fields::Field_workingDirectory, obj.workingDirectory);
-        lambda(Fields::Field_libraries, obj.libraries);
-        lambda(Fields::Field_scan, obj.scan);
-        lambda(Fields::Field_httpsPort, obj.httpsPort);
-        lambda(Fields::Field_daemon, obj.daemon);
-        lambda(Fields::Field_quiet, obj.quiet);
-        lambda(Fields::Field_out_dir, obj.out_dir);
+        lambda(Traits::Field_workingDirectoryT{}, obj.workingDirectory);
+        lambda(Traits::Field_librariesT{}, obj.libraries);
+        lambda(Traits::Field_scanT{}, obj.scan);
+        lambda(Traits::Field_httpsPortT{}, obj.httpsPort);
+        lambda(Traits::Field_daemonT{}, obj.daemon);
+        lambda(Traits::Field_quietT{}, obj.quiet);
+        lambda(Traits::Field_out_dirT{}, obj.out_dir);
     }
 };
 
@@ -740,7 +988,76 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>
     {};
     using Key = Fields;
 };
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>::Field_field1T, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>::Field_field1T;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "field1"); }
 
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        std::string_view name = "field1";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>::Field_field1T, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>::Field_field1T;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_field1);
+    }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_field1) { throw std::invalid_argument("Invalid"); }
+    }
+};
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>::Field_field2T, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>::Field_field2T;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "field2"); }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        std::string_view name = "field2";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>::Field_field2T, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>::Field_field2T;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_field2);
+    }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_field2) { throw std::invalid_argument("Invalid"); }
+    }
+};
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>::Fields;
@@ -762,7 +1079,9 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts1::
 
 template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CLOpts1::SimpleObj, TContainer>
 {
-    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>;
+
+    using Fields = Traits::Fields;
 
     struct ElemTxnState
     {
@@ -919,11 +1238,11 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     {
         {
             auto txn = field1();
-            lambda(Fields::Field_field1, txn, Elem().field1);
+            lambda(Traits::Field_field1T{}, txn, Elem().field1);
         }
         {
             auto txn = field2();
-            lambda(Fields::Field_field2, txn, Elem().field2);
+            lambda(Traits::Field_field2T{}, txn, Elem().field2);
         }
     }
 };
@@ -931,7 +1250,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 template <> struct Stencil::Visitor<CLOpts1::SimpleObj> : Stencil::VisitorT<CLOpts1::SimpleObj>
 {
     using TData  = CLOpts1::SimpleObj;
-    using Fields = TypeTraitsForIndexable<TData>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -946,8 +1266,8 @@ template <> struct Stencil::Visitor<CLOpts1::SimpleObj> : Stencil::VisitorT<CLOp
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        lambda(Fields::Field_field1, obj.field1);
-        lambda(Fields::Field_field2, obj.field2);
+        lambda(Traits::Field_field1T{}, obj.field1);
+        lambda(Traits::Field_field2T{}, obj.field2);
     }
 };
 
@@ -996,8 +1316,9 @@ template <>
 struct Stencil::Visitor<Stencil::Database::Record<CLOpts1::SimpleObj>>
     : Stencil::VisitorT<Stencil::Database::Record<CLOpts1::SimpleObj>>
 {
-    using TData  = Stencil::Database::Record<CLOpts1::SimpleObj>;
-    using Fields = TypeTraitsForIndexable<CLOpts1::SimpleObj>::Fields;
+    using TData  = CLOpts1::SimpleObj;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -1012,8 +1333,8 @@ struct Stencil::Visitor<Stencil::Database::Record<CLOpts1::SimpleObj>>
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        lambda(Fields::Field_field1, obj.field1);
-        lambda(Fields::Field_field2, obj.field2);
+        lambda(Traits::Field_field1T{}, obj.field1);
+        lambda(Traits::Field_field2T{}, obj.field2);
     }
 };
 
@@ -1034,7 +1355,41 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>
     {};
     using Key = Fields;
 };
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>::Field_field1T, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>::Field_field1T;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "field1"); }
 
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        std::string_view name = "field1";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>::Field_field1T, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>::Field_field1T;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_field1);
+    }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_field1) { throw std::invalid_argument("Invalid"); }
+    }
+};
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>::Fields;
@@ -1055,7 +1410,9 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts1::
 
 template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CLOpts1::ObjWithList, TContainer>
 {
-    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>;
+
+    using Fields = Traits::Fields;
 
     struct ElemTxnState
     {
@@ -1201,7 +1558,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     {
         {
             auto txn = field1();
-            lambda(Fields::Field_field1, txn, Elem().field1);
+            lambda(Traits::Field_field1T{}, txn, Elem().field1);
         }
     }
 };
@@ -1209,7 +1566,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 template <> struct Stencil::Visitor<CLOpts1::ObjWithList> : Stencil::VisitorT<CLOpts1::ObjWithList>
 {
     using TData  = CLOpts1::ObjWithList;
-    using Fields = TypeTraitsForIndexable<TData>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -1223,7 +1581,7 @@ template <> struct Stencil::Visitor<CLOpts1::ObjWithList> : Stencil::VisitorT<CL
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        lambda(Fields::Field_field1, obj.field1);
+        lambda(Traits::Field_field1T{}, obj.field1);
     }
 };
 
@@ -1268,8 +1626,9 @@ template <>
 struct Stencil::Visitor<Stencil::Database::Record<CLOpts1::ObjWithList>>
     : Stencil::VisitorT<Stencil::Database::Record<CLOpts1::ObjWithList>>
 {
-    using TData  = Stencil::Database::Record<CLOpts1::ObjWithList>;
-    using Fields = TypeTraitsForIndexable<CLOpts1::ObjWithList>::Fields;
+    using TData  = CLOpts1::ObjWithList;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -1283,7 +1642,7 @@ struct Stencil::Visitor<Stencil::Database::Record<CLOpts1::ObjWithList>>
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        lambda(Fields::Field_field1, obj.field1);
+        lambda(Traits::Field_field1T{}, obj.field1);
     }
 };
 
@@ -1319,7 +1678,216 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>
     {};
     using Key = Fields;
 };
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_key1T, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_key1T;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "key1"); }
 
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        std::string_view name = "key1";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_key1T, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_key1T;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_key1);
+    }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_key1) { throw std::invalid_argument("Invalid"); }
+    }
+};
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_listofintT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_listofintT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "listofint"); }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        std::string_view name = "listofint";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_listofintT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_listofintT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_listofint);
+    }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_listofint) { throw std::invalid_argument("Invalid"); }
+    }
+};
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_listoflistT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_listoflistT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "listoflist"); }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        std::string_view name = "listoflist";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_listoflistT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_listoflistT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_listoflist);
+    }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_listoflist) { throw std::invalid_argument("Invalid"); }
+    }
+};
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_listofobjT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_listofobjT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "listofobj"); }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        std::string_view name = "listofobj";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_listofobjT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_listofobjT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_listofobj);
+    }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_listofobj) { throw std::invalid_argument("Invalid"); }
+    }
+};
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_objoflistT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_objoflistT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "objoflist"); }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        std::string_view name = "objoflist";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_objoflistT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_objoflistT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_objoflist);
+    }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_objoflist) { throw std::invalid_argument("Invalid"); }
+    }
+};
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_key2T, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_key2T;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "key2"); }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        std::string_view name = "key2";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_key2T, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_key2T;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_key2);
+    }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_key2) { throw std::invalid_argument("Invalid"); }
+    }
+};
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Fields;
@@ -1345,7 +1913,9 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts1::
 
 template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CLOpts1::CLOptsTest, TContainer>
 {
-    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>;
+
+    using Fields = Traits::Fields;
 
     struct ElemTxnState
     {
@@ -1672,27 +2242,27 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     {
         {
             auto txn = key1();
-            lambda(Fields::Field_key1, txn, Elem().key1);
+            lambda(Traits::Field_key1T{}, txn, Elem().key1);
         }
         {
             auto txn = listofint();
-            lambda(Fields::Field_listofint, txn, Elem().listofint);
+            lambda(Traits::Field_listofintT{}, txn, Elem().listofint);
         }
         {
             auto txn = listoflist();
-            lambda(Fields::Field_listoflist, txn, Elem().listoflist);
+            lambda(Traits::Field_listoflistT{}, txn, Elem().listoflist);
         }
         {
             auto txn = listofobj();
-            lambda(Fields::Field_listofobj, txn, Elem().listofobj);
+            lambda(Traits::Field_listofobjT{}, txn, Elem().listofobj);
         }
         {
             auto txn = objoflist();
-            lambda(Fields::Field_objoflist, txn, Elem().objoflist);
+            lambda(Traits::Field_objoflistT{}, txn, Elem().objoflist);
         }
         {
             auto txn = key2();
-            lambda(Fields::Field_key2, txn, Elem().key2);
+            lambda(Traits::Field_key2T{}, txn, Elem().key2);
         }
     }
 };
@@ -1700,7 +2270,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 template <> struct Stencil::Visitor<CLOpts1::CLOptsTest> : Stencil::VisitorT<CLOpts1::CLOptsTest>
 {
     using TData  = CLOpts1::CLOptsTest;
-    using Fields = TypeTraitsForIndexable<TData>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -1719,12 +2290,12 @@ template <> struct Stencil::Visitor<CLOpts1::CLOptsTest> : Stencil::VisitorT<CLO
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        lambda(Fields::Field_key1, obj.key1);
-        lambda(Fields::Field_listofint, obj.listofint);
-        lambda(Fields::Field_listoflist, obj.listoflist);
-        lambda(Fields::Field_listofobj, obj.listofobj);
-        lambda(Fields::Field_objoflist, obj.objoflist);
-        lambda(Fields::Field_key2, obj.key2);
+        lambda(Traits::Field_key1T{}, obj.key1);
+        lambda(Traits::Field_listofintT{}, obj.listofint);
+        lambda(Traits::Field_listoflistT{}, obj.listoflist);
+        lambda(Traits::Field_listofobjT{}, obj.listofobj);
+        lambda(Traits::Field_objoflistT{}, obj.objoflist);
+        lambda(Traits::Field_key2T{}, obj.key2);
     }
 };
 
@@ -1789,8 +2360,9 @@ template <>
 struct Stencil::Visitor<Stencil::Database::Record<CLOpts1::CLOptsTest>>
     : Stencil::VisitorT<Stencil::Database::Record<CLOpts1::CLOptsTest>>
 {
-    using TData  = Stencil::Database::Record<CLOpts1::CLOptsTest>;
-    using Fields = TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Fields;
+    using TData  = CLOpts1::CLOptsTest;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -1809,12 +2381,12 @@ struct Stencil::Visitor<Stencil::Database::Record<CLOpts1::CLOptsTest>>
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        lambda(Fields::Field_key1, obj.key1);
-        lambda(Fields::Field_listofint, obj.listofint);
-        lambda(Fields::Field_listoflist, obj.listoflist);
-        lambda(Fields::Field_listofobj, obj.listofobj);
-        lambda(Fields::Field_objoflist, obj.objoflist);
-        lambda(Fields::Field_key2, obj.key2);
+        lambda(Traits::Field_key1T{}, obj.key1);
+        lambda(Traits::Field_listofintT{}, obj.listofint);
+        lambda(Traits::Field_listoflistT{}, obj.listoflist);
+        lambda(Traits::Field_listofobjT{}, obj.listofobj);
+        lambda(Traits::Field_objoflistT{}, obj.objoflist);
+        lambda(Traits::Field_key2T{}, obj.key2);
     }
 };
 

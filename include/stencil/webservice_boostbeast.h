@@ -28,6 +28,7 @@ SUPPRESS_WARNINGS_END
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
+#include <chrono>
 #include <condition_variable>
 #include <cstdlib>
 #include <filesystem>
@@ -40,9 +41,11 @@ SUPPRESS_WARNINGS_END
 #if !defined(BOOST_ASIO_HAS_CO_AWAIT)
 #error Need co await
 #endif
+
 namespace Stencil::impl
 {
 using Request = boost::beast::http::request<boost::beast::http::string_body>;
+using namespace std::chrono_literals;
 
 template <typename T> auto create_response(Request const& req, std::string_view const& content_type)
 {
@@ -100,6 +103,7 @@ struct SSEListenerManager
 
     struct Instance : std::enable_shared_from_this<Instance>
     {
+        using time_point = std::chrono::time_point<std::chrono::system_clock>;
         struct SSEContext
         {
             SSEContext(tcp_stream& streamIn, Request const& reqIn) : stream(streamIn)
@@ -119,6 +123,7 @@ struct SSEListenerManager
         SSEListenerManager*     _manager{nullptr};
         SSEContext*             _ctx{nullptr};
         std::condition_variable _dataAvailable{};
+        time_point              _lastSendAt;
         bool                    _stopRequested = false;
 
         Instance()  = default;
@@ -128,18 +133,23 @@ struct SSEListenerManager
         bool _streamEnded() const { return _ctx == nullptr; }
         void Start(SSEContext& ctx, std::span<const char> const& msg)
         {
+
             {
                 auto lock = std::unique_lock<std::mutex>(_manager->_mutex);
                 _manager->Register(lock, shared_from_this());
                 if (_manager->_stopRequested) return;
                 _ctx = &ctx;
-
-                Send(msg);
+                Send(lock, msg);
             }
             do {
-                auto lock = std::unique_lock<std::mutex>(_manager->_mutex);
+                auto constexpr KeepAliveInterval = 10s;
+                auto lock                        = std::unique_lock<std::mutex>(_manager->_mutex);
                 if (_manager->_stopRequested) return;
-                _dataAvailable.wait(lock, [&](...) { return _streamEnded() || _manager->_stopRequested; });
+                auto status = _dataAvailable.wait_for(lock, KeepAliveInterval);
+                if (status == std::cv_status::timeout && ((_lastSendAt + KeepAliveInterval) < std::chrono::system_clock::now()))
+                {    // timed out
+                    if (!Send(lock, "\n\n")) { return; }
+                }
                 if (_manager->_stopRequested) return;
                 if (_streamEnded()) { return; }
             } while (true);
@@ -152,13 +162,22 @@ struct SSEListenerManager
             _dataAvailable.notify_all();
         }
 
-        void Send(std::span<const char> const& msg)
+        bool Send(std::unique_lock<std::mutex> const& lock, std::span<const char> const& msg)
         {
-            if (msg.size() == 0) return;
+            if (_streamEnded()) return false;
+            if (msg.size() == 0) return true;
+            _lastSendAt  = std::chrono::system_clock::now();
             auto msgSize = msg[msg.size() - 1] == '\0' ? msg.size() - 1 : msg.size();
-            if (msgSize == 0) return;
+            if (msgSize == 0) return true;
             boost::asio::const_buffer b{msg.data(), msgSize};
-            boost::beast::net::write(_ctx->stream, boost::beast::http::make_chunk(b));
+            boost::system::error_code ec;
+            boost::beast::net::write(_ctx->stream, boost::beast::http::make_chunk(b), ec);
+            if (ec.failed())
+            {
+                Release(lock);
+                return false;
+            }
+            return true;
         }
     };
 
@@ -170,15 +189,11 @@ struct SSEListenerManager
             if (_stopRequested) return;
             auto inst = *it;
             if (inst->_stopRequested) continue;
-            try
+            if (!inst->Send(lock, msg)) { it = _sseListeners.erase(it); }
+            else
             {
-                inst->Send(msg);
                 inst->_dataAvailable.notify_all();
                 ++it;
-            } catch (...)
-            {
-                inst->Release(lock);
-                it = _sseListeners.erase(it);
             }
         }
     }
@@ -677,7 +692,7 @@ template <typename TImpl, ConceptInterface... TInterfaces> struct WebServiceT : 
         return "application/text";
     }
 
-    private:
+    // private: TODO: remove this when boost beast isnt experimental anymore
     // Return a response for the given request.
     //
     // The concrete type of the response message (which depends on the
