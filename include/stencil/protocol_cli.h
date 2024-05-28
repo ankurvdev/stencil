@@ -18,7 +18,14 @@ namespace Stencil
 {
 template <typename T> struct Attribute<Stencil::AttributeType::Description, T>
 {
-    static std::string_view Value() { return typeid(T).name(); }
+    static std::string_view Value()
+    {
+#if defined DEBUG
+        return "<unspecified>";
+#else
+        return "";
+#endif
+    }
 };
 
 template <typename T> struct Attribute_ShortName
