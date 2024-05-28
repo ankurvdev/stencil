@@ -208,6 +208,10 @@ template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Fun
 ,        arg_arg2
     };
 
+    struct Field_arg_arg1T
+    {};
+    struct Field_arg_arg2T
+    {};
     using Key = Fields;
 };
 
@@ -238,7 +242,8 @@ struct Stencil::Visitor<Interfaces::Server1::Args_Function1>
     : Stencil::VisitorT<Interfaces::Server1::Args_Function1>
 {
     using TData  = Interfaces::Server1::Args_Function1;
-    using Fields = TypeTraitsForIndexable<TData>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -249,6 +254,14 @@ struct Stencil::Visitor<Interfaces::Server1::Args_Function1>
         case Fields::Invalid: [[fallthrough]];
         default: throw std::logic_error("Invalid Key");
         }
+    }
+
+    template <typename T, typename TField, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda&& lambda)
+    {
+        if constexpr (std::is_same_v<TField, typename Traits::Field_arg_arg1T>) { return lambda(obj.arg1); }
+        if constexpr (std::is_same_v<TField, typename Traits::Field_arg_arg2T>) { return lambda(obj.arg2); }
+        throw std::logic_error("Invalid Key");
     }
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
@@ -326,7 +339,8 @@ struct Stencil::Visitor<Interfaces::Server1::Args_Function2>
     : Stencil::VisitorT<Interfaces::Server1::Args_Function2>
 {
     using TData  = Interfaces::Server1::Args_Function2;
-    using Fields = TypeTraitsForIndexable<TData>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -335,6 +349,12 @@ struct Stencil::Visitor<Interfaces::Server1::Args_Function2>
         case Fields::Invalid: [[fallthrough]];
         default: throw std::logic_error("Invalid Key");
         }
+    }
+
+    template <typename T, typename TField, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda&& lambda)
+    {
+        throw std::logic_error("Invalid Key");
     }
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
@@ -379,6 +399,8 @@ template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Fun
         arg_arg2
     };
 
+    struct Field_arg_arg2T
+    {};
     using Key = Fields;
 };
 
@@ -408,7 +430,8 @@ struct Stencil::Visitor<Interfaces::Server1::Args_Function3>
     : Stencil::VisitorT<Interfaces::Server1::Args_Function3>
 {
     using TData  = Interfaces::Server1::Args_Function3;
-    using Fields = TypeTraitsForIndexable<TData>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -418,6 +441,13 @@ struct Stencil::Visitor<Interfaces::Server1::Args_Function3>
         case Fields::Invalid: [[fallthrough]];
         default: throw std::logic_error("Invalid Key");
         }
+    }
+
+    template <typename T, typename TField, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda&& lambda)
+    {
+        if constexpr (std::is_same_v<TField, typename Traits::Field_arg_arg2T>) { return lambda(obj.arg2); }
+        throw std::logic_error("Invalid Key");
     }
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
@@ -466,6 +496,10 @@ template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Som
 ,        arg_arg2
     };
 
+    struct Field_arg_arg1T
+    {};
+    struct Field_arg_arg2T
+    {};
     using Key = Fields;
 };
 
@@ -496,7 +530,8 @@ struct Stencil::Visitor<Interfaces::Server1::Args_SomethingHappened>
     : Stencil::VisitorT<Interfaces::Server1::Args_SomethingHappened>
 {
     using TData  = Interfaces::Server1::Args_SomethingHappened;
-    using Fields = TypeTraitsForIndexable<TData>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -507,6 +542,14 @@ struct Stencil::Visitor<Interfaces::Server1::Args_SomethingHappened>
         case Fields::Invalid: [[fallthrough]];
         default: throw std::logic_error("Invalid Key");
         }
+    }
+
+    template <typename T, typename TField, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda&& lambda)
+    {
+        if constexpr (std::is_same_v<TField, typename Traits::Field_arg_arg1T>) { return lambda(obj.arg1); }
+        if constexpr (std::is_same_v<TField, typename Traits::Field_arg_arg2T>) { return lambda(obj.arg2); }
+        throw std::logic_error("Invalid Key");
     }
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)

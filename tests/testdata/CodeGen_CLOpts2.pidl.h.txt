@@ -94,6 +94,22 @@ struct CommandLineOptions : public Stencil::VariantT<CommandLineOptions>
 ,        hydrate
     };
 
+    struct Variant_Invalid
+    {};
+    struct Variant_installT
+    {};
+    struct Variant_queueT
+    {};
+    struct Variant_pauseT
+    {};
+    struct Variant_cancelT
+    {};
+    struct Variant_resumeT
+    {};
+    struct Variant_updateT
+    {};
+    struct Variant_hydrateT
+    {};
     VariantType Type() const { return static_cast<VariantType>(_variant.index()); }
 
     ::CLOpts2::InstallOptions&       install() { return std::get<::CLOpts2::InstallOptions>(_variant); }
@@ -150,7 +166,181 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>
     {};
     using Key = Fields;
 };
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_ProductIdT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_ProductIdT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "ProductId"); }
 
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        std::string_view name = "ProductId";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_ProductIdT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_ProductIdT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_ProductId);
+    }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_ProductId) { throw std::invalid_argument("Invalid"); }
+    }
+};
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_RepairT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_RepairT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "Repair"); }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        std::string_view name = "Repair";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_RepairT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_RepairT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_Repair);
+    }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_Repair) { throw std::invalid_argument("Invalid"); }
+    }
+};
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_ForceNonSDT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_ForceNonSDT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "ForceNonSD"); }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        std::string_view name = "ForceNonSD";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_ForceNonSDT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_ForceNonSDT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_ForceNonSD);
+    }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_ForceNonSD) { throw std::invalid_argument("Invalid"); }
+    }
+};
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_TargetVolumeT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_TargetVolumeT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "TargetVolume"); }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        std::string_view name = "TargetVolume";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_TargetVolumeT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_TargetVolumeT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_TargetVolume);
+    }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_TargetVolume) { throw std::invalid_argument("Invalid"); }
+    }
+};
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_UserT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_UserT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "User"); }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        std::string_view name = "User";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_UserT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_UserT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_User);
+    }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_User) { throw std::invalid_argument("Invalid"); }
+    }
+};
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_ProductIdT>
@@ -210,7 +400,9 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::
 
 template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CLOpts2::InstallOptions, TContainer>
 {
-    using Fields = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>;
+
+    using Fields = Traits::Fields;
 
     struct ElemTxnState
     {
@@ -454,23 +646,23 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     {
         {
             auto txn = ProductId();
-            lambda(Fields::Field_ProductId, txn, Elem().ProductId);
+            lambda(Traits::Field_ProductIdT{}, txn, Elem().ProductId);
         }
         {
             auto txn = Repair();
-            lambda(Fields::Field_Repair, txn, Elem().Repair);
+            lambda(Traits::Field_RepairT{}, txn, Elem().Repair);
         }
         {
             auto txn = ForceNonSD();
-            lambda(Fields::Field_ForceNonSD, txn, Elem().ForceNonSD);
+            lambda(Traits::Field_ForceNonSDT{}, txn, Elem().ForceNonSD);
         }
         {
             auto txn = TargetVolume();
-            lambda(Fields::Field_TargetVolume, txn, Elem().TargetVolume);
+            lambda(Traits::Field_TargetVolumeT{}, txn, Elem().TargetVolume);
         }
         {
             auto txn = User();
-            lambda(Fields::Field_User, txn, Elem().User);
+            lambda(Traits::Field_UserT{}, txn, Elem().User);
         }
     }
 };
@@ -478,7 +670,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 template <> struct Stencil::Visitor<CLOpts2::InstallOptions> : Stencil::VisitorT<CLOpts2::InstallOptions>
 {
     using TData  = CLOpts2::InstallOptions;
-    using Fields = TypeTraitsForIndexable<TData>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -496,11 +689,11 @@ template <> struct Stencil::Visitor<CLOpts2::InstallOptions> : Stencil::VisitorT
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        lambda(Fields::Field_ProductId, obj.ProductId);
-        lambda(Fields::Field_Repair, obj.Repair);
-        lambda(Fields::Field_ForceNonSD, obj.ForceNonSD);
-        lambda(Fields::Field_TargetVolume, obj.TargetVolume);
-        lambda(Fields::Field_User, obj.User);
+        lambda(Traits::Field_ProductIdT{}, obj.ProductId);
+        lambda(Traits::Field_RepairT{}, obj.Repair);
+        lambda(Traits::Field_ForceNonSDT{}, obj.ForceNonSD);
+        lambda(Traits::Field_TargetVolumeT{}, obj.TargetVolume);
+        lambda(Traits::Field_UserT{}, obj.User);
     }
 };
 
@@ -561,8 +754,9 @@ template <>
 struct Stencil::Visitor<Stencil::Database::Record<CLOpts2::InstallOptions>>
     : Stencil::VisitorT<Stencil::Database::Record<CLOpts2::InstallOptions>>
 {
-    using TData  = Stencil::Database::Record<CLOpts2::InstallOptions>;
-    using Fields = TypeTraitsForIndexable<CLOpts2::InstallOptions>::Fields;
+    using TData  = CLOpts2::InstallOptions;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -580,11 +774,11 @@ struct Stencil::Visitor<Stencil::Database::Record<CLOpts2::InstallOptions>>
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        lambda(Fields::Field_ProductId, obj.ProductId);
-        lambda(Fields::Field_Repair, obj.Repair);
-        lambda(Fields::Field_ForceNonSD, obj.ForceNonSD);
-        lambda(Fields::Field_TargetVolume, obj.TargetVolume);
-        lambda(Fields::Field_User, obj.User);
+        lambda(Traits::Field_ProductIdT{}, obj.ProductId);
+        lambda(Traits::Field_RepairT{}, obj.Repair);
+        lambda(Traits::Field_ForceNonSDT{}, obj.ForceNonSD);
+        lambda(Traits::Field_TargetVolumeT{}, obj.TargetVolume);
+        lambda(Traits::Field_UserT{}, obj.User);
     }
 };
 
@@ -605,7 +799,41 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>
     {};
     using Key = Fields;
 };
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::Field_ProductIdT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::Field_ProductIdT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "ProductId"); }
 
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        std::string_view name = "ProductId";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::Field_ProductIdT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::Field_ProductIdT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_ProductId);
+    }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_ProductId) { throw std::invalid_argument("Invalid"); }
+    }
+};
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::Field_ProductIdT>
@@ -633,7 +861,9 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::
 
 template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CLOpts2::QueueOptions, TContainer>
 {
-    using Fields = Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>;
+
+    using Fields = Traits::Fields;
 
     struct ElemTxnState
     {
@@ -761,7 +991,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     {
         {
             auto txn = ProductId();
-            lambda(Fields::Field_ProductId, txn, Elem().ProductId);
+            lambda(Traits::Field_ProductIdT{}, txn, Elem().ProductId);
         }
     }
 };
@@ -769,7 +999,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 template <> struct Stencil::Visitor<CLOpts2::QueueOptions> : Stencil::VisitorT<CLOpts2::QueueOptions>
 {
     using TData  = CLOpts2::QueueOptions;
-    using Fields = TypeTraitsForIndexable<TData>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -783,7 +1014,7 @@ template <> struct Stencil::Visitor<CLOpts2::QueueOptions> : Stencil::VisitorT<C
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        lambda(Fields::Field_ProductId, obj.ProductId);
+        lambda(Traits::Field_ProductIdT{}, obj.ProductId);
     }
 };
 
@@ -828,8 +1059,9 @@ template <>
 struct Stencil::Visitor<Stencil::Database::Record<CLOpts2::QueueOptions>>
     : Stencil::VisitorT<Stencil::Database::Record<CLOpts2::QueueOptions>>
 {
-    using TData  = Stencil::Database::Record<CLOpts2::QueueOptions>;
-    using Fields = TypeTraitsForIndexable<CLOpts2::QueueOptions>::Fields;
+    using TData  = CLOpts2::QueueOptions;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -843,7 +1075,7 @@ struct Stencil::Visitor<Stencil::Database::Record<CLOpts2::QueueOptions>>
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        lambda(Fields::Field_ProductId, obj.ProductId);
+        lambda(Traits::Field_ProductIdT{}, obj.ProductId);
     }
 };
 
@@ -864,7 +1096,41 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>
     {};
     using Key = Fields;
 };
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::Field_ProductIdT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::Field_ProductIdT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "ProductId"); }
 
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        std::string_view name = "ProductId";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::Field_ProductIdT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::Field_ProductIdT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_ProductId);
+    }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_ProductId) { throw std::invalid_argument("Invalid"); }
+    }
+};
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::Field_ProductIdT>
@@ -892,7 +1158,9 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::
 
 template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CLOpts2::PauseOptions, TContainer>
 {
-    using Fields = Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>;
+
+    using Fields = Traits::Fields;
 
     struct ElemTxnState
     {
@@ -1020,7 +1288,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     {
         {
             auto txn = ProductId();
-            lambda(Fields::Field_ProductId, txn, Elem().ProductId);
+            lambda(Traits::Field_ProductIdT{}, txn, Elem().ProductId);
         }
     }
 };
@@ -1028,7 +1296,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 template <> struct Stencil::Visitor<CLOpts2::PauseOptions> : Stencil::VisitorT<CLOpts2::PauseOptions>
 {
     using TData  = CLOpts2::PauseOptions;
-    using Fields = TypeTraitsForIndexable<TData>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -1042,7 +1311,7 @@ template <> struct Stencil::Visitor<CLOpts2::PauseOptions> : Stencil::VisitorT<C
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        lambda(Fields::Field_ProductId, obj.ProductId);
+        lambda(Traits::Field_ProductIdT{}, obj.ProductId);
     }
 };
 
@@ -1087,8 +1356,9 @@ template <>
 struct Stencil::Visitor<Stencil::Database::Record<CLOpts2::PauseOptions>>
     : Stencil::VisitorT<Stencil::Database::Record<CLOpts2::PauseOptions>>
 {
-    using TData  = Stencil::Database::Record<CLOpts2::PauseOptions>;
-    using Fields = TypeTraitsForIndexable<CLOpts2::PauseOptions>::Fields;
+    using TData  = CLOpts2::PauseOptions;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -1102,7 +1372,7 @@ struct Stencil::Visitor<Stencil::Database::Record<CLOpts2::PauseOptions>>
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        lambda(Fields::Field_ProductId, obj.ProductId);
+        lambda(Traits::Field_ProductIdT{}, obj.ProductId);
     }
 };
 
@@ -1123,7 +1393,41 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>
     {};
     using Key = Fields;
 };
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::Field_ProductIdT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::Field_ProductIdT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "ProductId"); }
 
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        std::string_view name = "ProductId";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::Field_ProductIdT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::Field_ProductIdT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_ProductId);
+    }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_ProductId) { throw std::invalid_argument("Invalid"); }
+    }
+};
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::Field_ProductIdT>
@@ -1151,7 +1455,9 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::
 
 template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CLOpts2::CancelOptions, TContainer>
 {
-    using Fields = Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>;
+
+    using Fields = Traits::Fields;
 
     struct ElemTxnState
     {
@@ -1279,7 +1585,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     {
         {
             auto txn = ProductId();
-            lambda(Fields::Field_ProductId, txn, Elem().ProductId);
+            lambda(Traits::Field_ProductIdT{}, txn, Elem().ProductId);
         }
     }
 };
@@ -1287,7 +1593,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 template <> struct Stencil::Visitor<CLOpts2::CancelOptions> : Stencil::VisitorT<CLOpts2::CancelOptions>
 {
     using TData  = CLOpts2::CancelOptions;
-    using Fields = TypeTraitsForIndexable<TData>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -1301,7 +1608,7 @@ template <> struct Stencil::Visitor<CLOpts2::CancelOptions> : Stencil::VisitorT<
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        lambda(Fields::Field_ProductId, obj.ProductId);
+        lambda(Traits::Field_ProductIdT{}, obj.ProductId);
     }
 };
 
@@ -1346,8 +1653,9 @@ template <>
 struct Stencil::Visitor<Stencil::Database::Record<CLOpts2::CancelOptions>>
     : Stencil::VisitorT<Stencil::Database::Record<CLOpts2::CancelOptions>>
 {
-    using TData  = Stencil::Database::Record<CLOpts2::CancelOptions>;
-    using Fields = TypeTraitsForIndexable<CLOpts2::CancelOptions>::Fields;
+    using TData  = CLOpts2::CancelOptions;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -1361,7 +1669,7 @@ struct Stencil::Visitor<Stencil::Database::Record<CLOpts2::CancelOptions>>
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        lambda(Fields::Field_ProductId, obj.ProductId);
+        lambda(Traits::Field_ProductIdT{}, obj.ProductId);
     }
 };
 
@@ -1382,7 +1690,41 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>
     {};
     using Key = Fields;
 };
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Field_ProductIdT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Field_ProductIdT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "ProductId"); }
 
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        std::string_view name = "ProductId";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Field_ProductIdT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Field_ProductIdT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_ProductId);
+    }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_ProductId) { throw std::invalid_argument("Invalid"); }
+    }
+};
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Field_ProductIdT>
@@ -1410,7 +1752,9 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::
 
 template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CLOpts2::ResumeOptions, TContainer>
 {
-    using Fields = Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>;
+
+    using Fields = Traits::Fields;
 
     struct ElemTxnState
     {
@@ -1538,7 +1882,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     {
         {
             auto txn = ProductId();
-            lambda(Fields::Field_ProductId, txn, Elem().ProductId);
+            lambda(Traits::Field_ProductIdT{}, txn, Elem().ProductId);
         }
     }
 };
@@ -1546,7 +1890,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 template <> struct Stencil::Visitor<CLOpts2::ResumeOptions> : Stencil::VisitorT<CLOpts2::ResumeOptions>
 {
     using TData  = CLOpts2::ResumeOptions;
-    using Fields = TypeTraitsForIndexable<TData>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -1560,7 +1905,7 @@ template <> struct Stencil::Visitor<CLOpts2::ResumeOptions> : Stencil::VisitorT<
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        lambda(Fields::Field_ProductId, obj.ProductId);
+        lambda(Traits::Field_ProductIdT{}, obj.ProductId);
     }
 };
 
@@ -1605,8 +1950,9 @@ template <>
 struct Stencil::Visitor<Stencil::Database::Record<CLOpts2::ResumeOptions>>
     : Stencil::VisitorT<Stencil::Database::Record<CLOpts2::ResumeOptions>>
 {
-    using TData  = Stencil::Database::Record<CLOpts2::ResumeOptions>;
-    using Fields = TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Fields;
+    using TData  = CLOpts2::ResumeOptions;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -1620,7 +1966,7 @@ struct Stencil::Visitor<Stencil::Database::Record<CLOpts2::ResumeOptions>>
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        lambda(Fields::Field_ProductId, obj.ProductId);
+        lambda(Traits::Field_ProductIdT{}, obj.ProductId);
     }
 };
 
@@ -1641,7 +1987,41 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>
     {};
     using Key = Fields;
 };
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Field_ProductIdT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Field_ProductIdT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "ProductId"); }
 
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        std::string_view name = "ProductId";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Field_ProductIdT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Field_ProductIdT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_ProductId);
+    }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_ProductId) { throw std::invalid_argument("Invalid"); }
+    }
+};
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Field_ProductIdT>
@@ -1669,7 +2049,9 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::
 
 template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CLOpts2::UpdateOptions, TContainer>
 {
-    using Fields = Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>;
+
+    using Fields = Traits::Fields;
 
     struct ElemTxnState
     {
@@ -1797,7 +2179,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     {
         {
             auto txn = ProductId();
-            lambda(Fields::Field_ProductId, txn, Elem().ProductId);
+            lambda(Traits::Field_ProductIdT{}, txn, Elem().ProductId);
         }
     }
 };
@@ -1805,7 +2187,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 template <> struct Stencil::Visitor<CLOpts2::UpdateOptions> : Stencil::VisitorT<CLOpts2::UpdateOptions>
 {
     using TData  = CLOpts2::UpdateOptions;
-    using Fields = TypeTraitsForIndexable<TData>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -1819,7 +2202,7 @@ template <> struct Stencil::Visitor<CLOpts2::UpdateOptions> : Stencil::VisitorT<
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        lambda(Fields::Field_ProductId, obj.ProductId);
+        lambda(Traits::Field_ProductIdT{}, obj.ProductId);
     }
 };
 
@@ -1864,8 +2247,9 @@ template <>
 struct Stencil::Visitor<Stencil::Database::Record<CLOpts2::UpdateOptions>>
     : Stencil::VisitorT<Stencil::Database::Record<CLOpts2::UpdateOptions>>
 {
-    using TData  = Stencil::Database::Record<CLOpts2::UpdateOptions>;
-    using Fields = TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Fields;
+    using TData  = CLOpts2::UpdateOptions;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -1879,7 +2263,7 @@ struct Stencil::Visitor<Stencil::Database::Record<CLOpts2::UpdateOptions>>
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        lambda(Fields::Field_ProductId, obj.ProductId);
+        lambda(Traits::Field_ProductIdT{}, obj.ProductId);
     }
 };
 
@@ -1900,7 +2284,41 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>
     {};
     using Key = Fields;
 };
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Field_ProductIdT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Field_ProductIdT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "ProductId"); }
 
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        std::string_view name = "ProductId";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Field_ProductIdT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Field_ProductIdT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_ProductId);
+    }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_ProductId) { throw std::invalid_argument("Invalid"); }
+    }
+};
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Field_ProductIdT>
@@ -1928,7 +2346,9 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::
 
 template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CLOpts2::HydrateOptions, TContainer>
 {
-    using Fields = Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>;
+
+    using Fields = Traits::Fields;
 
     struct ElemTxnState
     {
@@ -2056,7 +2476,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     {
         {
             auto txn = ProductId();
-            lambda(Fields::Field_ProductId, txn, Elem().ProductId);
+            lambda(Traits::Field_ProductIdT{}, txn, Elem().ProductId);
         }
     }
 };
@@ -2064,7 +2484,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 template <> struct Stencil::Visitor<CLOpts2::HydrateOptions> : Stencil::VisitorT<CLOpts2::HydrateOptions>
 {
     using TData  = CLOpts2::HydrateOptions;
-    using Fields = TypeTraitsForIndexable<TData>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -2078,7 +2499,7 @@ template <> struct Stencil::Visitor<CLOpts2::HydrateOptions> : Stencil::VisitorT
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        lambda(Fields::Field_ProductId, obj.ProductId);
+        lambda(Traits::Field_ProductIdT{}, obj.ProductId);
     }
 };
 
@@ -2123,8 +2544,9 @@ template <>
 struct Stencil::Visitor<Stencil::Database::Record<CLOpts2::HydrateOptions>>
     : Stencil::VisitorT<Stencil::Database::Record<CLOpts2::HydrateOptions>>
 {
-    using TData  = Stencil::Database::Record<CLOpts2::HydrateOptions>;
-    using Fields = TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Fields;
+    using TData  = CLOpts2::HydrateOptions;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -2138,7 +2560,7 @@ struct Stencil::Visitor<Stencil::Database::Record<CLOpts2::HydrateOptions>>
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
-        lambda(Fields::Field_ProductId, obj.ProductId);
+        lambda(Traits::Field_ProductIdT{}, obj.ProductId);
     }
 };
 
@@ -2152,7 +2574,216 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::CommandLineOptions>
     using Key    = CLOpts2::CommandLineOptions::VariantType;
     using Fields = Key;
 };
+template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_installT, Stencil::ProtocolString>
+{
+    using T = CLOpts2::CommandLineOptions::Variant_installT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "install"); }
 
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        std::string_view name = "install";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_installT, Stencil::ProtocolBinary>
+{
+    using Fields = CLOpts2::CommandLineOptions::VariantType;
+    using T      = CLOpts2::CommandLineOptions::Variant_installT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { ctx << static_cast<uint32_t>(Fields::install); }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::install) { throw std::invalid_argument("Invalid"); }
+    }
+};
+template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_queueT, Stencil::ProtocolString>
+{
+    using T = CLOpts2::CommandLineOptions::Variant_queueT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "queue"); }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        std::string_view name = "queue";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_queueT, Stencil::ProtocolBinary>
+{
+    using Fields = CLOpts2::CommandLineOptions::VariantType;
+    using T      = CLOpts2::CommandLineOptions::Variant_queueT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { ctx << static_cast<uint32_t>(Fields::queue); }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::queue) { throw std::invalid_argument("Invalid"); }
+    }
+};
+template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_pauseT, Stencil::ProtocolString>
+{
+    using T = CLOpts2::CommandLineOptions::Variant_pauseT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "pause"); }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        std::string_view name = "pause";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_pauseT, Stencil::ProtocolBinary>
+{
+    using Fields = CLOpts2::CommandLineOptions::VariantType;
+    using T      = CLOpts2::CommandLineOptions::Variant_pauseT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { ctx << static_cast<uint32_t>(Fields::pause); }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::pause) { throw std::invalid_argument("Invalid"); }
+    }
+};
+template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_cancelT, Stencil::ProtocolString>
+{
+    using T = CLOpts2::CommandLineOptions::Variant_cancelT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "cancel"); }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        std::string_view name = "cancel";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_cancelT, Stencil::ProtocolBinary>
+{
+    using Fields = CLOpts2::CommandLineOptions::VariantType;
+    using T      = CLOpts2::CommandLineOptions::Variant_cancelT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { ctx << static_cast<uint32_t>(Fields::cancel); }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::cancel) { throw std::invalid_argument("Invalid"); }
+    }
+};
+template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_resumeT, Stencil::ProtocolString>
+{
+    using T = CLOpts2::CommandLineOptions::Variant_resumeT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "resume"); }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        std::string_view name = "resume";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_resumeT, Stencil::ProtocolBinary>
+{
+    using Fields = CLOpts2::CommandLineOptions::VariantType;
+    using T      = CLOpts2::CommandLineOptions::Variant_resumeT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { ctx << static_cast<uint32_t>(Fields::resume); }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::resume) { throw std::invalid_argument("Invalid"); }
+    }
+};
+template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_updateT, Stencil::ProtocolString>
+{
+    using T = CLOpts2::CommandLineOptions::Variant_updateT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "update"); }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        std::string_view name = "update";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_updateT, Stencil::ProtocolBinary>
+{
+    using Fields = CLOpts2::CommandLineOptions::VariantType;
+    using T      = CLOpts2::CommandLineOptions::Variant_updateT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { ctx << static_cast<uint32_t>(Fields::update); }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::update) { throw std::invalid_argument("Invalid"); }
+    }
+};
+template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_hydrateT, Stencil::ProtocolString>
+{
+    using T = CLOpts2::CommandLineOptions::Variant_hydrateT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "hydrate"); }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        std::string_view name = "hydrate";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_hydrateT, Stencil::ProtocolBinary>
+{
+    using Fields = CLOpts2::CommandLineOptions::VariantType;
+    using T      = CLOpts2::CommandLineOptions::Variant_hydrateT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { ctx << static_cast<uint32_t>(Fields::hydrate); }
+
+    template <typename Context> static auto Read(T& obj, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::hydrate) { throw std::invalid_argument("Invalid"); }
+    }
+};
 template <> struct Stencil::EnumTraits<CLOpts2::CommandLineOptions::VariantType>
 {
     using Enum = CLOpts2::CommandLineOptions::VariantType;
@@ -2179,8 +2810,8 @@ template <> struct Stencil::EnumTraits<CLOpts2::CommandLineOptions::VariantType>
 
 template <> struct Stencil::Visitor<CLOpts2::CommandLineOptions>
 {
-    using Fields = CLOpts2::CommandLineOptions::VariantType;
-
+    using Fields  = CLOpts2::CommandLineOptions::VariantType;
+    using Variant = CLOpts2::CommandLineOptions;
     template <typename TType, typename TObj, typename TLambda> static void _SetAndVisit(TObj& obj, TLambda&& lambda)
     {
         using Type = std::remove_cvref_t<TType>;
@@ -2218,10 +2849,69 @@ template <> struct Stencil::Visitor<CLOpts2::CommandLineOptions>
         }
     }
 
+    template <typename T, typename TField, typename TLambda> static void VisitKey(T& obj, TField field, TLambda&& lambda)
+    {
+        if constexpr (std::is_same_v<TField, Variant::Variant_installT>)
+        {
+            _SetAndVisit<::CLOpts2::InstallOptions>(obj._variant, std::forward<TLambda>(lambda));
+        }
+        if constexpr (std::is_same_v<TField, Variant::Variant_queueT>)
+        {
+            _SetAndVisit<::CLOpts2::QueueOptions>(obj._variant, std::forward<TLambda>(lambda));
+        }
+        if constexpr (std::is_same_v<TField, Variant::Variant_pauseT>)
+        {
+            _SetAndVisit<::CLOpts2::PauseOptions>(obj._variant, std::forward<TLambda>(lambda));
+        }
+        if constexpr (std::is_same_v<TField, Variant::Variant_cancelT>)
+        {
+            _SetAndVisit<::CLOpts2::CancelOptions>(obj._variant, std::forward<TLambda>(lambda));
+        }
+        if constexpr (std::is_same_v<TField, Variant::Variant_resumeT>)
+        {
+            _SetAndVisit<::CLOpts2::ResumeOptions>(obj._variant, std::forward<TLambda>(lambda));
+        }
+        if constexpr (std::is_same_v<TField, Variant::Variant_updateT>)
+        {
+            _SetAndVisit<::CLOpts2::UpdateOptions>(obj._variant, std::forward<TLambda>(lambda));
+        }
+        if constexpr (std::is_same_v<TField, Variant::Variant_hydrateT>)
+        {
+            _SetAndVisit<::CLOpts2::HydrateOptions>(obj._variant, std::forward<TLambda>(lambda));
+        }
+    }
+
     template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda)
     {
-        auto fieldType = static_cast<Fields>(obj._variant.index());
-        std::visit([&](auto&& arg) { lambda(fieldType, arg); }, obj._variant);
+        // auto fieldType = static_cast<Fields>(obj._variant.index());
+        if (std::holds_alternative<::CLOpts2::InstallOptions>(obj._variant))
+        {
+            lambda(Variant::Variant_installT{}, std::get<::CLOpts2::InstallOptions>(obj._variant));
+        }
+        if (std::holds_alternative<::CLOpts2::QueueOptions>(obj._variant))
+        {
+            lambda(Variant::Variant_queueT{}, std::get<::CLOpts2::QueueOptions>(obj._variant));
+        }
+        if (std::holds_alternative<::CLOpts2::PauseOptions>(obj._variant))
+        {
+            lambda(Variant::Variant_pauseT{}, std::get<::CLOpts2::PauseOptions>(obj._variant));
+        }
+        if (std::holds_alternative<::CLOpts2::CancelOptions>(obj._variant))
+        {
+            lambda(Variant::Variant_cancelT{}, std::get<::CLOpts2::CancelOptions>(obj._variant));
+        }
+        if (std::holds_alternative<::CLOpts2::ResumeOptions>(obj._variant))
+        {
+            lambda(Variant::Variant_resumeT{}, std::get<::CLOpts2::ResumeOptions>(obj._variant));
+        }
+        if (std::holds_alternative<::CLOpts2::UpdateOptions>(obj._variant))
+        {
+            lambda(Variant::Variant_updateT{}, std::get<::CLOpts2::UpdateOptions>(obj._variant));
+        }
+        if (std::holds_alternative<::CLOpts2::HydrateOptions>(obj._variant))
+        {
+            lambda(Variant::Variant_hydrateT{}, std::get<::CLOpts2::HydrateOptions>(obj._variant));
+        }
     }
 };
 
