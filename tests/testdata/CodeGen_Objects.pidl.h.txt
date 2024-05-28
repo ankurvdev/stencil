@@ -134,7 +134,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject1>::
     using T = Stencil::TypeTraitsForIndexable<Objects::SimpleObject1>::Field_val1T;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "val1"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "val1";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -157,7 +157,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject1>::
         ctx << static_cast<uint32_t>(Fields::Field_val1);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_val1) { throw std::invalid_argument("Invalid"); }
@@ -169,7 +169,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject1>::
     using T = Stencil::TypeTraitsForIndexable<Objects::SimpleObject1>::Field_val2T;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "val2"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "val2";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -192,7 +192,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject1>::
         ctx << static_cast<uint32_t>(Fields::Field_val2);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_val2) { throw std::invalid_argument("Invalid"); }
@@ -204,7 +204,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject1>::
     using T = Stencil::TypeTraitsForIndexable<Objects::SimpleObject1>::Field_val3T;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "val3"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "val3";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -227,7 +227,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject1>::
         ctx << static_cast<uint32_t>(Fields::Field_val3);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_val3) { throw std::invalid_argument("Invalid"); }
@@ -239,7 +239,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject1>::
     using T = Stencil::TypeTraitsForIndexable<Objects::SimpleObject1>::Field_val4T;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "val4"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "val4";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -262,7 +262,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject1>::
         ctx << static_cast<uint32_t>(Fields::Field_val4);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_val4) { throw std::invalid_argument("Invalid"); }
@@ -274,7 +274,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject1>::
     using T = Stencil::TypeTraitsForIndexable<Objects::SimpleObject1>::Field_val5T;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "val5"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "val5";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -297,7 +297,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject1>::
         ctx << static_cast<uint32_t>(Fields::Field_val5);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_val5) { throw std::invalid_argument("Invalid"); }
@@ -747,7 +747,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::ListObject>::Fie
     using T = Stencil::TypeTraitsForIndexable<Objects::ListObject>::Field_valueT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "value"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "value";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -770,7 +770,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::ListObject>::Fie
         ctx << static_cast<uint32_t>(Fields::Field_value);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_value) { throw std::invalid_argument("Invalid"); }
@@ -782,7 +782,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::ListObject>::Fie
     using T = Stencil::TypeTraitsForIndexable<Objects::ListObject>::Field_obj1T;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "obj1"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "obj1";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -805,7 +805,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::ListObject>::Fie
         ctx << static_cast<uint32_t>(Fields::Field_obj1);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_obj1) { throw std::invalid_argument("Invalid"); }
@@ -1126,7 +1126,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::DictObject>::Fie
     using T = Stencil::TypeTraitsForIndexable<Objects::DictObject>::Field_dictobjT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "dictobj"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "dictobj";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -1149,7 +1149,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::DictObject>::Fie
         ctx << static_cast<uint32_t>(Fields::Field_dictobj);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_dictobj) { throw std::invalid_argument("Invalid"); }
@@ -1161,7 +1161,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::DictObject>::Fie
     using T = Stencil::TypeTraitsForIndexable<Objects::DictObject>::Field_dictvalT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "dictval"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "dictval";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -1184,7 +1184,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::DictObject>::Fie
         ctx << static_cast<uint32_t>(Fields::Field_dictval);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_dictval) { throw std::invalid_argument("Invalid"); }
@@ -1196,7 +1196,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::DictObject>::Fie
     using T = Stencil::TypeTraitsForIndexable<Objects::DictObject>::Field_dictdictT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "dictdict"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "dictdict";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -1219,7 +1219,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::DictObject>::Fie
         ctx << static_cast<uint32_t>(Fields::Field_dictdict);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_dictdict) { throw std::invalid_argument("Invalid"); }
@@ -1570,7 +1570,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::List>::Field_lis
     using T = Stencil::TypeTraitsForIndexable<Objects::List>::Field_listobjT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "listobj"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "listobj";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -1593,7 +1593,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::List>::Field_lis
         ctx << static_cast<uint32_t>(Fields::Field_listobj);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_listobj) { throw std::invalid_argument("Invalid"); }
@@ -1905,7 +1905,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::
     using T = Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::Field_val1T;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "val1"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "val1";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -1928,7 +1928,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::
         ctx << static_cast<uint32_t>(Fields::Field_val1);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_val1) { throw std::invalid_argument("Invalid"); }
@@ -1940,7 +1940,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::
     using T = Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::Field_val2T;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "val2"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "val2";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -1963,7 +1963,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::
         ctx << static_cast<uint32_t>(Fields::Field_val2);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_val2) { throw std::invalid_argument("Invalid"); }
@@ -1975,7 +1975,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::
     using T = Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::Field_val3T;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "val3"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "val3";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -1998,7 +1998,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::
         ctx << static_cast<uint32_t>(Fields::Field_val3);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_val3) { throw std::invalid_argument("Invalid"); }
@@ -2010,7 +2010,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::
     using T = Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::Field_val4T;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "val4"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "val4";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -2033,7 +2033,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::
         ctx << static_cast<uint32_t>(Fields::Field_val4);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_val4) { throw std::invalid_argument("Invalid"); }
@@ -2045,7 +2045,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::
     using T = Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::Field_val5T;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "val5"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "val5";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -2068,7 +2068,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::
         ctx << static_cast<uint32_t>(Fields::Field_val5);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_val5) { throw std::invalid_argument("Invalid"); }
@@ -2080,7 +2080,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::
     using T = Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::Field_val6T;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "val6"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "val6";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -2103,7 +2103,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::
         ctx << static_cast<uint32_t>(Fields::Field_val6);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_val6) { throw std::invalid_argument("Invalid"); }
@@ -2115,7 +2115,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::
     using T = Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::Field_val7T;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "val7"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "val7";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -2138,7 +2138,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::
         ctx << static_cast<uint32_t>(Fields::Field_val7);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_val7) { throw std::invalid_argument("Invalid"); }
@@ -2150,7 +2150,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::
     using T = Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::Field_val8T;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "val8"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "val8";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -2173,7 +2173,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>::
         ctx << static_cast<uint32_t>(Fields::Field_val8);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_val8) { throw std::invalid_argument("Invalid"); }
@@ -2758,7 +2758,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::NestedObject>::F
     using T = Stencil::TypeTraitsForIndexable<Objects::NestedObject>::Field_obj1T;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "obj1"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "obj1";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -2781,7 +2781,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::NestedObject>::F
         ctx << static_cast<uint32_t>(Fields::Field_obj1);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_obj1) { throw std::invalid_argument("Invalid"); }
@@ -2793,7 +2793,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::NestedObject>::F
     using T = Stencil::TypeTraitsForIndexable<Objects::NestedObject>::Field_obj2T;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "obj2"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "obj2";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -2816,7 +2816,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::NestedObject>::F
         ctx << static_cast<uint32_t>(Fields::Field_obj2);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_obj2) { throw std::invalid_argument("Invalid"); }
@@ -2828,7 +2828,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::NestedObject>::F
     using T = Stencil::TypeTraitsForIndexable<Objects::NestedObject>::Field_obj3T;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "obj3"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "obj3";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -2851,7 +2851,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::NestedObject>::F
         ctx << static_cast<uint32_t>(Fields::Field_obj3);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_obj3) { throw std::invalid_argument("Invalid"); }
@@ -2863,7 +2863,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::NestedObject>::F
     using T = Stencil::TypeTraitsForIndexable<Objects::NestedObject>::Field_dict1T;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "dict1"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "dict1";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -2886,7 +2886,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::NestedObject>::F
         ctx << static_cast<uint32_t>(Fields::Field_dict1);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_dict1) { throw std::invalid_argument("Invalid"); }
@@ -2898,7 +2898,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::NestedObject>::F
     using T = Stencil::TypeTraitsForIndexable<Objects::NestedObject>::Field_list1T;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "list1"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "list1";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -2921,7 +2921,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::NestedObject>::F
         ctx << static_cast<uint32_t>(Fields::Field_list1);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_list1) { throw std::invalid_argument("Invalid"); }
@@ -3365,7 +3365,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SelfNested>::Fie
     using T = Stencil::TypeTraitsForIndexable<Objects::SelfNested>::Field_obj1T;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "obj1"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "obj1";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -3388,7 +3388,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SelfNested>::Fie
         ctx << static_cast<uint32_t>(Fields::Field_obj1);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_obj1) { throw std::invalid_argument("Invalid"); }
@@ -3400,7 +3400,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SelfNested>::Fie
     using T = Stencil::TypeTraitsForIndexable<Objects::SelfNested>::Field_selfT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "self"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "self";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -3423,7 +3423,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::SelfNested>::Fie
         ctx << static_cast<uint32_t>(Fields::Field_self);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_self) { throw std::invalid_argument("Invalid"); }

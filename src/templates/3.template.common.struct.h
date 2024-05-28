@@ -203,7 +203,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruc
     using T = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Field_zzField_NamezzT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "zzNamezz"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "zzNamezz";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -226,7 +226,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruc
         ctx << static_cast<uint32_t>(Fields::Field_zzNamezz);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_zzNamezz) { throw std::invalid_argument("Invalid"); }
@@ -945,7 +945,7 @@ template <> struct Stencil::SerDes<zzProgram_Namezz::zzVariant_Namezz::Variant_z
     using T = zzProgram_Namezz::zzVariant_Namezz::Variant_zzNamezzT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "zzNamezz"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "zzNamezz";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -964,7 +964,7 @@ template <> struct Stencil::SerDes<zzProgram_Namezz::zzVariant_Namezz::Variant_z
 
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { ctx << static_cast<uint32_t>(Fields::zzNamezz); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::zzNamezz) { throw std::invalid_argument("Invalid"); }

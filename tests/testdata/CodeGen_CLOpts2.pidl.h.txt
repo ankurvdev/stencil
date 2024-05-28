@@ -172,7 +172,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>:
     using T = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_ProductIdT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "ProductId"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "ProductId";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -195,7 +195,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>:
         ctx << static_cast<uint32_t>(Fields::Field_ProductId);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_ProductId) { throw std::invalid_argument("Invalid"); }
@@ -207,7 +207,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>:
     using T = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_RepairT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "Repair"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "Repair";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -230,7 +230,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>:
         ctx << static_cast<uint32_t>(Fields::Field_Repair);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_Repair) { throw std::invalid_argument("Invalid"); }
@@ -242,7 +242,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>:
     using T = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_ForceNonSDT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "ForceNonSD"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "ForceNonSD";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -265,7 +265,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>:
         ctx << static_cast<uint32_t>(Fields::Field_ForceNonSD);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_ForceNonSD) { throw std::invalid_argument("Invalid"); }
@@ -277,7 +277,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>:
     using T = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_TargetVolumeT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "TargetVolume"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "TargetVolume";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -300,7 +300,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>:
         ctx << static_cast<uint32_t>(Fields::Field_TargetVolume);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_TargetVolume) { throw std::invalid_argument("Invalid"); }
@@ -312,7 +312,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>:
     using T = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_UserT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "User"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "User";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -335,7 +335,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>:
         ctx << static_cast<uint32_t>(Fields::Field_User);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_User) { throw std::invalid_argument("Invalid"); }
@@ -805,7 +805,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::F
     using T = Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::Field_ProductIdT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "ProductId"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "ProductId";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -828,7 +828,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::F
         ctx << static_cast<uint32_t>(Fields::Field_ProductId);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_ProductId) { throw std::invalid_argument("Invalid"); }
@@ -1102,7 +1102,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::F
     using T = Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::Field_ProductIdT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "ProductId"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "ProductId";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -1125,7 +1125,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::F
         ctx << static_cast<uint32_t>(Fields::Field_ProductId);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_ProductId) { throw std::invalid_argument("Invalid"); }
@@ -1399,7 +1399,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::
     using T = Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::Field_ProductIdT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "ProductId"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "ProductId";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -1422,7 +1422,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::
         ctx << static_cast<uint32_t>(Fields::Field_ProductId);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_ProductId) { throw std::invalid_argument("Invalid"); }
@@ -1696,7 +1696,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::
     using T = Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Field_ProductIdT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "ProductId"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "ProductId";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -1719,7 +1719,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::
         ctx << static_cast<uint32_t>(Fields::Field_ProductId);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_ProductId) { throw std::invalid_argument("Invalid"); }
@@ -1993,7 +1993,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::
     using T = Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Field_ProductIdT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "ProductId"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "ProductId";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -2016,7 +2016,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::
         ctx << static_cast<uint32_t>(Fields::Field_ProductId);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_ProductId) { throw std::invalid_argument("Invalid"); }
@@ -2290,7 +2290,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>:
     using T = Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Field_ProductIdT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "ProductId"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "ProductId";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -2313,7 +2313,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>:
         ctx << static_cast<uint32_t>(Fields::Field_ProductId);
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::Field_ProductId) { throw std::invalid_argument("Invalid"); }
@@ -2579,7 +2579,7 @@ template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_installT
     using T = CLOpts2::CommandLineOptions::Variant_installT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "install"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "install";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -2598,7 +2598,7 @@ template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_installT
 
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { ctx << static_cast<uint32_t>(Fields::install); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::install) { throw std::invalid_argument("Invalid"); }
@@ -2609,7 +2609,7 @@ template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_queueT, 
     using T = CLOpts2::CommandLineOptions::Variant_queueT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "queue"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "queue";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -2628,7 +2628,7 @@ template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_queueT, 
 
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { ctx << static_cast<uint32_t>(Fields::queue); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::queue) { throw std::invalid_argument("Invalid"); }
@@ -2639,7 +2639,7 @@ template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_pauseT, 
     using T = CLOpts2::CommandLineOptions::Variant_pauseT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "pause"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "pause";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -2658,7 +2658,7 @@ template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_pauseT, 
 
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { ctx << static_cast<uint32_t>(Fields::pause); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::pause) { throw std::invalid_argument("Invalid"); }
@@ -2669,7 +2669,7 @@ template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_cancelT,
     using T = CLOpts2::CommandLineOptions::Variant_cancelT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "cancel"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "cancel";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -2688,7 +2688,7 @@ template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_cancelT,
 
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { ctx << static_cast<uint32_t>(Fields::cancel); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::cancel) { throw std::invalid_argument("Invalid"); }
@@ -2699,7 +2699,7 @@ template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_resumeT,
     using T = CLOpts2::CommandLineOptions::Variant_resumeT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "resume"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "resume";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -2718,7 +2718,7 @@ template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_resumeT,
 
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { ctx << static_cast<uint32_t>(Fields::resume); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::resume) { throw std::invalid_argument("Invalid"); }
@@ -2729,7 +2729,7 @@ template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_updateT,
     using T = CLOpts2::CommandLineOptions::Variant_updateT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "update"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "update";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -2748,7 +2748,7 @@ template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_updateT,
 
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { ctx << static_cast<uint32_t>(Fields::update); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::update) { throw std::invalid_argument("Invalid"); }
@@ -2759,7 +2759,7 @@ template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_hydrateT
     using T = CLOpts2::CommandLineOptions::Variant_hydrateT;
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "hydrate"); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         std::string_view name = "hydrate";
         if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
@@ -2778,7 +2778,7 @@ template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_hydrateT
 
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { ctx << static_cast<uint32_t>(Fields::hydrate); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
         auto val = static_cast<Fields>(ctx.template read<uint32_t>());
         if (val != Fields::hydrate) { throw std::invalid_argument("Invalid"); }

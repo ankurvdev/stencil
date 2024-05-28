@@ -28,6 +28,7 @@ SUPPRESS_WARNINGS_END
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
+#include <chrono>
 #include <condition_variable>
 #include <cstdlib>
 #include <filesystem>
@@ -40,6 +41,9 @@ SUPPRESS_WARNINGS_END
 #if !defined(BOOST_ASIO_HAS_CO_AWAIT)
 #error Need co await
 #endif
+
+using namespace std::chrono_literals;
+
 namespace Stencil::impl
 {
 using Request = boost::beast::http::request<boost::beast::http::string_body>;
@@ -139,9 +143,10 @@ struct SSEListenerManager
             do {
                 auto lock = std::unique_lock<std::mutex>(_manager->_mutex);
                 if (_manager->_stopRequested) return;
-                _dataAvailable.wait(lock, [&](...) { return _streamEnded() || _manager->_stopRequested; });
+                _dataAvailable.wait_for(lock, 10s, [&](...) { return _streamEnded() || _manager->_stopRequested; });
                 if (_manager->_stopRequested) return;
                 if (_streamEnded()) { return; }
+                Send("\n\n");
             } while (true);
         }
 
