@@ -42,14 +42,14 @@ apt-get update && \
 apt-get install --yes --no-install-recommends --quiet \
     g++-12 clang-${CLANG_VERSION} clang-format-${CLANG_VERSION} \
     libc++-${CLANG_VERSION}-dev libc++abi-${CLANG_VERSION}-dev \
-    cmake \
+    llvm-${CLANG_VERSION} cmake flex bison gettext \
 
 
 update-alternatives --install /usr/bin/cc cc /usr/bin/clang-${CLANG_VERSION} 100
 update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-${CLANG_VERSION} 100
 
 # Print out tool version info
-for tool in cmake cc gcc g++ clang-${CLANG_VERSION}; do
+for tool in cmake cc gcc g++ clang-${CLANG_VERSION} flex bison; do
   echo .
   echo "-- ${tool} version"
   command -v ${tool}
