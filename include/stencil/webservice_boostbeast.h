@@ -42,11 +42,10 @@ SUPPRESS_WARNINGS_END
 #error Need co await
 #endif
 
-using namespace std::chrono_literals;
-
 namespace Stencil::impl
 {
 using Request = boost::beast::http::request<boost::beast::http::string_body>;
+using namespace std::chrono_literals;
 
 template <typename T> auto create_response(Request const& req, std::string_view const& content_type)
 {
@@ -132,6 +131,7 @@ struct SSEListenerManager
         bool _streamEnded() const { return _ctx == nullptr; }
         void Start(SSEContext& ctx, std::span<const char> const& msg)
         {
+
             {
                 auto lock = std::unique_lock<std::mutex>(_manager->_mutex);
                 _manager->Register(lock, shared_from_this());
@@ -682,7 +682,7 @@ template <typename TImpl, ConceptInterface... TInterfaces> struct WebServiceT : 
         return "application/text";
     }
 
-    private:
+    // private: TODO: remove this when boost beast isnt experimental anymore
     // Return a response for the given request.
     //
     // The concrete type of the response message (which depends on the

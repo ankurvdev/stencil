@@ -1017,7 +1017,7 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzVariant_Namezz>
         }
     }
 
-    template <typename T, typename TField, typename TLambda> static void VisitKey(T& obj, TField field, TLambda&& lambda)
+    template <typename T, typename TField, typename TLambda> static void VisitKey(T& obj, TField /* field */, TLambda&& lambda)
     {
         //<Field>
         if constexpr (std::is_same_v<TField, Variant::Variant_zzNamezzT>)
