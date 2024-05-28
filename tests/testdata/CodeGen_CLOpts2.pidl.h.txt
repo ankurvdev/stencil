@@ -2849,7 +2849,7 @@ template <> struct Stencil::Visitor<CLOpts2::CommandLineOptions>
         }
     }
 
-    template <typename T, typename TField, typename TLambda> static void VisitKey(T& obj, TField field, TLambda&& lambda)
+    template <typename T, typename TField, typename TLambda> static void VisitKey(T& obj, TField /* field */, TLambda&& lambda)
     {
         if constexpr (std::is_same_v<TField, Variant::Variant_installT>)
         {
