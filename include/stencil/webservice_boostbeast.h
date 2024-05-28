@@ -413,17 +413,17 @@ template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunct
         std::ostringstream rslt;
 
         auto args = _CreateArgStruct(ctx);
-        if constexpr (std::is_same_v<void, decltype(Traits::Invoke(ctx.impl, args))>) { return Traits::Invoke(ctx, ctx.impl, args); }
+        if constexpr (std::is_same_v<void, decltype(Traits::Invoke(ctx.impl, args))>) { return Traits::Invoke(ctx.impl, args); }
         else
         {
             auto retval = Traits::Invoke(ctx.impl, args);
             rslt << Stencil::Json::Stringify<decltype(retval)>(retval);
+            auto msg   = rslt.str();
+            auto res   = impl::create_response<boost::beast::http::string_body>(ctx.req, "application/json");
+            res.body() = msg;
+            boost::beast::http::response_serializer<boost::beast::http::string_body, boost::beast::http::fields> sr{res};
+            boost::beast::http::write(ctx.stream, sr);
         }
-        auto msg   = rslt.str();
-        auto res   = impl::create_response<boost::beast::http::string_body>(ctx.req, "application/json");
-        res.body() = msg;
-        boost::beast::http::response_serializer<boost::beast::http::string_body, boost::beast::http::fields> sr{res};
-        boost::beast::http::write(ctx.stream, sr);
     }
 };
 

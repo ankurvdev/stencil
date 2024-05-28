@@ -92,6 +92,10 @@ struct Server1Impl : Stencil::WebServiceT<Server1Impl, Interfaces::Server1>
         Raise_SomethingHappened(key, copied);
         return retval;
     }
+
+    void Function2() override {}
+    void Function3(uint32_t const& /* arg1 */) override {}
+
     // Event listeners ?
 };
 
