@@ -8,6 +8,9 @@
 #include "interfaces.h"
 #include "protocol_json.h"
 #include "serdes.h"
+#include "transactions.h"
+#include "transactions.strserdes.h"
+#include "typetraits.h"
 
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
@@ -21,6 +24,7 @@ SUPPRESS_MSVC_WARNING(5262)    // implicit fall-through occurs here;
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/config.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/url.hpp>
 
 SUPPRESS_WARNINGS_END
@@ -44,6 +48,8 @@ SUPPRESS_WARNINGS_END
 
 namespace Stencil::impl
 {
+template <typename TImpl, typename TSvc> struct RequestHandler;
+
 using Request = boost::beast::http::request<boost::beast::http::string_body>;
 using namespace std::chrono_literals;
 
@@ -125,6 +131,7 @@ struct SSEListenerManager
         std::condition_variable _dataAvailable{};
         time_point              _lastSendAt;
         bool                    _stopRequested = false;
+        size_t                  _category      = {0};
 
         Instance()  = default;
         ~Instance() = default;
@@ -181,7 +188,7 @@ struct SSEListenerManager
         }
     };
 
-    void Send(std::span<const char> const& msg)
+    void Send(size_t category, std::span<const char> const& msg)
     {
         auto lock = std::unique_lock<std::mutex>(_mutex);
         for (auto it = _sseListeners.begin(); it != _sseListeners.end();)
@@ -189,6 +196,7 @@ struct SSEListenerManager
             if (_stopRequested) return;
             auto inst = *it;
             if (inst->_stopRequested) continue;
+            if (inst->_category != 0 && category != 0 && inst->_category != category) continue;
             if (!inst->Send(lock, msg)) { it = _sseListeners.erase(it); }
             else
             {
@@ -198,10 +206,11 @@ struct SSEListenerManager
         }
     }
 
-    std::shared_ptr<Instance> CreateInstance()
+    std::shared_ptr<Instance> CreateInstance(size_t category)
     {
-        auto inst      = std::make_shared<Instance>();
-        inst->_manager = this;
+        auto inst       = std::make_shared<Instance>();
+        inst->_manager  = this;
+        inst->_category = category;
         return inst;
     }
 
@@ -243,7 +252,7 @@ template <typename TContext> struct RequestHandlerForAllEvents
     static auto Invoke(TContext& ctx)
     {
         SSEListenerManager::Instance::SSEContext ctx1(ctx.stream, ctx.req);
-        ctx.sse.CreateInstance()->Start(ctx1, "event: init\ndata: \n\n");
+        ctx.sse.CreateInstance(typeid(TContext).hash_code())->Start(ctx1, "event: init\ndata: \n\n");
     }
 };
 
@@ -253,7 +262,7 @@ template <typename TContext, typename TEventStructs> struct RequestHandlerForEve
     static auto Invoke(TContext& ctx)
     {
         SSEListenerManager::Instance::SSEContext ctx1(ctx.stream, ctx.req);
-        ctx.sse.CreateInstance()->Start(ctx1, "event: init\ndata: \n\n");
+        ctx.sse.CreateInstance(typeid(TContext).hash_code())->Start(ctx1, "event: init\ndata: \n\n");
     }
 };
 
@@ -336,7 +345,8 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
             auto [id, obj1] = objects.template Create<TObjectStoreObj>(lock, _CreateArgStruct<TObjectStoreObj>(ctx));
             uint32_t idint  = id.id;
             fmt::print(rslt, "{}", Stencil::Json::Stringify(idint));
-            ctx.sse.Send(fmt::format("event: objectstore_create\ndata: {{\"{}\": {{\"{}\": {}}}}}\n\n",
+            ctx.sse.Send(typeid(TContext).hash_code(),
+                         fmt::format("event: objectstore_create\ndata: {{\"{}\": {{\"{}\": {}}}}}\n\n",
                                      Stencil::InterfaceObjectTraits<TObjectStoreObj>::Name(),
                                      idint,
                                      Stencil::Json::Stringify(Stencil::Database::CreateRecordView(objects, lock, id, obj1))));
@@ -367,6 +377,7 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
         else if (action == "edit")
         {
             ctx.sse.Send(
+                typeid(TContext).hash_code(),
                 fmt::format("event: objectstore_edit\ndata: {{\'{}\': {{", Stencil::InterfaceObjectTraits<TObjectStoreObj>::Name()));
             auto lock  = objects.LockForEdit();
             bool first = true;
@@ -374,14 +385,15 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
                 auto obj1  = objects.template Get<TObjectStoreObj>(lock, {id});
                 auto jsobj = Stencil::Json::Stringify(Stencil::Database::CreateRecordView(objects, lock, {id}, obj1));
                 rslt << jsobj;
-                ctx.sse.Send(fmt::format("{}\'{}\': {}", (first ? ' ' : ','), id, jsobj));
+                ctx.sse.Send(typeid(TContext).hash_code(), fmt::format("{}\'{}\': {}", (first ? ' ' : ','), id, jsobj));
                 first = false;
             });
-            ctx.sse.Send("}}\n\n");
+            ctx.sse.Send(typeid(TContext).hash_code(), "}}\n\n");
         }
         else if (action == "delete")
         {
             ctx.sse.Send(
+                typeid(TContext).hash_code(),
                 fmt::format("event: objectstore_delete\ndata: {{\'{}\': [", Stencil::InterfaceObjectTraits<TObjectStoreObj>::Name()));
             auto lock  = objects.LockForEdit();
             bool first = true;
@@ -390,14 +402,14 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
                 {
                     objects.template Delete<TObjectStoreObj>(lock, {id});
                     rslt << "true";
-                    ctx.sse.Send(fmt::format("{}{}", (first ? ' ' : ','), id));
+                    ctx.sse.Send(typeid(TContext).hash_code(), fmt::format("{}{}", (first ? ' ' : ','), id));
                     first = false;
                 } catch (std::exception const& /*ex*/)
                 {
                     rslt << "false";
                 }
             });
-            ctx.sse.Send("]}\n\n");
+            ctx.sse.Send(typeid(TContext).hash_code(), "]}\n\n");
         }
         else { throw std::invalid_argument(fmt::format("Unknown object store action: {}", action)); }
         return rslt.str();
@@ -428,7 +440,14 @@ template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunct
         std::ostringstream rslt;
 
         auto args = _CreateArgStruct(ctx);
-        if constexpr (std::is_same_v<void, decltype(Traits::Invoke(ctx.impl, args))>) { return Traits::Invoke(ctx.impl, args); }
+        if constexpr (std::is_same_v<void, decltype(Traits::Invoke(ctx.impl, args))>)
+        {
+            Traits::Invoke(ctx.impl, args);
+            auto res   = impl::create_response<boost::beast::http::string_body>(ctx.req, "application/json");
+            res.body() = "{}";
+            boost::beast::http::response_serializer<boost::beast::http::string_body, boost::beast::http::fields> sr{res};
+            boost::beast::http::write(ctx.stream, sr);
+        }
         else
         {
             auto retval = Traits::Invoke(ctx.impl, args);
@@ -454,7 +473,7 @@ template <typename TContext> struct RequestHandlerFallback
     }
 };
 
-template <typename TImpl, typename TInterface> struct RequestHandler
+template <typename TImpl, ConceptInterface TInterface> struct RequestHandler<TImpl, TInterface>
 {
     template <typename TTup>
     static bool Matches(SSEListenerManager& /* sseMgr */,
@@ -524,7 +543,7 @@ template <typename TImpl, typename TInterface> struct RequestHandler
             }
             rslt << ']';
             auto rsltstr = rslt.str();
-            ctx.sse.CreateInstance()->Start(ctx1, fmt::format("event: init\ndata: {}\n\n", rsltstr));
+            ctx.sse.CreateInstance(typeid(TContext).hash_code())->Start(ctx1, fmt::format("event: init\ndata: {}\n\n", rsltstr));
         }
     };
 
@@ -553,6 +572,40 @@ template <typename TImpl, typename TInterface> struct RequestHandler
     }
 };
 
+template <ConceptIndexable TState> struct SynchronizedState
+{
+    void* handler{nullptr};
+
+    virtual std::string_view Name()           = 0;
+    virtual std::string      StateStringify() = 0;
+};
+
+template <typename TImpl, ConceptIndexable TState> struct RequestHandler<TImpl, SynchronizedState<TState>>
+{
+    static bool Matches(SSEListenerManager& /* sseMgr */,
+                        TImpl& impl,
+                        tcp_stream& /* stream */,
+                        Request const& /* req */,
+                        boost::urls::url_view& /*url*/,
+                        boost::urls::segments_base::iterator& it)
+    {
+        return iequals(static_cast<SynchronizedState<TState>*>(&impl)->Name(), *it);
+    }
+
+    static void Invoke(SSEListenerManager& sseMgr,
+                       TImpl&              impl,
+                       tcp_stream&         stream,
+                       Request const&      req,
+                       boost::urls::url_view& /* url */,
+                       boost::urls::segments_base::iterator& it)
+    {
+        ++it;
+        SSEListenerManager::Instance::SSEContext ctx1(stream, req);
+        sseMgr.CreateInstance(typeid(TState).hash_code())
+            ->Start(ctx1, fmt::format("event: init\ndata: {}\n\n", static_cast<SynchronizedState<TState>*>(&impl)->StateStringify()));
+    }
+};
+
 }    // namespace Stencil::impl
 
 namespace Stencil
@@ -566,14 +619,30 @@ SUPPRESS_MSVC_WARNING(4583)
 SUPPRESS_MSVC_WARNING(4582)
 SUPPRESS_MSVC_WARNING(4702)
 
+template <typename TImpl, typename T> struct WebServiceInterfaceImplT;
+
 template <typename TImpl, ConceptInterface TInterface>
-struct WebServiceInterfaceImplT : TInterface,    // TImpl implements the virtual functions in this interface,
-                                  Stencil::impl::Interface::InterfaceEventHandlerT<TImpl, TInterface>
+struct WebServiceInterfaceImplT<TImpl, TInterface> : TInterface,    // TImpl implements the virtual functions in this interface,
+                                                     Stencil::impl::Interface::InterfaceEventHandlerT<TImpl, TInterface>
 {
     WebServiceInterfaceImplT() { TInterface::template SetHandler(this); }
     virtual ~WebServiceInterfaceImplT() override = default;
     CLASS_DELETE_COPY_AND_MOVE(WebServiceInterfaceImplT);
 };
+
+template <typename TImpl, ConceptIndexable T>
+struct WebServiceInterfaceImplT<TImpl, impl::SynchronizedState<T>> : impl::SynchronizedState<T>
+{
+
+    void NotifyStateChanged(Stencil::Transaction<T>& txn)
+    {
+        auto impl = static_cast<TImpl*>(this);
+        auto msg  = fmt::format("event: changed\ndata: {}\n\n", Stencil::StringTransactionSerDes::Deserialize(txn));
+        impl->_sseManager.Send(typeid(T).hash_code(), msg);
+    }
+};
+
+template <ConceptIndexable TState> using WebSynchronizedState = impl::SynchronizedState<TState>;
 
 template <typename TImpl, ConceptInterface... TInterfaces> struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TInterfaces>...
 {
@@ -626,7 +695,7 @@ template <typename TImpl, ConceptInterface... TInterfaces> struct WebServiceT : 
     template <typename TEventArgs> void OnEvent(TEventArgs const& args)
     {
         auto msg = fmt::format("event: {}\ndata: {}\n\n", Stencil::InterfaceApiTraits<TEventArgs>::Name(), Stencil::Json::Stringify(args));
-        _sseManager.Send(msg);
+        _sseManager.Send(0, msg);
     }
 
     template <ConceptInterface T> auto& GetInterface() { return *static_cast<T*>(this); }
@@ -689,6 +758,7 @@ template <typename TImpl, ConceptInterface... TInterfaces> struct WebServiceT : 
         if (impl::iequals(ext, ".tif")) return "image/tiff";
         if (impl::iequals(ext, ".svg")) return "image/svg+xml";
         if (impl::iequals(ext, ".svgz")) return "image/svg+xml";
+        if (impl::iequals(ext, ".kml")) return "application/vnd.google-earth.kml+xml";
         return "application/text";
     }
 
