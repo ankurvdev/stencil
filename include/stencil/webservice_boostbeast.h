@@ -22,6 +22,7 @@ SUPPRESS_MSVC_WARNING(5262)    // implicit fall-through occurs here;
 #include <boost/asio/use_awaitable.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
+#include <boost/beast/http/file_body.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/config.hpp>
 #include <boost/lexical_cast.hpp>
@@ -717,13 +718,22 @@ template <typename TImpl, ConceptInterface... TInterfaces> struct WebServiceT : 
 
         std::ifstream file(path, std::ios::binary);
         if (!file.is_open()) throw std::runtime_error(fmt::format("Cannot send File Response. Failed to open file: {}", path.string()));
-        std::vector<uint8_t> buffer(std::filesystem::file_size(path));
-        file.read(reinterpret_cast<char*>(buffer.data()), static_cast<std::streamsize>(buffer.size()));
-        auto res        = impl::create_response<boost::beast::http::buffer_body>(req, mime_type(path.extension().string()));
-        res.body().data = buffer.data();
-        res.body().size = buffer.size();
-        res.body().more = false;
-        boost::beast::http::response_serializer<boost::beast::http::buffer_body> sr{res};
+        boost::beast::http::response<boost::beast::http::file_body> res;
+        boost::system::error_code                                   ec;
+        auto                                                        pathstr = path.string();
+        res.body().open(pathstr.c_str(), boost::beast::file_mode::scan, ec);
+        res.result(boost::beast::http::status::ok);
+        res.version(req.version());
+        res.keep_alive(req.keep_alive());
+        res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
+        res.set(boost::beast::http::field::content_type, mime_type(path.string()));
+        res.set(boost::beast::http::field::access_control_allow_origin, "*");
+        res.set(boost::beast::http::field::server, "stencil_webserver");
+        res.content_length(res.body().size());
+
+        boost::beast::http::response_serializer<boost::beast::http::file_body> sr{res};
+        boost::beast::http::write_header(stream, sr);
+
         boost::beast::http::write(stream, sr);
     }
 
@@ -759,6 +769,10 @@ template <typename TImpl, ConceptInterface... TInterfaces> struct WebServiceT : 
         if (impl::iequals(ext, ".svg")) return "image/svg+xml";
         if (impl::iequals(ext, ".svgz")) return "image/svg+xml";
         if (impl::iequals(ext, ".kml")) return "application/vnd.google-earth.kml+xml";
+        if (impl::iequals(ext, ".m3u8")) return "application/x-mpegURL";
+        if (impl::iequals(ext, ".ts")) return "video/mp4";
+        if (impl::iequals(ext, ".mp4")) return "video/mp4";
+        if (impl::iequals(ext, ".m4s")) return "video/mp4";
         return "application/text";
     }
 
