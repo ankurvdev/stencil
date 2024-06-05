@@ -1,5 +1,4 @@
 #include "CommonMacros.h"
-#include <boost/beast/http/file_body.hpp>
 
 #if !defined HAVE_BOOSTBEAST
 #error "Need boost::beast to be linked"
@@ -23,6 +22,7 @@ SUPPRESS_MSVC_WARNING(5262)    // implicit fall-through occurs here;
 #include <boost/asio/use_awaitable.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
+#include <boost/beast/http/file_body.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/config.hpp>
 #include <boost/lexical_cast.hpp>
