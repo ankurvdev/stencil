@@ -720,7 +720,8 @@ template <typename TImpl, ConceptInterface... TInterfaces> struct WebServiceT : 
         if (!file.is_open()) throw std::runtime_error(fmt::format("Cannot send File Response. Failed to open file: {}", path.string()));
         boost::beast::http::response<boost::beast::http::file_body> res;
         boost::system::error_code                                   ec;
-        res.body().open(path.c_str(), boost::beast::file_mode::scan, ec);
+        auto                                                        pathstr = path.string();
+        res.body().open(pathstr.c_str(), boost::beast::file_mode::scan, ec);
         res.result(boost::beast::http::status::ok);
         res.version(req.version());
         res.keep_alive(req.keep_alive());
