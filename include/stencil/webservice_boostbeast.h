@@ -733,6 +733,8 @@ struct SessionInterfaceT : TInterface,
 
 template <ConceptIndexable TState> struct SynchronizedState
 {
+    virtual ~SynchronizedState() = default;
+
     void* handler{nullptr};
 
     virtual std::string_view Name()           = 0;
