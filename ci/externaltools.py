@@ -271,13 +271,6 @@ def download_android_studio(path: Path) -> None:
     shutil.unpack_archive(downloadtofile, path)
 
 
-def accept_sdk_licenses(sdkmanager: Path, sdk_root: Path) -> None:
-    proc = subprocess.Popen([sdkmanager.as_posix(), f"--sdk_root={sdk_root}", "--licenses"], stdin=subprocess.PIPE)
-    while proc.poll() is None:
-        time.sleep(1)
-        proc.communicate(input=b"y\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\n")
-
-
 binarycache: Dict[str, Path] = {}
 
 
@@ -675,6 +668,13 @@ def get_android_toolchain() -> dict[str, str | Path | _Environ[str] | dict[str, 
         "platform-tools",
         f"platforms;android-{sdk_version}",
     ]
+
+    def accept_sdk_licenses(sdkmanager: Path, sdk_root: Path) -> None:
+        proc = subprocess.Popen([sdkmanager.as_posix(), f"--sdk_root={sdk_root}", "--licenses"], stdin=subprocess.PIPE, env=runenv)
+        while proc.poll() is None:
+            time.sleep(1)
+            proc.communicate(input=b"y\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\n")
+
     accept_sdk_licenses(sdkmanager, sdk_root)
 
     if any(p.split(";", maxsplit=1)[0] not in dirs for p in packages):
