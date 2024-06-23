@@ -101,7 +101,7 @@ endmacro()
 macro(EnableStrictCompilation)
     find_package(Threads)
     file(TIMESTAMP "${BuildEnvCMAKE_LOCATION}/BuildEnv.cmake" filetime)
-    if (NOT DEFINED STRICT_COMPILATION_MODE OR NOT "${STRICT_COMPILATION_MODE}" STREQUAL "${filetime}")
+    if ((NOT DEFINED STRICT_COMPILATION_MODE) OR (NOT "${STRICT_COMPILATION_MODE}" STREQUAL "${filetime}"))
         if (MINGW)
             # set(CMAKE_C_USE_RESPONSE_FILE_FOR_INCLUDES   OFF)
             # set(CMAKE_CXX_USE_RESPONSE_FILE_FOR_INCLUDES OFF)
@@ -137,6 +137,7 @@ macro(EnableStrictCompilation)
                 /wd4619  # pragma warning: there is no warning number
                 /wd4514  # unreferenced inline function has been removed
                 /wd4820  # bytes padding added after data member in struct
+                /wd4868  # compiler may not enforce left-to-right evaluation order in braced initializer list
                 /wd5039  #  pointer or reference to potentially throwing function passed to 'extern "C"' function under -EHc.
                 /wd5045  # Spectre mitigation insertion
                 /wd5264  # const variable is not used
@@ -148,12 +149,14 @@ macro(EnableStrictCompilation)
                 /wd4746  # volatile access of 'b' is subject to /volatile:<iso|ms>
                 # TODO : Revisit with later cmake release. This causes cmake autodetect HAVE_STRUCT_TIMESPEC to fail
                 /wd4255  # The compiler did not find an explicit list of arguments to a function. This warning is for the C compiler only.
-            /wd5246  # MSVC Bug VS2022 :  the initialization of a subobject should be wrapped in braces
+                /wd5246  # MSVC Bug VS2022 :  the initialization of a subobject should be wrapped in braces
             )
 
             set(exclusions "[-/]W[a-zA-Z1-9]+" "[-/]permissive?" "[-/]external:W?" "[-/]external:anglebrackets?" "[-/]external:templates?")
             link_libraries(WindowsApp.lib rpcrt4.lib onecoreuap.lib kernel32.lib)
-
+            if (DEFINED ENV{INCLUDE})
+                include_directories(SYSTEM $ENV{INCLUDE})
+            endif()
             _FixFlags(CMAKE_C_FLAGS     EXCLUDE ${exclusions} APPEND ${extraflags})
             _FixFlags(CMAKE_CXX_FLAGS   EXCLUDE ${exclusions} APPEND ${extraflags})
             # /RTCc rejects code that conforms to the standard, it's not supported by the C++ Standard Library

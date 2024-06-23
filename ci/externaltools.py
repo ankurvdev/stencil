@@ -98,6 +98,10 @@ class ExternalToolsDownloadError(Exception):
     pass
 
 
+TOOL_PATH: set[Path] = set()
+TOOL_PATHS: dict[str, Path] = {}
+
+
 class CustomEncoder(json.JSONEncoder):
     def default(self, o: any) -> any:
         if isinstance(o, Path):
@@ -156,6 +160,8 @@ def search_filename(sdir: Path, name: str, recursive: bool = True) -> Path:
 
 
 def search_executable(bindir: Path, binname: str, recursive: bool = True) -> Path:
+    if not bindir.exists():
+        return Path()
     if recursive:
         localexe = search_executable(bindir.parent, binname, recursive=False)
         if localexe.is_file():
@@ -265,13 +271,6 @@ def download_android_studio(path: Path) -> None:
     shutil.unpack_archive(downloadtofile, path)
 
 
-def accept_sdk_licenses(sdkmanager: Path, sdk_root: Path) -> None:
-    proc = subprocess.Popen([sdkmanager.as_posix(), f"--sdk_root={sdk_root}", "--licenses"], stdin=subprocess.PIPE)
-    while proc.poll() is None:
-        time.sleep(1)
-        proc.communicate(input=b"y\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\n")
-
-
 binarycache: Dict[str, Path] = {}
 
 
@@ -283,6 +282,8 @@ def get_binary(
     if packname in binarycache:
         return binarycache[packname]
     rslt = binarycache[packname] = _get_binary(packname, binname=binname, binpath=binpath).absolute()
+    TOOL_PATHS[packname] = rslt
+    TOOL_PATH.add(rslt.parent)
     add_to_path([rslt.parent])
     return rslt
 
@@ -304,7 +305,6 @@ def _get_binary(  # noqa: PLR0912, PLR0915, C901
     if localexe.is_file():
         return localexe
     bindir = (binpath and Path(binpath)) or get_bin_path() / packname
-    bindir.mkdir(exist_ok=True, parents=True)
     localexe = search_executable(bindir, binname)
     if localexe.is_file():
         return localexe
@@ -320,6 +320,7 @@ def _get_binary(  # noqa: PLR0912, PLR0915, C901
         if (portsdir / packname).exists():
             return get_vcpkg_port_tool(vcpkg_root, packname, binname)
 
+    bindir.mkdir(exist_ok=True, parents=True)
     urlinfo: Any = URLS[f"{packname}_{platform.system()}_{DefaultArch}"]
 
     archiveext = None
@@ -388,13 +389,10 @@ def get_vswhere() -> Path:
 
 def init_envvars_from_dict(
     toolchain: str,
-    env: dict[str, str],
+    info: dict[str, str],
     envvarsbase: dict[str, str] | _Environ[str] | None = None,
 ) -> dict[str, str | Path | _Environ[str] | dict[str, Path]]:
-    info = {}
-    envvars = envvarsbase or os.environ.copy()
-    append_envvars(envvars, env)
-    info["environ"] = envvars
+    info["environ"] = append_envvars(envvarsbase or os.environ.copy(), info.get("env", {}))
     info["host_arch"] = DefaultArch
     info["toolchain"] = toolchain
     return info
@@ -406,18 +404,33 @@ def init_envvars_from_file(
     envvarsbase: dict[str, str] | _Environ[str] | None = None,
 ) -> dict[str, str | Path | _Environ[str] | dict[str, Path]]:
     envvars = envvarsbase or os.environ.copy()
-    info = json.loads(fpath.read_text())
-    outinfo = init_envvars_from_dict(toolchain, info["env"], envvars)
+    info = recursive_deserialize({}, json.loads(fpath.read_text()))
+    return init_envvars_from_dict(toolchain, info, envvars)
+
+
+def deserialize_from_str(v: str) -> Path | str:
+    fpath = Path(v)
+    fpath = fpath if fpath.is_absolute() else get_bin_path() / fpath
+    if fpath.exists():
+        return fpath
+    return v
+
+
+def recursive_deserialize(outinfo: dict[str, str] | _Environ[str], info: dict[str, str]) -> dict[str, Path | str]:
     for k, v in info.items():
         if isinstance(v, str):
-            fpath = Path(v)
-            fpath = fpath if fpath.is_absolute() else get_bin_path() / fpath
-            if fpath.exists():
-                outinfo[k] = fpath
-            else:
-                outinfo[k] = v
-        else:
+            outinfo[k] = deserialize_from_str(v)
+        elif isinstance(v, Path):
             outinfo[k] = v
+        elif isinstance(v, int):
+            outinfo[k] = v
+        elif isinstance(v, list):
+            outinfo[k] = [deserialize_from_str(onev) for onev in v]
+        elif isinstance(v, dict):
+            outinfo.setdefault(k, {})
+            outinfo[k] = recursive_deserialize(outinfo[k], v)
+        else:
+            raise ExternalToolsDownloadError(f"Invalid value in {info} for {k} => {v}")
     return outinfo
 
 
@@ -461,11 +474,6 @@ def _detect_toolchain(environ: dict[str, str] | _Environ[str] | None = None) -> 
             (get_bin_path() / "toolchain_visualstudio.json").write_text(json.dumps(info, cls=CustomEncoder, indent=2))
             return info
     return {"toolchain": None, "environ": environ}
-
-
-def import_toolchain_envvars(environ: dict[str, str] | _Environ[str]) -> None:
-    for k, v in environ.items():
-        os.environ[k] = v
 
 
 def get_visualstudio_toolchain() -> dict[str, str] | _Environ[str] | None:
@@ -607,7 +615,7 @@ def add_to_env_path_list(
     environ: dict[str, str] | _Environ[str] | None = None,
 ) -> dict[str, str] | _Environ[str]:
     paths = [fpath if fpath.is_absolute() else get_bin_path() / fpath for fpath in paths]
-    environ = environ or os.environ
+    environ = environ or os.environ.copy()
     alreadypaths = {Path(onepath or ".").absolute() for onepath in environ.get(envvar, "").split(os.pathsep)}
     appendpaths = [onepath.as_posix() for onepath in paths if onepath.absolute() not in alreadypaths]
     appendpathsstr = os.pathsep.join(appendpaths)
@@ -660,6 +668,13 @@ def get_android_toolchain() -> dict[str, str | Path | _Environ[str] | dict[str, 
         "platform-tools",
         f"platforms;android-{sdk_version}",
     ]
+
+    def accept_sdk_licenses(sdkmanager: Path, sdk_root: Path) -> None:
+        proc = subprocess.Popen([sdkmanager.as_posix(), f"--sdk_root={sdk_root}", "--licenses"], stdin=subprocess.PIPE, env=runenv)
+        while proc.poll() is None:
+            time.sleep(1)
+            proc.communicate(input=b"y\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\n")
+
     accept_sdk_licenses(sdkmanager, sdk_root)
 
     if any(p.split(";", maxsplit=1)[0] not in dirs for p in packages):
@@ -901,8 +916,9 @@ def get_portable_msvc_toolchain() -> dict[str, str | Path | _Environ[str] | dict
         # Windows SDK tools (like rc.exe & mt.exe)
         "Windows SDK for Windows Store Apps Tools-x86_en-us.msi",
         # Windows SDK headers
+        "Windows SDK for Windows Store Apps Headers OnecoreUap-x86_en-us.msi",
         "Windows SDK for Windows Store Apps Headers-x86_en-us.msi",
-        "Windows SDK Desktop Headers x86-x86_en-us.msi",
+        f"Windows SDK OnecoreUap Headers {target_arch}-x86_en-us.msi",
         # Windows SDK libs
         "Windows SDK for Windows Store Apps Libs-x86_en-us.msi",
         f"Windows SDK Desktop Libs {target_arch}-x86_en-us.msi",
@@ -980,9 +996,9 @@ def get_portable_msvc_toolchain() -> dict[str, str | Path | _Environ[str] | dict
     for arch in ["x86", "x64", "arm", "arm64"]:
         if arch != target_arch:
             shutil.rmtree(output_dir / "VC/Tools/MSVC" / msvcv / f"bin/Host{arch}", ignore_errors=True)
-            shutil.rmtree(output_dir / "Windows Kits/10/bin" / sdkv / arch)
-            shutil.rmtree(output_dir / "Windows Kits/10/Lib" / sdkv / "ucrt" / arch)
-            shutil.rmtree(output_dir / "Windows Kits/10/Lib" / sdkv / "um" / arch)
+            shutil.rmtree(output_dir / "Windows Kits/10/bin" / sdkv / arch, ignore_errors=True)
+            shutil.rmtree(output_dir / "Windows Kits/10/Lib" / sdkv / "ucrt" / arch, ignore_errors=True)
+            shutil.rmtree(output_dir / "Windows Kits/10/Lib" / sdkv / "um" / arch, ignore_errors=True)
     shutil.rmtree(msi_dir, ignore_errors=True)
     shutil.rmtree(msi_dir, ignore_errors=True)
     msvc_root = output_dir / "VC/Tools/MSVC" / msvcv

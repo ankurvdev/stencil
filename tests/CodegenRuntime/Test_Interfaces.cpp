@@ -71,7 +71,7 @@ struct SSEFormat : TestCommon::JsonFormat
     }
 };
 
-struct Server1Impl : Stencil::WebServiceT<Server1Impl, Interfaces::Server1>
+struct Server1Impl : Stencil::websvc::WebServiceT<Server1Impl, Interfaces::Server1>
 {
     Server1Impl() { objects.Init(std::filesystem::path("SaveAndLoad.bin")); }
     ~Server1Impl() override = default;

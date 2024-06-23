@@ -128,6 +128,8 @@ template <typename TProto, typename TOwner, typename T> struct IndexableVisitorT
     TOwner*                                  owner;
 };
 
+SUPPRESS_WARNINGS_START
+SUPPRESS_MSVC_WARNING(4702) /*Unreachable code*/
 template <typename TProto, typename TOwner, ConceptIndexable T> struct IndexableVisitorTypeHandler<TProto, TOwner, T>
 {
     using Traits = typename Stencil::TypeTraitsForIndexable<T>;
@@ -155,6 +157,7 @@ template <typename TProto, typename TOwner, ConceptIndexable T> struct Indexable
     // TODO: This is causing me
     // VisitorTypeHandlerPack<typename Traits::ValueTypes> _handlers;
 };
+SUPPRESS_WARNINGS_END
 
 template <typename TProto, typename TOwner, typename T> struct VisitorTypeHandler : TypeHandler
 {
