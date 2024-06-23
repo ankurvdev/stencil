@@ -11,6 +11,7 @@
 #include "transactions.h"
 #include "transactions.strserdes.h"
 #include "typetraits.h"
+#include "uuidobject.h"
 
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
@@ -46,13 +47,23 @@ SUPPRESS_WARNINGS_END
 #if !defined(BOOST_ASIO_HAS_CO_AWAIT)
 #error Need co await
 #endif
-
-namespace Stencil::impl
+namespace Stencil::websvc::impl
 {
 template <typename TImpl, typename TSvc> struct RequestHandler;
 
-using Request = boost::beast::http::request<boost::beast::http::string_body>;
 using namespace std::chrono_literals;
+using Request = boost::beast::http::request<boost::beast::http::string_body>;
+
+using boost::beast::iequals;
+
+inline std::tuple<std::string_view, std::string_view> Split(std::string_view const& path, char token = '/')
+{
+    size_t start = path[0] == token ? 1u : 0u;
+    size_t index = path.find(token, start);
+    auto   str1  = path.substr(start, index - start);
+    if (index == path.npos) return {str1, {}};
+    return {str1, path.substr(index)};
+}
 
 template <typename T> auto create_response(Request const& req, std::string_view const& content_type)
 {
@@ -66,19 +77,119 @@ template <typename T> auto create_response(Request const& req, std::string_view 
     res.set(boost::beast::http::field::server, "stencil_webserver");
     return res;
 }
-using boost::beast::iequals;
+}    // namespace Stencil::websvc::impl
+namespace Stencil::websvc
+{
 
+using tcp        = boost::asio::ip::tcp;    // from <boost/asio/ip/tcp.hpp>
 using tcp_stream = typename boost::beast::tcp_stream::rebind_executor<
     boost::asio::use_awaitable_t<>::executor_with_default<boost::asio::any_io_executor>>::other;
+using Field                                    = boost::beast::http::field;
+template <typename T> using Response           = boost::beast::http::response<T>;
+template <typename T> using ResponseSerializer = boost::beast::http::response_serializer<T>;
 
-inline std::tuple<std::string_view, std::string_view> Split(std::string_view const& path, char token = '/')
+using Request = impl::Request;
+
+void WriteStringResponse(tcp_stream& stream, Request const& req, std::string_view const& content_type, std::string_view const& content)
 {
-    size_t start = path[0] == token ? 1u : 0u;
-    size_t index = path.find(token, start);
-    auto   str1  = path.substr(start, index - start);
-    if (index == path.npos) return {str1, {}};
-    return {str1, path.substr(index)};
+    auto res   = impl::create_response<boost::beast::http::string_body>(req, content_type);
+    res.body() = content;
+    ResponseSerializer<boost::beast::http::string_body> sr(res);
+    boost::beast::http::write(stream, sr);
 }
+
+void WriteFileResponse(tcp_stream&                      stream,
+                       Request const&                   req,
+                       std::filesystem::path const&     path,
+                       boost::beast::string_view const& content_type)
+{
+    if (!std::filesystem::exists(path))
+    {
+        throw std::invalid_argument(fmt::format("Cannot send File Response. File does not exist: {}", path.string()));
+    }
+
+    std::ifstream file(path, std::ios::binary);
+    if (!file.is_open()) throw std::runtime_error(fmt::format("Cannot send File Response. Failed to open file: {}", path.string()));
+    boost::beast::http::response<boost::beast::http::file_body> res;
+    boost::system::error_code                                   ec;
+    auto                                                        pathstr = path.string();
+    res.body().open(pathstr.c_str(), boost::beast::file_mode::scan, ec);
+    res.result(boost::beast::http::status::ok);
+    res.version(req.version());
+    res.keep_alive(req.keep_alive());
+    res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
+    res.set(boost::beast::http::field::content_type, content_type);
+    res.set(boost::beast::http::field::access_control_allow_origin, "*");
+    res.set(boost::beast::http::field::server, "stencil_webserver");
+    res.content_length(res.body().size());
+
+    boost::beast::http::response_serializer<boost::beast::http::file_body> sr{res};
+    boost::beast::http::write_header(stream, sr);
+
+    boost::beast::http::write(stream, sr);
+}
+
+void Redirect(tcp_stream& stream, Request const& req, std::string_view const& redirect_path)
+{
+    boost::beast::http::response<boost::beast::http::string_body> res{boost::beast::http::status::temporary_redirect, req.version()};
+
+    auto host = [&]() {
+        if (req.count(boost::beast::http::field::location)) return req.at(boost::beast::http::field::location);
+        if (req.count(boost::beast::http::field::host)) return req.at(boost::beast::http::field::host);
+        throw std::runtime_error("Cannot determine host");
+    }();
+    auto redirect = fmt::format("http://{}{}", std::string_view(host), redirect_path);
+    res.set(boost::beast::http::field::location, redirect);
+    res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
+    res.set(boost::beast::http::field::content_type, "text/html");
+    res.version(req.version());
+    res.keep_alive(req.keep_alive());
+    res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
+    res.set(boost::beast::http::field::access_control_allow_origin, "*");
+    res.set(boost::beast::http::field::server, "stencil_webserver");
+    boost::beast::http::response_serializer<boost::beast::http::string_body> sr{res};
+    boost::beast::http::write_header(stream, sr);
+    boost::beast::http::write(stream, sr);
+}
+inline boost::beast::string_view mime_type(boost::beast::string_view path)
+{
+    auto const ext = [&path] {
+        auto const pos = path.rfind(".");
+        if (pos == boost::beast::string_view::npos) return boost::beast::string_view{};
+        return path.substr(pos);
+    }();
+    if (impl::iequals(ext, ".htm")) return "text/html";
+    if (impl::iequals(ext, ".html")) return "text/html";
+    if (impl::iequals(ext, ".php")) return "text/html";
+    if (impl::iequals(ext, ".css")) return "text/css";
+    if (impl::iequals(ext, ".txt")) return "text/plain";
+    if (impl::iequals(ext, ".js")) return "application/javascript";
+    if (impl::iequals(ext, ".json")) return "application/json";
+    if (impl::iequals(ext, ".xml")) return "application/xml";
+    if (impl::iequals(ext, ".swf")) return "application/x-shockwave-flash";
+    if (impl::iequals(ext, ".flv")) return "video/x-flv";
+    if (impl::iequals(ext, ".png")) return "image/png";
+    if (impl::iequals(ext, ".jpe")) return "image/jpeg";
+    if (impl::iequals(ext, ".jpeg")) return "image/jpeg";
+    if (impl::iequals(ext, ".jpg")) return "image/jpeg";
+    if (impl::iequals(ext, ".gif")) return "image/gif";
+    if (impl::iequals(ext, ".bmp")) return "image/bmp";
+    if (impl::iequals(ext, ".ico")) return "image/vnd.microsoft.icon";
+    if (impl::iequals(ext, ".tiff")) return "image/tiff";
+    if (impl::iequals(ext, ".tif")) return "image/tiff";
+    if (impl::iequals(ext, ".svg")) return "image/svg+xml";
+    if (impl::iequals(ext, ".svgz")) return "image/svg+xml";
+    if (impl::iequals(ext, ".kml")) return "application/vnd.google-earth.kml+xml";
+    if (impl::iequals(ext, ".m3u8")) return "application/x-mpegURL";
+    if (impl::iequals(ext, ".ts")) return "video/mp4";
+    if (impl::iequals(ext, ".mp4")) return "video/mp4";
+    if (impl::iequals(ext, ".m4s")) return "video/mp4";
+    return "application/text";
+}
+
+}    // namespace Stencil::websvc
+namespace Stencil::websvc::impl
+{
 
 template <typename... Types> struct Selector
 {
@@ -254,6 +365,7 @@ template <typename TContext> struct RequestHandlerForAllEvents
     {
         SSEListenerManager::Instance::SSEContext ctx1(ctx.stream, ctx.req);
         ctx.sse.CreateInstance(typeid(TContext).hash_code())->Start(ctx1, "event: init\ndata: \n\n");
+        ctx.impl.OnSSEInstanceEnded();
     }
 };
 
@@ -423,16 +535,25 @@ template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunct
     static auto _CreateArgStruct(TContext& ctx)
     {
         TArgsStruct args{};
-
-        for (auto const& param : ctx.url.params())
+        if (ctx.req.method() == boost::beast::http::verb::get)
         {
-            using TKey = typename Stencil::TypeTraitsForIndexable<TArgsStruct>::Key;
-            TKey key{};
-            Stencil::SerDesRead<Stencil::ProtocolString>(key, param.key);
-            auto& jsonval = param.value;    // Clang complains about capturing localbinding variables
-            Visitor<TArgsStruct>::VisitKey(args, key, [&](auto& val) { Stencil::SerDesRead<Stencil::ProtocolJsonVal>(val, jsonval); });
+            for (auto const& param : ctx.url.params())
+            {
+                using TKey = typename Stencil::TypeTraitsForIndexable<TArgsStruct>::Key;
+                TKey key{};
+                Stencil::SerDesRead<Stencil::ProtocolString>(key, param.key);
+                auto& jsonval = param.value;    // Clang complains about capturing localbinding variables
+                Visitor<TArgsStruct>::VisitKey(args, key, [&](auto& val) { Stencil::SerDesRead<Stencil::ProtocolJsonVal>(val, jsonval); });
+            }
+            return args;
         }
-        return args;
+        else if (ctx.req.method() == boost::beast::http::verb::put)
+        {
+            auto data = ctx.req.body();
+            Stencil::SerDesRead<Stencil::ProtocolJsonVal>(args, data);
+            return args;
+        }
+        else { throw std::runtime_error("Only get and put supported for functions"); }
     }
 
     static auto Invoke(TContext& ctx)
@@ -573,6 +694,44 @@ template <typename TImpl, ConceptInterface TInterface> struct RequestHandler<TIm
     }
 };
 
+template <typename TInterfaceImpl> struct SessionInterface
+{
+    using Uuid = uuids::uuid;
+    template <typename TImpl> auto CreateSession(TImpl& impl)
+    {
+        auto sptr                = std::make_shared<TInterfaceImpl>(impl);
+        _sessions[sptr->id.uuid] = sptr;
+        return sptr;
+    }
+
+    auto FindSession(Uuid const& uuid) { return _sessions[uuid]; }
+
+    void EndSession(TInterfaceImpl* ptr) { _sessions.erase(ptr->id.uuid); }
+
+    std::unordered_map<Uuid, std::shared_ptr<TInterfaceImpl>> _sessions;
+};
+
+template <typename TInterfaceImpl, ConceptInterface TInterface>
+struct SessionInterfaceT : TInterface,
+                           UuidObjectT<TInterfaceImpl>,
+                           Stencil::impl::Interface::InterfaceEventHandlerT<TInterfaceImpl, TInterface>
+{
+    using Interface = TInterface;
+    SessionInterfaceT() { TInterface::template SetHandler(this); }
+
+    void* handler{nullptr};
+
+    template <typename TEventArgs> void OnEvent(TEventArgs const& args)
+    {
+        auto msg = fmt::format("event: {}\ndata: {}\n\n", Stencil::InterfaceApiTraits<TEventArgs>::Name(), Stencil::Json::Stringify(args));
+        _sseManager.Send(0, msg);
+    }
+    virtual bool HandleRequest(tcp_stream& /* stream */, Request const& /* req */, boost::urls::url_view const& /* url */) { return false; }
+    virtual void OnSSEInstanceEnded() = 0;
+
+    impl::SSEListenerManager _sseManager;
+};
+
 template <ConceptIndexable TState> struct SynchronizedState
 {
     void* handler{nullptr};
@@ -607,9 +766,45 @@ template <typename TImpl, ConceptIndexable TState> struct RequestHandler<TImpl, 
     }
 };
 
-}    // namespace Stencil::impl
+template <typename TImpl, typename TInterfaceImpl> struct RequestHandler<TImpl, SessionInterface<TInterfaceImpl>>
+{
+    static bool Matches(SSEListenerManager& /* sseMgr */,
+                        TImpl& /* impl */,
+                        tcp_stream& /* stream */,
+                        Request const& /* req */,
+                        boost::urls::url_view& /*url*/,
+                        boost::urls::segments_base::iterator& it)
+    {
+        return iequals("session", *it);
+    }
 
-namespace Stencil
+    static void Invoke(SSEListenerManager& /* sseMgr */,
+                       TImpl&                                impl,
+                       tcp_stream&                           stream,
+                       Request const&                        req,
+                       boost::urls::url_view&                url,
+                       boost::urls::segments_base::iterator& it)
+    {
+        ++it;
+        auto reqpath = url.path().substr(std::string_view("/api/session/920ca96a-1705-4635-a162-4f4686efd2ab").size());
+        if (reqpath.size() > 0 && reqpath[0] == '/') reqpath = reqpath.substr(1);
+        auto session = impl.FindSession(uuids::uuid::from_string(*it).value());
+        if (session == nullptr)
+        {
+            auto session = impl.CreateSession(impl);
+            Redirect(stream, req, fmt::format("{}/{}/{}", "/api/session", uuids::to_string(session->id.uuid), reqpath));
+        }
+        else
+        {
+            RequestHandler<TInterfaceImpl, typename TInterfaceImpl::Interface>::Invoke(
+                session->_sseManager, *session, stream, req, url, it);
+        }
+    }
+};
+
+}    // namespace Stencil::websvc::impl
+
+namespace Stencil::websvc
 {
 SUPPRESS_WARNINGS_START
 SUPPRESS_MSVC_WARNING(4626)
@@ -619,6 +814,14 @@ SUPPRESS_MSVC_WARNING(4625)
 SUPPRESS_MSVC_WARNING(4583)
 SUPPRESS_MSVC_WARNING(4582)
 SUPPRESS_MSVC_WARNING(4702)
+
+using tcp        = boost::asio::ip::tcp;    // from <boost/asio/ip/tcp.hpp>
+using tcp_stream = typename boost::beast::tcp_stream::rebind_executor<
+    boost::asio::use_awaitable_t<>::executor_with_default<boost::asio::any_io_executor>>::other;
+using Field                                    = boost::beast::http::field;
+template <typename T> using Response           = boost::beast::http::response<T>;
+template <typename T> using ResponseSerializer = boost::beast::http::response_serializer<T>;
+using Request                                  = impl::Request;
 
 template <typename TImpl, typename T> struct WebServiceInterfaceImplT;
 
@@ -645,19 +848,20 @@ struct WebServiceInterfaceImplT<TImpl, impl::SynchronizedState<T>> : impl::Synch
 
 template <ConceptIndexable TState> using WebSynchronizedState = impl::SynchronizedState<TState>;
 
-template <typename TImpl, ConceptInterface... TInterfaces> struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TInterfaces>...
-{
-    using tcp        = boost::asio::ip::tcp;    // from <boost/asio/ip/tcp.hpp>
-    using tcp_stream = typename boost::beast::tcp_stream::rebind_executor<
-        boost::asio::use_awaitable_t<>::executor_with_default<boost::asio::any_io_executor>>::other;
-    using Field                                    = boost::beast::http::field;
-    template <typename T> using Response           = boost::beast::http::response<T>;
-    template <typename T> using ResponseSerializer = boost::beast::http::response_serializer<T>;
+template <typename TInterfaceImpl, ConceptInterface TInterface>
+using WebSessionInterfaceT = impl::SessionInterfaceT<TInterfaceImpl, TInterface>;
 
-    using Request = impl::Request;
+template <typename TInterfaceImpl> using WebSessionInterface = impl::SessionInterface<TInterfaceImpl>;
+
+template <typename TImpl, typename TInterfaceImpl>
+struct WebServiceInterfaceImplT<TImpl, WebSessionInterface<TInterfaceImpl>> : WebSessionInterface<TInterfaceImpl>
+{};
+template <typename TImpl, typename... TServices> struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TServices>...
+{
+    using WebService = WebServiceT<TImpl, TServices...>;
 
     WebServiceT() = default;
-    virtual ~WebServiceT() override { StopDaemon(); }
+    virtual ~WebServiceT() { StopDaemon(); }
 
     CLASS_DELETE_COPY_AND_MOVE(WebServiceT);
 
@@ -701,80 +905,9 @@ template <typename TImpl, ConceptInterface... TInterfaces> struct WebServiceT : 
 
     template <ConceptInterface T> auto& GetInterface() { return *static_cast<T*>(this); }
 
-    void WriteStringResponse(tcp_stream& stream, Request const& req, std::string_view const& content_type, std::string_view const& content)
-    {
-        auto res   = impl::create_response<boost::beast::http::string_body>(req, content_type);
-        res.body() = content;
-        ResponseSerializer<boost::beast::http::string_body> sr(res);
-        boost::beast::http::write(stream, sr);
-    }
-
-    void WriteFileResponse(tcp_stream& stream, Request const& req, std::filesystem::path const& path)
-    {
-        if (!std::filesystem::exists(path))
-        {
-            throw std::invalid_argument(fmt::format("Cannot send File Response. File does not exist: {}", path.string()));
-        }
-
-        std::ifstream file(path, std::ios::binary);
-        if (!file.is_open()) throw std::runtime_error(fmt::format("Cannot send File Response. Failed to open file: {}", path.string()));
-        boost::beast::http::response<boost::beast::http::file_body> res;
-        boost::system::error_code                                   ec;
-        auto                                                        pathstr = path.string();
-        res.body().open(pathstr.c_str(), boost::beast::file_mode::scan, ec);
-        res.result(boost::beast::http::status::ok);
-        res.version(req.version());
-        res.keep_alive(req.keep_alive());
-        res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
-        res.set(boost::beast::http::field::content_type, mime_type(path.string()));
-        res.set(boost::beast::http::field::access_control_allow_origin, "*");
-        res.set(boost::beast::http::field::server, "stencil_webserver");
-        res.content_length(res.body().size());
-
-        boost::beast::http::response_serializer<boost::beast::http::file_body> sr{res};
-        boost::beast::http::write_header(stream, sr);
-
-        boost::beast::http::write(stream, sr);
-    }
-
     virtual bool HandleRequest(tcp_stream& /* stream */, Request const& /* req */, boost::urls::url_view const& /* url */) { return false; }
 
     // Return a reasonable mime type based on the extension of a file.
-    static boost::beast::string_view mime_type(boost::beast::string_view path)
-    {
-        auto const ext = [&path] {
-            auto const pos = path.rfind(".");
-            if (pos == boost::beast::string_view::npos) return boost::beast::string_view{};
-            return path.substr(pos);
-        }();
-        if (impl::iequals(ext, ".htm")) return "text/html";
-        if (impl::iequals(ext, ".html")) return "text/html";
-        if (impl::iequals(ext, ".php")) return "text/html";
-        if (impl::iequals(ext, ".css")) return "text/css";
-        if (impl::iequals(ext, ".txt")) return "text/plain";
-        if (impl::iequals(ext, ".js")) return "application/javascript";
-        if (impl::iequals(ext, ".json")) return "application/json";
-        if (impl::iequals(ext, ".xml")) return "application/xml";
-        if (impl::iequals(ext, ".swf")) return "application/x-shockwave-flash";
-        if (impl::iequals(ext, ".flv")) return "video/x-flv";
-        if (impl::iequals(ext, ".png")) return "image/png";
-        if (impl::iequals(ext, ".jpe")) return "image/jpeg";
-        if (impl::iequals(ext, ".jpeg")) return "image/jpeg";
-        if (impl::iequals(ext, ".jpg")) return "image/jpeg";
-        if (impl::iequals(ext, ".gif")) return "image/gif";
-        if (impl::iequals(ext, ".bmp")) return "image/bmp";
-        if (impl::iequals(ext, ".ico")) return "image/vnd.microsoft.icon";
-        if (impl::iequals(ext, ".tiff")) return "image/tiff";
-        if (impl::iequals(ext, ".tif")) return "image/tiff";
-        if (impl::iequals(ext, ".svg")) return "image/svg+xml";
-        if (impl::iequals(ext, ".svgz")) return "image/svg+xml";
-        if (impl::iequals(ext, ".kml")) return "application/vnd.google-earth.kml+xml";
-        if (impl::iequals(ext, ".m3u8")) return "application/x-mpegURL";
-        if (impl::iequals(ext, ".ts")) return "video/mp4";
-        if (impl::iequals(ext, ".mp4")) return "video/mp4";
-        if (impl::iequals(ext, ".m4s")) return "video/mp4";
-        return "application/text";
-    }
 
     // private: TODO: remove this when boost beast isnt experimental anymore
     // Return a response for the given request.
@@ -808,7 +941,7 @@ template <typename TImpl, ConceptInterface... TInterfaces> struct WebServiceT : 
             }
             ++it;
             auto& impl = *static_cast<TImpl*>(this);
-            return impl::Selector<impl::RequestHandler<TImpl, TInterfaces>...>::Invoke(_sseManager, impl, stream, req, url, it);
+            return impl::Selector<impl::RequestHandler<TImpl, TServices>...>::Invoke(_sseManager, impl, stream, req, url, it);
         }
         default:
             throw std::invalid_argument(
@@ -829,7 +962,7 @@ template <typename TImpl, ConceptInterface... TInterfaces> struct WebServiceT : 
 
             // Read a request
             boost::beast::http::request<boost::beast::http::string_body> req;
-            co_await boost::beast::http::async_read(stream, buffer, req, boost::asio::use_awaitable);
+            [[maybe_unused]] auto data = co_await boost::beast::http::async_read(stream, buffer, req, boost::asio::use_awaitable);
             _handle_request(stream, std::move(req));
         } catch (boost::system::system_error& se)
         {
@@ -880,4 +1013,4 @@ template <typename TImpl, ConceptInterface... TInterfaces> struct WebServiceT : 
     impl::SSEListenerManager _sseManager;
 };
 SUPPRESS_WARNINGS_END
-}    // namespace Stencil
+}    // namespace Stencil::websvc
