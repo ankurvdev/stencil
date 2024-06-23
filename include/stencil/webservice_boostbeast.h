@@ -727,7 +727,7 @@ struct SessionInterfaceT : TInterface,
         _sseManager.Send(0, msg);
     }
     virtual bool HandleRequest(tcp_stream& /* stream */, Request const& /* req */, boost::urls::url_view const& /* url */) { return false; }
-    virtual void OnSSEInstanceEnded() = 0;
+    virtual void OnSSEInstanceEnded() {}
 
     impl::SSEListenerManager _sseManager;
 };
@@ -906,7 +906,7 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
     template <ConceptInterface T> auto& GetInterface() { return *static_cast<T*>(this); }
 
     virtual bool HandleRequest(tcp_stream& /* stream */, Request const& /* req */, boost::urls::url_view const& /* url */) { return false; }
-
+    virtual void OnSSEInstanceEnded() {}
     // Return a reasonable mime type based on the extension of a file.
 
     // private: TODO: remove this when boost beast isnt experimental anymore
