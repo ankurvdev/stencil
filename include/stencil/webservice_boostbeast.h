@@ -90,7 +90,8 @@ template <typename T> using ResponseSerializer = boost::beast::http::response_se
 
 using Request = impl::Request;
 
-void WriteStringResponse(tcp_stream& stream, Request const& req, std::string_view const& content_type, std::string_view const& content)
+inline void
+WriteStringResponse(tcp_stream& stream, Request const& req, std::string_view const& content_type, std::string_view const& content)
 {
     auto res   = impl::create_response<boost::beast::http::string_body>(req, content_type);
     res.body() = content;
@@ -98,10 +99,8 @@ void WriteStringResponse(tcp_stream& stream, Request const& req, std::string_vie
     boost::beast::http::write(stream, sr);
 }
 
-void WriteFileResponse(tcp_stream&                      stream,
-                       Request const&                   req,
-                       std::filesystem::path const&     path,
-                       boost::beast::string_view const& content_type)
+inline void
+WriteFileResponse(tcp_stream& stream, Request const& req, std::filesystem::path const& path, boost::beast::string_view const& content_type)
 {
     if (!std::filesystem::exists(path))
     {
@@ -129,7 +128,7 @@ void WriteFileResponse(tcp_stream&                      stream,
     boost::beast::http::write(stream, sr);
 }
 
-void Redirect(tcp_stream& stream, Request const& req, std::string_view const& redirect_path)
+inline void Redirect(tcp_stream& stream, Request const& req, std::string_view const& redirect_path)
 {
     boost::beast::http::response<boost::beast::http::string_body> res{boost::beast::http::status::temporary_redirect, req.version()};
 
@@ -791,8 +790,8 @@ template <typename TImpl, typename TInterfaceImpl> struct RequestHandler<TImpl, 
         auto session = impl.FindSession(uuids::uuid::from_string(*it).value());
         if (session == nullptr)
         {
-            auto session = impl.CreateSession(impl);
-            Redirect(stream, req, fmt::format("{}/{}/{}", "/api/session", uuids::to_string(session->id.uuid), reqpath));
+            auto session1 = impl.CreateSession(impl);
+            Redirect(stream, req, fmt::format("{}/{}/{}", "/api/session", uuids::to_string(session1->id.uuid), reqpath));
         }
         else
         {
@@ -861,7 +860,7 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
     using WebService = WebServiceT<TImpl, TServices...>;
 
     WebServiceT() = default;
-    virtual ~WebServiceT() { StopDaemon(); }
+    virtual ~WebServiceT() override { StopDaemon(); }
 
     CLASS_DELETE_COPY_AND_MOVE(WebServiceT);
 
