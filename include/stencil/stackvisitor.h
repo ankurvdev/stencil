@@ -143,7 +143,10 @@ template <typename TProto, typename TOwner, ConceptIndexable T> struct Indexable
             handler              = owner->template FindOrCreateHandler<VisitorHandler>();
             ptr                  = &val;
         });
+        SUPPRESS_WARNINGS_START
+        SUPPRESS_MSVC_WARNING(4702) /*Unreachable code*/
         return {handler, ptr};
+        SUPPRESS_WARNINGS_END
     }
 
     TOwner* owner;
