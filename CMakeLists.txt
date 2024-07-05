@@ -35,8 +35,7 @@ include(cmake/modules/LexYacc.cmake)
 include(cmake/modules/RapidJSON.cmake)
 include(cmake/modules/stduuid.cmake)
 include(cmake/modules/tinyxml2.cmake)
-include(cmake/modules/toml11.cmake)
-include(cmake/modules/tsl-ordered-map.cmake)
+include(cmake/modules/tomlplusplus.cmake)
 
 include(cmake/CommonMacros.cmake)
 
@@ -77,9 +76,8 @@ if (NOT BUILD_TESTING)
 endif()
 
 target_link_libraries(libstencil PUBLIC
-    toml11::toml11
+    tomlplusplus::tomlplusplus
     tinyxml2::tinyxml2
-    tsl::ordered_map
     fmt::fmt-header-only
     CommonMacros
 )
