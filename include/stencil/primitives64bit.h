@@ -69,12 +69,17 @@ struct Primitives64Bit
         constexpr bool operator==(Type const& t) const { return width == t.width && category == t.category; }
         constexpr bool operator!=(Type const& t) const { return width != t.width || category != t.category; }
 
+        SUPPRESS_WARNINGS_START
+        SUPPRESS_GCC_WARNING("-Wconversion")
+        SUPPRESS_CLANG_WARNING("-Wconversion")
+
         static constexpr Type Signed(unsigned n) { return Type{.width = static_cast<uint8_t>(_GetWidth(n)), .category = Category::Signed}; }
         static constexpr Type Unsigned(unsigned n)
         {
             return Type{.width = static_cast<uint8_t>(_GetWidth(n)), .category = Category::Unsigned};
         }
         static constexpr Type Float(unsigned n) { return Type{.width = static_cast<uint8_t>(_GetWidth(n)), .category = Category::Float}; }
+        SUPPRESS_WARNINGS_END
     };
 
     static_assert(sizeof(Type) == 1);

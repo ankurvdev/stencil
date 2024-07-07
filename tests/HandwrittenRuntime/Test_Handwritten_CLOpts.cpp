@@ -33,9 +33,9 @@ template <typename T> static void RunTestCase(TestCaseCLI const& tc, std::vector
     try
     {
 
-        auto obj1  = Stencil::CLI::Parse<T>(tc.args);
+        auto obj1  = Stencil::CLI::Parse<T>(tc.args).obj;
         auto jstr1 = Stencil::CLI::Stringify<T>(obj1);
-        auto obj2  = Stencil::CLI::Parse<T>(jstr1);
+        auto obj2  = Stencil::CLI::Parse<T>(jstr1).obj;
         auto jstr2 = Stencil::CLI::Stringify<T>(obj2);
         REQUIRE(jstr1 == jstr2);
         lines.push_back(fmt::format("Testcase[{}]:{}, Output,{}", name, tc.desc, fmt::join(jstr2, "\t")));

@@ -71,9 +71,9 @@ struct SSEFormat : TestCommon::JsonFormat
     }
 };
 
-struct Server1Impl : Interfaces::Server1
+struct Server1Impl : Stencil::websvc::WebServiceT<Server1Impl, Interfaces::Server1>
 {
-    Server1Impl()           = default;
+    Server1Impl() { objects.Init(std::filesystem::path("SaveAndLoad.bin")); }
     ~Server1Impl() override = default;
     CLASS_DELETE_COPY_AND_MOVE(Server1Impl);
 
@@ -92,15 +92,13 @@ struct Server1Impl : Interfaces::Server1
         Raise_SomethingHappened(key, copied);
         return retval;
     }
+
+    void Function2() override {}
+    void Function3(uint32_t const& /* arg1 */) override {}
+
     // Event listeners ?
 };
 
-std::unique_ptr<Interfaces::Server1> Interfaces::Server1::Create()
-{
-    auto ptr = std::make_unique<Server1Impl>();
-    ptr->objects.Init(std::filesystem::path("SaveAndLoad.bin"));
-    return ptr;
-}
 // Generated code ends
 
 struct Tester : ObjectsTester
@@ -169,7 +167,7 @@ struct Tester : ObjectsTester
     Tester()
     {
         if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
-        svc = std::make_unique<Stencil::WebService<Interfaces::Server1>>();
+        svc = std::make_unique<Server1Impl>();
         svc->StartOnPort(44444);
         _sseListener1.Start();
         _sseListener2.Start();
@@ -303,7 +301,7 @@ struct Tester : ObjectsTester
     SSEListener _sseListener1{"/api/server1/somethinghappened"};
     SSEListener _sseListener2{"/api/server1/objectstore"};
     // SSEListener _sseListener3{"/api/server1/obj2/events"};
-    std::unique_ptr<Stencil::WebService<Interfaces::Server1>> svc;
+    std::unique_ptr<Server1Impl> svc;
 };
 
 TEST_CASE("WebService-objectstore", "[interfaces]")

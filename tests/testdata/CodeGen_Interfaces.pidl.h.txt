@@ -113,7 +113,7 @@ struct Server1 : public Stencil::InterfaceT<Server1>
         ::Objects::SimpleObject1 arg2{};
     };
 
-    std::unordered_map<uint32_t, ::Objects::SimpleObject1> Function1(Args_Function1 const& args)
+    std::unordered_map<uint32_t, ::Objects::SimpleObject1> Function1([[maybe_unused]] Args_Function1 const& args)
     {
         return this->Function1(
             args.arg1
@@ -121,11 +121,53 @@ struct Server1 : public Stencil::InterfaceT<Server1>
         );
     }
 
-    std::unordered_map<uint32_t, ::Objects::SimpleObject1> Function1(Args_Function1&& args)
+    std::unordered_map<uint32_t, ::Objects::SimpleObject1> Function1([[maybe_unused]] Args_Function1&& args)
     {
         return this->Function1(
             std::move(args.arg1)
 ,            std::move(args.arg2)
+        );
+    }
+
+    virtual void Function2(
+        )
+        = 0;
+    struct Args_Function2
+    {
+    };
+
+    void Function2([[maybe_unused]] Args_Function2 const& args)
+    {
+        return this->Function2(
+        );
+    }
+
+    void Function2([[maybe_unused]] Args_Function2&& args)
+    {
+        return this->Function2(
+        );
+    }
+
+    virtual void Function3(
+        uint32_t const& arg2
+        )
+        = 0;
+    struct Args_Function3
+    {
+        uint32_t arg2{};
+    };
+
+    void Function3([[maybe_unused]] Args_Function3 const& args)
+    {
+        return this->Function3(
+            args.arg2
+        );
+    }
+
+    void Function3([[maybe_unused]] Args_Function3&& args)
+    {
+        return this->Function3(
+            std::move(args.arg2)
         );
     }
 
@@ -166,6 +208,10 @@ template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Fun
 ,        arg_arg2
     };
 
+    struct Field_arg_arg1T
+    {};
+    struct Field_arg_arg2T
+    {};
     using Key = Fields;
 };
 
@@ -196,7 +242,8 @@ struct Stencil::Visitor<Interfaces::Server1::Args_Function1>
     : Stencil::VisitorT<Interfaces::Server1::Args_Function1>
 {
     using TData  = Interfaces::Server1::Args_Function1;
-    using Fields = TypeTraitsForIndexable<TData>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -207,6 +254,14 @@ struct Stencil::Visitor<Interfaces::Server1::Args_Function1>
         case Fields::Invalid: [[fallthrough]];
         default: throw std::logic_error("Invalid Key");
         }
+    }
+
+    template <typename T, typename TField, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda&& lambda)
+    {
+        if constexpr (std::is_same_v<TField, typename Traits::Field_arg_arg1T>) { return lambda(obj.arg1); }
+        if constexpr (std::is_same_v<TField, typename Traits::Field_arg_arg2T>) { return lambda(obj.arg2); }
+        throw std::logic_error("Invalid Key");
     }
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
@@ -236,11 +291,194 @@ template <> struct Stencil::InterfaceApiTraits<Interfaces::Server1::Args_Functio
     static constexpr bool             IsStatic() { return false; }
     static constexpr std::string_view Name() { return "Function1"; }
 
-    static auto Invoke(Interfaces::Server1& instance, ArgsStruct& args)
+    static auto Invoke(Interfaces::Server1& instance, [[maybe_unused]] ArgsStruct& args)
     {
         return instance.Function1(
             args.arg1
 ,            args.arg2
+        );
+    }
+};
+template <> struct Stencil::TypeTraits<Interfaces::Server1::Args_Function2>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function2>
+{
+    enum class Fields
+    {
+        Invalid,
+    };
+
+    using Key = Fields;
+};
+
+template <>
+struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function2>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function2>::Fields;
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+    SUPPRESS_WARNINGS_END
+    static Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function2>::Fields
+    ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function2>::Fields>(
+            index);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Interfaces::Server1::Args_Function2>
+    : Stencil::VisitorT<Interfaces::Server1::Args_Function2>
+{
+    using TData  = Interfaces::Server1::Args_Function2;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TField, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda&& lambda)
+    {
+        throw std::logic_error("Invalid Key");
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+    }
+};
+
+template <>
+struct Stencil::Comparator<Interfaces::Server1::Args_Function2,
+                           Interfaces::Server1::Args_Function2>
+{
+    using ThisType = Interfaces::Server1::Args_Function2;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+            ;
+    }
+};
+
+template <> struct Stencil::InterfaceApiTraits<Interfaces::Server1::Args_Function2>
+{
+    using ArgsStruct = Interfaces::Server1::Args_Function2;
+    static constexpr bool             IsStatic() { return false; }
+    static constexpr std::string_view Name() { return "Function2"; }
+
+    static auto Invoke(Interfaces::Server1& instance, [[maybe_unused]] ArgsStruct& args)
+    {
+        return instance.Function2(
+        );
+    }
+};
+template <> struct Stencil::TypeTraits<Interfaces::Server1::Args_Function3>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function3>
+{
+    enum class Fields
+    {
+        Invalid,
+        arg_arg2
+    };
+
+    struct Field_arg_arg2T
+    {};
+    using Key = Fields;
+};
+
+template <>
+struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function3>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function3>::Fields;
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
+    static constexpr std::string_view Names[] = {
+        "Invalid",
+        "arg2"
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+    SUPPRESS_WARNINGS_END
+    static Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function3>::Fields
+    ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function3>::Fields>(
+            index);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Interfaces::Server1::Args_Function3>
+    : Stencil::VisitorT<Interfaces::Server1::Args_Function3>
+{
+    using TData  = Interfaces::Server1::Args_Function3;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
+
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    {
+        switch (field)
+        {
+        case Fields::arg_arg2: return lambda(obj.arg2);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TField, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda&& lambda)
+    {
+        if constexpr (std::is_same_v<TField, typename Traits::Field_arg_arg2T>) { return lambda(obj.arg2); }
+        throw std::logic_error("Invalid Key");
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    {
+        lambda(Fields::arg_arg2, obj.arg2);
+    }
+};
+
+template <>
+struct Stencil::Comparator<Interfaces::Server1::Args_Function3,
+                           Interfaces::Server1::Args_Function3>
+{
+    using ThisType = Interfaces::Server1::Args_Function3;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.arg2, obj2.arg2)
+            ;
+    }
+};
+
+template <> struct Stencil::InterfaceApiTraits<Interfaces::Server1::Args_Function3>
+{
+    using ArgsStruct = Interfaces::Server1::Args_Function3;
+    static constexpr bool             IsStatic() { return false; }
+    static constexpr std::string_view Name() { return "Function3"; }
+
+    static auto Invoke(Interfaces::Server1& instance, [[maybe_unused]] ArgsStruct& args)
+    {
+        return instance.Function3(
+            args.arg2
         );
     }
 };
@@ -258,6 +496,10 @@ template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Som
 ,        arg_arg2
     };
 
+    struct Field_arg_arg1T
+    {};
+    struct Field_arg_arg2T
+    {};
     using Key = Fields;
 };
 
@@ -288,7 +530,8 @@ struct Stencil::Visitor<Interfaces::Server1::Args_SomethingHappened>
     : Stencil::VisitorT<Interfaces::Server1::Args_SomethingHappened>
 {
     using TData  = Interfaces::Server1::Args_SomethingHappened;
-    using Fields = TypeTraitsForIndexable<TData>::Fields;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
 
     template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
     {
@@ -299,6 +542,14 @@ struct Stencil::Visitor<Interfaces::Server1::Args_SomethingHappened>
         case Fields::Invalid: [[fallthrough]];
         default: throw std::logic_error("Invalid Key");
         }
+    }
+
+    template <typename T, typename TField, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda&& lambda)
+    {
+        if constexpr (std::is_same_v<TField, typename Traits::Field_arg_arg1T>) { return lambda(obj.arg1); }
+        if constexpr (std::is_same_v<TField, typename Traits::Field_arg_arg2T>) { return lambda(obj.arg2); }
+        throw std::logic_error("Invalid Key");
     }
 
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
@@ -333,6 +584,8 @@ template <> struct Stencil::InterfaceTraits<Interfaces::Server1>
 
     using ApiStructs = std::tuple<
         Interfaces::Server1::Args_Function1
+,        Interfaces::Server1::Args_Function2
+,        Interfaces::Server1::Args_Function3
         >;
 
     using Objects = std::tuple<

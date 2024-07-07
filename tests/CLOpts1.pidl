@@ -5,6 +5,8 @@ struct CommandLineOptions
 	list<string> scan	(Name1 = "Scan Directories", Description = "List of Directories to scan for Document files"),
 	i32	httpsPort = 3443	(Name1 = "Listen Port", Description = "TCP port on which to listen for incoming HTTP connections"),
 	bool daemon = false	(Name1 = "Run as Daemon", Description = "Run as daemon")
+	bool quiet = true (Name1 = "Run Quietly", Description = "Run Quietly")
+	string out_dir = "." (Name1 = "Output Directory", Description = "Location of the output directory")
 }
 
 struct SimpleObj
