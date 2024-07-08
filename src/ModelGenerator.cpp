@@ -233,8 +233,8 @@ template <typename TKey, typename TVal> struct OrderedMap
         bool operator!=(const iterator& rhs) const { return vecit != rhs.vecit; }
         bool operator==(const iterator& rhs) const { return vecit == rhs.vecit; }
 
-        std::vector<TKey>::iterator     vecit;
-        std::unordered_map<TKey, TVal>* mapref;
+        typename std::vector<TKey>::iterator vecit;
+        std::unordered_map<TKey, TVal>*      mapref;
     };
 
     struct const_iterator
@@ -256,8 +256,8 @@ template <typename TKey, typename TVal> struct OrderedMap
         bool operator==(const const_iterator& rhs) const { return vecit == rhs.vecit; }
         bool operator==(const iterator& rhs) const { return vecit == rhs.vecit; }
 
-        std::vector<TKey>::const_iterator     vecit;
-        std::unordered_map<TKey, TVal> const* mapref;
+        typename std::vector<TKey>::const_iterator vecit;
+        std::unordered_map<TKey, TVal> const*      mapref;
     };
 
     auto begin() { return iterator{_keyorder.begin(), &_map}; }
