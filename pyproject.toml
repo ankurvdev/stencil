@@ -4,8 +4,8 @@ line-length = 140
 [tool.pylint]
 max-line-length = 140
 disable = [
-    "C0115" #missing-class-docstring
-    "C0116" #missing-function-docstring
+    "C0115", #missing-class-docstring
+    "C0116", #missing-function-docstring
 ]
 
 [tool.ruff]

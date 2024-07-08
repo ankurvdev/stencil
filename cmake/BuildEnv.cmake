@@ -124,6 +124,7 @@ macro(EnableStrictCompilation)
                 /WX     # All warnings as errors
                 # /await
                 /permissive- # strict compilation
+                /EHsc   # C++ Exceptions
                 /DWIN32
                 /D_WINDOWS
                 /DNOMINMAX
