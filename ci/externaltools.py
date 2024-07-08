@@ -40,7 +40,7 @@ URLS["cmake_Windows_arm64"] = {
 }
 
 URLS["patch_Windows_x64"] = ""
-URLS["gradle_Linux_x64"] = URLS["gradle_Windows_x64"] = "https://services.gradle.org/distributions/gradle-8.6-bin.zip"
+URLS["gradle_Linux_x64"] = URLS["gradle_Windows_x64"] = "https://services.gradle.org/distributions/gradle-8.7-bin.zip"
 URLS["flexbison_Windows_x64"] = "https://github.com/lexxmark/winflexbison/releases/download/v2.5.25/win_flex_bison-2.5.25.zip"
 URLS["ninja_Windows_x64"] = "https://github.com/ninja-build/ninja/releases/latest/download/ninja-win.zip"
 URLS["ninja_Windows_arm64"] = "https://github.com/ninja-build/ninja/releases/latest/download/ninja-winarm64.zip"
@@ -277,11 +277,12 @@ binarycache: Dict[str, Path] = {}
 def get_binary(
     packname: str,
     binname: Optional[str] = None,
+    search_paths: list[Path] | None = None,
     binpath: Path | str | None = None,
 ) -> Path:
     if packname in binarycache:
         return binarycache[packname]
-    rslt = binarycache[packname] = _get_binary(packname, binname=binname, binpath=binpath).absolute()
+    rslt = binarycache[packname] = _get_binary(packname, binname=binname, binpath=binpath, search_paths=search_paths).absolute()
     TOOL_PATHS[packname] = rslt
     TOOL_PATH.add(rslt.parent)
     add_to_path([rslt.parent])
@@ -291,10 +292,15 @@ def get_binary(
 def _get_binary(  # noqa: PLR0912, PLR0915, C901
     packname: str,
     binname: Optional[str] = None,
+    search_paths: list[Path] | None = None,
     binpath: Path | str | None = None,
     which: bool = True,
 ) -> Path:
     binname = binname or packname
+    for search_path in search_paths or []:
+        exe = Path(shutil.which(binname, path=str(search_path)) or "") if which else Path()
+        if exe.is_file():
+            return exe
     exe = Path(shutil.which(binname) or "") if which else Path()
     if exe.is_file():
         if exe.name != "system32":
@@ -455,6 +461,9 @@ def detect_toolchain(environ: dict[str, str] | _Environ[str] | None = None) -> d
     if hasattr(detect_toolchain, "cache"):
         return detect_toolchain.cache
     cached = _detect_toolchain(environ)
+    if cached["toolchain"] == "visualstudio":
+        get_binary("cmake", search_paths=[cached["environ"]["PATH"]])
+        get_binary("ninja", search_paths=[cached["environ"]["PATH"]])
     detect_toolchain.cache = cached
     return cached
 
@@ -472,7 +481,7 @@ def _detect_toolchain(environ: dict[str, str] | _Environ[str] | None = None) -> 
         info = get_visualstudio_toolchain()
         if info:
             (get_bin_path() / "toolchain_visualstudio.json").write_text(json.dumps(info, cls=CustomEncoder, indent=2))
-            return info
+            return _detect_toolchain(environ)
     return {"toolchain": None, "environ": environ}
 
 
@@ -648,7 +657,7 @@ def acquire_tool(name: str) -> Path:
 def get_android_toolchain() -> dict[str, str | Path | _Environ[str] | dict[str, Path]]:
     sdkpath = get_bin_path() / "android"
     sdk_root = sdkpath / "sdk"
-    sdk_version = 34
+    sdk_version = 35
     if "JAVA_HOME" in os.environ:
         os.environ.pop("JAVA_HOME")
     studiobin = _download_or_get_binary("studio", sdkpath, download_android_studio)
@@ -919,6 +928,7 @@ def get_portable_msvc_toolchain() -> dict[str, str | Path | _Environ[str] | dict
         "Windows SDK for Windows Store Apps Headers OnecoreUap-x86_en-us.msi",
         "Windows SDK for Windows Store Apps Headers-x86_en-us.msi",
         f"Windows SDK OnecoreUap Headers {target_arch}-x86_en-us.msi",
+        "Windows SDK Desktop Headers x86-x86_en-us.msi",  # needed for dbghelp.h abseil
         # Windows SDK libs
         "Windows SDK for Windows Store Apps Libs-x86_en-us.msi",
         f"Windows SDK Desktop Libs {target_arch}-x86_en-us.msi",

@@ -23,6 +23,7 @@ SUPPRESS_MSVC_WARNING(4388)    // signed / unsigned mismatch (Catch2)
 #include <catch2/catch_all.hpp>
 #include <dtl/dtl.hpp>
 #include <fmt/ostream.h>
+#include <fmt/ranges.h>
 SUPPRESS_WARNINGS_END
 
 #include <filesystem>

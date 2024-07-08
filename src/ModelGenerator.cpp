@@ -11,16 +11,17 @@ SUPPRESS_STL_WARNINGS
 SUPPRESS_MSVC_WARNING(4061)    // switch case not handled
 SUPPRESS_MSVC_WARNING(4583)    // destructor not implicitly called
 SUPPRESS_MSVC_WARNING(4582)    // constructor not implicitly called
+SUPPRESS_MSVC_WARNING(4702)    // Unreachable code
+
 #include <tinyxml2.h>
 #include <toml.hpp>
-#include <tsl/ordered_map.h>
 
 #include <fstream>
 #include <iostream>
 #include <regex>
-#include <set>
 #include <stdexcept>
 #include <string_view>
+#include <unordered_map>
 #include <vector>
 SUPPRESS_WARNINGS_END
 
@@ -214,6 +215,82 @@ static void debug(YAML::Node const& node)
 }
 #endif
 
+template <typename TKey, typename TVal> struct OrderedMap
+{
+    struct iterator
+    {
+
+        std::pair<TKey, TVal&> operator*() { return {*vecit, mapref->at(*vecit)}; }
+        auto                   operator->() const
+        {
+            auto out = mapref->find(*vecit);
+            return out.operator->();
+        }
+
+        iterator& operator++()
+        {
+            vecit++;
+            return *this;
+        }
+        bool operator!=(const iterator& rhs) const { return vecit != rhs.vecit; }
+        bool operator==(const iterator& rhs) const { return vecit == rhs.vecit; }
+
+        typename std::vector<TKey>::iterator vecit;
+        std::unordered_map<TKey, TVal>*      mapref;
+    };
+
+    struct const_iterator
+    {
+
+        std::pair<TKey, const TVal&> operator*() const { return {*vecit, mapref->at(*vecit)}; }
+        auto                         operator->() const
+        {
+            auto out = mapref->find(*vecit);
+            return out.operator->();
+        }
+
+        const_iterator& operator++()
+        {
+            vecit++;
+            return *this;
+        }
+        bool operator!=(const const_iterator& rhs) const { return vecit != rhs.vecit; }
+        bool operator==(const const_iterator& rhs) const { return vecit == rhs.vecit; }
+        bool operator==(const iterator& rhs) const { return vecit == rhs.vecit; }
+
+        typename std::vector<TKey>::const_iterator vecit;
+        std::unordered_map<TKey, TVal> const*      mapref;
+    };
+
+    auto begin() { return iterator{_keyorder.begin(), &_map}; }
+    auto end() { return iterator{_keyorder.end(), &_map}; }
+    auto begin() const { return const_iterator{_keyorder.begin(), &_map}; }
+    auto end() const { return const_iterator{_keyorder.end(), &_map}; }
+
+    auto find(const TKey& key) { return iterator{std::find(_keyorder.begin(), _keyorder.end(), key), &_map}; }
+    auto find(const TKey& key) const { return const_iterator{std::find(_keyorder.begin(), _keyorder.end(), key), &_map}; }
+
+    TVal&       at(const TKey& key) { return _map.at(key); }
+    TVal const& at(const TKey& key) const { return _map.at(key); }
+
+    TVal&       operator[](const TKey& key) { return _map.at(key); }
+    TVal const& operator[](const TKey& key) const { return _map.at(key); }
+
+    void emplace(TKey const& key, TVal&& val)
+    {
+        _keyorder.push_back(key);
+        _map.emplace(key, std::move(val));
+    }
+
+    std::vector<TKey>              _keyorder;
+    std::unordered_map<TKey, TVal> _map;
+};
+
+struct MyConfig : toml::type_config
+{
+    template <typename K, typename T> using table_type = OrderedMap<K, T>;
+};
+
 template <typename TTableNode>
 static TypeDefinitions::MutatorAccessorDefinition ParseMutatorAccessorDefinitionFromTomlNode(TTableNode const& node, std::wstring&& key)
 {
@@ -222,19 +299,19 @@ static TypeDefinitions::MutatorAccessorDefinition ParseMutatorAccessorDefinition
     val.name = std::move(key);
     val.id   = static_cast<uint8_t>(valtbl.at("Id").as_integer());
     val.returnType
-        = Binding::Expression::Create(Str::Convert(valtbl.at("ReturnType").as_string().str), Str::Create(L"%"), Str::Create(L"%"), L':');
+        = Binding::Expression::Create(Str::Convert(valtbl.at("ReturnType").as_string()), Str::Create(L"%"), Str::Create(L"%"), L':');
     auto args = valtbl.at("Args");
 
     if (args.is_string())
     {
-        auto str = Str::Convert(args.as_string().str);
+        auto str = Str::Convert(args.as_string());
         val.args = {Binding::Expression::Create(str, Str::Create(L"%"), Str::Create(L"%"), L':')};
     }
     else
     {
         for (auto const& sub : args.as_array())
         {
-            val.args.push_back(Binding::Expression::Create(Str::Convert(sub.as_string().str), Str::Create(L"%"), Str::Create(L"%"), L':'));
+            val.args.push_back(Binding::Expression::Create(Str::Convert(sub.as_string()), Str::Create(L"%"), Str::Create(L"%"), L':'));
         }
     }
     return val;
@@ -254,7 +331,7 @@ template <typename TTableNode> static TypeDefinitions::ContainerTypeDecl Contain
     TypeDefinitions::ContainerTypeDecl val;
     if (node.is_string())
     {
-        val.baseField = Str::Convert(node.as_string().str);
+        val.baseField = Str::Convert(node.as_string());
         return val;
     }
     for (auto [key, value] : node.as_table())
@@ -262,16 +339,16 @@ template <typename TTableNode> static TypeDefinitions::ContainerTypeDecl Contain
         auto propname = Str::Convert(key);
         if (propname == L"Mutators") { val.mutators = ParseMutatorAccessorDefinitionArrFromTomlNode(value); }
         else if (propname == L"Accessors") { val.accessors = ParseMutatorAccessorDefinitionArrFromTomlNode(value); }
-        else if (propname == L"Inherits") { val.baseField = Str::Convert(value.as_string().str); }
+        else if (propname == L"Inherits") { val.baseField = Str::Convert(value.as_string()); }
         else if (propname == L"Params")
         {
-            for (auto const& sub : (value.as_array())) { val.args.push_back(Str::Convert(sub.as_string().str)); }
+            for (auto const& sub : (value.as_array())) { val.args.push_back(Str::Convert(sub.as_string())); }
         }
         else
         {
             auto annotationMap
                 = val.annotationMap == nullptr ? (val.annotationMap = std::make_shared<Binding::AttributeMap>()) : val.annotationMap;
-            auto propval = Str::Convert(value.as_string().str);
+            auto propval = Str::Convert(value.as_string());
             auto expr    = Binding::Expression::Create(propval, Str::Create(L"%"), Str::Create(L"%"), L':');
             (*annotationMap).AddEntry(propname, std::move(expr));
         }
@@ -285,7 +362,7 @@ template <typename TTableNode> static TypeDefinitions::FieldTypeDecl FieldTypeDe
 
     if (node.is_string())
     {
-        val.baseField = Str::Convert(node.as_string().str);
+        val.baseField = Str::Convert(node.as_string());
         return val;
     }
     for (auto [key, value] : node.as_table())
@@ -293,12 +370,12 @@ template <typename TTableNode> static TypeDefinitions::FieldTypeDecl FieldTypeDe
         auto propname = Str::Convert(key);
         if (propname == L"Mutators") { val.mutators = ParseMutatorAccessorDefinitionArrFromTomlNode(value); }
         else if (propname == L"Accessors") { val.accessors = ParseMutatorAccessorDefinitionArrFromTomlNode(value); }
-        else if (propname == L"Inherits") { val.baseField = Str::Convert(value.as_string().str); }
+        else if (propname == L"Inherits") { val.baseField = Str::Convert(value.as_string()); }
         else
         {
             auto annotationMap
                 = val.annotationMap == nullptr ? (val.annotationMap = std::make_shared<Binding::AttributeMap>()) : val.annotationMap;
-            auto propval = Str::Convert(value.as_string().str);
+            auto propval = Str::Convert(value.as_string());
             auto expr    = Binding::Expression::Create(propval, Str::Create(L"%"), Str::Create(L"%"), L':');
             (*annotationMap).AddEntry(propname, std::move(expr));
         }
@@ -311,7 +388,7 @@ void TypeDefinitions::AddTypeDefinitions(std::string_view const& /*name*/, std::
     std::string       tomltext(text);
     std::stringstream tomlstrm(tomltext);
 
-    auto config = toml::parse<toml::preserve_comments, tsl::ordered_map>(tomlstrm);
+    auto config = toml::parse<MyConfig>(tomlstrm);
     for (auto [propname, node] : config.as_table())
     {
         if (propname == "FieldTypes")
@@ -345,7 +422,7 @@ void TypeDefinitions::AddTypeDefinitions(std::string_view const& /*name*/, std::
             for (auto [key, node1] : node.as_table())
             {
                 auto& objmap = _attributeDefs[Str::Convert(key)];
-                for (auto const& [key1, node2] : node1.as_table()) { objmap[Str::Convert(key1)] = Str::Convert(node2.as_string().str); }
+                for (auto const& [key1, node2] : node1.as_table()) { objmap[Str::Convert(key1)] = Str::Convert(node2.as_string()); }
             }
         }
         else { throw std::logic_error("Unrecognized type"); }

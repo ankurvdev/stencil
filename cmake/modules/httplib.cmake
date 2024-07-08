@@ -4,7 +4,7 @@ include(FetchContent)
 FetchContent_Declare(
   httplib
   GIT_REPOSITORY https://github.com/yhirose/cpp-httplib
-  GIT_TAG        v0.13.1
+  GIT_TAG        v0.16.0
   SOURCE_SUBDIR .
   GIT_PROGRESS TRUE
   GIT_SHALLOW 1
@@ -32,6 +32,7 @@ if (NOT httplib_FOUND)
       target_compile_definitions(httplib INTERFACE HAVE_CPP_HTTPLIB=1)
       if (WIN32 OR MSYS)
           target_link_libraries(httplib INTERFACE ws2_32)
+          target_compile_definitions(httplib INTERFACE _WIN32_WINNT=_WIN32_WINNT_WIN10 WINVER=_WIN32_WINNT_WIN10)
       endif()
       add_library(httplib::httplib ALIAS httplib)
   endif()

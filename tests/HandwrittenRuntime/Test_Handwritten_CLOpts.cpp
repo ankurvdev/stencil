@@ -15,7 +15,7 @@ template <> struct fmt::formatter<TestCaseCLI> : fmt::formatter<std::string_view
 
     // Formats the point p using the parsed format specification (presentation)
     // stored in this formatter.
-    template <typename FormatContext> auto format(const TestCaseCLI& tc, FormatContext& ctx)
+    template <typename FormatContext> auto format(const TestCaseCLI& tc, FormatContext& ctx) const
     {
         return fmt::format_to(ctx.out(), "{} :: {}", fmt::join(tc.args, " "), tc.desc);
     }

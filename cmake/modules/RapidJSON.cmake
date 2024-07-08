@@ -4,7 +4,7 @@ include(FetchContent)
 FetchContent_Declare(
   rapidjson
   GIT_REPOSITORY https://github.com/Tencent/rapidjson
-  GIT_TAG        f9d53419e912910fd8fa57d5705fa41425428c35
+  GIT_TAG        ab1842a2dae061284c0a62dca1cc6d5e7e37e346
   GIT_PROGRESS TRUE
   #GIT_SHALLOW 1
   SYSTEM
