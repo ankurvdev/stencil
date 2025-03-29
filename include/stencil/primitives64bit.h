@@ -5,9 +5,7 @@ SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
 SUPPRESS_MSVC_WARNING(4866)    // left to right evaluation not guaranteed
 #include <array>
-#include <bit>
 #include <chrono>
-#include <cmath>
 #include <cstdint>
 #include <stdexcept>
 #include <type_traits>
@@ -330,6 +328,9 @@ concept ConceptPrimitives64BitSigned = Primitives64Bit::Type::IsSigned(Primitive
 
 template <typename T>
 concept ConceptPrimitives64BitUnsigned = Primitives64Bit::Type::IsUnsigned(Primitives64Bit::Traits<T>::Type());
+
+template <typename T, size_t N>
+concept ConceptPrimitive64BitArray = ConceptPrimitives64Bit<std::array<T, N>>;
 
 static_assert(ConceptPrimitives64Bit<double>);
 static_assert(ConceptPrimitives64Bit<float>);

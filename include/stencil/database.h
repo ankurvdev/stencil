@@ -7,7 +7,7 @@
 #include "stencil/typetraits.h"
 #include "timestamped.h"
 
-#include <concepts>
+#include <filesystem>
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
@@ -1452,7 +1452,7 @@ template <Stencil::Database::ConceptRecordView T> struct Stencil::Visitor<T>
     }
 };
 
-template <typename TProt> struct Stencil::SerDes<Stencil::Database::RefKeyType, TProt>
+template <Stencil::ConceptProtocol TProt> struct Stencil::SerDes<Stencil::Database::RefKeyType, TProt>
 {
     template <typename Context> static auto Write(Context& ctx, Stencil::Database::RefKeyType const& /* obj */)
     {
@@ -1461,7 +1461,7 @@ template <typename TProt> struct Stencil::SerDes<Stencil::Database::RefKeyType, 
     template <typename Context> static auto Read(Stencil::Database::RefKeyType& /* obj */, Context& /* ctx */);    // Undefined
 };
 
-// template <Stencil::Database::ConceptComplexRecordView  T, typename TProt> struct Stencil::SerDes<T, TProt>
+// template <Stencil::Database::ConceptComplexRecordView  T, ConceptProtocol TProt> struct Stencil::SerDes<T, TProt>
 //{
 //     template <typename Context> static auto Write(Context& /* ctx */, T const& /* obj */)
 //     {
@@ -1482,7 +1482,7 @@ template <Stencil::ConceptIndexable T, typename TDb> struct Stencil::TypeTraitsF
     using Key = typename Stencil::TypeTraitsForIndexable<T>::Key;
 };
 
-template <Stencil::Database::ConceptTrivialRecordView T, typename TProt> struct Stencil::SerDes<T, TProt>
+template <Stencil::Database::ConceptTrivialRecordView T, Stencil::ConceptProtocol TProt> struct Stencil::SerDes<T, TProt>
 {
     using Type       = typename Stencil::Database::RecordViewTraits<T>::Type;
     using RecordType = typename Stencil::Database::RecordViewTraits<T>::RecordType;

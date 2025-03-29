@@ -4,7 +4,7 @@
 namespace Stencil
 {
 
-template <typename TTup, typename TLambda, size_t TIndex = 0> constexpr void TupleVisitAt(TTup& tup, const size_t idx, TLambda&& lambda)
+template <typename TTup, typename TLambda, size_t TIndex = 0> constexpr void TupleVisitAt(TTup&& tup, const size_t idx, TLambda&& lambda)
 {
     if constexpr (TIndex == std::tuple_size<TTup>::value) { throw std::out_of_range("Exceeded maximum tuple range"); }
     else
@@ -14,7 +14,7 @@ template <typename TTup, typename TLambda, size_t TIndex = 0> constexpr void Tup
             lambda(std::get<TIndex>(tup));
             return;
         }
-        return TupleVisitAt<TTup, TLambda, TIndex + 1>(tup, idx, std::forward<TLambda>(lambda));
+        return TupleVisitAt<TTup, TLambda, TIndex + 1>(std::forward<TTup>(tup), idx, std::forward<TLambda>(lambda));
     }
 }
 

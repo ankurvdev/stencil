@@ -5,6 +5,7 @@
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
 #include <cctype>
+#include <cstdint>
 #include <stdexcept>
 #include <string_view>
 #include <type_traits>
@@ -103,8 +104,7 @@ template <typename T, typename... Ts> constexpr auto get(const Stencil::EnumPack
 }
 }    // namespace std
 
-template <typename T> struct Stencil::TypeTraits<T, std::enable_if_t<Stencil::ConceptEnum<T>>>
-// template <Stencil::ConceptEnum T> struct Stencil::TypeTraits<T>
+template <Stencil::ConceptEnum T> struct Stencil::TypeTraits<T>
 {
     /* Primitive*/
     using Categories = std::tuple<Category::Primitive>;

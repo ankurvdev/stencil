@@ -1,6 +1,4 @@
 #pragma once
-#include "primitives64bit.h"
-
 #include <tuple>
 #include <type_traits>
 
@@ -10,7 +8,7 @@ namespace Stencil
 // Requires typename Categories = std::tuple<...>
 // TODO : Try again with concepts
 // template <typename T> struct TypeTraits;
-template <typename T, class Enable = void> struct TypeTraits;
+template <typename T> struct TypeTraits;
 
 template <typename T> struct TypeTraitsForPrimitive
 {};
@@ -87,7 +85,7 @@ concept ConceptPrimitive = requires {
 template <typename T>
 concept ConceptVariant = requires {
     Category::IsVariant<T>();
-    typename TypeTraitsForVariant<T>::Alternative;
+    typename TypeTraitsForVariant<T>::AlternativeTuple;
 };
 
 template <typename T>

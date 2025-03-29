@@ -1,8 +1,13 @@
 #pragma once
-#include "typetraits_builtins.h"
+#include "stencil/tuple_utils.h"
+#include "timestamped.h"
+#include "typetraits.h"
+#include "typetraits_std.h"
+#include "uuidobject.h"
 
 #include <memory>
 #include <tuple>
+#include <type_traits>
 #include <variant>
 
 namespace Stencil
@@ -378,10 +383,41 @@ template <typename K, typename V> struct Stencil::Visitor<std::unordered_map<K, 
 #endif
 };
 
-template <typename... T> struct Stencil::VisitorForVariant<std::variant<std::monostate, T...>>
+template <typename... Ts> struct Stencil::VisitorForVariant<std::variant<std::monostate, Ts...>>
 {
-    using TObj = std::variant<std::monostate, T...>;
-    static bool IsMonostate(TObj const& obj) { return obj.valueless_by_exception(); }
+    using TObj = std::variant<std::monostate, Ts...>;
+    static bool IsMonostate(TObj const& obj) { return obj.index() == 0; }
 
-    template <typename TLambda> static void VisitAlternative(TObj const& obj, TLambda&& lambda) { std::visit(lambda, obj); }
+    template <typename TLambda> static void VisitAlternatives(TLambda&& lambda)
+    {
+        using TypeTuple = std::tuple<Ts...>;
+        for (size_t i = 0; i < sizeof...(Ts); i++) { TupleVisitAt(TypeTuple{}, i, lambda); }
+    }
+
+    template <typename TLambda> static void VisitActiveAlternative(TObj const& obj, TLambda&& lambda) { std::visit(lambda, obj); }
+};
+
+template <ConceptVariantTType T> struct Stencil::VisitorForVariant<T>
+{
+    static bool IsMonostate(T const& obj) { return obj._variant.index() == 0; }
+
+    template <typename TLambda> static void VisitAlternatives(TLambda&& lambda)
+    {
+        using TypeTuple = Stencil::TypeTraitsForVariant<T>::AlternativeTuple;
+
+        for (size_t i = 1; i < std::tuple_size<TypeTuple>(); i++)
+        {
+            TupleVisitAt(TypeTuple{}, i, [&](auto const& args) { lambda(static_cast<T::VariantType>(i), args); });
+        }
+    }
+
+    template <typename TLambda> static void VisitActiveAlternative(T const& obj, TLambda&& lambda)
+    {
+        std::visit(
+            [&](auto const& obj) {
+                if constexpr (std::is_same_v<std::remove_cvref_t<decltype(obj)>, std::monostate>) {}
+                else { lambda(obj); }
+            },
+            obj._variant);
+    }
 };

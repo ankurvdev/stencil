@@ -1,6 +1,6 @@
 #pragma once
-#include "protocol.h"
 #include "protocol_string.h"
+#include "serdes.h"
 #include "stackvisitor.h"
 #include "visitor.h"
 
@@ -12,7 +12,6 @@ SUPPRESS_MSVC_WARNING(4061) /* Not all labels are EXPLICITLY handled in switch *
 SUPPRESS_WARNINGS_END
 
 #include <array>
-#include <deque>
 #include <string>
 #include <string_view>
 
@@ -161,13 +160,13 @@ template <size_t N> struct SerDes<std::array<char, N>, ProtocolJsonVal>
 {
     using TObj = std::array<char, N>;
 
-    template <typename Context> static auto Write(Context& ctx, TObj const& obj)
+    template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
         if (obj[0] == 0) { fmt::print(ctx, "null"); }
         else { _WriteQuotedString(ctx, obj); }
     }
 
-    template <typename Context> static auto Read(TObj& obj, Context& ctx)
+    template <typename TContext> static auto Read(TObj& obj, TContext& ctx)
     {
         obj = {};
         if (ctx == "null") return;
@@ -178,7 +177,7 @@ template <size_t N> struct SerDes<std::array<char, N>, ProtocolJsonVal>
 template <size_t N> struct SerDes<std::array<uint16_t, N>, ProtocolJsonVal>
 {
     using TObj = std::array<uint16_t, N>;
-    template <typename Context> static auto Write(Context& ctx, TObj const& obj)
+    template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
         if constexpr (N <= 4)
         {
@@ -199,36 +198,36 @@ template <size_t N> struct SerDes<std::array<uint16_t, N>, ProtocolJsonVal>
             fmt::print(ctx, "]");
         }
     }
-    template <typename Context> static auto Read(TObj& /*obj*/, Context& /*ctx*/) { TODO(""); }
+    template <typename TContext> static auto Read(TObj& /*obj*/, TContext& /*ctx*/) { TODO(""); }
 };
 
 template <> struct SerDes<uuids::uuid, ProtocolJsonVal>
 {
     using TObj = uuids::uuid;
 
-    template <typename Context> static auto Write(Context& ctx, TObj const& obj) { _WriteQuotedString(ctx, obj); }
-    template <typename Context> static auto Read(TObj& obj, Context& ctx) { _ReadQuotedString(obj, ctx); }
+    template <typename TContext> static auto Write(TContext& ctx, TObj const& obj) { _WriteQuotedString(ctx, obj); }
+    template <typename TContext> static auto Read(TObj& obj, TContext& ctx) { _ReadQuotedString(obj, ctx); }
 };
 
 template <typename TClock> struct SerDes<std::chrono::time_point<TClock>, ProtocolJsonVal>
 {
     using TObj = std::chrono::time_point<TClock>;
-    template <typename Context> static auto Write(Context& ctx, TObj const& obj) { _WriteQuotedString(ctx, obj); }
-    template <typename Context> static auto Read(TObj& obj, Context& ctx) { _ReadQuotedString(obj, ctx); }
+    template <typename TContext> static auto Write(TContext& ctx, TObj const& obj) { _WriteQuotedString(ctx, obj); }
+    template <typename TContext> static auto Read(TObj& obj, TContext& ctx) { _ReadQuotedString(obj, ctx); }
 };
 
 template <> struct SerDes<char, ProtocolJsonVal>
 {
     using TObj = char;
 
-    template <typename Context> static auto Write(Context& ctx, TObj const& obj)
+    template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
         if (obj == 0)
             fmt::print(ctx, "null");
         else
             fmt::print(ctx, "\"{}\"", obj);
     }
-    template <typename Context> static auto Read(TObj& obj, Context& ctx)
+    template <typename TContext> static auto Read(TObj& obj, TContext& ctx)
     {
         if (ctx.empty()) { obj = {}; }
         else
@@ -243,86 +242,86 @@ template <> struct SerDes<char, ProtocolJsonVal>
 
 template <ConceptEnumPack T> struct SerDes<T, ProtocolJsonVal>
 {
-    template <typename Context> static auto Write(Context& ctx, T const& obj) { _WriteQuotedString(ctx, obj); }
-    template <typename Context> static auto Read(T& obj, Context& ctx) { _ReadQuotedString(obj, ctx); }
+    template <typename TContext> static auto Write(TContext& ctx, T const& obj) { _WriteQuotedString(ctx, obj); }
+    template <typename TContext> static auto Read(T& obj, TContext& ctx) { _ReadQuotedString(obj, ctx); }
 };
 
 template <ConceptEnum T> struct SerDes<T, ProtocolJsonVal>
 {
-    template <typename Context> static auto Write(Context& ctx, T const& obj) { _WriteQuotedString(ctx, obj); }
-    template <typename Context> static auto Read(T& obj, Context& ctx) { _ReadQuotedString(obj, ctx); }
+    template <typename TContext> static auto Write(TContext& ctx, T const& obj) { _WriteQuotedString(ctx, obj); }
+    template <typename TContext> static auto Read(T& obj, TContext& ctx) { _ReadQuotedString(obj, ctx); }
 };
 
 template <ConceptPrimitives64Bit T> struct SerDes<T, ProtocolJsonVal>
 {
-    template <typename Context> static auto Write(Context& ctx, T const& obj) { SerDes<T, ProtocolString>::Write(ctx, obj); }
-    template <typename Context> static auto Read(T& obj, Context& ctx) { SerDes<T, ProtocolString>::Read(obj, ctx); }
+    template <typename TContext> static auto Write(TContext& ctx, T const& obj) { SerDes<T, ProtocolString>::Write(ctx, obj); }
+    template <typename TContext> static auto Read(T& obj, TContext& ctx) { SerDes<T, ProtocolString>::Read(obj, ctx); }
 };
 
 template <> struct SerDes<std::string, ProtocolJsonVal>
 {
     using TObj = std::string;
 
-    template <typename Context> static auto Write(Context& ctx, TObj const& obj)
+    template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
         if (obj.empty()) { fmt::print(ctx, "null"); }
         else
             _WriteQuotedString(ctx, obj);
     }
-    template <typename Context> static auto Read(TObj& obj, Context& ctx) { _ReadQuotedString(obj, ctx); }
+    template <typename TContext> static auto Read(TObj& obj, TContext& ctx) { _ReadQuotedString(obj, ctx); }
 };
 
 template <typename T> struct SerDes<std::basic_string_view<T>, ProtocolJsonVal>
 {
     using TObj = std::basic_string_view<T>;
 
-    template <typename Context> static auto Write(Context& ctx, TObj const& obj)
+    template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
         if (obj.empty()) { fmt::print(ctx, "null"); }
         else
             _WriteQuotedString(ctx, obj);
     }
 
-    template <typename Context> static auto Read(TObj& obj, Context& ctx) = delete;
+    template <typename TContext> static auto Read(TObj& obj, TContext& ctx) = delete;
 };
 
 template <> struct SerDes<std::wstring, ProtocolJsonVal>
 {
     using TObj = std::wstring;
 
-    template <typename Context> static auto Write(Context& ctx, TObj const& obj)
+    template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
         if (obj.empty()) { fmt::print(ctx, "null"); }
         else
             _WriteQuotedString(ctx, obj);
     }
-    template <typename Context> static auto Read(TObj& obj, Context& ctx) { _ReadQuotedString(obj, ctx); }
+    template <typename TContext> static auto Read(TObj& obj, TContext& ctx) { _ReadQuotedString(obj, ctx); }
 };
 
 template <> struct SerDes<std::wstring_view, ProtocolJsonVal>
 {
     using TObj = std::wstring_view;
 
-    template <typename Context> static auto Write(Context& ctx, TObj const& obj)
+    template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
         if (obj.empty()) { fmt::print(ctx, "null"); }
         else
             _WriteQuotedString(ctx, obj);
     }
-    template <typename Context> static auto Read(TObj& obj, Context& ctx) { _ReadQuotedString(obj, ctx); }
+    template <typename TContext> static auto Read(TObj& obj, TContext& ctx) { _ReadQuotedString(obj, ctx); }
 };
 
 template <typename T> struct SerDes<shared_stringT<T>, ProtocolJsonVal>
 {
     using TObj = shared_stringT<T>;
 
-    template <typename Context> static auto Write(Context& ctx, TObj const& obj)
+    template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
         if (obj.empty()) { fmt::print(ctx, "null"); }
         else
             _WriteQuotedString(ctx, obj);
     }
-    template <typename Context> static auto Read(TObj& obj, Context& ctx) { _ReadQuotedString(obj, ctx); }
+    template <typename TContext> static auto Read(TObj& obj, TContext& ctx) { _ReadQuotedString(obj, ctx); }
 };
 }    // namespace Stencil
 
@@ -336,14 +335,20 @@ template <typename TContext, typename T> void _WriteTo(TContext& ctx, T const& o
     fmt::print(ostr, "{}", obj);
 }
 
-template <typename T, typename TProt> struct SerDes;
+template <typename T, ConceptProtocol TProt> struct SerDes;
 
 static_assert(!Stencil::Category::IsIndexable<uint64_t>());
+
+template <ConceptPreferVariant T> struct SerDes<T, ProtocolJsonVal>
+{
+    template <typename TContext> static auto Write([[maybe_unused]] TContext& ctx, [[maybe_unused]] T const& obj) { TODO("Variant"); }
+    template <typename TContext> static auto Read([[maybe_unused]] T& obj, [[maybe_unused]] TContext& ctx) { TODO("Variant"); }
+};
 
 template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolJsonVal>
 {
 
-    template <typename Context> static auto Write(Context& ctx, T const& obj)
+    template <typename TContext> static auto Write(TContext& ctx, T const& obj)
     {
         _WriteTo(ctx, '{');
         bool first = true;
@@ -359,7 +364,7 @@ template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolJsonVal>
         _WriteTo(ctx, '}');
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename TContext> static auto Read(T& obj, TContext& ctx)
     {
         using Tokenizer = Stencil::impl::rapidjson_::Tokenizer<T>;
         Stencil::StackVisitor<ProtocolJsonVal, T> stack;
@@ -369,12 +374,12 @@ template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolJsonVal>
 
 // template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolString>
 //{
-//     template <typename Context> static auto Write(Context& /*ctx*/, T const& /*obj*/) { TODO(""); }
+//     template <typename TContext> static auto Write(TContext& /*ctx*/, T const& /*obj*/) { TODO(""); }
 // };
 
 template <Stencil::ConceptPreferIterable T> struct SerDes<T, ProtocolJsonVal>
 {
-    template <typename Context> static auto Write(Context& ctx, T const& obj)
+    template <typename TContext> static auto Write(TContext& ctx, T const& obj)
     {
         _WriteTo(ctx, '[');
         bool first = true;
@@ -386,7 +391,7 @@ template <Stencil::ConceptPreferIterable T> struct SerDes<T, ProtocolJsonVal>
         _WriteTo(ctx, ']');
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename TContext> static auto Read(T& obj, TContext& ctx)
     {
         using Tokenizer = Stencil::impl::rapidjson_::Tokenizer<T>;
         Stencil::StackVisitor<ProtocolJsonVal, T> stack;

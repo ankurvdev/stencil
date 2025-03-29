@@ -1,13 +1,11 @@
 #pragma once
 #include "protocol_string.h"
-#include "stencil/typetraits.h"
+#include "typetraits.h"
 #include "visitor.h"
 
-#include <chrono>
 #include <fmt/format.h>
-#include <memory>
+
 #include <span>
-#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -35,11 +33,11 @@ template <typename T> struct Attribute_ShortName
 
 /*
  * Key Points
- * Context
+ * TContext
  *      A 'dash' moves up the context when inside iterable or indexable
  *      A 'double-dash' moves the context to root
- *      For Iterables Context auto slides to the Iterable subtype and keeps sliding until a non-iterable is encountered.
- *      For Indexable Context slides on named field or --field
+ *      For Iterables TContext auto slides to the Iterable subtype and keeps sliding until a non-iterable is encountered.
+ *      For Indexable TContext slides on named field or --field
  * Primitives
  *      --field=value Only used for primitives inside indexables
  *      After parsing context automatically goes up
@@ -107,6 +105,12 @@ static_assert(!ConceptIterable<shared_string>, "shared_string");
 struct IterableValuesVisitors
 {
     virtual ~IterableValuesVisitors() = default;
+};
+
+template <ConceptPreferVariant T> struct SerDes<T, ProtocolCLI>
+{
+    template <typename TContext> static auto Write([[maybe_unused]] TContext& ctx, [[maybe_unused]] T const& obj) { TODO("Variant"); }
+    template <typename TContext> static auto Read([[maybe_unused]] T& obj, [[maybe_unused]] TContext& ctx) { TODO("Variant"); }
 };
 
 template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
@@ -183,7 +187,7 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
 
     [[noreturn]] static void _Error() { throw std::logic_error("Unsupported type"); }
 
-    template <typename Context> static auto Write(Context& ctx, T const& obj)
+    template <typename TContext> static auto Write(TContext& ctx, T const& obj)
     {
         Visitor<T>::VisitAll(obj, [&](auto const& k, auto const& v) { _WriteForKeyValue(k, v, obj, ctx); });
         ctx.push_back("-");
@@ -301,7 +305,7 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
         return;
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename TContext> static auto Read(T& obj, TContext& ctx)
     {
         using Traits    = typename Stencil::TypeTraitsForIndexable<T>;
         using TraitsKey = typename Traits::Key;
@@ -396,7 +400,7 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
 
 template <Stencil::ConceptIterable T> struct SerDes<T, ProtocolCLI>
 {
-    template <typename Context> static auto Write(Context& ctx, T const& obj)
+    template <typename TContext> static auto Write(TContext& ctx, T const& obj)
     {
         Visitor<T>::VisitAll(obj, [&](auto, auto& v) {
             SerDes<std::remove_cvref_t<decltype(v)>, ProtocolCLI>::Write(ctx, v);
@@ -404,7 +408,7 @@ template <Stencil::ConceptIterable T> struct SerDes<T, ProtocolCLI>
         });
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename TContext> static auto Read(T& obj, TContext& ctx)
     {
         typename Visitor<T>::Iterator it;
         Visitor<T>::IteratorBegin(it, obj);
@@ -444,14 +448,14 @@ template <Stencil::ConceptIterable T> struct SerDes<T, ProtocolCLI>
 
 template <Stencil::ConceptPrimitive T> struct SerDes<T, ProtocolCLI>
 {
-    template <typename Context> static auto Write(Context& ctx, T const& obj)
+    template <typename TContext> static auto Write(TContext& ctx, T const& obj)
     {
         std::stringstream ss;
         SerDes<T, ProtocolString>::Write(ss, obj);
         ctx.push_back(ss.str());
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename TContext> static auto Read(T& obj, TContext& ctx)
     {
         if (!ctx.valid() || ctx.root_ctx_requested()) return;
         auto token = ctx.move_next();
@@ -472,7 +476,7 @@ template <Stencil::ConceptPrimitive T> struct SerDes<T, ProtocolCLI>
             }
         }
         if constexpr (ConceptHasProtocolString<T>) { SerDes<T, ProtocolString>::Read(obj, token); }
-        else { throw std::logic_error(fmt::format("Cannot Convert from string:{} -> {}", typeid(T).name, token)); }
+        else { throw std::logic_error(fmt::format("Cannot Convert from string:{} -> {}", typeid(T).name(), token)); }
     }
 };
 
@@ -480,14 +484,14 @@ template <size_t N> struct SerDes<std::array<char, N>, ProtocolCLI>
 {
     using TObj = std::array<char, N>;
 
-    template <typename Context> static auto Write(Context& ctx, TObj const& obj)
+    template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
         std::stringstream ss;
         SerDes<TObj, ProtocolString>::Write(ss, obj);
         ctx.push_back(ss.str());
     }
 
-    template <typename Context> static auto Read(TObj& /*obj*/, Context& /*ctx*/) { TODO(""); }
+    template <typename TContext> static auto Read(TObj& /*obj*/, TContext& /*ctx*/) { TODO(""); }
 };
 
 template <size_t N>
@@ -496,14 +500,14 @@ struct SerDes<std::array<uint16_t, N>, ProtocolCLI>
 {
     using TObj = std::array<uint16_t, N>;
 
-    template <typename Context> static auto Write(Context& ctx, TObj const& obj)
+    template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
         std::stringstream ss;
         SerDes<TObj, ProtocolString>::Write(ss, obj);
         ctx.push_back(ss.str());
     }
 
-    template <typename Context> static auto Read(TObj& /*obj*/, Context& /*ctx*/) { TODO(""); }
+    template <typename TContext> static auto Read(TObj& /*obj*/, TContext& /*ctx*/) { TODO(""); }
 };
 }    // namespace Stencil
 
@@ -693,14 +697,25 @@ template <typename T> inline auto GenerateHelp(T const& obj, Table& table)
             table.AddRowColumn(0, 255, fmt::format("{}", Stencil::Attribute<Stencil::AttributeType::Description, T>::Value()));
             table.AddRowColumn(0, 255, "");
             table.AddRowColumn(0, 255, "List of available options:");
-            // std::visitTypeTraitsForVariant<T>::Alternatives
+
+            VisitorForVariant<T>::VisitAlternatives([&](auto const& k, auto const& v) {
+                using KeyType = std::remove_cvref_t<decltype(k)>;
+                using ValType = std::remove_cvref_t<decltype(v)>;
+                std::stringstream ss;
+                SerDes<KeyType, ProtocolString>::Write(ss, k);
+                table.AddRowColumn(0, 0, ss.str());
+                table.AddColumn(1, 255, fmt::format("{}", Stencil::Attribute<Stencil::AttributeType::Description, ValType>::Value()));
+            });
+            // std::apply([&](auto&&... args) { (printOption(args), ...); }, typename Stencil::TypeTraitsForVariant<T>::AlternativeTuple{});
+            //  std::visitTypeTraitsForVariant<T>::Alternatives
         }
         else
         {
-            VisitorForVariant<T>::VisitAlternative(obj, [&](auto& v) { GenerateHelp(v, table); });
+            VisitorForVariant<T>::VisitActiveAlternative(obj, [&](auto& v) { GenerateHelp(v, table); });
         }
+        return;
     }
-    if constexpr (ConceptIndexable<T>)
+    else if constexpr (ConceptIndexable<T>)
     {
 
         table.AddRowColumn(0, 0, "Usage:");

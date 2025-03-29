@@ -46,14 +46,14 @@ inline auto VisitNext(TypeHandlerAndPtr const& item)
     return item.handler->VisitNext(item.ptr);
 }
 
-template <typename TProto, typename T> struct ProtocolHelper;
+template <ConceptProtocol TProto, typename T> struct ProtocolHelper;
 
-template <typename TProto, ConceptPrimitives64Bit TVal> struct ProtocolHelper<TProto, TVal>
+template <ConceptProtocol TProto, ConceptPrimitives64Bit TVal> struct ProtocolHelper<TProto, TVal>
 {
     void operator()(TypeHandlerAndPtr const& item, TVal const& val) { return item.handler->Assign(item.ptr, Primitives64Bit(val)); }
 };
 
-template <typename TProto, typename T> struct ProtocolHelper<TProto, std::span<T const>>
+template <ConceptProtocol TProto, typename T> struct ProtocolHelper<TProto, std::span<T const>>
 {
     void operator()(TypeHandlerAndPtr const& item, std::span<T const> const& val)
     {
@@ -61,27 +61,27 @@ template <typename TProto, typename T> struct ProtocolHelper<TProto, std::span<T
     }
 };
 
-template <typename TProto, typename T> struct ProtocolHelper<TProto, std::basic_string_view<T>>
+template <ConceptProtocol TProto, typename T> struct ProtocolHelper<TProto, std::basic_string_view<T>>
 {
     void operator()(TypeHandlerAndPtr const& item, std::basic_string_view<T> const& val) { return item.handler->Assign(item.ptr, val); }
 };
 
-template <typename TProto, typename TOwner, typename T> struct VisitorTypeHandler;
+template <ConceptProtocol TProto, typename TOwner, typename T> struct VisitorTypeHandler;
 
-template <typename TProto, typename TOwner, typename T> struct IterableVisitorTypeHandler
+template <ConceptProtocol TProto, typename TOwner, typename T> struct IterableVisitorTypeHandler
 {
     template <typename T1> TypeHandlerAndPtr VisitNext(T1& /*obj*/) const { throw std::logic_error("Not an iterable type"); }
 
     TOwner* owner;
 };
 
-template <typename TProto, typename TOwner, typename T> struct PrimitiveVisitorTypeHandler
+template <ConceptProtocol TProto, typename TOwner, typename T> struct PrimitiveVisitorTypeHandler
 {
     template <typename T2> void Assign(T& /*obj*/, T2& /*obj*/) const { throw std::logic_error("Add Not supported on primitive types"); }
     TOwner*                     owner;
 };
 
-template <typename TProto, typename TOwner, ConceptPrimitive T> struct PrimitiveVisitorTypeHandler<TProto, TOwner, T>
+template <ConceptProtocol TProto, typename TOwner, ConceptPrimitive T> struct PrimitiveVisitorTypeHandler<TProto, TOwner, T>
 {
     template <typename T2> void Assign(T& obj, T2 const& val) const { SerDes<T, TProto>::Read(obj, val); }
     // void Assign(T& obj, T2 const& val) const { SerDes<T, TProto>::Read(obj, val); }
@@ -91,7 +91,7 @@ template <typename TProto, typename TOwner, ConceptPrimitive T> struct Primitive
     TOwner* owner;
 };
 
-template <typename TProto, typename TOwner, ConceptIterable T> struct IterableVisitorTypeHandler<TProto, TOwner, T>
+template <ConceptProtocol TProto, typename TOwner, ConceptIterable T> struct IterableVisitorTypeHandler<TProto, TOwner, T>
 {
     template <typename T1> TypeHandlerAndPtr VisitNext(T1& obj)
     {
@@ -121,7 +121,7 @@ template <typename TProto, typename TOwner, ConceptIterable T> struct IterableVi
     TOwner*                       owner;
 };
 
-template <typename TProto, typename TOwner, typename T> struct IndexableVisitorTypeHandler
+template <ConceptProtocol TProto, typename TOwner, typename T> struct IndexableVisitorTypeHandler
 {
     TypeHandlerAndPtr                        KeyHandler() const { throw std::logic_error("Not an indexable type"); }
     template <typename T1> TypeHandlerAndPtr VisitValueForKey(T1& /*obj*/) const { throw std::logic_error("Not an indexable type"); }
@@ -130,7 +130,7 @@ template <typename TProto, typename TOwner, typename T> struct IndexableVisitorT
 
 SUPPRESS_WARNINGS_START
 SUPPRESS_MSVC_WARNING(4702) /*Unreachable code*/
-template <typename TProto, typename TOwner, ConceptIndexable T> struct IndexableVisitorTypeHandler<TProto, TOwner, T>
+template <ConceptProtocol TProto, typename TOwner, ConceptIndexable T> struct IndexableVisitorTypeHandler<TProto, TOwner, T>
 {
     using Traits = typename Stencil::TypeTraitsForIndexable<T>;
 
@@ -159,7 +159,7 @@ template <typename TProto, typename TOwner, ConceptIndexable T> struct Indexable
 };
 SUPPRESS_WARNINGS_END
 
-template <typename TProto, typename TOwner, typename T> struct VisitorTypeHandler : TypeHandler
+template <ConceptProtocol TProto, typename TOwner, typename T> struct VisitorTypeHandler : TypeHandler
 {
     static_assert(std::is_default_constructible_v<Stencil::TypeTraits<T>>, "Specialization of TypeTraits required");
 
@@ -204,7 +204,7 @@ template <typename TProto, typename TOwner, typename T> struct VisitorTypeHandle
     IndexableVisitorTypeHandler<TProto, TOwner, T> indexable;
 };
 
-template <typename TProto, typename T> struct _StackVisitor
+template <ConceptProtocol TProto, typename T> struct _StackVisitor
 {
     _StackVisitor() = default;
 
@@ -260,6 +260,6 @@ template <typename TProto, typename T> struct _StackVisitor
 };
 }    // namespace impl
 
-template <typename TProto, typename T> using StackVisitor = impl::_StackVisitor<TProto, T>;
+template <ConceptProtocol TProto, typename T> using StackVisitor = impl::_StackVisitor<TProto, T>;
 
 }    // namespace Stencil
