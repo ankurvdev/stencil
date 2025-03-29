@@ -4,6 +4,7 @@
 #include "optionalprops.h"
 #include "ref.h"
 #include "shared_tree.h"
+#include "stencil/typetraits.h"
 #include "timestamped.h"
 
 #include <concepts>
@@ -1397,6 +1398,12 @@ concept ConceptRecordView = IsRecordView<T>;
 template <typename T>
 concept ConceptTrivialRecordView = ConceptRecordView<T> && ConceptTrivial<typename RecordViewTraits<T>::Type>;
 
+template <typename T>
+concept ConceptComplexRecordView = ConceptRecordView<T> && ConceptComplex<typename RecordViewTraits<T>::Type>;
+
+template <typename T>
+concept ConceptFixedSizeRecordView = ConceptRecordView<T> && ConceptFixedSize<typename RecordViewTraits<T>::Type>;
+
 }    // namespace Stencil::Database
 
 template <Stencil::Database::ConceptRecordView T>
@@ -1453,6 +1460,28 @@ template <typename TProt> struct Stencil::SerDes<Stencil::Database::RefKeyType, 
     }
     template <typename Context> static auto Read(Stencil::Database::RefKeyType& /* obj */, Context& /* ctx */);    // Undefined
 };
+
+// template <Stencil::Database::ConceptComplexRecordView  T, typename TProt> struct Stencil::SerDes<T, TProt>
+//{
+//     template <typename Context> static auto Write(Context& /* ctx */, T const& /* obj */)
+//     {
+//        throw std::logic_error("TODO");
+//     }
+//     template <typename Context> static auto Read(T& /* obj */, Context& /* ctx */) {
+//         throw std::logic_error("TODO");
+//    }
+// };
+
+template <Stencil::ConceptIndexable T, typename TDb> struct Stencil::TypeTraits<Stencil::Database::RecordView<T, TDb>>
+{
+    using Categories = typename Stencil::TypeTraits<T>::Categories;
+};
+
+template <Stencil::ConceptIndexable T, typename TDb> struct Stencil::TypeTraitsForIndexable<Stencil::Database::RecordView<T, TDb>>
+{
+    using Key = typename Stencil::TypeTraitsForIndexable<T>::Key;
+};
+
 template <Stencil::Database::ConceptTrivialRecordView T, typename TProt> struct Stencil::SerDes<T, TProt>
 {
     using Type       = typename Stencil::Database::RecordViewTraits<T>::Type;

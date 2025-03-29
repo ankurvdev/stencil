@@ -246,6 +246,14 @@ struct Stencil::Attribute<Stencil::AttributeType::zzAttribute_Keyzz,
 //</Attribute>
 //</Field>
 
+//<Attribute>
+template <> struct Stencil::Attribute<Stencil::AttributeType::zzAttribute_Keyzz, zzProgram_Namezz::zzStruct_Namezz>
+{
+    static auto Value() { return "zzAttribute_Valuezz"; }
+};
+
+//</Attribute>
+
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields;
@@ -1041,6 +1049,25 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzVariant_Namezz>
 
 // template <> struct Stencil::Visitor<zzProgram_Namezz::zzVariant_Namezz> : Stencil::StructVisitor<zzProgram_Namezz::zzVariant_Namezz>
 // {};
+
+//<Field>
+//<Attribute>
+template <>
+struct Stencil::Attribute<Stencil::AttributeType::zzAttribute_Keyzz,
+                          Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Field_zzField_NamezzT>
+{
+    static auto Value() { return "zzAttribute_Valuezz"; }
+};
+
+//</Attribute>
+//</Field>
+
+//<Attribute>
+template <> struct Stencil::Attribute<Stencil::AttributeType::zzAttribute_Keyzz, zzProgram_Namezz::zzVariant_Namezz>
+{
+    static auto Value() { return "zzAttribute_Valuezz"; }
+};
+//</Attribute>
 
 //</Variant>
 #endif

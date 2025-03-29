@@ -19,10 +19,12 @@ SUPPRESS_MSVC_WARNING(4242)
 SUPPRESS_MSVC_WARNING(4702)
 SUPPRESS_MSVC_WARNING(5219)
 SUPPRESS_MSVC_WARNING(5262)    // implicit fall-through occurs here;
+
 #include <boost/asio/co_spawn.hpp>
 #include <boost/asio/use_awaitable.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
+#include <boost/beast/http/field.hpp>
 #include <boost/beast/http/file_body.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/config.hpp>
@@ -201,7 +203,7 @@ template <typename... Types> struct Selector
         }
         return false;
     }
-    template <typename... TArgs> static auto Invoke(TArgs&&... args)
+    template <typename... TArgs> static auto Invoke([[maybe_unused]] TArgs&&... args)
     {
         if constexpr (sizeof...(Types) == 0) {}
         else
@@ -233,6 +235,8 @@ struct SSEListenerManager
                 res.body().more = true;
                 boost::beast::http::write_header(stream, sr);
             }
+            ~SSEContext() = default;
+            CLASS_DELETE_COPY_AND_MOVE(SSEContext);
 
             tcp_stream& stream;
         };
@@ -648,7 +652,8 @@ template <typename TImpl, ConceptInterface TInterface> struct RequestHandler<TIm
             bool first = true;
             if (it != ctx.url.params().end())
             {
-                std::string_view query = (*it).value;
+                auto             obj   = *it;
+                std::string_view query = obj.value;
                 while (!query.empty())
                 {
                     rslt << (first ? ' ' : ',');
@@ -716,7 +721,9 @@ struct SessionInterfaceT : TInterface,
                            Stencil::impl::Interface::InterfaceEventHandlerT<TInterfaceImpl, TInterface>
 {
     using Interface = TInterface;
-    SessionInterfaceT() { TInterface::template SetHandler(this); }
+    SessionInterfaceT() { TInterface::SetHandler(this); }
+    ~SessionInterfaceT() override = default;
+    CLASS_DELETE_COPY_AND_MOVE(SessionInterfaceT);
 
     void* handler{nullptr};
 
@@ -726,15 +733,13 @@ struct SessionInterfaceT : TInterface,
         _sseManager.Send(0, msg);
     }
     virtual bool HandleRequest(tcp_stream& /* stream */, Request const& /* req */, boost::urls::url_view const& /* url */) { return false; }
-    virtual void OnSSEInstanceEnded() {}
+    virtual void OnSSEInstanceEnded() = 0;
 
     impl::SSEListenerManager _sseManager;
 };
 
 template <ConceptIndexable TState> struct SynchronizedState
 {
-    virtual ~SynchronizedState() = default;
-
     void* handler{nullptr};
 
     virtual std::string_view Name()           = 0;
@@ -792,8 +797,8 @@ template <typename TImpl, typename TInterfaceImpl> struct RequestHandler<TImpl, 
         auto session = impl.FindSession(uuids::uuid::from_string(*it).value());
         if (session == nullptr)
         {
-            auto session1 = impl.CreateSession(impl);
-            Redirect(stream, req, fmt::format("{}/{}/{}", "/api/session", uuids::to_string(session1->id.uuid), reqpath));
+            session = impl.CreateSession(impl);
+            Redirect(stream, req, fmt::format("{}/{}/{}", "/api/session", uuids::to_string(session->id.uuid), reqpath));
         }
         else
         {
@@ -830,7 +835,7 @@ template <typename TImpl, ConceptInterface TInterface>
 struct WebServiceInterfaceImplT<TImpl, TInterface> : TInterface,    // TImpl implements the virtual functions in this interface,
                                                      Stencil::impl::Interface::InterfaceEventHandlerT<TImpl, TInterface>
 {
-    WebServiceInterfaceImplT() { TInterface::template SetHandler(this); }
+    WebServiceInterfaceImplT() { TInterface::SetHandler(this); }
     virtual ~WebServiceInterfaceImplT() override = default;
     CLASS_DELETE_COPY_AND_MOVE(WebServiceInterfaceImplT);
 };
@@ -838,6 +843,9 @@ struct WebServiceInterfaceImplT<TImpl, TInterface> : TInterface,    // TImpl imp
 template <typename TImpl, ConceptIndexable T>
 struct WebServiceInterfaceImplT<TImpl, impl::SynchronizedState<T>> : impl::SynchronizedState<T>
 {
+    WebServiceInterfaceImplT()                   = default;
+    virtual ~WebServiceInterfaceImplT() override = default;
+    CLASS_DELETE_COPY_AND_MOVE(WebServiceInterfaceImplT);
 
     void NotifyStateChanged(Stencil::Transaction<T>& txn)
     {
@@ -856,7 +864,12 @@ template <typename TInterfaceImpl> using WebSessionInterface = impl::SessionInte
 
 template <typename TImpl, typename TInterfaceImpl>
 struct WebServiceInterfaceImplT<TImpl, WebSessionInterface<TInterfaceImpl>> : WebSessionInterface<TInterfaceImpl>
-{};
+{
+    WebServiceInterfaceImplT()          = default;
+    virtual ~WebServiceInterfaceImplT() = default;
+    CLASS_DELETE_COPY_AND_MOVE(WebServiceInterfaceImplT);
+};
+
 template <typename TImpl, typename... TServices> struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TServices>...
 {
     using WebService = WebServiceT<TImpl, TServices...>;
@@ -906,8 +919,11 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
 
     template <ConceptInterface T> auto& GetInterface() { return *static_cast<T*>(this); }
 
-    virtual bool HandleRequest(tcp_stream& /* stream */, Request const& /* req */, boost::urls::url_view const& /* url */) { return false; }
-    virtual void OnSSEInstanceEnded() {}
+    virtual bool HandleRequest(tcp_stream& /* stream */, Stencil::websvc::Request const& /* req */, boost::urls::url_view const& /* url */)
+    {
+        return false;
+    }
+
     // Return a reasonable mime type based on the extension of a file.
 
     // private: TODO: remove this when boost beast isnt experimental anymore

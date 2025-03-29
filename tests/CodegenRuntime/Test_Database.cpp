@@ -1,5 +1,6 @@
 #include "ObjectsTester.h"
 #include "TestUtils.h"
+#include "stencil/database.h"
 
 #include <unordered_set>
 
@@ -7,6 +8,7 @@ using namespace Catch::literals;
 using namespace std::literals;
 using DataStore = Stencil::Database::Database<::Objects::NestedObject>;
 static_assert(Stencil::Database::TypeId<::Objects::SimpleObject1, DataStore> > 0);
+static_assert(Stencil::ConceptIndexable<Stencil::Database::RecordView<::Objects::SimpleObject1, DataStore>>);
 
 struct DatabaseTester
 {
@@ -174,7 +176,13 @@ struct DatabaseTester
     void dump(Stencil::Database::RWLock& lock, Stencil::Database::Ref<T> const& ref, Stencil::Database::Record<T> const& rec)
     {
         auto recview = Stencil::Database::CreateRecordView(*datastore, lock, ref, rec);
+        // if constexpr (Stencil::Database::ConceptTrivialRecordView<decltype(recview)>) {
+        // static_assert(Stencil::Database::ConceptTrivialRecordView<decltype(recview)>);
+        // static_assert(Stencil::Database::ConceptTrivialRecordView<decltype(recview)>);
         lines.push_back(Stencil::Json::Stringify(recview));
+        //}
+        // else{
+        // }
     }
 
     template <typename T> void delete_half_with_iterator(Stencil::Database::RWLock& lock)

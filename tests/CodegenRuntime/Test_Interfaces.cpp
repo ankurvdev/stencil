@@ -96,6 +96,7 @@ struct Server1Impl : Stencil::websvc::WebServiceT<Server1Impl, Interfaces::Serve
     void Function2() override {}
     void Function3(uint32_t const& /* arg1 */) override {}
 
+    void OnSSEInstanceEnded() {};
     // Event listeners ?
 };
 

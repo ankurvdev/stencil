@@ -1,6 +1,5 @@
 #pragma once
 #include "protocol.h"
-#include "protocol_json.h"
 #include "protocol_string.h"
 #include "stackvisitor.h"
 #include "visitor.h"

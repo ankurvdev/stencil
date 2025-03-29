@@ -662,6 +662,8 @@ template <> struct Stencil::TypeTraitsForIndexable<TestObj>
     using Key = Fields;
 };
 
+static_assert(Stencil::ConceptIndexable<TestObj>);
+
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<TestObj>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<TestObj>::Fields;

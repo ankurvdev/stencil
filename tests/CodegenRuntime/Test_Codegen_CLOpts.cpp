@@ -6,6 +6,12 @@
 #include "TestUtils.h"
 #include <iterator>
 
+static_assert(!Stencil::Category::IsPrimitive<CLOpts1::CommandLineOptions>());
+static_assert(Stencil::ConceptIndexable<CLOpts1::CommandLineOptions>);
+static_assert(!Stencil::ConceptPrimitive<CLOpts1::CommandLineOptions>);
+
+// static_assert(Stencil::ConceptVariant<CLOpts2::CommandLineOptions>);
+
 template <typename TStruct, typename... TArgs> auto ParseArgs(TArgs&&... args)
 {
     TStruct          data;
@@ -264,6 +270,5 @@ TEST_CASE("CodeGen::CommandLineArgs::Help")
         output.push_back("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     }
 
-    // TODO: Help
-    // TestCommon::CheckResource<TestCommon::StrFormat>(output, "0");
+    TestCommon::CheckResource<TestCommon::StrFormat>(output, "0");
 }

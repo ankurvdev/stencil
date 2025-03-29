@@ -116,3 +116,9 @@ template <typename K, typename V> struct Stencil::TypeTraitsForIndexable<std::un
 {
     using Key = K;
 };
+
+static_assert(Stencil::ConceptPrimitive<std::array<uint16_t, 2>>);
+static_assert(Stencil::Category::IsIterable<std::array<uint16_t, 2>>());
+static_assert(Stencil::ConceptIterable<std::array<uint16_t, 2>>);
+static_assert(!Stencil::ConceptIndexable<std::array<uint16_t, 2>>);
+static_assert(!Stencil::ConceptVariant<std::array<uint16_t, 2>>);

@@ -472,7 +472,9 @@ struct Struct : public std::enable_shared_from_this<Struct>,
     }
 };
 
-struct Variant : public std::enable_shared_from_this<Variant>, public IDLGenerics::StorageIndexT<Program, Variant>::StorageType
+struct Variant : public std::enable_shared_from_this<Variant>,
+                 public IDLGenerics::StorageIndexT<Program, Variant>::StorageType,
+                 public IDLGenerics::NamedIndexT<Variant, AttributeTag>::Owner
 {
     OBJECTNAME(Variant);
     CLASS_DELETE_COPY_AND_MOVE(Variant);
@@ -480,6 +482,11 @@ struct Variant : public std::enable_shared_from_this<Variant>, public IDLGeneric
     Variant(std::shared_ptr<Program> program, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> unordered_map) :
         IDLGenerics::StorageIndexT<Program, Variant>::StorageType(program, std::move(name), {}, unordered_map)
     {}
+
+    template <typename TObject, typename... TArgs> auto CreateNamedObject(TArgs&&... args)
+    {
+        return IDLGenerics::NamedIndexT<Struct, TObject>::Owner::CreateNamedObject(this->shared_from_this(), std::forward<TArgs>(args)...);
+    }
 };
 
 struct PrimitiveConstValue : public std::enable_shared_from_this<PrimitiveConstValue>,

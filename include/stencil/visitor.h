@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <tuple>
+#include <variant>
 
 namespace Stencil
 {
@@ -45,6 +46,9 @@ template <typename T> struct VisitorForIndexable
     // static bool IteratorValid(Iterator& it, T[const]& obj);
     // static void Visit(Iterator& it, T1& obj, T[const]Lambda&& lambda);
 };
+
+template <typename T> struct VisitorForVariant
+{};
 
 template <typename T> struct VisitorT
 {};
@@ -372,4 +376,12 @@ template <typename K, typename V> struct Stencil::Visitor<std::unordered_map<K, 
         lambda(obj.at(it));
     }
 #endif
+};
+
+template <typename... T> struct Stencil::VisitorForVariant<std::variant<std::monostate, T...>>
+{
+    using TObj = std::variant<std::monostate, T...>;
+    static bool IsMonostate(TObj const& obj) { return obj.valueless_by_exception(); }
+
+    template <typename TLambda> static void VisitAlternative(TObj const& obj, TLambda&& lambda) { std::visit(lambda, obj); }
 };

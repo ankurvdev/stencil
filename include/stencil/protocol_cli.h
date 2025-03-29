@@ -109,7 +109,7 @@ struct IterableValuesVisitors
     virtual ~IterableValuesVisitors() = default;
 };
 
-template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolCLI>
+template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
 {
     template <typename TKey, typename TVal, typename TObj, typename TContext>
     static void _WriteForKeyValue(TKey const& k, TVal const& v, TObj const& /*obj*/, TContext& ctx)
@@ -450,6 +450,7 @@ template <Stencil::ConceptPrimitive T> struct SerDes<T, ProtocolCLI>
         SerDes<T, ProtocolString>::Write(ss, obj);
         ctx.push_back(ss.str());
     }
+
     template <typename Context> static auto Read(T& obj, Context& ctx)
     {
         if (!ctx.valid() || ctx.root_ctx_requested()) return;
@@ -470,7 +471,8 @@ template <Stencil::ConceptPrimitive T> struct SerDes<T, ProtocolCLI>
                 return;
             }
         }
-        SerDes<T, ProtocolString>::Read(obj, token);
+        if constexpr (ConceptHasProtocolString<T>) { SerDes<T, ProtocolString>::Read(obj, token); }
+        else { throw std::logic_error(fmt::format("Cannot Convert from string:{} -> {}", typeid(T).name, token)); }
     }
 };
 
@@ -680,27 +682,43 @@ struct Table
     }
 };
 
+template <typename T> inline auto GenerateHelp(T const& obj, Table& table)
+{
+
+    if constexpr (ConceptVariant<T>)
+    {
+        if (VisitorForVariant<T>::IsMonostate(obj))
+        {
+            table.AddRowColumn(0, 255, "Description:");
+            table.AddRowColumn(0, 255, fmt::format("{}", Stencil::Attribute<Stencil::AttributeType::Description, T>::Value()));
+            table.AddRowColumn(0, 255, "");
+            table.AddRowColumn(0, 255, "List of available options:");
+            // std::visitTypeTraitsForVariant<T>::Alternatives
+        }
+        else
+        {
+            VisitorForVariant<T>::VisitAlternative(obj, [&](auto& v) { GenerateHelp(v, table); });
+        }
+    }
+    if constexpr (ConceptIndexable<T>)
+    {
+
+        table.AddRowColumn(0, 0, "Usage:");
+        table.AddColumn(1, 255, fmt::format("{}", "name"));
+        Visitor<T>::VisitAll(obj, [&](auto k, auto&) {
+            std::stringstream ss;
+            SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
+            table.AddRowColumn(0, 0, fmt::format("--{}", ss.str()));
+            table.AddColumn(1, 255, Stencil::Attribute<Stencil::AttributeType::Description, std::remove_cvref_t<decltype(k)>>::Value());
+        });
+    }
+}
+
 template <typename T> inline auto GenerateHelp(T const& obj)
 {
     std::vector<std::string> args;
     std::unique_ptr<Table>   table(new Table());
-
-    table->AddRowColumn(0, 0, "Usage:");
-    table->AddColumn(1, 255, fmt::format("{}", "name"));
-
-    table->AddRowColumn(0, 255, "Description:");
-    table->AddRowColumn(0, 255, fmt::format("{}", Stencil::Attribute<Stencil::AttributeType::Description, T>::Value()));
-    table->AddRowColumn(0, 255, "");
-
-    if constexpr (ConceptIndexable<T>)
-    {
-        Visitor<T>::VisitAll(obj, [&](auto k, auto&) {
-            std::stringstream ss;
-            SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
-            table->AddRowColumn(0, 0, fmt::format("--{}", ss.str()));
-            table->AddColumn(1, 255, Stencil::Attribute<Stencil::AttributeType::Description, std::remove_cvref_t<decltype(k)>>::Value());
-        });
-    }
+    GenerateHelp(obj, *table);
     return table->PrintAsLines();
 }
 

@@ -367,10 +367,14 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
         }
 
         //  virtual Str::Type GetFieldName() override;
-        virtual void AddAttributes(std::shared_ptr<Binding::AttributeMap> /* map */) override {}
-        void         SetFieldId(size_t id) { _fieldId = id; }
-        Str::Type    GetFieldId() const { return Str::Create(std::to_wstring(_fieldId)); }
-        size_t       _fieldId{};
+        virtual void AddAttributes(std::shared_ptr<Binding::AttributeMap> map) override
+        {
+            IDLGenerics::AnnotatedObjectT<TOwner, FieldType>::AddAttributes(map);
+        }
+
+        void      SetFieldId(size_t id) { _fieldId = id; }
+        Str::Type GetFieldId() const { return Str::Create(std::to_wstring(_fieldId)); }
+        size_t    _fieldId{};
 
         std::shared_ptr<TOwner> _owner;
     };

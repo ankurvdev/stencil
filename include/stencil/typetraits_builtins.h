@@ -15,3 +15,8 @@ template <> struct Stencil::TypeTraits<Stencil::Timestamp>
 {
     using Categories = std::tuple<Stencil::Category::Primitive>;
 };
+
+static_assert(Stencil::ConceptPrimitive<shared_stringT<char>>);
+static_assert(!Stencil::ConceptIndexable<shared_stringT<char>>);
+static_assert(!Stencil::ConceptIterable<shared_stringT<char>>);
+static_assert(!Stencil::ConceptVariant<shared_stringT<char>>);
