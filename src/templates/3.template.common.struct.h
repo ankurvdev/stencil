@@ -214,6 +214,7 @@ template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Na
         //<Field>
         case Fields::Field_zzNamezz: return zzHasDefaultValuezz;
         //</Field>
+        case Fields::Invalid: [[fallthrough]];
         default: break;
         }
         return false;
