@@ -3,13 +3,17 @@
 #include "typetraits.h"
 #include "visitor.h"
 
+#include <cctype>
 #include <fmt/format.h>
 
 #include <span>
+#include <sstream>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <type_traits>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 namespace Stencil
@@ -115,14 +119,49 @@ template <ConceptPreferVariant T> struct SerDes<T, ProtocolCLI>
 
 template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
 {
+    template <typename TContext> static bool AreEqual(std::string_view const& str1, TContext const& str2)
+    {
+        auto it1 = str1.begin();
+        auto it2 = std::begin(str2);
+        while (it1 != str1.end() && it2 != std::end(str2))
+        {
+            auto ch1 = std::tolower(*it1);
+            auto ch2 = std::tolower(*it2);
+            if (ch1 == ch2)
+            {
+                ++it1;
+                ++it2;
+                continue;
+            }
+            if (ch1 == '_') ch1 = '-';
+            if (ch2 == '_') ch2 = '-';
+
+            if (ch1 == '-' || ch2 == '-')
+            {
+                if (ch1 == '-')
+                {
+                    ++it1;
+                    continue;
+                }
+                if (ch2 == '-')
+                {
+                    ++it2;
+                    continue;
+                }
+            }
+            else { return false; }
+        }
+        return it1 == str1.end() && it2 == std::end(str2);
+    }
+
     template <typename TKey, typename TVal, typename TObj, typename TContext>
-    static void _WriteForKeyValue(TKey const& k, TVal const& v, TObj const& /*obj*/, TContext& ctx)
+    static void _WriteForNamedTupleKeyValue(TKey const& k, TVal const& v, TObj const& /*obj*/, TContext& ctx)
     {
         if constexpr (ConceptHasProtocolString<TVal>)
         {
             std::stringstream ss;
             fmt::print(ss, "--");
-            SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
+            SerDes<std::remove_cvref_t<decltype(k)>, ProtocolCLI>::Write(ss, k);
             fmt::print(ss, "=");
             SerDes<TVal, ProtocolString>::Write(ss, v);
             ctx.push_back(ss.str());
@@ -135,7 +174,6 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
             SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
             ctx.push_back(ss.str());
             SerDes<TVal, ProtocolCLI>::Write(ctx, v);
-            // ctx.push_back("-");
             return;
         }
 
@@ -189,8 +227,12 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
 
     template <typename TContext> static auto Write(TContext& ctx, T const& obj)
     {
-        Visitor<T>::VisitAll(obj, [&](auto const& k, auto const& v) { _WriteForKeyValue(k, v, obj, ctx); });
-        ctx.push_back("-");
+        if constexpr (ConceptNamedTuple<T>)
+        {
+            Visitor<T>::VisitAll(obj, [&](auto const& k, auto const& v) { _WriteForNamedTupleKeyValue(k, v, obj, ctx); });
+            ctx.push_back("-");
+        }
+        else { TODO("IndexableWithDynamicKeys"); }
     }
 
     static bool _IsBooleanValue(std::string_view const& value, bool& boolval)
@@ -307,9 +349,10 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
 
     template <typename TContext> static auto Read(T& obj, TContext& ctx)
     {
-        using Traits    = typename Stencil::TypeTraitsForIndexable<T>;
-        using TraitsKey = typename Traits::Key;
         std::unordered_map<void*, std::unique_ptr<IterableValuesVisitors>> iterableVistors;
+
+        size_t positionalarg = 0;
+
         while (ctx.valid() && !ctx.root_ctx_requested())
         {
             std::string_view token = ctx.move_next();
@@ -337,25 +380,35 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                     if (token.starts_with("--no-"))
                     {
                         auto keystr = std::string(token.substr(5));
-                        for (auto& c : keystr) { c = (c == '-') ? '_' : c; }
-                        TraitsKey key;
-                        SerDes<TraitsKey, ProtocolString>::Read(key, keystr);
-
-                        // Has to be a boolean
-                        Visitor<T>::VisitKey(obj, key, [&](auto& val) {
-                            if constexpr (std::is_same_v<decltype(val), bool&>) { val = false; }
-                            else { throw std::logic_error(fmt::format("Expected Boolean type for key: {}", keystr)); }
+                        bool found  = false;
+                        Visitor<T>::VisitAll(obj, [&](auto const& key, auto& val) {
+                            if constexpr (std::is_same_v<decltype(val), bool&>)
+                            {
+                                if (found) { return; }
+                                std::stringstream ss;
+                                SerDes<std::remove_cvref_t<decltype(key)>, ProtocolString>::Write(ss, key);
+                                if (!AreEqual(ss.str(), keystr)) { return; }
+                                val   = false;
+                                found = true;
+                            }
                         });
+                        if (!found)
+                        {
+                            throw std::logic_error(fmt::format("Cannot find matching arg for Boolean type for key: {}", keystr));
+                        }
                     }
                     else
                     {
                         auto keystr = std::string(token.substr(2));
-                        for (auto& c : keystr) { c = (c == '-') ? '_' : c; }
-                        TraitsKey key;
-                        SerDes<TraitsKey, ProtocolString>::Read(key, keystr);
+                        bool found  = false;
+                        Visitor<T>::VisitAll(obj, [&](auto const& key, auto& val) {
+                            if (found) { return; }
+                            std::stringstream ss;
+                            SerDes<std::remove_cvref_t<decltype(key)>, ProtocolString>::Write(ss, key);
+                            // Has to be a boolean
+                            if (!AreEqual(ss.str(), keystr)) { return; }
+                            found = true;
 
-                        // Has to be a boolean
-                        Visitor<T>::VisitKey(obj, key, [&](auto& val) {
                             if constexpr (std::is_same_v<decltype(val), bool&>)
                             {
                                 val = true;
@@ -373,26 +426,86 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                                 _ReadForIterableValue(iterableVistors, val, next);
                             }
                         });
+                        if (!found) { throw std::logic_error(fmt::format("Cannot find matching arg for key: {}", keystr)); }
                     }
                 }
                 else
                 {
                     auto keystr = std::string(token.substr(2, index - 2));
-                    for (auto& c : keystr) { c = (c == '-') ? '_' : c; }
-                    auto value = token.substr(index + 1);
+                    auto value  = token.substr(index + 1);
 
-                    TraitsKey key;
-                    SerDes<TraitsKey, ProtocolString>::Read(key, keystr);
-                    Visitor<T>::VisitKey(obj, key, [&](auto& val) { _ReadForIterableValue(iterableVistors, val, value); });
+                    bool found = false;
+                    Visitor<T>::VisitAll(obj, [&](auto const& key, auto& val) {
+                        if (found) { return; }
+                        std::stringstream ss;
+                        SerDes<std::remove_cvref_t<decltype(key)>, ProtocolString>::Write(ss, key);
+                        // Has to be a boolean
+                        if (!AreEqual(ss.str(), keystr)) { return; }
+                        found = true;
+                        _ReadForIterableValue(iterableVistors, val, value);
+                    });
+                    if (!found) { throw std::logic_error(fmt::format("Cannot find matching arg for key: {}", keystr)); }
                 }
             }
             else
             {
-                // Should we suppport key=val ?
-                TraitsKey key;
-                SerDes<TraitsKey, ProtocolString>::Read(key, token);
+                if constexpr (ConceptVariant<T>)
+                {
 
-                Visitor<T>::VisitKey(obj, key, [&](auto& val) { SerDes<std::remove_cvref_t<decltype(val)>, ProtocolCLI>::Read(val, ctx); });
+                    VisitorForVariant<T>::VisitAlternatives([&](auto const& key, auto& val) {
+                        std::stringstream ss;
+                        SerDes<std::remove_cvref_t<decltype(key)>, ProtocolString>::Write(ss, key);
+                        // Has to be a boolean
+                        if (!AreEqual(ss.str(), token)) { return; }
+                        if constexpr (std::is_same_v<std::remove_cvref_t<decltype(val)>, std::monostate>) { return; }
+                        else { obj = val; }
+                    });
+                    VisitorForVariant<T>::VisitActiveAlternative(
+                        obj, [&](auto& val) { SerDes<std::remove_cvref_t<decltype(val)>, ProtocolCLI>::Read(val, ctx); });
+                }
+                else if constexpr (ConceptNamedTuple<T>)
+                {
+                    size_t curposarg = 0;
+                    bool   done      = false;
+                    Visitor<T>::VisitAll(obj, [&](auto const& key, auto& val) {
+                        using ValType = std::remove_cvref_t<decltype(val)>;
+                        if (done) return;
+                        if constexpr (Stencil::ConceptNamedTuple<ValType>)
+                        {
+                            std::stringstream ss;
+                            SerDes<std::remove_cvref_t<decltype(key)>, ProtocolString>::Write(ss, key);
+                            // Has to be a boolean
+                            if (!AreEqual(ss.str(), token)) { return; }
+                            // Just step into the named tuple for the given key and process the rest
+                            SerDes<std::remove_cvref_t<decltype(val)>, ProtocolCLI>::Read(val, ctx);
+                            done = true;
+                        }
+                    });
+
+                    if (!done)
+                    {
+                        Visitor<T>::VisitAll(obj, [&](auto const& key, auto& val) {
+                            using ValType = std::remove_cvref_t<decltype(val)>;
+                            if (done) return;
+                            if constexpr (Stencil::ConceptPrimitive<ValType>)
+                            {
+                                if (Stencil::TypeTraitsForIndexable<T>::HasDefaultValueForKey(obj, key)) { return; }
+                                if ((curposarg++) != positionalarg) { return; }
+                                SerDes<ValType, ProtocolString>::Read(val, token);
+                                done = true;
+                            }
+                            else
+                            {
+                                // TODO("Not sure");
+                                //  SerDes<std::remove_cvref_t<decltype(val)>, ProtocolCLI>::Read(val, ctx);
+                            }
+                        });
+                    }
+                }
+                else
+                {
+                    std::logic_error(fmt::format("Unknown type : {} for argument: {}. Possibly not implemented", typeid(T).name(), token));
+                }
             }
         }
     }
@@ -448,12 +561,7 @@ template <Stencil::ConceptIterable T> struct SerDes<T, ProtocolCLI>
 
 template <Stencil::ConceptPrimitive T> struct SerDes<T, ProtocolCLI>
 {
-    template <typename TContext> static auto Write(TContext& ctx, T const& obj)
-    {
-        std::stringstream ss;
-        SerDes<T, ProtocolString>::Write(ss, obj);
-        ctx.push_back(ss.str());
-    }
+    template <typename TContext> static auto Write(TContext& ctx, T const& obj) { SerDes<T, ProtocolString>::Write(ctx, obj); }
 
     template <typename TContext> static auto Read(T& obj, TContext& ctx)
     {
@@ -706,7 +814,8 @@ template <typename T> inline auto GenerateHelp(T const& obj, Table& table)
                 table.AddRowColumn(0, 0, ss.str());
                 table.AddColumn(1, 255, fmt::format("{}", Stencil::Attribute<Stencil::AttributeType::Description, ValType>::Value()));
             });
-            // std::apply([&](auto&&... args) { (printOption(args), ...); }, typename Stencil::TypeTraitsForVariant<T>::AlternativeTuple{});
+            // std::apply([&](auto&&... args) { (printOption(args), ...); }, typename
+            // Stencil::TypeTraitsForVariant<T>::AlternativeTuple{});
             //  std::visitTypeTraitsForVariant<T>::Alternatives
         }
         else
@@ -715,16 +824,63 @@ template <typename T> inline auto GenerateHelp(T const& obj, Table& table)
         }
         return;
     }
-    else if constexpr (ConceptIndexable<T>)
+    // TODO: Shortswitch
+    // But what about indexables like unordered_map
+    else if constexpr (ConceptNamedTuple<T>)
     {
+        auto normalize = [](std::string_view const& str) {
+            std::stringstream ss;
+            bool              first = true;
+            bool              last  = false;
+            for (auto ch : str)
+            {
+                if (!std::islower(ch))
+                {
+                    if (first || last) { ss << static_cast<char>(std::tolower(ch)); }
+                    else
+                    {
+                        ss << '-' << static_cast<char>(std::tolower(ch));
+                        last = true;
+                    }
+                }
+                else
+                {
+                    ss << ch;
+                    last = false;
+                }
+                first = false;
+            }
+            return ss.str();
+        };
 
         table.AddRowColumn(0, 0, "Usage:");
-        table.AddColumn(1, 255, fmt::format("{}", "name"));
+
         Visitor<T>::VisitAll(obj, [&](auto k, auto&) {
+            if (Stencil::TypeTraitsForIndexable<T>::HasDefaultValueForKey(obj, k)) { return; }
             std::stringstream ss;
             SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
-            table.AddRowColumn(0, 0, fmt::format("--{}", ss.str()));
-            table.AddColumn(1, 255, Stencil::Attribute<Stencil::AttributeType::Description, std::remove_cvref_t<decltype(k)>>::Value());
+            table.AddColumn(1, 255, fmt::format("<{}>", normalize(ss.str())));
+        });
+
+        table.AddRowColumn(0, 0, "Description:");
+        table.AddRowColumn(0, 0, Stencil::Attribute<Stencil::AttributeType::Description, T>::Value());
+
+        Visitor<T>::VisitAll(obj, [&](auto k, auto& /* v */) {
+            using KeyType = std::remove_cvref_t<decltype(k)>;
+            if (Stencil::TypeTraitsForIndexable<T>::HasDefaultValueForKey(obj, k)) { return; }
+            std::stringstream ss;
+            SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
+            table.AddRowColumn(0, 255, fmt::format("<{}>", normalize(ss.str())));
+            table.AddColumn(1, 255, fmt::format("{}", Stencil::Attribute<Stencil::AttributeType::Description, KeyType>::Value()));
+        });
+
+        Visitor<T>::VisitAll(obj, [&](auto k, auto& /* v */) {
+            using KeyType = std::remove_cvref_t<decltype(k)>;
+            if (!Stencil::TypeTraitsForIndexable<T>::HasDefaultValueForKey(obj, k)) { return; }
+            std::stringstream ss;
+            SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
+            table.AddRowColumn(0, 255, fmt::format("--{}", normalize(ss.str())));
+            table.AddColumn(1, 255, fmt::format("{}", Stencil::Attribute<Stencil::AttributeType::Description, KeyType>::Value()));
         });
     }
 }

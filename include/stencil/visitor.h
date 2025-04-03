@@ -395,6 +395,7 @@ template <typename... Ts> struct Stencil::VisitorForVariant<std::variant<std::mo
     }
 
     template <typename TLambda> static void VisitActiveAlternative(TObj const& obj, TLambda&& lambda) { std::visit(lambda, obj); }
+    template <typename TLambda> static void VisitActiveAlternative(TObj& obj, TLambda&& lambda) { std::visit(lambda, obj); }
 };
 
 template <ConceptVariantTType T> struct Stencil::VisitorForVariant<T>
@@ -415,6 +416,16 @@ template <ConceptVariantTType T> struct Stencil::VisitorForVariant<T>
     {
         std::visit(
             [&](auto const& obj) {
+                if constexpr (std::is_same_v<std::remove_cvref_t<decltype(obj)>, std::monostate>) {}
+                else { lambda(obj); }
+            },
+            obj._variant);
+    }
+
+    template <typename TLambda> static void VisitActiveAlternative(T& obj, TLambda&& lambda)
+    {
+        std::visit(
+            [&](auto& obj) {
                 if constexpr (std::is_same_v<std::remove_cvref_t<decltype(obj)>, std::monostate>) {}
                 else { lambda(obj); }
             },

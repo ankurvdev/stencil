@@ -32,6 +32,13 @@ template <typename TStruct, typename... TArgs> auto RequireGenerateHelpException
 
 TEST_CASE("CodeGen::CommandLineArgs::Simplecase", "[CommandLineArgs]")
 {
+    SECTION("positionalargs")
+    {
+        auto options = ParseArgs<::CLOpts1::CommandLineOptions>("c:\\abc");
+        REQUIRE(options.workingDirectory == "c:\\abc");
+        REQUIRE(options.libraries.size() == 0);
+    }
+
     SECTION("equalassignment")
     {
         auto options = ParseArgs<::CLOpts1::CommandLineOptions>("--workingDirectory=c:\\abc");
@@ -121,6 +128,18 @@ TEST_CASE("CodeGen::CommandLineArgs::Simplecase", "[CommandLineArgs]")
         REQUIRE(options.httpsPort == 3443);
         REQUIRE(options.daemon == false);
         REQUIRE(options.quiet == true);
+    }
+
+    SECTION("camelcase_to_dash")
+    {
+        auto options = ParseArgs<::CLOpts1::CommandLineOptions>("--working-directory=c:\\abcd");
+        REQUIRE(options.workingDirectory == "c:\\abcd");
+    }
+
+    SECTION("camelcase_to_lowercase")
+    {
+        auto options = ParseArgs<::CLOpts1::CommandLineOptions>("--workingdirectory=c:\\abcde");
+        REQUIRE(options.workingDirectory == "c:\\abcde");
     }
 
     SECTION("libraries")

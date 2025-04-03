@@ -130,6 +130,17 @@ struct zzVariant_Namezz : public Stencil::VariantT<zzVariant_Namezz>
     VariantType Type() const { return static_cast<VariantType>(_variant.index()); }
 
     //<Field>
+    auto operator=(zzFieldType_NativeTypezz&& obj)
+    {
+        _variant = std::forward<zzFieldType_NativeTypezz>(obj);
+        return *this;
+    }
+    auto operator=(zzFieldType_NativeTypezz const& obj)
+    {
+        _variant = obj;
+        return *this;
+    }
+
     zzFieldType_NativeTypezz&       zzNamezz() { return std::get<zzFieldType_NativeTypezz>(_variant); }
     zzFieldType_NativeTypezz const& zzNamezz() const { return std::get<zzFieldType_NativeTypezz>(_variant); }
     //</Field>
@@ -181,6 +192,7 @@ template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzStruct_Namezz>
 
 template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>
 {
+    using TObj = zzProgram_Namezz::zzStruct_Namezz;
     enum class Fields
     {
         Invalid,
@@ -195,6 +207,21 @@ template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Na
     //</Field>
 
     using Key = Fields;
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Key key)
+    {
+        switch (key)
+        {
+        //<Field>
+        case Fields::Field_zzNamezz: return zzHasDefaultValuezz;
+        //</Field>
+        default: break;
+        }
+        return false;
+    }
+
+    //<Field>
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_zzNamezzT /* key */) { return zzHasDefaultValuezz; }
+    //</Field>
 };
 //<Field>
 template <>
@@ -671,6 +698,7 @@ template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz::Arg
 
 template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
 {
+    using TObj = zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz;
     enum class Fields
     {
         Invalid,
@@ -684,6 +712,10 @@ template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface
     {};
     //</Args_Field>
     using Key = Fields;
+
+    //<Args_Field>
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_arg_zzNamezzT /* key */) { return zzHasDefaultValuezz; }
+    //</Args_Field>
 };
 
 template <>
@@ -786,6 +818,7 @@ template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz::Arg
 
 template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>
 {
+    using TObj = zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz;
     enum class Fields
     {
         Invalid,
@@ -800,6 +833,10 @@ template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface
     //</Args_Field>
 
     using Key = Fields;
+
+    //<Args_Field>
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_arg_zzNamezzT /* key */) { return zzHasDefaultValuezz; }
+    //</Args_Field>
 };
 
 template <>
@@ -944,9 +981,12 @@ template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzVariant_Namezz>
 
 template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzVariant_Namezz>
 {
-    using Key    = zzProgram_Namezz::zzVariant_Namezz::VariantType;
+    using TObj   = zzProgram_Namezz::zzVariant_Namezz;
+    using Key    = TObj::VariantType;
     using Fields = Key;
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Key /* key */) { return false; }
 };
+
 //<Field>
 template <> struct Stencil::SerDes<zzProgram_Namezz::zzVariant_Namezz::Variant_zzNamezzT, Stencil::ProtocolString>
 {

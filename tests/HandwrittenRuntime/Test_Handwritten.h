@@ -111,6 +111,7 @@ template <> struct Stencil::TypeTraitsForIndexable<WithPrimitives64Bit>
     };
 
     using Key = Fields;
+    static constexpr bool HasDefaultValueForKey(WithPrimitives64Bit const& /* obj */, Key /* key */) { return true; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<WithPrimitives64Bit>::Fields>
@@ -177,8 +178,9 @@ template <> struct Stencil::TypeTraitsForIndexable<ComplexPrimitives>
         Field_f2,
         Field_f3,
     };
-
-    using Key = Fields;
+    using TObj = ComplexPrimitives;
+    using Key  = Fields;
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Key /* key */) { return true; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<ComplexPrimitives>::Fields>
@@ -237,6 +239,7 @@ template <> struct Stencil::TypeTraitsForIndexable<LargePrimitives>
     };
 
     using Key = Fields;
+    static constexpr bool HasDefaultValueForKey(LargePrimitives const& /* obj */, Key /* key */) { return true; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<LargePrimitives>::Fields>
@@ -295,7 +298,9 @@ template <> struct Stencil::TypeTraitsForIndexable<WithBlobs>
         Field_f4,
     };
 
-    using Key = Fields;
+    using TObj = WithBlobs;
+    using Key  = Fields;
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Key /* key */) { return true; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<WithBlobs>::Fields>
@@ -355,6 +360,7 @@ template <> struct Stencil::TypeTraitsForIndexable<Nested>
     };
 
     using Key = Fields;
+    static constexpr bool HasDefaultValueForKey(Nested const& /* obj */, Key /* key */) { return true; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Nested>::Fields>
@@ -417,11 +423,15 @@ enum class UuidBasedId_Fields
 template <typename T> struct Stencil::TypeTraitsForIndexable<Stencil::TimestampedT<T>>
 {
     using Fields = Timestamp_Fields;
+    using Key    = Fields;
+    static constexpr bool HasDefaultValueForKey(Stencil::TimestampedT<T> const& /* obj */, Key /* key */) { return true; }
 };
 
 template <typename T> struct Stencil::TypeTraitsForIndexable<UuidBasedId<T>>
 {
     using Fields = UuidBasedId_Fields;
+    using Key    = Fields;
+    static constexpr bool HasDefaultValueForKey(UuidBasedId<T> const& /* obj */, Key /* key */) { return true; }
 };
 
 template <> struct Stencil::EnumTraits<UuidBasedId_Fields>
@@ -460,6 +470,7 @@ template <> struct Stencil::TypeTraitsForIndexable<MultiAttributed>
     using UuidBasedId_Feilds = typename Stencil::TypeTraitsForIndexable<UuidBasedId<MultiAttributed>>::Fields;
 
     using Key = Stencil::EnumPack<Fields, Timestamp_Fields, UuidBasedId_Feilds>;
+    static constexpr bool HasDefaultValueForKey(MultiAttributed const& /* obj */, Key /* key */) { return true; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<MultiAttributed>::Fields>
@@ -525,6 +536,8 @@ template <> struct Stencil::TypeTraitsForIndexable<WithVariant>
     };
 
     using Key = Stencil::EnumPack<Fields>;
+
+    static constexpr bool HasDefaultValueForKey(WithVariant const& /* obj */, Key /* key */) { return true; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<WithVariant>::Fields>
@@ -591,6 +604,7 @@ template <> struct Stencil::TypeTraitsForIndexable<NamedVariant>
     };
 
     using Key = Stencil::EnumPack<Fields>;
+    static constexpr bool HasDefaultValueForKey(NamedVariant const& /* obj */, Key /* key */) { return true; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<NamedVariant>::Fields>
@@ -660,6 +674,7 @@ template <> struct Stencil::TypeTraitsForIndexable<TestObj>
     };
 
     using Key = Fields;
+    static constexpr bool HasDefaultValueForKey(TestObj const& /* obj */, Key /* key */) { return true; }
 };
 
 static_assert(Stencil::ConceptIndexable<TestObj>);

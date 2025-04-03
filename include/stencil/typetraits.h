@@ -71,6 +71,12 @@ concept ConceptIndexable = requires {
 };
 
 template <typename T>
+concept ConceptNamedTuple = requires(T t, typename TypeTraitsForIndexable<T>::Key k) {
+    requires ConceptIndexable<T>;
+    { TypeTraitsForIndexable<T>::HasDefaultValueForKey(t, k) } -> std::same_as<bool>;
+};
+
+template <typename T>
 concept ConceptIterable = /* Category::IsIterable<T>() &&  */ requires {
     requires Category::IsIterable<T>();
     typename TypeTraitsForIterable<T>::ElementType;

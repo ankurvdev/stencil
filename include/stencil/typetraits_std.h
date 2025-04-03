@@ -17,9 +17,20 @@ template <typename T> struct Stencil::TypeTraits<std::shared_ptr<T>>
     using Categories = typename Stencil::TypeTraits<T>::Categories;
 };
 
-template <Stencil::ConceptIndexable T> struct Stencil::TypeTraitsForIndexable<std::shared_ptr<T>>
+template <Stencil::ConceptIndexable T>
+    requires(!Stencil::ConceptNamedTuple<T>)
+struct Stencil::TypeTraitsForIndexable<std::shared_ptr<T>>
 {
     using Key = typename Stencil::TypeTraitsForIndexable<T>::Key;
+};
+
+template <Stencil::ConceptNamedTuple T> struct Stencil::TypeTraitsForIndexable<std::shared_ptr<T>>
+{
+    using Key = typename Stencil::TypeTraitsForIndexable<T>::Key;
+    static bool HasDefaultValueForKey(std::shared_ptr<T> const& obj, Key key)
+    {
+        return Stencil::TypeTraitsForIndexable<T>::HasDefaultValueForKey(*obj.get(), key);
+    }
 };
 
 template <Stencil::ConceptIterable T> struct Stencil::TypeTraitsForIterable<std::shared_ptr<T>>
