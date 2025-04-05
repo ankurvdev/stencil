@@ -388,47 +388,63 @@ template <typename... Ts> struct Stencil::VisitorForVariant<std::variant<std::mo
     using TObj = std::variant<std::monostate, Ts...>;
     static bool IsMonostate(TObj const& obj) { return obj.index() == 0; }
 
-    template <typename TLambda> static void VisitAlternatives(TLambda&& lambda)
+    template <typename TLambda> static void VisitAlternatives(TObj& /* obj */, TLambda&& lambda)
     {
-        using TypeTuple = std::tuple<Ts...>;
-        for (size_t i = 0; i < sizeof...(Ts); i++) { TupleVisitAt(TypeTuple{}, i, lambda); }
-    }
-
-    template <typename TLambda> static void VisitActiveAlternative(TObj const& obj, TLambda&& lambda) { std::visit(lambda, obj); }
-    template <typename TLambda> static void VisitActiveAlternative(TObj& obj, TLambda&& lambda) { std::visit(lambda, obj); }
-};
-
-template <ConceptVariantTType T> struct Stencil::VisitorForVariant<T>
-{
-    static bool IsMonostate(T const& obj) { return obj._variant.index() == 0; }
-
-    template <typename TLambda> static void VisitAlternatives(TLambda&& lambda)
-    {
-        using TypeTuple = Stencil::TypeTraitsForVariant<T>::AlternativeTuple;
-
-        for (size_t i = 1; i < std::tuple_size<TypeTuple>(); i++)
+        using TypeTuple  = std::tuple<Ts...>;
+        auto applylambda = [&](size_t i, auto& arg, size_t index) {
+            if (i == index) { lambda(i, arg); }
+        };
+        for (size_t i = 0; i < sizeof...(Ts); i++)
         {
-            TupleVisitAt(TypeTuple{}, i, [&](auto const& args) { lambda(static_cast<T::VariantType>(i), args); });
+            std::apply(
+                [&](auto... args) {
+                    size_t index = 0;
+                    (applylambda(i, args, index++), ...);
+                },
+                TypeTuple{});
         }
     }
 
-    template <typename TLambda> static void VisitActiveAlternative(T const& obj, TLambda&& lambda)
+    template <typename TLambda> static void VisitActiveAlternative(TObj const& obj, TLambda&& lambda)
     {
-        std::visit(
-            [&](auto const& obj) {
-                if constexpr (std::is_same_v<std::remove_cvref_t<decltype(obj)>, std::monostate>) {}
-                else { lambda(obj); }
-            },
-            obj._variant);
+        std::visit([&](auto val) { lambda(obj.index(), val); }, obj);
+    }
+    template <typename TLambda> static void VisitActiveAlternative(TObj& obj, TLambda&& lambda)
+    {
+        std::visit([&](auto val) { lambda(obj.index(), val); }, obj);
+    }
+};
+
+template <typename... Ts>
+    requires(!std::is_same_v<std::monostate, std::tuple_element_t<0, std::tuple<Ts...>>>)
+struct Stencil::VisitorForVariant<std::variant<Ts...>>
+{
+    using TObj = std::variant<Ts...>;
+    static bool IsMonostate(TObj const& /* obj */) { return false; }
+
+    template <typename TLambda> static void VisitAlternatives(TObj& /* obj */, TLambda&& lambda)
+    {
+        using TypeTuple  = std::tuple<Ts...>;
+        auto applylambda = [&](size_t i, auto& arg, size_t index) {
+            if (i == index) { lambda(i, arg); }
+        };
+        for (size_t i = 0; i < sizeof...(Ts); i++)
+        {
+            std::apply(
+                [&](auto... args) {
+                    size_t index = 0;
+                    (applylambda(i, args, index++), ...);
+                },
+                TypeTuple{});
+        }
     }
 
-    template <typename TLambda> static void VisitActiveAlternative(T& obj, TLambda&& lambda)
+    template <typename TLambda> static void VisitActiveAlternative(TObj const& obj, TLambda&& lambda)
     {
-        std::visit(
-            [&](auto& obj) {
-                if constexpr (std::is_same_v<std::remove_cvref_t<decltype(obj)>, std::monostate>) {}
-                else { lambda(obj); }
-            },
-            obj._variant);
+        std::visit([&](auto const& val) { lambda(obj.index(), val); }, obj);
+    }
+    template <typename TLambda> static void VisitActiveAlternative(TObj& obj, TLambda&& lambda)
+    {
+        std::visit([&](auto& val) { lambda(obj.index(), val); }, obj);
     }
 };

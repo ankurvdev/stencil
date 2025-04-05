@@ -1110,6 +1110,40 @@ template <> struct Stencil::Attribute<Stencil::AttributeType::zzAttribute_Keyzz,
 };
 //</Attribute>
 
+template <> struct Stencil::VisitorForVariant<zzProgram_Namezz::zzVariant_Namezz>
+{
+    using T      = zzProgram_Namezz::zzVariant_Namezz;
+    using Fields = zzProgram_Namezz::zzVariant_Namezz::VariantType;
+
+    static bool IsMonostate(T const& obj) { return obj._variant.index() == 0; }
+
+    template <typename TLambda> static void VisitAlternatives(T const& obj, TLambda&& lambda)
+    {
+        //<Field>
+        lambda(Fields::zzNamezz, obj.zzNamezz());
+        //</Field>
+    }
+
+    template <typename TLambda> static void VisitActiveAlternative(T const& obj, TLambda&& lambda)
+    {
+        std::visit(
+            [&](auto const& o) {
+                if constexpr (std::is_same_v<std::remove_cvref_t<decltype(o)>, std::monostate>) {}
+                else { lambda(static_cast<Fields>(obj._variant.index()), o); }
+            },
+            obj._variant);
+    }
+
+    template <typename TLambda> static void VisitActiveAlternative(T& obj, TLambda&& lambda)
+    {
+        std::visit(
+            [&](auto& o) {
+                if constexpr (std::is_same_v<std::remove_cvref_t<decltype(o)>, std::monostate>) {}
+                else { lambda(static_cast<Fields>(obj._variant.index()), o); }
+            },
+            obj._variant);
+    }
+};
 //</Variant>
 #endif
 // SECTION END: Template specializations

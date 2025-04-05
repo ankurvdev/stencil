@@ -1,3 +1,4 @@
+#include "stencil/typetraits.h"
 #include <stencil/stencil.h>
 
 SUPPRESS_WARNINGS_START
@@ -797,6 +798,9 @@ template <> struct Stencil::TypeTraitsForIndexable<NamedVariant>
     {};
 
     using Key = Stencil::EnumPack<Fields>;
+    static constexpr bool HasDefaultValueForKey(NamedVariant const& /* obj */, Stencil::EnumPack<Fields> /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(NamedVariant const& /* obj */, Fields /* key */) { return true; }
+
     static constexpr bool HasDefaultValueForKey(NamedVariant const& /* obj */, Field_f1 /* key */) { return true; }
     static constexpr bool HasDefaultValueForKey(NamedVariant const& /* obj */, Field_f2 /* key */) { return true; }
     static constexpr bool HasDefaultValueForKey(NamedVariant const& /* obj */, Field_f3 /* key */) { return true; }
@@ -804,6 +808,8 @@ template <> struct Stencil::TypeTraitsForIndexable<NamedVariant>
     static constexpr bool HasDefaultValueForKey(NamedVariant const& /* obj */, Field_f5 /* key */) { return true; }
     static constexpr bool HasDefaultValueForKey(NamedVariant const& /* obj */, Field_f6 /* key */) { return true; }
 };
+static_assert(Stencil::ConceptNamedTuple<NamedVariant>);
+
 DEFINE_STRUCT_FIELD_SERDES(NamedVariant, f1);
 DEFINE_STRUCT_FIELD_SERDES(NamedVariant, f2);
 DEFINE_STRUCT_FIELD_SERDES(NamedVariant, f3);
