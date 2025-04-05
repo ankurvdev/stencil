@@ -98,6 +98,8 @@ template <typename T> struct is_specialized<T, std::void_t<decltype(T{})>> : std
 
 template <typename T>
 concept ConceptHasProtocolString = is_specialized<Stencil::SerDes<T, Stencil::ProtocolString>>::value;
+template <typename T>
+concept ConceptHasProtocolCLI = is_specialized<Stencil::SerDes<T, Stencil::ProtocolCLI>>::value;
 
 static_assert(ConceptHasProtocolString<std::chrono::time_point<std::chrono::system_clock>>, "Chrono should be defined");
 static_assert(ConceptHasProtocolString<uint64_t>, "uint64_t should be defined");
@@ -115,6 +117,33 @@ template <ConceptPreferVariant T> struct SerDes<T, ProtocolCLI>
 {
     template <typename TContext> static auto Write([[maybe_unused]] TContext& ctx, [[maybe_unused]] T const& obj) { TODO("Variant"); }
     template <typename TContext> static auto Read([[maybe_unused]] T& obj, [[maybe_unused]] TContext& ctx) { TODO("Variant"); }
+};
+
+inline std::string Normalize(std::string_view const& str)
+{
+    std::stringstream ss;
+    bool              first = true;
+    bool              last  = false;
+    for (auto ch : str)
+    {
+        if (std::isupper(ch))
+        {
+            if (first || last) { ss << static_cast<char>(std::tolower(ch)); }
+            else
+            {
+                ss << '-' << static_cast<char>(std::tolower(ch));
+                last = true;
+            }
+        }
+        else
+        {
+            ch = ch == '_' ? '-' : ch;
+            ss << ch;
+            last = false;
+        }
+        first = false;
+    }
+    return ss.str();
 };
 
 template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
@@ -161,14 +190,16 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
         {
             std::stringstream ss;
             fmt::print(ss, "--");
-            SerDes<std::remove_cvref_t<decltype(k)>, ProtocolCLI>::Write(ss, k);
+            std::stringstream ss1;
+            SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss1, k);
+            fmt::print(ss, "{}", Normalize(ss1.str()));
             fmt::print(ss, "=");
             SerDes<TVal, ProtocolString>::Write(ss, v);
             ctx.push_back(ss.str());
             return;
         }
 
-        else if constexpr (ConceptIndexable<TVal>)
+        else if constexpr (ConceptIndexable<TVal> || ConceptVariant<TVal>)
         {
             std::stringstream ss;
             SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
@@ -261,6 +292,12 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
 
         if (ei == std::string_view::npos)
         {
+            // if constexpr (ConceptHasProtocolCLI<TVal>)
+            //{
+            //     SerDes<TVal, ProtocolCLI>::Read(val, value);
+            //     return;
+            // }
+            // else
             if constexpr (ConceptHasProtocolString<TVal>)
             {
                 SerDes<TVal, ProtocolString>::Read(val, value);
@@ -470,7 +507,7 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                     Visitor<T>::VisitAll(obj, [&](auto const& key, auto& val) {
                         using ValType = std::remove_cvref_t<decltype(val)>;
                         if (done) return;
-                        if constexpr (Stencil::ConceptNamedTuple<ValType>)
+                        if constexpr (!Stencil::ConceptPrimitive<ValType>)
                         {
                             std::stringstream ss;
                             SerDes<std::remove_cvref_t<decltype(key)>, ProtocolString>::Write(ss, key);
@@ -828,38 +865,13 @@ template <typename T> inline auto GenerateHelp(T const& obj, Table& table)
     // But what about indexables like unordered_map
     else if constexpr (ConceptNamedTuple<T>)
     {
-        auto normalize = [](std::string_view const& str) {
-            std::stringstream ss;
-            bool              first = true;
-            bool              last  = false;
-            for (auto ch : str)
-            {
-                if (!std::islower(ch))
-                {
-                    if (first || last) { ss << static_cast<char>(std::tolower(ch)); }
-                    else
-                    {
-                        ss << '-' << static_cast<char>(std::tolower(ch));
-                        last = true;
-                    }
-                }
-                else
-                {
-                    ss << ch;
-                    last = false;
-                }
-                first = false;
-            }
-            return ss.str();
-        };
-
         table.AddRowColumn(0, 0, "Usage:");
 
         Visitor<T>::VisitAll(obj, [&](auto k, auto&) {
             if (Stencil::TypeTraitsForIndexable<T>::HasDefaultValueForKey(obj, k)) { return; }
             std::stringstream ss;
             SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
-            table.AddColumn(1, 255, fmt::format("<{}>", normalize(ss.str())));
+            table.AddColumn(1, 255, fmt::format("<{}>", Normalize(ss.str())));
         });
 
         table.AddRowColumn(0, 0, "Description:");
@@ -870,7 +882,7 @@ template <typename T> inline auto GenerateHelp(T const& obj, Table& table)
             if (Stencil::TypeTraitsForIndexable<T>::HasDefaultValueForKey(obj, k)) { return; }
             std::stringstream ss;
             SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
-            table.AddRowColumn(0, 255, fmt::format("<{}>", normalize(ss.str())));
+            table.AddRowColumn(0, 255, fmt::format("<{}>", Normalize(ss.str())));
             table.AddColumn(1, 255, fmt::format("{}", Stencil::Attribute<Stencil::AttributeType::Description, KeyType>::Value()));
         });
 
@@ -879,7 +891,7 @@ template <typename T> inline auto GenerateHelp(T const& obj, Table& table)
             if (!Stencil::TypeTraitsForIndexable<T>::HasDefaultValueForKey(obj, k)) { return; }
             std::stringstream ss;
             SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
-            table.AddRowColumn(0, 255, fmt::format("--{}", normalize(ss.str())));
+            table.AddRowColumn(0, 255, fmt::format("--{}", Normalize(ss.str())));
             table.AddColumn(1, 255, fmt::format("{}", Stencil::Attribute<Stencil::AttributeType::Description, KeyType>::Value()));
         });
     }

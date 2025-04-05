@@ -3,13 +3,13 @@
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
 #include <assert.h>
-#include <iostream>
-#include <sstream>
 #include <string>
 #include <variant>
 SUPPRESS_WARNINGS_END
 SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage") struct WithPrimitives64Bit
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
+
+struct WithPrimitives64Bit
 {
     int64_t  f1;
     int16_t  f2;
@@ -84,6 +84,33 @@ struct NamedVariant
     std::string&         f6() { return std::get<std::string>(_variant); }
 };
 
+#define DEFINE_STRUCT_FIELD_SERDES(strct, field)                                                                       \
+    template <> struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<strct>::Field_##field, Stencil::ProtocolString> \
+    {                                                                                                                  \
+        using T = Stencil::TypeTraitsForIndexable<strct>::Field_##field;                                               \
+        template <typename Context> static auto Write(Context& ctx, T const& /* obj */)                                \
+        {                                                                                                              \
+            fmt::print(ctx, "{}", #field);                                                                             \
+        }                                                                                                              \
+        template <typename Context> static auto Read(T& /* obj */, Context& ctx)                                       \
+        {                                                                                                              \
+            std::string_view name = #field;                                                                            \
+            if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {     \
+                    return std::tolower(l) == std::tolower(r);                                                         \
+                }))                                                                                                    \
+            {                                                                                                          \
+                throw std::invalid_argument("Invalid");                                                                \
+            }                                                                                                          \
+        }                                                                                                              \
+    };                                                                                                                 \
+    template <> struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<strct>::Field_##field, Stencil::ProtocolBinary> \
+    {                                                                                                                  \
+        using T = Stencil::TypeTraitsForIndexable<strct>::Field_##field;                                               \
+        template <typename Context> static auto Write(Context& /* ctx */, T const& /* obj */)                          \
+        {}                                                                                                             \
+        template <typename Context> static auto Read(T& /* obj */, Context& /* ctx */)                                 \
+        {}                                                                                                             \
+    }
 struct TestObj
 {
     MultiAttributed f1;
@@ -110,9 +137,49 @@ template <> struct Stencil::TypeTraitsForIndexable<WithPrimitives64Bit>
         Field_f9,
     };
 
+    struct Fields_InvalidT
+    {};
+    struct Field_f1
+    {};
+    struct Field_f2
+    {};
+    struct Field_f3
+    {};
+    struct Field_f4
+    {};
+    struct Field_f5
+    {};
+    struct Field_f6
+    {};
+    struct Field_f7
+    {};
+    struct Field_f8
+    {};
+    struct Field_f9
+    {};
     using Key = Fields;
+
     static constexpr bool HasDefaultValueForKey(WithPrimitives64Bit const& /* obj */, Key /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(WithPrimitives64Bit const& /* obj */, Field_f1 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(WithPrimitives64Bit const& /* obj */, Field_f2 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(WithPrimitives64Bit const& /* obj */, Field_f3 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(WithPrimitives64Bit const& /* obj */, Field_f4 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(WithPrimitives64Bit const& /* obj */, Field_f5 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(WithPrimitives64Bit const& /* obj */, Field_f6 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(WithPrimitives64Bit const& /* obj */, Field_f7 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(WithPrimitives64Bit const& /* obj */, Field_f8 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(WithPrimitives64Bit const& /* obj */, Field_f9 /* key */) { return true; }
 };
+
+DEFINE_STRUCT_FIELD_SERDES(WithPrimitives64Bit, f1);
+DEFINE_STRUCT_FIELD_SERDES(WithPrimitives64Bit, f2);
+DEFINE_STRUCT_FIELD_SERDES(WithPrimitives64Bit, f3);
+DEFINE_STRUCT_FIELD_SERDES(WithPrimitives64Bit, f4);
+DEFINE_STRUCT_FIELD_SERDES(WithPrimitives64Bit, f5);
+DEFINE_STRUCT_FIELD_SERDES(WithPrimitives64Bit, f6);
+DEFINE_STRUCT_FIELD_SERDES(WithPrimitives64Bit, f7);
+DEFINE_STRUCT_FIELD_SERDES(WithPrimitives64Bit, f8);
+DEFINE_STRUCT_FIELD_SERDES(WithPrimitives64Bit, f9);
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<WithPrimitives64Bit>::Fields>
 {
@@ -130,6 +197,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<WithPrimi
 
 template <> struct Stencil::Visitor<WithPrimitives64Bit> : Stencil::VisitorT<WithPrimitives64Bit>
 {
+    using Traits = TypeTraitsForIndexable<WithPrimitives64Bit>;
     using Fields = TypeTraitsForIndexable<WithPrimitives64Bit>::Fields;
 
     template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
@@ -152,15 +220,15 @@ template <> struct Stencil::Visitor<WithPrimitives64Bit> : Stencil::VisitorT<Wit
 
     template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda)
     {
-        lambda(Fields::Field_f1, obj.f1);
-        lambda(Fields::Field_f2, obj.f2);
-        lambda(Fields::Field_f3, obj.f3);
-        lambda(Fields::Field_f4, obj.f4);
-        lambda(Fields::Field_f5, obj.f5);
-        lambda(Fields::Field_f6, obj.f6);
-        lambda(Fields::Field_f7, obj.f7);
-        lambda(Fields::Field_f8, obj.f8);
-        lambda(Fields::Field_f9, obj.f9);
+        lambda(Traits::Field_f1{}, obj.f1);
+        lambda(Traits::Field_f2{}, obj.f2);
+        lambda(Traits::Field_f3{}, obj.f3);
+        lambda(Traits::Field_f4{}, obj.f4);
+        lambda(Traits::Field_f5{}, obj.f5);
+        lambda(Traits::Field_f6{}, obj.f6);
+        lambda(Traits::Field_f7{}, obj.f7);
+        lambda(Traits::Field_f8{}, obj.f8);
+        lambda(Traits::Field_f9{}, obj.f9);
     }
 };
 
@@ -178,10 +246,25 @@ template <> struct Stencil::TypeTraitsForIndexable<ComplexPrimitives>
         Field_f2,
         Field_f3,
     };
+    struct Field_f1
+    {};
+    struct Field_f2
+    {};
+    struct Field_f3
+    {};
+
     using TObj = ComplexPrimitives;
     using Key  = Fields;
-    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Key /* key */) { return true; }
+
+    static constexpr bool HasDefaultValueForKey(ComplexPrimitives const& /* obj */, Key /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(ComplexPrimitives const& /* obj */, Field_f1 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(ComplexPrimitives const& /* obj */, Field_f2 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(ComplexPrimitives const& /* obj */, Field_f3 /* key */) { return true; }
 };
+
+DEFINE_STRUCT_FIELD_SERDES(ComplexPrimitives, f1);
+DEFINE_STRUCT_FIELD_SERDES(ComplexPrimitives, f2);
+DEFINE_STRUCT_FIELD_SERDES(ComplexPrimitives, f3);
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<ComplexPrimitives>::Fields>
 {
@@ -199,6 +282,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<ComplexPr
 
 template <> struct Stencil::Visitor<ComplexPrimitives> : Stencil::VisitorT<ComplexPrimitives>
 {
+    using Traits = TypeTraitsForIndexable<ComplexPrimitives>;
     using Fields = TypeTraitsForIndexable<ComplexPrimitives>::Fields;
 
     template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
@@ -215,9 +299,9 @@ template <> struct Stencil::Visitor<ComplexPrimitives> : Stencil::VisitorT<Compl
 
     template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda)
     {
-        lambda(Fields::Field_f1, obj.f1);
-        lambda(Fields::Field_f2, obj.f2);
-        lambda(Fields::Field_f3, obj.f3);
+        lambda(Traits::Field_f1{}, obj.f1);
+        lambda(Traits::Field_f2{}, obj.f2);
+        lambda(Traits::Field_f3{}, obj.f3);
     }
 };
 
@@ -237,10 +321,29 @@ template <> struct Stencil::TypeTraitsForIndexable<LargePrimitives>
         Field_f3,
         Field_f4,
     };
-
+    struct Fields_InvalidT
+    {};
+    struct Field_f1
+    {};
+    struct Field_f2
+    {};
+    struct Field_f3
+    {};
+    struct Field_f4
+    {};
     using Key = Fields;
+
     static constexpr bool HasDefaultValueForKey(LargePrimitives const& /* obj */, Key /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(LargePrimitives const& /* obj */, Field_f1 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(LargePrimitives const& /* obj */, Field_f2 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(LargePrimitives const& /* obj */, Field_f3 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(LargePrimitives const& /* obj */, Field_f4 /* key */) { return true; }
 };
+
+DEFINE_STRUCT_FIELD_SERDES(LargePrimitives, f1);
+DEFINE_STRUCT_FIELD_SERDES(LargePrimitives, f2);
+DEFINE_STRUCT_FIELD_SERDES(LargePrimitives, f3);
+DEFINE_STRUCT_FIELD_SERDES(LargePrimitives, f4);
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<LargePrimitives>::Fields>
 {
@@ -258,6 +361,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<LargePrim
 
 template <> struct Stencil::Visitor<LargePrimitives> : Stencil::VisitorT<LargePrimitives>
 {
+    using Traits = TypeTraitsForIndexable<LargePrimitives>;
     using Fields = TypeTraitsForIndexable<LargePrimitives>::Fields;
 
     template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
@@ -275,10 +379,10 @@ template <> struct Stencil::Visitor<LargePrimitives> : Stencil::VisitorT<LargePr
 
     template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda)
     {
-        lambda(Fields::Field_f1, obj.f1);
-        lambda(Fields::Field_f2, obj.f2);
-        lambda(Fields::Field_f3, obj.f3);
-        lambda(Fields::Field_f4, obj.f4);
+        lambda(Traits::Field_f1{}, obj.f1);
+        lambda(Traits::Field_f2{}, obj.f2);
+        lambda(Traits::Field_f3{}, obj.f3);
+        lambda(Traits::Field_f4{}, obj.f4);
     }
 };
 
@@ -297,11 +401,30 @@ template <> struct Stencil::TypeTraitsForIndexable<WithBlobs>
         Field_f3,
         Field_f4,
     };
+    struct Fields_InvalidT
+    {};
+    struct Field_f1
+    {};
+    struct Field_f2
+    {};
+    struct Field_f3
+    {};
+    struct Field_f4
+    {};
 
     using TObj = WithBlobs;
     using Key  = Fields;
-    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Key /* key */) { return true; }
+
+    static constexpr bool HasDefaultValueForKey(WithBlobs const& /* obj */, Key /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(WithBlobs const& /* obj */, Field_f1 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(WithBlobs const& /* obj */, Field_f2 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(WithBlobs const& /* obj */, Field_f3 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(WithBlobs const& /* obj */, Field_f4 /* key */) { return true; }
 };
+DEFINE_STRUCT_FIELD_SERDES(WithBlobs, f1);
+DEFINE_STRUCT_FIELD_SERDES(WithBlobs, f2);
+DEFINE_STRUCT_FIELD_SERDES(WithBlobs, f3);
+DEFINE_STRUCT_FIELD_SERDES(WithBlobs, f4);
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<WithBlobs>::Fields>
 {
@@ -319,6 +442,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<WithBlobs
 
 template <> struct Stencil::Visitor<WithBlobs> : Stencil::VisitorT<WithBlobs>
 {
+    using Traits = TypeTraitsForIndexable<WithBlobs>;
     using Fields = TypeTraitsForIndexable<WithBlobs>::Fields;
 
     template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
@@ -336,10 +460,10 @@ template <> struct Stencil::Visitor<WithBlobs> : Stencil::VisitorT<WithBlobs>
 
     template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda)
     {
-        lambda(Fields::Field_f1, obj.f1);
-        lambda(Fields::Field_f2, obj.f2);
-        lambda(Fields::Field_f3, obj.f3);
-        lambda(Fields::Field_f4, obj.f4);
+        lambda(Traits::Field_f1{}, obj.f1);
+        lambda(Traits::Field_f2{}, obj.f2);
+        lambda(Traits::Field_f3{}, obj.f3);
+        lambda(Traits::Field_f4{}, obj.f4);
     }
 };
 
@@ -359,10 +483,28 @@ template <> struct Stencil::TypeTraitsForIndexable<Nested>
         Field_f4,
     };
 
+    struct Fields_InvalidT
+    {};
+    struct Field_f1
+    {};
+    struct Field_f2
+    {};
+    struct Field_f3
+    {};
+    struct Field_f4
+    {};
+
     using Key = Fields;
     static constexpr bool HasDefaultValueForKey(Nested const& /* obj */, Key /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(Nested const& /* obj */, Field_f1 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(Nested const& /* obj */, Field_f2 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(Nested const& /* obj */, Field_f3 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(Nested const& /* obj */, Field_f4 /* key */) { return true; }
 };
-
+DEFINE_STRUCT_FIELD_SERDES(Nested, f1);
+DEFINE_STRUCT_FIELD_SERDES(Nested, f2);
+DEFINE_STRUCT_FIELD_SERDES(Nested, f3);
+DEFINE_STRUCT_FIELD_SERDES(Nested, f4);
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Nested>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<Nested>::Fields;
@@ -379,6 +521,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Nested>::
 
 template <> struct Stencil::Visitor<Nested> : Stencil::VisitorT<Nested>
 {
+    using Traits = TypeTraitsForIndexable<Nested>;
     using Fields = TypeTraitsForIndexable<Nested>::Fields;
 
     template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
@@ -396,10 +539,10 @@ template <> struct Stencil::Visitor<Nested> : Stencil::VisitorT<Nested>
 
     template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda)
     {
-        lambda(Fields::Field_f1, obj.f1);
-        lambda(Fields::Field_f2, obj.f2);
-        lambda(Fields::Field_f3, obj.f3);
-        lambda(Fields::Field_f4, obj.f4);
+        lambda(Traits::Field_f1{}, obj.f1);
+        lambda(Traits::Field_f2{}, obj.f2);
+        lambda(Traits::Field_f3{}, obj.f3);
+        lambda(Traits::Field_f4{}, obj.f4);
     }
 };
 
@@ -466,12 +609,27 @@ template <> struct Stencil::TypeTraitsForIndexable<MultiAttributed>
         Field_f3
     };
 
+    struct Field_InvalidT
+    {};
+    struct Field_f1
+    {};
+    struct Field_f2
+    {};
+    struct Field_f3
+    {};
+
     using Timestamp_Fields   = typename Stencil::TypeTraitsForIndexable<Stencil::TimestampedT<MultiAttributed>>::Fields;
     using UuidBasedId_Feilds = typename Stencil::TypeTraitsForIndexable<UuidBasedId<MultiAttributed>>::Fields;
 
     using Key = Stencil::EnumPack<Fields, Timestamp_Fields, UuidBasedId_Feilds>;
     static constexpr bool HasDefaultValueForKey(MultiAttributed const& /* obj */, Key /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(MultiAttributed const& /* obj */, Field_f1 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(MultiAttributed const& /* obj */, Field_f2 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(MultiAttributed const& /* obj */, Field_f3 /* key */) { return true; }
 };
+DEFINE_STRUCT_FIELD_SERDES(MultiAttributed, f1);
+DEFINE_STRUCT_FIELD_SERDES(MultiAttributed, f2);
+DEFINE_STRUCT_FIELD_SERDES(MultiAttributed, f3);
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<MultiAttributed>::Fields>
 {
@@ -491,6 +649,7 @@ SUPPRESS_MSVC_WARNING(4702) /*Unreachable code*/    // Seems to only work in glo
 
 template <> struct Stencil::StructFieldsVisitor<MultiAttributed>
 {
+    using Traits = TypeTraitsForIndexable<MultiAttributed>;
     using Fields = TypeTraitsForIndexable<MultiAttributed>::Fields;
     template <typename T, typename TLambda> static bool VisitField(T& obj, Fields fields, TLambda&& lambda)
     {
@@ -507,9 +666,9 @@ template <> struct Stencil::StructFieldsVisitor<MultiAttributed>
 
     template <typename T, typename TLambda> static void VisitAllFields(T& obj, TLambda&& lambda)
     {
-        lambda(Fields::Field_f1, obj.f1);
-        lambda(Fields::Field_f2, obj.f2);
-        lambda(Fields::Field_f3, obj.f3);
+        lambda(Traits::Field_f1{}, obj.f1);
+        lambda(Traits::Field_f2{}, obj.f2);
+        lambda(Traits::Field_f3{}, obj.f3);
     }
 };
 SUPPRESS_WARNINGS_END
@@ -535,10 +694,30 @@ template <> struct Stencil::TypeTraitsForIndexable<WithVariant>
         Field_f4
     };
 
+    struct Fields_InvalidT
+    {};
+    struct Field_f1
+    {};
+    struct Field_f2
+    {};
+    struct Field_f3
+    {};
+    struct Field_f4
+    {};
+
     using Key = Stencil::EnumPack<Fields>;
 
     static constexpr bool HasDefaultValueForKey(WithVariant const& /* obj */, Key /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(WithVariant const& /* obj */, Field_f1 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(WithVariant const& /* obj */, Field_f2 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(WithVariant const& /* obj */, Field_f3 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(WithVariant const& /* obj */, Field_f4 /* key */) { return true; }
 };
+
+DEFINE_STRUCT_FIELD_SERDES(WithVariant, f1);
+DEFINE_STRUCT_FIELD_SERDES(WithVariant, f2);
+DEFINE_STRUCT_FIELD_SERDES(WithVariant, f3);
+DEFINE_STRUCT_FIELD_SERDES(WithVariant, f4);
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<WithVariant>::Fields>
 {
@@ -557,6 +736,7 @@ SUPPRESS_WARNINGS_START
 SUPPRESS_MSVC_WARNING(4702) /*Unreachable code*/    // Seems to only work in global scope
 template <> struct Stencil::StructFieldsVisitor<WithVariant>
 {
+    using Traits = TypeTraitsForIndexable<WithVariant>;
     using Fields = TypeTraitsForIndexable<WithVariant>::Fields;
     template <typename T, typename TLambda> static bool VisitField(T& obj, Fields fields, TLambda&& lambda)
     {
@@ -573,10 +753,10 @@ template <> struct Stencil::StructFieldsVisitor<WithVariant>
 
     template <typename T, typename TLambda> static void VisitAllFields(T& obj, TLambda&& lambda)
     {
-        lambda(Fields::Field_f1, obj.f1);
-        lambda(Fields::Field_f2, obj.f2);
-        lambda(Fields::Field_f3, obj.f3);
-        lambda(Fields::Field_f4, obj.f4);
+        lambda(Traits::Field_f1{}, obj.f1);
+        lambda(Traits::Field_f2{}, obj.f2);
+        lambda(Traits::Field_f3{}, obj.f3);
+        lambda(Traits::Field_f4{}, obj.f4);
     }
 };
 SUPPRESS_WARNINGS_END
@@ -603,9 +783,33 @@ template <> struct Stencil::TypeTraitsForIndexable<NamedVariant>
 
     };
 
+    struct Field_f1
+    {};
+    struct Field_f2
+    {};
+    struct Field_f3
+    {};
+    struct Field_f4
+    {};
+    struct Field_f5
+    {};
+    struct Field_f6
+    {};
+
     using Key = Stencil::EnumPack<Fields>;
-    static constexpr bool HasDefaultValueForKey(NamedVariant const& /* obj */, Key /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(NamedVariant const& /* obj */, Field_f1 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(NamedVariant const& /* obj */, Field_f2 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(NamedVariant const& /* obj */, Field_f3 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(NamedVariant const& /* obj */, Field_f4 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(NamedVariant const& /* obj */, Field_f5 /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(NamedVariant const& /* obj */, Field_f6 /* key */) { return true; }
 };
+DEFINE_STRUCT_FIELD_SERDES(NamedVariant, f1);
+DEFINE_STRUCT_FIELD_SERDES(NamedVariant, f2);
+DEFINE_STRUCT_FIELD_SERDES(NamedVariant, f3);
+DEFINE_STRUCT_FIELD_SERDES(NamedVariant, f4);
+DEFINE_STRUCT_FIELD_SERDES(NamedVariant, f5);
+DEFINE_STRUCT_FIELD_SERDES(NamedVariant, f6);
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<NamedVariant>::Fields>
 {
@@ -673,9 +877,14 @@ template <> struct Stencil::TypeTraitsForIndexable<TestObj>
         Field_f1 = 1
     };
 
+    struct Field_f1
+    {};
+
     using Key = Fields;
     static constexpr bool HasDefaultValueForKey(TestObj const& /* obj */, Key /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(TestObj const& /* obj */, Field_f1 /* key */) { return true; }
 };
+DEFINE_STRUCT_FIELD_SERDES(TestObj, f1);
 
 static_assert(Stencil::ConceptIndexable<TestObj>);
 
@@ -695,6 +904,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<TestObj>:
 
 template <> struct Stencil::Visitor<TestObj> : Stencil::VisitorT<TestObj>
 {
+    using Traits = TypeTraitsForIndexable<TestObj>;
     using Fields = TypeTraitsForIndexable<TestObj>::Fields;
 
     template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
@@ -707,6 +917,9 @@ template <> struct Stencil::Visitor<TestObj> : Stencil::VisitorT<TestObj>
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda) { lambda(Fields::Field_f1, obj.f1); }
+    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda) { lambda(Traits::Field_f1{}, obj.f1); }
 };
+
+static_assert(Stencil::ConceptNamedTuple<TestObj>);
+
 SUPPRESS_WARNINGS_END

@@ -117,7 +117,7 @@ template <typename T, typename... TAttrs> struct StructVisitor
     template <typename T1, typename TLambda> static void VisitAll(T1& obj, TLambda&& lambda)
     {
         [[maybe_unused]] bool found = (_VisitAllFieldsHelper<TAttrs>(obj, lambda) || ...);
-        StructFieldsVisitor<T>::VisitAllFields(obj, [&](auto&& key, auto&& val) { lambda(Key{key}, val); });
+        StructFieldsVisitor<T>::VisitAllFields(obj, [&](auto&& key, auto&& val) { lambda(key, val); });
     }
 };
 

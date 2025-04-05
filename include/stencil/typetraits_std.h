@@ -31,6 +31,10 @@ template <Stencil::ConceptNamedTuple T> struct Stencil::TypeTraitsForIndexable<s
     {
         return Stencil::TypeTraitsForIndexable<T>::HasDefaultValueForKey(*obj.get(), key);
     }
+    template <typename TKey> static bool HasDefaultValueForKey(std::shared_ptr<T> const& obj, TKey key)
+    {
+        return Stencil::TypeTraitsForIndexable<T>::HasDefaultValueForKey(*obj.get(), key);
+    }
 };
 
 template <Stencil::ConceptIterable T> struct Stencil::TypeTraitsForIterable<std::shared_ptr<T>>
