@@ -115,9 +115,9 @@ struct IterableValuesVisitors
 
 template <ConceptPreferVariant T> struct SerDes<T, ProtocolCLI>
 {
-    template <typename TContext> static auto Write([[maybe_unused]] TContext& ctx, [[maybe_unused]] T const& obj)
+    template <typename TContext> static auto Write(TContext& ctx, T const& obj)
     {
-        VisitorForVariant<T>::VisitActiveAlternative(obj, [&](auto const& k, auto& v) {
+        VisitorForVariant<T>::VisitActiveAlternative(obj, [&](auto const& k, auto const& v) {
             using TKey = std::remove_cvref_t<decltype(k)>;
             using TVal = std::remove_cvref_t<decltype(v)>;
 
@@ -126,7 +126,7 @@ template <ConceptPreferVariant T> struct SerDes<T, ProtocolCLI>
         });
     }
 
-    template <typename TContext> static auto Read([[maybe_unused]] T& obj, [[maybe_unused]] TContext& ctx)
+    template <typename TContext> static auto Read(T& obj, TContext& ctx)
     {
         std::string_view token = ctx.move_next();
         bool             done  = false;

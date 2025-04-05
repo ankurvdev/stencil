@@ -1,5 +1,7 @@
 #include "stencil/typetraits.h"
+#include "stencil/visitor.h"
 #include <stencil/stencil.h>
+#include <type_traits>
 
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
@@ -83,6 +85,8 @@ struct NamedVariant
     WithPrimitives64Bit& f4() { return std::get<WithPrimitives64Bit>(_variant); }
     double&              f5() { return std::get<double>(_variant); }
     std::string&         f6() { return std::get<std::string>(_variant); }
+
+    template <typename T> auto operator=(T&& obj) { _variant = std::forward<T>(obj); }
 };
 
 #define DEFINE_STRUCT_FIELD_SERDES(strct, field)                                                                       \
@@ -767,10 +771,10 @@ template <> struct Stencil::Visitor<WithVariant> : Stencil::StructVisitor<WithVa
 
 template <> struct Stencil::TypeTraits<NamedVariant>
 {
-    using Categories = std::tuple<Stencil::Category::Indexable>;
+    using Categories = std::tuple<Stencil::Category::Variant>;
 };
 
-template <> struct Stencil::TypeTraitsForIndexable<NamedVariant>
+template <> struct Stencil::TypeTraitsForVariant<NamedVariant>
 {
     enum class Fields
     {
@@ -797,7 +801,8 @@ template <> struct Stencil::TypeTraitsForIndexable<NamedVariant>
     struct Field_f6
     {};
 
-    using Key = Stencil::EnumPack<Fields>;
+    using AlternativeTuple = std::tuple<MultiAttributed, Nested, WithBlobs, WithPrimitives64Bit, double, std::string>;
+    using Key              = Stencil::EnumPack<Fields>;
     static constexpr bool HasDefaultValueForKey(NamedVariant const& /* obj */, Stencil::EnumPack<Fields> /* key */) { return true; }
     static constexpr bool HasDefaultValueForKey(NamedVariant const& /* obj */, Fields /* key */) { return true; }
 
@@ -808,67 +813,86 @@ template <> struct Stencil::TypeTraitsForIndexable<NamedVariant>
     static constexpr bool HasDefaultValueForKey(NamedVariant const& /* obj */, Field_f5 /* key */) { return true; }
     static constexpr bool HasDefaultValueForKey(NamedVariant const& /* obj */, Field_f6 /* key */) { return true; }
 };
-static_assert(Stencil::ConceptNamedTuple<NamedVariant>);
+static_assert(Stencil::ConceptVariant<NamedVariant>);
 
-DEFINE_STRUCT_FIELD_SERDES(NamedVariant, f1);
-DEFINE_STRUCT_FIELD_SERDES(NamedVariant, f2);
-DEFINE_STRUCT_FIELD_SERDES(NamedVariant, f3);
-DEFINE_STRUCT_FIELD_SERDES(NamedVariant, f4);
-DEFINE_STRUCT_FIELD_SERDES(NamedVariant, f5);
-DEFINE_STRUCT_FIELD_SERDES(NamedVariant, f6);
+// DEFINE_STRUCT_FIELD_SERDES(NamedVariant, f1);
+// DEFINE_STRUCT_FIELD_SERDES(NamedVariant, f2);
+// DEFINE_STRUCT_FIELD_SERDES(NamedVariant, f3);
+// DEFINE_STRUCT_FIELD_SERDES(NamedVariant, f4);
+// DEFINE_STRUCT_FIELD_SERDES(NamedVariant, f5);
+// DEFINE_STRUCT_FIELD_SERDES(NamedVariant, f6);
 
-template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<NamedVariant>::Fields>
+template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForVariant<NamedVariant>::Fields>
 {
-    using Enum = Stencil::TypeTraitsForIndexable<NamedVariant>::Fields;
+    using Enum = Stencil::TypeTraitsForVariant<NamedVariant>::Fields;
 
     static constexpr std::string_view Names[] = {"Invalid", "f1", "f2", "f3", "f4", "f5", "f6"};
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
 
-    static Stencil::TypeTraitsForIndexable<NamedVariant>::Fields ForIndex(size_t index)
+    static Stencil::TypeTraitsForVariant<NamedVariant>::Fields ForIndex(size_t index)
     {
-        return static_cast<Stencil::TypeTraitsForIndexable<NamedVariant>::Fields>(index);
+        return static_cast<Stencil::TypeTraitsForVariant<NamedVariant>::Fields>(index);
     }
 };
 
-template <> struct Stencil::StructFieldsVisitor<NamedVariant>
+template <> struct Stencil::VisitorForVariant<NamedVariant>
 {
-    using Fields = TypeTraitsForIndexable<NamedVariant>::Fields;
-    template <typename TType, typename TObj, typename TLambda> static void _SetAndVisit(TObj& obj, TLambda&& lambda)
-    {
-        using Type = std::remove_cvref_t<TType>;
-        obj        = Type{};
-        lambda(std::get<Type>(obj));
-    }
+    using TObj   = NamedVariant;
+    using Fields = Stencil::TypeTraitsForVariant<NamedVariant>::Fields;
+    static bool IsMonostate(TObj const& obj) { return obj._variant.index() == 0; }
 
-    template <typename T, typename TLambda> static bool VisitField(T& obj, Fields fields, TLambda&& lambda)
+    template <typename TLambda> static void VisitAlternatives(TObj& /* obj */, TLambda&& lambda)
     {
-        switch (fields)
         {
-        case Fields::Field_f1: _SetAndVisit<decltype(obj.f1())>(obj._variant, std::forward<TLambda>(lambda)); return true;
-        case Fields::Field_f2: _SetAndVisit<decltype(obj.f2())>(obj._variant, std::forward<TLambda>(lambda)); return true;
-        case Fields::Field_f3: _SetAndVisit<decltype(obj.f3())>(obj._variant, std::forward<TLambda>(lambda)); return true;
-        case Fields::Field_f4: _SetAndVisit<decltype(obj.f4())>(obj._variant, std::forward<TLambda>(lambda)); return true;
-        case Fields::Field_f5: _SetAndVisit<decltype(obj.f5())>(obj._variant, std::forward<TLambda>(lambda)); return true;
-        case Fields::Field_f6: _SetAndVisit<decltype(obj.f6())>(obj._variant, std::forward<TLambda>(lambda)); return true;
-        case Fields::Invalid: [[fallthrough]];
-        default: return false;
+            MultiAttributed val{};
+            lambda(Fields::Field_f1, val);
+        }
+        {
+            Nested val{};
+            lambda(Fields::Field_f2, val);
+        }
+        {
+            WithBlobs val{};
+            lambda(Fields::Field_f3, val);
+        }
+        {
+            WithPrimitives64Bit val{};
+            lambda(Fields::Field_f4, val);
+        }
+        {
+            double val{};
+            lambda(Fields::Field_f5, val);
+        }
+        {
+            std::string val{};
+            lambda(Fields::Field_f6, val);
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllFields(T& obj, TLambda&& lambda)
+    template <typename TLambda> static void VisitActiveAlternative(TObj const& obj, TLambda&& lambda)
     {
-        auto fieldType = static_cast<Fields>(obj._variant.index());
         std::visit(
-            [&](auto&& arg) {
-                if constexpr (!std::is_same_v<std::remove_cvref_t<decltype(arg)>, std::monostate>) { lambda(fieldType, arg); }
+            [&](auto const& val) {
+                if constexpr (!std::is_same_v<std::remove_cvref_t<decltype(val)>, std::monostate>)
+                {
+                    lambda(static_cast<Fields>(obj._variant.index()), val);
+                }
+            },
+            obj._variant);
+    }
+    template <typename TLambda> static void VisitActiveAlternative(TObj& obj, TLambda&& lambda)
+    {
+        std::visit(
+            [&](auto& val) {
+                if constexpr (!std::is_same_v<std::remove_cvref_t<decltype(val)>, std::monostate>)
+                {
+                    lambda(static_cast<Fields>(obj._variant.index()), val);, val);
+                }
             },
             obj._variant);
     }
 };
-
-template <> struct Stencil::Visitor<NamedVariant> : Stencil::StructVisitor<NamedVariant>
-{};
 
 template <> struct Stencil::TypeTraits<TestObj>
 {
