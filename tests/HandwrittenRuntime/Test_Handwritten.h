@@ -710,7 +710,7 @@ template <> struct Stencil::TypeTraitsForIndexable<WithVariant>
     struct Field_f4
     {};
 
-    using Key = Stencil::EnumPack<Fields>;
+    using Key = Fields;
 
     static constexpr bool HasDefaultValueForKey(WithVariant const& /* obj */, Key /* key */) { return true; }
     static constexpr bool HasDefaultValueForKey(WithVariant const& /* obj */, Field_f1 /* key */) { return true; }
@@ -887,7 +887,7 @@ template <> struct Stencil::VisitorForVariant<NamedVariant>
             [&](auto& val) {
                 if constexpr (!std::is_same_v<std::remove_cvref_t<decltype(val)>, std::monostate>)
                 {
-                    lambda(static_cast<Fields>(obj._variant.index()), val);, val);
+                    lambda(static_cast<Fields>(obj._variant.index()), val);
                 }
             },
             obj._variant);

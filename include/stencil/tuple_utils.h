@@ -1,4 +1,6 @@
 #pragma once
+#include <cstddef>
+#include <stdexcept>
 #include <tuple>
 
 namespace Stencil
