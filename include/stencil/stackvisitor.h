@@ -1,7 +1,9 @@
 #pragma once
 #include "primitives64bit.h"
+#include "protocol_string.h"
 #include "visitor.h"
 
+#include <string>
 #include <unordered_map>
 
 namespace Stencil
@@ -126,6 +128,48 @@ template <ConceptProtocol TProto, typename TOwner, typename T> struct IndexableV
     TypeHandlerAndPtr                        KeyHandler() const { throw std::logic_error("Not an indexable type"); }
     template <typename T1> TypeHandlerAndPtr VisitValueForKey(T1& /*obj*/) const { throw std::logic_error("Not an indexable type"); }
     TOwner*                                  owner;
+};
+
+template <ConceptProtocol TProto, typename TOwner, ConceptVariant T> struct IndexableVisitorTypeHandler<TProto, TOwner, T>
+{
+    using Traits = typename Stencil::TypeTraitsForIndexable<T>;
+
+    struct VariantKeyTypeHandler : TypeHandler
+    {
+        TypeHandlerAndPtr VisitNext(void* /* ptr */) override { TODO(""); }
+        TypeHandlerAndPtr VisitKey(void* /* ptr */) override { TODO(""); }
+        TypeHandlerAndPtr VisitValueForKey(void* /* ptr */) override { TODO(""); }
+
+        void Assign(void* /* ptr */, Primitives64Bit const& val) override { _variant = val; }
+        void Assign(void* /* ptr */, std::string_view const& val) override { _variant = std::string{val}; }
+        void Assign(void* /* ptr */, std::wstring_view const& val) override { _variant = std::wstring{val}; }
+
+        std::variant<std::string, std::wstring, Primitives64Bit> _variant{};
+    };
+
+    TypeHandlerAndPtr KeyHandler() { return TypeHandlerAndPtr{&_keyhandler, this}; }
+
+    template <typename T1> TypeHandlerAndPtr VisitValueForKey(T1& obj) const
+    {
+        TypeHandler* handler = nullptr;
+        void*        ptr     = nullptr;
+
+        VisitorForVariant<T>::VisitAlternatives(obj, [&](auto const& k, auto& val) {
+            std::stringstream ss;
+            SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
+            if (ss.str() != std::get<std::string>(_keyhandler._variant)) { return; }
+            using VisitorHandler = VisitorTypeHandler<TProto, TOwner, std::remove_reference_t<decltype(val)>>;
+            handler              = owner->template FindOrCreateHandler<VisitorHandler>();
+            obj                  = std::move(val);
+            VisitorForVariant<T>::VisitActiveAlternative(obj, [&](auto const& /* k */, auto& val1) { ptr = &val1; });
+        });
+        return {handler, ptr};
+    }
+
+    VariantKeyTypeHandler _keyhandler;
+    TOwner*               owner;
+    // TODO: This is causing me
+    // VisitorTypeHandlerPack<typename Traits::ValueTypes> _handlers;
 };
 
 SUPPRESS_WARNINGS_START

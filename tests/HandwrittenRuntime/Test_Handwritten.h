@@ -1,13 +1,15 @@
+#include "stencil/enums.h"
 #include "stencil/typetraits.h"
 #include "stencil/visitor.h"
 #include <stencil/stencil.h>
-#include <type_traits>
 
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
 #include <assert.h>
 #include <string>
+#include <type_traits>
 #include <variant>
+
 SUPPRESS_WARNINGS_END
 SUPPRESS_WARNINGS_START
 SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
@@ -111,11 +113,34 @@ struct NamedVariant
     template <> struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<strct>::Field_##field, Stencil::ProtocolBinary> \
     {                                                                                                                  \
         using T = Stencil::TypeTraitsForIndexable<strct>::Field_##field;                                               \
-        template <typename Context> static auto Write(Context& /* ctx */, T const& /* obj */)                          \
-        {}                                                                                                             \
-        template <typename Context> static auto Read(T& /* obj */, Context& /* ctx */)                                 \
-        {}                                                                                                             \
-    }
+        template <typename Context> static auto Write(Context& ctx, T const& /* obj */)                                \
+        {                                                                                                              \
+            if constexpr (Stencil::ConceptEnumPack<Stencil::TypeTraitsForIndexable<strct>::Key>)                       \
+            {                                                                                                          \
+                using Pack = Stencil::TypeTraitsForIndexable<strct>::Key;                                              \
+                ctx << Pack::CastToInt(Pack{Stencil::TypeTraitsForIndexable<strct>::Fields::Field_##field});           \
+            }                                                                                                          \
+            else { ctx << static_cast<uint32_t>(Stencil::TypeTraitsForIndexable<strct>::Fields::Field_##field); }      \
+        }                                                                                                              \
+        template <typename Context> static auto Read(T& obj, Context& ctx)                                             \
+        {                                                                                                              \
+            obj = static_cast<T>(ctx.template read<uint32_t>());                                                       \
+        }                                                                                                              \
+    };
+
+//template <> struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<strct>::Key, Stencil::ProtocolBinary>           \
+    //{                                                                                                                  \
+    //    using T = Stencil::TypeTraitsForIndexable<strct>::Key;                                                         \
+    //    template <typename Context> static auto Write(Context& ctx, T const& obj)                                      \
+    //    {                                                                                                              \
+    //        ctx << static_cast<uint32_t>(obj);                                                                         \
+    //    }                                                                                                              \
+    //    template <typename Context> static auto Read(T& obj, Context& ctx)                                             \
+    //    {                                                                                                              \
+    //        obj = static_cast<T>(ctx.template read<uint32_t>());                                                       \
+    //    }                                                                                                              \
+    //};
+
 struct TestObj
 {
     MultiAttributed f1;
@@ -710,7 +735,7 @@ template <> struct Stencil::TypeTraitsForIndexable<WithVariant>
     struct Field_f4
     {};
 
-    using Key = Fields;
+    using Key = EnumPack<Fields>;
 
     static constexpr bool HasDefaultValueForKey(WithVariant const& /* obj */, Key /* key */) { return true; }
     static constexpr bool HasDefaultValueForKey(WithVariant const& /* obj */, Field_f1 /* key */) { return true; }

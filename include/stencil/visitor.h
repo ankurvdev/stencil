@@ -1,4 +1,5 @@
 #pragma once
+#include "enums.h"
 #include "stencil/tuple_utils.h"
 #include "timestamped.h"
 #include "typetraits.h"
@@ -97,17 +98,20 @@ template <typename T, typename... TAttrs> struct StructVisitor
 
     template <typename T1> using Fields = typename Stencil::TypeTraitsForIndexable<T1>::Fields;
 
-    // template <typename T1, typename TLambda> static bool _VisitKeyIfVariantMatches(T1& obj, Key const& key, TLambda&& lambda)
-    // {
-    //    if (!std::holds_alternative<Fields<T1>>(key)) { return false; }
-    //    return StructFieldsVisitor<T1>::VisitField(obj, std::get<Fields<T1>>(key), lambda);
-    //}
-
-    template <typename T1, typename TLambda> static void VisitKey(T1& /* obj */, Key const& /* key */, TLambda&& /* lambda */)
+    template <typename T1, typename TLambda> static bool _VisitKeyIfVariantMatches(T1& obj, Key const& key, TLambda&& lambda)
     {
-        TODO("");
-        //    bool found = (_VisitKeyIfVariantMatches<TAttrs>(obj, key, lambda) || ...) || _VisitKeyIfVariantMatches<T1>(obj, key, lambda);
-        //   if (!found) throw std::runtime_error("Key did not match any of the struct fields or attributes");
+        if (!std::holds_alternative<Fields<T1>>(key)) { return false; }
+        return StructFieldsVisitor<T1>::VisitField(obj, std::get<Fields<T1>>(key), lambda);
+    }
+
+    template <typename T1, typename TLambda> static void VisitKey(T1& obj, Key const& key, TLambda&& lambda)
+    {
+        bool found = (_VisitKeyIfVariantMatches<TAttrs>(obj, key, lambda) || ...) || _VisitKeyIfVariantMatches<T1>(obj, key, lambda);
+        if (!found)
+        {
+            found = (_VisitKeyIfVariantMatches<TAttrs>(obj, key, lambda) || ...) || _VisitKeyIfVariantMatches<T1>(obj, key, lambda);
+            throw std::runtime_error("Key did not match any of the struct fields or attributes");
+        }
     }
 
     template <typename TAttr, typename T1, typename TLambda> static bool _VisitAllFieldsHelper(T1& obj, TLambda&& lambda)

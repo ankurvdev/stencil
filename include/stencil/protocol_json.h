@@ -341,8 +341,25 @@ static_assert(!Stencil::Category::IsIndexable<uint64_t>());
 
 template <ConceptPreferVariant T> struct SerDes<T, ProtocolJsonVal>
 {
-    template <typename TContext> static auto Write([[maybe_unused]] TContext& ctx, [[maybe_unused]] T const& obj) { TODO("Variant"); }
-    template <typename TContext> static auto Read([[maybe_unused]] T& obj, [[maybe_unused]] TContext& ctx) { TODO("Variant"); }
+    template <typename TContext> static auto Write(TContext& ctx, T const& obj)
+    {
+        _WriteTo(ctx, '{');
+        VisitorForVariant<T>::VisitActiveAlternative(obj, [&](auto const& k, auto const& v) {
+            _WriteTo(ctx, '\"');
+            SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ctx, k);
+            _WriteTo(ctx, '\"');
+            _WriteTo(ctx, ':');
+            SerDes<std::remove_cvref_t<decltype(v)>, ProtocolJsonVal>::Write(ctx, v);
+        });
+        _WriteTo(ctx, '}');
+    }
+
+    template <typename TContext> static auto Read(T& obj, TContext& ctx)
+    {
+        using Tokenizer = Stencil::impl::rapidjson_::Tokenizer<T>;
+        Stencil::StackVisitor<ProtocolJsonVal, T> stack;
+        Tokenizer(stack).Parse(obj, ctx);
+    }
 };
 
 template <Stencil::ConceptIndexable T> struct SerDes<T, ProtocolJsonVal>

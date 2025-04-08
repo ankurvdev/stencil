@@ -108,8 +108,33 @@ struct ProtocolBinary
 
 template <ConceptPreferVariant T> struct SerDes<T, ProtocolBinary>
 {
-    template <typename TContext> static auto Write([[maybe_unused]] TContext& ctx, [[maybe_unused]] T const& obj) { TODO("Variant"); }
-    template <typename TContext> static auto Read([[maybe_unused]] T& obj, [[maybe_unused]] TContext& ctx) { TODO("Variant"); }
+    using TKey = uint8_t;
+    template <typename TContext> static auto Write(TContext& ctx, T const& obj)
+    {
+        VisitorForVariant<T>::VisitActiveAlternative(obj, [&](auto const& k, auto const& v) {
+            SerDes<TKey, ProtocolBinary>::Write(ctx, static_cast<TKey>(k));
+            SerDes<std::remove_cvref_t<decltype(v)>, ProtocolBinary>::Write(ctx, v);
+        });
+    }
+
+    template <typename TContext> static auto Read(T& obj, TContext& ctx)
+    {
+        while (true)
+        {
+            TKey key;
+            SerDes<TKey, ProtocolBinary>::Read(key, ctx);
+            bool done = false;
+            VisitorForVariant<T>::VisitAlternatives(obj, [&](auto const& k, auto& v) {
+                if (done) { return; }
+                using TKey1 = std::remove_cvref_t<decltype(k)>;
+                using TVal  = std::remove_cvref_t<decltype(v)>;
+                if (static_cast<TKey>(k) != key) { return; }
+                SerDes<TVal, ProtocolBinary>::Read(v, ctx);
+                obj  = v;
+                done = true;
+            });
+        }
+    }
 };
 
 template <ConceptPreferIndexable T> struct SerDes<T, ProtocolBinary>
