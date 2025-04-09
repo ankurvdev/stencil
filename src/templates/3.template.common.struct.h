@@ -1117,10 +1117,13 @@ template <> struct Stencil::VisitorForVariant<zzProgram_Namezz::zzVariant_Namezz
 
     static bool IsMonostate(T const& obj) { return obj._variant.index() == 0; }
 
-    template <typename TLambda> static void VisitAlternatives(T const& obj, TLambda&& lambda)
+    template <typename TLambda> static void VisitAlternatives(T const& /* obj */, TLambda&& lambda)
     {
         //<Field>
-        lambda(Fields::zzNamezz, obj.zzNamezz());
+        {
+            zzFieldType_NativeTypezz varobj{};
+            lambda(Fields::zzNamezz, varobj);
+        }
         //</Field>
     }
 
