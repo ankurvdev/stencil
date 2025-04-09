@@ -4,8 +4,9 @@
 #include "optionalprops.h"
 #include "ref.h"
 #include "shared_tree.h"
-#include "stencil/typetraits.h"
 #include "timestamped.h"
+#include "typetraits.h"
+
 
 #include <filesystem>
 #include <memory>

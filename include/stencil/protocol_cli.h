@@ -3,9 +3,9 @@
 #include "typetraits.h"
 #include "visitor.h"
 
-#include <cctype>
 #include <fmt/format.h>
 
+#include <cctype>
 #include <span>
 #include <sstream>
 #include <stdexcept>
@@ -13,7 +13,6 @@
 #include <string_view>
 #include <type_traits>
 #include <unordered_map>
-#include <variant>
 #include <vector>
 
 namespace Stencil
@@ -37,11 +36,11 @@ template <typename T> struct Attribute_ShortName
 
 /*
  * Key Points
- * TContext
+ * Context
  *      A 'dash' moves up the context when inside iterable or indexable
  *      A 'double-dash' moves the context to root
- *      For Iterables TContext auto slides to the Iterable subtype and keeps sliding until a non-iterable is encountered.
- *      For Indexable TContext slides on named field or --field
+ *      For Iterables Context auto slides to the Iterable subtype and keeps sliding until a non-iterable is encountered.
+ *      For Indexable Context slides on named field or --field
  * Primitives
  *      --field=value Only used for primitives inside indexables
  *      After parsing context automatically goes up
@@ -318,12 +317,6 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
 
         if (ei == std::string_view::npos)
         {
-            // if constexpr (ConceptHasProtocolCLI<TVal>)
-            //{
-            //     SerDes<TVal, ProtocolCLI>::Read(val, value);
-            //     return;
-            // }
-            // else
             if constexpr (ConceptHasProtocolString<TVal>)
             {
                 SerDes<TVal, ProtocolString>::Read(val, value);
@@ -556,11 +549,6 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                                 if ((curposarg++) != positionalarg) { return; }
                                 SerDes<ValType, ProtocolString>::Read(val, token);
                                 done = true;
-                            }
-                            else
-                            {
-                                // TODO("Not sure");
-                                //  SerDes<std::remove_cvref_t<decltype(val)>, ProtocolCLI>::Read(val, ctx);
                             }
                         });
                     }
@@ -882,9 +870,6 @@ template <typename T> inline auto GenerateHelp(T const& obj, Table& table)
                 table.AddRowColumn(0, 0, ss.str());
                 table.AddColumn(1, 255, fmt::format("{}", Stencil::Attribute<Stencil::AttributeType::Description, ValType>::Value()));
             });
-            // std::apply([&](auto&&... args) { (printOption(args), ...); }, typename
-            // Stencil::TypeTraitsForVariant<T>::AlternativeTuple{});
-            //  std::visitTypeTraitsForVariant<T>::Alternatives
         }
         else
         {

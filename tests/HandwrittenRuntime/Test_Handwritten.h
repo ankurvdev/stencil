@@ -1,13 +1,9 @@
-#include "stencil/enums.h"
-#include "stencil/typetraits.h"
-#include "stencil/visitor.h"
 #include <stencil/stencil.h>
 
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
 #include <assert.h>
 #include <string>
-#include <type_traits>
 #include <variant>
 
 SUPPRESS_WARNINGS_END
