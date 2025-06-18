@@ -89,6 +89,11 @@ template <typename... Ts> constexpr bool IsEnumPack<EnumPack<Ts...>> = true;
 template <typename T>
 concept ConceptEnumPack = IsEnumPack<T>;
 
+template <typename T> uint32_t        EnumPackCastToInt(T const& rhs);
+template <ConceptEnumPack T> uint32_t EnumPackCastToInt(T const& rhs)
+{
+    return T::CastToInt(rhs);
+}
 }    // namespace Stencil
 
 namespace std

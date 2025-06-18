@@ -114,7 +114,7 @@ struct NamedVariant
             if constexpr (Stencil::ConceptEnumPack<Stencil::TypeTraitsForIndexable<strct>::Key>)                       \
             {                                                                                                          \
                 using Pack = Stencil::TypeTraitsForIndexable<strct>::Key;                                              \
-                ctx << Pack::CastToInt(Pack{Stencil::TypeTraitsForIndexable<strct>::Fields::Field_##field});           \
+                ctx << EnumPackCastToInt(Pack{Stencil::TypeTraitsForIndexable<strct>::Fields::Field_##field});         \
             }                                                                                                          \
             else { ctx << static_cast<uint32_t>(Stencil::TypeTraitsForIndexable<strct>::Fields::Field_##field); }      \
         }                                                                                                              \

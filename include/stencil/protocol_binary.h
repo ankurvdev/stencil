@@ -106,40 +106,6 @@ struct ProtocolBinary
     using OutType = Writer;
 };
 
-template <ConceptPreferVariant T> struct SerDes<T, ProtocolBinary>
-{
-    using TKey = uint8_t;
-    template <typename TContext> static auto Write(TContext& ctx, T const& obj)
-    {
-        if (VisitorForVariant<T>::IsMonostate(obj))
-        {
-            SerDes<TKey, ProtocolBinary>::Write(ctx, TKey{0});
-            return;
-        }
-        VisitorForVariant<T>::VisitActiveAlternative(obj, [&](auto const& k, auto const& v) {
-            SerDes<TKey, ProtocolBinary>::Write(ctx, static_cast<TKey>(k));
-            SerDes<std::remove_cvref_t<decltype(v)>, ProtocolBinary>::Write(ctx, v);
-        });
-    }
-
-    template <typename TContext> static auto Read(T& obj, TContext& ctx)
-    {
-
-        TKey key;
-        SerDes<TKey, ProtocolBinary>::Read(key, ctx);
-        bool done = false;
-        VisitorForVariant<T>::VisitAlternatives(obj, [&](auto const& k, auto& v) {
-            if (done) { return; }
-            using TKey1 = std::remove_cvref_t<decltype(k)>;
-            using TVal  = std::remove_cvref_t<decltype(v)>;
-            if (static_cast<TKey>(k) != key) { return; }
-            SerDes<TVal, ProtocolBinary>::Read(v, ctx);
-            obj  = v;
-            done = true;
-        });
-    }
-};
-
 template <ConceptPreferIndexable T> struct SerDes<T, ProtocolBinary>
 {
     using TKey = typename Stencil::TypeTraitsForIndexable<T>::Key;
@@ -214,6 +180,40 @@ template <ConceptPrimitives64Bit T> struct SerDes<T, ProtocolBinary>
     template <typename TContext> static auto Read(T& obj, TContext& ctx)
     {
         obj = Primitives64Bit::Traits<T>::Convert(ctx.template read<decltype(Primitives64Bit::Traits<T>::Repr(obj))>());
+    }
+};
+
+template <ConceptPreferVariant T> struct SerDes<T, ProtocolBinary>
+{
+    using TKey = uint8_t;
+    template <typename TContext> static auto Write(TContext& ctx, T const& obj)
+    {
+        if (VisitorForVariant<T>::IsMonostate(obj))
+        {
+            SerDes<TKey, ProtocolBinary>::Write(ctx, TKey{0});
+            return;
+        }
+        VisitorForVariant<T>::VisitActiveAlternative(obj, [&](auto const& k, auto const& v) {
+            SerDes<TKey, ProtocolBinary>::Write(ctx, static_cast<TKey>(k));
+            SerDes<std::remove_cvref_t<decltype(v)>, ProtocolBinary>::Write(ctx, v);
+        });
+    }
+
+    template <typename TContext> static auto Read(T& obj, TContext& ctx)
+    {
+
+        TKey key;
+        SerDes<TKey, ProtocolBinary>::Read(key, ctx);
+        bool done = false;
+        VisitorForVariant<T>::VisitAlternatives(obj, [&](auto const& k, auto& v) {
+            if (done) { return; }
+            // using TKey1 = std::remove_cvref_t<decltype(k)>;
+            using TVal = std::remove_cvref_t<decltype(v)>;
+            if (static_cast<TKey>(k) != key) { return; }
+            SerDes<TVal, ProtocolBinary>::Read(v, ctx);
+            obj  = v;
+            done = true;
+        });
     }
 };
 
