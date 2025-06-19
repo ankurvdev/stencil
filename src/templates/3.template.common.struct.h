@@ -397,9 +397,9 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
     }
 
     // void Assign(ElemType const& /* elem */);
-    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
+    void Add(ElemType&& /* elem */) { throw std::logic_error("Invalid operation"); }
 
-    template <typename T> void Remove(T /* key */) { std::logic_error("Invalid operation"); }
+    template <typename T> void Remove(T /* key */) { throw std::logic_error("Invalid operation"); }
 
     private:
     TxnStateForElem    _txnStateForElem{};

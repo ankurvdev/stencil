@@ -122,8 +122,8 @@ template <Stencil::ConceptPreferPrimitive TElem, typename TContainer> struct Ste
         auto elem1 = elem;
         Assign(std::move(elem1));
     }
-    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
-    void Remove(size_t /* key */) { std::logic_error("Invalid operation"); }
+    void Add(ElemType&& /* elem */) { throw std::logic_error("Invalid operation"); }
+    void Remove(size_t /* key */) { throw std::logic_error("Invalid operation"); }
 
     TxnState&          _elemState;
     ContainerTxnState& _containerState;
