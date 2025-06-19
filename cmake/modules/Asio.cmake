@@ -2,7 +2,7 @@ include_guard()
 FetchContent_Declare(
     asio
     GIT_REPOSITORY https://github.com/chriskohlhoff/asio
-    GIT_TAG        asio-1-30-2
+    GIT_TAG        asio-1-32-0
     SOURCE_SUBDIR .
     GIT_PROGRESS TRUE
     SYSTEM

@@ -28,7 +28,7 @@ endif()
 
 find_package(stduuid QUIET)
 find_package(fmt QUIET)
-find_package(RapidJSON QUIET)
+find_package(RapidJSON REQUIRED QUIET)
 find_package(date REQUIRED QUIET)
 # Optional
 find_package(httplib QUIET)

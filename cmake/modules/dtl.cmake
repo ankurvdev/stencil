@@ -4,7 +4,7 @@ include(FetchContent)
 FetchContent_Declare(
     dtl
     GIT_REPOSITORY https://github.com/cubicdaiya/dtl
-    GIT_TAG v1.20
+    GIT_TAG v1.21
     SOURCE_SUBDIR .
     GIT_PROGRESS TRUE
     GIT_SHALLOW 1
