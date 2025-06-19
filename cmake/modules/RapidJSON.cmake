@@ -4,7 +4,7 @@ include(FetchContent)
 FetchContent_Declare(
   rapidjson
   GIT_REPOSITORY https://github.com/Tencent/rapidjson
-  GIT_TAG        v1.1.0
+  GIT_TAG        24b5e7a8b27f42fa16b96fc70aade9106cf7102f # accessed on 2025-02-26
   GIT_PROGRESS TRUE
   GIT_SHALLOW 1
   SYSTEM
@@ -16,8 +16,8 @@ if (COMMAND vcpkg_install)
     vcpkg_install(rapidjson)
 endif()
 
-find_package(rapidjson CONFIG)
-if(NOT rapidjson_FOUND)
+find_package(RapidJSON CONFIG)
+if(NOT RapidJSON_FOUND)
   set(RAPIDJSON_BUILD_CXX17 ON)
   set(RAPIDJSON_BUILD_DOC OFF)
   set(RAPIDJSON_BUILD_EXAMPLES OFF)
