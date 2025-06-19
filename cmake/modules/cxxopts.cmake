@@ -7,7 +7,7 @@ FetchContent_Declare(
   GIT_TAG        v3.2.1
   GIT_SHALLOW 1
   SYSTEM
-  SOURCE_SUBDIR ./include
+  SOURCE_SUBDIR ./dummy
   FIND_PACKAGE_ARGS NAMES cxxopts
 )
 
