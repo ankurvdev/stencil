@@ -8,6 +8,7 @@ FetchContent_Declare(
   GIT_PROGRESS TRUE
   #GIT_SHALLOW 1
   SYSTEM
+  SOURCE_SUBDIR ./include
   FIND_PACKAGE_ARGS NAMES RapidJSON
 )
 
@@ -23,7 +24,8 @@ if(NOT rapidjson_FOUND)
   set(RAPIDJSON_BUILD_TESTS OFF)
   set(RAPIDJSON_ENABLE_INSTRUMENTATION_OPT OFF)
 
-  FetchContent_Populate(rapidjson)
-  add_library(rapidjson INTERFACE)
-  target_include_directories(rapidjson SYSTEM INTERFACE "${rapidjson_SOURCE_DIR}/include")
+  FetchContent_MakeAvailable(rapidjson)
+
+  #add_library(rapidjson INTERFACE)
+  #target_include_directories(rapidjson SYSTEM INTERFACE "${rapidjson_SOURCE_DIR}/include")
 endif()

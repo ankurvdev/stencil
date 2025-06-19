@@ -115,6 +115,7 @@ template <> struct Stencil::TypeTraits<EnumConstsInitializers::DefaultValues>
 
 template <> struct Stencil::TypeTraitsForIndexable<EnumConstsInitializers::DefaultValues>
 {
+    using TObj = EnumConstsInitializers::DefaultValues;
     enum class Fields
     {
         Invalid,
@@ -157,6 +158,40 @@ template <> struct Stencil::TypeTraitsForIndexable<EnumConstsInitializers::Defau
     struct Field_val9T
     {};
     using Key = Fields;
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Key key)
+    {
+        switch (key)
+        {
+        case Fields::Field_enum1: return true;
+        case Fields::Field_enum2: return false;
+        case Fields::Field_enum3: return true;
+        case Fields::Field_enum4: return false;
+        case Fields::Field_val1: return false;
+        case Fields::Field_val2: return true;
+        case Fields::Field_val3: return true;
+        case Fields::Field_val4: return true;
+        case Fields::Field_val5: return false;
+        case Fields::Field_val6: return false;
+        case Fields::Field_val7: return false;
+        case Fields::Field_val9: return false;
+        case Fields::Invalid: [[fallthrough]];
+        default: break;
+        }
+        return false;
+    }
+
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_enum1T /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_enum2T /* key */) { return false; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_enum3T /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_enum4T /* key */) { return false; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_val1T /* key */) { return false; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_val2T /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_val3T /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_val4T /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_val5T /* key */) { return false; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_val6T /* key */) { return false; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_val7T /* key */) { return false; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_val9T /* key */) { return false; }
 };
 template <>
 struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<EnumConstsInitializers::DefaultValues>::Field_enum1T, Stencil::ProtocolString>

@@ -124,19 +124,20 @@ struct NamedVariant
         }                                                                                                              \
     };
 
-//template <> struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<strct>::Key, Stencil::ProtocolBinary>           \
-    //{                                                                                                                  \
-    //    using T = Stencil::TypeTraitsForIndexable<strct>::Key;                                                         \
-    //    template <typename Context> static auto Write(Context& ctx, T const& obj)                                      \
-    //    {                                                                                                              \
-    //        ctx << static_cast<uint32_t>(obj);                                                                         \
-    //    }                                                                                                              \
-    //    template <typename Context> static auto Read(T& obj, Context& ctx)                                             \
-    //    {                                                                                                              \
-    //        obj = static_cast<T>(ctx.template read<uint32_t>());                                                       \
-    //    }                                                                                                              \
-    //};
-
+/*
+    template <> struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<strct>::Key, Stencil::ProtocolBinary>           \
+    {                                                                                                                  \
+        using T = Stencil::TypeTraitsForIndexable<strct>::Key;                                                         \
+        template <typename Context> static auto Write(Context& ctx, T const& obj)                                      \
+        {                                                                                                              \
+            ctx << static_cast<uint32_t>(obj);                                                                         \
+        }                                                                                                              \
+        template <typename Context> static auto Read(T& obj, Context& ctx)                                             \
+        {                                                                                                              \
+            obj = static_cast<T>(ctx.template read<uint32_t>());                                                       \
+        }                                                                                                              \
+    };
+*/
 struct TestObj
 {
     MultiAttributed f1;

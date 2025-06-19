@@ -112,18 +112,95 @@ struct CommandLineOptions : public Stencil::VariantT<CommandLineOptions>
     {};
     VariantType Type() const { return static_cast<VariantType>(_variant.index()); }
 
+    auto operator=(::CLOpts2::InstallOptions&& obj)
+    {
+        _variant = std::forward<::CLOpts2::InstallOptions>(obj);
+        return *this;
+    }
+    auto operator=(::CLOpts2::InstallOptions const& obj)
+    {
+        _variant = obj;
+        return *this;
+    }
+
     ::CLOpts2::InstallOptions&       install() { return std::get<::CLOpts2::InstallOptions>(_variant); }
     ::CLOpts2::InstallOptions const& install() const { return std::get<::CLOpts2::InstallOptions>(_variant); }
+    auto operator=(::CLOpts2::QueueOptions&& obj)
+    {
+        _variant = std::forward<::CLOpts2::QueueOptions>(obj);
+        return *this;
+    }
+    auto operator=(::CLOpts2::QueueOptions const& obj)
+    {
+        _variant = obj;
+        return *this;
+    }
+
     ::CLOpts2::QueueOptions&       queue() { return std::get<::CLOpts2::QueueOptions>(_variant); }
     ::CLOpts2::QueueOptions const& queue() const { return std::get<::CLOpts2::QueueOptions>(_variant); }
+    auto operator=(::CLOpts2::PauseOptions&& obj)
+    {
+        _variant = std::forward<::CLOpts2::PauseOptions>(obj);
+        return *this;
+    }
+    auto operator=(::CLOpts2::PauseOptions const& obj)
+    {
+        _variant = obj;
+        return *this;
+    }
+
     ::CLOpts2::PauseOptions&       pause() { return std::get<::CLOpts2::PauseOptions>(_variant); }
     ::CLOpts2::PauseOptions const& pause() const { return std::get<::CLOpts2::PauseOptions>(_variant); }
+    auto operator=(::CLOpts2::CancelOptions&& obj)
+    {
+        _variant = std::forward<::CLOpts2::CancelOptions>(obj);
+        return *this;
+    }
+    auto operator=(::CLOpts2::CancelOptions const& obj)
+    {
+        _variant = obj;
+        return *this;
+    }
+
     ::CLOpts2::CancelOptions&       cancel() { return std::get<::CLOpts2::CancelOptions>(_variant); }
     ::CLOpts2::CancelOptions const& cancel() const { return std::get<::CLOpts2::CancelOptions>(_variant); }
+    auto operator=(::CLOpts2::ResumeOptions&& obj)
+    {
+        _variant = std::forward<::CLOpts2::ResumeOptions>(obj);
+        return *this;
+    }
+    auto operator=(::CLOpts2::ResumeOptions const& obj)
+    {
+        _variant = obj;
+        return *this;
+    }
+
     ::CLOpts2::ResumeOptions&       resume() { return std::get<::CLOpts2::ResumeOptions>(_variant); }
     ::CLOpts2::ResumeOptions const& resume() const { return std::get<::CLOpts2::ResumeOptions>(_variant); }
+    auto operator=(::CLOpts2::UpdateOptions&& obj)
+    {
+        _variant = std::forward<::CLOpts2::UpdateOptions>(obj);
+        return *this;
+    }
+    auto operator=(::CLOpts2::UpdateOptions const& obj)
+    {
+        _variant = obj;
+        return *this;
+    }
+
     ::CLOpts2::UpdateOptions&       update() { return std::get<::CLOpts2::UpdateOptions>(_variant); }
     ::CLOpts2::UpdateOptions const& update() const { return std::get<::CLOpts2::UpdateOptions>(_variant); }
+    auto operator=(::CLOpts2::HydrateOptions&& obj)
+    {
+        _variant = std::forward<::CLOpts2::HydrateOptions>(obj);
+        return *this;
+    }
+    auto operator=(::CLOpts2::HydrateOptions const& obj)
+    {
+        _variant = obj;
+        return *this;
+    }
+
     ::CLOpts2::HydrateOptions&       hydrate() { return std::get<::CLOpts2::HydrateOptions>(_variant); }
     ::CLOpts2::HydrateOptions const& hydrate() const { return std::get<::CLOpts2::HydrateOptions>(_variant); }
 };
@@ -144,6 +221,7 @@ template <> struct Stencil::TypeTraits<CLOpts2::InstallOptions>
 
 template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>
 {
+    using TObj = CLOpts2::InstallOptions;
     enum class Fields
     {
         Invalid,
@@ -165,6 +243,26 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>
     struct Field_UserT
     {};
     using Key = Fields;
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Key key)
+    {
+        switch (key)
+        {
+        case Fields::Field_ProductId: return false;
+        case Fields::Field_Repair: return true;
+        case Fields::Field_ForceNonSD: return true;
+        case Fields::Field_TargetVolume: return true;
+        case Fields::Field_User: return true;
+        case Fields::Invalid: [[fallthrough]];
+        default: break;
+        }
+        return false;
+    }
+
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_ProductIdT /* key */) { return false; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_RepairT /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_ForceNonSDT /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_TargetVolumeT /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_UserT /* key */) { return true; }
 };
 template <>
 struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_ProductIdT, Stencil::ProtocolString>
@@ -374,6 +472,11 @@ struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_UserT>
 {
     static auto Value() { return "User to install for"; }
+};
+
+template <> struct Stencil::Attribute<Stencil::AttributeType::Description, CLOpts2::InstallOptions>
+{
+    static auto Value() { return "Install a specific product"; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Fields>
@@ -789,6 +892,7 @@ template <> struct Stencil::TypeTraits<CLOpts2::QueueOptions>
 
 template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>
 {
+    using TObj = CLOpts2::QueueOptions;
     enum class Fields
     {
         Invalid,
@@ -798,6 +902,18 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>
     struct Field_ProductIdT
     {};
     using Key = Fields;
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Key key)
+    {
+        switch (key)
+        {
+        case Fields::Field_ProductId: return true;
+        case Fields::Invalid: [[fallthrough]];
+        default: break;
+        }
+        return false;
+    }
+
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_ProductIdT /* key */) { return true; }
 };
 template <>
 struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::Field_ProductIdT, Stencil::ProtocolString>
@@ -839,6 +955,11 @@ struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::Field_ProductIdT>
 {
     static auto Value() { return "Catalog/Product:Sku:Bundle"; }
+};
+
+template <> struct Stencil::Attribute<Stencil::AttributeType::Description, CLOpts2::QueueOptions>
+{
+    static auto Value() { return "Listen for progress notifications for a specific product or all queued products"; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::Fields>
@@ -1086,6 +1207,7 @@ template <> struct Stencil::TypeTraits<CLOpts2::PauseOptions>
 
 template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>
 {
+    using TObj = CLOpts2::PauseOptions;
     enum class Fields
     {
         Invalid,
@@ -1095,6 +1217,18 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>
     struct Field_ProductIdT
     {};
     using Key = Fields;
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Key key)
+    {
+        switch (key)
+        {
+        case Fields::Field_ProductId: return false;
+        case Fields::Invalid: [[fallthrough]];
+        default: break;
+        }
+        return false;
+    }
+
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_ProductIdT /* key */) { return false; }
 };
 template <>
 struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::Field_ProductIdT, Stencil::ProtocolString>
@@ -1136,6 +1270,11 @@ struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::Field_ProductIdT>
 {
     static auto Value() { return "Catalog/Product:Sku:Bundle"; }
+};
+
+template <> struct Stencil::Attribute<Stencil::AttributeType::Description, CLOpts2::PauseOptions>
+{
+    static auto Value() { return "Pause the given product"; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::Fields>
@@ -1383,6 +1522,7 @@ template <> struct Stencil::TypeTraits<CLOpts2::CancelOptions>
 
 template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>
 {
+    using TObj = CLOpts2::CancelOptions;
     enum class Fields
     {
         Invalid,
@@ -1392,6 +1532,18 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>
     struct Field_ProductIdT
     {};
     using Key = Fields;
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Key key)
+    {
+        switch (key)
+        {
+        case Fields::Field_ProductId: return false;
+        case Fields::Invalid: [[fallthrough]];
+        default: break;
+        }
+        return false;
+    }
+
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_ProductIdT /* key */) { return false; }
 };
 template <>
 struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::Field_ProductIdT, Stencil::ProtocolString>
@@ -1433,6 +1585,11 @@ struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::Field_ProductIdT>
 {
     static auto Value() { return "Catalog/Product:Sku:Bundle"; }
+};
+
+template <> struct Stencil::Attribute<Stencil::AttributeType::Description, CLOpts2::CancelOptions>
+{
+    static auto Value() { return "Cancel the given product"; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::Fields>
@@ -1680,6 +1837,7 @@ template <> struct Stencil::TypeTraits<CLOpts2::ResumeOptions>
 
 template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>
 {
+    using TObj = CLOpts2::ResumeOptions;
     enum class Fields
     {
         Invalid,
@@ -1689,6 +1847,18 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>
     struct Field_ProductIdT
     {};
     using Key = Fields;
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Key key)
+    {
+        switch (key)
+        {
+        case Fields::Field_ProductId: return false;
+        case Fields::Invalid: [[fallthrough]];
+        default: break;
+        }
+        return false;
+    }
+
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_ProductIdT /* key */) { return false; }
 };
 template <>
 struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Field_ProductIdT, Stencil::ProtocolString>
@@ -1730,6 +1900,11 @@ struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Field_ProductIdT>
 {
     static auto Value() { return "Catalog/Product:Sku:Bundle"; }
+};
+
+template <> struct Stencil::Attribute<Stencil::AttributeType::Description, CLOpts2::ResumeOptions>
+{
+    static auto Value() { return "Resume the given product"; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Fields>
@@ -1977,6 +2152,7 @@ template <> struct Stencil::TypeTraits<CLOpts2::UpdateOptions>
 
 template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>
 {
+    using TObj = CLOpts2::UpdateOptions;
     enum class Fields
     {
         Invalid,
@@ -1986,6 +2162,18 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>
     struct Field_ProductIdT
     {};
     using Key = Fields;
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Key key)
+    {
+        switch (key)
+        {
+        case Fields::Field_ProductId: return true;
+        case Fields::Invalid: [[fallthrough]];
+        default: break;
+        }
+        return false;
+    }
+
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_ProductIdT /* key */) { return true; }
 };
 template <>
 struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Field_ProductIdT, Stencil::ProtocolString>
@@ -2027,6 +2215,11 @@ struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Field_ProductIdT>
 {
     static auto Value() { return "Catalog/Product:Sku:Bundle"; }
+};
+
+template <> struct Stencil::Attribute<Stencil::AttributeType::Description, CLOpts2::UpdateOptions>
+{
+    static auto Value() { return "Check for updates for a given product or all installed products"; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Fields>
@@ -2274,6 +2467,7 @@ template <> struct Stencil::TypeTraits<CLOpts2::HydrateOptions>
 
 template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>
 {
+    using TObj = CLOpts2::HydrateOptions;
     enum class Fields
     {
         Invalid,
@@ -2283,6 +2477,18 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>
     struct Field_ProductIdT
     {};
     using Key = Fields;
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Key key)
+    {
+        switch (key)
+        {
+        case Fields::Field_ProductId: return false;
+        case Fields::Invalid: [[fallthrough]];
+        default: break;
+        }
+        return false;
+    }
+
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_ProductIdT /* key */) { return false; }
 };
 template <>
 struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Field_ProductIdT, Stencil::ProtocolString>
@@ -2324,6 +2530,11 @@ struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Field_ProductIdT>
 {
     static auto Value() { return "Catalog/Product:Sku:Bundle"; }
+};
+
+template <> struct Stencil::Attribute<Stencil::AttributeType::Description, CLOpts2::HydrateOptions>
+{
+    static auto Value() { return "Download document for a given product"; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Fields>
@@ -2571,9 +2782,12 @@ template <> struct Stencil::TypeTraits<CLOpts2::CommandLineOptions>
 
 template <> struct Stencil::TypeTraitsForIndexable<CLOpts2::CommandLineOptions>
 {
-    using Key    = CLOpts2::CommandLineOptions::VariantType;
+    using TObj   = CLOpts2::CommandLineOptions;
+    using Key    = TObj::VariantType;
     using Fields = Key;
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Key /* key */) { return false; }
 };
+
 template <> struct Stencil::SerDes<CLOpts2::CommandLineOptions::Variant_installT, Stencil::ProtocolString>
 {
     using T = CLOpts2::CommandLineOptions::Variant_installT;
@@ -2918,6 +3132,69 @@ template <> struct Stencil::Visitor<CLOpts2::CommandLineOptions>
 // template <> struct Stencil::Visitor<CLOpts2::CommandLineOptions> : Stencil::StructVisitor<CLOpts2::CommandLineOptions>
 // {};
 
+template <> struct Stencil::Attribute<Stencil::AttributeType::Description, CLOpts2::CommandLineOptions>
+{
+    static auto Value() { return "Command Line tool for windows-store operations"; }
+};
+template <> struct Stencil::VisitorForVariant<CLOpts2::CommandLineOptions>
+{
+    using T      = CLOpts2::CommandLineOptions;
+    using Fields = CLOpts2::CommandLineOptions::VariantType;
+
+    static bool IsMonostate(T const& obj) { return obj._variant.index() == 0; }
+
+    template <typename TLambda> static void VisitAlternatives(T const& /* obj */, TLambda&& lambda)
+    {
+        {
+            ::CLOpts2::InstallOptions varobj{};
+            lambda(Fields::install, varobj);
+        }
+        {
+            ::CLOpts2::QueueOptions varobj{};
+            lambda(Fields::queue, varobj);
+        }
+        {
+            ::CLOpts2::PauseOptions varobj{};
+            lambda(Fields::pause, varobj);
+        }
+        {
+            ::CLOpts2::CancelOptions varobj{};
+            lambda(Fields::cancel, varobj);
+        }
+        {
+            ::CLOpts2::ResumeOptions varobj{};
+            lambda(Fields::resume, varobj);
+        }
+        {
+            ::CLOpts2::UpdateOptions varobj{};
+            lambda(Fields::update, varobj);
+        }
+        {
+            ::CLOpts2::HydrateOptions varobj{};
+            lambda(Fields::hydrate, varobj);
+        }
+    }
+
+    template <typename TLambda> static void VisitActiveAlternative(T const& obj, TLambda&& lambda)
+    {
+        std::visit(
+            [&](auto const& o) {
+                if constexpr (std::is_same_v<std::remove_cvref_t<decltype(o)>, std::monostate>) {}
+                else { lambda(static_cast<Fields>(obj._variant.index()), o); }
+            },
+            obj._variant);
+    }
+
+    template <typename TLambda> static void VisitActiveAlternative(T& obj, TLambda&& lambda)
+    {
+        std::visit(
+            [&](auto& o) {
+                if constexpr (std::is_same_v<std::remove_cvref_t<decltype(o)>, std::monostate>) {}
+                else { lambda(static_cast<Fields>(obj._variant.index()), o); }
+            },
+            obj._variant);
+    }
+};
 #endif
 // SECTION END: Template specializations
 

@@ -524,9 +524,9 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                     size_t curposarg = 0;
                     bool   done      = false;
                     Visitor<T>::VisitAll(obj, [&](auto const& key, auto& val) {
-                        using ValType = std::remove_cvref_t<decltype(val)>;
+                        // using ValType = std::remove_cvref_t<decltype(val)>;
                         if (done) return;
-                        if constexpr (!Stencil::ConceptPrimitive<ValType>)
+                        // if constexpr (!Stencil::ConceptPrimitive<ValType>)
                         {
                             std::stringstream ss;
                             SerDes<std::remove_cvref_t<decltype(key)>, ProtocolString>::Write(ss, key);

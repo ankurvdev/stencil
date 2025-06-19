@@ -71,6 +71,7 @@ template <> struct Stencil::TypeTraits<CLOpts1::CommandLineOptions>
 
 template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>
 {
+    using TObj = CLOpts1::CommandLineOptions;
     enum class Fields
     {
         Invalid,
@@ -98,6 +99,30 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>
     struct Field_out_dirT
     {};
     using Key = Fields;
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Key key)
+    {
+        switch (key)
+        {
+        case Fields::Field_workingDirectory: return false;
+        case Fields::Field_libraries: return false;
+        case Fields::Field_scan: return false;
+        case Fields::Field_httpsPort: return true;
+        case Fields::Field_daemon: return true;
+        case Fields::Field_quiet: return true;
+        case Fields::Field_out_dir: return true;
+        case Fields::Invalid: [[fallthrough]];
+        default: break;
+        }
+        return false;
+    }
+
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_workingDirectoryT /* key */) { return false; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_librariesT /* key */) { return false; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_scanT /* key */) { return false; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_httpsPortT /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_daemonT /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_quietT /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_out_dirT /* key */) { return true; }
 };
 template <>
 struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_workingDirectoryT, Stencil::ProtocolString>
@@ -975,6 +1000,7 @@ template <> struct Stencil::TypeTraits<CLOpts1::SimpleObj>
 
 template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>
 {
+    using TObj = CLOpts1::SimpleObj;
     enum class Fields
     {
         Invalid,
@@ -987,6 +1013,20 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>
     struct Field_field2T
     {};
     using Key = Fields;
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Key key)
+    {
+        switch (key)
+        {
+        case Fields::Field_field1: return false;
+        case Fields::Field_field2: return false;
+        case Fields::Invalid: [[fallthrough]];
+        default: break;
+        }
+        return false;
+    }
+
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_field1T /* key */) { return false; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_field2T /* key */) { return false; }
 };
 template <>
 struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::SimpleObj>::Field_field1T, Stencil::ProtocolString>
@@ -1345,6 +1385,7 @@ template <> struct Stencil::TypeTraits<CLOpts1::ObjWithList>
 
 template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>
 {
+    using TObj = CLOpts1::ObjWithList;
     enum class Fields
     {
         Invalid,
@@ -1354,6 +1395,18 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>
     struct Field_field1T
     {};
     using Key = Fields;
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Key key)
+    {
+        switch (key)
+        {
+        case Fields::Field_field1: return false;
+        case Fields::Invalid: [[fallthrough]];
+        default: break;
+        }
+        return false;
+    }
+
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_field1T /* key */) { return false; }
 };
 template <>
 struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::ObjWithList>::Field_field1T, Stencil::ProtocolString>
@@ -1653,6 +1706,7 @@ template <> struct Stencil::TypeTraits<CLOpts1::CLOptsTest>
 
 template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>
 {
+    using TObj = CLOpts1::CLOptsTest;
     enum class Fields
     {
         Invalid,
@@ -1677,6 +1731,28 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>
     struct Field_key2T
     {};
     using Key = Fields;
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Key key)
+    {
+        switch (key)
+        {
+        case Fields::Field_key1: return false;
+        case Fields::Field_listofint: return false;
+        case Fields::Field_listoflist: return false;
+        case Fields::Field_listofobj: return false;
+        case Fields::Field_objoflist: return false;
+        case Fields::Field_key2: return false;
+        case Fields::Invalid: [[fallthrough]];
+        default: break;
+        }
+        return false;
+    }
+
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_key1T /* key */) { return false; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_listofintT /* key */) { return false; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_listoflistT /* key */) { return false; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_listofobjT /* key */) { return false; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_objoflistT /* key */) { return false; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_key2T /* key */) { return false; }
 };
 template <>
 struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CLOptsTest>::Field_key1T, Stencil::ProtocolString>
