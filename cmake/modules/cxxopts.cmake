@@ -7,6 +7,7 @@ FetchContent_Declare(
   GIT_TAG        v3.2.0
   GIT_SHALLOW 1
   SYSTEM
+  SOURCE_SUBDIR ./include
   FIND_PACKAGE_ARGS NAMES cxxopts
 )
 
@@ -16,7 +17,7 @@ endif()
 
 find_package(cxxopts CONFIG)
 if(NOT cxxopts_FOUND)
-  FetchContent_Populate(cxxopts)
+  FetchContent_MakeAvailable(cxxopts)
   add_library(cxxopts INTERFACE)
   add_library(cxxopts::cxxopts ALIAS cxxopts)
 
