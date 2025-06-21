@@ -302,7 +302,7 @@ template <Stencil::ConceptPreferIterable TElem, typename TContainer> struct Sten
     using ValTxn            = Transaction<ValType, Txn>;
     using ValTxnState       = typename ValTxn::TxnState;
     using ContainerTxnState = typename TContainer::ElemTxnState;
-    using IteratorType      = uint32_t;    // TODO: Use Iterators ?
+    using IteratorType      = uint32_t; 
 
     struct CombinedTxnState
     {

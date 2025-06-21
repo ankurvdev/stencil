@@ -12,9 +12,6 @@
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
-#if !defined TODO
-#define TODO(...) throw std::logic_error("Not Implemented")
-#endif
 
 SUPPRESS_WARNINGS_START
 SUPPRESS_MSVC_WARNING(4371)    // Object layout under /vd2 will change due to virtual base

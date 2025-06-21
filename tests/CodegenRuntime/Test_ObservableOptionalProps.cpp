@@ -30,19 +30,6 @@ TEST_CASE("ObservableProps", "[ObservableProps]")
             REQUIRE(data.IsValid(FieldIndex::Field_climb));
             REQUIRE(ctx.IsFieldChanged(FieldIndex::Field_climb));
             REQUIRE(ctx.CountFieldsChanged() == 1);
-#ifdef TODO1
-            for (unsigned i = 1; i <= Avid::GPS::FieldCount(); i++)
-            {
-                if (ctx.IsFieldChanged(static_cast<Avid::GPS::FieldIndex>(i)))
-                {
-                    ReflectionServices::StateTraker<Avid::GPS, void*> tracker(&data, nullptr);
-                    tracker.ObjKey(Value{i - 1}, nullptr);
-                    auto handler = tracker.GetHandler();
-                    REQUIRE(handler->Name().str() == "climb");
-                    REQUIRE(tracker.Stringify() == "0.000000");
-                }
-            }
-#endif
         }
         {
             Stencil::Transaction<Avid::GPS> ctx(data);

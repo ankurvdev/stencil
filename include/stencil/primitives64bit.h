@@ -234,18 +234,6 @@ template <typename TClock> struct Primitives64Bit::Traits<std::chrono::time_poin
     }
 };
 
-#ifdef TODO1
-template <size_t N>
-    requires(N <= 8)
-struct Primitives64Bit::Traits<std::array<char, N>>
-{
-    static constexpr auto      Type() { return Primitives64Bit::Type::Signed(N); }
-    static void                Assign(Primitives64Bit& /*obj*/, std::array<char, N>& /*val*/) { TODO(""); }
-    static std::array<char, N> Get(Primitives64Bit const& /*obj*/) { TODO(""); }
-    static std::array<char, N> Convert(int64_t /*val*/) { TODO(""); }
-};
-#endif
-
 template <size_t N>
     requires(N <= 4)
 struct Primitives64Bit::Traits<std::array<int16_t, N>>

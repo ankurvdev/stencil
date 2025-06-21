@@ -4,6 +4,7 @@
 #define _PRAGMA_STRINGIFY2(x) _Pragma(#x)
 #define _PRAGMA_STRINGIFY(x) _PRAGMA_STRINGIFY2(x)
 #endif
+
 #if !(defined SUPPRESS_WARNINGS_START)
 #if defined _MSC_VER && !defined __clang__
 #define SUPPRESS_WARNINGS_START _Pragma("warning(push, 3)")
@@ -116,15 +117,9 @@
     name& operator=(name&&) noexcept = delete
 #endif
 
+
 #if !defined TODO
 #ifdef __cpp_exceptions
-
-[[noreturn]] inline void TodoFunc()
-{
-    throw "Not Implemented:";
-}
-
-#define TODO(...) TodoFunc()
+#define TODO(...)  throw "TODO:" __VA_ARGS__
 #endif
-
 #endif

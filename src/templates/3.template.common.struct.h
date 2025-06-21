@@ -330,8 +330,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
 
     struct TxnState
     {
-        std::bitset<64> assigntracker;    // TODO1
-        std::bitset<64> edittracker;      // TODO1
+        std::bitset<64> assigntracker;    
+        std::bitset<64> edittracker;      
         //<Field>
         typename Transaction_zzNamezz::TxnState zzNamezz{};
         //</Field>

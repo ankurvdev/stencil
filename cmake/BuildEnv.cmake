@@ -100,9 +100,13 @@ function(_FixFlags name)
     endif()
 endfunction()
 
+
 macro(InitClangDIntellisense)
-    file(GENERATE OUTPUT "${PROJECT_SOURCE_DIR}/.clangd"
-        CONTENT "CompileFlags:\n\tCompilationDatabase: \"${CMAKE_CURRENT_BINARY_DIR}\"")
+    set(tmpl "CompileFlags:\n\tCompilationDatabase: \"${CMAKE_CURRENT_BINARY_DIR}\"")
+    if (MSVC)
+        set(tmpl "CompileFlags:\n\tCompilationDatabase: \"${CMAKE_CURRENT_BINARY_DIR}\"\n\tAdd: [\"-std:c++latest\"]")
+    endif()
+    file(GENERATE OUTPUT "${PROJECT_SOURCE_DIR}/.clangd" CONTENT "${tmpl}")
 endmacro()
 
 macro(EnableStrictCompilation)
@@ -154,14 +158,14 @@ macro(EnableStrictCompilation)
                 /wd5045  # Spectre mitigation insertion
                 /wd5264  # const variable is not used
 
-                # TODO : Revisit these with newer VS Releases
-                /wd4710  # Function not inlined. VS2019 CRT throws this
-                /wd4711  # Function selected for automatic inline. VS2019 CRT throws this
-                /wd4738  # storing 32-bit float result in memory, possible loss of performance 10.0.19041.0\ucrt\corecrt_math.h(642)
-                /wd4746  # volatile access of 'b' is subject to /volatile:<iso|ms>
-                # TODO : Revisit with later cmake release. This causes cmake autodetect HAVE_STRUCT_TIMESPEC to fail
-                /wd4255  # The compiler did not find an explicit list of arguments to a function. This warning is for the C compiler only.
-                /wd5246  # MSVC Bug VS2022 :  the initialization of a subobject should be wrapped in braces
+                # Revisit these with newer VS Releases
+                # /wd4710  # Function not inlined. VS2019 CRT throws this
+                # /wd4711  # Function selected for automatic inline. VS2019 CRT throws this
+                # /wd4738  # storing 32-bit float result in memory, possible loss of performance 10.0.19041.0\ucrt\corecrt_math.h(642)
+                # /wd4746  # volatile access of 'b' is subject to /volatile:<iso|ms>
+                # Revisit with later cmake release. This causes cmake autodetect HAVE_STRUCT_TIMESPEC to fail
+                # /wd4255  # The compiler did not find an explicit list of arguments to a function. This warning is for the C compiler only.
+                # /wd5246  # MSVC Bug VS2022 :  the initialization of a subobject should be wrapped in braces
             )
 
             set(exclusions "[-/]W[a-zA-Z1-9]+" "[-/]permissive?" "[-/]external:W?" "[-/]external:anglebrackets?" "[-/]external:templates?")

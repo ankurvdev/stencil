@@ -1564,7 +1564,7 @@ template <typename T> struct Stencil::Database::RecordTraits<Stencil::RefMap<T>>
     static void
     WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, Stencil::RefMap<T> const& /* obj */, Record<Stencil::RefMap<T>>& /* rec */)
     {
-        throw std::logic_error("TODO");
+        throw std::logic_error("Not implemented");
     }
 };
 
@@ -1576,7 +1576,7 @@ template <typename T> struct Stencil::Database::RecordTraits<shared_tree<T>>
     template <typename TDb>
     static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, shared_tree<T> const& /* obj */, Record<shared_tree<T>>& /* rec */)
     {
-        throw std::logic_error("TODO");
+        throw std::logic_error("Not implemented");;
     }
 };
 

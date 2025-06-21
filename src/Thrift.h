@@ -288,7 +288,7 @@ inline ConstValue FindConstValue(Context& context, Str::Type&& name)
     }
     else { return context.program.Lookup<IDL::NamedConst>(name).shared_from_this(); }
 
-    throw std::logic_error("Not Implement. Named Keyword (%s). Const Values not yet supported" /*, name.c_str()*/);
+    //throw std::logic_error("Not Implement. Named Keyword (%s). Const Values not yet supported" /*, name.c_str()*/);
 }
 inline ConstValue CreateConstValue(ConstValueList&& /*value*/)
 {

@@ -1,7 +1,0 @@
-- VisitorForVariant
-  - SetAlternative
-- protocol_cli
-  - review and remove std::stringstream
-  - short-switch
-- review HasDefaultValueForKey
-- MultiAttributed UUID
