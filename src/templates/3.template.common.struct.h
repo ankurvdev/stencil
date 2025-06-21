@@ -1,7 +1,7 @@
 // Anything here is not part of the generated code
-const int zzFieldType_Idzz = 0;
-const int zzStruct_Idzz    = 0;
-const int zzVariant_Idzz   = 0;
+int const zzFieldType_Idzz = 0;
+int const zzStruct_Idzz    = 0;
+int const zzVariant_Idzz   = 0;
 
 struct zzFieldType_NativeTypezz
 {
@@ -268,7 +268,7 @@ template <>
 struct Stencil::Attribute<Stencil::AttributeType::zzAttribute_Keyzz,
                           Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Field_zzField_NamezzT>
 {
-    static auto Value() { return "zzAttribute_Valuezz"; }
+    static std::string_view Value() { return "zzAttribute_Valuezz"; }
 };
 
 //</Attribute>
@@ -277,7 +277,7 @@ struct Stencil::Attribute<Stencil::AttributeType::zzAttribute_Keyzz,
 //<Attribute>
 template <> struct Stencil::Attribute<Stencil::AttributeType::zzAttribute_Keyzz, zzProgram_Namezz::zzStruct_Namezz>
 {
-    static auto Value() { return "zzAttribute_Valuezz"; }
+    static std::string_view Value() { return "zzAttribute_Valuezz"; }
 };
 
 //</Attribute>
@@ -330,8 +330,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
 
     struct TxnState
     {
-        std::bitset<64> assigntracker;    
-        std::bitset<64> edittracker;      
+        std::bitset<64> assigntracker;
+        std::bitset<64> edittracker;
         //<Field>
         typename Transaction_zzNamezz::TxnState zzNamezz{};
         //</Field>
@@ -1097,7 +1097,7 @@ template <>
 struct Stencil::Attribute<Stencil::AttributeType::zzAttribute_Keyzz,
                           Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Field_zzField_NamezzT>
 {
-    static auto Value() { return "zzAttribute_Valuezz"; }
+    static std::string_view Value() { return "zzAttribute_Valuezz"; }
 };
 
 //</Attribute>
@@ -1106,7 +1106,7 @@ struct Stencil::Attribute<Stencil::AttributeType::zzAttribute_Keyzz,
 //<Attribute>
 template <> struct Stencil::Attribute<Stencil::AttributeType::zzAttribute_Keyzz, zzProgram_Namezz::zzVariant_Namezz>
 {
-    static auto Value() { return "zzAttribute_Valuezz"; }
+    static std::string_view Value() { return "zzAttribute_Valuezz"; }
 };
 //</Attribute>
 

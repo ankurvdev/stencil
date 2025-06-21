@@ -7,6 +7,7 @@ struct CommandLineOptions
 	bool daemon = false	(Name1 = "Run as Daemon", Description = "Run as daemon")
 	bool quiet = true (Name1 = "Run Quietly", Description = "Run Quietly")
 	string out_dir = "." (Name1 = "Output Directory", Description = "Location of the output directory")
+	string undocumented = "defval"
 }
 
 struct SimpleObj

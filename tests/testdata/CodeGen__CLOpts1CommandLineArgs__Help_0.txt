@@ -1,0 +1,11 @@
+Usage:                 <working-directory>    <libraries>    <scan>                      
+Description:                                                                             
+                                                                                         
+<working-directory>    Location of path where it'll store its database and other info    
+<libraries>            Locations of Directories to store files                           
+<scan>                 List of Directories to scan for Document files                    
+--https-port           TCP port on which to listen for incoming HTTP connections         
+--daemon               Run as daemon                                                     
+--quiet                Run Quietly                                                       
+--out-dir              Location of the output directory                                  
+--undocumented                                                                           
