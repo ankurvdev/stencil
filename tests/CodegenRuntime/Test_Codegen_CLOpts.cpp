@@ -4,7 +4,12 @@
 #include <stencil/protocol_cli.h>
 
 #include "TestUtils.h"
-#include <iterator>
+
+static_assert(!Stencil::Category::IsPrimitive<CLOpts1::CommandLineOptions>());
+static_assert(Stencil::ConceptIndexable<CLOpts1::CommandLineOptions>);
+static_assert(!Stencil::ConceptPrimitive<CLOpts1::CommandLineOptions>);
+
+// static_assert(Stencil::ConceptVariant<CLOpts2::CommandLineOptions>);
 
 template <typename TStruct, typename... TArgs> auto ParseArgs(TArgs&&... args)
 {
@@ -27,6 +32,13 @@ template <typename TStruct, typename... TArgs> auto RequireGenerateHelpException
 
 TEST_CASE("CodeGen::CommandLineArgs::Simplecase", "[CommandLineArgs]")
 {
+    SECTION("positionalargs")
+    {
+        auto options = ParseArgs<::CLOpts1::CommandLineOptions>("c:\\abc");
+        REQUIRE(options.workingDirectory == "c:\\abc");
+        REQUIRE(options.libraries.size() == 0);
+    }
+
     SECTION("equalassignment")
     {
         auto options = ParseArgs<::CLOpts1::CommandLineOptions>("--workingDirectory=c:\\abc");
@@ -116,6 +128,18 @@ TEST_CASE("CodeGen::CommandLineArgs::Simplecase", "[CommandLineArgs]")
         REQUIRE(options.httpsPort == 3443);
         REQUIRE(options.daemon == false);
         REQUIRE(options.quiet == true);
+    }
+
+    SECTION("camelcase_to_dash")
+    {
+        auto options = ParseArgs<::CLOpts1::CommandLineOptions>("--working-directory=c:\\abcd");
+        REQUIRE(options.workingDirectory == "c:\\abcd");
+    }
+
+    SECTION("camelcase_to_lowercase")
+    {
+        auto options = ParseArgs<::CLOpts1::CommandLineOptions>("--workingdirectory=c:\\abcde");
+        REQUIRE(options.workingDirectory == "c:\\abcde");
     }
 
     SECTION("libraries")
@@ -248,15 +272,20 @@ TEST_CASE("CodeGen::CommandLineArgs::Variants")
 
 TEST_CASE("CodeGen::CommandLineArgs::Help")
 {
+    static_assert(Stencil::ConceptVariant<CLOpts2::CommandLineOptions>);
+
     std::vector<std::string> output;
-    auto                     linesoflines = {RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("--help"),
-                                             RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("install", "--help"),
-                                             RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("queue", "--help"),
-                                             RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("pause", "--help"),
-                                             RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("cancel", "--help"),
-                                             RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("resume", "--help"),
-                                             RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("update", "--help"),
-                                             RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("hydrate", "--help")};
+
+    auto linesoflines = {
+        RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("--help"),
+        RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("install", "--help"),
+        RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("queue", "--help"),
+        RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("pause", "--help"),
+        RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("cancel", "--help"),
+        RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("resume", "--help"),
+        RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("update", "--help"),
+        RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("hydrate", "--help"),
+    };
 
     for (auto& lines : linesoflines)
     {
@@ -264,6 +293,5 @@ TEST_CASE("CodeGen::CommandLineArgs::Help")
         output.push_back("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     }
 
-    // TODO: Help
-    // TestCommon::CheckResource<TestCommon::StrFormat>(output, "0");
+    TestCommon::CheckResource<TestCommon::StrFormat>(output, "0");
 }

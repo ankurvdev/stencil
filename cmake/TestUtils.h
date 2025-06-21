@@ -1,3 +1,4 @@
+// cppforge-sync
 #pragma once
 #include "CommonMacros.h"
 
@@ -28,7 +29,6 @@ SUPPRESS_WARNINGS_END
 
 #include <filesystem>
 #include <fstream>
-#include <span>
 #include <sstream>
 #include <string>
 #include <string_view>

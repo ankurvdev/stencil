@@ -135,21 +135,21 @@ Object Data Store can always be added to the services exposing the interface.
 ```c++
 struct FooImpl : public Foo<DatabaseT>
 {
-  using DataStoreT = DatabaseT; // Used by Foo to 
-  
-  virtual int AddNumbers(int arg1, int arg2) override 
+  using DataStoreT = DatabaseT; // Used by Foo to
+
+  virtual int AddNumbers(int arg1, int arg2) override
   {
      RaiseEvent_Bar(arg1, "test");
-     return arg1 + arg2 + _offset; 
+     return arg1 + arg2 + _offset;
   }
-  
+
   int offset_{-1};
 };
 
 // Static functions
 int Foo::DoSomething() { return -1; }
 
-// Activators/Creators 
+// Activators/Creators
 static std::unique_ptr<Foo> Foo::Create()
 {
 return new FooImpl();

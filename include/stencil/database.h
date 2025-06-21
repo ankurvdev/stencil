@@ -5,8 +5,9 @@
 #include "ref.h"
 #include "shared_tree.h"
 #include "timestamped.h"
+#include "typetraits.h"
 
-#include <concepts>
+#include <filesystem>
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
@@ -327,7 +328,7 @@ struct SerDes
     {
         assert(!stream.fail());
         stream.seekp(0, std::ios_base::beg);
-        stream.write(reinterpret_cast<const char*>(&header), sizeof(header));
+        stream.write(reinterpret_cast<char const*>(&header), sizeof(header));
         assert(!stream.fail());
     }
 
@@ -370,10 +371,10 @@ struct SerDes
         assert(zerobuffer[0] == 0 && zerobuffer[Page::PageSizeInBytes - 1] == 0);
         while (offsetcur < offsetreq)
         {
-            stream.write(reinterpret_cast<const char*>(zerobuffer), Page::PageSizeInBytes);
+            stream.write(reinterpret_cast<char const*>(zerobuffer), Page::PageSizeInBytes);
             offsetcur = stream.tellp();
         }
-        stream.write(reinterpret_cast<const char*>(&page), sizeof(Page));
+        stream.write(reinterpret_cast<char const*>(&page), sizeof(Page));
         assert(!stream.fail());
     }
     SUPPRESS_WARNINGS_END
@@ -1352,9 +1353,6 @@ template <ConceptFixedSize T> struct Record<T>
     T data;
 };
 
-// template <ConceptRecord T> struct Record<std::unique_ptr<T>> = delete;    // No need to store unique_ptr in the database
-// template <ConceptRecord T> struct Record<std::shared_ptr<T>> = delete;    // No need to store shared_ptr in the database
-
 }    // namespace Stencil::Database
 namespace Stencil::Database
 {
@@ -1396,6 +1394,12 @@ concept ConceptRecordView = IsRecordView<T>;
 
 template <typename T>
 concept ConceptTrivialRecordView = ConceptRecordView<T> && ConceptTrivial<typename RecordViewTraits<T>::Type>;
+
+template <typename T>
+concept ConceptComplexRecordView = ConceptRecordView<T> && ConceptComplex<typename RecordViewTraits<T>::Type>;
+
+template <typename T>
+concept ConceptFixedSizeRecordView = ConceptRecordView<T> && ConceptFixedSize<typename RecordViewTraits<T>::Type>;
 
 }    // namespace Stencil::Database
 
@@ -1445,7 +1449,7 @@ template <Stencil::Database::ConceptRecordView T> struct Stencil::Visitor<T>
     }
 };
 
-template <typename TProt> struct Stencil::SerDes<Stencil::Database::RefKeyType, TProt>
+template <Stencil::ConceptProtocol TProt> struct Stencil::SerDes<Stencil::Database::RefKeyType, TProt>
 {
     template <typename Context> static auto Write(Context& ctx, Stencil::Database::RefKeyType const& /* obj */)
     {
@@ -1453,7 +1457,18 @@ template <typename TProt> struct Stencil::SerDes<Stencil::Database::RefKeyType, 
     }
     template <typename Context> static auto Read(Stencil::Database::RefKeyType& /* obj */, Context& /* ctx */);    // Undefined
 };
-template <Stencil::Database::ConceptTrivialRecordView T, typename TProt> struct Stencil::SerDes<T, TProt>
+
+template <Stencil::ConceptIndexable T, typename TDb> struct Stencil::TypeTraits<Stencil::Database::RecordView<T, TDb>>
+{
+    using Categories = typename Stencil::TypeTraits<T>::Categories;
+};
+
+template <Stencil::ConceptIndexable T, typename TDb> struct Stencil::TypeTraitsForIndexable<Stencil::Database::RecordView<T, TDb>>
+{
+    using Key = typename Stencil::TypeTraitsForIndexable<T>::Key;
+};
+
+template <Stencil::Database::ConceptTrivialRecordView T, Stencil::ConceptProtocol TProt> struct Stencil::SerDes<T, TProt>
 {
     using Type       = typename Stencil::Database::RecordViewTraits<T>::Type;
     using RecordType = typename Stencil::Database::RecordViewTraits<T>::RecordType;
@@ -1534,7 +1549,7 @@ template <typename T> struct Stencil::Database::RecordTraits<Stencil::RefMap<T>>
     static void
     WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, Stencil::RefMap<T> const& /* obj */, Record<Stencil::RefMap<T>>& /* rec */)
     {
-        throw std::logic_error("TODO");
+        throw std::logic_error("Not implemented");
     }
 };
 
@@ -1546,19 +1561,6 @@ template <typename T> struct Stencil::Database::RecordTraits<shared_tree<T>>
     template <typename TDb>
     static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, shared_tree<T> const& /* obj */, Record<shared_tree<T>>& /* rec */)
     {
-        throw std::logic_error("TODO");
+        throw std::logic_error("Not implemented");
     }
 };
-
-/*
-template <Stencil::ConceptEnum T> struct Stencil::Database::RecordTraits<T>
-{
-    using RecordTypes = std::tuple<uint16_t>;
-    template <typename TDb> static void WriteToBuffer(TDb& db, RWLock const& lock, T const& obj, Record<T>& rec)
-    {
-        throw std::logic_error("not implemented");
-    }
-
-    static constexpr size_t Size() { return sizeof(uint16_t); }
-    static size_t           GetDataSize(T const& obj) { return Size(); }
-};*/

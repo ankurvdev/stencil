@@ -7,7 +7,7 @@ include(../../cmake/modules/BoostBeast.cmake)
 file(GLOB test_data_files CONFIGURE_DEPENDS "../testdata/*")
 file(GLOB pidlfiles "../*.pidl")
 
-add_stencil_library(codegen OBJECT IDLS ${pidlfiles})
+add_stencil_library(gencode OBJECT IDLS ${pidlfiles})
 add_resource_library(testdata OBJECT RESOURCE_COLLECTION_NAME testdata RESOURCES ${test_data_files} ${pidlfiles})
 target_compile_definitions(testdata PUBLIC HAVE_EMBEDRESOURCE=1)
 target_include_directories(testdata PUBLIC "${EMBEDRESOURCE_INCLUDE_DIR}")
@@ -20,5 +20,5 @@ add_executable(codegen_runtime_tests
     "Test_Interfaces.cpp"
 )
 target_compile_definitions(codegen_runtime_tests PRIVATE HAVE_EMBEDRESOURCE=1)
-target_link_libraries(codegen_runtime_tests PRIVATE codegen testdata TestCommon httplib::httplib)
+target_link_libraries(codegen_runtime_tests PRIVATE gencode testdata TestCommon httplib::httplib)
 add_test(NAME codegen_runtime_tests COMMAND codegen_runtime_tests)

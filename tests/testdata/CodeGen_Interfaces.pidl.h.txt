@@ -201,6 +201,7 @@ template <> struct Stencil::TypeTraits<Interfaces::Server1::Args_Function1>
 
 template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function1>
 {
+    using TObj = Interfaces::Server1::Args_Function1;
     enum class Fields
     {
         Invalid,
@@ -213,6 +214,9 @@ template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Fun
     struct Field_arg_arg2T
     {};
     using Key = Fields;
+
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_arg_arg1T /* key */) { return false; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_arg_arg2T /* key */) { return false; }
 };
 
 template <>
@@ -306,12 +310,14 @@ template <> struct Stencil::TypeTraits<Interfaces::Server1::Args_Function2>
 
 template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function2>
 {
+    using TObj = Interfaces::Server1::Args_Function2;
     enum class Fields
     {
         Invalid,
     };
 
     using Key = Fields;
+
 };
 
 template <>
@@ -393,6 +399,7 @@ template <> struct Stencil::TypeTraits<Interfaces::Server1::Args_Function3>
 
 template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function3>
 {
+    using TObj = Interfaces::Server1::Args_Function3;
     enum class Fields
     {
         Invalid,
@@ -402,6 +409,8 @@ template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Fun
     struct Field_arg_arg2T
     {};
     using Key = Fields;
+
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_arg_arg2T /* key */) { return false; }
 };
 
 template <>
@@ -489,6 +498,7 @@ template <> struct Stencil::TypeTraits<Interfaces::Server1::Args_SomethingHappen
 
 template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_SomethingHappened>
 {
+    using TObj = Interfaces::Server1::Args_SomethingHappened;
     enum class Fields
     {
         Invalid,
@@ -501,6 +511,9 @@ template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Som
     struct Field_arg_arg2T
     {};
     using Key = Fields;
+
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_arg_arg1T /* key */) { return false; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_arg_arg2T /* key */) { return false; }
 };
 
 template <>

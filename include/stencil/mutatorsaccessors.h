@@ -1,7 +1,6 @@
 #pragma once
-#include "protocol.h"
+#include "protocol_binary.h"
 #include "serdes.h"
-#include "visitor.h"
 
 namespace Stencil
 {
@@ -33,7 +32,7 @@ template <typename T> struct Mutators<std::vector<T>>
         }
     }
 
-    template <typename TProtocol = Stencil::ProtocolBinary>
+    template <ConceptProtocol TProtocol = Stencil::ProtocolBinary>
     static std::vector<uint8_t> GenerateMutationData(uint8_t /* mutationIndex */, std::vector<T> const& /*fieldVal*/, T const& /* val */)
     {
 #ifdef TODO1
@@ -48,7 +47,7 @@ template <typename T> struct Mutators<std::vector<T>>
         throw std::logic_error("Whats a mutation");
     }
 
-    template <typename TProtocol = Stencil::ProtocolBinary>
+    template <ConceptProtocol TProtocol = Stencil::ProtocolBinary>
     static std::vector<uint8_t>
     GenerateMutationData(uint8_t /* mutationIndex */, std::vector<T> const& /*fieldVal*/, size_t const& /* val */)
     {
@@ -77,13 +76,13 @@ template <typename T, size_t N> struct Mutators<std::array<T, N>>
 
     template <typename TLambda> static void remove_matching(TData& /*arr*/, TLambda&& /*lambda*/) { throw std::logic_error("Invalid"); }
 
-    template <typename TProtocol = Stencil::ProtocolBinary>
+    template <ConceptProtocol TProtocol = Stencil::ProtocolBinary>
     static std::vector<uint8_t> GenerateMutationData(uint8_t /*mutationIndex*/, TData const& /*fieldVal*/, T const& /*val*/)
     {
         throw std::logic_error("Invalid");
     }
 
-    template <typename TProtocol = Stencil::ProtocolBinary>
+    template <ConceptProtocol TProtocol = Stencil::ProtocolBinary>
     static std::vector<uint8_t> GenerateMutationData(uint8_t /*mutationIndex*/, TData const& /*fieldVal*/, size_t const& /*val*/)
     {
         throw std::logic_error("Invalid");

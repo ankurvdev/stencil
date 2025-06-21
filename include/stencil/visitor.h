@@ -1,8 +1,15 @@
 #pragma once
-#include "typetraits_builtins.h"
+#include "enums.h"
+#include "stencil/tuple_utils.h"
+#include "timestamped.h"
+#include "typetraits.h"
+#include "typetraits_std.h"
+#include "uuidobject.h"
 
 #include <memory>
 #include <tuple>
+#include <type_traits>
+#include <variant>
 
 namespace Stencil
 {
@@ -45,6 +52,9 @@ template <typename T> struct VisitorForIndexable
     // static bool IteratorValid(Iterator& it, T[const]& obj);
     // static void Visit(Iterator& it, T1& obj, T[const]Lambda&& lambda);
 };
+
+template <typename T> struct VisitorForVariant
+{};
 
 template <typename T> struct VisitorT
 {};
@@ -90,14 +100,18 @@ template <typename T, typename... TAttrs> struct StructVisitor
 
     template <typename T1, typename TLambda> static bool _VisitKeyIfVariantMatches(T1& obj, Key const& key, TLambda&& lambda)
     {
-        if (!std::holds_alternative<Fields<T1>>(key)) return false;
+        if (!std::holds_alternative<Fields<T1>>(key)) { return false; }
         return StructFieldsVisitor<T1>::VisitField(obj, std::get<Fields<T1>>(key), lambda);
     }
 
     template <typename T1, typename TLambda> static void VisitKey(T1& obj, Key const& key, TLambda&& lambda)
     {
         bool found = (_VisitKeyIfVariantMatches<TAttrs>(obj, key, lambda) || ...) || _VisitKeyIfVariantMatches<T1>(obj, key, lambda);
-        if (!found) throw std::runtime_error("Key did not match any of the struct fields or attributes");
+        if (!found)
+        {
+            found = (_VisitKeyIfVariantMatches<TAttrs>(obj, key, lambda) || ...) || _VisitKeyIfVariantMatches<T1>(obj, key, lambda);
+            throw std::runtime_error("Key did not match any of the struct fields or attributes");
+        }
     }
 
     template <typename TAttr, typename T1, typename TLambda> static bool _VisitAllFieldsHelper(T1& obj, TLambda&& lambda)
@@ -108,7 +122,7 @@ template <typename T, typename... TAttrs> struct StructVisitor
     template <typename T1, typename TLambda> static void VisitAll(T1& obj, TLambda&& lambda)
     {
         [[maybe_unused]] bool found = (_VisitAllFieldsHelper<TAttrs>(obj, lambda) || ...);
-        StructFieldsVisitor<T>::VisitAllFields(obj, [&](auto&& key, auto&& val) { lambda(Key{key}, val); });
+        StructFieldsVisitor<T>::VisitAllFields(obj, [&](auto&& key, auto&& val) { lambda(key, val); });
     }
 };
 
@@ -372,4 +386,70 @@ template <typename K, typename V> struct Stencil::Visitor<std::unordered_map<K, 
         lambda(obj.at(it));
     }
 #endif
+};
+
+template <typename... Ts> struct Stencil::VisitorForVariant<std::variant<std::monostate, Ts...>>
+{
+    using TObj = std::variant<std::monostate, Ts...>;
+    static bool IsMonostate(TObj const& obj) { return obj.index() == 0; }
+
+    template <typename TLambda> static void VisitAlternatives(TObj& /* obj */, TLambda&& lambda)
+    {
+        using TypeTuple  = std::tuple<Ts...>;
+        auto applylambda = [&](size_t i, auto& arg, size_t index) {
+            if (i == index) { lambda(i, arg); }
+        };
+        for (size_t i = 0; i < sizeof...(Ts); i++)
+        {
+            std::apply(
+                [&](auto... args) {
+                    size_t index = 0;
+                    (applylambda(i, args, index++), ...);
+                },
+                TypeTuple{});
+        }
+    }
+
+    template <typename TLambda> static void VisitActiveAlternative(TObj const& obj, TLambda&& lambda)
+    {
+        std::visit([&](auto val) { lambda(obj.index(), val); }, obj);
+    }
+    template <typename TLambda> static void VisitActiveAlternative(TObj& obj, TLambda&& lambda)
+    {
+        std::visit([&](auto val) { lambda(obj.index(), val); }, obj);
+    }
+};
+
+template <typename... Ts>
+    requires(!std::is_same_v<std::monostate, std::tuple_element_t<0, std::tuple<Ts...>>>)
+struct Stencil::VisitorForVariant<std::variant<Ts...>>
+{
+    using TObj = std::variant<Ts...>;
+    static bool IsMonostate(TObj const& /* obj */) { return false; }
+
+    template <typename TLambda> static void VisitAlternatives(TObj& /* obj */, TLambda&& lambda)
+    {
+        using TypeTuple  = std::tuple<Ts...>;
+        auto applylambda = [&](size_t i, auto& arg, size_t index) {
+            if (i == index) { lambda(i, arg); }
+        };
+        for (size_t i = 0; i < sizeof...(Ts); i++)
+        {
+            std::apply(
+                [&](auto... args) {
+                    size_t index = 0;
+                    (applylambda(i, args, index++), ...);
+                },
+                TypeTuple{});
+        }
+    }
+
+    template <typename TLambda> static void VisitActiveAlternative(TObj const& obj, TLambda&& lambda)
+    {
+        std::visit([&](auto const& val) { lambda(obj.index(), val); }, obj);
+    }
+    template <typename TLambda> static void VisitActiveAlternative(TObj& obj, TLambda&& lambda)
+    {
+        std::visit([&](auto& val) { lambda(obj.index(), val); }, obj);
+    }
 };

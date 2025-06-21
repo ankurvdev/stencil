@@ -1,11 +1,10 @@
 #pragma once
-#include "protocol.h"
-#include "tuple_utils.h"
-#include "typetraits_builtins.h"
+#include "enums.h"
+#include "serdes.h"
+#include "shared_string.h"
 #include "visitor.h"
 
 #include <span>
-#include <sstream>
 #include <string>
 
 namespace Stencil
@@ -110,7 +109,7 @@ struct ProtocolBinary
 template <ConceptPreferIndexable T> struct SerDes<T, ProtocolBinary>
 {
     using TKey = typename Stencil::TypeTraitsForIndexable<T>::Key;
-    template <typename Context> static auto Write(Context& ctx, T const& obj)
+    template <typename TContext> static auto Write(TContext& ctx, T const& obj)
     {
         Visitor<T>::VisitAll(obj, [&](auto const& key, auto const& val) {
             ctx << uint8_t{1};
@@ -120,7 +119,7 @@ template <ConceptPreferIndexable T> struct SerDes<T, ProtocolBinary>
         ctx << uint8_t{0};
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename TContext> static auto Read(T& obj, TContext& ctx)
     {
         while (true)
         {
@@ -129,16 +128,19 @@ template <ConceptPreferIndexable T> struct SerDes<T, ProtocolBinary>
             if (marker != 1) throw std::logic_error("Invalid marker");
             TKey key;
             SerDes<TKey, ProtocolBinary>::Read(key, ctx);
-            Visitor<T>::VisitKey(obj, key, [&](auto& val) { SerDes<std::remove_cvref_t<decltype(val)>, ProtocolBinary>::Read(val, ctx); });
+            Visitor<T>::VisitKey(obj, key, [&](auto& val) {    //
+                SerDes<std::remove_cvref_t<decltype(val)>, ProtocolBinary>::Read(val, ctx);
+            });
         }
     }
 };
+
 SUPPRESS_WARNINGS_START
 SUPPRESS_MSVC_WARNING(4702) /*Unreachable code*/    // Seems to only work in global scope
 
 template <ConceptPreferIterable T> struct SerDes<T, ProtocolBinary>
 {
-    template <typename Context> static auto Write(Context& ctx, T const& obj)
+    template <typename TContext> static auto Write(TContext& ctx, T const& obj)
     {
         // Some iterables can be primitives
         Visitor<T>::VisitAll(obj, [&](auto& /*key*/, auto& val) {
@@ -148,7 +150,7 @@ template <ConceptPreferIterable T> struct SerDes<T, ProtocolBinary>
         ctx << uint8_t{0};
     }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename TContext> static auto Read(T& obj, TContext& ctx)
     {
         {
             auto marker = ctx.template read<uint8_t>();
@@ -174,62 +176,96 @@ SUPPRESS_WARNINGS_END
 
 template <ConceptPrimitives64Bit T> struct SerDes<T, ProtocolBinary>
 {
-    template <typename Context> static auto Write(Context& ctx, T const& obj) { ctx << Primitives64Bit::Traits<T>::Repr(obj); }
-    template <typename Context> static auto Read(T& obj, Context& ctx)
+    template <typename TContext> static auto Write(TContext& ctx, T const& obj) { ctx << Primitives64Bit::Traits<T>::Repr(obj); }
+    template <typename TContext> static auto Read(T& obj, TContext& ctx)
     {
         obj = Primitives64Bit::Traits<T>::Convert(ctx.template read<decltype(Primitives64Bit::Traits<T>::Repr(obj))>());
     }
 };
 
+template <ConceptPreferVariant T> struct SerDes<T, ProtocolBinary>
+{
+    using TKey = uint8_t;
+    template <typename TContext> static auto Write(TContext& ctx, T const& obj)
+    {
+        if (VisitorForVariant<T>::IsMonostate(obj))
+        {
+            SerDes<TKey, ProtocolBinary>::Write(ctx, TKey{0});
+            return;
+        }
+        VisitorForVariant<T>::VisitActiveAlternative(obj, [&](auto const& k, auto const& v) {
+            SerDes<TKey, ProtocolBinary>::Write(ctx, static_cast<TKey>(k));
+            SerDes<std::remove_cvref_t<decltype(v)>, ProtocolBinary>::Write(ctx, v);
+        });
+    }
+
+    template <typename TContext> static auto Read(T& obj, TContext& ctx)
+    {
+
+        TKey key;
+        SerDes<TKey, ProtocolBinary>::Read(key, ctx);
+        bool done = false;
+        VisitorForVariant<T>::VisitAlternatives(obj, [&](auto const& k, auto& v) {
+            if (done) { return; }
+            // using TKey1 = std::remove_cvref_t<decltype(k)>;
+            using TVal = std::remove_cvref_t<decltype(v)>;
+            if (static_cast<TKey>(k) != key) { return; }
+            SerDes<TVal, ProtocolBinary>::Read(v, ctx);
+            obj  = v;
+            done = true;
+        });
+    }
+};
+
 template <ConceptEnum T> struct SerDes<T, ProtocolBinary>
 {
-    template <typename Context> static auto Write(Context& ctx, T const& obj) { ctx << static_cast<uint32_t>(obj); }
+    template <typename TContext> static auto Write(TContext& ctx, T const& obj) { ctx << static_cast<uint32_t>(obj); }
 
-    template <typename Context> static auto Read(T& obj, Context& ctx) { obj = static_cast<T>(ctx.template read<uint32_t>()); }
+    template <typename TContext> static auto Read(T& obj, TContext& ctx) { obj = static_cast<T>(ctx.template read<uint32_t>()); }
 };
 
 template <ConceptEnumPack T> struct SerDes<T, ProtocolBinary>
 {
-    template <typename Context> static auto Write(Context& ctx, T const& obj) { ctx << T::CastToInt(obj); }
-    template <typename Context> static auto Read(T& obj, Context& ctx) { obj = T::CastFromInt(ctx.template read<uint32_t>()); }
+    template <typename TContext> static auto Write(TContext& ctx, T const& obj) { ctx << T::CastToInt(obj); }
+    template <typename TContext> static auto Read(T& obj, TContext& ctx) { obj = T::CastFromInt(ctx.template read<uint32_t>()); }
 };
 
 template <> struct SerDes<shared_string, ProtocolBinary>
 {
-    template <typename Context> static auto Write(Context& ctx, shared_string const& obj) { ctx << obj; }
-    template <typename Context> static auto Read(shared_string& obj, Context& ctx) { obj = ctx.read_shared_string(); }
+    template <typename TContext> static auto Write(TContext& ctx, shared_string const& obj) { ctx << obj; }
+    template <typename TContext> static auto Read(shared_string& obj, TContext& ctx) { obj = ctx.read_shared_string(); }
 };
 
 template <> struct SerDes<shared_wstring, ProtocolBinary>
 {
-    template <typename Context> static auto Write(Context& ctx, shared_wstring const& obj) { ctx << obj; }
-    template <typename Context> static auto Read(shared_wstring& obj, Context& ctx) { obj = ctx.read_shared_wstring(); }
+    template <typename TContext> static auto Write(TContext& ctx, shared_wstring const& obj) { ctx << obj; }
+    template <typename TContext> static auto Read(shared_wstring& obj, TContext& ctx) { obj = ctx.read_shared_wstring(); }
 };
 
 template <> struct SerDes<std::wstring, ProtocolBinary>
 {
-    template <typename Context> static auto Write(Context& ctx, std::wstring const& obj) { ctx << obj; }
-    template <typename Context> static auto Read(std::wstring& obj, Context& ctx) { obj = ctx.read_wstring(); }
+    template <typename TContext> static auto Write(TContext& ctx, std::wstring const& obj) { ctx << obj; }
+    template <typename TContext> static auto Read(std::wstring& obj, TContext& ctx) { obj = ctx.read_wstring(); }
 };
 
 template <> struct SerDes<std::string, ProtocolBinary>
 {
-    template <typename Context> static auto Write(Context& ctx, std::string const& obj) { ctx << obj; }
-    template <typename Context> static auto Read(std::string& obj, Context& ctx) { obj = ctx.read_string(); }
+    template <typename TContext> static auto Write(TContext& ctx, std::string const& obj) { ctx << obj; }
+    template <typename TContext> static auto Read(std::string& obj, TContext& ctx) { obj = ctx.read_string(); }
 };
 
 template <size_t N> struct SerDes<std::array<char, N>, ProtocolBinary>
 {
     using TObj = std::array<char, N>;
-    template <typename Context> static auto Write(Context& ctx, TObj const& obj) { ctx << obj; }
-    template <typename Context> static auto Read(TObj& obj, Context& ctx) { obj = ctx.template read<TObj>(); }
+    template <typename TContext> static auto Write(TContext& ctx, TObj const& obj) { ctx << obj; }
+    template <typename TContext> static auto Read(TObj& obj, TContext& ctx) { obj = ctx.template read<TObj>(); }
 };
 
 template <> struct SerDes<uuids::uuid, ProtocolBinary>
 {
-    template <typename Context> static auto Write(Context& ctx, uuids::uuid const& obj) { ctx << obj.as_bytes(); }
+    template <typename TContext> static auto Write(TContext& ctx, uuids::uuid const& obj) { ctx << obj.as_bytes(); }
 
-    template <typename Context> static auto Read(uuids::uuid& obj, Context& ctx)
+    template <typename TContext> static auto Read(uuids::uuid& obj, TContext& ctx)
     {
         obj = uuids::uuid{ctx.template read<std::array<uint8_t, 16>>()};
     }

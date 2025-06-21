@@ -4,11 +4,12 @@ include(FetchContent)
 FetchContent_Declare(
   httplib
   GIT_REPOSITORY https://github.com/yhirose/cpp-httplib
-  GIT_TAG        v0.16.0
+  GIT_TAG        v0.20.0
   SOURCE_SUBDIR .
   GIT_PROGRESS TRUE
   GIT_SHALLOW 1
   SYSTEM
+  SOURCE_SUBDIR ./include
   FIND_PACKAGE_ARGS NAMES httplib
 )
 
@@ -19,7 +20,7 @@ find_package(httplib QUIET)
 if (NOT httplib_FOUND)
   find_path(CPP_HTTPLIB_INCLUDE_DIRS "httplib.h")
   if (NOT EXISTS "${CPP_HTTPLIB_INCLUDE_DIRS}")
-    FetchContent_Populate(httplib)
+    FetchContent_MakeAvailable(httplib)
     set(CPP_HTTPLIB_INCLUDE_DIRS "${httplib_SOURCE_DIR}")
   endif()
   if (NOT EXISTS "${CPP_HTTPLIB_INCLUDE_DIRS}")

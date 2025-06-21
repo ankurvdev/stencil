@@ -1,17 +1,10 @@
 #pragma once
 #include "comparator.h"
 #include "mutatorsaccessors.h"
-#include "optionalprops.h"
-#include "typetraits_builtins.h"
+#include "serdes.h"
 #include "visitor.h"
 
 #include <algorithm>
-#include <array>
-#include <bitset>
-#include <chrono>
-#include <filesystem>
-#include <fstream>
-#include <span>
 #include <unordered_map>
 
 namespace Stencil
@@ -129,8 +122,8 @@ template <Stencil::ConceptPreferPrimitive TElem, typename TContainer> struct Ste
         auto elem1 = elem;
         Assign(std::move(elem1));
     }
-    void Add(ElemType&& /* elem */) { std::logic_error("Invalid operation"); }
-    void Remove(size_t /* key */) { std::logic_error("Invalid operation"); }
+    void Add(ElemType&& /* elem */) { throw std::logic_error("Invalid operation"); }
+    void Remove(size_t /* key */) { throw std::logic_error("Invalid operation"); }
 
     TxnState&          _elemState;
     ContainerTxnState& _containerState;
@@ -309,7 +302,7 @@ template <Stencil::ConceptPreferIterable TElem, typename TContainer> struct Sten
     using ValTxn            = Transaction<ValType, Txn>;
     using ValTxnState       = typename ValTxn::TxnState;
     using ContainerTxnState = typename TContainer::ElemTxnState;
-    using IteratorType      = uint32_t;    // TODO: Use Iterators ?
+    using IteratorType      = uint32_t; 
 
     struct CombinedTxnState
     {
@@ -377,9 +370,8 @@ template <Stencil::ConceptPreferIterable TElem, typename TContainer> struct Sten
         });
     }
 
-    void NotifyElementEdited_(ElemTxnState const& /*elemTxnState*/)
-    { /* Do nothing for now. The change is already pushed at 328
-        TODO("DoNotCommit");*/
+    void NotifyElementEdited_(ElemTxnState const& /*elemTxnState*/) { /* Do nothing for now. The change is already pushed at 328
+                                                                        TODO("DoNotCommit");*/
     }
 
     void Assign(ElemType&& /* elem */) { throw std::logic_error("Self-Assignment not allowed"); }
@@ -496,7 +488,7 @@ struct Stencil::Visitor<TTxn> : Stencil::VisitorT<TTxn>, Stencil::VisitorForIter
     template <typename TLambda> static void VisitAll(TTxn& txn, TLambda&& lambda) { txn.VisitAll(std::forward<TLambda>(lambda)); }
 };
 
-template <Stencil::ConceptTransactionForPrimitive TTxn, typename TProtocol> struct Stencil::SerDes<TTxn, TProtocol>
+template <Stencil::ConceptTransactionForPrimitive TTxn, Stencil::ConceptProtocol TProtocol> struct Stencil::SerDes<TTxn, TProtocol>
 {
     using ElemType = typename TransactionTraits<TTxn>::ElemType;
 

@@ -5,6 +5,7 @@
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
 #include <cctype>
+#include <cstdint>
 #include <stdexcept>
 #include <string_view>
 #include <type_traits>
@@ -88,6 +89,11 @@ template <typename... Ts> constexpr bool IsEnumPack<EnumPack<Ts...>> = true;
 template <typename T>
 concept ConceptEnumPack = IsEnumPack<T>;
 
+template <typename T> uint32_t        EnumPackCastToInt(T const& rhs);
+template <ConceptEnumPack T> uint32_t EnumPackCastToInt(T const& rhs)
+{
+    return T::CastToInt(rhs);
+}
 }    // namespace Stencil
 
 namespace std
@@ -103,8 +109,7 @@ template <typename T, typename... Ts> constexpr auto get(const Stencil::EnumPack
 }
 }    // namespace std
 
-template <typename T> struct Stencil::TypeTraits<T, std::enable_if_t<Stencil::ConceptEnum<T>>>
-// template <Stencil::ConceptEnum T> struct Stencil::TypeTraits<T>
+template <Stencil::ConceptEnum T> struct Stencil::TypeTraits<T>
 {
     /* Primitive*/
     using Categories = std::tuple<Category::Primitive>;

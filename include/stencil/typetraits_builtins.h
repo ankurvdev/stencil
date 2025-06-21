@@ -1,10 +1,7 @@
 #pragma once
-#include "enums.h"
 #include "shared_string.h"
 #include "timestamped.h"
 #include "typetraits.h"
-#include "typetraits_std.h"
-#include "uuidobject.h"
 
 template <typename T> struct Stencil::TypeTraits<shared_stringT<T>>
 {
@@ -15,3 +12,8 @@ template <> struct Stencil::TypeTraits<Stencil::Timestamp>
 {
     using Categories = std::tuple<Stencil::Category::Primitive>;
 };
+
+static_assert(Stencil::ConceptPrimitive<shared_stringT<char>>);
+static_assert(!Stencil::ConceptIndexable<shared_stringT<char>>);
+static_assert(!Stencil::ConceptIterable<shared_stringT<char>>);
+static_assert(!Stencil::ConceptVariant<shared_stringT<char>>);

@@ -1,10 +1,12 @@
+// cppforge-sync
 #pragma once
 #ifndef _PRAGMA_STRINGIFY
 #define _PRAGMA_STRINGIFY2(x) _Pragma(#x)
 #define _PRAGMA_STRINGIFY(x) _PRAGMA_STRINGIFY2(x)
 #endif
+
 #if !(defined SUPPRESS_WARNINGS_START)
-#if defined _MSC_VER
+#if defined _MSC_VER && !defined __clang__
 #define SUPPRESS_WARNINGS_START _Pragma("warning(push, 3)")
 
 #define SUPPRESS_CLANG_WARNING(warning)
@@ -61,7 +63,6 @@
 #define SUPPRESS_FMT_WARNINGS _Pragma("clang diagnostic ignored \"-Weverything\"")
 
 #elif defined(__GNUC__)
-#define SUPPRESS_WARNINGS_START _Pragma("GCC diagnostic push")
 
 #define SUPPRESS_WARNINGS_END _Pragma("GCC diagnostic pop")
 
@@ -70,6 +71,7 @@
 #define SUPPRESS_MSVC_WARNING(warning)
 #define SUPPRESS_WARNING(msvcwarning, clangwarning, gccwarning) SUPPRESS_GCC_WARNING(gccwarning)
 
+#define SUPPRESS_WARNINGS_START _Pragma("GCC diagnostic push") SUPPRESS_GCC_WARNING("-Wpragmas")
 #define SUPPRESS_STL_WARNINGS _Pragma("GCC diagnostic ignored \"-Wmaybe-uninitialized\"")
 
 #define SUPPRESS_FMT_WARNINGS
@@ -78,21 +80,21 @@
 #endif
 
 #if (!defined CLASS_DEFAULT_COPY_AND_MOVE)
-#define CLASS_DEFAULT_COPY_AND_MOVE(name)   \
-    name(name const&)            = default; \
-    name(name&&)                 = default; \
-    name& operator=(name const&) = default; \
-    name& operator=(name&&)      = delete
+#define CLASS_DEFAULT_COPY_AND_MOVE(name)       \
+    name(name const&)                = default; \
+    name(name&&) noexcept            = default; \
+    name& operator=(name const&)     = default; \
+    name& operator=(name&&) noexcept = default
 
 #define CLASS_DELETE_MOVE_ASSIGNMENT(name)  \
     name(name const&)            = default; \
-    name(name&&)                 = default; \
+    name(name&&) noexcept        = default; \
     name& operator=(name const&) = default; \
     name& operator=(name&&)      = delete
 
 #define CLASS_DELETE_MOVE_AND_COPY_ASSIGNMENT(name) \
     name(name const&)            = default;         \
-    name(name&&)                 = default;         \
+    name(name&&) noexcept        = default;         \
     name& operator=(name const&) = delete;          \
     name& operator=(name&&)      = delete
 
@@ -102,28 +104,22 @@
     name& operator=(name const&) = delete; \
     name& operator=(name&&)      = delete
 
-#define CLASS_DELETE_COPY_DEFAULT_MOVE(name) \
-    name(name const&)            = delete;   \
-    name(name&&)                 = default;  \
-    name& operator=(name const&) = delete;   \
-    name& operator=(name&&)      = default
+#define CLASS_DELETE_COPY_DEFAULT_MOVE(name)    \
+    name(name const&)                = delete;  \
+    name(name&&) noexcept            = default; \
+    name& operator=(name const&)     = delete;  \
+    name& operator=(name&&) noexcept = default
 
-#define CLASS_ONLY_MOVE_CONSTRUCT(name)     \
-    name(name const&)            = delete;  \
-    name(name&&)                 = default; \
-    name& operator=(name const&) = delete;  \
-    name& operator=(name&&)      = delete
+#define CLASS_ONLY_MOVE_CONSTRUCT(name)         \
+    name(name const&)                = delete;  \
+    name(name&&) noexcept            = default; \
+    name& operator=(name const&)     = delete;  \
+    name& operator=(name&&) noexcept = delete
 #endif
+
 
 #if !defined TODO
 #ifdef __cpp_exceptions
-
-[[noreturn]] inline void TodoFunc()
-{
-    throw "Not Implemented:";
-}
-
-#define TODO(...) TodoFunc()
+#define TODO(...)  throw "TODO:" __VA_ARGS__
 #endif
-
 #endif

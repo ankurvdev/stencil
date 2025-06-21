@@ -5,9 +5,7 @@ SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
 SUPPRESS_MSVC_WARNING(4866)    // left to right evaluation not guaranteed
 #include <array>
-#include <bit>
 #include <chrono>
-#include <cmath>
 #include <cstdint>
 #include <stdexcept>
 #include <type_traits>
@@ -236,18 +234,6 @@ template <typename TClock> struct Primitives64Bit::Traits<std::chrono::time_poin
     }
 };
 
-#ifdef TODO1
-template <size_t N>
-    requires(N <= 8)
-struct Primitives64Bit::Traits<std::array<char, N>>
-{
-    static constexpr auto      Type() { return Primitives64Bit::Type::Signed(N); }
-    static void                Assign(Primitives64Bit& /*obj*/, std::array<char, N>& /*val*/) { TODO(""); }
-    static std::array<char, N> Get(Primitives64Bit const& /*obj*/) { TODO(""); }
-    static std::array<char, N> Convert(int64_t /*val*/) { TODO(""); }
-};
-#endif
-
 template <size_t N>
     requires(N <= 4)
 struct Primitives64Bit::Traits<std::array<int16_t, N>>
@@ -330,6 +316,9 @@ concept ConceptPrimitives64BitSigned = Primitives64Bit::Type::IsSigned(Primitive
 
 template <typename T>
 concept ConceptPrimitives64BitUnsigned = Primitives64Bit::Type::IsUnsigned(Primitives64Bit::Traits<T>::Type());
+
+template <typename T, size_t N>
+concept ConceptPrimitive64BitArray = ConceptPrimitives64Bit<std::array<T, N>>;
 
 static_assert(ConceptPrimitives64Bit<double>);
 static_assert(ConceptPrimitives64Bit<float>);

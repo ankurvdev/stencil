@@ -1,4 +1,6 @@
 #pragma once
+#include "typetraits_builtins.h"
+
 #include "enums.h"
 #include "protocol_binary.h"
 #include "protocol_cli.h"

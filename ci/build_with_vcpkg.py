@@ -45,7 +45,7 @@ if not vcpkgroot.exists():
             "-q",
             "https://github.com/ankurvdev/vcpkg.git",
             "--branch",
-            "20240702_0",
+            "lkg_patched",
             "--depth",
             "1",
         ],

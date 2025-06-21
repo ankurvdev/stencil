@@ -4,9 +4,10 @@ include(FetchContent)
 FetchContent_Declare(
   cxxopts
   GIT_REPOSITORY https://github.com/jarro2783/cxxopts
-  GIT_TAG        v3.2.0
+  GIT_TAG        v3.2.1
   GIT_SHALLOW 1
   SYSTEM
+  SOURCE_SUBDIR ./dummy
   FIND_PACKAGE_ARGS NAMES cxxopts
 )
 
@@ -16,7 +17,7 @@ endif()
 
 find_package(cxxopts CONFIG)
 if(NOT cxxopts_FOUND)
-  FetchContent_Populate(cxxopts)
+  FetchContent_MakeAvailable(cxxopts)
   add_library(cxxopts INTERFACE)
   add_library(cxxopts::cxxopts ALIAS cxxopts)
 
