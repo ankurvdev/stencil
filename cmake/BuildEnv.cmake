@@ -164,7 +164,7 @@ macro(EnableStrictCompilation)
                 # Revisit these with newer VS Releases
                 /wd4710  # Function not inlined. VS2019 CRT throws this
                 /wd4711  # Function selected for automatic inline. VS2019 CRT throws this
-                # /wd4738  # storing 32-bit float result in memory, possible loss of performance 10.0.19041.0\ucrt\corecrt_math.h(642)
+                /wd4738  # storing 32-bit float result in memory, possible loss of performance 10.0.19041.0\ucrt\corecrt_math.h(642)
                 # /wd4746  # volatile access of 'b' is subject to /volatile:<iso|ms>
                 # Revisit with later cmake release. This causes cmake autodetect HAVE_STRUCT_TIMESPEC to fail
                 # /wd4255  # The compiler did not find an explicit list of arguments to a function. This warning is for the C compiler only.
