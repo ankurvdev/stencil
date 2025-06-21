@@ -7,7 +7,6 @@
 #include "timestamped.h"
 #include "typetraits.h"
 
-
 #include <filesystem>
 #include <memory>
 #include <mutex>
@@ -329,7 +328,7 @@ struct SerDes
     {
         assert(!stream.fail());
         stream.seekp(0, std::ios_base::beg);
-        stream.write(reinterpret_cast<const char*>(&header), sizeof(header));
+        stream.write(reinterpret_cast<char const*>(&header), sizeof(header));
         assert(!stream.fail());
     }
 
@@ -372,10 +371,10 @@ struct SerDes
         assert(zerobuffer[0] == 0 && zerobuffer[Page::PageSizeInBytes - 1] == 0);
         while (offsetcur < offsetreq)
         {
-            stream.write(reinterpret_cast<const char*>(zerobuffer), Page::PageSizeInBytes);
+            stream.write(reinterpret_cast<char const*>(zerobuffer), Page::PageSizeInBytes);
             offsetcur = stream.tellp();
         }
-        stream.write(reinterpret_cast<const char*>(&page), sizeof(Page));
+        stream.write(reinterpret_cast<char const*>(&page), sizeof(Page));
         assert(!stream.fail());
     }
     SUPPRESS_WARNINGS_END
@@ -1354,9 +1353,6 @@ template <ConceptFixedSize T> struct Record<T>
     T data;
 };
 
-// template <ConceptRecord T> struct Record<std::unique_ptr<T>> = delete;    // No need to store unique_ptr in the database
-// template <ConceptRecord T> struct Record<std::shared_ptr<T>> = delete;    // No need to store shared_ptr in the database
-
 }    // namespace Stencil::Database
 namespace Stencil::Database
 {
@@ -1461,17 +1457,6 @@ template <Stencil::ConceptProtocol TProt> struct Stencil::SerDes<Stencil::Databa
     }
     template <typename Context> static auto Read(Stencil::Database::RefKeyType& /* obj */, Context& /* ctx */);    // Undefined
 };
-
-// template <Stencil::Database::ConceptComplexRecordView  T, ConceptProtocol TProt> struct Stencil::SerDes<T, TProt>
-//{
-//     template <typename Context> static auto Write(Context& /* ctx */, T const& /* obj */)
-//     {
-//        throw std::logic_error("TODO");
-//     }
-//     template <typename Context> static auto Read(T& /* obj */, Context& /* ctx */) {
-//         throw std::logic_error("TODO");
-//    }
-// };
 
 template <Stencil::ConceptIndexable T, typename TDb> struct Stencil::TypeTraits<Stencil::Database::RecordView<T, TDb>>
 {
@@ -1579,16 +1564,3 @@ template <typename T> struct Stencil::Database::RecordTraits<shared_tree<T>>
         throw std::logic_error("Not implemented");
     }
 };
-
-/*
-template <Stencil::ConceptEnum T> struct Stencil::Database::RecordTraits<T>
-{
-    using RecordTypes = std::tuple<uint16_t>;
-    template <typename TDb> static void WriteToBuffer(TDb& db, RWLock const& lock, T const& obj, Record<T>& rec)
-    {
-        throw std::logic_error("not implemented");
-    }
-
-    static constexpr size_t Size() { return sizeof(uint16_t); }
-    static size_t           GetDataSize(T const& obj) { return Size(); }
-};*/

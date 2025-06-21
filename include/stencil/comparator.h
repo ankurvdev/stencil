@@ -1,6 +1,4 @@
 #pragma once
-#include "CommonMacros.h"
-
 #include "shared_string.h"
 #include "shared_tree.h"
 #include <unordered_map>
@@ -36,7 +34,10 @@ template <typename T> struct Comparator<shared_tree<T>, shared_tree<T>>
 
 template <typename K, typename V> struct Comparator<std::unordered_map<K, V>, std::unordered_map<K, V>>
 {
-    static bool AreEqual(std::unordered_map<K, V> const& /* t1 */, std::unordered_map<K, V> const& /* t2 */) { throw std::logic_error("Not implemented"); }
+    static bool AreEqual(std::unordered_map<K, V> const& /* t1 */, std::unordered_map<K, V> const& /* t2 */)
+    {
+        throw std::logic_error("Not implemented");
+    }
 };
 
 template <typename T1, typename T2> bool AreEqual(T1 const& t1, T2 const& t2)
