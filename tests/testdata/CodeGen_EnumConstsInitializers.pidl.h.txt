@@ -687,8 +687,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<En
     using Transaction_val9 = Stencil::Transaction<float, Txn>;
     struct TxnState
     {
-        std::bitset<64> assigntracker;    
-        std::bitset<64> edittracker;      
+        std::bitset<64> assigntracker;
+        std::bitset<64> edittracker;
         typename Transaction_enum1::TxnState enum1{};
         typename Transaction_enum2::TxnState enum2{};
         typename Transaction_enum3::TxnState enum3{};

@@ -32,6 +32,7 @@ struct CommandLineOptions :
     bool daemon = 0;
     bool quiet = 1;
     shared_string out_dir = ".";
+    shared_string undocumented = "defval";
 };
 struct SimpleObj :
     public Stencil::StructT<SimpleObj>
@@ -82,6 +83,7 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>
 ,        Field_daemon
 ,        Field_quiet
 ,        Field_out_dir
+,        Field_undocumented
     };
 
     struct Field_workingDirectoryT
@@ -98,6 +100,8 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>
     {};
     struct Field_out_dirT
     {};
+    struct Field_undocumentedT
+    {};
     using Key = Fields;
     static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Key key)
     {
@@ -110,6 +114,7 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>
         case Fields::Field_daemon: return true;
         case Fields::Field_quiet: return true;
         case Fields::Field_out_dir: return true;
+        case Fields::Field_undocumented: return true;
         case Fields::Invalid: [[fallthrough]];
         default: break;
         }
@@ -123,6 +128,7 @@ template <> struct Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>
     static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_daemonT /* key */) { return true; }
     static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_quietT /* key */) { return true; }
     static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_out_dirT /* key */) { return true; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_undocumentedT /* key */) { return true; }
 };
 template <>
 struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_workingDirectoryT, Stencil::ProtocolString>
@@ -370,101 +376,136 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptio
     }
 };
 template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_undocumentedT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_undocumentedT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "undocumented"); }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        std::string_view name = "undocumented";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_undocumentedT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_undocumentedT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_undocumented);
+    }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_undocumented) { throw std::invalid_argument("Invalid"); }
+    }
+};
+template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_workingDirectoryT>
 {
-    static auto Value() { return "Location of path where it'll store its database and other info"; }
+    static std::string_view Value() { return "Location of path where it'll store its database and other info"; }
 };
 
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Name1,
                           Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_workingDirectoryT>
 {
-    static auto Value() { return "Working Directory"; }
+    static std::string_view Value() { return "Working Directory"; }
 };
 
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_librariesT>
 {
-    static auto Value() { return "Locations of Directories to store files"; }
+    static std::string_view Value() { return "Locations of Directories to store files"; }
 };
 
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Name1,
                           Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_librariesT>
 {
-    static auto Value() { return "Library Directories"; }
+    static std::string_view Value() { return "Library Directories"; }
 };
 
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_scanT>
 {
-    static auto Value() { return "List of Directories to scan for Document files"; }
+    static std::string_view Value() { return "List of Directories to scan for Document files"; }
 };
 
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Name1,
                           Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_scanT>
 {
-    static auto Value() { return "Scan Directories"; }
+    static std::string_view Value() { return "Scan Directories"; }
 };
 
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_httpsPortT>
 {
-    static auto Value() { return "TCP port on which to listen for incoming HTTP connections"; }
+    static std::string_view Value() { return "TCP port on which to listen for incoming HTTP connections"; }
 };
 
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Name1,
                           Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_httpsPortT>
 {
-    static auto Value() { return "Listen Port"; }
+    static std::string_view Value() { return "Listen Port"; }
 };
 
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_daemonT>
 {
-    static auto Value() { return "Run as daemon"; }
+    static std::string_view Value() { return "Run as daemon"; }
 };
 
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Name1,
                           Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_daemonT>
 {
-    static auto Value() { return "Run as Daemon"; }
+    static std::string_view Value() { return "Run as Daemon"; }
 };
 
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_quietT>
 {
-    static auto Value() { return "Run Quietly"; }
+    static std::string_view Value() { return "Run Quietly"; }
 };
 
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Name1,
                           Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_quietT>
 {
-    static auto Value() { return "Run Quietly"; }
+    static std::string_view Value() { return "Run Quietly"; }
 };
 
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_out_dirT>
 {
-    static auto Value() { return "Location of the output directory"; }
+    static std::string_view Value() { return "Location of the output directory"; }
 };
 
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Name1,
                           Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Field_out_dirT>
 {
-    static auto Value() { return "Output Directory"; }
+    static std::string_view Value() { return "Output Directory"; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts1::CommandLineOptions>::Fields>
@@ -481,6 +522,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts1::
 ,        "daemon"
 ,        "quiet"
 ,        "out_dir"
+,        "undocumented"
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
@@ -511,6 +553,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         ElemTxnState daemon = {Fields::Field_daemon};
         ElemTxnState quiet = {Fields::Field_quiet};
         ElemTxnState out_dir = {Fields::Field_out_dir};
+        ElemTxnState undocumented = {Fields::Field_undocumented};
     };
 
     using Txn               = Stencil::Transaction<CLOpts1::CommandLineOptions, TContainer>;
@@ -524,10 +567,11 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     using Transaction_daemon = Stencil::Transaction<bool, Txn>;
     using Transaction_quiet = Stencil::Transaction<bool, Txn>;
     using Transaction_out_dir = Stencil::Transaction<shared_string, Txn>;
+    using Transaction_undocumented = Stencil::Transaction<shared_string, Txn>;
     struct TxnState
     {
-        std::bitset<64> assigntracker;    
-        std::bitset<64> edittracker;      
+        std::bitset<64> assigntracker;
+        std::bitset<64> edittracker;
         typename Transaction_workingDirectory::TxnState workingDirectory{};
         typename Transaction_libraries::TxnState libraries{};
         typename Transaction_scan::TxnState scan{};
@@ -535,6 +579,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         typename Transaction_daemon::TxnState daemon{};
         typename Transaction_quiet::TxnState quiet{};
         typename Transaction_out_dir::TxnState out_dir{};
+        typename Transaction_undocumented::TxnState undocumented{};
     };
 
     Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
@@ -645,6 +690,16 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
             auto txn = out_dir();
             lambda(Fields::Field_out_dir, uint8_t{3u}, uint32_t{0u}, txn);
         }
+        if (_IsFieldAssigned(Fields::Field_undocumented))
+        {
+            auto txn = undocumented();
+            lambda(Fields::Field_undocumented, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_undocumented))
+        {
+            auto txn = undocumented();
+            lambda(Fields::Field_undocumented, uint8_t{3u}, uint32_t{0u}, txn);
+        }
     }
 
     void Assign(ElemType&& elem)
@@ -700,6 +755,11 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     auto out_dir()
     {
         return Stencil::CreateTransaction<Transaction_out_dir>(_elemState.out_dir, _txnStateForElem.out_dir, *this, _elem.out_dir);
+    }
+
+    auto undocumented()
+    {
+        return Stencil::CreateTransaction<Transaction_undocumented>(_elemState.undocumented, _txnStateForElem.undocumented, *this, _elem.undocumented);
     }
 
     void set_workingDirectory(shared_string&& val)
@@ -780,6 +840,12 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         subtxn.Assign(std::forward<shared_string>(val));
     }
 
+    void set_undocumented(shared_string&& val)
+    {
+        auto subtxn = undocumented();
+        subtxn.Assign(std::forward<shared_string>(val));
+    }
+
     template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
     {
         switch (index)
@@ -817,6 +883,11 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         case Fields::Field_out_dir:
         {
             auto txn = out_dir();
+            return lambda(txn);
+        }
+        case Fields::Field_undocumented:
+        {
+            auto txn = undocumented();
             return lambda(txn);
         }
         case Fields::Invalid: [[fallthrough]];
@@ -859,6 +930,10 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
             auto txn = out_dir();
             lambda(Traits::Field_out_dirT{}, txn, Elem().out_dir);
         }
+        {
+            auto txn = undocumented();
+            lambda(Traits::Field_undocumentedT{}, txn, Elem().undocumented);
+        }
     }
 };
 
@@ -879,6 +954,7 @@ template <> struct Stencil::Visitor<CLOpts1::CommandLineOptions> : Stencil::Visi
         case Fields::Field_daemon: return lambda(obj.daemon);
         case Fields::Field_quiet: return lambda(obj.quiet);
         case Fields::Field_out_dir: return lambda(obj.out_dir);
+        case Fields::Field_undocumented: return lambda(obj.undocumented);
         case Fields::Invalid: [[fallthrough]];
         default: throw std::logic_error("Invalid Key");
         }
@@ -893,6 +969,7 @@ template <> struct Stencil::Visitor<CLOpts1::CommandLineOptions> : Stencil::Visi
         lambda(Traits::Field_daemonT{}, obj.daemon);
         lambda(Traits::Field_quietT{}, obj.quiet);
         lambda(Traits::Field_out_dirT{}, obj.out_dir);
+        lambda(Traits::Field_undocumentedT{}, obj.undocumented);
     }
 };
 
@@ -909,6 +986,7 @@ template <> struct Stencil::Comparator<CLOpts1::CommandLineOptions, CLOpts1::Com
                && Stencil::AreEqual(obj1.daemon, obj2.daemon)
                && Stencil::AreEqual(obj1.quiet, obj2.quiet)
                && Stencil::AreEqual(obj1.out_dir, obj2.out_dir)
+               && Stencil::AreEqual(obj1.undocumented, obj2.undocumented)
             ;
     }
 };
@@ -925,6 +1003,7 @@ struct Stencil::Database::Record<CLOpts1::CommandLineOptions> :
     Stencil::Database::RecordNest<bool>::Type daemon{};
     Stencil::Database::RecordNest<bool>::Type quiet{};
     Stencil::Database::RecordNest<shared_string>::Type out_dir{};
+    Stencil::Database::RecordNest<shared_string>::Type undocumented{};
 };
 
 template <> struct Stencil::Database::RecordTraits<CLOpts1::CommandLineOptions>
@@ -936,6 +1015,7 @@ template <> struct Stencil::Database::RecordTraits<CLOpts1::CommandLineOptions>
         typename Stencil::Database::RecordTraits<int32_t>::RecordTypes,
         typename Stencil::Database::RecordTraits<bool>::RecordTypes,
         typename Stencil::Database::RecordTraits<bool>::RecordTypes,
+        typename Stencil::Database::RecordTraits<shared_string>::RecordTypes,
         typename Stencil::Database::RecordTraits<shared_string>::RecordTypes,
         std::tuple<CLOpts1::CommandLineOptions>>;
 
@@ -954,6 +1034,7 @@ template <> struct Stencil::Database::RecordTraits<CLOpts1::CommandLineOptions>
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.daemon, rec.daemon);
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.quiet, rec.quiet);
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.out_dir, rec.out_dir);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.undocumented, rec.undocumented);
     }
 };
 
@@ -976,6 +1057,7 @@ struct Stencil::Visitor<Stencil::Database::Record<CLOpts1::CommandLineOptions>>
         case Fields::Field_daemon: return lambda(obj.daemon);
         case Fields::Field_quiet: return lambda(obj.quiet);
         case Fields::Field_out_dir: return lambda(obj.out_dir);
+        case Fields::Field_undocumented: return lambda(obj.undocumented);
         case Fields::Invalid: [[fallthrough]];
         default: throw std::logic_error("Invalid Key");
         }
@@ -990,6 +1072,7 @@ struct Stencil::Visitor<Stencil::Database::Record<CLOpts1::CommandLineOptions>>
         lambda(Traits::Field_daemonT{}, obj.daemon);
         lambda(Traits::Field_quietT{}, obj.quiet);
         lambda(Traits::Field_out_dirT{}, obj.out_dir);
+        lambda(Traits::Field_undocumentedT{}, obj.undocumented);
     }
 };
 
@@ -1142,8 +1225,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     using Transaction_field2 = Stencil::Transaction<shared_string, Txn>;
     struct TxnState
     {
-        std::bitset<64> assigntracker;    
-        std::bitset<64> edittracker;      
+        std::bitset<64> assigntracker;
+        std::bitset<64> edittracker;
         typename Transaction_field1::TxnState field1{};
         typename Transaction_field2::TxnState field2{};
     };
@@ -1484,8 +1567,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     using Transaction_field1 = Stencil::Transaction<std::vector<shared_string>, Txn>;
     struct TxnState
     {
-        std::bitset<64> assigntracker;    
-        std::bitset<64> edittracker;      
+        std::bitset<64> assigntracker;
+        std::bitset<64> edittracker;
         typename Transaction_field1::TxnState field1{};
     };
 
@@ -2020,8 +2103,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     using Transaction_key2 = Stencil::Transaction<shared_string, Txn>;
     struct TxnState
     {
-        std::bitset<64> assigntracker;    
-        std::bitset<64> edittracker;      
+        std::bitset<64> assigntracker;
+        std::bitset<64> edittracker;
         typename Transaction_key1::TxnState key1{};
         typename Transaction_listofint::TxnState listofint{};
         typename Transaction_listoflist::TxnState listoflist{};

@@ -377,8 +377,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
     using Transaction_val5 = Stencil::Transaction<double, Txn>;
     struct TxnState
     {
-        std::bitset<64> assigntracker;    
-        std::bitset<64> edittracker;      
+        std::bitset<64> assigntracker;
+        std::bitset<64> edittracker;
         typename Transaction_val1::TxnState val1{};
         typename Transaction_val2::TxnState val2{};
         typename Transaction_val3::TxnState val3{};
@@ -891,8 +891,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
     using Transaction_obj1 = Stencil::Transaction<::Objects::SimpleObject1, Txn>;
     struct TxnState
     {
-        std::bitset<64> assigntracker;    
-        std::bitset<64> edittracker;      
+        std::bitset<64> assigntracker;
+        std::bitset<64> edittracker;
         typename Transaction_value::TxnState value{};
         typename Transaction_obj1::TxnState obj1{};
     };
@@ -1325,8 +1325,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
     using Transaction_dictdict = Stencil::Transaction<std::unordered_map<uint32_t, std::unordered_map<uint32_t, ::Objects::SimpleObject1>>, Txn>;
     struct TxnState
     {
-        std::bitset<64> assigntracker;    
-        std::bitset<64> edittracker;      
+        std::bitset<64> assigntracker;
+        std::bitset<64> edittracker;
         typename Transaction_dictobj::TxnState dictobj{};
         typename Transaction_dictval::TxnState dictval{};
         typename Transaction_dictdict::TxnState dictdict{};
@@ -1706,8 +1706,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
     using Transaction_listobj = Stencil::Transaction<std::vector<::Objects::ListObject>, Txn>;
     struct TxnState
     {
-        std::bitset<64> assigntracker;    
-        std::bitset<64> edittracker;      
+        std::bitset<64> assigntracker;
+        std::bitset<64> edittracker;
         typename Transaction_listobj::TxnState listobj{};
     };
 
@@ -2334,8 +2334,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
     using Transaction_val8 = Stencil::Transaction<int16_t, Txn>;
     struct TxnState
     {
-        std::bitset<64> assigntracker;    
-        std::bitset<64> edittracker;      
+        std::bitset<64> assigntracker;
+        std::bitset<64> edittracker;
         typename Transaction_val1::TxnState val1{};
         typename Transaction_val2::TxnState val2{};
         typename Transaction_val3::TxnState val3{};
@@ -3094,8 +3094,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
     using Transaction_list1 = Stencil::Transaction<::Objects::List, Txn>;
     struct TxnState
     {
-        std::bitset<64> assigntracker;    
-        std::bitset<64> edittracker;      
+        std::bitset<64> assigntracker;
+        std::bitset<64> edittracker;
         typename Transaction_obj1::TxnState obj1{};
         typename Transaction_obj2::TxnState obj2{};
         typename Transaction_obj3::TxnState obj3{};
@@ -3602,8 +3602,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
     using Transaction_self = Stencil::Transaction<Stencil::Ref<::Objects::SelfNested>, Txn>;
     struct TxnState
     {
-        std::bitset<64> assigntracker;    
-        std::bitset<64> edittracker;      
+        std::bitset<64> assigntracker;
+        std::bitset<64> edittracker;
         typename Transaction_obj1::TxnState obj1{};
         typename Transaction_self::TxnState self{};
     };

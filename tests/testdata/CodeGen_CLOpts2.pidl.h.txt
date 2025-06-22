@@ -443,40 +443,40 @@ template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_ProductIdT>
 {
-    static auto Value() { return "Catalog/Product:Sku:Bundle"; }
+    static std::string_view Value() { return "Catalog/Product:Sku:Bundle"; }
 };
 
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_RepairT>
 {
-    static auto Value() { return "Repair existing installated product"; }
+    static std::string_view Value() { return "Repair existing installated product"; }
 };
 
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_ForceNonSDT>
 {
-    static auto Value() { return "Force installation to non SD"; }
+    static std::string_view Value() { return "Force installation to non SD"; }
 };
 
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_TargetVolumeT>
 {
-    static auto Value() { return "Target Volume"; }
+    static std::string_view Value() { return "Target Volume"; }
 };
 
 template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Field_UserT>
 {
-    static auto Value() { return "User to install for"; }
+    static std::string_view Value() { return "User to install for"; }
 };
 
 template <> struct Stencil::Attribute<Stencil::AttributeType::Description, CLOpts2::InstallOptions>
 {
-    static auto Value() { return "Install a specific product"; }
+    static std::string_view Value() { return "Install a specific product"; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>::Fields>
@@ -532,8 +532,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     using Transaction_User = Stencil::Transaction<shared_string, Txn>;
     struct TxnState
     {
-        std::bitset<64> assigntracker;    
-        std::bitset<64> edittracker;      
+        std::bitset<64> assigntracker;
+        std::bitset<64> edittracker;
         typename Transaction_ProductId::TxnState ProductId{};
         typename Transaction_Repair::TxnState Repair{};
         typename Transaction_ForceNonSD::TxnState ForceNonSD{};
@@ -954,12 +954,12 @@ template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::Field_ProductIdT>
 {
-    static auto Value() { return "Catalog/Product:Sku:Bundle"; }
+    static std::string_view Value() { return "Catalog/Product:Sku:Bundle"; }
 };
 
 template <> struct Stencil::Attribute<Stencil::AttributeType::Description, CLOpts2::QueueOptions>
 {
-    static auto Value() { return "Listen for progress notifications for a specific product or all queued products"; }
+    static std::string_view Value() { return "Listen for progress notifications for a specific product or all queued products"; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>::Fields>
@@ -1003,8 +1003,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     using Transaction_ProductId = Stencil::Transaction<shared_string, Txn>;
     struct TxnState
     {
-        std::bitset<64> assigntracker;    
-        std::bitset<64> edittracker;      
+        std::bitset<64> assigntracker;
+        std::bitset<64> edittracker;
         typename Transaction_ProductId::TxnState ProductId{};
     };
 
@@ -1269,12 +1269,12 @@ template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::Field_ProductIdT>
 {
-    static auto Value() { return "Catalog/Product:Sku:Bundle"; }
+    static std::string_view Value() { return "Catalog/Product:Sku:Bundle"; }
 };
 
 template <> struct Stencil::Attribute<Stencil::AttributeType::Description, CLOpts2::PauseOptions>
 {
-    static auto Value() { return "Pause the given product"; }
+    static std::string_view Value() { return "Pause the given product"; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>::Fields>
@@ -1318,8 +1318,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     using Transaction_ProductId = Stencil::Transaction<shared_string, Txn>;
     struct TxnState
     {
-        std::bitset<64> assigntracker;    
-        std::bitset<64> edittracker;      
+        std::bitset<64> assigntracker;
+        std::bitset<64> edittracker;
         typename Transaction_ProductId::TxnState ProductId{};
     };
 
@@ -1584,12 +1584,12 @@ template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::Field_ProductIdT>
 {
-    static auto Value() { return "Catalog/Product:Sku:Bundle"; }
+    static std::string_view Value() { return "Catalog/Product:Sku:Bundle"; }
 };
 
 template <> struct Stencil::Attribute<Stencil::AttributeType::Description, CLOpts2::CancelOptions>
 {
-    static auto Value() { return "Cancel the given product"; }
+    static std::string_view Value() { return "Cancel the given product"; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>::Fields>
@@ -1633,8 +1633,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     using Transaction_ProductId = Stencil::Transaction<shared_string, Txn>;
     struct TxnState
     {
-        std::bitset<64> assigntracker;    
-        std::bitset<64> edittracker;      
+        std::bitset<64> assigntracker;
+        std::bitset<64> edittracker;
         typename Transaction_ProductId::TxnState ProductId{};
     };
 
@@ -1899,12 +1899,12 @@ template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Field_ProductIdT>
 {
-    static auto Value() { return "Catalog/Product:Sku:Bundle"; }
+    static std::string_view Value() { return "Catalog/Product:Sku:Bundle"; }
 };
 
 template <> struct Stencil::Attribute<Stencil::AttributeType::Description, CLOpts2::ResumeOptions>
 {
-    static auto Value() { return "Resume the given product"; }
+    static std::string_view Value() { return "Resume the given product"; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>::Fields>
@@ -1948,8 +1948,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     using Transaction_ProductId = Stencil::Transaction<shared_string, Txn>;
     struct TxnState
     {
-        std::bitset<64> assigntracker;    
-        std::bitset<64> edittracker;      
+        std::bitset<64> assigntracker;
+        std::bitset<64> edittracker;
         typename Transaction_ProductId::TxnState ProductId{};
     };
 
@@ -2214,12 +2214,12 @@ template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Field_ProductIdT>
 {
-    static auto Value() { return "Catalog/Product:Sku:Bundle"; }
+    static std::string_view Value() { return "Catalog/Product:Sku:Bundle"; }
 };
 
 template <> struct Stencil::Attribute<Stencil::AttributeType::Description, CLOpts2::UpdateOptions>
 {
-    static auto Value() { return "Check for updates for a given product or all installed products"; }
+    static std::string_view Value() { return "Check for updates for a given product or all installed products"; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>::Fields>
@@ -2263,8 +2263,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     using Transaction_ProductId = Stencil::Transaction<shared_string, Txn>;
     struct TxnState
     {
-        std::bitset<64> assigntracker;    
-        std::bitset<64> edittracker;      
+        std::bitset<64> assigntracker;
+        std::bitset<64> edittracker;
         typename Transaction_ProductId::TxnState ProductId{};
     };
 
@@ -2529,12 +2529,12 @@ template <>
 struct Stencil::Attribute<Stencil::AttributeType::Description,
                           Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Field_ProductIdT>
 {
-    static auto Value() { return "Catalog/Product:Sku:Bundle"; }
+    static std::string_view Value() { return "Catalog/Product:Sku:Bundle"; }
 };
 
 template <> struct Stencil::Attribute<Stencil::AttributeType::Description, CLOpts2::HydrateOptions>
 {
-    static auto Value() { return "Download document for a given product"; }
+    static std::string_view Value() { return "Download document for a given product"; }
 };
 
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>::Fields>
@@ -2578,8 +2578,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     using Transaction_ProductId = Stencil::Transaction<shared_string, Txn>;
     struct TxnState
     {
-        std::bitset<64> assigntracker;    
-        std::bitset<64> edittracker;      
+        std::bitset<64> assigntracker;
+        std::bitset<64> edittracker;
         typename Transaction_ProductId::TxnState ProductId{};
     };
 
@@ -3134,7 +3134,7 @@ template <> struct Stencil::Visitor<CLOpts2::CommandLineOptions>
 
 template <> struct Stencil::Attribute<Stencil::AttributeType::Description, CLOpts2::CommandLineOptions>
 {
-    static auto Value() { return "Command Line tool for windows-store operations"; }
+    static std::string_view Value() { return "Command Line tool for windows-store operations"; }
 };
 template <> struct Stencil::VisitorForVariant<CLOpts2::CommandLineOptions>
 {
