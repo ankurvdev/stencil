@@ -3,8 +3,6 @@
 #include "typetraits.h"
 #include "visitor.h"
 
-#include <fmt/format.h>
-
 #include <cctype>
 #include <span>
 #include <sstream>

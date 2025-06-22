@@ -44,6 +44,7 @@
         _Pragma("warning(disable : 4626)") /* assignment operator was implicitly defined as deleted*/                        \
         _Pragma("warning(disable : 4868)") /* compiler may not enforce left-to-right eval-order in braced initializer list*/ \
         _Pragma("warning(disable : 4738)") /* float-rounding. possible loss of performance. use /fp:fast*/                   \
+        _Pragma("warning(disable : 4746)") /* volatile access of 'b' is subject to /volatile:<iso|ms> */                     \
         _Pragma("warning(disable : 5027)") /* move assignment operator was implicitly defined as deleted*/                   \
         _Pragma("warning(disable : 5204)") /* class has virtual functions, but its trivial destructor is not virtual;*/      \
         _Pragma("warning(disable : 4668)") /* not defined as a preprocessor macro, replacing with '0' f*/
@@ -117,9 +118,8 @@
     name& operator=(name&&) noexcept = delete
 #endif
 
-
 #if !defined TODO
 #ifdef __cpp_exceptions
-#define TODO(...)  throw "TODO:" __VA_ARGS__
+#define TODO(...) throw "TODO:" __VA_ARGS__
 #endif
 #endif
