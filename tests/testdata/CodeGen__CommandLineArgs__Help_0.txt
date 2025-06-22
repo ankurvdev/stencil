@@ -10,42 +10,42 @@ resume     Resume the given product
 update     Check for updates for a given product or all installed products                    
 hydrate    Download document for a given product                                              
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Usage:                        <product-id>                           
-Description:                                                         
-Install a specific product                                           
-<product-id>                  Catalog/Product:Sku:Bundle             
---repair                      Repair existing installated product    
---force-non-sd                Force installation to non SD           
---target-volume               Target Volume                          
---user                        User to install for                    
+Usage:          <product-id>                           
+Description:                                           
+Install a specific product                             
+<product-id>    Catalog/Product:Sku:Bundle             
+--repair        Repair existing installated product    
+--force-non-sd  Force installation to non SD           
+--target-volume Target Volume                          
+--user          User to install for                    
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Usage:                                                                                                           
-Description:                                                                                                     
-Listen for progress notifications for a specific product or all queued products                                  
---product-id                                                                       Catalog/Product:Sku:Bundle    
+Usage:                                                                             
+Description:                                                                       
+Listen for progress notifications for a specific product or all queued products    
+--product-id    Catalog/Product:Sku:Bundle                                         
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Usage:                     <product-id>                  
-Description:                                             
-Pause the given product                                  
-<product-id>               Catalog/Product:Sku:Bundle    
+Usage:          <product-id>                  
+Description:                                  
+Pause the given product                       
+<product-id>    Catalog/Product:Sku:Bundle    
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Usage:                      <product-id>                  
-Description:                                              
-Cancel the given product                                  
-<product-id>                Catalog/Product:Sku:Bundle    
+Usage:          <product-id>                  
+Description:                                  
+Cancel the given product                      
+<product-id>    Catalog/Product:Sku:Bundle    
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Usage:                      <product-id>                  
-Description:                                              
-Resume the given product                                  
-<product-id>                Catalog/Product:Sku:Bundle    
+Usage:          <product-id>                  
+Description:                                  
+Resume the given product                      
+<product-id>    Catalog/Product:Sku:Bundle    
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Usage:                                                                                           
-Description:                                                                                     
-Check for updates for a given product or all installed products                                  
---product-id                                                       Catalog/Product:Sku:Bundle    
+Usage:                                                             
+Description:                                                       
+Check for updates for a given product or all installed products    
+--product-id    Catalog/Product:Sku:Bundle                         
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Usage:                                   <product-id>                  
-Description:                                                           
-Download document for a given product                                  
-<product-id>                             Catalog/Product:Sku:Bundle    
+Usage:          <product-id>                  
+Description:                                  
+Download document for a given product         
+<product-id>    Catalog/Product:Sku:Bundle    
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

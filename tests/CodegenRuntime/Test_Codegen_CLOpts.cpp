@@ -4,6 +4,7 @@
 #include <stencil/protocol_cli.h>
 
 #include "TestUtils.h"
+#include "stencil/typetraits.h"
 
 static_assert(!Stencil::Category::IsPrimitive<CLOpts1::CommandLineOptions>());
 static_assert(Stencil::ConceptIndexable<CLOpts1::CommandLineOptions>);
@@ -294,4 +295,10 @@ TEST_CASE("CodeGen::CommandLineArgs::Help")
     }
 
     TestCommon::CheckResource<TestCommon::StrFormat>(output, "0");
+}
+
+TEST_CASE("CodeGen::CLOpts1CommandLineArgs::Help")
+{
+    static_assert(Stencil::ConceptNamedTuple<CLOpts1::CommandLineOptions>);
+    TestCommon::CheckResource<TestCommon::StrFormat>(RequireGenerateHelpException<::CLOpts1::CommandLineOptions>("--help"), "0");
 }

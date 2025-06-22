@@ -253,7 +253,7 @@ struct SSEListenerManager
         CLASS_DELETE_COPY_AND_MOVE(Instance);
 
         bool _streamEnded() const { return _ctx == nullptr; }
-        void Start(SSEContext& ctx, std::span<const char> const& msg)
+        void Start(SSEContext& ctx, std::span<char const> const& msg)
         {
 
             {
@@ -284,7 +284,7 @@ struct SSEListenerManager
             _dataAvailable.notify_all();
         }
 
-        bool Send(std::unique_lock<std::mutex> const& lock, std::span<const char> const& msg)
+        bool Send(std::unique_lock<std::mutex> const& lock, std::span<char const> const& msg)
         {
             if (_streamEnded()) return false;
             if (msg.size() == 0) return true;
@@ -303,7 +303,7 @@ struct SSEListenerManager
         }
     };
 
-    void Send(size_t category, std::span<const char> const& msg)
+    void Send(size_t category, std::span<char const> const& msg)
     {
         auto lock = std::unique_lock<std::mutex>(_mutex);
         for (auto it = _sseListeners.begin(); it != _sseListeners.end();)
@@ -843,8 +843,8 @@ struct WebServiceInterfaceImplT<TImpl, TInterface> : TInterface,    // TImpl imp
 template <typename TImpl, ConceptIndexable T>
 struct WebServiceInterfaceImplT<TImpl, impl::SynchronizedState<T>> : impl::SynchronizedState<T>
 {
-    WebServiceInterfaceImplT()                   = default;
-    virtual ~WebServiceInterfaceImplT() override = default;
+    WebServiceInterfaceImplT()  = default;
+    ~WebServiceInterfaceImplT() = default;
     CLASS_DELETE_COPY_AND_MOVE(WebServiceInterfaceImplT);
 
     void NotifyStateChanged(Stencil::Transaction<T>& txn)

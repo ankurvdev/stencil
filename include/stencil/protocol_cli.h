@@ -693,7 +693,7 @@ template <typename TStrArr> struct SpanStr
 {
     TStrArr const* _strList;
 
-    const auto& at(size_t index) const { return (*_strList)[index]; }
+    auto const& at(size_t index) const { return (*_strList)[index]; }
     size_t      count() const { return std::size(*_strList); }
 };
 
@@ -756,27 +756,27 @@ struct Table
 
     void AddRow() { rows.push_back(Row{}); }
 
-    void AddColumn(size_t col, size_t span, std::string_view text)
+    void AddColumn(size_t col, size_t span, std::string_view const& text)
     {
         ColumnSpan col1{col, span, std::string(text)};
         rows.back().columns.push_back(std::move(col1));
     }
 
-    void AddTable(size_t colindx, size_t span, const Table& table)
+    void AddTable(size_t colindx, size_t span, Table const& table)
     {
         auto lines = table.PrintAsLines();
         for (auto& l : lines) { AddRowColumn(colindx, span, l); }
     }
 
-    void AddRowColumn(size_t col, size_t span, std::string text)
+    void AddRowColumn(size_t col, size_t span, std::string_view const& text)
     {
         AddRow();
         AddColumn(col, span, text);
     }
 
-    size_t _FindColumnWidth(const ColumnSpan& col) const { return static_cast<size_t>(col.text.length() + 4u); }
+    size_t _FindColumnWidth(ColumnSpan const& col) const { return static_cast<size_t>(col.text.length() + 4u); }
 
-    void _PrintColumnTextToBuffer(char* buffer, size_t /*available*/, const ColumnSpan& col) const
+    void _PrintColumnTextToBuffer(char* buffer, size_t /*available*/, ColumnSpan const& col) const
     {
         if (col.text.empty()) return;
         std::copy(col.text.begin(), col.text.end(), buffer);
@@ -792,9 +792,9 @@ struct Table
     std::vector<size_t> _FindColumnWidths() const
     {
         std::vector<size_t> columnwidths;
-        for (const auto& row : rows)
+        for (auto const& row : rows)
         {
-            for (const auto& col : row.columns)
+            for (auto const& col : row.columns)
             {
                 if (columnwidths.size() <= col.column) { columnwidths.resize(col.column + 1, 0); }
                 if (col.colspan == 0)
@@ -882,23 +882,23 @@ template <typename T> inline auto GenerateHelp(T const& obj, Table& table)
     else if constexpr (ConceptNamedTuple<T>)
     {
         table.AddRowColumn(0, 0, "Usage:");
-
+        size_t col = 1;
         Visitor<T>::VisitAll(obj, [&](auto k, auto&) {
             if (Stencil::TypeTraitsForIndexable<T>::HasDefaultValueForKey(obj, k)) { return; }
             std::stringstream ss;
             SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
-            table.AddColumn(1, 255, fmt::format("<{}>", Normalize(ss.str())));
+            table.AddColumn(col++, 0, fmt::format("<{}>", Normalize(ss.str())));
         });
 
         table.AddRowColumn(0, 0, "Description:");
-        table.AddRowColumn(0, 0, Stencil::Attribute<Stencil::AttributeType::Description, T>::Value());
+        table.AddRowColumn(0, 255, Stencil::Attribute<Stencil::AttributeType::Description, T>::Value());
 
         Visitor<T>::VisitAll(obj, [&](auto k, auto& /* v */) {
             using KeyType = std::remove_cvref_t<decltype(k)>;
             if (Stencil::TypeTraitsForIndexable<T>::HasDefaultValueForKey(obj, k)) { return; }
             std::stringstream ss;
             SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
-            table.AddRowColumn(0, 255, fmt::format("<{}>", Normalize(ss.str())));
+            table.AddRowColumn(0, 0, fmt::format("<{}>", Normalize(ss.str())));
             table.AddColumn(1, 255, fmt::format("{}", Stencil::Attribute<Stencil::AttributeType::Description, KeyType>::Value()));
         });
 
