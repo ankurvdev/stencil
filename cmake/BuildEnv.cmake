@@ -104,6 +104,13 @@ macro(EnableStrictCompilation)
         set(CMAKE_CXX_COMPILE_OPTIONS_IPO "-flto=full")
     endif()
 
+    if (ANDROID AND CMAKE_HOST_SYSTEM MATCHES "Windows")
+        # Link what you use causes issues with android on windows
+        # ... clang++.exe ... cmake.exe" -E __run_co_compile --lwyu=ldd;-u;-r ...
+        # Error running 'ldd': no such file or directory
+        set(CMAKE_LINK_WHAT_YOU_USE OFF)
+    endif()
+
 
     if (EMSCRIPTEN)
         set(Threads_FOUND 1)
