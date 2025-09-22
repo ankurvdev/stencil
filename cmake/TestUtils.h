@@ -194,7 +194,7 @@ struct ResourceFileManager
             auto resname = r.name();
             if (resname == testresname || resname == name)
             {
-                auto          path = std::filesystem::current_path() / (prefix + resname);
+                auto          path = std::filesystem::current_path() / (prefix + std::string(resname));
                 std::ofstream f(path);
                 auto const&   str = r.string();
                 if (!f.is_open()) { throw std::runtime_error("Cannot write resource file : " + path.string()); }
