@@ -18,13 +18,16 @@ import time
 import urllib.parse
 import urllib.request
 import zipfile
+from collections.abc import Generator
 from os import _Environ
 from pathlib import Path
-from typing import Any, Callable, Dict, Generator, Optional
+from typing import Any, Callable, Optional
 
-# EMSDK_VERSION = "3.1.14"  #This is what qt likes
 EMSDK_VERSION = "latest"
-ANDROID_NDK_VERSION = "26.3.11579264"
+# EMSDK_VERSION = "3.1.67"  # Fmt fails to compile with 3.1.68+" https://github.com/emscripten-core/emsdk/issues/1480
+# ANDROID_NDK_VERSION = "27.2.12479018" LTS
+ANDROID_NDK_VERSION = "28.2.13676358"
+ANDROID_SDK_VERSION = 36
 NODE_LATEST = "latest"  # latest-v20.x
 DefaultArch = {"amd64": "x64", "x86_64": "x64", "aarch64": "arm64"}.get(platform.machine().lower(), platform.machine().lower())
 
@@ -32,16 +35,16 @@ URLS = {}
 
 URLS["cmake_Windows_x64"] = {
     "downloadpage": "https://cmake.org/download/",
-    "urlpattern": "https://github.com/Kitware/CMake/releases/download/v.*/cmake-.*-windows-x86_64.zip",
+    "urlpattern": "https://github.com/Kitware/CMake/releases/download/v.*/cmake-[0-9\\.]*-windows-x86_64.zip",
 }
 
 URLS["cmake_Windows_arm64"] = {
     "downloadpage": "https://cmake.org/download/",
-    "urlpattern": "https://github.com/Kitware/CMake/releases/download/v.*/cmake-.*-windows-arm64.zip",
+    "urlpattern": "https://github.com/Kitware/CMake/releases/download/v.*/cmake-[0-9\\.]*-windows-arm64.zip",
 }
 
 URLS["patch_Windows_x64"] = ""
-URLS["gradle_Linux_x64"] = URLS["gradle_Windows_x64"] = "https://services.gradle.org/distributions/gradle-8.7-bin.zip"
+URLS["gradle_Linux_x64"] = URLS["gradle_Windows_x64"] = "https://services.gradle.org/distributions/gradle-8.14.2-bin.zip"
 URLS["flexbison_Windows_x64"] = "https://github.com/lexxmark/winflexbison/releases/download/v2.5.25/win_flex_bison-2.5.25.zip"
 URLS["ninja_Windows_x64"] = "https://github.com/ninja-build/ninja/releases/latest/download/ninja-win.zip"
 URLS["ninja_Windows_arm64"] = "https://github.com/ninja-build/ninja/releases/latest/download/ninja-winarm64.zip"
@@ -81,11 +84,11 @@ URLS["rsvg-convert_Linux_x64"] = {
     "url": "https://github.com/ankurvdev/binaries/raw/main/rsvg-convert",
     "archiveext": "bin",
 }
-URLS["typesense-server_Linux_x64"] = "https://dl.typesense.org/releases/0.25.1/typesense-server-0.25.1-linux-amd64.tar.gz"
-URLS["typesense-server_Linux_arm64"] = "https://dl.typesense.org/releases/0.25.1/typesense-server-0.25.1-linux-arm64.tar.gz"
+URLS["typesense-server_Linux_x64"] = "https://dl.typesense.org/releases/26.0/typesense-server-26.0-linux-amd64.tar.gz"
+URLS["typesense-server_Linux_arm64"] = "https://dl.typesense.org/releases/26.0/typesense-server-26.0-linux-arm64.tar.gz"
 URLS["rsvg-convert_Windows_x64"] = "https://github.com/ankurvdev/binaries/raw/main/rsvg-convert.exe"
-URLS["resvg_Windows_arm64"] = "https://github.com/ankurvdev/resvg/releases/latest/download/resvg-windows-x86_64.zip"
-URLS["resvg_Windows_x64"] = "https://github.com/ankurvdev/resvg/releases/latest/download/resvg-windows-arm64.zip"
+URLS["resvg_Windows_x64"] = "https://github.com/ankurvdev/resvg/releases/latest/download/resvg-windows-x86_64.zip"
+URLS["resvg_Windows_arm64"] = "https://github.com/ankurvdev/resvg/releases/latest/download/resvg-windows-arm64.zip"
 URLS["resvg_Linux_x64"] = "https://github.com/ankurvdev/resvg/releases/latest/download/resvg-linux-x86_64.zip"
 URLS["resvg_Linux_arm64"] = "https://github.com/ankurvdev/resvg/releases/latest/download/resvg-linux-aarch64.zip"
 URLS["deno_Windows_x64"] = "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-pc-windows-msvc.zip"
@@ -127,7 +130,7 @@ class HTMLUrlExtractor(html.parser.HTMLParser):
             resp = urllib.request.urlopen(req)
         text = resp.read().decode("utf-8")
         self.baseurl = url
-        self.urls: Dict[str, str] = {}
+        self.urls: dict[str, str] = {}
         self.href: Optional[str] = None
         self.text: Optional[str] = None
         super().__init__()
@@ -198,15 +201,15 @@ def get_env_config_var(name: str, default_val: str | None = None) -> str | None:
     if name in os.environ:
         return os.environ[name]
     try:
-        import configenv  # noqa: ignore, pylint: disable=import-outside-toplevel
+        import configenv  # noqa: ignore, pylint: disable=import-outside-toplevel  # noqa: PLC0415
 
-        return configenv.ConfigEnv(None).GetConfigStr(name)
+        return configenv.ConfigEnv(None).GetConfigStr(name, default=default_val)
     except ImportError:
         return default_val
 
 
 def get_path_var(name: str, default_path: Path | None = Path().absolute()) -> Path | None:  # noqa: B008
-    val = get_env_config_var(name, None)
+    val = get_env_config_var(name, default_path.as_posix())
     if val:
         return Path(os.path.expandvars(val)).expanduser()
     return default_path
@@ -222,7 +225,7 @@ def get_vcpkg_root(default_path: Path | None = Path().absolute() / "vcpkg") -> P
 
 def get_vcpkg_port_tool(vcpkg_root: Path, packname: str, binname: str) -> Path | None:
     try:
-        import vcpkg  # noqa: ignore, pylint: disable=import-outside-toplevel
+        import vcpkg  # noqa: ignore, pylint: disable=import-outside-toplevel  # noqa: PLC0415
 
         vcpkgobj = vcpkg.Vcpkg(vcpkg_root)
         host_triplet = vcpkgobj.detect_host_triplet()
@@ -272,7 +275,7 @@ def download_android_studio(path: Path) -> None:
     shutil.unpack_archive(downloadtofile, path)
 
 
-binarycache: Dict[str, Path] = {}
+binarycache: dict[str, Path] = {}
 
 
 def get_binary(
@@ -427,9 +430,7 @@ def recursive_deserialize(outinfo: dict[str, str] | _Environ[str], info: dict[st
     for k, v in info.items():
         if isinstance(v, str):
             outinfo[k] = deserialize_from_str(v)
-        elif isinstance(v, Path):
-            outinfo[k] = v
-        elif isinstance(v, int):
+        elif isinstance(v, (Path, int)):
             outinfo[k] = v
         elif isinstance(v, list):
             outinfo[k] = [deserialize_from_str(onev) for onev in v]
@@ -469,7 +470,9 @@ def detect_toolchain(environ: dict[str, str] | _Environ[str] | None = None) -> d
     return cached
 
 
-def _detect_toolchain(environ: dict[str, str] | _Environ[str] | None = None) -> dict[str, str | Path | _Environ[str] | dict[str, Path]]:
+def _detect_toolchain(
+    environ: dict[str, str] | _Environ[str] | None = None,
+) -> dict[str, str | Path | _Environ[str] | dict[str, Path]]:
     environ = environ or os.environ.copy()
     for toolchain in ["msvc", "mingw", "visualstudio"]:
         envvarsf = get_bin_path() / f"toolchain_{toolchain}.json"
@@ -486,7 +489,7 @@ def _detect_toolchain(environ: dict[str, str] | _Environ[str] | None = None) -> 
     return {"toolchain": None, "environ": environ}
 
 
-def get_visualstudio_toolchain() -> dict[str, str] | _Environ[str] | None:
+def get_visualstudio_toolchain(_expiry: int = 30) -> dict[str, str] | _Environ[str] | None:
     if sys.platform != "win32":
         return None
     vswhere = Path("C:/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe")
@@ -645,20 +648,22 @@ def get_patch() -> Path:
     return get_binary("patch")
 
 
-def acquire_tool(name: str) -> Path:
+def acquire_tool(name: str, extra: list[str] | None = None) -> Path:
     if name == "ImageMagick":
         return get_imagemagick_convert()
     if name == "flexbison":
         return get_win_flexbison()
     if "toolchain:" in name:
-        return init_toolchain(name.split(":", maxsplit=1)[-1])
+        args = {"toolchain": name.split(":", maxsplit=1)[-1]}
+        if extra and "--update" in extra:
+            args["expiry"] = 0
+        return init_toolchain(**args)
     return get_binary(name)
 
 
-def get_android_toolchain() -> dict[str, str | Path | _Environ[str] | dict[str, Path]]:
+def get_android_toolchain(_expiry: int = 30) -> dict[str, str | Path | _Environ[str] | dict[str, Path]]:
     sdkpath = get_bin_path() / "android"
     sdk_root = sdkpath / "sdk"
-    sdk_version = 35
     if "JAVA_HOME" in os.environ:
         os.environ.pop("JAVA_HOME")
     studiobin = _download_or_get_binary("studio", sdkpath, download_android_studio)
@@ -669,17 +674,19 @@ def get_android_toolchain() -> dict[str, str | Path | _Environ[str] | dict[str, 
     runenv["PATH"] = os.pathsep.join([str(java.parent), str(sdkmanager.parent), runenv["PATH"]])
     runenv["ANDROID_SDK_HOME"] = (sdk_root / "tmp").as_posix()
     runenv["ANDROID_USER_HOME"] = (sdk_root / "tmp").as_posix()
+    runenv["JAVA_HOME"] = java.parent.parent.as_posix()
 
     dirs = {d.name for d in os.scandir(sdkpath)}
     packages = [
         # "ndk-bundle",
         f"ndk;{ANDROID_NDK_VERSION}",
-        f"build-tools;{sdk_version}.0.0",
+        f"build-tools;{ANDROID_SDK_VERSION}.0.0",
         "platform-tools",
-        f"platforms;android-{sdk_version}",
+        f"platforms;android-{ANDROID_SDK_VERSION}",
     ]
 
     def accept_sdk_licenses(sdkmanager: Path, sdk_root: Path) -> None:
+        #print(shlex.join([sdkmanager.as_posix(), f"--sdk_root={sdk_root}", "--licenses"]))
         proc = subprocess.Popen([sdkmanager.as_posix(), f"--sdk_root={sdk_root}", "--licenses"], stdin=subprocess.PIPE, env=runenv)
         while proc.poll() is None:
             time.sleep(1)
@@ -688,6 +695,7 @@ def get_android_toolchain() -> dict[str, str | Path | _Environ[str] | dict[str, 
     accept_sdk_licenses(sdkmanager, sdk_root)
 
     if any(p.split(";", maxsplit=1)[0] not in dirs for p in packages):
+        #print(shlex.join([sdkmanager.as_posix(), f"--sdk_root={sdk_root.as_posix()}", *packages]))
         subprocess.check_call([sdkmanager.as_posix(), f"--sdk_root={sdk_root.as_posix()}", *packages], env=runenv)
         accept_sdk_licenses(sdkmanager, sdk_root)
 
@@ -698,10 +706,11 @@ def get_android_toolchain() -> dict[str, str | Path | _Environ[str] | dict[str, 
             "ANDROID_HOME": sdk_root.as_posix(),
             "ANDROID_SDK_ROOT": sdk_root.as_posix(),
             "ANDROID_NDK_HOME": ndk_home.as_posix(),
+            "JAVA_HOME": java.parent.parent.as_posix(),
         },
         "ndk": ndk_home,
         "ndk_version": ANDROID_NDK_VERSION,
-        "sdk_version": sdk_version,
+        "sdk_version": ANDROID_SDK_VERSION,
         "java_home": java.parent.parent,
         "sdk_root": sdk_root,
         "jarsigner": _download_or_get_binary("jarsigner", sdkpath),
@@ -712,7 +721,7 @@ def get_android_toolchain() -> dict[str, str | Path | _Environ[str] | dict[str, 
     }
 
 
-def get_emscripten_toolchain() -> dict[str, str | Path | _Environ[str] | dict[str, Path]]:
+def get_emscripten_toolchain(_expiry: int = 30) -> dict[str, str | Path | _Environ[str] | dict[str, Path]]:
     sdkpath = get_bin_path() / "emsdk"
     sdkpath.mkdir(exist_ok=True, parents=True)
     emconfig = sdkpath / ".emscripten"
@@ -760,7 +769,6 @@ def init_toolchain(
         "emscripten": "emscripten",
     }
     toolchain = mapping.get(toolchain, toolchain)
-
     envvarsf = get_bin_path() / f"toolchain_{toolchain}.json"
     now = datetime.datetime.now(tz=datetime.timezone.utc)
     if not envvarsf.exists() or (now - datetime.datetime.fromtimestamp(envvarsf.stat().st_mtime, tz=datetime.timezone.utc)).days > expiry:
@@ -771,12 +779,12 @@ def init_toolchain(
             "msvc": get_portable_msvc_toolchain,
             "visualstudio": get_visualstudio_toolchain,
         }
-        info = func_map[toolchain]()
+        info = func_map[toolchain](expiry)
         envvarsf.write_text(json.dumps(info, cls=CustomEncoder, indent=2))
     return init_envvars_from_file(toolchain, envvarsf, environ)
 
 
-def get_win_mingw_toolchain() -> Path:
+def get_win_mingw_toolchain(_expiry: int = 30) -> Path:
     msys2 = get_binary("msys2")
     msysbash = msys2.parent / "usr/bin/bash.exe"
     if not msysbash.exists():
@@ -791,20 +799,26 @@ def get_win_mingw_toolchain() -> Path:
     subprocess.check_call([msysbash.as_posix(), "-lc", "pacman --noconfirm -Syuu"])
     mingwarch = {"x64": "mingw-w64-ucrt-x86_64", "arm64": "mingw-w64-clang-aarch64"}[DefaultArch]
 
-    packages = ["base-devel", f"{mingwarch}-toolchain", f"{mingwarch}-clang"]
+    packages = ["base-devel", f"{mingwarch}-toolchain", f"{mingwarch}-clang", f"{mingwarch}-clang-tools-extra"]
     subprocess.check_call([msysbash.as_posix(), "-lc", f"pacman --noconfirm -S --needed {' '.join(packages)}"])
     return {"env": {"PATH": [msys2.parent / "usr/bin", msys2.parent / "ucrt64/bin"]}}
 
 
-def get_portable_msvc_toolchain() -> dict[str, str | Path | _Environ[str] | dict[str, Path]]:  # noqa: PLR0912, PLR0915, C901
+def get_portable_msvc_toolchain(  # noqa: PLR0912, PLR0915, C901
+    expiry: int = 30,
+) -> dict[str, str | Path | _Environ[str] | dict[str, Path]]:
     manifest_url = "https://aka.ms/vs/17/release/channel"
     output_dir = get_bin_path() / "msvc"
+    now = datetime.datetime.now(tz=datetime.timezone.utc)
 
     # other architectures may work or may not - not really tested
     host = platform.machine().lower()  # or x86
     target_arch = platform.machine().lower()  # or x86, arm, arm64
     download_cache = output_dir / "download_cache"
     download_cache.mkdir(exist_ok=True, parents=True)
+    for file in download_cache.rglob("*"):
+        if not file.is_dir() and (now - datetime.datetime.fromtimestamp(file.stat().st_mtime, tz=datetime.timezone.utc)).days > expiry:
+            file.unlink(missing_ok=True)
     msiexec = shutil.which("msiexec")
 
     # shutil.rmtree(output_dir / "VC", ignore_errors=True)
@@ -830,7 +844,9 @@ def get_portable_msvc_toolchain() -> dict[str, str | Path | _Environ[str] | dict
         cache.parent.mkdir(exist_ok=True, parents=True)
         if cache.exists():
             return cache
-        with cache.open("wb") as f, urllib.request.urlopen(url) as res:
+        cache_tmp = cache.with_suffix(".tmp")
+        cache_tmp.unlink(missing_ok=True)
+        with cache_tmp.open("wb") as f, urllib.request.urlopen(url) as res:
             while True:
                 block = res.read(1 << 20)
                 if not block:
@@ -841,6 +857,7 @@ def get_portable_msvc_toolchain() -> dict[str, str | Path | _Environ[str] | dict
         digest = hashlib.sha256(data).hexdigest()
         if check.lower() != digest:
             raise ValueError(f"checksum mismatch: {url}")
+        cache_tmp.rename(cache)
         return cache
 
     # super crappy msi format parser just to find required .cab files
@@ -908,12 +925,17 @@ def get_portable_msvc_toolchain() -> dict[str, str | Path | _Environ[str] | dict
         # f"microsoft.vc.{msvc_ver}.asan.{target_arch}.base",
         # MSVC redist
         # f"microsoft.vc.{msvc_ver}.crt.redist.x64.base",
+        # LLVM
+        "microsoft.visualstudio.vc.llvm.base",  # clang-format
+        "microsoft.visualstudio.vc.llvm.clang",
+        # "microsoft.visualStudio.vc.msbuild.llvm",
+        # "microsoft.visualStudio.vc.msbuild.llvm",
     ]
 
     for pkg in msvc_packages:
         p = first(packages[pkg], lambda p: p.get("language") in (None, "en-US"))
         for payload in p["payloads"]:
-            with zipfile.ZipFile(download_progress(payload["url"], payload["sha256"], fname=payload["fileName"])) as z:
+            with zipfile.ZipFile(download_progress(payload["url"], payload["sha256"], fname=pkg + "_" + payload["fileName"])) as z:
                 for name in z.namelist():
                     if name.startswith("Contents/"):
                         out = output_dir / Path(name).relative_to("Contents")
@@ -996,7 +1018,6 @@ def get_portable_msvc_toolchain() -> dict[str, str | Path | _Environ[str] | dict
         shutil.rmtree(msi_dir, ignore_errors=True)
 
     ### cleanup
-
     shutil.rmtree(output_dir / "Common7", ignore_errors=True)
     for f in ["Auxiliary", f"lib/{target_arch}/store", f"lib/{target_arch}/uwp"]:
         shutil.rmtree(output_dir / "VC/Tools/MSVC" / msvcv / f)
@@ -1017,6 +1038,8 @@ def get_portable_msvc_toolchain() -> dict[str, str | Path | _Environ[str] | dict
     mt_exe = Path(shutil.which("mt", path=sdk_root / "bin" / sdkv / target_arch))
     rc_exe = Path(shutil.which("rc", path=sdk_root / "bin" / sdkv / target_arch))
     cl_exe = Path(shutil.which("cl", path=msvc_root / "bin" / f"Host{host}" / target_arch))
+    clang_cl_exe = Path(shutil.which("clang-cl", path=msvc_root / f"../../Llvm/{host}/bin"))
+
     if not cl_exe.is_file():
         raise ExternalToolsDownloadError("Cannot find cl.exe")
     if not mt_exe.is_file():
@@ -1032,7 +1055,7 @@ def get_portable_msvc_toolchain() -> dict[str, str | Path | _Environ[str] | dict
         "SDK_INCLUDE": sdk_root / "Include" / sdkv,
         "SDK_LIBS": sdk_root / "Lib" / sdkv,
         "VCTOOLSINSTALLDIR": msvc_root,
-        "PATH": [cl_exe.parent, mt_exe.parent, mt_exe.parent / "ucrt"],
+        "PATH": [cl_exe.parent, clang_cl_exe.parent, mt_exe.parent, mt_exe.parent / "ucrt"],
         "INCLUDE": [
             msvc_root / "include",
             sdk_root / "Include" / sdkv / "ucrt",
@@ -1060,15 +1083,15 @@ def get_portable_msvc_toolchain() -> dict[str, str | Path | _Environ[str] | dict
     (output_dir / "setup.bat").write_text("\n".join(batlines))
     (output_dir / "setup.ps1").write_text("\n".join(ps1lines))
 
-    return {"env": envvars, "cl": cl_exe, "mt": mt_exe, "rc": rc_exe}
+    return {"env": envvars, "cl": cl_exe, "mt": mt_exe, "rc": rc_exe, "clang-cl": clang_cl_exe}
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--bin-dir", type=Path, default=None, help="Location of bin directory")
     parser.add_argument("tool", type=str, nargs="*")
-    args = parser.parse_args()
+    args, extra = parser.parse_known_args()
     if args.bin_dir:
         DEVEL_BINPATH = Path(args.bin_dir).absolute()
     for tool in args.tool:
-        acquire_tool(tool)
+        acquire_tool(tool, extra)
