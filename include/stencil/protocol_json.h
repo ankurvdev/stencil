@@ -23,15 +23,12 @@ struct ProtocolJsonVal
 };
 }    // namespace Stencil
 
-#define RAPIDJSON_CHECK(...)        \
-    try                             \
-    {                               \
-        __VA_ARGS__;                \
-        return true;                \
-    } catch (std::exception const&) \
-    {                               \
-        return false;               \
-    }
+#define RAPIDJSON_CHECK(...) \
+    try                      \
+    {                        \
+        __VA_ARGS__;         \
+        return true;         \
+    } catch (std::exception const&) { return false; }
 
 // #include "json_parse_simdjson.h"
 namespace Stencil::impl::rapidjson_
@@ -106,9 +103,9 @@ template <typename T> struct Tokenizer : public rapidjson::BaseReaderHandler<rap
     bool Int64(int64_t i) { RAPIDJSON_CHECK(_Handle(i)) }
     bool Uint64(uint64_t u) { RAPIDJSON_CHECK(_Handle(u)) }
     bool Double(double d) { RAPIDJSON_CHECK(_Handle(d)) }
-    bool String(const char* str, rapidjson::SizeType length, bool /* copy */) { RAPIDJSON_CHECK(_Handle(std::string_view(str, length))) }
+    bool String(char const* str, rapidjson::SizeType length, bool /* copy */) { RAPIDJSON_CHECK(_Handle(std::string_view(str, length))) }
     bool StartObject() { RAPIDJSON_CHECK(_StartObject()) }
-    bool Key(const char* str, rapidjson::SizeType length, bool /* copy */) { RAPIDJSON_CHECK(_AddKey(std::string_view(str, length))) }
+    bool Key(char const* str, rapidjson::SizeType length, bool /* copy */) { RAPIDJSON_CHECK(_AddKey(std::string_view(str, length))) }
     bool EndObject(rapidjson::SizeType /* memberCount */) { RAPIDJSON_CHECK(_EndObject()) }
     bool StartArray() { RAPIDJSON_CHECK(_StartArray()) }
     bool EndArray(rapidjson::SizeType /* elementCount */){RAPIDJSON_CHECK(_EndArray())}
@@ -162,7 +159,10 @@ template <size_t N> struct SerDes<std::array<char, N>, ProtocolJsonVal>
     template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
         if (obj[0] == 0) { fmt::print(ctx, "null"); }
-        else { _WriteQuotedString(ctx, obj); }
+        else
+        {
+            _WriteQuotedString(ctx, obj);
+        }
     }
 
     template <typename TContext> static auto Read(TObj& obj, TContext& ctx)
@@ -197,7 +197,7 @@ template <size_t N> struct SerDes<std::array<uint16_t, N>, ProtocolJsonVal>
             fmt::print(ctx, "]");
         }
     }
-    template <typename TContext> static auto Read(TObj& /*obj*/, TContext& /*ctx*/) { TODO(""); }
+    template <typename TContext> [[noreturn]] static auto Read(TObj& /*obj*/, TContext& /*ctx*/) { TODO(""); }
 };
 
 template <> struct SerDes<uuids::uuid, ProtocolJsonVal>

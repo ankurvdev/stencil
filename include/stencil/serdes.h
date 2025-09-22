@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CommonMacros.h"
 namespace Stencil
 {
 
@@ -11,12 +12,15 @@ concept ConceptProtocol = requires {
 
 template <typename T, ConceptProtocol TProt> struct SerDes;
 
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("-Wnrvo")
 template <ConceptProtocol TProt, typename T> auto Serialize(T const& obj)
 {
     typename TProt::OutType out;
     Stencil::SerDes<T, TProt>::Write(out, obj);
     return out;
 }
+SUPPRESS_WARNINGS_END
 
 template <typename T, ConceptProtocol TProt, typename TIn> T Deserialize(TIn& input)
 {

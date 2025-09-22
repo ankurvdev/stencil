@@ -6,19 +6,21 @@
 
 #include <span>
 #include <string>
+#include <type_traits>
 
 namespace Stencil
 {
 
-using ByteIt = std::span<const uint8_t>::iterator;
+using ByteIt = std::span<uint8_t const>::iterator;
 
-template <typename TVal, typename = typename std::enable_if<std::is_trivial<TVal>::value>::type>
-static std::span<const uint8_t> AsCSpan(TVal const& val)
+template <typename TVal, typename = typename std::enable_if<std::is_trivially_default_constructible<TVal>::value>::type>
+static std::span<uint8_t const> AsCSpan(TVal const& val)
 {
     return std::span(reinterpret_cast<uint8_t const*>(&val), sizeof(TVal));
 }
 
-template <typename TVal, typename = typename std::enable_if<std::is_trivial<TVal>::value>::type> static std::span<uint8_t> AsSpan(TVal& val)
+template <typename TVal, typename = typename std::enable_if<std::is_trivially_default_constructible<TVal>::value>::type>
+static std::span<uint8_t> AsSpan(TVal& val)
 {
     return std::span(reinterpret_cast<uint8_t*>(&val), sizeof(TVal));
 }
@@ -27,21 +29,22 @@ struct Writer
 {
     Writer() = default;
 
-    template <typename TVal, std::enable_if_t<std::is_trivial<TVal>::value, bool> = true> Writer& operator<<(TVal const& val)
+    template <typename TVal, std::enable_if_t<std::is_trivially_default_constructible<TVal>::value, bool> = true>
+    Writer& operator<<(TVal const& val)
     {
         auto spn = AsCSpan(val);
         std::copy(spn.begin(), spn.end(), back_inserter(_buffer));
         return *this;
     }
 
-    Writer& operator<<(std::span<const std::byte> const& bytespn)
+    Writer& operator<<(std::span<std::byte const> const& bytespn)
     {
         std::span<uint8_t const> spn(reinterpret_cast<uint8_t const*>(bytespn.data()), bytespn.size());
         std::copy(spn.begin(), spn.end(), back_inserter(_buffer));
         return *this;
     }
 
-    Writer& operator<<(std::span<const uint8_t> const& spn)
+    Writer& operator<<(std::span<uint8_t const> const& spn)
     {
         std::copy(spn.begin(), spn.end(), back_inserter(_buffer));
         return *this;
@@ -67,10 +70,10 @@ struct Writer
 
 struct Reader
 {
-    Reader(std::span<const uint8_t> const& w) : _it(w.begin()) {}
+    Reader(std::span<uint8_t const> const& w) : _it(w.begin()) {}
     Reader(ByteIt const& itbeg) : _it(itbeg) {}
 
-    template <typename TVal, std::enable_if_t<std::is_trivial<TVal>::value, bool> = true> TVal read()
+    template <typename TVal, std::enable_if_t<std::is_trivially_default_constructible<TVal>::value, bool> = true> TVal read()
     {
         TVal val;
         auto endIt = _it + sizeof(TVal);

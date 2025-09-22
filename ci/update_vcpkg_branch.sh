@@ -8,7 +8,7 @@ git -C ${scriptdir} fetch --all --prune
 git -C ${scriptdir} checkout origin/vcpkg
 commitId=$(git -C ${scriptdir} rev-parse HEAD)
 shortCommitId=$(git -C ${scriptdir} rev-parse --short HEAD)
-project=$(git -C ${scriptdir} config remote.origin.url | grep -oE 'ankurvdev/[^.]*' | cut - -d '/' -f2)
+project=$(git -C ${scriptdir} config remote.origin.url | grep -oE 'patches/[^.]*' | cut - -d '/' -f2)
 
 echo "${scriptdir} ${project} ${commitId} ${shortCommitId}"
 

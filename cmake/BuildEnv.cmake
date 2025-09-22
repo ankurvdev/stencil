@@ -2,12 +2,7 @@
 include_guard(GLOBAL)
 cmake_minimum_required(VERSION 3.26)
 include(GenerateExportHeader)
-set(CMAKE_CXX_STANDARD 26)
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-set(CMAKE_C_VISIBILITY_PRESET hidden)
-set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
-set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(BuildEnvCMAKE_LOCATION "${CMAKE_CURRENT_LIST_DIR}")
 
 # Fix for error
 #"CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS-NOTFOUND" -format=p1689 -- /usr/bin/c++ -x c++ ... 
@@ -18,26 +13,6 @@ set(CMAKE_CXX_SCAN_FOR_MODULES 0)
 if (UNIX AND NOT ANDROID AND NOT EMSCRIPTEN)
     set(LINUX 1)
 endif()
-
-
-# We directly enable flto=full on android
-# using this causes build failures
-set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
-set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO ON)
-set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_MINSIZEREL ON)
-if (ANDROID OR EMSCRIPTEN)
-    # Flto=thin has issues with emscripten. We want to use full anyway
-    set(CMAKE_CXX_COMPILE_OPTIONS_IPO "-flto=full")
-endif()
-
-set(BuildEnvCMAKE_LOCATION "${CMAKE_CURRENT_LIST_DIR}")
-
-if (EMSCRIPTEN)
-    set(Threads_FOUND 1)
-    # set(CMAKE_EXECUTABLE_SUFFIX ".html")
-    set(CMAKE_CXX_COMPILE_OPTIONS_IPO "-flto=full")
-endif()
-
 if (IS_DIRECTORY ${BuildEnvCMAKE_LOCATION}/../Format.cmake AND NOT SKIP_FORMAT)
     if (NOT TARGET fix-clang-format)
         add_subdirectory(${BuildEnvCMAKE_LOCATION}/../Format.cmake Format.cmake)
@@ -111,6 +86,32 @@ macro(InitClangDIntellisense)
 endmacro()
 
 macro(EnableStrictCompilation)
+    set(CMAKE_CXX_STANDARD 26)
+    set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+    set(CMAKE_C_VISIBILITY_PRESET hidden)
+    set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
+    set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+    set(CMAKE_LINK_WHAT_YOU_USE ON)
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+    # We directly enable flto=full on android
+    # using this causes build failures
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO ON)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_MINSIZEREL ON)
+    if (ANDROID OR EMSCRIPTEN)
+        # Flto=thin has issues with emscripten. We want to use full anyway
+        set(CMAKE_CXX_COMPILE_OPTIONS_IPO "-flto=full")
+    endif()
+
+
+    if (EMSCRIPTEN)
+        set(Threads_FOUND 1)
+        # set(CMAKE_EXECUTABLE_SUFFIX ".html")
+        set(CMAKE_CXX_COMPILE_OPTIONS_IPO "-flto=full")
+    endif()
+
+
     find_package(Threads)
     file(TIMESTAMP "${BuildEnvCMAKE_LOCATION}/BuildEnv.cmake" filetime)
     if ((NOT DEFINED STRICT_COMPILATION_MODE) OR (NOT "${STRICT_COMPILATION_MODE}" STREQUAL "${filetime}"))
@@ -154,23 +155,25 @@ macro(EnableStrictCompilation)
                 -Zc:__cplusplus
 
                 #suppression list
-                /wd4619  # pragma warning: there is no warning number
                 /wd4514  # unreferenced inline function has been removed
+                /wd4619  # pragma warning: there is no warning number
+                /wd4710  # Function not inlined. VS2019 CRT throws this
+                /wd4711  # Function selected for automatic inline. VS2019 CRT throws this
+                /wd4738  # storing 32-bit float result in memory, possible loss of performance 10.0.19041.0\ucrt\corecrt_math.h(642)
                 /wd4820  # bytes padding added after data member in struct
                 /wd4866  # compiler may not enforce left-to-right evaluation order in call to []
                 /wd4868  # compiler may not enforce left-to-right evaluation order in braced initializer list
                 /wd5039  #  pointer or reference to potentially throwing function passed to 'extern "C"' function under -EHc.
                 /wd5045  # Spectre mitigation insertion
+                # This is the old behavior and GCC and clang suppress it by default
+                # without this std::array will have to be initialized with double braces {{...}}
+                # which leaks the internal implementation details of std::array
+                /wd5246  # the initialization of a subobject should be wrapped in braces
                 /wd5264  # const variable is not used
 
                 # Revisit these with newer VS Releases
-                /wd4710  # Function not inlined. VS2019 CRT throws this
-                /wd4711  # Function selected for automatic inline. VS2019 CRT throws this
-                /wd4738  # storing 32-bit float result in memory, possible loss of performance 10.0.19041.0\ucrt\corecrt_math.h(642)
-                # /wd4746  # volatile access of 'b' is subject to /volatile:<iso|ms>
                 # Revisit with later cmake release. This causes cmake autodetect HAVE_STRUCT_TIMESPEC to fail
                 # /wd4255  # The compiler did not find an explicit list of arguments to a function. This warning is for the C compiler only.
-                # /wd5246  # MSVC Bug VS2022 :  the initialization of a subobject should be wrapped in braces
             )
 
             set(exclusions "[-/]W[a-zA-Z1-9]+" "[-/]permissive?" "[-/]external:W?" "[-/]external:anglebrackets?" "[-/]external:templates?")
@@ -212,17 +215,15 @@ macro(EnableStrictCompilation)
             )
 
             if (NOT EMSCRIPTEN)
-                list(APPEND extraflags
-                        -Wl,--exclude-libs,ALL
-                        -Werror     # All warnings as errors
-                        -Wl,--gc-sections
-            )
+                string(APPEND CMAKE_SHARED_LINKER_FLAGS " -Wl,--exclude-libs,ALL -Wl,--no-undefined -Wl,--gc-sections")
+                list(APPEND extraflags -Werror)     # All warnings as errors
             endif()
 
             if (EMSCRIPTEN)
                 list(APPEND extraflags -pthread -Wno-limited-postlink-optimizations -sASYNCIFY)
+                # string(APPEND CMAKE_LINKER_FLAGS " -Wl,-u,htonl -Wl,-u,htons")
                 #TODO https://github.com/emscripten-core/emscripten/issues/16836
-                list(APPEND extraflags -Wl,-u,htonl -Wl,-u,htons ) 
+                #list(APPEND extraflags -Wl,-u,htonl -Wl,-u,htons ) 
             endif()
             if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL Clang)
                 if (NOT DEFINED CLAND_TIDY_MODE)

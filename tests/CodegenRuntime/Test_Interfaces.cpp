@@ -111,7 +111,7 @@ struct Tester : ObjectsTester
         CLASS_DELETE_COPY_AND_MOVE(SSEListener);
         SUPPRESS_WARNINGS_START
         SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
-        bool _ChunkCallback(const char* data, size_t len)
+        bool _ChunkCallback(char const* data, size_t len)
         {
             if (data[len - 1] == '\0') len--;
             std::unique_lock<std::mutex> guard(_mutex);
@@ -124,18 +124,21 @@ struct Tester : ObjectsTester
         void _SSEListener()
         {
             _ssecli.set_follow_location(true);
-            const httplib::Headers headers   = {{"Accept", "text/event-stream"}, {"Connection", "Keep-Alive"}};
+            httplib::Headers const headers   = {{"Accept", "text/event-stream"}, {"Connection", "Keep-Alive"}};
             bool                   reconnect = true;
             while (!_stopRequested && reconnect)
             {
-                auto res = _ssecli.Get(_url, headers, [&](const char* data, size_t len) { return this->_ChunkCallback(data, len); });
+                auto res = _ssecli.Get(_url, headers, [&](char const* data, size_t len) { return this->_ChunkCallback(data, len); });
                 if (res)
                 {
                     // printf("HTTP %i\n", res->status);
                     // check that response code is 2xx
                     reconnect = (res->status / 100) == 2;
                 }
-                else { std::this_thread::sleep_for(std::chrono::milliseconds(100ms)); }
+                else
+                {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100ms));
+                }
             }
         }
 
@@ -197,12 +200,15 @@ struct Tester : ObjectsTester
             std::string valstr = Stencil::Serialize<Stencil::ProtocolJsonVal>(val).str();
             params.insert({std::move(keystr), std::move(valstr)});
         });
+        SUPPRESS_WARNINGS_START
+        SUPPRESS_CLANG_WARNING("-Wnrvo")
         return params;
+        SUPPRESS_WARNINGS_END
     }
 
     auto _valid_cli_call_get(std::string const& path, httplib::Params const& params)
     {
-        auto response = CreateCLI().Get(path, params, httplib::Headers(), httplib::Progress());
+        auto response = CreateCLI().Get(path, params, httplib::Headers(), httplib::DownloadProgress());
         REQUIRE(response == true);
         REQUIRE(response->status == 200);
         return response->body;

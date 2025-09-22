@@ -31,7 +31,7 @@ template <typename T> struct tree
     tree(tree&&)                   = default;
     tree& operator=(tree&&)        = default;
 
-    tree<T> clone() const { throw std::logic_error("Not implemented"); }
+    [[noreturn]] tree<T> clone() const { throw std::logic_error("Not implemented"); }
     // tree(tree&& obj) { std::swap(_nodes, obj._nodes); }
 
     struct iterator

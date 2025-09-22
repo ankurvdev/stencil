@@ -42,9 +42,9 @@
         _Pragma("warning(disable : 4582)") /* constructor is not implicitly called */                                        \
         _Pragma("warning(disable : 4623)") /* default constructor was implicitly defined as deleted*/                        \
         _Pragma("warning(disable : 4626)") /* assignment operator was implicitly defined as deleted*/                        \
-        _Pragma("warning(disable : 4868)") /* compiler may not enforce left-to-right eval-order in braced initializer list*/ \
         _Pragma("warning(disable : 4738)") /* float-rounding. possible loss of performance. use /fp:fast*/                   \
-        _Pragma("warning(disable : 4746)") /* volatile access of 'b' is subject to /volatile:<iso|ms> */                     \
+        _Pragma("warning(disable : 4746)") /* volatile access of 'b' is subject to /volatile:<iso|ms> setting*/              \
+        _Pragma("warning(disable : 4868)") /* compiler may not enforce left-to-right eval-order in braced initializer list*/ \
         _Pragma("warning(disable : 5027)") /* move assignment operator was implicitly defined as deleted*/                   \
         _Pragma("warning(disable : 5204)") /* class has virtual functions, but its trivial destructor is not virtual;*/      \
         _Pragma("warning(disable : 4668)") /* not defined as a preprocessor macro, replacing with '0' f*/
@@ -78,6 +78,18 @@
 #define SUPPRESS_FMT_WARNINGS
 
 #endif
+#endif
+
+// For windows intellisense
+
+#if defined _MSC_VER && defined __clang__
+SUPPRESS_CLANG_WARNING("-Wc++98-compat")
+SUPPRESS_CLANG_WARNING("-Wc++20-compat")
+SUPPRESS_CLANG_WARNING("-Wc++98-compat-pedantic")
+SUPPRESS_CLANG_WARNING("-Wpre-c++23-compat")
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
+SUPPRESS_CLANG_WARNING("-Wc++17-extensions")
+SUPPRESS_CLANG_WARNING("-Wunused-macros")
 #endif
 
 #if (!defined CLASS_DEFAULT_COPY_AND_MOVE)
@@ -117,6 +129,15 @@
     name& operator=(name const&)     = delete;  \
     name& operator=(name&&) noexcept = delete
 #endif
+
+#define CONSTEXPR_CONSTRUCT_STRUCT(strct)                        \
+    constexpr strct()                                 = default; \
+    constexpr strct(strct const&)                     = default; \
+    constexpr strct(strct&&)                          = default; \
+    constexpr strct& operator=(strct const&)          = default; \
+    constexpr strct& operator=(strct&&)               = default; \
+    ~strct()                                          = default; \
+    constexpr bool operator==(strct const& rhs) const = default
 
 #if !defined TODO
 #ifdef __cpp_exceptions
