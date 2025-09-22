@@ -191,10 +191,10 @@ struct ResourceFileManager
         auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
         for (auto const r : resourceCollection)
         {
-            auto resname = r.name();
+            auto resname = std::string(r.name());
             if (resname == testresname || resname == name)
             {
-                auto          path = std::filesystem::current_path() / (prefix + std::string(resname));
+                auto          path = std::filesystem::current_path() / (prefix + resname);
                 std::ofstream f(path);
                 auto const&   str = r.string();
                 if (!f.is_open()) { throw std::runtime_error("Cannot write resource file : " + path.string()); }
@@ -315,6 +315,8 @@ struct StrFormat
     }
 };
 
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("-Wmissing-noreturn")
 inline bool JsonStringEqual([[maybe_unused]] std::string const& lhs, [[maybe_unused]] std::string const& rhs)
 {
 #if ((defined HAVE_RAPIDJSON) && HAVE_RAPIDJSON)
@@ -326,6 +328,7 @@ inline bool JsonStringEqual([[maybe_unused]] std::string const& lhs, [[maybe_unu
     throw std::logic_error("RapidJson needed");
 #endif
 }
+SUPPRESS_WARNINGS_END
 
 struct JsonFormat : StrFormat
 {
