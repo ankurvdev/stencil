@@ -4,7 +4,7 @@
 #include <stencil/webservice_boostbeast.h>
 
 SUPPRESS_WARNINGS_START
-
+SUPPRESS_MSVC_WARNING(4244)    // conversion from '_Ty' to '_Ty1', possible loss of data
 SUPPRESS_MSVC_WARNING(4365)    // conversion from 'const char' to 'unsigned char', signed/unsigned mismatch
 SUPPRESS_MSVC_WARNING(4355)    //'this' : used in base member initializer list
 SUPPRESS_MSVC_WARNING(4855)    // implicit capture of 'this' via '[=]' is deprecated

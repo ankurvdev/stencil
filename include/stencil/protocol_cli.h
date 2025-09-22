@@ -557,13 +557,14 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                         if (done) return;
                         // if constexpr (!Stencil::ConceptPrimitive<ValType>)
                         {
+
                             std::stringstream ss;
                             SerDes<std::remove_cvref_t<decltype(key)>, ProtocolString>::Write(ss, key);
                             // Has to be a boolean
                             if (!AreEqual(ss.str(), token)) { return; }
+                            done = true;
                             // Just step into the named tuple for the given key and process the rest
                             SerDes<std::remove_cvref_t<decltype(val)>, ProtocolCLI>::Read(val, ctx);
-                            done = true;
                         }
                     });
 
