@@ -722,7 +722,10 @@ template <typename TInterfaceImpl> struct SessionInterface
     {
         auto sptr                = std::make_shared<TInterfaceImpl>(impl);
         _sessions[sptr->id.uuid] = sptr;
+        SUPPRESS_WARNINGS_START
+        SUPPRESS_CLANG_WARNING("-Wnrvo")
         return sptr;
+        SUPPRESS_WARNINGS_END
     }
 
     auto FindSession(Uuid const& uuid) { return _sessions[uuid]; }
