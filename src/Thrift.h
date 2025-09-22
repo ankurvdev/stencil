@@ -76,7 +76,7 @@ class Context
         std::string msg;
     };
     bool Debug() { return false; }
-    void InitializeModelDataSources(const std::wstring_view& datasource) { program.InitializeModelDataSources(datasource); }
+    void InitializeModelDataSources(std::wstring_view const& datasource) { program.InitializeModelDataSources(datasource); }
     void LoadFile(std::filesystem::path const& fpath);
     void Import(Str::View const& file);
     void NotifyError(int line, int col, std::string const& msg) { errors.push_back(ExceptionInfo{line, col, msg}); }
@@ -259,7 +259,7 @@ CreateInterface(Context& context, Str::Type& name, Interface& /*base*/, Interfac
     return iface;
 }
 
-inline Interface FindInterface(Context& /*program*/, Str::Type& /*name*/)
+[[noreturn]] inline Interface FindInterface(Context& /*program*/, Str::Type& /*name*/)
 {
     TODO();
 }
@@ -286,24 +286,27 @@ inline ConstValue FindConstValue(Context& context, Str::Type&& name)
         auto& enumval  = enumtype.Lookup<IDL::EnumValue>(name.substr(dotindex + 1));
         return enumval.shared_from_this();
     }
-    else { return context.program.Lookup<IDL::NamedConst>(name).shared_from_this(); }
+    else
+    {
+        return context.program.Lookup<IDL::NamedConst>(name).shared_from_this();
+    }
 
-    //throw std::logic_error("Not Implement. Named Keyword (%s). Const Values not yet supported" /*, name.c_str()*/);
+    // throw std::logic_error("Not Implement. Named Keyword (%s). Const Values not yet supported" /*, name.c_str()*/);
 }
-inline ConstValue CreateConstValue(ConstValueList&& /*value*/)
+[[noreturn]] inline ConstValue CreateConstValue(ConstValueList&& /*value*/)
 {
     throw std::logic_error("Not Implement. List Const Values not yet supported");
 }
-inline ConstValue CreateConstValue(ConstValueDict&& /*value*/)
+[[noreturn]] inline ConstValue CreateConstValue(ConstValueDict&& /*value*/)
 {
     throw std::logic_error("Not Implement. Map Const Values not yet supported");
 }
-inline ConstValueList ConstValueAddValue(ConstValueList&& /*vec*/, ConstValue&& /*value*/)
+[[noreturn]] inline ConstValueList ConstValueAddValue(ConstValueList&& /*vec*/, ConstValue&& /*value*/)
 {
     throw std::logic_error("Not Implement. List Const Values not yet supported");
 }
 
-inline ConstValueDict ConstValueAddValue(ConstValueDict&& /*vec*/, ConstValue&& /*key*/, ConstValue&& /*value*/)
+[[noreturn]] inline ConstValueDict ConstValueAddValue(ConstValueDict&& /*vec*/, ConstValue&& /*key*/, ConstValue&& /*value*/)
 {
     throw std::logic_error("Not Implement. Map Const Values not yet supported");
 }

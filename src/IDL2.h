@@ -184,7 +184,7 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
     OBJECTNAME(ContainerFieldType);
     CLASS_DELETE_COPY_AND_MOVE(ContainerFieldType);
 
-    const Container& GetContainer() const;
+    Container const& GetContainer() const;
     ContainerFieldType(std::shared_ptr<Program>                                program,
                        Container&                                              container,
                        ContainerFieldTypeMap&&                                 typemap,
@@ -220,9 +220,9 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
     virtual Str::Type GetFieldName() override { return GenerateFieldName(m_Container, bindable->m_ContainerFieldTypeMap); }
 
     static std::shared_ptr<Binding::Expression> ResolveExpression(std::shared_ptr<Binding::Expression> expr,
-                                                                  const ContainerFieldTypeMap&         typemap)
+                                                                  ContainerFieldTypeMap const&         typemap)
     {
-        return expr->Evaluate([&](const Binding::BindingExpr& expr1) {
+        return expr->Evaluate([&](Binding::BindingExpr const& expr1) {
             auto  rslt = std::make_shared<Binding::Expression>();
             auto& val  = typemap.at(expr1.binding[0]);
             ACTION_CONTEXT([&]() { return L"Evaluating Expression :" + rslt->Stringify() + L" On Value: " + val->Stringify(); });
@@ -251,14 +251,20 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
                     {
                         rslt->AddString(Str::Copy(recrval->GetString()));    // TODO IFieldType::GetFieldName
                     }
-                    else { return Binding::Expression::Clone(recrval->GetExpr()); }
+                    else
+                    {
+                        return Binding::Expression::Clone(recrval->GetExpr());
+                    }
                 }
             }
+            SUPPRESS_WARNINGS_START
+            SUPPRESS_CLANG_WARNING("-Wnrvo")
             return rslt;
+            SUPPRESS_WARNINGS_END
         });
     }
 
-    static Str::Type GenerateFieldName(const Container& container, const ContainerFieldTypeMap& typemap)
+    static Str::Type GenerateFieldName(Container const& container, ContainerFieldTypeMap const& typemap)
     {
         auto expr = container.getNameExpression();
 
@@ -359,7 +365,7 @@ struct Program : public std::enable_shared_from_this<Program>,
         m_FileName      = Str::Create(file.filename().wstring());
         m_FileDirectory = Str::Create(file.parent_path().wstring());
     }
-    void InitializeModelDataSources(const std::wstring_view& datasources);
+    void InitializeModelDataSources(std::wstring_view const& datasources);
 
     template <typename TObject, typename... TArgs> auto CreateNamedObject(TArgs&&... args)
     {
@@ -440,7 +446,7 @@ struct AttributeTag : public std::enable_shared_from_this<AttributeTag>,
 
     AttributeTag(std::shared_ptr<Struct> owner,
                  Str::Type&&             name,
-                 std::optional<std::shared_ptr<const AttributeDefinition>> /*def*/,
+                 std::optional<std::shared_ptr<AttributeDefinition const>> /*def*/,
                  std::shared_ptr<IDLGenerics::IFieldType> fieldType) :
         Binding::BindableT<AttributeTag>(Str::Create(L"TagType"), &AttributeTag::GetAttributeDefinitionBindable),
         IDLGenerics::NamedIndexT<Struct, AttributeTag>::NamedObject(owner, std::move(name)),
@@ -578,7 +584,7 @@ struct NamedConst : public std::enable_shared_from_this<NamedConst>,
     Binding::IBindable& GetBindableFieldType() const { return _fieldType->GetBindable(); }
     Binding::IBindable& GetBindableValue() const { return _value->GetBindable(); }
 
-    virtual Str::Type Stringify() const override { TODO("ConstStringify"); }
+    [[noreturn]] virtual Str::Type Stringify() const override { TODO("ConstStringify"); }
 
     std::shared_ptr<IDLGenerics::IFieldType> _fieldType;
     std::shared_ptr<IDLGenerics::ConstValue> _value;
@@ -627,7 +633,7 @@ struct EnumValue : public std::enable_shared_from_this<EnumValue>,
         AddBaseObject(base.value());
     }
 
-    virtual Str::Type Stringify() const override { TODO("EnumStringify"); }
+    [[noreturn]] Str::Type Stringify() const override { TODO("EnumStringify"); }
 
     CLASS_DELETE_COPY_AND_MOVE(EnumValue);
 };
@@ -645,7 +651,7 @@ struct Interface : public std::enable_shared_from_this<Interface>,
                    public IDLGenerics::StorageIndexT<Interface, FunctionArgs>::Owner
 {
     private:
-    const std::shared_ptr<Program> m_Program{};
+    std::shared_ptr<Program> const m_Program{};
 
     public:
     OBJECTNAME(Interface);
@@ -759,7 +765,7 @@ struct InterfaceObjectStore : public std::enable_shared_from_this<InterfaceObjec
     std::shared_ptr<BindableBase> m_ObjectType;
 };
 
-inline void Program::InitializeModelDataSources(const std::wstring_view& datasourcesIn)
+inline void Program::InitializeModelDataSources(std::wstring_view const& datasourcesIn)
 {
     size_t start = 0;
     while (start != datasourcesIn.npos)
@@ -826,7 +832,10 @@ inline std::shared_ptr<IDLGenerics::IFieldType> NativeFieldType::FindOrCreate(st
         {
             return program->CreateNamedObject<NativeFieldType>(std::move(name), fieldType, unordered_map);
         }
-        else { baseName = Str::Create(L"default"); }
+        else
+        {
+            baseName = Str::Create(L"default");
+        }
     }
 
     return program->CreateNamedObject<NativeFieldType>(std::move(name), program->GetFieldTypeName(std::move(baseName)), unordered_map);

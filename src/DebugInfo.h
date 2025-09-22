@@ -56,7 +56,10 @@ struct ErrorAggregator
     private:
     static ErrorAggregator*& GetPtr()
     {
+        SUPPRESS_WARNINGS_START
+        SUPPRESS_CLANG_WARNING("-Wunique-object-duplication")
         thread_local ErrorAggregator* ptr = nullptr;
+        SUPPRESS_WARNINGS_END
         return ptr;
     }
 

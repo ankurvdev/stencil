@@ -4,7 +4,7 @@ include(FetchContent)
 FetchContent_Declare(
   toml11
   GIT_REPOSITORY https://github.com/ToruNiina/toml11
-  GIT_TAG        v4.3.0
+  GIT_TAG        v4.4.0
   SOURCE_SUBDIR .
   GIT_SHALLOW 1
   SYSTEM

@@ -209,7 +209,10 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
             auto ptr = NamedIndexT<TOwner, TObject>::Owner::CreateNamedObject(std::forward<TArgs>(args)...);
             ptr->SetFieldId(GetFieldCount());
             AddFieldType(ptr->GetFieldName(), ptr);
+            SUPPRESS_WARNINGS_START
+            SUPPRESS_CLANG_WARNING("-Wnrvo")
             return ptr;
+            SUPPRESS_WARNINGS_END
         }
     };
 
@@ -225,8 +228,8 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
                 TObject*                                   fieldType,
                 Str::Type&&                                name,
                 uint8_t                                    id,
-                std::shared_ptr<const Binding::Expression> returnType,
-                std::shared_ptr<const Binding::Expression> argType) :
+                std::shared_ptr<Binding::Expression const> returnType,
+                std::shared_ptr<Binding::Expression const> argType) :
             NamedIndexT<TOwner, Mutator>::NamedObject(owner, std::move(name)),
             Binding::BindableT<Mutator>(Str::Create(L"FieldType"),
                                         &Mutator::GetFieldTypeBindable,
@@ -257,8 +260,8 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
             return *_argType;
         }
         uint8_t                                    _id;
-        std::shared_ptr<const Binding::Expression> _argType;
-        std::shared_ptr<const Binding::Expression> _returnType;
+        std::shared_ptr<Binding::Expression const> _argType;
+        std::shared_ptr<Binding::Expression const> _returnType;
         std::shared_ptr<TOwner>                    _owner;
         TObject*                                   _fieldType;
     };
@@ -275,8 +278,8 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
                  TObject*                                   fieldType,
                  Str::Type&&                                name,
                  uint8_t                                    id,
-                 std::shared_ptr<const Binding::Expression> returnType,
-                 std::shared_ptr<const Binding::Expression> argType) :
+                 std::shared_ptr<Binding::Expression const> returnType,
+                 std::shared_ptr<Binding::Expression const> argType) :
             NamedIndexT<TOwner, Accessor>::NamedObject(owner, std::move(name)),
             Binding::BindableT<Accessor>(Str::Create(L"FieldType"),
                                          &Accessor::GetFieldTypeBindable,
@@ -310,8 +313,8 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
         }
 
         uint8_t                                    _id;
-        std::shared_ptr<const Binding::Expression> _argType;
-        std::shared_ptr<const Binding::Expression> _returnType;
+        std::shared_ptr<Binding::Expression const> _argType;
+        std::shared_ptr<Binding::Expression const> _returnType;
         std::shared_ptr<TOwner>                    _owner;
         TObject*                                   _fieldType;
     };
@@ -387,7 +390,7 @@ class ConstValue : public virtual Binding::BindableBase
     virtual ~ConstValue() override = default;
     CLASS_DELETE_COPY_AND_MOVE(ConstValue);
 
-    static Str::Type DefaultStringifiedValue()
+    [[noreturn]] static Str::Type DefaultStringifiedValue()
     {
         throw std::logic_error("Specify a default type"); /*return Str::Create(L" "); */ /* Dont leave this empty */
     }
@@ -488,7 +491,10 @@ template <typename TOwner, typename TObject> struct StorageIndexT
             std::shared_ptr<Binding::IValue> defval;
 
             if (_defaultValue != nullptr) { defval = _defaultValue->TryLookupOrNull(context, Str::Create(L"NativeType")); }
-            else { defval = _fieldType->TryLookupOrNull(context, Str::Create(L"DefaultValue")); }
+            else
+            {
+                defval = _fieldType->TryLookupOrNull(context, Str::Create(L"DefaultValue"));
+            }
             if (defval == nullptr)
             {
                 _fieldType->TryLookupOrNull(context, Str::Create(L"DefaultValue"));
@@ -497,7 +503,10 @@ template <typename TOwner, typename TObject> struct StorageIndexT
 
             assert(defval->GetType() == Binding::Type::String || defval->GetType() == Binding::Type::Expr);
             if (defval->GetType() == Binding::Type::String) { return Str::Copy(defval->GetString()); }
-            else { return defval->GetExpr().String(); }
+            else
+            {
+                return defval->GetExpr().String();
+            }
         }
 
         Str::Type HasDefaultValue() const { return Str::Create(_defaultValue ? L"true" : L"false"); }
@@ -506,7 +515,7 @@ template <typename TOwner, typename TObject> struct StorageIndexT
 
         Binding::IBindable& GetFieldTypeBindable() const { return *_fieldType; }
         bool                HasAttributes() const { return _map != nullptr; }
-        const auto&         GetAttributes() const { return _map->GetAttributes(); }
+        auto const&         GetAttributes() const { return _map->GetAttributes(); }
 
         std::shared_ptr<ConstValue> _defaultValue;
 
@@ -537,7 +546,7 @@ template <typename TOwner, typename TObject> struct StorageIndexT
             auto field = NamedIndexT<TObject, Field>::Owner::CreateNamedObject(
                 SUPER(TObject).shared_from_this(), Str::Copy(name), fieldType, defaultValue, map);
             if (!field->HasAttributes()) return;
-            for (const auto& it : field->GetAttributes())
+            for (auto const& it : field->GetAttributes())
             {
                 auto attribute = NamedIndexT<TObject, FieldAttribute>::Owner::TryLookup(it.first);
                 if (!attribute.has_value())

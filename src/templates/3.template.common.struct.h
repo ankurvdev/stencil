@@ -397,9 +397,9 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
     }
 
     // void Assign(ElemType const& /* elem */);
-    void Add(ElemType&& /* elem */) { throw std::logic_error("Invalid operation"); }
+    [[noreturn]] void Add(ElemType&& /* elem */) { throw std::logic_error("Invalid operation"); }
 
-    template <typename T> void Remove(T /* key */) { throw std::logic_error("Invalid operation"); }
+    template <typename T> [[noreturn]] void Remove(T /* key */) { throw std::logic_error("Invalid operation"); }
 
     private:
     TxnStateForElem    _txnStateForElem{};
@@ -1132,7 +1132,10 @@ template <> struct Stencil::VisitorForVariant<zzProgram_Namezz::zzVariant_Namezz
         std::visit(
             [&](auto const& o) {
                 if constexpr (std::is_same_v<std::remove_cvref_t<decltype(o)>, std::monostate>) {}
-                else { lambda(static_cast<Fields>(obj._variant.index()), o); }
+                else
+                {
+                    lambda(static_cast<Fields>(obj._variant.index()), o);
+                }
             },
             obj._variant);
     }
@@ -1142,7 +1145,10 @@ template <> struct Stencil::VisitorForVariant<zzProgram_Namezz::zzVariant_Namezz
         std::visit(
             [&](auto& o) {
                 if constexpr (std::is_same_v<std::remove_cvref_t<decltype(o)>, std::monostate>) {}
-                else { lambda(static_cast<Fields>(obj._variant.index()), o); }
+                else
+                {
+                    lambda(static_cast<Fields>(obj._variant.index()), o);
+                }
             },
             obj._variant);
     }

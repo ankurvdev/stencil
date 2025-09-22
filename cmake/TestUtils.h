@@ -40,16 +40,6 @@ DECLARE_RESOURCE_COLLECTION(testdata);
 #endif
 namespace TestCommon
 {
-inline std::string wstring_to_string(std::wstring_view wstr)
-{
-    std::string out(wstr.size(), 0);
-    SUPPRESS_WARNINGS_START
-    SUPPRESS_MSVC_WARNING(4996)
-    wcstombs(out.data(), wstr.data(), wstr.size());
-    SUPPRESS_WARNINGS_END
-    return out;
-}
-
 #if !defined _WIN32
 inline bool IsDebuggerPresent()
 {
@@ -80,7 +70,7 @@ inline auto WriteBinResourse(std::vector<std::string> const& actualstring, std::
     for (auto& l : actualstring)
     {
         size_t size = l.size();
-        f.write(reinterpret_cast<const char*>(&size), sizeof(size));
+        f.write(reinterpret_cast<char const*>(&size), sizeof(size));
         f.write(l.data(), static_cast<std::streamsize>(l.size()));
     }
     return outf;
@@ -91,7 +81,7 @@ inline auto WriteStrmResourse(std::string const& actualstring, std::string_view 
     auto          outf = std::filesystem::absolute(std::string(resname) + ".bin");
     std::ofstream f(outf, std::ios::binary);
     size_t        size = actualstring.size();
-    f.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    f.write(reinterpret_cast<char const*>(&size), sizeof(size));
     f.write(actualstring.data(), static_cast<std::streamsize>(actualstring.size()));
     return outf;
 }
@@ -129,7 +119,10 @@ inline void PrintLinesDiff(std::vector<std::string> const& actualstring, std::ve
                     {
                         if (merged.size() > 0) deltas.push_back(std::move(merged));
                     }
-                    else { merged += sesobj.first; }
+                    else
+                    {
+                        merged += sesobj.first;
+                    }
                     lasttype = sesobj.second.type;
                 }
                 if (merged.size() > 0) deltas.push_back(std::move(merged));
@@ -198,7 +191,7 @@ struct ResourceFileManager
         auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
         for (auto const r : resourceCollection)
         {
-            auto resname = wstring_to_string(r.name());
+            auto resname = std::string(r.name());
             if (resname == testresname || resname == name)
             {
                 auto          path = std::filesystem::current_path() / (prefix + resname);
@@ -223,7 +216,7 @@ inline std::vector<std::string> LoadStrResource(std::string_view const& name)
     auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
     for (auto const r : resourceCollection)
     {
-        auto resname = wstring_to_string(r.name());
+        auto resname = r.name();
         if (resname == testresname || resname == name)
         {
             std::string       str(r.string());
@@ -241,7 +234,7 @@ inline std::vector<std::string> LoadBinResource(std::string_view const& name)
     auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
     for (auto const r : resourceCollection)
     {
-        auto resname = wstring_to_string(r.name());
+        auto resname = r.name();
         if (resname == testresname || resname == name)
         {
             std::string              str(r.string());
@@ -322,6 +315,8 @@ struct StrFormat
     }
 };
 
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("-Wmissing-noreturn")
 inline bool JsonStringEqual([[maybe_unused]] std::string const& lhs, [[maybe_unused]] std::string const& rhs)
 {
 #if ((defined HAVE_RAPIDJSON) && HAVE_RAPIDJSON)
@@ -333,6 +328,7 @@ inline bool JsonStringEqual([[maybe_unused]] std::string const& lhs, [[maybe_unu
     throw std::logic_error("RapidJson needed");
 #endif
 }
+SUPPRESS_WARNINGS_END
 
 struct JsonFormat : StrFormat
 {
@@ -368,7 +364,7 @@ template <typename TFormat> inline bool _CheckResource(std::vector<std::string> 
     auto testresname = fmt::format("{}{}", GeneratePrefixFromTestName(), resourcename);
     for (auto const r : LOAD_RESOURCE_COLLECTION(testdata))
     {
-        auto resname = wstring_to_string(r.name());
+        auto resname = r.name();
         if (resname.find(testresname) == std::string::npos) continue;
         std::string       str(r.string());
         std::stringstream ss(str);
@@ -377,7 +373,7 @@ template <typename TFormat> inline bool _CheckResource(std::vector<std::string> 
 
     for (auto const r : LOAD_RESOURCE_COLLECTION(testdata))
     {
-        auto resname = wstring_to_string(r.name());
+        auto resname = r.name();
         if (resname.find(testresname) == std::string::npos) continue;
         std::string       str(r.string());
         std::stringstream ss(str);

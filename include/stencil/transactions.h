@@ -122,8 +122,8 @@ template <Stencil::ConceptPreferPrimitive TElem, typename TContainer> struct Ste
         auto elem1 = elem;
         Assign(std::move(elem1));
     }
-    void Add(ElemType&& /* elem */) { throw std::logic_error("Invalid operation"); }
-    void Remove(size_t /* key */) { throw std::logic_error("Invalid operation"); }
+    [[noreturn]] void Add(ElemType&& /* elem */) { throw std::logic_error("Invalid operation"); }
+    [[noreturn]] void Remove(size_t /* key */) { throw std::logic_error("Invalid operation"); }
 
     TxnState&          _elemState;
     ContainerTxnState& _containerState;
@@ -218,14 +218,18 @@ template <typename TContainer, typename TKey, typename TVal> struct Stencil::Tra
         return _assign_txn_at(key);
     }
 
-    void Assign(ElemType&& /* elem */) { throw std::logic_error("Invalid operation"); }
-    void Add(ElemType&& /* elem */) { throw std::logic_error("Invalid operation"); }
+    [[noreturn]] void Assign(ElemType&& /* elem */) { throw std::logic_error("Invalid operation"); }
+    [[noreturn]] void Add(ElemType&& /* elem */) { throw std::logic_error("Invalid operation"); }
+
     void Remove(TKey const& key)
     {
         _elem.erase(key);
         auto it = _elemState.deltas.find(key);
         if (it == _elemState.deltas.end()) { it = _elemState.deltas.insert({key, TxnState::Delta::Delete(key)}).first; }
-        else { it->second.type = TxnState::Delta::Type::Delete; }
+        else
+        {
+            it->second.type = TxnState::Delta::Type::Delete;
+        }
     }
 
     template <typename TLambda> auto Visit(TKey const& key, TLambda&& lambda) { lambda(key, at(key)); }
@@ -278,7 +282,10 @@ template <typename TContainer, typename TKey, typename TVal> struct Stencil::Tra
     {
         auto it = _elemState.deltas.find(key);
         if (it == _elemState.deltas.end()) { it = _elemState.deltas.insert({key, TxnState::Delta::New(key)}).first; }
-        else { it->second.type = TxnState::Delta::Type::New; }
+        else
+        {
+            it->second.type = TxnState::Delta::Type::New;
+        }
         return it->second;
     }
 
@@ -302,7 +309,7 @@ template <Stencil::ConceptPreferIterable TElem, typename TContainer> struct Sten
     using ValTxn            = Transaction<ValType, Txn>;
     using ValTxnState       = typename ValTxn::TxnState;
     using ContainerTxnState = typename TContainer::ElemTxnState;
-    using IteratorType      = uint32_t; 
+    using IteratorType      = uint32_t;
 
     struct CombinedTxnState
     {
@@ -374,7 +381,7 @@ template <Stencil::ConceptPreferIterable TElem, typename TContainer> struct Sten
                                                                         TODO("DoNotCommit");*/
     }
 
-    void Assign(ElemType&& /* elem */) { throw std::logic_error("Self-Assignment not allowed"); }
+    [[noreturn]] void Assign(ElemType&& /* elem */) { throw std::logic_error("Self-Assignment not allowed"); }
 
     template <typename TLambda> void VisitAll(TLambda&& /* lambda */) { throw std::logic_error("Visit Not supported on Transaction"); }
     template <typename TLambda> void VisitChanges(TLambda&& lambda)
@@ -444,28 +451,28 @@ template <Stencil::ConceptTransactionForIterable TTxn> struct Stencil::VisitorFo
 
     template <typename T1>
         requires std::is_same_v<std::remove_const_t<T1>, TTxn>
-    static void IteratorBegin(Iterator& /*it*/, T1& /*elem*/)
+    [[noreturn]] static void IteratorBegin(Iterator& /*it*/, T1& /*elem*/)
     {
         TODO("DoNotCommit: Stencil::Visitor<T>::IteratorBegin(it, *elem.get());");
     }
 
     template <typename T1>
         requires std::is_same_v<std::remove_const_t<T1>, TTxn>
-    static void IteratorMoveNext(Iterator& /*it*/, T1& /*elem*/)
+    [[noreturn]] static void IteratorMoveNext(Iterator& /*it*/, T1& /*elem*/)
     {
         TODO("DoNotCommit: Stencil::Visitor<T>::IteratorMoveNext(it, *elem.get());");
     }
 
     template <typename T1>
         requires std::is_same_v<std::remove_const_t<T1>, TTxn>
-    static bool IteratorValid(Iterator& /*it*/, T1& /*elem*/)
+    [[noreturn]] static bool IteratorValid(Iterator& /*it*/, T1& /*elem*/)
     {
         TODO("DoNotCommit: return Stencil::Visitor<T>::IteratorValid(it, *elem.get());");
     }
 
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, TTxn>
-    static void Visit(Iterator& /*it*/, T1& /*elem*/, TLambda&& /*lambda*/)
+    [[noreturn]] static void Visit(Iterator& /*it*/, T1& /*elem*/, TLambda&& /*lambda*/)
     {
         TODO("DoNotCommit: Stencil::Visitor<T>::Visit(it, *elem.get(), std::forward<TLambda>(lambda));");
     }

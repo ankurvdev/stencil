@@ -4,7 +4,7 @@ include(FetchContent)
 FetchContent_Declare(
   date
   GIT_REPOSITORY https://github.com/HowardHinnant/date
-  GIT_TAG        v3.0.3
+  GIT_TAG        v3.0.4
   SOURCE_SUBDIR .
   GIT_PROGRESS TRUE
   GIT_SHALLOW 1

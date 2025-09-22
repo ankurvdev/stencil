@@ -63,11 +63,11 @@ struct StringTransactionSerDes
 
     template <typename T> struct _StructApplicator
     {
-        static void Apply(T& /* txn */,
-                          std::string_view const& /* fieldname */,
-                          uint8_t /* mutator */,
-                          std::string_view const& /* mutatordata */,
-                          std::string_view const& /* rhs */)
+        [[noreturn]] static void Apply(T& /* txn */,
+                                       std::string_view const& /* fieldname */,
+                                       uint8_t /* mutator */,
+                                       std::string_view const& /* mutatordata */,
+                                       std::string_view const& /* rhs */)
         {
             throw std::logic_error("Invalid");
         }
@@ -75,9 +75,12 @@ struct StringTransactionSerDes
 
     template <typename T> struct _ListApplicator
     {
-        static void Add(T& /* txn */, size_t /* listindex */, std::string_view const& /* rhs */) { throw std::logic_error("Invalid"); }
+        [[noreturn]] static void Add(T& /* txn */, size_t /* listindex */, std::string_view const& /* rhs */)
+        {
+            throw std::logic_error("Invalid");
+        }
 
-        static void Remove(T& /* txn */, size_t /* listindex */) { throw std::logic_error("Invalid"); }
+        [[noreturn]] static void Remove(T& /* txn */, size_t /* listindex */) { throw std::logic_error("Invalid"); }
     };
 
     template <ConceptTransactionForIterable T> struct _ListApplicator<T>
@@ -127,7 +130,10 @@ struct StringTransactionSerDes
                         auto subkey = Stencil::Deserialize<uint32_t, Stencil::ProtocolString>(mutatordata);
                         _ListAdd(subtxn, subkey, rhs);
                     }
-                    else { throw std::logic_error("Invalid operation"); }
+                    else
+                    {
+                        throw std::logic_error("Invalid operation");
+                    }
                 });
             }
             else if (mutator == 2)    // List remove
@@ -146,10 +152,16 @@ struct StringTransactionSerDes
                         auto subkey = Stencil::Deserialize<uint32_t, Stencil::ProtocolString>(mutatordata);
                         subtxn.Remove(subkey);
                     }
-                    else { throw std::logic_error("Invalid operation"); }
+                    else
+                    {
+                        throw std::logic_error("Invalid operation");
+                    }
                 });
             }
-            else { throw std::logic_error("Unknown Mutator"); }
+            else
+            {
+                throw std::logic_error("Unknown Mutator");
+            }
         }
     };
 
@@ -192,7 +204,10 @@ struct StringTransactionSerDes
                 return retval;
             }
 
-            else { throw std::logic_error("Unable to indirect into a non-indexable"); }
+            else
+            {
+                throw std::logic_error("Unable to indirect into a non-indexable");
+            }
         }
 
         auto name = it.token;
@@ -215,7 +230,10 @@ struct StringTransactionSerDes
             }
             if (mutatorname == "add") { mutator = 1; }
             else if (mutatorname == "remove") { mutator = 2; }
-            else { throw std::logic_error("Invalid Mutator"); }
+            else
+            {
+                throw std::logic_error("Invalid Mutator");
+            }
         }
         size_t i = it.startIndex + it.token.size() + 1;
         while (i < it.data.size() && it.data[i] == ' ') i++;
@@ -234,7 +252,8 @@ struct StringTransactionSerDes
     template <ConceptTransaction T> static auto Apply(T& txn, std::string_view const& txndata)
     {
         size_t startIndex = 0;
-        do {
+        do
+        {
             TokenIterator it(txndata.substr(startIndex));
             startIndex += _Apply(it, txn);
         } while (startIndex < txndata.size());
@@ -266,7 +285,10 @@ struct StringTransactionSerDes
                 }
                 else if (mutator == 1) { ostr << ":add[" << index << "] = " << Stencil::Json::Stringify(subtxn.Elem()) << ";"; }
                 else if (mutator == 2) { ostr << ":remove[" << index << "] = {};"; }
-                else { throw std::logic_error("Unknown mutator"); }
+                else
+                {
+                    throw std::logic_error("Unknown mutator");
+                }
             });
         }
 
@@ -296,7 +318,10 @@ struct StringTransactionSerDes
                     _DeserializeTo(subtxn, ostr, stack);
                     stack.pop_back();
                 }
-                else { throw std::logic_error("Unknown mutator"); }
+                else
+                {
+                    throw std::logic_error("Unknown mutator");
+                }
             });
         }
         return ostr;

@@ -24,17 +24,23 @@ template <> struct Comparator<double, double>
 
 template <typename T> struct Comparator<std::vector<T>, std::vector<T>>
 {
-    static bool AreEqual(std::vector<T> const& /* t1 */, std::vector<T> const& /* t2 */) { throw std::logic_error("Not implemented"); }
+    [[noreturn]] static bool AreEqual(std::vector<T> const& /* t1 */, std::vector<T> const& /* t2 */)
+    {
+        throw std::logic_error("Not implemented");
+    }
 };
 
 template <typename T> struct Comparator<shared_tree<T>, shared_tree<T>>
 {
-    static bool AreEqual(shared_tree<T> const& /* t1 */, shared_tree<T> const& /* t2 */) { throw std::logic_error("Not implemented"); }
+    [[noreturn]] static bool AreEqual(shared_tree<T> const& /* t1 */, shared_tree<T> const& /* t2 */)
+    {
+        throw std::logic_error("Not implemented");
+    }
 };
 
 template <typename K, typename V> struct Comparator<std::unordered_map<K, V>, std::unordered_map<K, V>>
 {
-    static bool AreEqual(std::unordered_map<K, V> const& /* t1 */, std::unordered_map<K, V> const& /* t2 */)
+    [[noreturn]] static bool AreEqual(std::unordered_map<K, V> const& /* t1 */, std::unordered_map<K, V> const& /* t2 */)
     {
         throw std::logic_error("Not implemented");
     }

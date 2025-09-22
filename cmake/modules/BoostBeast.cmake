@@ -1,5 +1,5 @@
 include_guard()
-set(BOOST_VERSION 1.85.0)
+set(BOOST_VERSION 1.88.0)
 FetchContent_Declare(
     boostbuild
     URL https://github.com/boostorg/boost/releases/download/boost-${BOOST_VERSION}/boost-${BOOST_VERSION}-cmake.tar.gz

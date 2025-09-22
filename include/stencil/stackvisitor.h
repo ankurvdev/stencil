@@ -72,15 +72,18 @@ template <ConceptProtocol TProto, typename TOwner, typename T> struct VisitorTyp
 
 template <ConceptProtocol TProto, typename TOwner, typename T> struct IterableVisitorTypeHandler
 {
-    template <typename T1> TypeHandlerAndPtr VisitNext(T1& /*obj*/) const { throw std::logic_error("Not an iterable type"); }
+    template <typename T1> [[noreturn]] TypeHandlerAndPtr VisitNext(T1& /*obj*/) const { throw std::logic_error("Not an iterable type"); }
 
     TOwner* owner;
 };
 
 template <ConceptProtocol TProto, typename TOwner, typename T> struct PrimitiveVisitorTypeHandler
 {
-    template <typename T2> void Assign(T& /*obj*/, T2& /*obj*/) const { throw std::logic_error("Add Not supported on primitive types"); }
-    TOwner*                     owner;
+    template <typename T2> [[noreturn]] void Assign(T& /*obj*/, T2& /*obj*/) const
+    {
+        throw std::logic_error("Add Not supported on primitive types");
+    }
+    TOwner* owner;
 };
 
 template <ConceptProtocol TProto, typename TOwner, ConceptPrimitive T> struct PrimitiveVisitorTypeHandler<TProto, TOwner, T>
@@ -102,7 +105,10 @@ template <ConceptProtocol TProto, typename TOwner, ConceptIterable T> struct Ite
             Visitor<T>::IteratorBegin(it, obj);
             valid = true;
         }
-        else { Visitor<T>::IteratorMoveNext(it, obj); }
+        else
+        {
+            Visitor<T>::IteratorMoveNext(it, obj);
+        }
 
         if (!Visitor<T>::IteratorValid(it, obj)) throw std::runtime_error("Cannot Visit Next Item on the iterable");
 
@@ -125,9 +131,12 @@ template <ConceptProtocol TProto, typename TOwner, ConceptIterable T> struct Ite
 
 template <ConceptProtocol TProto, typename TOwner, typename T> struct IndexableVisitorTypeHandler
 {
-    TypeHandlerAndPtr                        KeyHandler() const { throw std::logic_error("Not an indexable type"); }
-    template <typename T1> TypeHandlerAndPtr VisitValueForKey(T1& /*obj*/) const { throw std::logic_error("Not an indexable type"); }
-    TOwner*                                  owner;
+    [[noreturn]] TypeHandlerAndPtr                        KeyHandler() const { throw std::logic_error("Not an indexable type"); }
+    template <typename T1> [[noreturn]] TypeHandlerAndPtr VisitValueForKey(T1& /*obj*/) const
+    {
+        throw std::logic_error("Not an indexable type");
+    }
+    TOwner* owner;
 };
 
 template <ConceptProtocol TProto, typename TOwner, ConceptVariant T> struct IndexableVisitorTypeHandler<TProto, TOwner, T>
@@ -136,9 +145,9 @@ template <ConceptProtocol TProto, typename TOwner, ConceptVariant T> struct Inde
 
     struct VariantKeyTypeHandler : TypeHandler
     {
-        TypeHandlerAndPtr VisitNext(void* /* ptr */) override { TODO(""); }
-        TypeHandlerAndPtr VisitKey(void* /* ptr */) override { TODO(""); }
-        TypeHandlerAndPtr VisitValueForKey(void* /* ptr */) override { TODO(""); }
+        [[noreturn]] TypeHandlerAndPtr VisitNext(void* /* ptr */) override { TODO(""); }
+        [[noreturn]] TypeHandlerAndPtr VisitKey(void* /* ptr */) override { TODO(""); }
+        [[noreturn]] TypeHandlerAndPtr VisitValueForKey(void* /* ptr */) override { TODO(""); }
 
         void Assign(void* /* ptr */, Primitives64Bit const& val) override { _variant = val; }
         void Assign(void* /* ptr */, std::string_view const& val) override { _variant = std::string{val}; }
@@ -207,7 +216,7 @@ template <ConceptProtocol TProto, typename TOwner, typename T> struct VisitorTyp
 {
     static_assert(std::is_default_constructible_v<Stencil::TypeTraits<T>>, "Specialization of TypeTraits required");
 
-    void Add(T& /* obj */) { TODO(""); }
+    [[noreturn]] void Add(T& /* obj */) { TODO(""); }
 
     virtual TypeHandlerAndPtr VisitNext(void* ptr) override
     {
@@ -234,10 +243,13 @@ template <ConceptProtocol TProto, typename TOwner, typename T> struct VisitorTyp
              using ElemType = typename Stencil::TransactionTraits<T>::ElemType;
              (*reinterpret_cast<T*>(ptr)).Assign(val.cast<ElemType>());
          }*/
-        else { TODO(""); }
+        else
+        {
+            TODO("");
+        }
     }
-    virtual void Assign(void* ptr, std::string_view const& val) override { primitive.Assign(*reinterpret_cast<T*>(ptr), val); }
-    virtual void Assign(void* /*ptr*/, std::wstring_view const& /*val*/) override
+    virtual void      Assign(void* ptr, std::string_view const& val) override { primitive.Assign(*reinterpret_cast<T*>(ptr), val); }
+    [[noreturn]] void Assign(void* /*ptr*/, std::wstring_view const& /*val*/) override
     {
         TODO("primitive.Assign(*reinterpret_cast<T*>(ptr), val);");
     }

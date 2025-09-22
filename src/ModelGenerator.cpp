@@ -30,16 +30,6 @@ DECLARE_RESOURCE_COLLECTION(templates);
 using namespace tinyxml2;
 using Str = Binding::Str;
 
-inline std::string wstring_to_string(std::wstring_view wstr)
-{
-    std::string out(wstr.size(), 0);
-    SUPPRESS_WARNINGS_START
-    SUPPRESS_MSVC_WARNING(4996)
-    wcstombs(out.data(), wstr.data(), wstr.size());
-    SUPPRESS_WARNINGS_END
-    return out;
-}
-
 inline std::string readfile(std::filesystem::path const& filepath)
 {
     std::ifstream file(filepath);
@@ -130,7 +120,10 @@ template <> struct convert<std::vector<Generator::MutatorAccessorDefinition>>
                     }
                 }
             }
-            else { throw std::invalid_argument("Args not found for :" + it->first.as<std::string>()); }
+            else
+            {
+                throw std::invalid_argument("Args not found for :" + it->first.as<std::string>());
+            }
             valarr.push_back(std::move(val));
         }
 
@@ -232,8 +225,8 @@ template <typename TKey, typename TVal> struct OrderedMap
             vecit++;
             return *this;
         }
-        bool operator!=(const iterator& rhs) const { return vecit != rhs.vecit; }
-        bool operator==(const iterator& rhs) const { return vecit == rhs.vecit; }
+        bool operator!=(iterator const& rhs) const { return vecit != rhs.vecit; }
+        bool operator==(iterator const& rhs) const { return vecit == rhs.vecit; }
 
         typename std::vector<TKey>::iterator vecit;
         std::unordered_map<TKey, TVal>*      mapref;
@@ -242,7 +235,7 @@ template <typename TKey, typename TVal> struct OrderedMap
     struct const_iterator
     {
 
-        std::pair<TKey, const TVal&> operator*() const { return {*vecit, mapref->at(*vecit)}; }
+        std::pair<TKey, TVal const&> operator*() const { return {*vecit, mapref->at(*vecit)}; }
         auto                         operator->() const
         {
             auto out = mapref->find(*vecit);
@@ -254,9 +247,9 @@ template <typename TKey, typename TVal> struct OrderedMap
             vecit++;
             return *this;
         }
-        bool operator!=(const const_iterator& rhs) const { return vecit != rhs.vecit; }
-        bool operator==(const const_iterator& rhs) const { return vecit == rhs.vecit; }
-        bool operator==(const iterator& rhs) const { return vecit == rhs.vecit; }
+        bool operator!=(const_iterator const& rhs) const { return vecit != rhs.vecit; }
+        bool operator==(const_iterator const& rhs) const { return vecit == rhs.vecit; }
+        bool operator==(iterator const& rhs) const { return vecit == rhs.vecit; }
 
         typename std::vector<TKey>::const_iterator vecit;
         std::unordered_map<TKey, TVal> const*      mapref;
@@ -267,14 +260,14 @@ template <typename TKey, typename TVal> struct OrderedMap
     auto begin() const { return const_iterator{_keyorder.begin(), &_map}; }
     auto end() const { return const_iterator{_keyorder.end(), &_map}; }
 
-    auto find(const TKey& key) { return iterator{std::find(_keyorder.begin(), _keyorder.end(), key), &_map}; }
-    auto find(const TKey& key) const { return const_iterator{std::find(_keyorder.begin(), _keyorder.end(), key), &_map}; }
+    auto find(TKey const& key) { return iterator{std::find(_keyorder.begin(), _keyorder.end(), key), &_map}; }
+    auto find(TKey const& key) const { return const_iterator{std::find(_keyorder.begin(), _keyorder.end(), key), &_map}; }
 
-    TVal&       at(const TKey& key) { return _map.at(key); }
-    TVal const& at(const TKey& key) const { return _map.at(key); }
+    TVal&       at(TKey const& key) { return _map.at(key); }
+    TVal const& at(TKey const& key) const { return _map.at(key); }
 
-    TVal&       operator[](const TKey& key) { return _map.at(key); }
-    TVal const& operator[](const TKey& key) const { return _map.at(key); }
+    TVal&       operator[](TKey const& key) { return _map.at(key); }
+    TVal const& operator[](TKey const& key) const { return _map.at(key); }
 
     void emplace(TKey const& key, TVal&& val)
     {
@@ -425,7 +418,10 @@ void TypeDefinitions::AddTypeDefinitions(std::string_view const& /*name*/, std::
                 for (auto const& [key1, node2] : node1.as_table()) { objmap[Str::Convert(key1)] = Str::Convert(node2.as_string()); }
             }
         }
-        else { throw std::logic_error("Unrecognized type"); }
+        else
+        {
+            throw std::logic_error("Unrecognized type");
+        }
     }
 }
 
@@ -506,7 +502,7 @@ static void ExpandTemplate(tree<Str::Type>&                 codetree,
         if (Str::Equal(name, Str::Create(L"If")))
         {
             bool allgood = true;
-            for (const auto& [lhs, rhs] : tmplit->attributes)
+            for (auto const& [lhs, rhs] : tmplit->attributes)
             {
                 Binding::Expression    expr;
                 std::vector<Str::Type> b;
@@ -579,42 +575,41 @@ static Template CreateTemplate(XMLElement const& element, std::string_view const
     return templ;
 }
 
-static std::wstring AddCDataBegin(std::wstring const& tmplview)
+static std::string AddCDataBegin(std::string const& tmplview)
 {
-    std::wstringstream    sstr;
-    size_t                index = 0;
-    std::wregex           re(L"[ \t]*//(<[^/>]+>\\s*[\r\n])");
-    std::wsregex_iterator begin(tmplview.begin(), tmplview.end(), re);
-    std::wsregex_iterator end;
+    std::stringstream    sstr;
+    size_t               index = 0;
+    std::regex           re("[ \t]*//(<[^/>]+>\\s*[\r\n])");
+    std::sregex_iterator begin(tmplview.begin(), tmplview.end(), re);
+    std::sregex_iterator end;
 
-    for (std::wsregex_iterator i = begin; i != end; ++i)
+    for (std::sregex_iterator i = begin; i != end; ++i)
     {
-
-        std::wsmatch match = *i;
+        auto match = *i;
         assert(match.size() == 2);
         sstr << match.prefix();
-        sstr << L"]]>" << match[1].str() << L"<![CDATA[";
+        sstr << "]]>" << match[1].str() << "<![CDATA[";
         index = static_cast<size_t>(match.position(0u) + match.length(0u));
     }
     sstr << tmplview.substr(index);
     return sstr.str();
 }
 
-static std::wstring AddCDataEnd(std::wstring const& tmplview)
+static std::string AddCDataEnd(std::string const& tmplview)
 {
-    std::wstringstream    sstr;
-    size_t                index = 0;
-    std::wregex           re(L"[ \t]*//(</[^>]+>\\s*[\r\n])");
-    std::wsregex_iterator begin(tmplview.begin(), tmplview.end(), re);
-    std::wsregex_iterator end;
+    std::stringstream    sstr;
+    size_t               index = 0;
+    std::regex           re("[ \t]*//(</[^>]+>\\s*[\r\n])");
+    std::sregex_iterator begin(tmplview.begin(), tmplview.end(), re);
+    std::sregex_iterator end;
 
-    for (std::wsregex_iterator i = begin; i != end; ++i)
+    for (std::sregex_iterator i = begin; i != end; ++i)
     {
 
-        std::wsmatch match = *i;
+        std::smatch match = *i;
         assert(match.size() == 2);
         sstr << match.prefix();
-        sstr << L"]]>" << match[1].str() << L"<![CDATA[";
+        sstr << "]]>" << match[1].str() << "<![CDATA[";
         index = static_cast<size_t>(match.position(0u) + match.length(0u));
     }
     sstr << tmplview.substr(index);
@@ -624,11 +619,11 @@ static std::wstring AddCDataEnd(std::wstring const& tmplview)
 void Generator::_AddTemplate(std::string_view const& name, std::string_view const& text)
 {
     if (text.length() == 0) { return; }
-    auto fullTemplateContents = Str::Create(L"<ModelGenerator><![CDATA[" + Str::Value(Str::Convert(text)) + L"]]></ModelGenerator>");
+    auto fullTemplateContents = fmt::format("<ModelGenerator><![CDATA[{}]]></ModelGenerator>", text);
     auto modified             = AddCDataEnd(AddCDataBegin(fullTemplateContents));
 
     tinyxml2::XMLDocument doc(false);
-    auto                  rc = doc.Parse(wstring_to_string(modified).c_str());
+    auto                  rc = doc.Parse(modified.c_str());
     if (rc != XMLError::XML_SUCCESS) { throw std::logic_error(("Error Loading Template: \n\t%s\n" + std::string(doc.ErrorStr())).c_str()); }
 
     auto fullTemplateElem = doc.FirstChildElement();
@@ -738,7 +733,7 @@ void TypeDefinitions::LoadIntoProgram(IDL::Program& program) const
 
 void Generator::LoadBuilltinTemplates()
 {
-    for (const auto res : LOAD_RESOURCE_COLLECTION(templates)) { _AddContent(wstring_to_string(res.name()), res.string()); }
+    for (auto const res : LOAD_RESOURCE_COLLECTION(templates)) { _AddContent(res.name(), res.string()); }
 }
 
 void Generator::LoadTemplate(std::filesystem::path const& templateFilePath)

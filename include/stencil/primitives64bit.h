@@ -52,7 +52,10 @@ struct Primitives64Bit
                 return Type{.width = W, .category = Primitives64Bit::Type::Category::Unsigned};
             }
             else if constexpr (std::is_signed<T>::value) { return Type{.width = W, .category = Primitives64Bit::Type::Category::Signed}; }
-            else { return Type{.width = 0, .category = Primitives64Bit::Type::Category::Unknown}; }
+            else
+            {
+                return Type{.width = 0, .category = Primitives64Bit::Type::Category::Unknown};
+            }
         }
 
         public:
@@ -96,7 +99,7 @@ struct Primitives64Bit
     {
         static constexpr auto Type() { return Type::Of<T>(); }
         static void           Assign(Primitives64Bit& obj, T const& val) { obj._iVal = val; }
-        static const auto&    Get(const Primitives64Bit& obj) { return obj._iVal; }
+        static auto const&    Get(Primitives64Bit const& obj) { return obj._iVal; }
         static T              Convert(int64_t val) { return static_cast<T>(val); }
         static int64_t        Repr(T const& val)
         {
@@ -112,7 +115,7 @@ struct Primitives64Bit
     {
         static constexpr auto Type() { return Type::Of<T>(); }
         static void           Assign(Primitives64Bit& obj, T const& val) { obj._uVal = val; }
-        static const auto&    Get(const Primitives64Bit& obj) { return obj._uVal; }
+        static auto const&    Get(Primitives64Bit const& obj) { return obj._uVal; }
         static T              Convert(uint64_t val) { return static_cast<T>(val); }
         static uint64_t       Repr(T const& val)
         {
@@ -128,7 +131,7 @@ struct Primitives64Bit
     {
         static constexpr auto Type() { return Type::Of<T>(); }
         static void           Assign(Primitives64Bit& obj, T const& val) { obj._dVal = static_cast<double>(val); }
-        static const auto&    Get(const Primitives64Bit& obj) { return obj._dVal; }
+        static auto const&    Get(Primitives64Bit const& obj) { return obj._dVal; }
         static void           Check() {}
         static T              Convert(double val) { return static_cast<T>(val); }
         static double         Repr(T const& val)
@@ -185,7 +188,10 @@ struct Primitives64Bit
             default: throw std::logic_error("Unsupported Cast");
             }
         }
-        else { throw std::logic_error("Unknown type"); }
+        else
+        {
+            throw std::logic_error("Unknown type");
+        }
     }
 };
 
@@ -239,11 +245,11 @@ template <size_t N>
 struct Primitives64Bit::Traits<std::array<int16_t, N>>
 {
     using TObj = std::array<int16_t, N>;
-    static constexpr auto         Type() { return Primitives64Bit::Type::Signed(N * 2); }
-    static void                   Assign(Primitives64Bit& /*obj*/, std::array<int16_t, N>& /*val*/) { TODO(""); }
-    static std::array<int16_t, N> Get(Primitives64Bit const& /*obj*/) { TODO(""); }
-    static std::array<int16_t, N> Convert(int64_t /*val*/) { TODO(""); }
-    static int64_t                Repr(TObj const& val)
+    static constexpr auto                      Type() { return Primitives64Bit::Type::Signed(N * 2); }
+    [[noreturn]] static void                   Assign(Primitives64Bit& /*obj*/, std::array<int16_t, N>& /*val*/) { TODO(""); }
+    [[noreturn]] static std::array<int16_t, N> Get(Primitives64Bit const& /*obj*/) { TODO(""); }
+    [[noreturn]] static std::array<int16_t, N> Convert(int64_t /*val*/) { TODO(""); }
+    static int64_t                             Repr(TObj const& val)
     {
         Primitives64Bit obj;
         Assign(obj, val);

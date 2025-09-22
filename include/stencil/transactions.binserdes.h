@@ -15,7 +15,8 @@ struct OStrmWriter
     OStrmWriter(std::ostream& ostr) : _ostr(ostr) {}
     CLASS_DELETE_COPY_AND_MOVE(OStrmWriter);
 
-    template <typename TVal, std::enable_if_t<std::is_trivial<TVal>::value, bool> = true> auto& operator<<(TVal const& val)
+    template <typename TVal, std::enable_if_t<std::is_trivially_default_constructible<TVal>::value, bool> = true>
+    auto& operator<<(TVal const& val)
     {
         auto spn = AsCSpan(val);
         _ostr.write(reinterpret_cast<char const*>(spn.data()), static_cast<std::streamsize>(spn.size()));
@@ -42,7 +43,7 @@ struct IStrmReader
     bool  isEof() { return !_istrm.good(); }
     auto& strm() { return _istrm; }
 
-    template <typename TVal, std::enable_if_t<std::is_trivial<TVal>::value, bool> = true> TVal read()
+    template <typename TVal, std::enable_if_t<std::is_trivially_default_constructible<TVal>::value, bool> = true> TVal read()
     {
         TVal val;
         auto spn = AsSpan(val);
@@ -116,14 +117,14 @@ struct BinaryTransactionSerDes
 
     template <ConceptTransaction T, typename F = void> struct _StructApplicator
     {
-        static void Apply(T& /* txn */, IStrmReader& /* reader */) { throw std::logic_error("Invalid"); }
+        [[noreturn]] static void Apply(T& /* txn */, IStrmReader& /* reader */) { throw std::logic_error("Invalid"); }
     };
 
     template <ConceptTransaction T, typename F = void> struct _ListApplicator
     {
-        static void Add(T& /* txn */, size_t /* listindex */, IStrmReader& /* reader */) { throw std::logic_error("Invalid"); }
-        static void Remove(T& /* txn */, size_t /* listindex */) { throw std::logic_error("Invalid"); }
-        static void Apply(T& /* txn */, IStrmReader& /* reader */) { throw std::logic_error("Invalid"); }
+        [[noreturn]] static void Add(T& /* txn */, size_t /* listindex */, IStrmReader& /* reader */) { throw std::logic_error("Invalid"); }
+        [[noreturn]] static void Remove(T& /* txn */, size_t /* listindex */) { throw std::logic_error("Invalid"); }
+        [[noreturn]] static void Apply(T& /* txn */, IStrmReader& /* reader */) { throw std::logic_error("Invalid"); }
     };
 
     template <ConceptTransactionForIterable T> struct _ListApplicator<T>

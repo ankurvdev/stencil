@@ -98,15 +98,16 @@ template <typename... Ts> struct DataPlayerT : std::enable_shared_from_this<Data
 
 template <typename... Ts> struct DataRecorder
 {
-    template <typename T, std::enable_if_t<std::is_trivial<T>::value, bool> = true> DataRecorder& operator<<(T const& val)
+    template <typename T, std::enable_if_t<std::is_trivially_default_constructible<T>::value, bool> = true>
+    DataRecorder& operator<<(T const& val)
     {
-        (*_ost).write(reinterpret_cast<const char*>(&val), std::streamsize{sizeof(T)});
+        (*_ost).write(reinterpret_cast<char const*>(&val), std::streamsize{sizeof(T)});
         return *this;
     }
 
     DataRecorder& operator<<(std::vector<uint8_t> const& val)
     {
-        (*_ost).write(reinterpret_cast<const char*>(val.data()), static_cast<std::streamsize>(val.size()));
+        (*_ost).write(reinterpret_cast<char const*>(val.data()), static_cast<std::streamsize>(val.size()));
         return *this;
     }
 
