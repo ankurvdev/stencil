@@ -66,8 +66,10 @@ template <typename T> struct InterfaceT
 {
     template <typename TArgStruct> void RaiseEvent(TArgStruct const& args)
     {
+        if (handlerptr == nullptr) { return; }
         auto handlers = reinterpret_cast<impl::Interface::InterfaceEventHandlers<T>*>(handlerptr);
-        std::get<impl::Interface::IEventHandler<TArgStruct>*>(handlers->handlers)->HandleEvent(args);
+        auto handler  = std::get<impl::Interface::IEventHandler<TArgStruct>*>(handlers->handlers);
+        handler->HandleEvent(args);
     }
 
     template <typename THandler> void SetHandler(THandler* ptr)
