@@ -556,10 +556,6 @@ def get_cmake() -> Path:
     return get_binary("cmake")
 
 
-def get_clang_format() -> Path:
-    return get_binary("clang-format")
-
-
 def get_ninja() -> Path:
     return get_binary("ninja")
 
