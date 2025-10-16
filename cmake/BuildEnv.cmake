@@ -289,6 +289,7 @@ macro(EnableStrictCompilation)
                 #suppression list
                 -Wno-ctad-maybe-unsupported
                 -Wno-padded # Dont care about auto padding
+                -Wno-nrvo # clang-21
             )
 
             set(exclusions "[-/]W[a-zA-Z1-9]+")
