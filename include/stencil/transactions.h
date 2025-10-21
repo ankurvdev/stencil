@@ -232,7 +232,7 @@ template <typename TContainer, typename TKey, typename TVal> struct Stencil::Tra
         }
     }
 
-    template <typename TLambda> auto Visit(TKey const& key, TLambda&& lambda) { lambda(key, at(key)); }
+    template <typename TLambda> auto Visit(TKey const& key, TLambda&& lambda) { lambda(key, _elem.at(key)); }
 
     template <typename TLambda> void VisitChanges(TLambda&& lambda)
     {
