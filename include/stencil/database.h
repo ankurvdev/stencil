@@ -13,6 +13,7 @@
 #include <shared_mutex>
 #include <tuple>
 #include <unordered_map>
+#include <cassert>
 
 namespace Stencil::Database    // Type/Trait Declarations
 {
