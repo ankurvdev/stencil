@@ -254,7 +254,15 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp]")
             CHECK(t2 < t3);
             {
                 auto txn = CreateNestedObjectTransaction(obj1);
-                txn.list1().edit_listobj(0).set_value(200);
+                {
+                    // edit_listobj has an issue
+                    // it creates a stack var that is destroyed too soon
+                    // txn.list1().edit_listobj(0).set_value(200);
+                    auto txn1 = txn.list1();
+                    auto txn2 = txn1.listobj();
+                    auto txn3 = txn2.Edit(0);
+                    txn3.set_value(200);
+                }
             }
             t4 = obj1.lastmodified;
             CHECK(t3 < t4);
@@ -563,8 +571,16 @@ TEST_CASE("Transactions_Bugs", "[transaction]")
         Objects::NestedObject obj1;
         obj1.list1.listobj.push_back({});
         auto txn = CreateNestedObjectTransaction(obj1);
-        txn.list1().edit_listobj(0).obj1().set_val1(1);
-        // txn.Flush();
+        {
+            auto txn1 = txn.list1();
+            auto txn2 = txn1.listobj();
+            auto txn3 = txn2.Edit(0);
+            auto txn4 = txn3.obj1();
+            txn4.set_val1(1);
+        }
+        // edit_listobj has an issue
+        // it creates a stack var that is destroyed too soon
+        // txn.list1().edit_listobj(0).obj1().set_val1(1);
         CHECK(txn.list1().IsChanged());
         CHECK(txn.IsChanged());
     }

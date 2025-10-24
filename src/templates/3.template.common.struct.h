@@ -321,6 +321,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
     };
 
     using Txn               = Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TContainer>;
+    using View              = Stencil::TransactionView<zzProgram_Namezz::zzStruct_Namezz, typename TContainer::View>;
     using ElemType          = zzProgram_Namezz::zzStruct_Namezz;
     using ContainerTxnState = typename TContainer::ElemTxnState;
 
@@ -352,6 +353,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
+    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
     ElemType const& Elem() const { return _elem; }
 
     bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
@@ -370,24 +372,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
 
     void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) { return _IsFieldChanged(elemTxnState.field); }
+    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
-
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
-    {
-        //<Field>
-        if (_IsFieldAssigned(Fields::Field_zzField_Namezz))
-        {
-            auto txn = zzNamezz();
-            lambda(Fields::Field_zzField_Namezz, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_zzField_Namezz))
-        {
-            auto txn = zzNamezz();
-            lambda(Fields::Field_zzField_Namezz, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        //</Field>
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -414,7 +400,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
     {
         return Stencil::CreateTransaction<Transaction_zzNamezz>(_elemState.zzNamezz, _txnStateForElem.zzNamezz, *this, _elem.zzNamezz);
     }
-
     //</Field>
     //<Field>
     void set_zzNamezz(zzFieldType_NativeTypezz&& val)
@@ -463,6 +448,72 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
         }
         //</Field>
     }
+};
+
+template <Stencil::ConceptTransactionView TContainer> struct Stencil::TransactionView<zzProgram_Namezz::zzStruct_Namezz, TContainer>
+{
+    using Traits = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>;
+    using Fields = Traits::Fields;
+
+    using Txn               = Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, typename TContainer::Txn>;
+    using View              = Stencil::TransactionView<zzProgram_Namezz::zzStruct_Namezz, TContainer>;
+    using ElemType          = zzProgram_Namezz::zzStruct_Namezz;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using ElemTxnState    = Txn::ElemTxnState;
+    using TxnState        = Txn::TxnState;
+    using TxnStateForElem = Txn::TxnStateForElem;
+
+    TransactionView(TxnState const& elemState, ContainerTxnState const& containerState, TContainer const& container, ElemType const& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~TransactionView() = default;
+    CLASS_DELETE_COPY_AND_MOVE(TransactionView);
+    //<Field>
+    using TransactionView_zzNamezz = Stencil::TransactionView<zzFieldType_NativeTypezz, View>;
+    //</Field>
+
+    ElemType const& Elem() const { return _elem; }
+
+    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
+    {
+        //<Field>
+        if (_IsFieldAssigned(Fields::Field_zzField_Namezz))
+        {
+            auto txn = zzNamezz();
+            lambda(Fields::Field_zzField_Namezz, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_zzField_Namezz))
+        {
+            auto txn = zzNamezz();
+            lambda(Fields::Field_zzField_Namezz, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        //</Field>
+    }
+
+    private:
+    TxnStateForElem const    _txnStateForElem{};
+    TxnState const&          _elemState;
+    ContainerTxnState const& _containerState;
+    TContainer const&        _container;
+    ElemType const&          _elem;
+
+    public:
+    //<Field>
+    auto zzNamezz() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_zzNamezz>(
+            _elemState.zzNamezz, _txnStateForElem.zzNamezz, *this, _elem.zzNamezz);
+    }
+    //</Field>
 };
 
 template <> struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz> : Stencil::VisitorT<zzProgram_Namezz::zzStruct_Namezz>
@@ -1132,10 +1183,7 @@ template <> struct Stencil::VisitorForVariant<zzProgram_Namezz::zzVariant_Namezz
         std::visit(
             [&](auto const& o) {
                 if constexpr (std::is_same_v<std::remove_cvref_t<decltype(o)>, std::monostate>) {}
-                else
-                {
-                    lambda(static_cast<Fields>(obj._variant.index()), o);
-                }
+                else { lambda(static_cast<Fields>(obj._variant.index()), o); }
             },
             obj._variant);
     }
@@ -1145,10 +1193,7 @@ template <> struct Stencil::VisitorForVariant<zzProgram_Namezz::zzVariant_Namezz
         std::visit(
             [&](auto& o) {
                 if constexpr (std::is_same_v<std::remove_cvref_t<decltype(o)>, std::monostate>) {}
-                else
-                {
-                    lambda(static_cast<Fields>(obj._variant.index()), o);
-                }
+                else { lambda(static_cast<Fields>(obj._variant.index()), o); }
             },
             obj._variant);
     }

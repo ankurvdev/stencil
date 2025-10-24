@@ -67,52 +67,58 @@ struct IStrmReader
 
 struct BinaryTransactionSerDes
 {
-    template <ConceptTransaction T> static auto& _DeserializeTo(T& txn, OStrmWriter& writer)
+    template <ConceptTransactionView T> static auto& _DeserializeTo(T const& txn, OStrmWriter& writer)
     {
-        if constexpr (ConceptTransactionForIndexable<T> || ConceptTransactionForIterable<T>)
+        if constexpr (ConceptTransactionViewForIndexable<T> || ConceptTransactionViewForIterable<T>)
         {
             // using ElemType = typename Stencil::TransactionTraits<T>::ElemType;
 
-            txn.VisitChanges([&](auto const& key, uint8_t const& mutator, [[maybe_unused]] uint32_t const& mutatordata, auto& subtxn) {
-                writer << static_cast<uint8_t>(mutator);
-                Stencil::SerDes<std::remove_cvref_t<decltype(key)>, ProtocolBinary>::Write(writer, key);
-                switch (mutator)
-                {
-                case 0u:    // Assign
-                {
-                    using Valype = std::remove_cvref_t<decltype(subtxn.Elem())>;
-                    Stencil::SerDes<Valype, ProtocolBinary>::Write(writer, subtxn.Elem());
+            txn.VisitChanges(
+                [&](auto const& key, uint8_t const& mutator, [[maybe_unused]] uint32_t const& mutatordata, auto const& subtxn) {
+                    writer << static_cast<uint8_t>(mutator);
+                    Stencil::SerDes<std::remove_cvref_t<decltype(key)>, ProtocolBinary>::Write(writer, key);
+                    switch (mutator)
+                    {
+                    case 0u:    // Assign
+                    {
+                        using Valype = std::remove_cvref_t<decltype(subtxn.Elem())>;
+                        Stencil::SerDes<Valype, ProtocolBinary>::Write(writer, subtxn.Elem());
+                        break;
+                    }
+                    case 1u:    // List Add
+                    {
+                        Stencil::SerDes<uint32_t, ProtocolBinary>::Write(writer, mutatordata);
+                        using Valype = std::remove_cvref_t<decltype(subtxn.Elem())>;
+                        Stencil::SerDes<Valype, ProtocolBinary>::Write(writer, subtxn.Elem());
+                        break;
+                    }
+                    case 2u:    // List Remove
+                    {
+                        // Stencil::SerDes<uint32_t, ProtocolBinary>::Write(writer, mutatordata);
+                        // No additional information needs to be serialized in
+                    }
                     break;
-                }
-                case 1u:    // List Add
-                {
-                    Stencil::SerDes<uint32_t, ProtocolBinary>::Write(writer, mutatordata);
-                    using Valype = std::remove_cvref_t<decltype(subtxn.Elem())>;
-                    Stencil::SerDes<Valype, ProtocolBinary>::Write(writer, subtxn.Elem());
-                    break;
-                }
-                case 2u:    // List Remove
-                {
-                    // Stencil::SerDes<uint32_t, ProtocolBinary>::Write(writer, mutatordata);
-                    // No additional information needs to be serialized in
-                }
-                break;
-                case 3u:    // Edit
-                    _DeserializeTo(subtxn, writer);
-                    break;
-                default: throw std::logic_error("Unknown mutator");
-                }
-            });
+                    case 3u:    // Edit
+                        _DeserializeTo(subtxn, writer);
+                        break;
+                    default: throw std::logic_error("Unknown mutator");
+                    }
+                });
             writer << std::numeric_limits<uint8_t>::max();
         }
         return writer;
     }
 
-    template <ConceptTransaction T> static std::ostream& Deserialize(T& txn, std::ostream& ostr)
+    template <ConceptTransactionView T> static std::ostream& Deserialize(T const& txn, std::ostream& ostr)
     {
         OStrmWriter writer(ostr);
         _DeserializeTo(txn, writer);
         return ostr;
+    }
+
+    template <ConceptTransaction T> static auto& Deserialize(T const& txn, std::ostream& ostr)
+    {
+        return Deserialize(static_cast<typename T::View>(txn), ostr);
     }
 
     template <ConceptTransaction T, typename F = void> struct _StructApplicator

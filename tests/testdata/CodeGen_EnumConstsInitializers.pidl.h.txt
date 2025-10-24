@@ -670,6 +670,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<En
     };
 
     using Txn               = Stencil::Transaction<EnumConstsInitializers::DefaultValues, TContainer>;
+    using View              = Stencil::TransactionView<EnumConstsInitializers::DefaultValues, typename TContainer::View>;
     using ElemType          = EnumConstsInitializers::DefaultValues;
     using ContainerTxnState = typename TContainer::ElemTxnState;
 
@@ -718,6 +719,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<En
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
+    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
     ElemType const& Elem() const { return _elem; }
 
     bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
@@ -736,132 +738,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<En
 
     void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) { return _IsFieldChanged(elemTxnState.field); }
+    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
-
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
-    {
-        if (_IsFieldAssigned(Fields::Field_enum1))
-        {
-            auto txn = enum1();
-            lambda(Fields::Field_enum1, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_enum1))
-        {
-            auto txn = enum1();
-            lambda(Fields::Field_enum1, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_enum2))
-        {
-            auto txn = enum2();
-            lambda(Fields::Field_enum2, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_enum2))
-        {
-            auto txn = enum2();
-            lambda(Fields::Field_enum2, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_enum3))
-        {
-            auto txn = enum3();
-            lambda(Fields::Field_enum3, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_enum3))
-        {
-            auto txn = enum3();
-            lambda(Fields::Field_enum3, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_enum4))
-        {
-            auto txn = enum4();
-            lambda(Fields::Field_enum4, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_enum4))
-        {
-            auto txn = enum4();
-            lambda(Fields::Field_enum4, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val1))
-        {
-            auto txn = val1();
-            lambda(Fields::Field_val1, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val1))
-        {
-            auto txn = val1();
-            lambda(Fields::Field_val1, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val2))
-        {
-            auto txn = val2();
-            lambda(Fields::Field_val2, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val2))
-        {
-            auto txn = val2();
-            lambda(Fields::Field_val2, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val3))
-        {
-            auto txn = val3();
-            lambda(Fields::Field_val3, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val3))
-        {
-            auto txn = val3();
-            lambda(Fields::Field_val3, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val4))
-        {
-            auto txn = val4();
-            lambda(Fields::Field_val4, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val4))
-        {
-            auto txn = val4();
-            lambda(Fields::Field_val4, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val5))
-        {
-            auto txn = val5();
-            lambda(Fields::Field_val5, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val5))
-        {
-            auto txn = val5();
-            lambda(Fields::Field_val5, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val6))
-        {
-            auto txn = val6();
-            lambda(Fields::Field_val6, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val6))
-        {
-            auto txn = val6();
-            lambda(Fields::Field_val6, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val7))
-        {
-            auto txn = val7();
-            lambda(Fields::Field_val7, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val7))
-        {
-            auto txn = val7();
-            lambda(Fields::Field_val7, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val9))
-        {
-            auto txn = val9();
-            lambda(Fields::Field_val9, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val9))
-        {
-            auto txn = val9();
-            lambda(Fields::Field_val9, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -887,62 +765,50 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<En
     {
         return Stencil::CreateTransaction<Transaction_enum1>(_elemState.enum1, _txnStateForElem.enum1, *this, _elem.enum1);
     }
-
     auto enum2()
     {
         return Stencil::CreateTransaction<Transaction_enum2>(_elemState.enum2, _txnStateForElem.enum2, *this, _elem.enum2);
     }
-
     auto enum3()
     {
         return Stencil::CreateTransaction<Transaction_enum3>(_elemState.enum3, _txnStateForElem.enum3, *this, _elem.enum3);
     }
-
     auto enum4()
     {
         return Stencil::CreateTransaction<Transaction_enum4>(_elemState.enum4, _txnStateForElem.enum4, *this, _elem.enum4);
     }
-
     auto val1()
     {
         return Stencil::CreateTransaction<Transaction_val1>(_elemState.val1, _txnStateForElem.val1, *this, _elem.val1);
     }
-
     auto val2()
     {
         return Stencil::CreateTransaction<Transaction_val2>(_elemState.val2, _txnStateForElem.val2, *this, _elem.val2);
     }
-
     auto val3()
     {
         return Stencil::CreateTransaction<Transaction_val3>(_elemState.val3, _txnStateForElem.val3, *this, _elem.val3);
     }
-
     auto val4()
     {
         return Stencil::CreateTransaction<Transaction_val4>(_elemState.val4, _txnStateForElem.val4, *this, _elem.val4);
     }
-
     auto val5()
     {
         return Stencil::CreateTransaction<Transaction_val5>(_elemState.val5, _txnStateForElem.val5, *this, _elem.val5);
     }
-
     auto val6()
     {
         return Stencil::CreateTransaction<Transaction_val6>(_elemState.val6, _txnStateForElem.val6, *this, _elem.val6);
     }
-
     auto val7()
     {
         return Stencil::CreateTransaction<Transaction_val7>(_elemState.val7, _txnStateForElem.val7, *this, _elem.val7);
     }
-
     auto val9()
     {
         return Stencil::CreateTransaction<Transaction_val9>(_elemState.val9, _txnStateForElem.val9, *this, _elem.val9);
     }
-
     void set_enum1(::EnumConstsInitializers::EnumType1&& val)
     {
         auto subtxn = enum1();
@@ -1139,6 +1005,241 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<En
             auto txn = val9();
             lambda(Traits::Field_val9T{}, txn, Elem().val9);
         }
+    }
+};
+
+template <Stencil::ConceptTransactionView TContainer> struct Stencil::TransactionView<EnumConstsInitializers::DefaultValues, TContainer>
+{
+    using Traits = Stencil::TypeTraitsForIndexable<EnumConstsInitializers::DefaultValues>;
+    using Fields = Traits::Fields;
+
+    using Txn               = Stencil::Transaction<EnumConstsInitializers::DefaultValues, typename TContainer::Txn>;
+    using View              = Stencil::TransactionView<EnumConstsInitializers::DefaultValues, TContainer>;
+    using ElemType          = EnumConstsInitializers::DefaultValues;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using ElemTxnState    = Txn::ElemTxnState;
+    using TxnState        = Txn::TxnState;
+    using TxnStateForElem = Txn::TxnStateForElem;
+
+    TransactionView(TxnState const& elemState, ContainerTxnState const& containerState, TContainer const& container, ElemType const& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~TransactionView() = default;
+    CLASS_DELETE_COPY_AND_MOVE(TransactionView);
+    using TransactionView_enum1 = Stencil::TransactionView<::EnumConstsInitializers::EnumType1, View>;
+    using TransactionView_enum2 = Stencil::TransactionView<::EnumConstsInitializers::EnumType1, View>;
+    using TransactionView_enum3 = Stencil::TransactionView<::EnumConstsInitializers::EnumType2, View>;
+    using TransactionView_enum4 = Stencil::TransactionView<::EnumConstsInitializers::EnumType1, View>;
+    using TransactionView_val1 = Stencil::TransactionView<shared_string, View>;
+    using TransactionView_val2 = Stencil::TransactionView<uint8_t, View>;
+    using TransactionView_val3 = Stencil::TransactionView<double, View>;
+    using TransactionView_val4 = Stencil::TransactionView<float, View>;
+    using TransactionView_val5 = Stencil::TransactionView<shared_string, View>;
+    using TransactionView_val6 = Stencil::TransactionView<uint8_t, View>;
+    using TransactionView_val7 = Stencil::TransactionView<double, View>;
+    using TransactionView_val9 = Stencil::TransactionView<float, View>;
+    ElemType const& Elem() const { return _elem; }
+
+    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
+    {
+        if (_IsFieldAssigned(Fields::Field_enum1))
+        {
+            auto txn = enum1();
+            lambda(Fields::Field_enum1, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_enum1))
+        {
+            auto txn = enum1();
+            lambda(Fields::Field_enum1, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_enum2))
+        {
+            auto txn = enum2();
+            lambda(Fields::Field_enum2, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_enum2))
+        {
+            auto txn = enum2();
+            lambda(Fields::Field_enum2, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_enum3))
+        {
+            auto txn = enum3();
+            lambda(Fields::Field_enum3, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_enum3))
+        {
+            auto txn = enum3();
+            lambda(Fields::Field_enum3, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_enum4))
+        {
+            auto txn = enum4();
+            lambda(Fields::Field_enum4, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_enum4))
+        {
+            auto txn = enum4();
+            lambda(Fields::Field_enum4, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val1))
+        {
+            auto txn = val1();
+            lambda(Fields::Field_val1, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val1))
+        {
+            auto txn = val1();
+            lambda(Fields::Field_val1, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val2))
+        {
+            auto txn = val2();
+            lambda(Fields::Field_val2, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val2))
+        {
+            auto txn = val2();
+            lambda(Fields::Field_val2, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val3))
+        {
+            auto txn = val3();
+            lambda(Fields::Field_val3, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val3))
+        {
+            auto txn = val3();
+            lambda(Fields::Field_val3, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val4))
+        {
+            auto txn = val4();
+            lambda(Fields::Field_val4, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val4))
+        {
+            auto txn = val4();
+            lambda(Fields::Field_val4, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val5))
+        {
+            auto txn = val5();
+            lambda(Fields::Field_val5, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val5))
+        {
+            auto txn = val5();
+            lambda(Fields::Field_val5, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val6))
+        {
+            auto txn = val6();
+            lambda(Fields::Field_val6, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val6))
+        {
+            auto txn = val6();
+            lambda(Fields::Field_val6, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val7))
+        {
+            auto txn = val7();
+            lambda(Fields::Field_val7, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val7))
+        {
+            auto txn = val7();
+            lambda(Fields::Field_val7, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val9))
+        {
+            auto txn = val9();
+            lambda(Fields::Field_val9, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val9))
+        {
+            auto txn = val9();
+            lambda(Fields::Field_val9, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    private:
+    TxnStateForElem const    _txnStateForElem{};
+    TxnState const&          _elemState;
+    ContainerTxnState const& _containerState;
+    TContainer const&        _container;
+    ElemType const&          _elem;
+
+    public:
+    auto enum1() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_enum1>(
+            _elemState.enum1, _txnStateForElem.enum1, *this, _elem.enum1);
+    }
+    auto enum2() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_enum2>(
+            _elemState.enum2, _txnStateForElem.enum2, *this, _elem.enum2);
+    }
+    auto enum3() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_enum3>(
+            _elemState.enum3, _txnStateForElem.enum3, *this, _elem.enum3);
+    }
+    auto enum4() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_enum4>(
+            _elemState.enum4, _txnStateForElem.enum4, *this, _elem.enum4);
+    }
+    auto val1() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_val1>(
+            _elemState.val1, _txnStateForElem.val1, *this, _elem.val1);
+    }
+    auto val2() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_val2>(
+            _elemState.val2, _txnStateForElem.val2, *this, _elem.val2);
+    }
+    auto val3() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_val3>(
+            _elemState.val3, _txnStateForElem.val3, *this, _elem.val3);
+    }
+    auto val4() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_val4>(
+            _elemState.val4, _txnStateForElem.val4, *this, _elem.val4);
+    }
+    auto val5() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_val5>(
+            _elemState.val5, _txnStateForElem.val5, *this, _elem.val5);
+    }
+    auto val6() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_val6>(
+            _elemState.val6, _txnStateForElem.val6, *this, _elem.val6);
+    }
+    auto val7() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_val7>(
+            _elemState.val7, _txnStateForElem.val7, *this, _elem.val7);
+    }
+    auto val9() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_val9>(
+            _elemState.val9, _txnStateForElem.val9, *this, _elem.val9);
     }
 };
 

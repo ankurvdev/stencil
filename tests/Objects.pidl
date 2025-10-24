@@ -23,6 +23,7 @@ struct DictObject
 struct List
 {
     list<ListObject> listobj;
+    list<string>     liststr;
 }
 
 struct SimpleObject2
