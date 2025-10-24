@@ -283,6 +283,7 @@ struct StringTransactionSerDes
                 else if (mutator == 2) { ostr << ":remove[" << index << "] = {};"; }
                 else { throw std::logic_error("Unknown mutator"); }
             });
+            return ostr;
         }
 
         else if constexpr (ConceptTransactionViewForIndexable<T>)
@@ -313,9 +314,9 @@ struct StringTransactionSerDes
                 }
                 else { throw std::logic_error("Unknown mutator"); }
             });
+            return ostr;
         }
         else { throw std::logic_error("Unsupported transaction type"); }
-        return ostr;
     }
 
     template <ConceptTransactionView T> static std::string Deserialize(T const& txn)
