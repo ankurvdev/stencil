@@ -522,6 +522,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     };
 
     using Txn               = Stencil::Transaction<CLOpts2::InstallOptions, TContainer>;
+    using View              = Stencil::TransactionView<CLOpts2::InstallOptions, typename TContainer::View>;
     using ElemType          = CLOpts2::InstallOptions;
     using ContainerTxnState = typename TContainer::ElemTxnState;
 
@@ -556,6 +557,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
+    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
     ElemType const& Elem() const { return _elem; }
 
     bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
@@ -574,62 +576,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 
     void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) { return _IsFieldChanged(elemTxnState.field); }
+    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
-
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
-    {
-        if (_IsFieldAssigned(Fields::Field_ProductId))
-        {
-            auto txn = ProductId();
-            lambda(Fields::Field_ProductId, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_ProductId))
-        {
-            auto txn = ProductId();
-            lambda(Fields::Field_ProductId, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_Repair))
-        {
-            auto txn = Repair();
-            lambda(Fields::Field_Repair, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_Repair))
-        {
-            auto txn = Repair();
-            lambda(Fields::Field_Repair, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_ForceNonSD))
-        {
-            auto txn = ForceNonSD();
-            lambda(Fields::Field_ForceNonSD, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_ForceNonSD))
-        {
-            auto txn = ForceNonSD();
-            lambda(Fields::Field_ForceNonSD, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_TargetVolume))
-        {
-            auto txn = TargetVolume();
-            lambda(Fields::Field_TargetVolume, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_TargetVolume))
-        {
-            auto txn = TargetVolume();
-            lambda(Fields::Field_TargetVolume, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_User))
-        {
-            auto txn = User();
-            lambda(Fields::Field_User, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_User))
-        {
-            auto txn = User();
-            lambda(Fields::Field_User, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -655,27 +603,22 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     {
         return Stencil::CreateTransaction<Transaction_ProductId>(_elemState.ProductId, _txnStateForElem.ProductId, *this, _elem.ProductId);
     }
-
     auto Repair()
     {
         return Stencil::CreateTransaction<Transaction_Repair>(_elemState.Repair, _txnStateForElem.Repair, *this, _elem.Repair);
     }
-
     auto ForceNonSD()
     {
         return Stencil::CreateTransaction<Transaction_ForceNonSD>(_elemState.ForceNonSD, _txnStateForElem.ForceNonSD, *this, _elem.ForceNonSD);
     }
-
     auto TargetVolume()
     {
         return Stencil::CreateTransaction<Transaction_TargetVolume>(_elemState.TargetVolume, _txnStateForElem.TargetVolume, *this, _elem.TargetVolume);
     }
-
     auto User()
     {
         return Stencil::CreateTransaction<Transaction_User>(_elemState.User, _txnStateForElem.User, *this, _elem.User);
     }
-
     void set_ProductId(shared_string&& val)
     {
         auto subtxn = ProductId();
@@ -767,6 +710,129 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
             auto txn = User();
             lambda(Traits::Field_UserT{}, txn, Elem().User);
         }
+    }
+};
+
+template <Stencil::ConceptTransactionView TContainer> struct Stencil::TransactionView<CLOpts2::InstallOptions, TContainer>
+{
+    using Traits = Stencil::TypeTraitsForIndexable<CLOpts2::InstallOptions>;
+    using Fields = Traits::Fields;
+
+    using Txn               = Stencil::Transaction<CLOpts2::InstallOptions, typename TContainer::Txn>;
+    using View              = Stencil::TransactionView<CLOpts2::InstallOptions, TContainer>;
+    using ElemType          = CLOpts2::InstallOptions;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using ElemTxnState    = Txn::ElemTxnState;
+    using TxnState        = Txn::TxnState;
+    using TxnStateForElem = Txn::TxnStateForElem;
+
+    TransactionView(TxnState const& elemState, ContainerTxnState const& containerState, TContainer const& container, ElemType const& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~TransactionView() = default;
+    CLASS_DELETE_COPY_AND_MOVE(TransactionView);
+    using TransactionView_ProductId = Stencil::TransactionView<shared_string, View>;
+    using TransactionView_Repair = Stencil::TransactionView<bool, View>;
+    using TransactionView_ForceNonSD = Stencil::TransactionView<bool, View>;
+    using TransactionView_TargetVolume = Stencil::TransactionView<shared_string, View>;
+    using TransactionView_User = Stencil::TransactionView<shared_string, View>;
+    ElemType const& Elem() const { return _elem; }
+
+    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
+    {
+        if (_IsFieldAssigned(Fields::Field_ProductId))
+        {
+            auto txn = ProductId();
+            lambda(Fields::Field_ProductId, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_ProductId))
+        {
+            auto txn = ProductId();
+            lambda(Fields::Field_ProductId, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_Repair))
+        {
+            auto txn = Repair();
+            lambda(Fields::Field_Repair, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_Repair))
+        {
+            auto txn = Repair();
+            lambda(Fields::Field_Repair, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_ForceNonSD))
+        {
+            auto txn = ForceNonSD();
+            lambda(Fields::Field_ForceNonSD, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_ForceNonSD))
+        {
+            auto txn = ForceNonSD();
+            lambda(Fields::Field_ForceNonSD, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_TargetVolume))
+        {
+            auto txn = TargetVolume();
+            lambda(Fields::Field_TargetVolume, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_TargetVolume))
+        {
+            auto txn = TargetVolume();
+            lambda(Fields::Field_TargetVolume, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_User))
+        {
+            auto txn = User();
+            lambda(Fields::Field_User, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_User))
+        {
+            auto txn = User();
+            lambda(Fields::Field_User, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    private:
+    TxnStateForElem const    _txnStateForElem{};
+    TxnState const&          _elemState;
+    ContainerTxnState const& _containerState;
+    TContainer const&        _container;
+    ElemType const&          _elem;
+
+    public:
+    auto ProductId() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_ProductId>(
+            _elemState.ProductId, _txnStateForElem.ProductId, *this, _elem.ProductId);
+    }
+    auto Repair() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_Repair>(
+            _elemState.Repair, _txnStateForElem.Repair, *this, _elem.Repair);
+    }
+    auto ForceNonSD() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_ForceNonSD>(
+            _elemState.ForceNonSD, _txnStateForElem.ForceNonSD, *this, _elem.ForceNonSD);
+    }
+    auto TargetVolume() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_TargetVolume>(
+            _elemState.TargetVolume, _txnStateForElem.TargetVolume, *this, _elem.TargetVolume);
+    }
+    auto User() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_User>(
+            _elemState.User, _txnStateForElem.User, *this, _elem.User);
     }
 };
 
@@ -997,6 +1063,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     };
 
     using Txn               = Stencil::Transaction<CLOpts2::QueueOptions, TContainer>;
+    using View              = Stencil::TransactionView<CLOpts2::QueueOptions, typename TContainer::View>;
     using ElemType          = CLOpts2::QueueOptions;
     using ContainerTxnState = typename TContainer::ElemTxnState;
 
@@ -1023,6 +1090,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
+    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
     ElemType const& Elem() const { return _elem; }
 
     bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
@@ -1041,22 +1109,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 
     void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) { return _IsFieldChanged(elemTxnState.field); }
+    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
-
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
-    {
-        if (_IsFieldAssigned(Fields::Field_ProductId))
-        {
-            auto txn = ProductId();
-            lambda(Fields::Field_ProductId, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_ProductId))
-        {
-            auto txn = ProductId();
-            lambda(Fields::Field_ProductId, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -1082,7 +1136,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     {
         return Stencil::CreateTransaction<Transaction_ProductId>(_elemState.ProductId, _txnStateForElem.ProductId, *this, _elem.ProductId);
     }
-
     void set_ProductId(shared_string&& val)
     {
         auto subtxn = ProductId();
@@ -1114,6 +1167,65 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
             auto txn = ProductId();
             lambda(Traits::Field_ProductIdT{}, txn, Elem().ProductId);
         }
+    }
+};
+
+template <Stencil::ConceptTransactionView TContainer> struct Stencil::TransactionView<CLOpts2::QueueOptions, TContainer>
+{
+    using Traits = Stencil::TypeTraitsForIndexable<CLOpts2::QueueOptions>;
+    using Fields = Traits::Fields;
+
+    using Txn               = Stencil::Transaction<CLOpts2::QueueOptions, typename TContainer::Txn>;
+    using View              = Stencil::TransactionView<CLOpts2::QueueOptions, TContainer>;
+    using ElemType          = CLOpts2::QueueOptions;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using ElemTxnState    = Txn::ElemTxnState;
+    using TxnState        = Txn::TxnState;
+    using TxnStateForElem = Txn::TxnStateForElem;
+
+    TransactionView(TxnState const& elemState, ContainerTxnState const& containerState, TContainer const& container, ElemType const& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~TransactionView() = default;
+    CLASS_DELETE_COPY_AND_MOVE(TransactionView);
+    using TransactionView_ProductId = Stencil::TransactionView<shared_string, View>;
+    ElemType const& Elem() const { return _elem; }
+
+    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
+    {
+        if (_IsFieldAssigned(Fields::Field_ProductId))
+        {
+            auto txn = ProductId();
+            lambda(Fields::Field_ProductId, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_ProductId))
+        {
+            auto txn = ProductId();
+            lambda(Fields::Field_ProductId, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    private:
+    TxnStateForElem const    _txnStateForElem{};
+    TxnState const&          _elemState;
+    ContainerTxnState const& _containerState;
+    TContainer const&        _container;
+    ElemType const&          _elem;
+
+    public:
+    auto ProductId() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_ProductId>(
+            _elemState.ProductId, _txnStateForElem.ProductId, *this, _elem.ProductId);
     }
 };
 
@@ -1312,6 +1424,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     };
 
     using Txn               = Stencil::Transaction<CLOpts2::PauseOptions, TContainer>;
+    using View              = Stencil::TransactionView<CLOpts2::PauseOptions, typename TContainer::View>;
     using ElemType          = CLOpts2::PauseOptions;
     using ContainerTxnState = typename TContainer::ElemTxnState;
 
@@ -1338,6 +1451,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
+    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
     ElemType const& Elem() const { return _elem; }
 
     bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
@@ -1356,22 +1470,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 
     void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) { return _IsFieldChanged(elemTxnState.field); }
+    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
-
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
-    {
-        if (_IsFieldAssigned(Fields::Field_ProductId))
-        {
-            auto txn = ProductId();
-            lambda(Fields::Field_ProductId, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_ProductId))
-        {
-            auto txn = ProductId();
-            lambda(Fields::Field_ProductId, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -1397,7 +1497,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     {
         return Stencil::CreateTransaction<Transaction_ProductId>(_elemState.ProductId, _txnStateForElem.ProductId, *this, _elem.ProductId);
     }
-
     void set_ProductId(shared_string&& val)
     {
         auto subtxn = ProductId();
@@ -1429,6 +1528,65 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
             auto txn = ProductId();
             lambda(Traits::Field_ProductIdT{}, txn, Elem().ProductId);
         }
+    }
+};
+
+template <Stencil::ConceptTransactionView TContainer> struct Stencil::TransactionView<CLOpts2::PauseOptions, TContainer>
+{
+    using Traits = Stencil::TypeTraitsForIndexable<CLOpts2::PauseOptions>;
+    using Fields = Traits::Fields;
+
+    using Txn               = Stencil::Transaction<CLOpts2::PauseOptions, typename TContainer::Txn>;
+    using View              = Stencil::TransactionView<CLOpts2::PauseOptions, TContainer>;
+    using ElemType          = CLOpts2::PauseOptions;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using ElemTxnState    = Txn::ElemTxnState;
+    using TxnState        = Txn::TxnState;
+    using TxnStateForElem = Txn::TxnStateForElem;
+
+    TransactionView(TxnState const& elemState, ContainerTxnState const& containerState, TContainer const& container, ElemType const& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~TransactionView() = default;
+    CLASS_DELETE_COPY_AND_MOVE(TransactionView);
+    using TransactionView_ProductId = Stencil::TransactionView<shared_string, View>;
+    ElemType const& Elem() const { return _elem; }
+
+    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
+    {
+        if (_IsFieldAssigned(Fields::Field_ProductId))
+        {
+            auto txn = ProductId();
+            lambda(Fields::Field_ProductId, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_ProductId))
+        {
+            auto txn = ProductId();
+            lambda(Fields::Field_ProductId, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    private:
+    TxnStateForElem const    _txnStateForElem{};
+    TxnState const&          _elemState;
+    ContainerTxnState const& _containerState;
+    TContainer const&        _container;
+    ElemType const&          _elem;
+
+    public:
+    auto ProductId() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_ProductId>(
+            _elemState.ProductId, _txnStateForElem.ProductId, *this, _elem.ProductId);
     }
 };
 
@@ -1627,6 +1785,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     };
 
     using Txn               = Stencil::Transaction<CLOpts2::CancelOptions, TContainer>;
+    using View              = Stencil::TransactionView<CLOpts2::CancelOptions, typename TContainer::View>;
     using ElemType          = CLOpts2::CancelOptions;
     using ContainerTxnState = typename TContainer::ElemTxnState;
 
@@ -1653,6 +1812,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
+    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
     ElemType const& Elem() const { return _elem; }
 
     bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
@@ -1671,22 +1831,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 
     void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) { return _IsFieldChanged(elemTxnState.field); }
+    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
-
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
-    {
-        if (_IsFieldAssigned(Fields::Field_ProductId))
-        {
-            auto txn = ProductId();
-            lambda(Fields::Field_ProductId, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_ProductId))
-        {
-            auto txn = ProductId();
-            lambda(Fields::Field_ProductId, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -1712,7 +1858,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     {
         return Stencil::CreateTransaction<Transaction_ProductId>(_elemState.ProductId, _txnStateForElem.ProductId, *this, _elem.ProductId);
     }
-
     void set_ProductId(shared_string&& val)
     {
         auto subtxn = ProductId();
@@ -1744,6 +1889,65 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
             auto txn = ProductId();
             lambda(Traits::Field_ProductIdT{}, txn, Elem().ProductId);
         }
+    }
+};
+
+template <Stencil::ConceptTransactionView TContainer> struct Stencil::TransactionView<CLOpts2::CancelOptions, TContainer>
+{
+    using Traits = Stencil::TypeTraitsForIndexable<CLOpts2::CancelOptions>;
+    using Fields = Traits::Fields;
+
+    using Txn               = Stencil::Transaction<CLOpts2::CancelOptions, typename TContainer::Txn>;
+    using View              = Stencil::TransactionView<CLOpts2::CancelOptions, TContainer>;
+    using ElemType          = CLOpts2::CancelOptions;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using ElemTxnState    = Txn::ElemTxnState;
+    using TxnState        = Txn::TxnState;
+    using TxnStateForElem = Txn::TxnStateForElem;
+
+    TransactionView(TxnState const& elemState, ContainerTxnState const& containerState, TContainer const& container, ElemType const& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~TransactionView() = default;
+    CLASS_DELETE_COPY_AND_MOVE(TransactionView);
+    using TransactionView_ProductId = Stencil::TransactionView<shared_string, View>;
+    ElemType const& Elem() const { return _elem; }
+
+    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
+    {
+        if (_IsFieldAssigned(Fields::Field_ProductId))
+        {
+            auto txn = ProductId();
+            lambda(Fields::Field_ProductId, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_ProductId))
+        {
+            auto txn = ProductId();
+            lambda(Fields::Field_ProductId, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    private:
+    TxnStateForElem const    _txnStateForElem{};
+    TxnState const&          _elemState;
+    ContainerTxnState const& _containerState;
+    TContainer const&        _container;
+    ElemType const&          _elem;
+
+    public:
+    auto ProductId() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_ProductId>(
+            _elemState.ProductId, _txnStateForElem.ProductId, *this, _elem.ProductId);
     }
 };
 
@@ -1942,6 +2146,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     };
 
     using Txn               = Stencil::Transaction<CLOpts2::ResumeOptions, TContainer>;
+    using View              = Stencil::TransactionView<CLOpts2::ResumeOptions, typename TContainer::View>;
     using ElemType          = CLOpts2::ResumeOptions;
     using ContainerTxnState = typename TContainer::ElemTxnState;
 
@@ -1968,6 +2173,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
+    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
     ElemType const& Elem() const { return _elem; }
 
     bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
@@ -1986,22 +2192,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 
     void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) { return _IsFieldChanged(elemTxnState.field); }
+    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
-
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
-    {
-        if (_IsFieldAssigned(Fields::Field_ProductId))
-        {
-            auto txn = ProductId();
-            lambda(Fields::Field_ProductId, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_ProductId))
-        {
-            auto txn = ProductId();
-            lambda(Fields::Field_ProductId, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -2027,7 +2219,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     {
         return Stencil::CreateTransaction<Transaction_ProductId>(_elemState.ProductId, _txnStateForElem.ProductId, *this, _elem.ProductId);
     }
-
     void set_ProductId(shared_string&& val)
     {
         auto subtxn = ProductId();
@@ -2059,6 +2250,65 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
             auto txn = ProductId();
             lambda(Traits::Field_ProductIdT{}, txn, Elem().ProductId);
         }
+    }
+};
+
+template <Stencil::ConceptTransactionView TContainer> struct Stencil::TransactionView<CLOpts2::ResumeOptions, TContainer>
+{
+    using Traits = Stencil::TypeTraitsForIndexable<CLOpts2::ResumeOptions>;
+    using Fields = Traits::Fields;
+
+    using Txn               = Stencil::Transaction<CLOpts2::ResumeOptions, typename TContainer::Txn>;
+    using View              = Stencil::TransactionView<CLOpts2::ResumeOptions, TContainer>;
+    using ElemType          = CLOpts2::ResumeOptions;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using ElemTxnState    = Txn::ElemTxnState;
+    using TxnState        = Txn::TxnState;
+    using TxnStateForElem = Txn::TxnStateForElem;
+
+    TransactionView(TxnState const& elemState, ContainerTxnState const& containerState, TContainer const& container, ElemType const& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~TransactionView() = default;
+    CLASS_DELETE_COPY_AND_MOVE(TransactionView);
+    using TransactionView_ProductId = Stencil::TransactionView<shared_string, View>;
+    ElemType const& Elem() const { return _elem; }
+
+    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
+    {
+        if (_IsFieldAssigned(Fields::Field_ProductId))
+        {
+            auto txn = ProductId();
+            lambda(Fields::Field_ProductId, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_ProductId))
+        {
+            auto txn = ProductId();
+            lambda(Fields::Field_ProductId, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    private:
+    TxnStateForElem const    _txnStateForElem{};
+    TxnState const&          _elemState;
+    ContainerTxnState const& _containerState;
+    TContainer const&        _container;
+    ElemType const&          _elem;
+
+    public:
+    auto ProductId() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_ProductId>(
+            _elemState.ProductId, _txnStateForElem.ProductId, *this, _elem.ProductId);
     }
 };
 
@@ -2257,6 +2507,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     };
 
     using Txn               = Stencil::Transaction<CLOpts2::UpdateOptions, TContainer>;
+    using View              = Stencil::TransactionView<CLOpts2::UpdateOptions, typename TContainer::View>;
     using ElemType          = CLOpts2::UpdateOptions;
     using ContainerTxnState = typename TContainer::ElemTxnState;
 
@@ -2283,6 +2534,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
+    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
     ElemType const& Elem() const { return _elem; }
 
     bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
@@ -2301,22 +2553,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 
     void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) { return _IsFieldChanged(elemTxnState.field); }
+    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
-
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
-    {
-        if (_IsFieldAssigned(Fields::Field_ProductId))
-        {
-            auto txn = ProductId();
-            lambda(Fields::Field_ProductId, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_ProductId))
-        {
-            auto txn = ProductId();
-            lambda(Fields::Field_ProductId, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -2342,7 +2580,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     {
         return Stencil::CreateTransaction<Transaction_ProductId>(_elemState.ProductId, _txnStateForElem.ProductId, *this, _elem.ProductId);
     }
-
     void set_ProductId(shared_string&& val)
     {
         auto subtxn = ProductId();
@@ -2374,6 +2611,65 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
             auto txn = ProductId();
             lambda(Traits::Field_ProductIdT{}, txn, Elem().ProductId);
         }
+    }
+};
+
+template <Stencil::ConceptTransactionView TContainer> struct Stencil::TransactionView<CLOpts2::UpdateOptions, TContainer>
+{
+    using Traits = Stencil::TypeTraitsForIndexable<CLOpts2::UpdateOptions>;
+    using Fields = Traits::Fields;
+
+    using Txn               = Stencil::Transaction<CLOpts2::UpdateOptions, typename TContainer::Txn>;
+    using View              = Stencil::TransactionView<CLOpts2::UpdateOptions, TContainer>;
+    using ElemType          = CLOpts2::UpdateOptions;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using ElemTxnState    = Txn::ElemTxnState;
+    using TxnState        = Txn::TxnState;
+    using TxnStateForElem = Txn::TxnStateForElem;
+
+    TransactionView(TxnState const& elemState, ContainerTxnState const& containerState, TContainer const& container, ElemType const& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~TransactionView() = default;
+    CLASS_DELETE_COPY_AND_MOVE(TransactionView);
+    using TransactionView_ProductId = Stencil::TransactionView<shared_string, View>;
+    ElemType const& Elem() const { return _elem; }
+
+    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
+    {
+        if (_IsFieldAssigned(Fields::Field_ProductId))
+        {
+            auto txn = ProductId();
+            lambda(Fields::Field_ProductId, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_ProductId))
+        {
+            auto txn = ProductId();
+            lambda(Fields::Field_ProductId, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    private:
+    TxnStateForElem const    _txnStateForElem{};
+    TxnState const&          _elemState;
+    ContainerTxnState const& _containerState;
+    TContainer const&        _container;
+    ElemType const&          _elem;
+
+    public:
+    auto ProductId() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_ProductId>(
+            _elemState.ProductId, _txnStateForElem.ProductId, *this, _elem.ProductId);
     }
 };
 
@@ -2572,6 +2868,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     };
 
     using Txn               = Stencil::Transaction<CLOpts2::HydrateOptions, TContainer>;
+    using View              = Stencil::TransactionView<CLOpts2::HydrateOptions, typename TContainer::View>;
     using ElemType          = CLOpts2::HydrateOptions;
     using ContainerTxnState = typename TContainer::ElemTxnState;
 
@@ -2598,6 +2895,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
+    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
     ElemType const& Elem() const { return _elem; }
 
     bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
@@ -2616,22 +2914,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
 
     void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) { return _IsFieldChanged(elemTxnState.field); }
+    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
-
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
-    {
-        if (_IsFieldAssigned(Fields::Field_ProductId))
-        {
-            auto txn = ProductId();
-            lambda(Fields::Field_ProductId, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_ProductId))
-        {
-            auto txn = ProductId();
-            lambda(Fields::Field_ProductId, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -2657,7 +2941,6 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
     {
         return Stencil::CreateTransaction<Transaction_ProductId>(_elemState.ProductId, _txnStateForElem.ProductId, *this, _elem.ProductId);
     }
-
     void set_ProductId(shared_string&& val)
     {
         auto subtxn = ProductId();
@@ -2689,6 +2972,65 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
             auto txn = ProductId();
             lambda(Traits::Field_ProductIdT{}, txn, Elem().ProductId);
         }
+    }
+};
+
+template <Stencil::ConceptTransactionView TContainer> struct Stencil::TransactionView<CLOpts2::HydrateOptions, TContainer>
+{
+    using Traits = Stencil::TypeTraitsForIndexable<CLOpts2::HydrateOptions>;
+    using Fields = Traits::Fields;
+
+    using Txn               = Stencil::Transaction<CLOpts2::HydrateOptions, typename TContainer::Txn>;
+    using View              = Stencil::TransactionView<CLOpts2::HydrateOptions, TContainer>;
+    using ElemType          = CLOpts2::HydrateOptions;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using ElemTxnState    = Txn::ElemTxnState;
+    using TxnState        = Txn::TxnState;
+    using TxnStateForElem = Txn::TxnStateForElem;
+
+    TransactionView(TxnState const& elemState, ContainerTxnState const& containerState, TContainer const& container, ElemType const& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~TransactionView() = default;
+    CLASS_DELETE_COPY_AND_MOVE(TransactionView);
+    using TransactionView_ProductId = Stencil::TransactionView<shared_string, View>;
+    ElemType const& Elem() const { return _elem; }
+
+    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
+    {
+        if (_IsFieldAssigned(Fields::Field_ProductId))
+        {
+            auto txn = ProductId();
+            lambda(Fields::Field_ProductId, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_ProductId))
+        {
+            auto txn = ProductId();
+            lambda(Fields::Field_ProductId, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    private:
+    TxnStateForElem const    _txnStateForElem{};
+    TxnState const&          _elemState;
+    ContainerTxnState const& _containerState;
+    TContainer const&        _container;
+    ElemType const&          _elem;
+
+    public:
+    auto ProductId() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_ProductId>(
+            _elemState.ProductId, _txnStateForElem.ProductId, *this, _elem.ProductId);
     }
 };
 
@@ -3180,10 +3522,7 @@ template <> struct Stencil::VisitorForVariant<CLOpts2::CommandLineOptions>
         std::visit(
             [&](auto const& o) {
                 if constexpr (std::is_same_v<std::remove_cvref_t<decltype(o)>, std::monostate>) {}
-                else
-                {
-                    lambda(static_cast<Fields>(obj._variant.index()), o);
-                }
+                else { lambda(static_cast<Fields>(obj._variant.index()), o); }
             },
             obj._variant);
     }
@@ -3193,10 +3532,7 @@ template <> struct Stencil::VisitorForVariant<CLOpts2::CommandLineOptions>
         std::visit(
             [&](auto& o) {
                 if constexpr (std::is_same_v<std::remove_cvref_t<decltype(o)>, std::monostate>) {}
-                else
-                {
-                    lambda(static_cast<Fields>(obj._variant.index()), o);
-                }
+                else { lambda(static_cast<Fields>(obj._variant.index()), o); }
             },
             obj._variant);
     }

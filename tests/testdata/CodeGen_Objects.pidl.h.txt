@@ -58,6 +58,7 @@ struct List :
     public Stencil::StructT<List>
 {
     std::vector<::Objects::ListObject> listobj = {};
+    std::vector<shared_string> liststr = {};
 };
 struct SimpleObject2 :
     public ::Stencil::OptionalPropsT<::Objects::SimpleObject2>,
@@ -367,6 +368,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
     };
 
     using Txn               = Stencil::Transaction<Objects::SimpleObject1, TContainer>;
+    using View              = Stencil::TransactionView<Objects::SimpleObject1, typename TContainer::View>;
     using ElemType          = Objects::SimpleObject1;
     using ContainerTxnState = typename TContainer::ElemTxnState;
 
@@ -401,6 +403,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
+    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
     ElemType const& Elem() const { return _elem; }
 
     bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
@@ -419,62 +422,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
 
     void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) { return _IsFieldChanged(elemTxnState.field); }
+    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
-
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
-    {
-        if (_IsFieldAssigned(Fields::Field_val1))
-        {
-            auto txn = val1();
-            lambda(Fields::Field_val1, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val1))
-        {
-            auto txn = val1();
-            lambda(Fields::Field_val1, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val2))
-        {
-            auto txn = val2();
-            lambda(Fields::Field_val2, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val2))
-        {
-            auto txn = val2();
-            lambda(Fields::Field_val2, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val3))
-        {
-            auto txn = val3();
-            lambda(Fields::Field_val3, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val3))
-        {
-            auto txn = val3();
-            lambda(Fields::Field_val3, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val4))
-        {
-            auto txn = val4();
-            lambda(Fields::Field_val4, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val4))
-        {
-            auto txn = val4();
-            lambda(Fields::Field_val4, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val5))
-        {
-            auto txn = val5();
-            lambda(Fields::Field_val5, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val5))
-        {
-            auto txn = val5();
-            lambda(Fields::Field_val5, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -500,27 +449,22 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
     {
         return Stencil::CreateTransaction<Transaction_val1>(_elemState.val1, _txnStateForElem.val1, *this, _elem.val1);
     }
-
     auto val2()
     {
         return Stencil::CreateTransaction<Transaction_val2>(_elemState.val2, _txnStateForElem.val2, *this, _elem.val2);
     }
-
     auto val3()
     {
         return Stencil::CreateTransaction<Transaction_val3>(_elemState.val3, _txnStateForElem.val3, *this, _elem.val3);
     }
-
     auto val4()
     {
         return Stencil::CreateTransaction<Transaction_val4>(_elemState.val4, _txnStateForElem.val4, *this, _elem.val4);
     }
-
     auto val5()
     {
         return Stencil::CreateTransaction<Transaction_val5>(_elemState.val5, _txnStateForElem.val5, *this, _elem.val5);
     }
-
     void set_val1(int32_t&& val)
     {
         auto subtxn = val1();
@@ -612,6 +556,129 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
             auto txn = val5();
             lambda(Traits::Field_val5T{}, txn, Elem().val5);
         }
+    }
+};
+
+template <Stencil::ConceptTransactionView TContainer> struct Stencil::TransactionView<Objects::SimpleObject1, TContainer>
+{
+    using Traits = Stencil::TypeTraitsForIndexable<Objects::SimpleObject1>;
+    using Fields = Traits::Fields;
+
+    using Txn               = Stencil::Transaction<Objects::SimpleObject1, typename TContainer::Txn>;
+    using View              = Stencil::TransactionView<Objects::SimpleObject1, TContainer>;
+    using ElemType          = Objects::SimpleObject1;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using ElemTxnState    = Txn::ElemTxnState;
+    using TxnState        = Txn::TxnState;
+    using TxnStateForElem = Txn::TxnStateForElem;
+
+    TransactionView(TxnState const& elemState, ContainerTxnState const& containerState, TContainer const& container, ElemType const& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~TransactionView() = default;
+    CLASS_DELETE_COPY_AND_MOVE(TransactionView);
+    using TransactionView_val1 = Stencil::TransactionView<int32_t, View>;
+    using TransactionView_val2 = Stencil::TransactionView<uint32_t, View>;
+    using TransactionView_val3 = Stencil::TransactionView<uint8_t, View>;
+    using TransactionView_val4 = Stencil::TransactionView<shared_string, View>;
+    using TransactionView_val5 = Stencil::TransactionView<double, View>;
+    ElemType const& Elem() const { return _elem; }
+
+    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
+    {
+        if (_IsFieldAssigned(Fields::Field_val1))
+        {
+            auto txn = val1();
+            lambda(Fields::Field_val1, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val1))
+        {
+            auto txn = val1();
+            lambda(Fields::Field_val1, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val2))
+        {
+            auto txn = val2();
+            lambda(Fields::Field_val2, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val2))
+        {
+            auto txn = val2();
+            lambda(Fields::Field_val2, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val3))
+        {
+            auto txn = val3();
+            lambda(Fields::Field_val3, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val3))
+        {
+            auto txn = val3();
+            lambda(Fields::Field_val3, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val4))
+        {
+            auto txn = val4();
+            lambda(Fields::Field_val4, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val4))
+        {
+            auto txn = val4();
+            lambda(Fields::Field_val4, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val5))
+        {
+            auto txn = val5();
+            lambda(Fields::Field_val5, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val5))
+        {
+            auto txn = val5();
+            lambda(Fields::Field_val5, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    private:
+    TxnStateForElem const    _txnStateForElem{};
+    TxnState const&          _elemState;
+    ContainerTxnState const& _containerState;
+    TContainer const&        _container;
+    ElemType const&          _elem;
+
+    public:
+    auto val1() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_val1>(
+            _elemState.val1, _txnStateForElem.val1, *this, _elem.val1);
+    }
+    auto val2() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_val2>(
+            _elemState.val2, _txnStateForElem.val2, *this, _elem.val2);
+    }
+    auto val3() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_val3>(
+            _elemState.val3, _txnStateForElem.val3, *this, _elem.val3);
+    }
+    auto val4() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_val4>(
+            _elemState.val4, _txnStateForElem.val4, *this, _elem.val4);
+    }
+    auto val5() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_val5>(
+            _elemState.val5, _txnStateForElem.val5, *this, _elem.val5);
     }
 };
 
@@ -884,6 +951,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
     };
 
     using Txn               = Stencil::Transaction<Objects::ListObject, TContainer>;
+    using View              = Stencil::TransactionView<Objects::ListObject, typename TContainer::View>;
     using ElemType          = Objects::ListObject;
     using ContainerTxnState = typename TContainer::ElemTxnState;
 
@@ -912,6 +980,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
+    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
     ElemType const& Elem() const { return _elem; }
 
     bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
@@ -930,32 +999,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
 
     void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) { return _IsFieldChanged(elemTxnState.field); }
+    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
-
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
-    {
-        if (_IsFieldAssigned(Fields::Field_value))
-        {
-            auto txn = value();
-            lambda(Fields::Field_value, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_value))
-        {
-            auto txn = value();
-            lambda(Fields::Field_value, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_obj1))
-        {
-            auto txn = obj1();
-            lambda(Fields::Field_obj1, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_obj1))
-        {
-            auto txn = obj1();
-            lambda(Fields::Field_obj1, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -981,12 +1026,10 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
     {
         return Stencil::CreateTransaction<Transaction_value>(_elemState.value, _txnStateForElem.value, *this, _elem.value);
     }
-
     auto obj1()
     {
         return Stencil::CreateTransaction<Transaction_obj1>(_elemState.obj1, _txnStateForElem.obj1, *this, _elem.obj1);
     }
-
     void set_value(uint32_t&& val)
     {
         auto subtxn = value();
@@ -1033,6 +1076,81 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
             auto txn = obj1();
             lambda(Traits::Field_obj1T{}, txn, Elem().obj1);
         }
+    }
+};
+
+template <Stencil::ConceptTransactionView TContainer> struct Stencil::TransactionView<Objects::ListObject, TContainer>
+{
+    using Traits = Stencil::TypeTraitsForIndexable<Objects::ListObject>;
+    using Fields = Traits::Fields;
+
+    using Txn               = Stencil::Transaction<Objects::ListObject, typename TContainer::Txn>;
+    using View              = Stencil::TransactionView<Objects::ListObject, TContainer>;
+    using ElemType          = Objects::ListObject;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using ElemTxnState    = Txn::ElemTxnState;
+    using TxnState        = Txn::TxnState;
+    using TxnStateForElem = Txn::TxnStateForElem;
+
+    TransactionView(TxnState const& elemState, ContainerTxnState const& containerState, TContainer const& container, ElemType const& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~TransactionView() = default;
+    CLASS_DELETE_COPY_AND_MOVE(TransactionView);
+    using TransactionView_value = Stencil::TransactionView<uint32_t, View>;
+    using TransactionView_obj1 = Stencil::TransactionView<::Objects::SimpleObject1, View>;
+    ElemType const& Elem() const { return _elem; }
+
+    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
+    {
+        if (_IsFieldAssigned(Fields::Field_value))
+        {
+            auto txn = value();
+            lambda(Fields::Field_value, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_value))
+        {
+            auto txn = value();
+            lambda(Fields::Field_value, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_obj1))
+        {
+            auto txn = obj1();
+            lambda(Fields::Field_obj1, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_obj1))
+        {
+            auto txn = obj1();
+            lambda(Fields::Field_obj1, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    private:
+    TxnStateForElem const    _txnStateForElem{};
+    TxnState const&          _elemState;
+    ContainerTxnState const& _containerState;
+    TContainer const&        _container;
+    ElemType const&          _elem;
+
+    public:
+    auto value() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_value>(
+            _elemState.value, _txnStateForElem.value, *this, _elem.value);
+    }
+    auto obj1() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_obj1>(
+            _elemState.obj1, _txnStateForElem.obj1, *this, _elem.obj1);
     }
 };
 
@@ -1317,6 +1435,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
     };
 
     using Txn               = Stencil::Transaction<Objects::DictObject, TContainer>;
+    using View              = Stencil::TransactionView<Objects::DictObject, typename TContainer::View>;
     using ElemType          = Objects::DictObject;
     using ContainerTxnState = typename TContainer::ElemTxnState;
 
@@ -1347,6 +1466,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
+    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
     ElemType const& Elem() const { return _elem; }
 
     bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
@@ -1365,42 +1485,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
 
     void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) { return _IsFieldChanged(elemTxnState.field); }
+    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
-
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
-    {
-        if (_IsFieldAssigned(Fields::Field_dictobj))
-        {
-            auto txn = dictobj();
-            lambda(Fields::Field_dictobj, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_dictobj))
-        {
-            auto txn = dictobj();
-            lambda(Fields::Field_dictobj, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_dictval))
-        {
-            auto txn = dictval();
-            lambda(Fields::Field_dictval, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_dictval))
-        {
-            auto txn = dictval();
-            lambda(Fields::Field_dictval, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_dictdict))
-        {
-            auto txn = dictdict();
-            lambda(Fields::Field_dictdict, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_dictdict))
-        {
-            auto txn = dictdict();
-            lambda(Fields::Field_dictdict, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -1426,17 +1512,14 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
     {
         return Stencil::CreateTransaction<Transaction_dictobj>(_elemState.dictobj, _txnStateForElem.dictobj, *this, _elem.dictobj);
     }
-
     auto dictval()
     {
         return Stencil::CreateTransaction<Transaction_dictval>(_elemState.dictval, _txnStateForElem.dictval, *this, _elem.dictval);
     }
-
     auto dictdict()
     {
         return Stencil::CreateTransaction<Transaction_dictdict>(_elemState.dictdict, _txnStateForElem.dictdict, *this, _elem.dictdict);
     }
-
     void set_dictobj(std::unordered_map<uint32_t, ::Objects::SimpleObject1>&& val)
     {
         auto subtxn = dictobj();
@@ -1498,6 +1581,97 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
             auto txn = dictdict();
             lambda(Traits::Field_dictdictT{}, txn, Elem().dictdict);
         }
+    }
+};
+
+template <Stencil::ConceptTransactionView TContainer> struct Stencil::TransactionView<Objects::DictObject, TContainer>
+{
+    using Traits = Stencil::TypeTraitsForIndexable<Objects::DictObject>;
+    using Fields = Traits::Fields;
+
+    using Txn               = Stencil::Transaction<Objects::DictObject, typename TContainer::Txn>;
+    using View              = Stencil::TransactionView<Objects::DictObject, TContainer>;
+    using ElemType          = Objects::DictObject;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using ElemTxnState    = Txn::ElemTxnState;
+    using TxnState        = Txn::TxnState;
+    using TxnStateForElem = Txn::TxnStateForElem;
+
+    TransactionView(TxnState const& elemState, ContainerTxnState const& containerState, TContainer const& container, ElemType const& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~TransactionView() = default;
+    CLASS_DELETE_COPY_AND_MOVE(TransactionView);
+    using TransactionView_dictobj = Stencil::TransactionView<std::unordered_map<uint32_t, ::Objects::SimpleObject1>, View>;
+    using TransactionView_dictval = Stencil::TransactionView<std::unordered_map<shared_string, Stencil::Timestamp>, View>;
+    using TransactionView_dictdict = Stencil::TransactionView<std::unordered_map<uint32_t, std::unordered_map<uint32_t, ::Objects::SimpleObject1>>, View>;
+    ElemType const& Elem() const { return _elem; }
+
+    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
+    {
+        if (_IsFieldAssigned(Fields::Field_dictobj))
+        {
+            auto txn = dictobj();
+            lambda(Fields::Field_dictobj, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_dictobj))
+        {
+            auto txn = dictobj();
+            lambda(Fields::Field_dictobj, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_dictval))
+        {
+            auto txn = dictval();
+            lambda(Fields::Field_dictval, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_dictval))
+        {
+            auto txn = dictval();
+            lambda(Fields::Field_dictval, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_dictdict))
+        {
+            auto txn = dictdict();
+            lambda(Fields::Field_dictdict, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_dictdict))
+        {
+            auto txn = dictdict();
+            lambda(Fields::Field_dictdict, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    private:
+    TxnStateForElem const    _txnStateForElem{};
+    TxnState const&          _elemState;
+    ContainerTxnState const& _containerState;
+    TContainer const&        _container;
+    ElemType const&          _elem;
+
+    public:
+    auto dictobj() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_dictobj>(
+            _elemState.dictobj, _txnStateForElem.dictobj, *this, _elem.dictobj);
+    }
+    auto dictval() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_dictval>(
+            _elemState.dictval, _txnStateForElem.dictval, *this, _elem.dictval);
+    }
+    auto dictdict() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_dictdict>(
+            _elemState.dictdict, _txnStateForElem.dictdict, *this, _elem.dictdict);
     }
 };
 
@@ -1612,9 +1786,12 @@ template <> struct Stencil::TypeTraitsForIndexable<Objects::List>
     {
         Invalid,
         Field_listobj
+,        Field_liststr
     };
 
     struct Field_listobjT
+    {};
+    struct Field_liststrT
     {};
     using Key = Fields;
     static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Key key)
@@ -1622,6 +1799,7 @@ template <> struct Stencil::TypeTraitsForIndexable<Objects::List>
         switch (key)
         {
         case Fields::Field_listobj: return false;
+        case Fields::Field_liststr: return false;
         case Fields::Invalid: [[fallthrough]];
         default: break;
         }
@@ -1629,6 +1807,7 @@ template <> struct Stencil::TypeTraitsForIndexable<Objects::List>
     }
 
     static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_listobjT /* key */) { return false; }
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_liststrT /* key */) { return false; }
 };
 template <>
 struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::List>::Field_listobjT, Stencil::ProtocolString>
@@ -1665,6 +1844,41 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::List>::Field_lis
         if (val != Fields::Field_listobj) { throw std::invalid_argument("Invalid"); }
     }
 };
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::List>::Field_liststrT, Stencil::ProtocolString>
+{
+    using T = Stencil::TypeTraitsForIndexable<Objects::List>::Field_liststrT;
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", "liststr"); }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        std::string_view name = "liststr";
+        if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {
+                return std::tolower(l) == std::tolower(r);
+            }))
+        {
+            throw std::invalid_argument("Invalid");
+        }
+    }
+};
+
+template <>
+struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<Objects::List>::Field_liststrT, Stencil::ProtocolBinary>
+{
+    using Fields = Stencil::TypeTraitsForIndexable<Objects::List>::Fields;
+    using T      = Stencil::TypeTraitsForIndexable<Objects::List>::Field_liststrT;
+
+    template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
+    {
+        ctx << static_cast<uint32_t>(Fields::Field_liststr);
+    }
+
+    template <typename Context> static auto Read(T& /* obj */, Context& ctx)
+    {
+        auto val = static_cast<Fields>(ctx.template read<uint32_t>());
+        if (val != Fields::Field_liststr) { throw std::invalid_argument("Invalid"); }
+    }
+};
 template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Objects::List>::Fields>
 {
     using Enum = Stencil::TypeTraitsForIndexable<Objects::List>::Fields;
@@ -1673,6 +1887,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Objects::
     static constexpr std::string_view Names[] = {
         "Invalid",
         "listobj"
+,        "liststr"
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
@@ -1697,18 +1912,22 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
     struct TxnStateForElem
     {
         ElemTxnState listobj = {Fields::Field_listobj};
+        ElemTxnState liststr = {Fields::Field_liststr};
     };
 
     using Txn               = Stencil::Transaction<Objects::List, TContainer>;
+    using View              = Stencil::TransactionView<Objects::List, typename TContainer::View>;
     using ElemType          = Objects::List;
     using ContainerTxnState = typename TContainer::ElemTxnState;
 
     using Transaction_listobj = Stencil::Transaction<std::vector<::Objects::ListObject>, Txn>;
+    using Transaction_liststr = Stencil::Transaction<std::vector<shared_string>, Txn>;
     struct TxnState
     {
         std::bitset<64> assigntracker;
         std::bitset<64> edittracker;
         typename Transaction_listobj::TxnState listobj{};
+        typename Transaction_liststr::TxnState liststr{};
     };
 
     Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
@@ -1726,6 +1945,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
+    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
     ElemType const& Elem() const { return _elem; }
 
     bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
@@ -1744,22 +1964,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
 
     void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) { return _IsFieldChanged(elemTxnState.field); }
+    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
-
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
-    {
-        if (_IsFieldAssigned(Fields::Field_listobj))
-        {
-            auto txn = listobj();
-            lambda(Fields::Field_listobj, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_listobj))
-        {
-            auto txn = listobj();
-            lambda(Fields::Field_listobj, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -1785,7 +1991,10 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
     {
         return Stencil::CreateTransaction<Transaction_listobj>(_elemState.listobj, _txnStateForElem.listobj, *this, _elem.listobj);
     }
-
+    auto liststr()
+    {
+        return Stencil::CreateTransaction<Transaction_liststr>(_elemState.liststr, _txnStateForElem.liststr, *this, _elem.liststr);
+    }
     void set_listobj(std::vector<::Objects::ListObject>&& val)
     {
         auto subtxn = listobj();
@@ -1810,6 +2019,30 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
         auto txn = listobj();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::edit(txn, std::move(args));
     }
+    void set_liststr(std::vector<shared_string>&& val)
+    {
+        auto subtxn = liststr();
+        subtxn.Assign(std::forward<std::vector<shared_string>>(val));
+    }
+
+    void add_liststr(shared_string&& args)
+    {
+        _MarkFieldEdited(Fields::Field_liststr);
+        auto txn = liststr();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::add(txn, std::move(args));
+    }
+    void remove_liststr(size_t&& args)
+    {
+        _MarkFieldEdited(Fields::Field_liststr);
+        auto txn = liststr();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::remove(txn, std::move(args));
+    }
+    auto edit_liststr(size_t&& args)
+    {
+        _MarkFieldEdited(Fields::Field_liststr);
+        auto txn = liststr();
+        return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::edit(txn, std::move(args));
+    }
     template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
     {
         switch (index)
@@ -1817,6 +2050,11 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
         case Fields::Field_listobj:
         {
             auto txn = listobj();
+            return lambda(txn);
+        }
+        case Fields::Field_liststr:
+        {
+            auto txn = liststr();
             return lambda(txn);
         }
         case Fields::Invalid: [[fallthrough]];
@@ -1835,6 +2073,85 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
             auto txn = listobj();
             lambda(Traits::Field_listobjT{}, txn, Elem().listobj);
         }
+        {
+            auto txn = liststr();
+            lambda(Traits::Field_liststrT{}, txn, Elem().liststr);
+        }
+    }
+};
+
+template <Stencil::ConceptTransactionView TContainer> struct Stencil::TransactionView<Objects::List, TContainer>
+{
+    using Traits = Stencil::TypeTraitsForIndexable<Objects::List>;
+    using Fields = Traits::Fields;
+
+    using Txn               = Stencil::Transaction<Objects::List, typename TContainer::Txn>;
+    using View              = Stencil::TransactionView<Objects::List, TContainer>;
+    using ElemType          = Objects::List;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using ElemTxnState    = Txn::ElemTxnState;
+    using TxnState        = Txn::TxnState;
+    using TxnStateForElem = Txn::TxnStateForElem;
+
+    TransactionView(TxnState const& elemState, ContainerTxnState const& containerState, TContainer const& container, ElemType const& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~TransactionView() = default;
+    CLASS_DELETE_COPY_AND_MOVE(TransactionView);
+    using TransactionView_listobj = Stencil::TransactionView<std::vector<::Objects::ListObject>, View>;
+    using TransactionView_liststr = Stencil::TransactionView<std::vector<shared_string>, View>;
+    ElemType const& Elem() const { return _elem; }
+
+    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
+    {
+        if (_IsFieldAssigned(Fields::Field_listobj))
+        {
+            auto txn = listobj();
+            lambda(Fields::Field_listobj, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_listobj))
+        {
+            auto txn = listobj();
+            lambda(Fields::Field_listobj, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_liststr))
+        {
+            auto txn = liststr();
+            lambda(Fields::Field_liststr, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_liststr))
+        {
+            auto txn = liststr();
+            lambda(Fields::Field_liststr, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    private:
+    TxnStateForElem const    _txnStateForElem{};
+    TxnState const&          _elemState;
+    ContainerTxnState const& _containerState;
+    TContainer const&        _container;
+    ElemType const&          _elem;
+
+    public:
+    auto listobj() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_listobj>(
+            _elemState.listobj, _txnStateForElem.listobj, *this, _elem.listobj);
+    }
+    auto liststr() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_liststr>(
+            _elemState.liststr, _txnStateForElem.liststr, *this, _elem.liststr);
     }
 };
 
@@ -1849,6 +2166,7 @@ template <> struct Stencil::Visitor<Objects::List> : Stencil::VisitorT<Objects::
         switch (field)
         {
         case Fields::Field_listobj: return lambda(obj.listobj);
+        case Fields::Field_liststr: return lambda(obj.liststr);
         case Fields::Invalid: [[fallthrough]];
         default: throw std::logic_error("Invalid Key");
         }
@@ -1857,6 +2175,7 @@ template <> struct Stencil::Visitor<Objects::List> : Stencil::VisitorT<Objects::
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Traits::Field_listobjT{}, obj.listobj);
+        lambda(Traits::Field_liststrT{}, obj.liststr);
     }
 };
 
@@ -1867,6 +2186,7 @@ template <> struct Stencil::Comparator<Objects::List, Objects::List>
     {
         return true
                && Stencil::AreEqual(obj1.listobj, obj2.listobj)
+               && Stencil::AreEqual(obj1.liststr, obj2.liststr)
             ;
     }
 };
@@ -1878,12 +2198,14 @@ struct Stencil::Database::Record<Objects::List> :
 {
     public:
     Stencil::Database::RecordNest<std::vector<::Objects::ListObject>>::Type listobj{};
+    Stencil::Database::RecordNest<std::vector<shared_string>>::Type liststr{};
 };
 
 template <> struct Stencil::Database::RecordTraits<Objects::List>
 {
     using RecordTypes = Stencil::Database::tuple_cat_t<
         typename Stencil::Database::RecordTraits<std::vector<::Objects::ListObject>>::RecordTypes,
+        typename Stencil::Database::RecordTraits<std::vector<shared_string>>::RecordTypes,
         typename Stencil::Database::RecordTraits<::Stencil::TimestampedT<::Objects::List>>::RecordTypes,
         std::tuple<Objects::List>>;
 
@@ -1900,6 +2222,7 @@ template <> struct Stencil::Database::RecordTraits<Objects::List>
                                                static_cast<::Stencil::TimestampedT<::Objects::List> const&>(obj),
                                                static_cast<Stencil::Database::Record<::Stencil::TimestampedT<::Objects::List>>&>(rec));
         Stencil::Database::impl::WriteToBuffer(db, lock, obj.listobj, rec.listobj);
+        Stencil::Database::impl::WriteToBuffer(db, lock, obj.liststr, rec.liststr);
     }
 };
 
@@ -1916,6 +2239,7 @@ struct Stencil::Visitor<Stencil::Database::Record<Objects::List>>
         switch (field)
         {
         case Fields::Field_listobj: return lambda(obj.listobj);
+        case Fields::Field_liststr: return lambda(obj.liststr);
         case Fields::Invalid: [[fallthrough]];
         default: throw std::logic_error("Invalid Key");
         }
@@ -1924,6 +2248,7 @@ struct Stencil::Visitor<Stencil::Database::Record<Objects::List>>
     template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
     {
         lambda(Traits::Field_listobjT{}, obj.listobj);
+        lambda(Traits::Field_liststrT{}, obj.liststr);
     }
 };
 
@@ -2321,6 +2646,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
     };
 
     using Txn               = Stencil::Transaction<Objects::SimpleObject2, TContainer>;
+    using View              = Stencil::TransactionView<Objects::SimpleObject2, typename TContainer::View>;
     using ElemType          = Objects::SimpleObject2;
     using ContainerTxnState = typename TContainer::ElemTxnState;
 
@@ -2361,6 +2687,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
+    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
     ElemType const& Elem() const { return _elem; }
 
     bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
@@ -2379,92 +2706,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
 
     void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) { return _IsFieldChanged(elemTxnState.field); }
+    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
-
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
-    {
-        if (_IsFieldAssigned(Fields::Field_val1))
-        {
-            auto txn = val1();
-            lambda(Fields::Field_val1, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val1))
-        {
-            auto txn = val1();
-            lambda(Fields::Field_val1, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val2))
-        {
-            auto txn = val2();
-            lambda(Fields::Field_val2, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val2))
-        {
-            auto txn = val2();
-            lambda(Fields::Field_val2, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val3))
-        {
-            auto txn = val3();
-            lambda(Fields::Field_val3, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val3))
-        {
-            auto txn = val3();
-            lambda(Fields::Field_val3, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val4))
-        {
-            auto txn = val4();
-            lambda(Fields::Field_val4, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val4))
-        {
-            auto txn = val4();
-            lambda(Fields::Field_val4, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val5))
-        {
-            auto txn = val5();
-            lambda(Fields::Field_val5, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val5))
-        {
-            auto txn = val5();
-            lambda(Fields::Field_val5, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val6))
-        {
-            auto txn = val6();
-            lambda(Fields::Field_val6, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val6))
-        {
-            auto txn = val6();
-            lambda(Fields::Field_val6, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val7))
-        {
-            auto txn = val7();
-            lambda(Fields::Field_val7, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val7))
-        {
-            auto txn = val7();
-            lambda(Fields::Field_val7, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_val8))
-        {
-            auto txn = val8();
-            lambda(Fields::Field_val8, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_val8))
-        {
-            auto txn = val8();
-            lambda(Fields::Field_val8, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -2490,42 +2733,34 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
     {
         return Stencil::CreateTransaction<Transaction_val1>(_elemState.val1, _txnStateForElem.val1, *this, _elem.val1);
     }
-
     auto val2()
     {
         return Stencil::CreateTransaction<Transaction_val2>(_elemState.val2, _txnStateForElem.val2, *this, _elem.val2);
     }
-
     auto val3()
     {
         return Stencil::CreateTransaction<Transaction_val3>(_elemState.val3, _txnStateForElem.val3, *this, _elem.val3);
     }
-
     auto val4()
     {
         return Stencil::CreateTransaction<Transaction_val4>(_elemState.val4, _txnStateForElem.val4, *this, _elem.val4);
     }
-
     auto val5()
     {
         return Stencil::CreateTransaction<Transaction_val5>(_elemState.val5, _txnStateForElem.val5, *this, _elem.val5);
     }
-
     auto val6()
     {
         return Stencil::CreateTransaction<Transaction_val6>(_elemState.val6, _txnStateForElem.val6, *this, _elem.val6);
     }
-
     auto val7()
     {
         return Stencil::CreateTransaction<Transaction_val7>(_elemState.val7, _txnStateForElem.val7, *this, _elem.val7);
     }
-
     auto val8()
     {
         return Stencil::CreateTransaction<Transaction_val8>(_elemState.val8, _txnStateForElem.val8, *this, _elem.val8);
     }
-
     void set_val1(bool&& val)
     {
         auto subtxn = val1();
@@ -2662,6 +2897,177 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
             auto txn = val8();
             lambda(Traits::Field_val8T{}, txn, Elem().val8);
         }
+    }
+};
+
+template <Stencil::ConceptTransactionView TContainer> struct Stencil::TransactionView<Objects::SimpleObject2, TContainer>
+{
+    using Traits = Stencil::TypeTraitsForIndexable<Objects::SimpleObject2>;
+    using Fields = Traits::Fields;
+
+    using Txn               = Stencil::Transaction<Objects::SimpleObject2, typename TContainer::Txn>;
+    using View              = Stencil::TransactionView<Objects::SimpleObject2, TContainer>;
+    using ElemType          = Objects::SimpleObject2;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using ElemTxnState    = Txn::ElemTxnState;
+    using TxnState        = Txn::TxnState;
+    using TxnStateForElem = Txn::TxnStateForElem;
+
+    TransactionView(TxnState const& elemState, ContainerTxnState const& containerState, TContainer const& container, ElemType const& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~TransactionView() = default;
+    CLASS_DELETE_COPY_AND_MOVE(TransactionView);
+    using TransactionView_val1 = Stencil::TransactionView<bool, View>;
+    using TransactionView_val2 = Stencil::TransactionView<double, View>;
+    using TransactionView_val3 = Stencil::TransactionView<std::array<char, 8>, View>;
+    using TransactionView_val4 = Stencil::TransactionView<Stencil::Timestamp, View>;
+    using TransactionView_val5 = Stencil::TransactionView<uint64_t, View>;
+    using TransactionView_val6 = Stencil::TransactionView<int64_t, View>;
+    using TransactionView_val7 = Stencil::TransactionView<uint16_t, View>;
+    using TransactionView_val8 = Stencil::TransactionView<int16_t, View>;
+    ElemType const& Elem() const { return _elem; }
+
+    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
+    {
+        if (_IsFieldAssigned(Fields::Field_val1))
+        {
+            auto txn = val1();
+            lambda(Fields::Field_val1, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val1))
+        {
+            auto txn = val1();
+            lambda(Fields::Field_val1, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val2))
+        {
+            auto txn = val2();
+            lambda(Fields::Field_val2, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val2))
+        {
+            auto txn = val2();
+            lambda(Fields::Field_val2, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val3))
+        {
+            auto txn = val3();
+            lambda(Fields::Field_val3, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val3))
+        {
+            auto txn = val3();
+            lambda(Fields::Field_val3, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val4))
+        {
+            auto txn = val4();
+            lambda(Fields::Field_val4, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val4))
+        {
+            auto txn = val4();
+            lambda(Fields::Field_val4, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val5))
+        {
+            auto txn = val5();
+            lambda(Fields::Field_val5, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val5))
+        {
+            auto txn = val5();
+            lambda(Fields::Field_val5, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val6))
+        {
+            auto txn = val6();
+            lambda(Fields::Field_val6, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val6))
+        {
+            auto txn = val6();
+            lambda(Fields::Field_val6, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val7))
+        {
+            auto txn = val7();
+            lambda(Fields::Field_val7, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val7))
+        {
+            auto txn = val7();
+            lambda(Fields::Field_val7, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_val8))
+        {
+            auto txn = val8();
+            lambda(Fields::Field_val8, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_val8))
+        {
+            auto txn = val8();
+            lambda(Fields::Field_val8, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    private:
+    TxnStateForElem const    _txnStateForElem{};
+    TxnState const&          _elemState;
+    ContainerTxnState const& _containerState;
+    TContainer const&        _container;
+    ElemType const&          _elem;
+
+    public:
+    auto val1() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_val1>(
+            _elemState.val1, _txnStateForElem.val1, *this, _elem.val1);
+    }
+    auto val2() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_val2>(
+            _elemState.val2, _txnStateForElem.val2, *this, _elem.val2);
+    }
+    auto val3() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_val3>(
+            _elemState.val3, _txnStateForElem.val3, *this, _elem.val3);
+    }
+    auto val4() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_val4>(
+            _elemState.val4, _txnStateForElem.val4, *this, _elem.val4);
+    }
+    auto val5() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_val5>(
+            _elemState.val5, _txnStateForElem.val5, *this, _elem.val5);
+    }
+    auto val6() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_val6>(
+            _elemState.val6, _txnStateForElem.val6, *this, _elem.val6);
+    }
+    auto val7() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_val7>(
+            _elemState.val7, _txnStateForElem.val7, *this, _elem.val7);
+    }
+    auto val8() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_val8>(
+            _elemState.val8, _txnStateForElem.val8, *this, _elem.val8);
     }
 };
 
@@ -3084,6 +3490,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
     };
 
     using Txn               = Stencil::Transaction<Objects::NestedObject, TContainer>;
+    using View              = Stencil::TransactionView<Objects::NestedObject, typename TContainer::View>;
     using ElemType          = Objects::NestedObject;
     using ContainerTxnState = typename TContainer::ElemTxnState;
 
@@ -3118,6 +3525,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
+    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
     ElemType const& Elem() const { return _elem; }
 
     bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
@@ -3136,62 +3544,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
 
     void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) { return _IsFieldChanged(elemTxnState.field); }
+    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
-
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
-    {
-        if (_IsFieldAssigned(Fields::Field_obj1))
-        {
-            auto txn = obj1();
-            lambda(Fields::Field_obj1, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_obj1))
-        {
-            auto txn = obj1();
-            lambda(Fields::Field_obj1, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_obj2))
-        {
-            auto txn = obj2();
-            lambda(Fields::Field_obj2, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_obj2))
-        {
-            auto txn = obj2();
-            lambda(Fields::Field_obj2, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_obj3))
-        {
-            auto txn = obj3();
-            lambda(Fields::Field_obj3, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_obj3))
-        {
-            auto txn = obj3();
-            lambda(Fields::Field_obj3, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_dict1))
-        {
-            auto txn = dict1();
-            lambda(Fields::Field_dict1, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_dict1))
-        {
-            auto txn = dict1();
-            lambda(Fields::Field_dict1, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_list1))
-        {
-            auto txn = list1();
-            lambda(Fields::Field_list1, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_list1))
-        {
-            auto txn = list1();
-            lambda(Fields::Field_list1, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -3217,27 +3571,22 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
     {
         return Stencil::CreateTransaction<Transaction_obj1>(_elemState.obj1, _txnStateForElem.obj1, *this, _elem.obj1);
     }
-
     auto obj2()
     {
         return Stencil::CreateTransaction<Transaction_obj2>(_elemState.obj2, _txnStateForElem.obj2, *this, _elem.obj2);
     }
-
     auto obj3()
     {
         return Stencil::CreateTransaction<Transaction_obj3>(_elemState.obj3, _txnStateForElem.obj3, *this, _elem.obj3);
     }
-
     auto dict1()
     {
         return Stencil::CreateTransaction<Transaction_dict1>(_elemState.dict1, _txnStateForElem.dict1, *this, _elem.dict1);
     }
-
     auto list1()
     {
         return Stencil::CreateTransaction<Transaction_list1>(_elemState.list1, _txnStateForElem.list1, *this, _elem.list1);
     }
-
     void set_obj1(::Objects::SimpleObject1&& val)
     {
         auto subtxn = obj1();
@@ -3329,6 +3678,129 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
             auto txn = list1();
             lambda(Traits::Field_list1T{}, txn, Elem().list1);
         }
+    }
+};
+
+template <Stencil::ConceptTransactionView TContainer> struct Stencil::TransactionView<Objects::NestedObject, TContainer>
+{
+    using Traits = Stencil::TypeTraitsForIndexable<Objects::NestedObject>;
+    using Fields = Traits::Fields;
+
+    using Txn               = Stencil::Transaction<Objects::NestedObject, typename TContainer::Txn>;
+    using View              = Stencil::TransactionView<Objects::NestedObject, TContainer>;
+    using ElemType          = Objects::NestedObject;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using ElemTxnState    = Txn::ElemTxnState;
+    using TxnState        = Txn::TxnState;
+    using TxnStateForElem = Txn::TxnStateForElem;
+
+    TransactionView(TxnState const& elemState, ContainerTxnState const& containerState, TContainer const& container, ElemType const& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~TransactionView() = default;
+    CLASS_DELETE_COPY_AND_MOVE(TransactionView);
+    using TransactionView_obj1 = Stencil::TransactionView<::Objects::SimpleObject1, View>;
+    using TransactionView_obj2 = Stencil::TransactionView<::Objects::SimpleObject2, View>;
+    using TransactionView_obj3 = Stencil::TransactionView<::Objects::ListObject, View>;
+    using TransactionView_dict1 = Stencil::TransactionView<::Objects::DictObject, View>;
+    using TransactionView_list1 = Stencil::TransactionView<::Objects::List, View>;
+    ElemType const& Elem() const { return _elem; }
+
+    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
+    {
+        if (_IsFieldAssigned(Fields::Field_obj1))
+        {
+            auto txn = obj1();
+            lambda(Fields::Field_obj1, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_obj1))
+        {
+            auto txn = obj1();
+            lambda(Fields::Field_obj1, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_obj2))
+        {
+            auto txn = obj2();
+            lambda(Fields::Field_obj2, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_obj2))
+        {
+            auto txn = obj2();
+            lambda(Fields::Field_obj2, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_obj3))
+        {
+            auto txn = obj3();
+            lambda(Fields::Field_obj3, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_obj3))
+        {
+            auto txn = obj3();
+            lambda(Fields::Field_obj3, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_dict1))
+        {
+            auto txn = dict1();
+            lambda(Fields::Field_dict1, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_dict1))
+        {
+            auto txn = dict1();
+            lambda(Fields::Field_dict1, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_list1))
+        {
+            auto txn = list1();
+            lambda(Fields::Field_list1, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_list1))
+        {
+            auto txn = list1();
+            lambda(Fields::Field_list1, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    private:
+    TxnStateForElem const    _txnStateForElem{};
+    TxnState const&          _elemState;
+    ContainerTxnState const& _containerState;
+    TContainer const&        _container;
+    ElemType const&          _elem;
+
+    public:
+    auto obj1() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_obj1>(
+            _elemState.obj1, _txnStateForElem.obj1, *this, _elem.obj1);
+    }
+    auto obj2() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_obj2>(
+            _elemState.obj2, _txnStateForElem.obj2, *this, _elem.obj2);
+    }
+    auto obj3() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_obj3>(
+            _elemState.obj3, _txnStateForElem.obj3, *this, _elem.obj3);
+    }
+    auto dict1() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_dict1>(
+            _elemState.dict1, _txnStateForElem.dict1, *this, _elem.dict1);
+    }
+    auto list1() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_list1>(
+            _elemState.list1, _txnStateForElem.list1, *this, _elem.list1);
     }
 };
 
@@ -3595,6 +4067,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
     };
 
     using Txn               = Stencil::Transaction<Objects::SelfNested, TContainer>;
+    using View              = Stencil::TransactionView<Objects::SelfNested, typename TContainer::View>;
     using ElemType          = Objects::SelfNested;
     using ContainerTxnState = typename TContainer::ElemTxnState;
 
@@ -3623,6 +4096,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
+    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
     ElemType const& Elem() const { return _elem; }
 
     bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
@@ -3641,32 +4115,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
 
     void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) { return _IsFieldChanged(elemTxnState.field); }
+    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
-
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda)
-    {
-        if (_IsFieldAssigned(Fields::Field_obj1))
-        {
-            auto txn = obj1();
-            lambda(Fields::Field_obj1, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_obj1))
-        {
-            auto txn = obj1();
-            lambda(Fields::Field_obj1, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-        if (_IsFieldAssigned(Fields::Field_self))
-        {
-            auto txn = self();
-            lambda(Fields::Field_self, uint8_t{0u}, uint32_t{0u}, txn);
-        }
-        else if (_IsFieldEdited(Fields::Field_self))
-        {
-            auto txn = self();
-            lambda(Fields::Field_self, uint8_t{3u}, uint32_t{0u}, txn);
-        }
-    }
 
     void Assign(ElemType&& elem)
     {
@@ -3692,12 +4142,10 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
     {
         return Stencil::CreateTransaction<Transaction_obj1>(_elemState.obj1, _txnStateForElem.obj1, *this, _elem.obj1);
     }
-
     auto self()
     {
         return Stencil::CreateTransaction<Transaction_self>(_elemState.self, _txnStateForElem.self, *this, _elem.self);
     }
-
     void set_obj1(::Objects::SimpleObject1&& val)
     {
         auto subtxn = obj1();
@@ -3744,6 +4192,81 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
             auto txn = self();
             lambda(Traits::Field_selfT{}, txn, Elem().self);
         }
+    }
+};
+
+template <Stencil::ConceptTransactionView TContainer> struct Stencil::TransactionView<Objects::SelfNested, TContainer>
+{
+    using Traits = Stencil::TypeTraitsForIndexable<Objects::SelfNested>;
+    using Fields = Traits::Fields;
+
+    using Txn               = Stencil::Transaction<Objects::SelfNested, typename TContainer::Txn>;
+    using View              = Stencil::TransactionView<Objects::SelfNested, TContainer>;
+    using ElemType          = Objects::SelfNested;
+    using ContainerTxnState = typename TContainer::ElemTxnState;
+
+    using ElemTxnState    = Txn::ElemTxnState;
+    using TxnState        = Txn::TxnState;
+    using TxnStateForElem = Txn::TxnStateForElem;
+
+    TransactionView(TxnState const& elemState, ContainerTxnState const& containerState, TContainer const& container, ElemType const& elem) :
+        _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
+    {}
+
+    ~TransactionView() = default;
+    CLASS_DELETE_COPY_AND_MOVE(TransactionView);
+    using TransactionView_obj1 = Stencil::TransactionView<::Objects::SimpleObject1, View>;
+    using TransactionView_self = Stencil::TransactionView<Stencil::Ref<::Objects::SelfNested>, View>;
+    ElemType const& Elem() const { return _elem; }
+
+    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
+    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
+    {
+        if (_IsFieldAssigned(Fields::Field_obj1))
+        {
+            auto txn = obj1();
+            lambda(Fields::Field_obj1, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_obj1))
+        {
+            auto txn = obj1();
+            lambda(Fields::Field_obj1, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+        if (_IsFieldAssigned(Fields::Field_self))
+        {
+            auto txn = self();
+            lambda(Fields::Field_self, uint8_t{0u}, uint32_t{0u}, txn);
+        }
+        else if (_IsFieldEdited(Fields::Field_self))
+        {
+            auto txn = self();
+            lambda(Fields::Field_self, uint8_t{3u}, uint32_t{0u}, txn);
+        }
+    }
+
+    private:
+    TxnStateForElem const    _txnStateForElem{};
+    TxnState const&          _elemState;
+    ContainerTxnState const& _containerState;
+    TContainer const&        _container;
+    ElemType const&          _elem;
+
+    public:
+    auto obj1() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_obj1>(
+            _elemState.obj1, _txnStateForElem.obj1, *this, _elem.obj1);
+    }
+    auto self() const
+    {
+        return Stencil::CreateTransactionView<TransactionView_self>(
+            _elemState.self, _txnStateForElem.self, *this, _elem.self);
     }
 };
 

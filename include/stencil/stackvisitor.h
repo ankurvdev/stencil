@@ -105,10 +105,7 @@ template <ConceptProtocol TProto, typename TOwner, ConceptIterable T> struct Ite
             Visitor<T>::IteratorBegin(it, obj);
             valid = true;
         }
-        else
-        {
-            Visitor<T>::IteratorMoveNext(it, obj);
-        }
+        else { Visitor<T>::IteratorMoveNext(it, obj); }
 
         if (!Visitor<T>::IteratorValid(it, obj)) throw std::runtime_error("Cannot Visit Next Item on the iterable");
 
@@ -117,8 +114,8 @@ template <ConceptProtocol TProto, typename TOwner, ConceptIterable T> struct Ite
 
         Visitor<T>::Visit(it, obj, [&](auto& val) {
             using VisitorHandler = VisitorTypeHandler<TProto, TOwner, std::remove_reference_t<decltype(val)>>;
-            handler              = owner->template FindOrCreateHandler<VisitorHandler>();
             ptr                  = &val;
+            handler              = owner->template FindOrCreateHandler<VisitorHandler>(ptr);
         });
 
         return {handler, ptr};
@@ -168,9 +165,9 @@ template <ConceptProtocol TProto, typename TOwner, ConceptVariant T> struct Inde
             SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
             if (ss.str() != std::get<std::string>(_keyhandler._variant)) { return; }
             using VisitorHandler = VisitorTypeHandler<TProto, TOwner, std::remove_reference_t<decltype(val)>>;
-            handler              = owner->template FindOrCreateHandler<VisitorHandler>();
             obj                  = std::move(val);
             VisitorForVariant<T>::VisitActiveAlternative(obj, [&](auto const& /* k */, auto& val1) { ptr = &val1; });
+            handler = owner->template FindOrCreateHandler<VisitorHandler>(ptr);
         });
         return {handler, ptr};
     }
@@ -195,8 +192,8 @@ template <ConceptProtocol TProto, typename TOwner, ConceptIndexable T> struct In
         void*        ptr     = nullptr;
         Visitor<T>::VisitKey(obj, std::move(_key), [&](auto& val) {
             using VisitorHandler = VisitorTypeHandler<TProto, TOwner, std::remove_reference_t<decltype(val)>>;
-            handler              = owner->template FindOrCreateHandler<VisitorHandler>();
             ptr                  = &val;
+            handler              = owner->template FindOrCreateHandler<VisitorHandler>(ptr);
         });
         return {handler, ptr};
     }
@@ -243,10 +240,7 @@ template <ConceptProtocol TProto, typename TOwner, typename T> struct VisitorTyp
              using ElemType = typename Stencil::TransactionTraits<T>::ElemType;
              (*reinterpret_cast<T*>(ptr)).Assign(val.cast<ElemType>());
          }*/
-        else
-        {
-            TODO("");
-        }
+        else { TODO(""); }
     }
     virtual void      Assign(void* ptr, std::string_view const& val) override { primitive.Assign(*reinterpret_cast<T*>(ptr), val); }
     [[noreturn]] void Assign(void* /*ptr*/, std::wstring_view const& /*val*/) override
@@ -290,10 +284,10 @@ template <ConceptProtocol TProto, typename T> struct _StackVisitor
     void Add() { _stack.push_back(VisitNext(_stack.back())); }
 
     // TODO : Yuck! Revisit and try to convince PROP1
-    template <typename T1> TypeHandler* FindOrCreateHandler()
+    template <typename T1> TypeHandler* FindOrCreateHandler(void* ptr)
     {
-        auto hashcode = typeid(T1).hash_code();
-        auto it       = _allhandlers.find(hashcode);
+        // auto hashcode = typeid(T1).hash_code();
+        auto it = _allhandlers.find(ptr);
         if (it == _allhandlers.end())
         {
             auto uptr             = std::make_unique<T1>();
@@ -302,16 +296,16 @@ template <ConceptProtocol TProto, typename T> struct _StackVisitor
             uptr->iterable.owner  = this;
             uptr->indexable.owner = this;
             auto ptr              = uptr.get();
-            _allhandlers.insert(std::make_pair(hashcode, std::move(uptr)));
+            _allhandlers.insert(std::make_pair(ptr, std::move(uptr)));
             return ptr;
         }
         return it->second.get();
     }
 
-    std::unordered_map<size_t, std::unique_ptr<TypeHandler>> _allhandlers;
-    std::vector<TypeHandlerAndPtr>                           _stack;
-    VisitorTypeHandler<TProto, _StackVisitor<TProto, T>, T>  _handler;
-    T*                                                       _rootObj{nullptr};
+    std::unordered_map<void*, std::unique_ptr<TypeHandler>> _allhandlers;
+    std::vector<TypeHandlerAndPtr>                          _stack;
+    VisitorTypeHandler<TProto, _StackVisitor<TProto, T>, T> _handler;
+    T*                                                      _rootObj{nullptr};
 };
 }    // namespace impl
 

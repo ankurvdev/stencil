@@ -18,6 +18,7 @@ add_executable(codegen_runtime_tests
     "Test_Transactions.cpp"
     "Test_Codegen_EnumConstsInitializers.cpp"
     "Test_Interfaces.cpp"
+    "Test_Bugs.cpp"
 )
 target_compile_definitions(codegen_runtime_tests PRIVATE HAVE_EMBEDRESOURCE=1)
 target_link_libraries(codegen_runtime_tests PRIVATE gencode testdata TestCommon httplib::httplib)
