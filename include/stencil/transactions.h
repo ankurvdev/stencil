@@ -359,7 +359,7 @@ template <typename TVal, Stencil::ConceptTransaction TContainer> struct Stencil:
 
     void Remove(size_t const& index)
     {
-        _elem.erase(_elem.begin() + index);
+        _elem.erase(_elem.begin() + static_cast<long>(index));
         _elemState.deltas.push_back(TxnState::Delta::ListDelete(index));
     }
 

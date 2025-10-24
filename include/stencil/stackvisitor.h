@@ -295,9 +295,9 @@ template <ConceptProtocol TProto, typename T> struct _StackVisitor
             uptr->primitive.owner = this;
             uptr->iterable.owner  = this;
             uptr->indexable.owner = this;
-            auto ptr              = uptr.get();
-            _allhandlers.insert(std::make_pair(ptr, std::move(uptr)));
-            return ptr;
+            auto hptr             = uptr.get();
+            _allhandlers.insert(std::make_pair(hptr, std::move(uptr)));
+            return hptr;
         }
         return it->second.get();
     }
