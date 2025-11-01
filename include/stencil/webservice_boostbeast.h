@@ -862,7 +862,7 @@ struct WebServiceInterfaceImplT<TImpl, impl::SynchronizedState<T>> : impl::Synch
     ~WebServiceInterfaceImplT() = default;
     CLASS_DELETE_COPY_AND_MOVE(WebServiceInterfaceImplT);
 
-    void NotifyStateChanged(Stencil::Transaction<T>& txn)
+    void NotifyStateChanged(Stencil::Transaction<T>::View const& txn)
     {
         auto impl = static_cast<TImpl*>(this);
         auto msg  = fmt::format("event: changed\ndata: {}\n\n", Stencil::StringTransactionSerDes::Deserialize(txn));
