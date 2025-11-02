@@ -150,6 +150,7 @@ struct Tester : ObjectsTester
 
         void Start()
         {
+            _activated        = true;
             _responseRecieved = false;
             _stopRequested    = false;
             _sseListener      = std::thread([&]() { this->_SSEListener(); });
@@ -164,6 +165,7 @@ struct Tester : ObjectsTester
             if (_sseListener.joinable()) _sseListener.join();
         }
 
+        bool                     _activated{false};
         bool                     _responseRecieved;
         std::atomic<bool>        _stopRequested;
         std::mutex               _mutex;
@@ -178,9 +180,7 @@ struct Tester : ObjectsTester
     {
         if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
         svc = std::make_unique<Server1Impl>();
-        svc->StartOnPort(44444);
-
-        // _sseListener3.Start();
+        svc->StartOnPort(44444, 5);
     }
 
     ~Tester()
@@ -188,18 +188,18 @@ struct Tester : ObjectsTester
         svc->StopDaemon();
         svc.reset();
         if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
-        if (listenersStarted)
-        {
-            TestCommon::CheckResource<TestCommon::JsonFormat>(_json_lines, "json");
-            TestCommon::CheckResource<SSEFormat>(TestCommon::ResplitLines(_sseListener1._sseData), "server1_somethinghappened");
-            TestCommon::CheckResource<SSEFormat>(TestCommon::ResplitLines(_sseListener2._sseData), "server1_objectstore");
-            TestCommon::CheckResource<SSEFormat>(TestCommon::ResplitLines(_sseListener3._sseData), "server1_statenotifications");
-        }
+        TestCommon::CheckResource<TestCommon::JsonFormat>(_json_lines, "json");
+
+        auto checkListener = [&](SSEListener& listener, std::string_view const& name) {
+            if (listener._activated) { TestCommon::CheckResource<SSEFormat>(TestCommon::ResplitLines(listener._sseData), name); }
+        };
+        checkListener(_sseListener1, "server1_somethinghappened");
+        checkListener(_sseListener2, "server1_objectstore");
+        checkListener(_sseListener3, "server1_statenotifications");
     }
 
     void StartListeners()
     {
-        listenersStarted = true;
         _sseListener1.Start();
         _sseListener2.Start();
         _sseListener3.Start();
@@ -328,7 +328,6 @@ struct Tester : ObjectsTester
     std::string              _cliObj2Id;
 
     uint32_t              _count{0};
-    bool                  listenersStarted{false};
     std::filesystem::path dbfile{"SaveAndLoad.bin"};
 
     SSEListener _sseListener1{"/api/server1/somethinghappened"};
@@ -379,6 +378,7 @@ TEST_CASE("WebService-nolistener", "[interfaces]")
 
     Tester tester;
     tester._sseListener1.Start();
+    tester.cli_create_obj1();
     tester.svc_state_change();
     std::this_thread::sleep_for(std::chrono::milliseconds(100ms));
 }

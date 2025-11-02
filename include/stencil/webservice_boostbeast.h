@@ -911,7 +911,7 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
 
     CLASS_DELETE_COPY_AND_MOVE(WebServiceT);
 
-    void StartOnPort(uint16_t port)
+    void StartOnPort(uint16_t port, uint16_t numThreads = 4)
     {
         auto const address = boost::asio::ip::make_address("0.0.0.0");
         boost::asio::co_spawn(ioc, _do_listen(tcp::endpoint{address, port}), [](std::exception_ptr e) {
@@ -921,7 +921,7 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
                 } catch (std::exception& e) { fmt::print(stderr, "Error in acceptor: {}\n", e.what()); }
         });
 
-        for (size_t i = 0; i < 4; i++)
+        for (size_t i = 0; i < numThreads; i++)
         {
             _listenthreads.emplace_back([this]() { ioc.run(); });
         }
