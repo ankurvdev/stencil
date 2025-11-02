@@ -181,7 +181,7 @@ struct Tester : ObjectsTester
         svc->StartOnPort(44444);
         _sseListener1.Start();
         _sseListener2.Start();
-        //_sseListener2.Start();
+        _sseListener3.Start();
         // _sseListener3.Start();
     }
 
@@ -194,6 +194,7 @@ struct Tester : ObjectsTester
         TestCommon::CheckResource<TestCommon::JsonFormat>(_json_lines, "json");
         TestCommon::CheckResource<SSEFormat>(TestCommon::ResplitLines(_sseListener1._sseData), "server1_somethinghappened");
         TestCommon::CheckResource<SSEFormat>(TestCommon::ResplitLines(_sseListener2._sseData), "server1_objectstore");
+        TestCommon::CheckResource<SSEFormat>(TestCommon::ResplitLines(_sseListener3._sseData), "server1_statenotifications");
     }
 
     CLASS_DELETE_COPY_AND_MOVE(Tester);
@@ -323,7 +324,7 @@ struct Tester : ObjectsTester
 
     SSEListener _sseListener1{"/api/server1/somethinghappened"};
     SSEListener _sseListener2{"/api/server1/objectstore"};
-    SSEListener _sseListener3{"/api/server1/state"};
+    SSEListener _sseListener3{"/api/state"};
 
     // SSEListener _sseListener3{"/api/server1/obj2/events"};
     std::unique_ptr<Server1Impl> svc;
