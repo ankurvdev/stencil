@@ -768,6 +768,10 @@ struct SessionInterfaceT : TInterface,
 
 template <ConceptIndexable TState> struct SynchronizedState
 {
+    SynchronizedState()          = default;
+    virtual ~SynchronizedState() = default;
+    CLASS_DEFAULT_COPY_AND_MOVE(SynchronizedState);
+
     void* handler{nullptr};
 
     virtual std::string_view Name()           = 0;
