@@ -179,9 +179,7 @@ struct Tester : ObjectsTester
         if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
         svc = std::make_unique<Server1Impl>();
         svc->StartOnPort(44444);
-        _sseListener1.Start();
-        _sseListener2.Start();
-        _sseListener3.Start();
+
         // _sseListener3.Start();
     }
 
@@ -190,11 +188,21 @@ struct Tester : ObjectsTester
         svc->StopDaemon();
         svc.reset();
         if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
+        if (listenersStarted)
+        {
+            TestCommon::CheckResource<TestCommon::JsonFormat>(_json_lines, "json");
+            TestCommon::CheckResource<SSEFormat>(TestCommon::ResplitLines(_sseListener1._sseData), "server1_somethinghappened");
+            TestCommon::CheckResource<SSEFormat>(TestCommon::ResplitLines(_sseListener2._sseData), "server1_objectstore");
+            TestCommon::CheckResource<SSEFormat>(TestCommon::ResplitLines(_sseListener3._sseData), "server1_statenotifications");
+        }
+    }
 
-        TestCommon::CheckResource<TestCommon::JsonFormat>(_json_lines, "json");
-        TestCommon::CheckResource<SSEFormat>(TestCommon::ResplitLines(_sseListener1._sseData), "server1_somethinghappened");
-        TestCommon::CheckResource<SSEFormat>(TestCommon::ResplitLines(_sseListener2._sseData), "server1_objectstore");
-        TestCommon::CheckResource<SSEFormat>(TestCommon::ResplitLines(_sseListener3._sseData), "server1_statenotifications");
+    void StartListeners()
+    {
+        listenersStarted = true;
+        _sseListener1.Start();
+        _sseListener2.Start();
+        _sseListener3.Start();
     }
 
     CLASS_DELETE_COPY_AND_MOVE(Tester);
@@ -320,6 +328,7 @@ struct Tester : ObjectsTester
     std::string              _cliObj2Id;
 
     uint32_t              _count{0};
+    bool                  listenersStarted{false};
     std::filesystem::path dbfile{"SaveAndLoad.bin"};
 
     SSEListener _sseListener1{"/api/server1/somethinghappened"};
@@ -335,6 +344,8 @@ TEST_CASE("WebService-objectstore", "[interfaces]")
     std::filesystem::path dbfile{"SaveAndLoad.bin"};
 
     Tester tester;
+    tester.StartListeners();
+
     tester.cli_call_function();
     tester.svc_call_function();
 
@@ -358,6 +369,16 @@ TEST_CASE("WebService-objectstore", "[interfaces]")
 
     tester.svc_raise_event();
     tester.svc_call_function();
+    tester.svc_state_change();
+    std::this_thread::sleep_for(std::chrono::milliseconds(100ms));
+}
+
+TEST_CASE("WebService-nolistener", "[interfaces]")
+{
+    std::filesystem::path dbfile{"SaveAndLoad.bin"};
+
+    Tester tester;
+    tester._sseListener1.Start();
     tester.svc_state_change();
     std::this_thread::sleep_for(std::chrono::milliseconds(100ms));
 }

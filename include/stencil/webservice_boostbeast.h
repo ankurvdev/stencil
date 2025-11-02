@@ -314,7 +314,11 @@ struct SSEListenerManager
         {
             if (_stopRequested) return;
             auto inst = *it;
-            if (inst->_stopRequested) continue;
+            if (inst->_stopRequested)
+            {
+                ++it;
+                continue;
+            }
             if (inst->_category != 0 && category != 0 && inst->_category != category)
             {
                 ++it;
