@@ -223,6 +223,10 @@ def get_vcpkg_root(default_path: Path | None = Path().absolute() / "vcpkg") -> P
     return get_path_var("VCPKG_ROOT", default_path)
 
 
+def is_linux_march_native() -> bool:
+    return os.environ.get("CPPFORGE_DISABLE_MARCH_NATIVE", "0").lower() not in {"1", "on", "yes", "true", "t", "y"}
+
+
 def get_vcpkg_port_tool(vcpkg_root: Path, packname: str, binname: str) -> Path | None:
     try:
         import vcpkg  # noqa: ignore, pylint: disable=import-outside-toplevel  # noqa: PLC0415
@@ -809,7 +813,9 @@ def get_portable_msvc_toolchain(  # noqa: PLR0912, PLR0915, C901
 
     # other architectures may work or may not - not really tested
     host = platform.machine().lower()  # or x86
+    host = {"amd64": "x64", "x86_64": "x64", "aarch64": "arm64"}.get(host, host)
     target_arch = platform.machine().lower()  # or x86, arm, arm64
+    target_arch = host
     download_cache = output_dir / "download_cache"
     download_cache.mkdir(exist_ok=True, parents=True)
     for file in download_cache.rglob("*"):
@@ -947,6 +953,7 @@ def get_portable_msvc_toolchain(  # noqa: PLR0912, PLR0915, C901
         "Windows SDK for Windows Store Apps Headers OnecoreUap-x86_en-us.msi",
         "Windows SDK for Windows Store Apps Headers-x86_en-us.msi",
         f"Windows SDK OnecoreUap Headers {target_arch}-x86_en-us.msi",
+        "Windows SDK OnecoreUap Headers x86-x86_en-us.msi",  # for d3d9.h,
         "Windows SDK Desktop Headers x86-x86_en-us.msi",  # needed for dbghelp.h abseil
         # Windows SDK libs
         "Windows SDK for Windows Store Apps Libs-x86_en-us.msi",

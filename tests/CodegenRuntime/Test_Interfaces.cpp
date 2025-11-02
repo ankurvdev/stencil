@@ -71,11 +71,14 @@ struct SSEFormat : TestCommon::JsonFormat
     }
 };
 
-struct Server1Impl : Stencil::websvc::WebServiceT<Server1Impl, Interfaces::Server1>
+struct Server1Impl
+    : Stencil::websvc::WebServiceT<Server1Impl, Interfaces::Server1, Stencil::websvc::WebSynchronizedState<Objects::NestedObject>>
 {
     Server1Impl() { objects.Init(std::filesystem::path("SaveAndLoad.bin")); }
     ~Server1Impl() override = default;
     CLASS_DELETE_COPY_AND_MOVE(Server1Impl);
+    std::string_view Name() override { return "state"; }
+    std::string      StateStringify() override { return Stencil::Json::Stringify(state); }
 
     std::unordered_map<uint32_t, Objects::SimpleObject1> Function1(uint32_t const& arg1, Objects::SimpleObject1 const& arg2) override
     {
@@ -97,6 +100,9 @@ struct Server1Impl : Stencil::websvc::WebServiceT<Server1Impl, Interfaces::Serve
     void Function3(uint32_t const& /* arg1 */) override {}
 
     void OnSSEInstanceEnded() {}
+
+    void                  OnStateChange(Stencil::Transaction<Objects::NestedObject>::View const& txnv) { NotifyStateChanged(txnv); }
+    Objects::NestedObject state;
     // Event listeners ?
 };
 
@@ -298,6 +304,16 @@ struct Tester : ObjectsTester
         svc->GetInterface<Interfaces::Server1>().Function1(arg1, arg2);
     }
 
+    void svc_state_change()
+    {
+        Stencil::Transaction<Objects::NestedObject> txn(svc->state);
+        {
+            auto subtxn = txn.obj1();
+            subtxn.set_val1(20);
+        }
+        svc->OnStateChange(txn);
+    }
+
     std::vector<std::string> _json_lines;
     std::string              _cliObj1Id;
     std::string              _cliObj2Id;
@@ -307,6 +323,8 @@ struct Tester : ObjectsTester
 
     SSEListener _sseListener1{"/api/server1/somethinghappened"};
     SSEListener _sseListener2{"/api/server1/objectstore"};
+    SSEListener _sseListener3{"/api/server1/state"};
+
     // SSEListener _sseListener3{"/api/server1/obj2/events"};
     std::unique_ptr<Server1Impl> svc;
 };
@@ -339,5 +357,6 @@ TEST_CASE("WebService-objectstore", "[interfaces]")
 
     tester.svc_raise_event();
     tester.svc_call_function();
+    tester.svc_state_change();
     std::this_thread::sleep_for(std::chrono::milliseconds(100ms));
 }
