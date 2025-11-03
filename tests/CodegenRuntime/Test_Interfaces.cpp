@@ -14,6 +14,7 @@ SUPPRESS_MSVC_WARNING(4626)    // operator implicitly deleted
 SUPPRESS_MSVC_WARNING(4668)    // not defined as a preprocessor macro
 SUPPRESS_MSVC_WARNING(4702)    // Unreachable code
 SUPPRESS_MSVC_WARNING(4855)    // implicit capture of 'this' via '[=]' is deprecated
+SUPPRESS_MSVC_WARNING(5026)    // operator implicitly deleted
 SUPPRESS_MSVC_WARNING(5027)    // operator implicitly deleted
 SUPPRESS_MSVC_WARNING(5039)    // pointer or reference to potentially throwing function passed to 'extern)
 SUPPRESS_MSVC_WARNING(5262)    // implicit fall-through occurs here;
