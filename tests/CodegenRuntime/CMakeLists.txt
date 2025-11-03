@@ -1,7 +1,6 @@
 include(${CMAKE_CURRENT_LIST_DIR}/../../cmake/stencilTargets.cmake)
 set(stencil_INCLUDE_PATH "../../include" CACHE PATH "Stencil include path")
 include(../../cmake/TestCommon.cmake)
-include(../../cmake/modules/httplib.cmake)
 include(../../cmake/modules/BoostBeast.cmake)
 
 file(GLOB test_data_files CONFIGURE_DEPENDS "../testdata/*")
@@ -21,5 +20,5 @@ add_executable(codegen_runtime_tests
     "Test_Bugs.cpp"
 )
 target_compile_definitions(codegen_runtime_tests PRIVATE HAVE_EMBEDRESOURCE=1)
-target_link_libraries(codegen_runtime_tests PRIVATE gencode testdata TestCommon httplib::httplib)
+target_link_libraries(codegen_runtime_tests PRIVATE gencode testdata TestCommon)
 add_test(NAME codegen_runtime_tests COMMAND codegen_runtime_tests)

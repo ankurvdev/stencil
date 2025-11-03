@@ -1,6 +1,7 @@
 #include "ObjectsTester.h"
 #include "TestUtils.h"
 
+#include <boost/url/url.hpp>
 #include <stencil/webservice_boostbeast.h>
 
 SUPPRESS_WARNINGS_START
@@ -16,9 +17,18 @@ SUPPRESS_MSVC_WARNING(4191)    // type cast': unsafe conversion
 SUPPRESS_MSVC_WARNING(5262)    // implicit fall-through occurs here;
 SUPPRESS_CLANG_WARNING("-Weverything")
 SUPPRESS_GCC_WARNING("-Wmaybe-uninitialized")
-#include <limits.h>
 
-#include <httplib.h>
+#include <boost/asio.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/version.hpp>
+#include <boost/url.hpp>
+
+#include <condition_variable>
+#include <iostream>
+#include <limits>
+#include <memory>
+#include <string>
 
 SUPPRESS_WARNINGS_END
 
@@ -29,14 +39,176 @@ static_assert(Stencil::Database::ConceptFixedSize<uint32_t>);
 static_assert(Stencil::Database::ConceptBlob<shared_string>);
 static_assert(Stencil::Database::ConceptComplex<std::unordered_map<uint32_t, uint32_t>>);
 
-#include <condition_variable>
-#include <memory>
-
 using namespace std::chrono_literals;
-static auto CreateCLI()
+namespace beast = boost::beast;
+namespace http  = beast::http;
+namespace net   = boost::asio;
+using tcp       = net::ip::tcp;
+
+struct HttpClientListener
 {
-    return httplib::Client("localhost", 44444);
-}
+    using Params = std::unordered_map<std::string, std::string>;
+
+    static constexpr std::string_view LocalHostName = "localhost";
+    static constexpr std::string_view Port          = "44444";
+
+    HttpClientListener(std::string_view const& url) : _url(url), ioc(), resolver(ioc), stream(ioc)
+    {
+        req = {http::verb::get, _url, 11 /*HTTP Version 1.1*/};
+        req.set(http::field::host, LocalHostName);
+        req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+        req.set(http::field::accept, "text/event-stream");
+        req.set(http::field::connection, "Keep-Alive");
+    }
+
+    CLASS_DELETE_COPY_AND_MOVE(HttpClientListener);
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
+    bool _ChunkCallback(char const* data, size_t len)
+    {
+        if (data[len - 1] == '\0') len--;
+        std::unique_lock<std::mutex> guard(_mutex);
+        _sseData.push_back(std::string(data, len));
+        _responseRecieved = true;
+        _cv.notify_all();
+        return true;
+    }
+    SUPPRESS_WARNINGS_END
+    void _SSEListener()
+    {
+        bool reconnect = true;
+        while (!_stopRequested && reconnect)
+        {
+            stream.connect(resolver.resolve(LocalHostName, Port));
+            // Send request
+            http::write(stream, req);
+            beast::flat_buffer buffer;
+
+            // Read header first
+            http::response_parser<http::empty_body> parser;
+            parser.body_limit(0);    // no body in header
+            http::read_header(stream, buffer, parser);
+
+            auto const& res = parser.get();
+            if (res.result() != http::status::ok) { throw std::runtime_error("Bad response"); };
+
+            while (!_stopRequested)
+            {
+                char              buf[4096];
+                beast::error_code ec;
+                std::size_t       bytes = stream.socket().read_some(net::buffer(buf), ec);
+                if (bytes > 0) { _ChunkCallback(buf, bytes); }
+                // std::size_t bytes = boost::asio::read_until(stream, line_buf, "\n", ec);
+                if (ec == net::error::eof || ec == beast::http::error::end_of_stream) break;
+                if (_stopRequested && (ec == net::error::operation_aborted || ec == boost::asio::error::interrupted)) break;
+                if (ec)
+                {
+                    std::cerr << "http::read failed:\n";
+                    std::cerr << "  ec.value() = " << ec.value() << "\n";
+                    std::cerr << "  ec.message() = " << ec.message() << "\n";
+                    std::cerr << "  ec.category() = " << ec.category().name() << "\n";
+                    throw beast::system_error(ec);
+                }
+            }
+
+            // Gracefully close
+            stream.socket().shutdown(tcp::socket::shutdown_both);
+        }
+    }
+
+    void Start()
+    {
+        _activated        = true;
+        _responseRecieved = false;
+        _stopRequested    = false;
+
+        _sseListener = std::thread([&]() {
+            try
+            {
+                this->_SSEListener();
+            } catch (std::exception const&) {}
+        });
+        std::unique_lock<std::mutex> guard(_mutex);
+        _cv.wait(guard, [&]() { return this->_responseRecieved; });
+    }
+
+    void RequestStop()
+    {
+        _stopRequested = true;
+        beast::error_code ec;
+        ec = stream.socket().cancel(ec);
+        ec = stream.socket().close(ec);
+    }
+
+    void Stop()
+    {
+        RequestStop();
+        if (_sseListener.joinable()) _sseListener.join();
+    }
+
+    static std::string Get(std::string_view const& target, Params const& params)
+    {
+        boost::urls::url url;
+        url.set_path(target);
+        for (auto const& [k, v] : params)
+        {    //
+            url.params().append({k, v});
+        }
+
+        net::io_context   ioc;
+        tcp::resolver     resolver(ioc);
+        beast::tcp_stream stream(ioc);
+
+        stream.connect(resolver.resolve(LocalHostName, Port));
+        {
+            // Send request
+            http::request<http::string_body> req{http::verb::get, url.encoded_target(), 11 /*HTTP Version 1.1*/};
+            req.set(http::field::host, LocalHostName);
+            req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+            req.set(http::field::accept, "application/json");
+            http::write(stream, req);
+        }
+        beast::flat_buffer buffer;
+        /*
+         {
+             http::response_parser<http::empty_body> parser;
+             http::read_header(stream, buffer, parser);
+             auto const& res = parser.get();
+             if (res.result() != http::status::ok) { throw std::runtime_error("Bad response"); };
+         } */
+        {
+            http::response<http::dynamic_body> res;
+            beast::error_code                  ec;
+            http::read(stream, buffer, res, ec);
+            if (ec && ec != net::error::eof && ec != beast::http::error::end_of_stream)
+            {
+                std::cerr << "http::read failed:\n";
+                std::cerr << "  ec.value() = " << ec.value() << "\n";
+                std::cerr << "  ec.message() = " << ec.message() << "\n";
+                std::cerr << "  ec.category() = " << ec.category().name() << "\n";
+                throw beast::system_error(ec);
+            }
+            stream.socket().shutdown(tcp::socket::shutdown_both);
+            return beast::buffers_to_string(res.body().data());
+        }
+    }
+
+    ~HttpClientListener() { Stop(); }
+
+    bool                     _activated{false};
+    bool                     _responseRecieved;
+    std::atomic<bool>        _stopRequested;
+    std::mutex               _mutex;
+    std::condition_variable  _cv;
+    std::vector<std::string> _sseData;
+    std::thread              _sseListener;
+    std::string              _url;
+
+    net::io_context                  ioc;
+    tcp::resolver                    resolver;
+    beast::tcp_stream                stream;
+    http::request<http::string_body> req;
+};
 
 /*
 interface Server1 {
@@ -110,75 +282,7 @@ struct Server1Impl
 
 struct Tester : ObjectsTester
 {
-
-    struct SSEListener
-    {
-        SSEListener(std::string_view const& url) : _url(url) {}
-        CLASS_DELETE_COPY_AND_MOVE(SSEListener);
-        SUPPRESS_WARNINGS_START
-        SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
-        bool _ChunkCallback(char const* data, size_t len)
-        {
-            if (data[len - 1] == '\0') len--;
-            std::unique_lock<std::mutex> guard(_mutex);
-            _sseData.push_back(std::string(data, len));
-            _responseRecieved = true;
-            _cv.notify_all();
-            return true;
-        }
-        SUPPRESS_WARNINGS_END
-        void _SSEListener()
-        {
-            _ssecli.set_follow_location(true);
-            httplib::Headers const headers   = {{"Accept", "text/event-stream"}, {"Connection", "Keep-Alive"}};
-            bool                   reconnect = true;
-            while (!_stopRequested && reconnect)
-            {
-                auto res = _ssecli.Get(_url, headers, [&](char const* data, size_t len) { return this->_ChunkCallback(data, len); });
-                if (_stopRequested) { break; }
-                if (res)
-                {
-                    // printf("HTTP %i\n", res->status);
-                    // check that response code is 2xx
-                    reconnect = (res->status / 100) == 2;
-                }
-                else
-                {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(100ms));
-                }
-            }
-        }
-
-        void Start()
-        {
-            _activated        = true;
-            _responseRecieved = false;
-            _stopRequested    = false;
-            _sseListener      = std::thread([&]() { this->_SSEListener(); });
-            std::unique_lock<std::mutex> guard(_mutex);
-            _cv.wait(guard, [&]() { return this->_responseRecieved; });
-        }
-
-        void Stop()
-        {
-            _stopRequested = true;
-            _ssecli.stop();
-            if (_sseListener.joinable()) _sseListener.join();
-        }
-
-        ~SSEListener() { Stop(); }
-
-        bool                     _activated{false};
-        bool                     _responseRecieved;
-        std::atomic<bool>        _stopRequested;
-        std::mutex               _mutex;
-        httplib::Client          _ssecli = CreateCLI();
-        std::condition_variable  _cv;
-        std::vector<std::string> _sseData;
-        std::thread              _sseListener;
-        std::string              _url;
-    };
-
+    using Params = HttpClientListener::Params;
     Tester()
     {
         if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
@@ -188,16 +292,16 @@ struct Tester : ObjectsTester
 
     ~Tester()
     {
-        _sseListener1.Stop();
-        _sseListener2.Stop();
-        _sseListener3.Stop();
+        _sseListener1.RequestStop();
+        _sseListener2.RequestStop();
+        _sseListener3.RequestStop();
 
         svc->StopDaemon();
         svc.reset();
         if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
         TestCommon::CheckResource<TestCommon::JsonFormat>(_json_lines, "json");
 
-        auto checkListener = [&](SSEListener& listener, std::string_view const& name) {
+        auto checkListener = [&](HttpClientListener& listener, std::string_view const& name) {
             if (listener._activated) { TestCommon::CheckResource<SSEFormat>(TestCommon::ResplitLines(listener._sseData), name); }
         };
         checkListener(_sseListener1, "server1_somethinghappened");
@@ -216,7 +320,7 @@ struct Tester : ObjectsTester
 
     template <typename T> auto _create_http_params(T const& obj)
     {
-        httplib::Params params;
+        Params params;
         Stencil::Visitor<T>::VisitAll(obj, [&](auto const& key, auto const& val) {
             std::string keystr = Stencil::Serialize<Stencil::ProtocolString>(key).str();
             std::string valstr = Stencil::Serialize<Stencil::ProtocolJsonVal>(val).str();
@@ -228,17 +332,9 @@ struct Tester : ObjectsTester
         SUPPRESS_WARNINGS_END
     }
 
-    auto _valid_cli_call_get(std::string const& path, httplib::Params const& params)
+    auto _valid_cli_json_get(std::string const& path, Params const& params)
     {
-        auto response = CreateCLI().Get(path, params, httplib::Headers(), httplib::DownloadProgress());
-        REQUIRE(response == true);
-        REQUIRE(response->status == 200);
-        return response->body;
-    }
-
-    auto _valid_cli_json_get(std::string const& path, httplib::Params const& params)
-    {
-        auto json = _valid_cli_call_get(path, params);
+        auto json = HttpClientListener::Get(path, params);
         CHECK(json != "");
         _json_lines.push_back(json);
         return json;
@@ -293,7 +389,7 @@ struct Tester : ObjectsTester
     {
         auto arg1 = fmt::format("{}", create_uint32());
         auto arg2 = Stencil::Json::Stringify(create_simple_object1());
-        _valid_cli_json_get("/api/server1/function1", httplib::Params{{"arg1", arg1}, {"arg2", arg2}});
+        _valid_cli_json_get("/api/server1/function1", Params{{"arg1", arg1}, {"arg2", arg2}});
     }
 
     void svc_create_obj1() {}
@@ -337,9 +433,9 @@ struct Tester : ObjectsTester
     uint32_t              _count{0};
     std::filesystem::path dbfile{"SaveAndLoad.bin"};
 
-    SSEListener _sseListener1{"/api/server1/somethinghappened"};
-    SSEListener _sseListener2{"/api/server1/objectstore"};
-    SSEListener _sseListener3{"/api/state"};
+    HttpClientListener _sseListener1{"/api/server1/somethinghappened"};
+    HttpClientListener _sseListener2{"/api/server1/objectstore"};
+    HttpClientListener _sseListener3{"/api/state"};
 
     // SSEListener _sseListener3{"/api/server1/obj2/events"};
     std::unique_ptr<Server1Impl> svc;

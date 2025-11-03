@@ -31,7 +31,6 @@ find_package(fmt QUIET)
 find_package(RapidJSON REQUIRED QUIET)
 find_package(date REQUIRED QUIET)
 # Optional
-find_package(httplib QUIET)
 find_package(Boost QUIET COMPONENTS beast url) # beast is header only. Components are for non-header libs
 
 if (TARGET stduuid)
@@ -54,9 +53,7 @@ if (TARGET date::date)
 else()
     message(FATAL_ERROR "Cannot find date")
 endif()
-if (TARGET httplib::httplib)
-    target_link_libraries(stencil_runtime INTERFACE httplib::httplib)
-endif()
+
 if (TARGET Boost::beast)
     target_compile_definitions(stencil_runtime INTERFACE HAVE_BOOSTBEAST=1)
     target_link_libraries(stencil_runtime INTERFACE Boost::beast Boost::url)
