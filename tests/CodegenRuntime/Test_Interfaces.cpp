@@ -2,6 +2,7 @@
 #include "TestUtils.h"
 
 #include <boost/url/url.hpp>
+#include <fmt/base.h>
 #include <stencil/webservice_boostbeast.h>
 
 SUPPRESS_WARNINGS_START
@@ -44,6 +45,15 @@ namespace beast = boost::beast;
 namespace http  = beast::http;
 namespace net   = boost::asio;
 using tcp       = net::ip::tcp;
+
+template <> struct fmt::formatter<beast::error_code> : fmt::formatter<std::string_view>
+{
+    auto format(beast::error_code const& ec, fmt::format_context& ctx) const
+    {
+        return fmt::format_to(
+            ctx.out(), "ec.value() = {}, ec.category() = {}, ec.message() = {}", ec.value(), ec.category().name(), ec.message());
+    }
+};
 
 struct HttpClientListener
 {
@@ -91,28 +101,24 @@ struct HttpClientListener
 
             auto const& res = parser.get();
             if (res.result() != http::status::ok) { throw std::runtime_error("Bad response"); };
-
+            beast::error_code ec;
             while (!_stopRequested)
             {
-                char              buf[4096];
-                beast::error_code ec;
-                std::size_t       bytes = stream.socket().read_some(net::buffer(buf), ec);
+                char        buf[4096];
+                std::size_t bytes = stream.socket().read_some(net::buffer(buf), ec);
                 if (bytes > 0) { _ChunkCallback(buf, bytes); }
                 // std::size_t bytes = boost::asio::read_until(stream, line_buf, "\n", ec);
                 if (ec == net::error::eof || ec == beast::http::error::end_of_stream) break;
                 if (_stopRequested && (ec == net::error::operation_aborted || ec == boost::asio::error::interrupted)) break;
                 if (ec)
                 {
-                    std::cerr << "http::read failed:\n";
-                    std::cerr << "  ec.value() = " << ec.value() << "\n";
-                    std::cerr << "  ec.message() = " << ec.message() << "\n";
-                    std::cerr << "  ec.category() = " << ec.category().name() << "\n";
+                    fmt::print(stderr, "SSEListener encountered error :{}", ec);
                     throw beast::system_error(ec);
                 }
             }
 
             // Gracefully close
-            stream.socket().shutdown(tcp::socket::shutdown_both);
+            ec = stream.socket().shutdown(tcp::socket::shutdown_both, ec);
         }
     }
 
@@ -182,10 +188,7 @@ struct HttpClientListener
             http::read(stream, buffer, res, ec);
             if (ec && ec != net::error::eof && ec != beast::http::error::end_of_stream)
             {
-                std::cerr << "http::read failed:\n";
-                std::cerr << "  ec.value() = " << ec.value() << "\n";
-                std::cerr << "  ec.message() = " << ec.message() << "\n";
-                std::cerr << "  ec.category() = " << ec.category().name() << "\n";
+                fmt::print(stderr, "SSEListener encountered error :{}", ec);
                 throw beast::system_error(ec);
             }
             stream.socket().shutdown(tcp::socket::shutdown_both);
