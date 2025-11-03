@@ -1,10 +1,6 @@
 #include "ObjectsTester.h"
 #include "TestUtils.h"
 
-#include <boost/asio/completion_condition.hpp>
-#include <boost/asio/read.hpp>
-#include <boost/url/url.hpp>
-#include <fmt/base.h>
 #include <stencil/webservice_boostbeast.h>
 
 SUPPRESS_WARNINGS_START
@@ -22,14 +18,14 @@ SUPPRESS_CLANG_WARNING("-Weverything")
 SUPPRESS_GCC_WARNING("-Wmaybe-uninitialized")
 
 #include <boost/asio.hpp>
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/beast/version.hpp>
+#include <boost/asio/completion_condition.hpp>
+#include <boost/asio/read.hpp>
+
 #include <boost/url.hpp>
+#include <boost/url/url.hpp>
 
 #include <condition_variable>
 #include <iostream>
-#include <limits>
 #include <memory>
 #include <string>
 
@@ -99,7 +95,7 @@ struct HttpClientListener
             http::read_header(stream, buffer, parser);
 
             auto const& res = parser.get();
-            if (res.result() != http::status::ok) { throw std::runtime_error("Bad response"); };
+            if (res.result() != http::status::ok) { throw std::runtime_error("Bad response"); }
             beast::error_code      ec;
             boost::asio::streambuf buf(4096);
             {
