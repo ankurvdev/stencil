@@ -1,6 +1,8 @@
 #include "ObjectsTester.h"
 #include "TestUtils.h"
 
+#include <boost/asio/completion_condition.hpp>
+#include <boost/asio/read.hpp>
 #include <boost/url/url.hpp>
 #include <fmt/base.h>
 #include <stencil/webservice_boostbeast.h>
@@ -77,10 +79,7 @@ struct HttpClientListener
     bool _ChunkCallback(char const* data, size_t len)
     {
         if (data[len - 1] == '\0') len--;
-        std::unique_lock<std::mutex> guard(_mutex);
         _sseData.push_back(std::string(data, len));
-        _responseRecieved = true;
-        _cv.notify_all();
         return true;
     }
     SUPPRESS_WARNINGS_END
@@ -101,20 +100,65 @@ struct HttpClientListener
 
             auto const& res = parser.get();
             if (res.result() != http::status::ok) { throw std::runtime_error("Bad response"); };
-            beast::error_code ec;
+            beast::error_code      ec;
+            boost::asio::streambuf buf(4096);
+            {
+                std::unique_lock<std::mutex> guard(_mutex);
+                _responseRecieved = true;
+                _cv.notify_all();
+            }
             while (!_stopRequested)
             {
-                char        buf[4096];
-                std::size_t bytes = stream.socket().read_some(net::buffer(buf), ec);
-                if (bytes > 0) { _ChunkCallback(buf, bytes); }
-                // std::size_t bytes = boost::asio::read_until(stream, line_buf, "\n", ec);
-                if (ec == net::error::eof || ec == beast::http::error::end_of_stream) break;
-                if (_stopRequested && (ec == net::error::operation_aborted || ec == boost::asio::error::interrupted)) break;
-                if (ec)
-                {
-                    fmt::print(stderr, "SSEListener encountered error :{}", ec);
-                    throw beast::system_error(ec);
+                if (buf.in_avail() != 0) { fmt::print("[122] buf.in_avail {} != 0 \n", buf.in_avail()); }
+                auto bytes = boost::asio::read_until(stream.socket(), buf, "\r\n", ec);
+
+                // fmt::print("Recieved:{}", bytes);
+                if (bytes < 3)
+                {    //
+                    buf.consume(bytes);
+                    fmt::print(" Ignoring :{}\n", bytes);
+                    continue;
                 }
+                std::size_t messageSize = 0;
+
+                auto bufchars = reinterpret_cast<char const*>(buf.data().data());
+                if (bufchars[bytes - 1] != '\n' || bufchars[bytes - 2] != '\r')
+                {
+                    // fmt::print(stderr, "recieved wierd mssg:{}", std::string_view(bufchars, bytes));
+                }
+                auto result = std::from_chars(bufchars, bufchars + bytes - 2, messageSize, 16);
+                fmt::print(" messageSize:{}\n", messageSize);
+                if (result.ptr != bufchars + bytes - 2 || result.ec != std::errc())
+                {    //
+                    throw std::runtime_error("Invalid hex string");
+                }
+                buf.consume(bytes);
+
+                for (size_t i = 0, remaining = messageSize; i < messageSize;)
+                {
+                    size_t read_bytes = std::min(remaining, buf.max_size());
+                    boost::asio::read(stream.socket(), buf, boost::asio::transfer_exactly(read_bytes), ec);
+                    auto bufchars = reinterpret_cast<char const*>(buf.data().data());
+                    if (!(messageSize == 2 && read_bytes == 2 && bufchars[0] == '\n' && bufchars[1] == '\n'))
+                    {
+                        _ChunkCallback(bufchars, read_bytes);
+                    }
+
+                    // fmt::print(" {}/{}", bytes, remaining);
+                    if (ec && !(ec == net::error::eof || ec == beast::http::error::end_of_stream))
+                    {
+                        if ((_stopRequested && (ec == net::error::operation_aborted || ec == boost::asio::error::interrupted))) { return; }
+                        fmt::print(stderr, "SSEListener encountered error :{}", ec);
+                        return;
+                        // throw beast::system_error(ec);
+                    }
+                    i += read_bytes;
+                    remaining -= read_bytes;
+                    buf.consume(read_bytes);
+                }
+                // fmt::print("Done ...\n");
+                // auto bytes = boost::asio::read_until(stream.socket(), buf, "\n", ec);
+                // std::size_t bytes = boost::asio::read_until(stream, line_buf, "\n", ec);
             }
 
             // Gracefully close
@@ -141,9 +185,8 @@ struct HttpClientListener
     void RequestStop()
     {
         _stopRequested = true;
-        beast::error_code ec;
-        ec = stream.socket().cancel(ec);
-        ec = stream.socket().close(ec);
+        // beast::error_code ec;
+        //  ec = stream.socket().close(ec);
     }
 
     void Stop()
@@ -295,12 +338,12 @@ struct Tester : ObjectsTester
 
     ~Tester()
     {
+        svc->StopDaemon();
+        svc.reset();
         _sseListener1.RequestStop();
         _sseListener2.RequestStop();
         _sseListener3.RequestStop();
 
-        svc->StopDaemon();
-        svc.reset();
         if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
         TestCommon::CheckResource<TestCommon::JsonFormat>(_json_lines, "json");
 

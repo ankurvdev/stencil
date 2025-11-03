@@ -1,12 +1,8 @@
-14
 event: init
 data: 
 
 
-
-7e
 event: objectstore_create
 data: {"obj1": {"131072": {"__id":131072,"val1":1,"val2":2,"val3":3,"val4":"str4","val5":500.06}}}
-
 
 
