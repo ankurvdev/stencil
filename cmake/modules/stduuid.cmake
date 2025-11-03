@@ -6,9 +6,7 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/mariusbancila/stduuid
   GIT_TAG        v1.2.3
   SOURCE_SUBDIR .
-  GIT_PROGRESS TRUE
-  GIT_SHALLOW 1
-  SYSTEM
+  GIT_PROGRESS FALSE GIT_SHALLOW 1 SYSTEM
   FIND_PACKAGE_ARGS NAMES stduuid
 )
 

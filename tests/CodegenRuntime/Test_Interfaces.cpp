@@ -135,6 +135,7 @@ struct Tester : ObjectsTester
             while (!_stopRequested && reconnect)
             {
                 auto res = _ssecli.Get(_url, headers, [&](char const* data, size_t len) { return this->_ChunkCallback(data, len); });
+                if (_stopRequested) { break; }
                 if (res)
                 {
                     // printf("HTTP %i\n", res->status);
@@ -158,12 +159,14 @@ struct Tester : ObjectsTester
             _cv.wait(guard, [&]() { return this->_responseRecieved; });
         }
 
-        ~SSEListener()
+        void Stop()
         {
             _stopRequested = true;
             _ssecli.stop();
             if (_sseListener.joinable()) _sseListener.join();
         }
+
+        ~SSEListener() { Stop(); }
 
         bool                     _activated{false};
         bool                     _responseRecieved;
@@ -180,11 +183,15 @@ struct Tester : ObjectsTester
     {
         if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
         svc = std::make_unique<Server1Impl>();
-        svc->StartOnPort(44444, 5);
+        svc->StartOnPort(44444, 6);
     }
 
     ~Tester()
     {
+        _sseListener1.Stop();
+        _sseListener2.Stop();
+        _sseListener3.Stop();
+
         svc->StopDaemon();
         svc.reset();
         if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
