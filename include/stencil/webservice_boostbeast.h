@@ -875,8 +875,8 @@ struct WebServiceInterfaceImplT<TImpl, TInterface> : TInterface,    // TImpl imp
 template <typename TImpl, ConceptIndexable T>
 struct WebServiceInterfaceImplT<TImpl, impl::SynchronizedState<T>> : impl::SynchronizedState<T>
 {
-    WebServiceInterfaceImplT()  = default;
-    ~WebServiceInterfaceImplT() = default;
+    WebServiceInterfaceImplT()           = default;
+    ~WebServiceInterfaceImplT() override = default;
     CLASS_DELETE_COPY_AND_MOVE(WebServiceInterfaceImplT);
 
     void NotifyStateChanged(Stencil::Transaction<T>::View const& txn)
