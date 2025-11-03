@@ -266,7 +266,8 @@ struct SSEListenerManager
                 _ctx = &ctx;
                 Send(lock, msg);
             }
-            do {
+            do
+            {
                 auto constexpr KeepAliveInterval = 10s;
                 auto lock                        = std::unique_lock<std::mutex>(_manager->_mutex);
                 if (_manager->_stopRequested) return;
@@ -313,8 +314,16 @@ struct SSEListenerManager
         {
             if (_stopRequested) return;
             auto inst = *it;
-            if (inst->_stopRequested) continue;
-            if (inst->_category != 0 && category != 0 && inst->_category != category) continue;
+            if (inst->_stopRequested)
+            {
+                ++it;
+                continue;
+            }
+            if (inst->_category != 0 && category != 0 && inst->_category != category)
+            {
+                ++it;
+                continue;
+            }
             if (!inst->Send(lock, msg)) { it = _sseListeners.erase(it); }
             else
             {
@@ -406,7 +415,8 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
             rslt << '{';
             bool   first  = true;
             size_t sindex = 0;
-            do {
+            do
+            {
                 auto eindex = ids.find(',', sindex);
                 if (eindex == std::string_view::npos) eindex = ids.size();
                 auto idstr = ids.substr(sindex, eindex - sindex);
@@ -526,14 +536,14 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
                     rslt << "true";
                     ctx.sse.Send(typeid(TContext).hash_code(), fmt::format("{}{}", (first ? ' ' : ','), id));
                     first = false;
-                } catch (std::exception const& /*ex*/)
-                {
-                    rslt << "false";
-                }
+                } catch (std::exception const& /*ex*/) { rslt << "false"; }
             });
             ctx.sse.Send(typeid(TContext).hash_code(), "]}\n\n");
         }
-        else { throw std::invalid_argument(fmt::format("Unknown object store action: {}", action)); }
+        else
+        {
+            throw std::invalid_argument(fmt::format("Unknown object store action: {}", action));
+        }
         return rslt.str();
     }
 };
@@ -568,7 +578,10 @@ template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunct
             return args;
             SUPPRESS_WARNINGS_END
         }
-        else { throw std::runtime_error("Only get and put supported for functions"); }
+        else
+        {
+            throw std::runtime_error("Only get and put supported for functions");
+        }
     }
 
     static auto Invoke(TContext& ctx)
@@ -755,6 +768,10 @@ struct SessionInterfaceT : TInterface,
 
 template <ConceptIndexable TState> struct SynchronizedState
 {
+    SynchronizedState()          = default;
+    virtual ~SynchronizedState() = default;
+    CLASS_DEFAULT_COPY_AND_MOVE(SynchronizedState);
+
     void* handler{nullptr};
 
     virtual std::string_view Name()           = 0;
@@ -858,11 +875,11 @@ struct WebServiceInterfaceImplT<TImpl, TInterface> : TInterface,    // TImpl imp
 template <typename TImpl, ConceptIndexable T>
 struct WebServiceInterfaceImplT<TImpl, impl::SynchronizedState<T>> : impl::SynchronizedState<T>
 {
-    WebServiceInterfaceImplT()  = default;
-    ~WebServiceInterfaceImplT() = default;
+    WebServiceInterfaceImplT()           = default;
+    ~WebServiceInterfaceImplT() override = default;
     CLASS_DELETE_COPY_AND_MOVE(WebServiceInterfaceImplT);
 
-    void NotifyStateChanged(Stencil::Transaction<T>& txn)
+    void NotifyStateChanged(Stencil::Transaction<T>::View const& txn)
     {
         auto impl = static_cast<TImpl*>(this);
         auto msg  = fmt::format("event: changed\ndata: {}\n\n", Stencil::StringTransactionSerDes::Deserialize(txn));
@@ -894,20 +911,17 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
 
     CLASS_DELETE_COPY_AND_MOVE(WebServiceT);
 
-    void StartOnPort(uint16_t port)
+    void StartOnPort(uint16_t port, uint16_t numThreads = 4)
     {
         auto const address = boost::asio::ip::make_address("0.0.0.0");
         boost::asio::co_spawn(ioc, _do_listen(tcp::endpoint{address, port}), [](std::exception_ptr e) {
             if (e) try
                 {
                     std::rethrow_exception(e);
-                } catch (std::exception& e)
-                {
-                    fmt::print(stderr, "Error in acceptor: {}\n", e.what());
-                }
+                } catch (std::exception& e) { fmt::print(stderr, "Error in acceptor: {}\n", e.what()); }
         });
 
-        for (size_t i = 0; i < 4; i++)
+        for (size_t i = 0; i < numThreads; i++)
         {
             _listenthreads.emplace_back([this]() { ioc.run(); });
         }
@@ -1028,10 +1042,7 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
                 if (e) try
                     {
                         std::rethrow_exception(e);
-                    } catch (std::exception& e)
-                    {
-                        fmt::print(stderr, "Session Terminated with Error:  {}\n", e.what());
-                    }
+                    } catch (std::exception& e) { fmt::print(stderr, "Session Terminated with Error:  {}\n", e.what()); }
             });
     }
 

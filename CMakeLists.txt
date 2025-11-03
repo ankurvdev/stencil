@@ -121,7 +121,7 @@ if (BUILD_TESTING)
 
     target_compile_definitions(runtime_tests PRIVATE HAVE_NLOHMANN_JSON)
     target_link_libraries(runtime_tests PRIVATE stencil_runtime)
-    target_link_libraries(runtime_tests PRIVATE TestCommon httplib::httplib stencil::runtime)
+    target_link_libraries(runtime_tests PRIVATE TestCommon stencil::runtime)
     target_link_libraries (runtime_tests PRIVATE Threads::Threads)
     add_test(NAME runtime_tests COMMAND runtime_tests)
 

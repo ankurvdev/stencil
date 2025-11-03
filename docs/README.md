@@ -58,7 +58,7 @@ make possible the following core usage scenarios
   - SQLITE (TODO: Broken currently)
   - PageDB (Custom Paged Tabular Records) (FixedSize, Blobs)
 - RPC
-  - [REST Web-Service](Interfaces.md) : C++ based REST HTTP Web-service (JSON) based on IDL interface definition. (using cpp-httplib)
+  - [REST Web-Service](Interfaces.md) : C++ based REST HTTP Web-service (JSON) based on IDL interface definition. (using boost-beast/asio)
   - [TODO] Bluetooth BLE Services
 - Object Modelling
   - [Transactions](Transactions.md) : Record and Replay of Delta changes into runtime objects
@@ -70,8 +70,8 @@ The built-in functionalities follow the design principles:
 - Dont care about compile-times
 - Header only to allow for easier build integration and portability
 - The templates generate highly reusable compile-time reflection metadata that the header-only runtime uses for
-  providing the requested functionality by integration with the popular corresponding framework (JSON -> nlohmann-json,
-  Web-Service -> cpp-httplib)
+  providing the requested functionality by integration with the popular corresponding framework (JSON -> rapidjson,
+  Web-Service -> boost-beast/asio)
 - One liner integrations for most common scenarios.
 - C++20 . Dont care about older compilers or platforms where C++20 isnt available
 - Cross platform Runtime header generation: Tested for Windows, Linux, RaspberryPi's, Android, with Clang, GCC, MSVC

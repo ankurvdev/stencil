@@ -5,9 +5,7 @@ FetchContent_Declare(
   rapidjson
   GIT_REPOSITORY https://github.com/Tencent/rapidjson
   GIT_TAG        24b5e7a8b27f42fa16b96fc70aade9106cf7102f # accessed on 2025-02-26
-  GIT_PROGRESS TRUE
-  GIT_SHALLOW 1
-  SYSTEM
+  GIT_PROGRESS FALSE GIT_SHALLOW 1 SYSTEM
   SOURCE_SUBDIR ./include
   FIND_PACKAGE_ARGS NAMES RapidJSON
 )
