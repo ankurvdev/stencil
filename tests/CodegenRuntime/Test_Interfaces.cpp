@@ -109,14 +109,15 @@ struct HttpClientListener
             }
             while (!_stopRequested)
             {
-                if (buf.in_avail() != 0) { fmt::print("[122] buf.in_avail {} != 0 \n", buf.in_avail()); }
+                // if (buf.in_avail() != 0) { fmt::print("[122] buf.in_avail {} != 0 \n", buf.in_avail()); }
                 auto bytes = boost::asio::read_until(stream.socket(), buf, "\r\n", ec);
 
+                if (bytes == 0 && ec) { return; }
                 // fmt::print("Recieved:{}", bytes);
                 if (bytes < 3)
                 {    //
                     buf.consume(bytes);
-                    fmt::print(" Ignoring :{}\n", bytes);
+                    // fmt::print(" Ignoring :{}\n", bytes);
                     continue;
                 }
                 std::size_t messageSize = 0;
@@ -127,7 +128,6 @@ struct HttpClientListener
                     // fmt::print(stderr, "recieved wierd mssg:{}", std::string_view(bufchars, bytes));
                 }
                 auto result = std::from_chars(bufchars, bufchars + bytes - 2, messageSize, 16);
-                fmt::print(" messageSize:{}\n", messageSize);
                 if (result.ptr != bufchars + bytes - 2 || result.ec != std::errc())
                 {    //
                     throw std::runtime_error("Invalid hex string");
