@@ -6,8 +6,7 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/fmtlib/fmt
     GIT_TAG        11.2.0
     SOURCE_SUBDIR  .
-    GIT_PROGRESS TRUE GIT_SHALLOW TRUE
-    SYSTEM
+    GIT_PROGRESS FALSE GIT_SHALLOW 1 SYSTEM
     FIND_PACKAGE_ARGS NAMES fmt
 )
 

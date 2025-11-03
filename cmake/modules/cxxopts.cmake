@@ -5,8 +5,7 @@ FetchContent_Declare(
   cxxopts
   GIT_REPOSITORY https://github.com/jarro2783/cxxopts
   GIT_TAG        v3.3.1
-  GIT_SHALLOW 1
-  SYSTEM
+  GIT_PROGRESS FALSE GIT_SHALLOW 1 SYSTEM
   SOURCE_SUBDIR ./dummy
   FIND_PACKAGE_ARGS NAMES cxxopts
 )

@@ -6,7 +6,7 @@ FetchContent_Declare(
     stencil
     GIT_REPOSITORY https://github.com/ankurvdev/stencil.git
     GIT_TAG        main
-    GIT_SHALLOW 1
+    GIT_PROGRESS FALSE GIT_SHALLOW 1 SYSTEM
     SYSTEM
 )
 if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/../src/Thrift.cpp")

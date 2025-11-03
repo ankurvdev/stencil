@@ -5,8 +5,7 @@ FetchContent_Declare(
   embedresource
   GIT_REPOSITORY https://github.com/ankurvdev/embedresource
   GIT_TAG        main
-  GIT_SHALLOW 1
-  SYSTEM
+  GIT_PROGRESS FALSE GIT_SHALLOW 1 SYSTEM
   SOURCE_SUBDIR .
   FIND_PACKAGE_ARGS NAMES EmbedResource
 )
