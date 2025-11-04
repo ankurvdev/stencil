@@ -190,11 +190,6 @@ struct Primitives64Bit
     }
 };
 
-// #if (defined __EMSCRIPTEN__ || defined __APPLE__)
-template <> struct Primitives64Bit::Traits<unsigned long> : public Primitives64Bit::UnsignedTraits<unsigned long>
-{};
-// #endif
-
 template <> struct Primitives64Bit::Traits<uint64_t> : public Primitives64Bit::UnsignedTraits<uint64_t>
 {};
 template <> struct Primitives64Bit::Traits<uint32_t> : public Primitives64Bit::UnsignedTraits<uint32_t>
@@ -221,6 +216,11 @@ template <> struct Primitives64Bit::Traits<double> : public Primitives64Bit::Dou
 {};
 template <> struct Primitives64Bit::Traits<float> : public Primitives64Bit::DoubleTraits<float>
 {};
+
+#ifndef _WIN32
+template <> struct Primitives64Bit::Traits<unsigned long> : public Primitives64Bit::UnsignedTraits<unsigned long>
+{};
+#endif
 
 template <typename TClock> struct Primitives64Bit::Traits<std::chrono::time_point<TClock>>
 {
