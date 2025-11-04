@@ -83,7 +83,7 @@ jobs:
           scriptPath: $(Build.SourcesDirectory)/ci/build_with_vcpkg.py
           arguments: --verbose --host-triplet $(HostTriplet) --runtime-triplets $(RuntimeTriplets) --workdir vcpkg-build
 
-  - job: Build_VS x64 and x86
+  - job: Build_VS_x64_and_x86
     pool:
       vmImage: "windows-latest"
     displayName: "Build MSVC"
