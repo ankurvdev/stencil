@@ -147,7 +147,7 @@ if not vcpkgroot.exists():
 bootstrapscript = "bootstrap-vcpkg.bat" if sys.platform == "win32" else "bootstrap-vcpkg.sh"
 defaulttriplet = f"{externaltools.DefaultArch}-windows-static" if sys.platform == "win32" else f"{externaltools.DefaultArch}-linux-perf"
 host_triplet = args.host_triplet or defaulttriplet
-runtime_triplets = args.runtime_triplets or defaulttriplet
+runtime_triplets = (args.runtime_triplets or defaulttriplet).split(",")
 
 for portdir in (scriptdir / "vcpkg-additional-ports").glob("*"):
     dst = vcpkgroot / "ports" / portdir.name
@@ -164,7 +164,7 @@ if args.clean:
     for runtime_triplet in runtime_triplets:
         vcpkg_remove(portname + ":" + runtime_triplet)
 
-for runtime_triplet in runtime_triplets.split(","):
+for runtime_triplet in runtime_triplets:
     myenv = os.environ.copy()
     myenv["VCPKG_ROOT"] = vcpkgroot.as_posix()
     myenv["VCPKG_BINARY_SOURCES"] = "clear"
