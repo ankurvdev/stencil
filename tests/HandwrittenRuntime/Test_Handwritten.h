@@ -20,8 +20,8 @@ struct WithPrimitives64Bit
     float    f6;
     bool     f7;
 
-    std::chrono::time_point<std::chrono::system_clock> f8;
-    std::chrono::time_point<std::chrono::system_clock> f9;    // TODO High performance clock
+    Stencil::Timestamp f8;
+    Stencil::Timestamp f9;
 };
 
 struct ComplexPrimitives

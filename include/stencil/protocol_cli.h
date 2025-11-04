@@ -2,6 +2,7 @@
 #include "CommonMacros.h"
 #include "protocol_string.h"
 #include "typetraits.h"
+#include "typetraits_builtins.h"    // IWYU pragma: keep
 #include "visitor.h"
 
 #include <cctype>
@@ -99,7 +100,7 @@ concept ConceptHasProtocolString = is_specialized<Stencil::SerDes<T, Stencil::Pr
 template <typename T>
 concept ConceptHasProtocolCLI = is_specialized<Stencil::SerDes<T, Stencil::ProtocolCLI>>::value;
 
-static_assert(ConceptHasProtocolString<std::chrono::time_point<std::chrono::system_clock>>, "Chrono should be defined");
+static_assert(ConceptHasProtocolString<Timestamp>, "Chrono should be defined");
 static_assert(ConceptHasProtocolString<uint64_t>, "uint64_t should be defined");
 static_assert(!ConceptHasProtocolString<std::vector<std::string>>, "void");
 static_assert(ConceptHasProtocolString<shared_string>, "shared_string");

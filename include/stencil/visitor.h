@@ -1,9 +1,6 @@
 #pragma once
-#include "enums.h"
-#include "stencil/tuple_utils.h"
-#include "timestamped.h"
-#include "typetraits.h"
-#include "typetraits_std.h"
+#include "typetraits_builtins.h"    // IWYU pragma: keep
+#include "typetraits_std.h"         //IWYU pragma: keep
 #include "uuidobject.h"
 
 #include <memory>

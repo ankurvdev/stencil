@@ -225,7 +225,7 @@ struct SSEListenerManager
 
     struct Instance : std::enable_shared_from_this<Instance>
     {
-        using time_point = std::chrono::time_point<std::chrono::system_clock>;
+        using time_point = Stencil::Timestamp;
         struct SSEContext
         {
             SSEContext(tcp_stream& streamIn, Request const& reqIn) : stream(streamIn)
@@ -272,7 +272,7 @@ struct SSEListenerManager
                 auto lock                        = std::unique_lock<std::mutex>(_manager->_mutex);
                 if (_manager->_stopRequested) return;
                 auto status = _dataAvailable.wait_for(lock, KeepAliveInterval);
-                if (status == std::cv_status::timeout && ((_lastSendAt + KeepAliveInterval) < std::chrono::system_clock::now()))
+                if (status == std::cv_status::timeout && ((_lastSendAt + KeepAliveInterval) < Stencil::Timestamp::clock::now()))
                 {    // timed out
                     if (!Send(lock, "\n\n")) { return; }
                 }
@@ -292,7 +292,7 @@ struct SSEListenerManager
         {
             if (_streamEnded()) return false;
             if (msg.size() == 0) return true;
-            _lastSendAt  = std::chrono::system_clock::now();
+            _lastSendAt  = Stencil::Timestamp::clock::now();
             auto msgSize = msg[msg.size() - 1] == '\0' ? msg.size() - 1 : msg.size();
             if (msgSize == 0) return true;
             boost::asio::const_buffer b{msg.data(), msgSize};

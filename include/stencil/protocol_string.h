@@ -3,7 +3,6 @@
 #include "primitives64bit.h"
 #include "serdes.h"
 #include "shared_string.h"
-#include "uuidobject.h"
 
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
@@ -192,16 +191,20 @@ template <typename TClock> struct SerDes<std::chrono::time_point<TClock>, Protoc
 {
     using TObj = std::chrono::time_point<TClock>;
 
+    using SysTimePoint = std::chrono::time_point<std::chrono::system_clock, typename TClock::duration>;
     template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
-        fmt::print(ctx, "{}", date::format("%FT%T", std::chrono::time_point_cast<std::chrono::microseconds>(obj)));
+        SysTimePoint casted(obj.time_since_epoch());
+        fmt::print(ctx, "{}", date::format("%FT%T", std::chrono::time_point_cast<std::chrono::microseconds>(casted)));
         //    fmt::print(ctx, "{}", obj.time_since_epoch().count());
     }
 
     template <typename TContext> static auto Read(TObj& obj, TContext& ctx)
     {
+        SysTimePoint       casted;
         std::istringstream ss(ctx.data());
-        date::from_stream(ss, "%FT%T", obj);
+        date::from_stream(ss, "%FT%T", casted);
+        obj = TObj(casted.time_since_epoch());
     }
 };
 
@@ -211,10 +214,8 @@ template <> struct SerDes<char, ProtocolString>
 
     template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
-        if (obj == 0)
-            fmt::print(ctx, "0");
-        else
-            fmt::print(ctx, "{}", obj);
+        if (obj == 0) fmt::print(ctx, "0");
+        else fmt::print(ctx, "{}", obj);
     }
     template <typename TContext> static auto Read(TObj& obj, TContext& ctx)
     {

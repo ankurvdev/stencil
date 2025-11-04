@@ -13,5 +13,5 @@ cmake.exe -G "Visual Studio 17 2022", "-A" $(if ($arch -eq "x86") { "Win32" } el
 if (-not $?) {throw "CMake Generate Failed"}
 cmake.exe --build . --config Debug -j --verbose --target package
 if (-not $?) {throw "CMake Build Failed"}
-ctest.exe -C Debug --output-on-failure
+ctest.exe -C Debug --output-on-failure --repeat until-fail:10
 if (-not $?) {throw "Ctest Failed"}

@@ -109,7 +109,6 @@ struct HttpClientListener
             }
             while (!_stopRequested)
             {
-                // if (buf.in_avail() != 0) { fmt::print("[122] buf.in_avail {} != 0 \n", buf.in_avail()); }
                 auto bytes = boost::asio::read_until(stream.socket(), buf, "\r\n", ec);
 
                 if (bytes == 0 && ec) { return; }
@@ -137,7 +136,11 @@ struct HttpClientListener
                 for (size_t i = 0, remaining = messageSize; i < messageSize;)
                 {
                     size_t read_bytes = std::min(remaining, buf.max_size());
-                    boost::asio::read(stream.socket(), buf, boost::asio::transfer_exactly(read_bytes), ec);
+                    bytes = boost::asio::read(stream.socket(), buf, boost::asio::transfer_exactly(read_bytes), ec);
+                    if (bytes != read_bytes)
+                    {
+                        fmt::print("Mismatch bytes {} != read_bytes {} ec = {}\n", bytes, read_bytes, ec);
+                    }
                     bufchars = reinterpret_cast<char const*>(buf.data().data());
                     if (!(messageSize == 2 && read_bytes == 2 && bufchars[0] == '\n' && bufchars[1] == '\n'))
                     {
@@ -234,7 +237,12 @@ struct HttpClientListener
                 fmt::print(stderr, "SSEListener encountered error :{}", ec);
                 throw beast::system_error(ec);
             }
-            stream.socket().shutdown(tcp::socket::shutdown_both);
+            ec = stream.socket().shutdown(tcp::socket::shutdown_both, ec);
+            if (ec && ec != boost::asio::error::not_connected)
+            {
+                fmt::print(stderr, "SSEListener encountered error :{}", ec);
+                throw beast::system_error(ec);
+            }
             return beast::buffers_to_string(res.body().data());
         }
     }
