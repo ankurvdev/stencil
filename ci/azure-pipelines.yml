@@ -47,7 +47,7 @@ jobs:
           VMImage: "windows-latest"
         x86-windows-static:
           HostTriplet: x86-windows-static
-            RuntimeTriplets: x64-windows-static-md,wasm32-emscripten
+          RuntimeTriplets: x64-windows-static-md,wasm32-emscripten
           VMImage: "windows-latest"
         x64_windows_static_md:
           HostTriplet: x64-windows-static-md
