@@ -217,7 +217,7 @@ template <> struct Primitives64Bit::Traits<double> : public Primitives64Bit::Dou
 template <> struct Primitives64Bit::Traits<float> : public Primitives64Bit::DoubleTraits<float>
 {};
 
-#ifndef _WIN32
+#ifndef __GLIBCXX__
 template <> struct Primitives64Bit::Traits<unsigned long> : public Primitives64Bit::UnsignedTraits<unsigned long>
 {};
 #endif
