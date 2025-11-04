@@ -219,7 +219,7 @@ template <> struct Primitives64Bit::Traits<float> : public Primitives64Bit::Doub
 
 // the following platforms have uint64_t == unsigned long
 // ifndef __linux__
-#if ((defined __EMSCRIPTEN__) || (defined __APPLE__) || (defined _MSC_VER) || (defined __ANDROID__) || (defined __MINGW__))
+#if ((defined __EMSCRIPTEN__) || (defined __APPLE__) || (defined _MSC_VER) || (defined __ANDROID__) || (defined __MINGW32__))
 template <> struct Primitives64Bit::Traits<unsigned long> : public Primitives64Bit::UnsignedTraits<unsigned long>
 {};
 #endif

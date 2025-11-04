@@ -164,7 +164,7 @@ if args.clean:
     for runtime_triplet in runtime_triplets:
         vcpkg_remove(portname + ":" + runtime_triplet)
 
-for runtime_triplet in runtime_triplets:
+for runtime_triplet in runtime_triplets.split(","):
     myenv = os.environ.copy()
     myenv["VCPKG_ROOT"] = vcpkgroot.as_posix()
     myenv["VCPKG_BINARY_SOURCES"] = "clear"
