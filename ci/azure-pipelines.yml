@@ -83,13 +83,7 @@ jobs:
           scriptPath: $(Build.SourcesDirectory)/ci/build_with_vcpkg.py
           arguments: --verbose --host-triplet $(HostTriplet) --runtime-triplets $(RuntimeTriplets) --workdir vcpkg-build
 
-  - job: Build_VS
-    strategy:
-      matrix:
-        x86:
-          Arch: x86
-        x64:
-          Arch: x64
+  - job: Build_VS x64 and x86
     pool:
       vmImage: "windows-latest"
     displayName: "Build MSVC"
@@ -98,10 +92,9 @@ jobs:
       - task: Powershell@2
         displayName: "Build and Test MSVC"
         inputs:
-          workingDirectory: "cmake-build"
           targetType: "filePath"
           filePath: $(Build.SourcesDirectory)/ci/build_win_msvc.ps1
-          arguments: $(Arch)
+          arguments: x64,x86
       - task: CopyFiles@2
         displayName: "Copy Files to artifact staging directory"
         inputs:
