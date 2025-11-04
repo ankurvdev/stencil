@@ -10,8 +10,8 @@ pr:
   - main
 
 jobs:
-  - job: Update_VCPKG
-    displayName: "Update VCPKG Port Branch"
+  - job: Build_Ubuntu
+    displayName: "[x64] Build Ubuntu"
     pool:
       vmImage: "ubuntu-latest"
     steps:
@@ -22,12 +22,6 @@ jobs:
           - bash: bash $(Build.SourcesDirectory)/ci/update_vcpkg_port.sh push
       - ${{ else }}:
           - bash: bash $(Build.SourcesDirectory)/ci/update_vcpkg_port.sh
-
-  - job: Build_Ubuntu
-    displayName: "[x64] Build Ubuntu"
-    pool:
-      vmImage: "ubuntu-latest"
-    steps:
       - bash: bash $(Build.SourcesDirectory)/ci/prepare_ubuntu_machine.sh && mkdir -p cmake-build && mkdir -p vcpkg-build
         displayName: "Install Build Tools"
       - bash: bash $(Build.SourcesDirectory)/ci/build_linux.sh
@@ -49,7 +43,7 @@ jobs:
       matrix:
         x64-mingw-static:
           HostTriplet: x64-mingw-static
-          RuntimeTriplets: x86-windows-static, x64-uwp-static-md
+          RuntimeTriplets: x86-windows-static,x64-uwp-static-md
           VMImage: "windows-latest"
         x86-windows-static:
           HostTriplet: x86-windows-static
