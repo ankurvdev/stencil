@@ -217,7 +217,9 @@ template <> struct Primitives64Bit::Traits<double> : public Primitives64Bit::Dou
 template <> struct Primitives64Bit::Traits<float> : public Primitives64Bit::DoubleTraits<float>
 {};
 
-#ifndef __GLIBCXX__
+// the following platforms have uint64_t == unsigned long
+// linux-libstdc++: yes android-libc++: yes msvc-ucrt: yes macos-libc++: no emscripten-libc++ : no
+#if ((defined __EMSCRIPTEN__) || (defined __APPLE__))
 template <> struct Primitives64Bit::Traits<unsigned long> : public Primitives64Bit::UnsignedTraits<unsigned long>
 {};
 #endif
