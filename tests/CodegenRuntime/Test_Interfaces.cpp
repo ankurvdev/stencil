@@ -110,13 +110,16 @@ struct HttpClientListener
             while (!_stopRequested)
             {
                 auto bytes = boost::asio::read_until(stream.socket(), buf, "\r\n", ec);
-
-                if (bytes == 0 && ec) { return; }
+                if (bytes == 0 && ec)
+                {
+                    fmt::print(stderr, "TODO: Throw. Handle ec: {}", ec);
+                    throw beast::system_error(ec);
+                }
                 // fmt::print("Recieved:{}", bytes);
                 if (bytes < 3)
                 {    //
                     buf.consume(bytes);
-                    // fmt::print(" Ignoring :{}\n", bytes);
+                    fmt::print(stderr, "TODO: Throw. Ignoring Empty message:{}. Are these Keep-Alive?\n", bytes);
                     continue;
                 }
                 std::size_t messageSize = 0;
@@ -124,7 +127,7 @@ struct HttpClientListener
                 auto bufchars = reinterpret_cast<char const*>(buf.data().data());
                 if (bufchars[bytes - 1] != '\n' || bufchars[bytes - 2] != '\r')
                 {
-                    // fmt::print(stderr, "recieved wierd mssg:{}", std::string_view(bufchars, bytes));
+                    fmt::print(stderr, "TODO: Throw. recieved wierd mssg:{}", std::string_view(bufchars, bytes));
                 }
                 auto result = std::from_chars(bufchars, bufchars + bytes - 2, messageSize, 16);
                 if (result.ptr != bufchars + bytes - 2 || result.ec != std::errc())
@@ -136,11 +139,18 @@ struct HttpClientListener
                 for (size_t i = 0, remaining = messageSize; i < messageSize;)
                 {
                     size_t read_bytes = std::min(remaining, buf.max_size());
-                    bytes = boost::asio::read(stream.socket(), buf, boost::asio::transfer_exactly(read_bytes), ec);
+                    bytes             = boost::asio::read(stream.socket(), buf, boost::asio::transfer_exactly(read_bytes), ec);
                     if (bytes != read_bytes)
-                    {
-                        fmt::print("Mismatch bytes {} != read_bytes {} ec = {}\n", bytes, read_bytes, ec);
+                    {    //
+                        fmt::print(stderr, "TODO. Throw. Mismatch bytes {} != read_bytes {} ec = {}\n", bytes, read_bytes, ec);
                     }
+
+                    if (buf.in_avail() != static_cast<std::streamsize>(read_bytes))
+                    {
+                        fmt::print(
+                            stderr, "TODO: Throw. Mismatch buf.in_avail() {} != read_bytes {} ec = {}\n", buf.in_avail(), read_bytes, ec);
+                    }
+
                     bufchars = reinterpret_cast<char const*>(buf.data().data());
                     if (!(messageSize == 2 && read_bytes == 2 && bufchars[0] == '\n' && bufchars[1] == '\n'))
                     {
@@ -159,13 +169,14 @@ struct HttpClientListener
                     remaining -= read_bytes;
                     buf.consume(read_bytes);
                 }
-                // fmt::print("Done ...\n");
-                // auto bytes = boost::asio::read_until(stream.socket(), buf, "\n", ec);
-                // std::size_t bytes = boost::asio::read_until(stream, line_buf, "\n", ec);
             }
 
             // Gracefully close
             ec = stream.socket().shutdown(tcp::socket::shutdown_both, ec);
+            if (ec)
+            {    //
+                fmt::print(stderr, "Error in shutdown: {}", ec);
+            }
         }
     }
 
@@ -179,7 +190,8 @@ struct HttpClientListener
             try
             {
                 this->_SSEListener();
-            } catch (std::exception const&) {}
+            } catch (std::exception const&)
+            {}
         });
         std::unique_lock<std::mutex> guard(_mutex);
         _cv.wait(guard, [&]() { return this->_responseRecieved; });

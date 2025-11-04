@@ -190,10 +190,10 @@ struct Primitives64Bit
     }
 };
 
-#if (defined __EMSCRIPTEN__ || defined __APPLE__)
+// #if (defined __EMSCRIPTEN__ || defined __APPLE__)
 template <> struct Primitives64Bit::Traits<unsigned long> : public Primitives64Bit::UnsignedTraits<unsigned long>
 {};
-#endif
+// #endif
 
 template <> struct Primitives64Bit::Traits<uint64_t> : public Primitives64Bit::UnsignedTraits<uint64_t>
 {};
