@@ -49,41 +49,24 @@ jobs:
       matrix:
         x64-mingw-static:
           HostTriplet: x64-mingw-static
-          RuntimeTriplet: x64-mingw-static
+          RuntimeTriplets: x86-windows-static, x64-uwp-static-md
           VMImage: "windows-latest"
-        x64-uwp-static-md:
+        x86-windows-static:
           HostTriplet: x86-windows-static
-          RuntimeTriplet: x64-uwp-static-md
-          VMImage: "windows-latest"
-        x86_windows_static:
-          HostTriplet: x86-windows-static
-          RuntimeTriplet: x86-windows-static
+          RuntimeTriplets: x64-windows-static-md,wasm32-emscripten,
           VMImage: "windows-latest"
         x64_windows_static_md:
           HostTriplet: x64-windows-static-md
-          RuntimeTriplet: x64-windows-static-md
+          RuntimeTriplets: arm64-android,arm-android,x86-android
           VMImage: "windows-latest"
         x64_linux:
           HostTriplet: x64-linux
-          RuntimeTriplet: x64-linux
-          VMImage: "ubuntu-latest"
-        arm64-android-on-windows:
-          HostTriplet: x86-windows-static
-          RuntimeTriplet: arm64-android
-          VMImage: "windows-latest"
-        arm-android-on-linux:
-          HostTriplet: x64-linux
-          RuntimeTriplet: arm-neon-android
+          RuntimeTriplets: arm64-android,arm-android,x86-android
           VMImage: "ubuntu-latest"
         wasm32-emscripten-on-linux:
           HostTriplet: x64-linux
-          RuntimeTriplet: wasm32-emscripten
+          RuntimeTriplets: wasm32-emscripten
           VMImage: "ubuntu-latest"
-        wasm32-emscripten-on-windows:
-          HostTriplet: x86-windows-static
-          RuntimeTriplet: wasm32-emscripten
-          VMImage: "windows-latest"
-
     pool:
       vmImage: $(VMImage)
     steps:
@@ -98,7 +81,7 @@ jobs:
       - task: PythonScript@0
         inputs:
           scriptPath: $(Build.SourcesDirectory)/ci/build_with_vcpkg.py
-          arguments: --verbose --host-triplet $(HostTriplet) --runtime-triplet $(RuntimeTriplet) --workdir vcpkg-build
+          arguments: --verbose --host-triplet $(HostTriplet) --runtime-triplets $(RuntimeTriplets) --workdir vcpkg-build
 
   - job: Build_VS
     strategy:
