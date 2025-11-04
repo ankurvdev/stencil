@@ -306,10 +306,6 @@ macro(EnableStrictCompilation)
                 -Wno-nrvo # clang-21
             )
 
-            if (APPLE)
-                #list(APPEND extracxxflags -Wno-poison-system-directories)
-            endif()
-
             if (NOT DEFINED CPPFORGE_DISABLE_MARCH_NATIVE AND DEFINED ENV{CPPFORGE_DISABLE_MARCH_NATIVE})
                 set(CPPFORGE_DISABLE_MARCH_NATIVE $ENV{CPPFORGE_DISABLE_MARCH_NATIVE})
             else()
