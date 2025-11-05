@@ -1,3 +1,7 @@
+if (CMAKE_SYSTEM_NAME STREQUAL WindowsStore)
+    return()
+endif()
+
 include(${CMAKE_CURRENT_LIST_DIR}/../../cmake/stencilTargets.cmake)
 set(stencil_INCLUDE_PATH "../../include" CACHE PATH "Stencil include path")
 include(../../cmake/TestCommon.cmake)

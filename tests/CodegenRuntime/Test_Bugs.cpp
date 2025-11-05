@@ -1,7 +1,7 @@
 #include "ObjectsTester.h"
 #include "TestUtils.h"
+
 #include "stencil/protocol_json.h"
-#include <catch2/catch_test_macros.hpp>
 
 TEST_CASE("JsonNestedList", "[Json]")
 {
