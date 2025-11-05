@@ -315,6 +315,10 @@ macro(EnableStrictCompilation)
                 -Wno-nrvo # clang-21
             )
 
+            if (APPLE AND NOT CMAKE_CROSSCOMPILING)
+                message(FATAL_ERROR "${CMAKE_OSX_SYSROOT}")
+                list(APPEND extraflags --isysroot="$CMAKE_OSX_SYSROOT}")
+            endif()
             if (NOT DEFINED CPPFORGE_DISABLE_MARCH_NATIVE AND DEFINED ENV{CPPFORGE_DISABLE_MARCH_NATIVE})
                 set(CPPFORGE_DISABLE_MARCH_NATIVE $ENV{CPPFORGE_DISABLE_MARCH_NATIVE})
             else()
