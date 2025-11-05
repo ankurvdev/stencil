@@ -96,11 +96,10 @@ def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str, clean
         [externaltools.get_cmake().as_posix(), "--build", ".", "--verbose", "-j", *cmakebuildextraargs],
         cwd=testdir,
     )
-    if runtime_triplet == host_triplet:
-        subprocess.check_call(
-            [externaltools.get_ctest().as_posix(), ".", "--repeat", "until-fail:10", "--output-on-failure", *ctestextraargs],
-            cwd=testdir,
-        )
+    subprocess.check_call(
+        [externaltools.get_ctest().as_posix(), ".", "--repeat", "until-fail:10", "--output-on-failure", *ctestextraargs],
+        cwd=testdir,
+    )
 
 
 parser = argparse.ArgumentParser(description="Test VCPKG Workflow")

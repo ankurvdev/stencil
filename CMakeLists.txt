@@ -108,7 +108,10 @@ if (BUILD_TESTING)
     add_executable(codegen_tests
         tests/Codegen/Test_ThriftGenerator.cpp
     )
-    add_test(NAME codegen_tests COMMAND codegen_tests)
+    if (NOT CMAKE_CROSSCOMPILING OR (DEFINED CMAKE_CROSSCOMPILING_EMULATOR))
+        add_test(NAME codegen_tests COMMAND codegen_tests)
+    endif()
+
     target_include_directories(codegen_tests PRIVATE src include tests)
     target_link_libraries(codegen_tests PRIVATE libstencil Thrift TestCommon)
     target_add_resource(codegen_tests RESOURCE_COLLECTION_NAME testdata RESOURCES ${resfiles} ${pidlfiles})
@@ -123,7 +126,10 @@ if (BUILD_TESTING)
     target_link_libraries(runtime_tests PRIVATE stencil_runtime)
     target_link_libraries(runtime_tests PRIVATE TestCommon stencil::runtime)
     target_link_libraries (runtime_tests PRIVATE Threads::Threads)
-    add_test(NAME runtime_tests COMMAND runtime_tests)
+
+    if (NOT CMAKE_CROSSCOMPILING OR (DEFINED CMAKE_CROSSCOMPILING_EMULATOR))
+        add_test(NAME runtime_tests COMMAND runtime_tests)
+    endif()
 
     target_add_resource(runtime_tests RESOURCE_COLLECTION_NAME testdata RESOURCES ${resfiles})
     target_compile_definitions(runtime_tests PRIVATE HAVE_EMBEDRESOURCE=1)
