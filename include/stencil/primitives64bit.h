@@ -189,43 +189,20 @@ struct Primitives64Bit
         else { throw std::logic_error("Unknown type"); }
     }
 };
+template <typename T>
+concept ConceptSignedIntegral = std::integral<T> && std::is_signed_v<T>;
+template <typename T>
+concept ConceptUnsignedIntegral = std::integral<T> && !std::is_signed_v<T>;
 
-template <> struct Primitives64Bit::Traits<uint64_t> : public Primitives64Bit::UnsignedTraits<uint64_t>
+template <ConceptUnsignedIntegral T> struct Primitives64Bit::Traits<T> : public Primitives64Bit::UnsignedTraits<T>
 {};
-template <> struct Primitives64Bit::Traits<uint32_t> : public Primitives64Bit::UnsignedTraits<uint32_t>
-{};
-template <> struct Primitives64Bit::Traits<uint16_t> : public Primitives64Bit::UnsignedTraits<uint16_t>
-{};
-template <> struct Primitives64Bit::Traits<uint8_t> : public Primitives64Bit::UnsignedTraits<uint8_t>
-{};
-template <> struct Primitives64Bit::Traits<int64_t> : public Primitives64Bit::SignedTraits<int64_t>
-{};
-template <> struct Primitives64Bit::Traits<int32_t> : public Primitives64Bit::SignedTraits<int32_t>
-{};
-template <> struct Primitives64Bit::Traits<int16_t> : public Primitives64Bit::SignedTraits<int16_t>
-{};
-template <> struct Primitives64Bit::Traits<int8_t> : public Primitives64Bit::SignedTraits<int8_t>
+template <ConceptSignedIntegral T> struct Primitives64Bit::Traits<T> : public Primitives64Bit::SignedTraits<T>
 {};
 
-template <> struct Primitives64Bit::Traits<char> : public Primitives64Bit::SignedTraits<char>
-{};
-
-template <> struct Primitives64Bit::Traits<bool> : public Primitives64Bit::UnsignedTraits<bool>
-{};
 template <> struct Primitives64Bit::Traits<double> : public Primitives64Bit::DoubleTraits<double>
 {};
 template <> struct Primitives64Bit::Traits<float> : public Primitives64Bit::DoubleTraits<float>
 {};
-
-// the following platforms have uint64_t == unsigned long
-// passing : x64-linux, x64-windows, x64-mingw, wasm(lnx), wasm(win)
-// concept failure
-// redefiniton arm64-android(lnx) arm64-android(win)
-// ifndef __linux  __ANDROID__
-#if ((defined __EMSCRIPTEN__) || (defined __APPLE__) || (defined _MSC_VER) || (defined __MINGW32__))
-template <> struct Primitives64Bit::Traits<unsigned long> : public Primitives64Bit::UnsignedTraits<unsigned long>
-{};
-#endif
 
 template <typename TClock> struct Primitives64Bit::Traits<std::chrono::time_point<TClock>>
 {
