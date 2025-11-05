@@ -315,3 +315,4 @@ static_assert(ConceptPrimitives64BitSigned<char>);    // Apparently chars can be
 static_assert(ConceptPrimitives64Bit<unsigned long>);
 static_assert(ConceptPrimitives64Bit<std::chrono::time_point<std::chrono::system_clock>>);
 static_assert(ConceptPrimitives64Bit<std::chrono::time_point<std::chrono::steady_clock>>);
+static_assert(ConceptPrimitives64Bit<std::chrono::time_point<std::chrono::high_resolution_clock>>);
