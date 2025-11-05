@@ -59,7 +59,7 @@ if (TARGET Boost::beast)
     target_link_libraries(stencil_runtime INTERFACE Boost::beast Boost::url)
 
     if (CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
-        target_compile_definitions(stencil_runtime PUBLIC -DBOOST_ASIO_WINDOWS_APP -DBOOST_BEAST_USE_WIN32_FILE=0)
+        target_compile_definitions(stencil_runtime INTERFACE -DBOOST_ASIO_WINDOWS_APP -DBOOST_BEAST_USE_WIN32_FILE=0)
     endif()
 
     if (MINGW)
