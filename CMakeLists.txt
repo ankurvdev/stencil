@@ -108,6 +108,8 @@ if (BUILD_TESTING)
     add_executable(codegen_tests
         tests/Codegen/Test_ThriftGenerator.cpp
     )
+    set(CTEST_TEST_TIMEOUT 5)
+
     if (NOT CMAKE_CROSSCOMPILING OR (DEFINED CMAKE_CROSSCOMPILING_EMULATOR))
         add_test(NAME codegen_tests COMMAND codegen_tests)
     endif()

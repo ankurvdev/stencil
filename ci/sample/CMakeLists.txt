@@ -45,6 +45,7 @@ int main() {
 )
 
 enable_testing()
+set(CTEST_TEST_TIMEOUT 5)
 if (NOT CMAKE_CROSSCOMPILING OR (DEFINED CMAKE_CROSSCOMPILING_EMULATOR))
     add_test(NAME stencil_vcpkg_test COMMAND stencil_vcpkg_test)
 endif()

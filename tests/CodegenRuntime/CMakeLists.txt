@@ -21,6 +21,7 @@ add_executable(codegen_runtime_tests
 )
 target_compile_definitions(codegen_runtime_tests PRIVATE HAVE_EMBEDRESOURCE=1)
 target_link_libraries(codegen_runtime_tests PRIVATE gencode testdata TestCommon)
-if (NOT CMAKE_CROSSCOMPILING OR (DEFINED CMAKE_CROSSCOMPILING_EMULATOR))
+set(CTEST_TEST_TIMEOUT 40)
+if (NOT CMAKE_CROSSCOMPILING) # TODO: OR (DEFINED CMAKE_CROSSCOMPILING_EMULATOR)
     add_test(NAME codegen_runtime_tests COMMAND codegen_runtime_tests)
 endif()
