@@ -40,17 +40,19 @@ def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str, clean
         ]
     if "android" in runtime_triplet:
         info = externaltools.init_toolchain("android", os.environ)
+        abis = {
+            "arm64-android": ["-DANDROID_ABI=arm64-v8a"],
+            "arm-neon-android": ["-DANDROID_ABI=armeabi-v7a"],
+            "x86-android": ["-DANDROID_ABI=x86"],
+            "x64-android": ["-DANDROID_ABI=x86_64"],
+        }
 
         cmakeconfigargs += [
             f"-DCMAKE_TOOLCHAIN_FILE:PATH={info['cmake_toolchain_file'].as_posix()}",
             "-DANDROID=1",
             "-DANDROID_NATIVE_API_LEVEL=26",
-            "-DANDROID_ABI=arm64-v8a",
-        ]
-        if runtime_triplet == "arm64-android":
-            cmakeconfigargs += ["-DANDROID_ABI=arm64-v8a"]
-        else:
-            cmakeconfigargs += ["-DANDROID_ABI=armeabi-v7a"]
+        ] + abis[runtime_triplet]
+
         if shutil.which("make") is not None:
             cmakeconfigargs += ["-G", "Unix Makefiles"]
         else:

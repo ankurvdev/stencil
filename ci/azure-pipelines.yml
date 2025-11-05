@@ -55,7 +55,7 @@ jobs:
           VMImage: "windows-latest"
         hostlin-android:
           HostTriplet: x64-linux
-          RuntimeTriplets: arm-neon-android,x86-android,arm64-android
+          RuntimeTriplets: x86-android,arm-neon-android,arm64-android
           VMImage: "ubuntu-latest"
         hostlin-wasm:
           HostTriplet: x64-linux
