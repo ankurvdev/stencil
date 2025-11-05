@@ -181,7 +181,6 @@ struct HttpClientListener
                                    bytes,
                                    read_bytes);
                         assert(ec);    // something catastrophic must have happened
-                        assert(buf.size() >= 0);
                         // truncate how much we read to how much is available
                         read_bytes = std::min(static_cast<size_t>(buf.size()), read_bytes);
                     }

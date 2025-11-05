@@ -38,7 +38,7 @@ jobs:
         inputs:
           pathtoPublish: $(Build.ArtifactStagingDirectory)
 
-  - job: VCPKG_Workflow
+  - job: vcpkg
     strategy:
       matrix:
         hostwin-mingw:
