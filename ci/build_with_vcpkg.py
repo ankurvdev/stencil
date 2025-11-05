@@ -80,8 +80,15 @@ def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str, clean
         cmakeconfigargs += [
             "-G",
             "Visual Studio 17 2022",
+            "-T",
+            f"host={externaltools.DefaultArch}",
             "-A",
             ("Win32" if "x86" in runtime_triplet else externaltools.DefaultArch),
+        ]
+    if "uwp" in runtime_triplet:
+        cmakeconfigargs += [
+            "-DCMAKE_SYSTEM_NAME=WindowsStore",
+            "-DCMAKE_SYSTEM_VERSION=10.0",
         ]
     ctestextraargs = ["-C", config] if sys.platform == "win32" else []
     cmd: list[str] = [
