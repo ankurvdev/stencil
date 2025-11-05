@@ -45,7 +45,10 @@ int main() {
 )
 
 enable_testing()
-add_test(NAME stencil_vcpkg_test COMMAND stencil_vcpkg_test)
+set(CTEST_TEST_TIMEOUT 5)
+if (NOT CMAKE_CROSSCOMPILING OR (DEFINED CMAKE_CROSSCOMPILING_EMULATOR))
+    add_test(NAME stencil_vcpkg_test COMMAND stencil_vcpkg_test)
+endif()
 
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../../tests/CodegenRuntime CodegenRuntime)
 target_link_libraries(stencil_vcpkg_test PRIVATE gencode testdata)

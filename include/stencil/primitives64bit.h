@@ -6,6 +6,7 @@ SUPPRESS_STL_WARNINGS
 SUPPRESS_MSVC_WARNING(4866)    // left to right evaluation not guaranteed
 #include <array>
 #include <chrono>
+#include <cstddef>
 #include <cstdint>
 #include <stdexcept>
 #include <type_traits>
@@ -52,10 +53,7 @@ struct Primitives64Bit
                 return Type{.width = W, .category = Primitives64Bit::Type::Category::Unsigned};
             }
             else if constexpr (std::is_signed<T>::value) { return Type{.width = W, .category = Primitives64Bit::Type::Category::Signed}; }
-            else
-            {
-                return Type{.width = 0, .category = Primitives64Bit::Type::Category::Unknown};
-            }
+            else { return Type{.width = 0, .category = Primitives64Bit::Type::Category::Unknown}; }
         }
 
         public:
@@ -188,40 +186,19 @@ struct Primitives64Bit
             default: throw std::logic_error("Unsupported Cast");
             }
         }
-        else
-        {
-            throw std::logic_error("Unknown type");
-        }
+        else { throw std::logic_error("Unknown type"); }
     }
 };
+template <typename T>
+concept ConceptSignedIntegral = std::integral<T> && std::is_signed_v<T>;
+template <typename T>
+concept ConceptUnsignedIntegral = std::integral<T> && !std::is_signed_v<T>;
 
-#ifdef __EMSCRIPTEN__
-template <> struct Primitives64Bit::Traits<unsigned long> : public Primitives64Bit::UnsignedTraits<unsigned long>
+template <ConceptUnsignedIntegral T> struct Primitives64Bit::Traits<T> : public Primitives64Bit::UnsignedTraits<T>
 {};
-#endif
-
-template <> struct Primitives64Bit::Traits<uint64_t> : public Primitives64Bit::UnsignedTraits<uint64_t>
-{};
-template <> struct Primitives64Bit::Traits<uint32_t> : public Primitives64Bit::UnsignedTraits<uint32_t>
-{};
-template <> struct Primitives64Bit::Traits<uint16_t> : public Primitives64Bit::UnsignedTraits<uint16_t>
-{};
-template <> struct Primitives64Bit::Traits<uint8_t> : public Primitives64Bit::UnsignedTraits<uint8_t>
-{};
-template <> struct Primitives64Bit::Traits<int64_t> : public Primitives64Bit::SignedTraits<int64_t>
-{};
-template <> struct Primitives64Bit::Traits<int32_t> : public Primitives64Bit::SignedTraits<int32_t>
-{};
-template <> struct Primitives64Bit::Traits<int16_t> : public Primitives64Bit::SignedTraits<int16_t>
-{};
-template <> struct Primitives64Bit::Traits<int8_t> : public Primitives64Bit::SignedTraits<int8_t>
+template <ConceptSignedIntegral T> struct Primitives64Bit::Traits<T> : public Primitives64Bit::SignedTraits<T>
 {};
 
-template <> struct Primitives64Bit::Traits<char> : public Primitives64Bit::SignedTraits<char>
-{};
-
-template <> struct Primitives64Bit::Traits<bool> : public Primitives64Bit::UnsignedTraits<bool>
-{};
 template <> struct Primitives64Bit::Traits<double> : public Primitives64Bit::DoubleTraits<double>
 {};
 template <> struct Primitives64Bit::Traits<float> : public Primitives64Bit::DoubleTraits<float>
@@ -335,3 +312,7 @@ static_assert(!ConceptPrimitives64BitSigned<float>);
 static_assert(ConceptPrimitives64BitFloat<float>);
 static_assert(ConceptPrimitives64Bit<uint64_t>);
 static_assert(ConceptPrimitives64BitSigned<char>);    // Apparently chars can be signed or unsigned. We treat then as signed
+static_assert(ConceptPrimitives64Bit<unsigned long>);
+static_assert(ConceptPrimitives64Bit<std::chrono::time_point<std::chrono::system_clock>>);
+static_assert(ConceptPrimitives64Bit<std::chrono::time_point<std::chrono::steady_clock>>);
+static_assert(ConceptPrimitives64Bit<std::chrono::time_point<std::chrono::high_resolution_clock>>);

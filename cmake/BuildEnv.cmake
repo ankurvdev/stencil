@@ -5,7 +5,7 @@ include(GenerateExportHeader)
 set(BuildEnvCMAKE_LOCATION "${CMAKE_CURRENT_LIST_DIR}")
 
 # Fix for error
-#"CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS-NOTFOUND" -format=p1689 -- /usr/bin/c++ -x c++ ... 
+#"CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS-NOTFOUND" -format=p1689 -- /usr/bin/c++ -x c++ ...
 #/bin/sh: 1: CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS-NOTFOUND: not found
 # https://discourse.cmake.org/t/cmake-3-28-cmake-cxx-compiler-clang-scan-deps-notfound-not-found/9244/2
 set(CMAKE_CXX_SCAN_FOR_MODULES 0)
@@ -122,6 +122,15 @@ macro(EnableStrictCompilation)
         set(CMAKE_CXX_COMPILE_OPTIONS_IPO "-flto=full")
     endif()
 
+    if (CMAKE_CROSSCOMPILING)
+        if (EMSCRIPTEN)
+            find_program(NODE_JS_EXECUTABLE NAMES nodejs node)
+            if(NODE_JS_EXECUTABLE)
+                set(CMAKE_CROSSCOMPILING_EMULATOR ${NODE_JS_EXECUTABLE})
+            endif()
+        endif()
+    endif()
+
     if (CMAKE_CXX_COMPILER_LOADED)
         find_package(Threads)
     endif()
@@ -208,7 +217,7 @@ macro(EnableStrictCompilation)
             if (DEFINED VCPKG_CRT_LINKAGE)
                 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<STREQUAL:${VCPKG_CRT_LINKAGE},dynamic>:DLL>")
             endif()
-        elseif(("${CMAKE_CXX_COMPILER_ID}" STREQUAL Clang) OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL GNU))
+        elseif(("${CMAKE_CXX_COMPILER_ID}" MATCHES Clang) OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL GNU))
             set(extraflags
                 # -fPIC via cmake CMAKE_POSITION_INDEPENDENT_CODE
                 # -fvisibility=hidden Done via cmake CMAKE_CXX_VISIBILITY_PRESET
@@ -227,9 +236,11 @@ macro(EnableStrictCompilation)
                 # -fvisibility-inlines-hidden via CMAKE_VISIBILITY_INLINES_HIDDEN
             )
 
-            if (NOT EMSCRIPTEN)
+            if (CMAKE_LINKER_TYPE STREQUAL GNU)
                 string(APPEND CMAKE_SHARED_LINKER_FLAGS " -Wl,--exclude-libs,ALL -Wl,--no-undefined -Wl,--gc-sections")
                 string(APPEND CMAKE_EXE_LINKER_FLAGS " -Wl,--exclude-libs,ALL -Wl,--no-undefined -Wl,--gc-sections")
+            endif()
+            if (NOT EMSCRIPTEN)
                 list(APPEND extraflags -Werror)     # All warnings as errors
             endif()
 
@@ -237,9 +248,9 @@ macro(EnableStrictCompilation)
                 list(APPEND extraflags -pthread -Wno-limited-postlink-optimizations -sASYNCIFY)
                 # string(APPEND CMAKE_LINKER_FLAGS " -Wl,-u,htonl -Wl,-u,htons")
                 #TODO https://github.com/emscripten-core/emscripten/issues/16836
-                #list(APPEND extraflags -Wl,-u,htonl -Wl,-u,htons ) 
+                #list(APPEND extraflags -Wl,-u,htonl -Wl,-u,htons )
             endif()
-            if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL Clang)
+            if ("${CMAKE_CXX_COMPILER_ID}" MATCHES Clang)
                 if ((NOT DEFINED CLANG_TIDY_MODE) OR ("${CLANG_TIDY_MODE}" STREQUAL ""))
                     set(CLANG_TIDY_MODE "DISABLED")
                 endif()
@@ -344,7 +355,7 @@ macro (SupressWarningForFile f)
     message(STATUS "Suppressing Warnings for ${f}")
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
         set_source_files_properties("${f}" PROPERTIES COMPILE_FLAGS "/W3")
-    elseif((${CMAKE_CXX_COMPILER_ID} STREQUAL Clang) OR (${CMAKE_CXX_COMPILER_ID} STREQUAL GNU))
+    elseif((${CMAKE_CXX_COMPILER_ID} MATCHES Clang) OR (${CMAKE_CXX_COMPILER_ID} STREQUAL GNU))
         set_source_files_properties("${f}" PROPERTIES COMPILE_FLAGS "-Wno-error -w")
     else()
         message(FATAL_ERROR "Unknown compiler : ${CMAKE_CXX_COMPILER_ID}")
@@ -359,7 +370,7 @@ macro (SupressWarningForTarget targetName)
             message(STATUS "Suppressing Warnings for ${targetName}::${tgttype}")
             if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
                 target_compile_options(${targetName} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/W3 /WX- >)
-            elseif((${CMAKE_CXX_COMPILER_ID} STREQUAL Clang) OR (${CMAKE_CXX_COMPILER_ID} STREQUAL GNU))
+            elseif((${CMAKE_CXX_COMPILER_ID} MATCHES Clang) OR (${CMAKE_CXX_COMPILER_ID} STREQUAL GNU))
                 target_compile_options(${targetName} PRIVATE -Wno-error -w)
             else()
                 message(FATAL_ERROR "Unknown compiler : ${CMAKE_CXX_COMPILER_ID}")

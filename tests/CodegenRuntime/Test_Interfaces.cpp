@@ -107,62 +107,126 @@ struct HttpClientListener
                 _responseRecieved = true;
                 _cv.notify_all();
             }
+
             while (!_stopRequested)
             {
-                // if (buf.in_avail() != 0) { fmt::print("[122] buf.in_avail {} != 0 \n", buf.in_avail()); }
                 auto bytes = boost::asio::read_until(stream.socket(), buf, "\r\n", ec);
+                if (bytes == 0 && ec)
+                {
+                    if (ec == net::error::eof || ec == beast::http::error::end_of_stream) { break; }
+                    fmt::print(stderr, "sse_listener[{}]:{} buf.avail={} ec={} TODO: Throw\n", _url, __LINE__, buf.size(), ec);
+                    throw beast::system_error(ec);
+                }
 
-                if (bytes == 0 && ec) { return; }
-                // fmt::print("Recieved:{}", bytes);
-                if (bytes < 3)
-                {    //
+                if (ec)
+                {
+                    fmt::print(stderr,
+                               "sse_listener[{}]:{} buf.avail={} ec={} error reading chunk-encoded-part-size bytes: {}\n",
+                               _url,
+                               __LINE__,
+                               buf.size(),
+                               ec,
+                               bytes);
+                }
+
+                auto bufchars = reinterpret_cast<char const*>(buf.data().data());
+                assert(bytes >= 2 && bufchars[bytes - 1] == '\n' && bufchars[bytes - 2] == '\r');
+
+                if (bytes == 2)
+                {
                     buf.consume(bytes);
-                    // fmt::print(" Ignoring :{}\n", bytes);
+                    // These are common. Not really keep-alive message/
+                    // fmt::print(stderr, "sse_listener[{}]: empty-message buf.size()={}\n", _url, bytes, buf.size());
                     continue;
                 }
                 std::size_t messageSize = 0;
 
-                auto bufchars = reinterpret_cast<char const*>(buf.data().data());
-                if (bufchars[bytes - 1] != '\n' || bufchars[bytes - 2] != '\r')
-                {
-                    // fmt::print(stderr, "recieved wierd mssg:{}", std::string_view(bufchars, bytes));
-                }
                 auto result = std::from_chars(bufchars, bufchars + bytes - 2, messageSize, 16);
                 if (result.ptr != bufchars + bytes - 2 || result.ec != std::errc())
                 {    //
-                    throw std::runtime_error("Invalid hex string");
+                    throw std::runtime_error(
+                        fmt::format("sse_listener[{}]:{} buf.avail = {}, Invalid hex string: {} (chunk-encoding part size) recieved\n",
+                                    _url,
+                                    __LINE__,
+                                    buf.size(),
+                                    std::string_view(bufchars, bytes - 2)));
                 }
+
                 buf.consume(bytes);
 
                 for (size_t i = 0, remaining = messageSize; i < messageSize;)
                 {
-                    size_t read_bytes = std::min(remaining, buf.max_size());
-                    boost::asio::read(stream.socket(), buf, boost::asio::transfer_exactly(read_bytes), ec);
+                    size_t buf_prev_size = buf.size();
+                    size_t read_bytes    = std::min(remaining, buf.max_size());
+                    if (buf_prev_size < read_bytes)
+                    {
+                        bytes = boost::asio::read(stream.socket(), buf, boost::asio::transfer_exactly(read_bytes - buf_prev_size), ec);
+                        bytes += buf_prev_size;
+                    }
+                    else
+                    {
+                        bytes = read_bytes;
+                        ec    = {};
+                    }
+
+                    if (bytes != read_bytes)
+                    {    //
+                        fmt::print(stderr,
+                                   "sse_listener[{}]:{} buf.avail={}=>{} ec={} recieved: {} != requested: {}\n",
+                                   _url,
+                                   __LINE__,
+                                   buf_prev_size,
+                                   buf.size(),
+                                   ec,
+                                   bytes,
+                                   read_bytes);
+                        assert(ec);    // something catastrophic must have happened
+                        // truncate how much we read to how much is available
+                        read_bytes = std::min(static_cast<size_t>(buf.size()), read_bytes);
+                    }
+
+                    // buf.size() !=  read_bytes is pretty commmon.
+                    // Just means that read_until actually read and buffered a lot more than it said it did
+                    // fmt::print(stderr, "Mismatch buf.size() {} != read_bytes {} ec = {}\n", buf.size(), read_bytes, ec);
+
                     bufchars = reinterpret_cast<char const*>(buf.data().data());
                     if (!(messageSize == 2 && read_bytes == 2 && bufchars[0] == '\n' && bufchars[1] == '\n'))
                     {
                         _ChunkCallback(bufchars, read_bytes);
                     }
-
-                    // fmt::print(" {}/{}", bytes, remaining);
-                    if (ec && !(ec == net::error::eof || ec == beast::http::error::end_of_stream))
-                    {
-                        if ((_stopRequested && (ec == net::error::operation_aborted || ec == boost::asio::error::interrupted))) { return; }
-                        fmt::print(stderr, "SSEListener encountered error :{}", ec);
-                        return;
-                        // throw beast::system_error(ec);
-                    }
                     i += read_bytes;
                     remaining -= read_bytes;
                     buf.consume(read_bytes);
+
+                    if (ec && bytes == read_bytes)
+                    {    //
+                        fmt::print(stderr, "sse_listener[{}]:{} buf.avail={}=>{} ec={}\n", _url, __LINE__, buf_prev_size, buf.size(), ec);
+                    }
+
+                    // fmt::print(" {}/{}", bytes, remaining);
+                    if (ec && (ec == net::error::eof || ec == beast::http::error::end_of_stream))
+                    {
+                        continue;
+                        // Continue flushing the buf
+                    }
+
+                    if (ec)
+                    {
+                        fmt::print(stderr, "sse_listener[{}]:{} buf.avail={} ec={}\n", _url, __LINE__, buf.size(), ec);
+                        if ((_stopRequested && (ec == net::error::operation_aborted || ec == boost::asio::error::interrupted))) { return; }
+                        fmt::print(stderr, "SSEListener encountered error :{}\n", ec);
+                        return;
+                        // throw beast::system_error(ec);
+                    }
                 }
-                // fmt::print("Done ...\n");
-                // auto bytes = boost::asio::read_until(stream.socket(), buf, "\n", ec);
-                // std::size_t bytes = boost::asio::read_until(stream, line_buf, "\n", ec);
             }
 
             // Gracefully close
             ec = stream.socket().shutdown(tcp::socket::shutdown_both, ec);
+            if (ec)
+            {    //
+                fmt::print(stderr, "Error in shutdown: {}\n", ec);
+            }
         }
     }
 
@@ -176,7 +240,8 @@ struct HttpClientListener
             try
             {
                 this->_SSEListener();
-            } catch (std::exception const&) {}
+            } catch (std::exception const&)
+            {}
         });
         std::unique_lock<std::mutex> guard(_mutex);
         _cv.wait(guard, [&]() { return this->_responseRecieved; });
@@ -234,7 +299,12 @@ struct HttpClientListener
                 fmt::print(stderr, "SSEListener encountered error :{}", ec);
                 throw beast::system_error(ec);
             }
-            stream.socket().shutdown(tcp::socket::shutdown_both);
+            ec = stream.socket().shutdown(tcp::socket::shutdown_both, ec);
+            if (ec && ec != boost::asio::error::not_connected)
+            {
+                fmt::print(stderr, "SSEListener encountered error :{}", ec);
+                throw beast::system_error(ec);
+            }
             return beast::buffers_to_string(res.body().data());
         }
     }
@@ -338,11 +408,12 @@ struct Tester : ObjectsTester
 
     ~Tester()
     {
-        svc->StopDaemon();
-        svc.reset();
         _sseListener1.RequestStop();
         _sseListener2.RequestStop();
         _sseListener3.RequestStop();
+
+        svc->StopDaemon();
+        svc.reset();
 
         if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
         TestCommon::CheckResource<TestCommon::JsonFormat>(_json_lines, "json");

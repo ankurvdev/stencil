@@ -1,4 +1,5 @@
 #pragma once
+#include "timestamped.h"
 #include "transactions.binserdes.h"
 #include "tuple_utils.h"
 
@@ -8,7 +9,6 @@
 #include <fstream>
 #include <iostream>
 #include <mutex>
-#include <span>
 #include <thread>
 #include <type_traits>
 
@@ -18,8 +18,7 @@ template <typename T> using Lock = std::unique_lock<std::mutex>;
 
 template <typename... Ts> struct DataPlayerT : std::enable_shared_from_this<DataPlayerT<Ts...>>
 {
-    using time_point = std::chrono::system_clock::time_point;
-    using clock      = std::chrono::system_clock;
+    using Timestamp = Timestamp;
 
     CLASS_DELETE_COPY_AND_MOVE(DataPlayerT);
     DataPlayerT(std::filesystem::path const& replayFile, bool repeat = true) : _repeat(repeat), _file(replayFile) { Start(); }
@@ -89,7 +88,7 @@ template <typename... Ts> struct DataPlayerT : std::enable_shared_from_this<Data
     std::tuple<Ts...>  _data;
     std::thread        _thrd{[this]() { _ThreadFunc(); }};
     std::atomic<State> _state{State::Initialized};
-    time_point         _init_time = clock::now();
+    Timestamp          _init_time = Timestamp::clock::now();
 
     std::mutex              _mutex;
     size_t                  _counter{0};
@@ -125,7 +124,7 @@ template <typename... Ts> struct DataRecorder
     {
         if (!ctx.IsChanged()) { return; }
 
-        auto now = std::chrono::system_clock::now();
+        auto now = Timestamp::clock::now();
 
         auto delta   = now - _init_time;
         auto deltaus = std::chrono::duration_cast<std::chrono::microseconds>(delta).count();
@@ -137,10 +136,10 @@ template <typename... Ts> struct DataRecorder
         //<< static_cast<uint16_t>(serializedPatch.size()) << serializedPatch;
     }
 
-    std::chrono::system_clock::time_point _init_time = std::chrono::system_clock::now();
-    std::chrono::system_clock::time_point _lastnotif = _init_time;
-    std::ostream*                         _ost       = &std::cout;
-    std::ofstream                         _ofst;
+    Timestamp     _init_time = Timestamp::clock::now();
+    Timestamp     _lastnotif = _init_time;
+    std::ostream* _ost       = &std::cout;
+    std::ofstream _ofst;
 };
 
 }    // namespace Stencil

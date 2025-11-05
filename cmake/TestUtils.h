@@ -119,10 +119,7 @@ inline void PrintLinesDiff(std::vector<std::string> const& actualstring, std::ve
                     {
                         if (merged.size() > 0) deltas.push_back(std::move(merged));
                     }
-                    else
-                    {
-                        merged += sesobj.first;
-                    }
+                    else { merged += sesobj.first; }
                     lasttype = sesobj.second.type;
                 }
                 if (merged.size() > 0) deltas.push_back(std::move(merged));

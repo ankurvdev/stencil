@@ -25,8 +25,8 @@ from typing import Any, Callable, Optional
 
 EMSDK_VERSION = "latest"
 # EMSDK_VERSION = "3.1.67"  # Fmt fails to compile with 3.1.68+" https://github.com/emscripten-core/emsdk/issues/1480
-# ANDROID_NDK_VERSION = "27.2.12479018" LTS
-ANDROID_NDK_VERSION = "28.2.13676358"
+# ANDROID_NDK_VERSION = "27.3.13750724" LTS
+ANDROID_NDK_VERSION = "29.0.14206865"
 ANDROID_SDK_VERSION = 36
 NODE_LATEST = "latest"  # latest-v20.x
 DefaultArch = {"amd64": "x64", "x86_64": "x64", "aarch64": "arm64"}.get(platform.machine().lower(), platform.machine().lower())

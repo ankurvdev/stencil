@@ -6,14 +6,14 @@
 
 namespace Stencil
 {
-using Timestamp = decltype(std::chrono::system_clock::now());
+using Timestamp = decltype(std::chrono::steady_clock::now());
 
 template <typename T> struct TimestampedT
 {
     public:
     static void UpdateTimestamp(T& elem)
     {
-        if constexpr (std::is_base_of_v<TimestampedT<T>, T>) { elem.lastmodified = std::chrono::system_clock::now(); }
+        if constexpr (std::is_base_of_v<TimestampedT<T>, T>) { elem.lastmodified = Timestamp::clock::now(); }
     }
 
     Timestamp lastmodified;

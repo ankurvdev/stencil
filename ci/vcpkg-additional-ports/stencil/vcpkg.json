@@ -20,7 +20,6 @@
     "cxxopts",
     "date",
     "fmt",
-    "gsl",
     "rapidjson",
     "stduuid",
     "tinyxml2",

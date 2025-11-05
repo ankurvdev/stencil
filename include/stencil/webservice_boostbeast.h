@@ -225,7 +225,7 @@ struct SSEListenerManager
 
     struct Instance : std::enable_shared_from_this<Instance>
     {
-        using time_point = std::chrono::time_point<std::chrono::system_clock>;
+        using time_point = Stencil::Timestamp;
         struct SSEContext
         {
             SSEContext(tcp_stream& streamIn, Request const& reqIn) : stream(streamIn)
@@ -266,13 +266,12 @@ struct SSEListenerManager
                 _ctx = &ctx;
                 Send(lock, msg);
             }
-            do
-            {
+            do {
                 auto constexpr KeepAliveInterval = 10s;
                 auto lock                        = std::unique_lock<std::mutex>(_manager->_mutex);
                 if (_manager->_stopRequested) return;
                 auto status = _dataAvailable.wait_for(lock, KeepAliveInterval);
-                if (status == std::cv_status::timeout && ((_lastSendAt + KeepAliveInterval) < std::chrono::system_clock::now()))
+                if (status == std::cv_status::timeout && ((_lastSendAt + KeepAliveInterval) < Stencil::Timestamp::clock::now()))
                 {    // timed out
                     if (!Send(lock, "\n\n")) { return; }
                 }
@@ -283,6 +282,7 @@ struct SSEListenerManager
 
         void Release(std::unique_lock<std::mutex> const& /* lock */)
         {
+            _stopRequested = true;
             if (_ctx) _ctx->stream.close();
             _ctx = nullptr;
             _dataAvailable.notify_all();
@@ -292,7 +292,7 @@ struct SSEListenerManager
         {
             if (_streamEnded()) return false;
             if (msg.size() == 0) return true;
-            _lastSendAt  = std::chrono::system_clock::now();
+            _lastSendAt  = Stencil::Timestamp::clock::now();
             auto msgSize = msg[msg.size() - 1] == '\0' ? msg.size() - 1 : msg.size();
             if (msgSize == 0) return true;
             boost::asio::const_buffer b{msg.data(), msgSize};
@@ -415,8 +415,7 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
             rslt << '{';
             bool   first  = true;
             size_t sindex = 0;
-            do
-            {
+            do {
                 auto eindex = ids.find(',', sindex);
                 if (eindex == std::string_view::npos) eindex = ids.size();
                 auto idstr = ids.substr(sindex, eindex - sindex);
@@ -536,14 +535,14 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
                     rslt << "true";
                     ctx.sse.Send(typeid(TContext).hash_code(), fmt::format("{}{}", (first ? ' ' : ','), id));
                     first = false;
-                } catch (std::exception const& /*ex*/) { rslt << "false"; }
+                } catch (std::exception const& /*ex*/)
+                {
+                    rslt << "false";
+                }
             });
             ctx.sse.Send(typeid(TContext).hash_code(), "]}\n\n");
         }
-        else
-        {
-            throw std::invalid_argument(fmt::format("Unknown object store action: {}", action));
-        }
+        else { throw std::invalid_argument(fmt::format("Unknown object store action: {}", action)); }
         return rslt.str();
     }
 };
@@ -578,10 +577,7 @@ template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunct
             return args;
             SUPPRESS_WARNINGS_END
         }
-        else
-        {
-            throw std::runtime_error("Only get and put supported for functions");
-        }
+        else { throw std::runtime_error("Only get and put supported for functions"); }
     }
 
     static auto Invoke(TContext& ctx)
@@ -918,7 +914,10 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
             if (e) try
                 {
                     std::rethrow_exception(e);
-                } catch (std::exception& e) { fmt::print(stderr, "Error in acceptor: {}\n", e.what()); }
+                } catch (std::exception& e)
+                {
+                    fmt::print(stderr, "Error in acceptor: {}\n", e.what());
+                }
         });
 
         for (size_t i = 0; i < numThreads; i++)
@@ -1042,7 +1041,10 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
                 if (e) try
                     {
                         std::rethrow_exception(e);
-                    } catch (std::exception& e) { fmt::print(stderr, "Session Terminated with Error:  {}\n", e.what()); }
+                    } catch (std::exception& e)
+                    {
+                        fmt::print(stderr, "Session Terminated with Error:  {}\n", e.what());
+                    }
             });
     }
 
