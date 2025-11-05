@@ -12,4 +12,7 @@ if (NOT TARGET TestCommon)
     if (MSVC)
         target_compile_options(TestCommon INTERFACE "/wd4868") # Catch2: not enforce evaluation order in braced initializer list
     endif()
+    if ("${CMAKE_CXX_COMPILER_ID}" MATCHES Clang)
+        target_compile_options(TestCommon INTERFACE "-Wno-c2y-extensions") # Catch2: not enforce evaluation order in braced initializer list
+    endif()
 endif()
