@@ -197,7 +197,13 @@ macro(EnableStrictCompilation)
             )
 
             if (NOT CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
-                list(APPEND extraflags -DNOMINMAX -DWIN32_LEAN_AND_MEAN)
+                list(APPEND extraflags 
+                    -DNOMINMAX 
+                    -DWIN32_LEAN_AND_MEAN
+                    -DWINRT=1 
+                    -DBOOST_ASIO_WINDOWS_APP 
+                    -DBOOST_BEAST_USE_WIN32_FILE=0
+                )
             endif()
 
             set(exclusions "[-/]W[a-zA-Z1-9]+" "[-/]permissive?" "[-/]external:W?" "[-/]external:anglebrackets?" "[-/]external:templates?")
