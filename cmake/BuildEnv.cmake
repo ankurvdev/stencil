@@ -5,7 +5,7 @@ include(GenerateExportHeader)
 set(BuildEnvCMAKE_LOCATION "${CMAKE_CURRENT_LIST_DIR}")
 
 # Fix for error
-#"CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS-NOTFOUND" -format=p1689 -- /usr/bin/c++ -x c++ ... 
+#"CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS-NOTFOUND" -format=p1689 -- /usr/bin/c++ -x c++ ...
 #/bin/sh: 1: CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS-NOTFOUND: not found
 # https://discourse.cmake.org/t/cmake-3-28-cmake-cxx-compiler-clang-scan-deps-notfound-not-found/9244/2
 set(CMAKE_CXX_SCAN_FOR_MODULES 0)
@@ -197,11 +197,14 @@ macro(EnableStrictCompilation)
             )
 
             if (NOT CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
-                list(APPEND extraflags 
-                    -DNOMINMAX 
+                list(APPEND extraflags
+                    -DNOMINMAX
                     -DWIN32_LEAN_AND_MEAN
-                    -DWINRT=1 
-                    -DBOOST_ASIO_WINDOWS_APP 
+                )
+            else()
+                list(APPEND extraflags
+                    -DWINRT=1
+                    -DBOOST_ASIO_WINDOWS_APP
                     -DBOOST_BEAST_USE_WIN32_FILE=0
                 )
             endif()
@@ -256,7 +259,7 @@ macro(EnableStrictCompilation)
                 list(APPEND extraflags -pthread -Wno-limited-postlink-optimizations -sASYNCIFY)
                 # string(APPEND CMAKE_LINKER_FLAGS " -Wl,-u,htonl -Wl,-u,htons")
                 #TODO https://github.com/emscripten-core/emscripten/issues/16836
-                #list(APPEND extraflags -Wl,-u,htonl -Wl,-u,htons ) 
+                #list(APPEND extraflags -Wl,-u,htonl -Wl,-u,htons )
             endif()
             if ("${CMAKE_CXX_COMPILER_ID}" MATCHES Clang)
                 if ((NOT DEFINED CLANG_TIDY_MODE) OR ("${CLANG_TIDY_MODE}" STREQUAL ""))

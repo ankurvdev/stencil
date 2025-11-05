@@ -51,7 +51,7 @@ jobs:
           VMImage: "windows-latest"
         win-uwp:
           HostTriplet: x86-windows-static-md
-          RuntimeTriplets: x64-uwp-static-md,arm64-android
+          RuntimeTriplets: x64-uwp-static-md
           VMImage: "windows-latest"
         win-android:
           HostTriplet: x86-windows-static-md
