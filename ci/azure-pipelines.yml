@@ -41,23 +41,27 @@ jobs:
   - job: vcpkg
     strategy:
       matrix:
-        hostwin-mingw:
+        win-mingw:
           HostTriplet: x86-windows-static # TODO fix x64-mingw-static so its runnable
           RuntimeTriplets: x64-mingw-static
           VMImage: "windows-latest"
-        hostwin-wasm:
+        win-wasm:
           HostTriplet: x64-windows-static-md
           RuntimeTriplets: wasm32-emscripten
           VMImage: "windows-latest"
-        hostwin-android:
+        win-uwp:
           HostTriplet: x86-windows-static-md
           RuntimeTriplets: x64-uwp-static-md,arm64-android
           VMImage: "windows-latest"
-        hostlin-android:
+        win-android:
+          HostTriplet: x86-windows-static-md
+          RuntimeTriplets: arm64-android
+          VMImage: "windows-latest"
+        lnx-android:
           HostTriplet: x64-linux
           RuntimeTriplets: x86-android,arm-neon-android,arm64-android
           VMImage: "ubuntu-latest"
-        hostlin-wasm:
+        lnx-wasm:
           HostTriplet: x64-linux
           RuntimeTriplets: wasm32-emscripten
           VMImage: "ubuntu-latest"

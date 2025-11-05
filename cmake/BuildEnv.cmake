@@ -170,8 +170,6 @@ macro(EnableStrictCompilation)
                 -EHsc   # C++ Exceptions
                 -DWIN32
                 -D_WINDOWS
-                -DNOMINMAX
-                -DWIN32_LEAN_AND_MEAN
                 -bigobj
                 -guard:cf
                 -Zc:__cplusplus
@@ -197,6 +195,10 @@ macro(EnableStrictCompilation)
                 # Revisit with later cmake release. This causes cmake autodetect HAVE_STRUCT_TIMESPEC to fail
                 # /wd4255  # The compiler did not find an explicit list of arguments to a function. This warning is for the C compiler only.
             )
+
+            if (NOT CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+                list(APPEND extraflags -DNOMINMAX -DWIN32_LEAN_AND_MEAN)
+            endif()
 
             set(exclusions "[-/]W[a-zA-Z1-9]+" "[-/]permissive?" "[-/]external:W?" "[-/]external:anglebrackets?" "[-/]external:templates?")
             link_libraries(WindowsApp.lib rpcrt4.lib onecoreuap.lib kernel32.lib)
