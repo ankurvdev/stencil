@@ -6,7 +6,7 @@
 
 namespace Stencil
 {
-using Timestamp = decltype(std::chrono::steady_clock::now());
+using Timestamp = decltype(std::chrono::system_clock::now());
 
 template <typename T> struct TimestampedT
 {
