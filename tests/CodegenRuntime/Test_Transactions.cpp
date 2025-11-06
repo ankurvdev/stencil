@@ -4,7 +4,10 @@
 #include "stencil/transactions.binserdes.h"
 #include "stencil/transactions.strserdes.h"
 
+#include <thread>
 #include <unordered_set>
+
+using namespace std::chrono_literals;
 
 using TransactionNestObject = Stencil::Transaction<Objects::NestedObject, void>;
 static TransactionNestObject CreateNestedObjectTransaction(Objects::NestedObject& obj)
@@ -52,7 +55,10 @@ struct TestReplay
         auto delta    = Test([&](auto& txn) { Stencil::StringTransactionSerDes::Apply(txn, txndata); });
         auto expected = expectedIn.size() == 0 ? txndata : expectedIn;
         if (expected[expected.size() - 1] == ';') { CHECK(delta == expected); }
-        else { CHECK(delta.substr(0, delta.size() - 1) == expected); }
+        else
+        {
+            CHECK(delta.substr(0, delta.size() - 1) == expected);
+        }
     }
 
     static std::string BinTxnSerialize(TransactionNestObject& txn)
@@ -224,8 +230,12 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp]")
                     auto subtxn1 = subtxn.val1();
                     subtxn1.Assign(1000);
                     t2 = obj1.obj1.lastmodified;
+                    // The hw-clock isnt fast enough introduce a delay
+                    std::this_thread::sleep_for(1us);
                 }
                 t3 = obj1.obj1.lastmodified;
+                // The hw-clock isnt fast enough introduce a delay
+                std::this_thread::sleep_for(1us);
             }
             t4 = obj1.lastmodified;
             CHECK(t1 == t2);
