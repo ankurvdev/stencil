@@ -18,10 +18,10 @@ import time
 import urllib.parse
 import urllib.request
 import zipfile
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 from os import _Environ
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any
 
 EMSDK_VERSION = "latest"
 # EMSDK_VERSION = "3.1.67"  # Fmt fails to compile with 3.1.68+" https://github.com/emscripten-core/emsdk/issues/1480
@@ -67,6 +67,10 @@ URLS["node_Linux_x64"] = {
 URLS["node_Linux_arm64"] = {
     "downloadpage": f"https://nodejs.org/dist/{NODE_LATEST}/",
     "urlpattern": f"https://nodejs.org/dist/{NODE_LATEST}/node-.*-linux-arm64.tar.xz",
+}
+URLS["node_Darwin_arm64"] = {
+    "downloadpage": f"https://nodejs.org/dist/{NODE_LATEST}/",
+    "urlpattern": f"https://nodejs.org/dist/{NODE_LATEST}/node-.*-darwin-arm64.tar.xz",
 }
 URLS["magick_Windows_x64"] = {
     "downloadpage": "https://imagemagick.org/download/binaries/",
@@ -131,8 +135,8 @@ class HTMLUrlExtractor(html.parser.HTMLParser):
         text = resp.read().decode("utf-8")
         self.baseurl = url
         self.urls: dict[str, str] = {}
-        self.href: Optional[str] = None
-        self.text: Optional[str] = None
+        self.href: str | None = None
+        self.text: str | None = None
         super().__init__()
         self.feed(text)
 
@@ -174,7 +178,7 @@ def search_executable(bindir: Path, binname: str, recursive: bool = True) -> Pat
         path = search_filename(bindir, binname + ".exe", recursive=recursive)
         path = search_filename(bindir, binname + ".bat", recursive=recursive) if not path.is_file() else path
         path = search_filename(bindir, binname + ".cmd", recursive=recursive) if not path.is_file() else path
-    elif sys.platform == "linux":
+    elif sys.platform == "linux" or sys.platform == "darwin":
         path = search_filename(bindir, binname, recursive=recursive)
         path = search_filename(bindir, binname + ".sh", recursive=recursive) if not path.is_file() else path
         if path.is_file():
@@ -284,7 +288,7 @@ binarycache: dict[str, Path] = {}
 
 def get_binary(
     packname: str,
-    binname: Optional[str] = None,
+    binname: str | None = None,
     search_paths: list[Path] | None = None,
     binpath: Path | str | None = None,
 ) -> Path:
@@ -299,7 +303,7 @@ def get_binary(
 
 def _get_binary(  # noqa: PLR0912, PLR0915, C901
     packname: str,
-    binname: Optional[str] = None,
+    binname: str | None = None,
     search_paths: list[Path] | None = None,
     binpath: Path | str | None = None,
     which: bool = True,
@@ -872,7 +876,7 @@ def get_portable_msvc_toolchain(  # noqa: PLR0912, PLR0915, C901
                 return
             yield msi[index - 32 : index + 4].decode("ascii")
 
-    def first(items: any, cond: Optional[any] = None) -> any:
+    def first(items: any, cond: any | None = None) -> any:
         return next(item for item in items if not cond or cond(item))
 
     ### download VS manifest

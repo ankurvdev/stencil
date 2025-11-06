@@ -4,6 +4,7 @@ set -e
 set -o pipefail
 
 scriptdir=$(dirname $(readlink -f $0))
+vcpkgdir=${1:-${scriptdir}/vcpkg.tmp}
 
 git -C ${scriptdir} fetch --all --prune
 git -C ${scriptdir} checkout origin/vcpkg
@@ -21,7 +22,7 @@ else
 fi
 
 vcpkgurl=$(git -C ${scriptdir} config remote.origin.url | grep -oE '.*ankurvdev')/vcpkg
-vcpkgdir=${scriptdir}/vcpkg.tmp
+echo $vcpkgdir
 echo "${vcpkgurl} ${vcpkgdir}"
 
 if [ ! -e ${vcpkgdir} ]; then
