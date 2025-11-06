@@ -91,17 +91,16 @@ struct HttpClientListener
             stream.connect(resolver.resolve(LocalHostName, Port));
             // Send request
             http::write(stream, req);
-            beast::flat_buffer buffer;
+            boost::asio::streambuf buf(4096);
 
             // Read header first
             http::response_parser<http::empty_body> parser;
             parser.body_limit(0);    // no body in header
-            http::read_header(stream, buffer, parser);
+            http::read_header(stream, buf, parser);
 
             auto const& res = parser.get();
             if (res.result() != http::status::ok) { throw std::runtime_error("Bad response"); }
-            beast::error_code      ec;
-            boost::asio::streambuf buf(4096);
+            beast::error_code ec;
             {
                 std::unique_lock<std::mutex> guard(_mutex);
                 _responseRecieved = true;
@@ -113,7 +112,7 @@ struct HttpClientListener
                 auto bytes = boost::asio::read_until(stream.socket(), buf, "\r\n", ec);
                 if (bytes == 0 && ec)
                 {
-                    if (ec == net::error::eof || ec == beast::http::error::end_of_stream) { break; }
+                    if (ec == net::error::eof || ec == beast::http::error::end_of_stream) { continue; }
                     fmt::print(stderr, "sse_listener[{}]:{} buf.avail={} ec={} TODO: Throw\n", _url, __LINE__, buf.size(), ec);
                     throw beast::system_error(ec);
                 }
@@ -240,8 +239,7 @@ struct HttpClientListener
             try
             {
                 this->_SSEListener();
-            } catch (std::exception const&)
-            {}
+            } catch (std::exception const&) {}
         });
         std::unique_lock<std::mutex> guard(_mutex);
         _cv.wait(guard, [&]() { return this->_responseRecieved; });
@@ -312,7 +310,7 @@ struct HttpClientListener
     ~HttpClientListener() { Stop(); }
 
     bool                     _activated{false};
-    bool                     _responseRecieved;
+    bool                     _responseRecieved{false};
     std::atomic<bool>        _stopRequested;
     std::mutex               _mutex;
     std::condition_variable  _cv;
