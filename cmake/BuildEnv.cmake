@@ -315,6 +315,13 @@ macro(EnableStrictCompilation)
                 -Wno-nrvo # clang-21
             )
 
+            if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang" AND NOT CMAKE_CROSSCOMPILING)
+                # AppleClang automatically adds /usr/local/include if an explicit sdk path isnt provided
+                # including /usr/local/include triggers a Wpoison-include-directories with clang
+                execute_process(COMMAND_ERROR_IS_FATAL ANY COMMAND xcrun --show-sdk-path OUTPUT_VARIABLE MACOS_SDK_PATH OUTPUT_STRIP_TRAILING_WHITESPACE)
+                list(APPEND extraflags --sysroot="${MACOS_SDK_PATH}")
+            endif()
+
             if (NOT DEFINED CPPFORGE_DISABLE_MARCH_NATIVE AND DEFINED ENV{CPPFORGE_DISABLE_MARCH_NATIVE})
                 set(CPPFORGE_DISABLE_MARCH_NATIVE $ENV{CPPFORGE_DISABLE_MARCH_NATIVE})
             else()
