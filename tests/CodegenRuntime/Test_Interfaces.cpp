@@ -271,7 +271,9 @@ struct HttpClientListener
         tcp::resolver     resolver(ioc);
         beast::tcp_stream stream(ioc);
 
-        stream.connect(resolver.resolve(LocalHostName, Port));
+        static auto endpoint = resolver.resolve(LocalHostName, Port);
+
+        stream.connect(endpoint);
         {
             // Send request
             http::request<http::string_body> req{http::verb::get, url.encoded_target(), 11 /*HTTP Version 1.1*/};
