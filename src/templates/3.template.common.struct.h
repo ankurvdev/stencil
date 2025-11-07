@@ -1184,7 +1184,10 @@ template <> struct Stencil::VisitorForVariant<zzProgram_Namezz::zzVariant_Namezz
         std::visit(
             [&](auto const& o) {
                 if constexpr (std::is_same_v<std::remove_cvref_t<decltype(o)>, std::monostate>) {}
-                else { lambda(static_cast<Fields>(obj._variant.index()), o); }
+                else
+                {
+                    lambda(static_cast<Fields>(obj._variant.index()), o);
+                }
             },
             obj._variant);
     }
@@ -1194,7 +1197,10 @@ template <> struct Stencil::VisitorForVariant<zzProgram_Namezz::zzVariant_Namezz
         std::visit(
             [&](auto& o) {
                 if constexpr (std::is_same_v<std::remove_cvref_t<decltype(o)>, std::monostate>) {}
-                else { lambda(static_cast<Fields>(obj._variant.index()), o); }
+                else
+                {
+                    lambda(static_cast<Fields>(obj._variant.index()), o);
+                }
             },
             obj._variant);
     }
