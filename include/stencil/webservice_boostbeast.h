@@ -388,7 +388,6 @@ template <typename TContext> struct RequestHandlerForAllEvents
     static auto Invoke(TContext& ctx)
     {
         SSEListenerManager::Instance::SSEContext ctx1(ctx.stream, ctx.req);
-        ctx.impl.template GetInterface<typename TContext::Interface>().SetHandler(&ctx.impl);
         ctx.sse.CreateInstance(typeid(TContext).hash_code())->Start(ctx1, "event: init\ndata: \n\n");
         // ctx.impl.OnSSEInstanceEnded();
     }
@@ -400,7 +399,6 @@ template <typename TContext, typename TEventStructs> struct RequestHandlerForEve
     static auto Invoke(TContext& ctx)
     {
         SSEListenerManager::Instance::SSEContext ctx1(ctx.stream, ctx.req);
-        ctx.impl.template GetInterface<typename TContext::Interface>().SetHandler(&ctx.impl);
         ctx.sse.CreateInstance(typeid(TContext).hash_code())->Start(ctx1, "event: init\ndata: \n\n");
     }
 };
@@ -700,7 +698,6 @@ template <typename TImpl, ConceptInterface TInterface> struct RequestHandler<TIm
             }
             rslt << ']';
             auto rsltstr = rslt.str();
-            ctx.impl.template GetInterface<typename TContext::Interface>().SetHandler(&ctx.impl);
             ctx.sse.CreateInstance(typeid(TContext).hash_code())->Start(ctx1, fmt::format("event: init\ndata: {}\n\n", rsltstr));
         }
     };
@@ -867,20 +864,15 @@ using Request                                  = impl::Request;
 
 template <typename TImpl, typename T> struct WebServiceInterfaceImplT;
 
-// template <typename TImpl, ConceptInterface TInterface>
-//     requires std::is_base_of_v<TInterface, TImpl>
-// struct WebServiceInterfaceImplT<TImpl, TInterface> : TInterface,    // TImpl implements the virtual functions in this interface,
-//                                                      Stencil::impl::Interface::InterfaceEventHandlerT<TImpl, TInterface>
-//{
-//     WebServiceInterfaceImplT() { TInterface::SetHandler(this); }
-//     virtual ~WebServiceInterfaceImplT() override = default;
-//     CLASS_DELETE_COPY_AND_MOVE(WebServiceInterfaceImplT);
-// };
-
 template <typename TImpl, ConceptInterface TInterface>
 struct WebServiceInterfaceImplT<TImpl, TInterface> : Stencil::impl::Interface::InterfaceEventHandlerT<TImpl, TInterface>
 {
-    WebServiceInterfaceImplT()           = default;
+    WebServiceInterfaceImplT()
+    {
+        auto impl = static_cast<TImpl*>(this);
+        impl->template GetInterface<TInterface>().SetHandler(impl);
+    }
+
     ~WebServiceInterfaceImplT() override = default;
     CLASS_DELETE_COPY_AND_MOVE(WebServiceInterfaceImplT);
 };
@@ -919,6 +911,8 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
 {
     using WebService = WebServiceT<TImpl, TServices...>;
 
+    static constexpr size_t NumServices = sizeof...(TServices);
+
     WebServiceT() = default;
     virtual ~WebServiceT() override { StopDaemon(); }
 
@@ -934,7 +928,7 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
                 } catch (std::exception& e) { fmt::print(stderr, "Error in acceptor: {}\n", e.what()); }
         });
 
-        for (size_t i = 0; i < numThreads; i++)
+        for (size_t i = 0; i < numThreads + NumServices; i++)
         {
             _listenthreads.emplace_back([this]() { ioc.run(); });
         }

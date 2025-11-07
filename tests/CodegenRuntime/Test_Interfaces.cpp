@@ -402,7 +402,7 @@ struct Tester : ObjectsTester
     {
         if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
         svc = std::make_unique<Server1Impl>();
-        svc->StartOnPort(44444, 6);
+        svc->StartOnPort(44444, 4);
     }
 
     ~Tester()
