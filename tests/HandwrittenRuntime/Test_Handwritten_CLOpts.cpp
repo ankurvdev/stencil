@@ -15,7 +15,7 @@ template <> struct fmt::formatter<TestCaseCLI> : fmt::formatter<std::string_view
 
     // Formats the point p using the parsed format specification (presentation)
     // stored in this formatter.
-    template <typename FormatContext> auto format(const TestCaseCLI& tc, FormatContext& ctx) const
+    template <typename FormatContext> auto format(TestCaseCLI const& tc, FormatContext& ctx) const
     {
         return fmt::format_to(ctx.out(), "{} :: {}", fmt::join(tc.args, " "), tc.desc);
     }
@@ -39,10 +39,7 @@ template <typename T> static void RunTestCase(TestCaseCLI const& tc, std::vector
         auto jstr2 = Stencil::CLI::Stringify<T>(obj2);
         REQUIRE(jstr1 == jstr2);
         lines.push_back(fmt::format("Testcase[{}]:{}, Output,{}", name, tc.desc, fmt::join(jstr2, "\t")));
-    } catch (std::exception const& ex)
-    {
-        lines.push_back(fmt::format("Testcase[{}]:{}, Exception,{}", name, tc.desc, ex.what()));
-    }
+    } catch (std::exception const& ex) { lines.push_back(fmt::format("Testcase[{}]:{}, Exception,{}", name, tc.desc, ex.what())); }
 }
 
 template <typename T> static void RunTestCases(std::initializer_list<TestCaseCLI> cases, std::string const& name)

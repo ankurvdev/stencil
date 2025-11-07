@@ -354,6 +354,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
     operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
+
     ElemType const& Elem() const { return _elem; }
 
     bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
@@ -1183,7 +1184,10 @@ template <> struct Stencil::VisitorForVariant<zzProgram_Namezz::zzVariant_Namezz
         std::visit(
             [&](auto const& o) {
                 if constexpr (std::is_same_v<std::remove_cvref_t<decltype(o)>, std::monostate>) {}
-                else { lambda(static_cast<Fields>(obj._variant.index()), o); }
+                else
+                {
+                    lambda(static_cast<Fields>(obj._variant.index()), o);
+                }
             },
             obj._variant);
     }
@@ -1193,7 +1197,10 @@ template <> struct Stencil::VisitorForVariant<zzProgram_Namezz::zzVariant_Namezz
         std::visit(
             [&](auto& o) {
                 if constexpr (std::is_same_v<std::remove_cvref_t<decltype(o)>, std::monostate>) {}
-                else { lambda(static_cast<Fields>(obj._variant.index()), o); }
+                else
+                {
+                    lambda(static_cast<Fields>(obj._variant.index()), o);
+                }
             },
             obj._variant);
     }

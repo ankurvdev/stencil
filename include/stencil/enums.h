@@ -56,7 +56,7 @@ template <typename... Ts> struct EnumPack
         return out;
     }
 
-    template <size_t TIndex = 0> static PackType _CastFromInt(const size_t idx, uint32_t val)
+    template <size_t TIndex = 0> static PackType _CastFromInt(size_t const idx, uint32_t val)
     {
         if constexpr (TIndex == PackSize) { throw std::out_of_range("Exceeded maximum tuple range"); }
         else
@@ -98,12 +98,12 @@ template <ConceptEnumPack T> uint32_t EnumPackCastToInt(T const& rhs)
 
 namespace std
 {
-template <typename T, typename... Ts> constexpr bool holds_alternative(const Stencil::EnumPack<Ts...>& pack) noexcept
+template <typename T, typename... Ts> constexpr bool holds_alternative(Stencil::EnumPack<Ts...> const& pack) noexcept
 {
     return std::holds_alternative<T>(pack._variant);
 }
 
-template <typename T, typename... Ts> constexpr auto get(const Stencil::EnumPack<Ts...>& pack) noexcept
+template <typename T, typename... Ts> constexpr auto get(Stencil::EnumPack<Ts...> const& pack) noexcept
 {
     return std::get<T>(pack._variant);
 }

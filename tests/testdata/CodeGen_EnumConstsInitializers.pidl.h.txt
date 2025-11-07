@@ -720,6 +720,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<En
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
     operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
+
     ElemType const& Elem() const { return _elem; }
 
     bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }

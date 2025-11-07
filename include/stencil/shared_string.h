@@ -28,7 +28,7 @@ template <typename T> struct shared_stringT
 
     template <size_t N> shared_stringT(T const (&str)[N]) { *this = make(str); }
 
-    explicit shared_stringT(const TStringView& str)
+    explicit shared_stringT(TStringView const& str)
     {
         if (str.length() == 0) return;
         *this = make(str);
@@ -38,7 +38,7 @@ template <typename T> struct shared_stringT
     shared_stringT(std::nullptr_t) {}
 
     shared_stringT(std::shared_ptr<TString>& str) : _str(str) {}
-    shared_stringT(const shared_stringT& str) : _str(std::make_shared<TString>(str)) {}
+    shared_stringT(shared_stringT const& str) : _str(std::make_shared<TString>(str)) {}
     shared_stringT(shared_stringT&& str) noexcept : _str(std::move(str._str)) {}
 
     public:
@@ -66,28 +66,31 @@ template <typename T> struct shared_stringT
     }
 
     // spaceship operator doesnt seem to work on android
-    auto _compare(const shared_stringT& str) const
+    auto _compare(shared_stringT const& str) const
     {
         bool lhsempty = empty();
         bool rhsempty = str.empty();
         if (!lhsempty && !rhsempty) { return *(_str.get()) <=> *(str._str.get()); }
         else if (lhsempty == rhsempty) { return std::strong_ordering::equal; }
         else if (lhsempty) { return std::strong_ordering::less; }
-        else { return std::strong_ordering::greater; }
+        else
+        {
+            return std::strong_ordering::greater;
+        }
     }
 
     TStringView view() const { return empty() ? TStringView() : TStringView(*_str.get()); }
 
     template <size_t N> bool operator==(T const (&str)[N]) const { return view() == str; }
 
-    bool operator==(const shared_stringT& str) const { return view() == str.view(); }
-    bool operator==(const TStringView& str) const { return view() == str; }
-    bool operator!=(const shared_stringT& str) const { return view() != str.view(); }
-    bool operator!=(const TStringView& str) const { return view() != str; }
-    bool operator<(const shared_stringT& str) const { return view() < str.view(); }
-    bool operator<(const TStringView& str) const { return view() < str; }
-    bool operator>(const shared_stringT& str) const { return view() > str.view(); }
-    bool operator>(const TStringView& str) const { return view() > str; }
+    bool operator==(shared_stringT const& str) const { return view() == str.view(); }
+    bool operator==(TStringView const& str) const { return view() == str; }
+    bool operator!=(shared_stringT const& str) const { return view() != str.view(); }
+    bool operator!=(TStringView const& str) const { return view() != str; }
+    bool operator<(shared_stringT const& str) const { return view() < str.view(); }
+    bool operator<(TStringView const& str) const { return view() < str; }
+    bool operator>(shared_stringT const& str) const { return view() > str.view(); }
+    bool operator>(TStringView const& str) const { return view() > str; }
 
     /*
     template <size_t N> bool operator==(T const (&str)[N]) const { return *(_str.get()) == str; }
@@ -98,22 +101,25 @@ template <typename T> struct shared_stringT
     bool operator<(const TStringView& str) const { return *(_str.get()) < str; }
     */
 
-    shared_stringT                     operator+(const shared_stringT& str) const { return make(*_str.get() + *str._str.get()); }
+    shared_stringT                     operator+(shared_stringT const& str) const { return make(*_str.get() + *str._str.get()); }
     template <size_t N> shared_stringT operator+(T const (&str)[N]) const { return make(*_str.get() + str); }
 
-    shared_stringT  operator+(const std::basic_string_view<T>& str) const { return make(*_str.get() + std::basic_string<T>(str)); }
-    shared_stringT& operator+=(const shared_stringT& str)
+    shared_stringT  operator+(std::basic_string_view<T> const& str) const { return make(*_str.get() + std::basic_string<T>(str)); }
+    shared_stringT& operator+=(shared_stringT const& str)
     {
         if (_str.get() == nullptr || str._str.get() == nullptr)
         {
             if (_str.get() == nullptr) { *this = str; }
         }
-        else { (*_str.get() += *str._str.get()); }
+        else
+        {
+            (*_str.get() += *str._str.get());
+        }
 
         return *this;
     }
 
-    shared_stringT& operator+=(const std::basic_string_view<T>& str)
+    shared_stringT& operator+=(std::basic_string_view<T> const& str)
     {
         (*_str.get() += str);
         return *this;
@@ -128,15 +134,15 @@ template <typename T> struct shared_stringT
     auto                                     substr(size_t start, size_t len) const { return shared_stringT(_str->substr(start, len)); }
     auto                                     substr(size_t start) const { return shared_stringT(_str->substr(start)); }
     void                                     clear() { _str->reset(); }
-    const TString&                           str() const { return *_str.get(); }
+    TString const&                           str() const { return *_str.get(); }
 
-    shared_stringT& operator=(const shared_stringT& str)
+    shared_stringT& operator=(shared_stringT const& str)
     {
         _str = str._str;
         return *this;
     }
 
-    operator const TString&() const { return *_str.get(); }
+    operator TString const&() const { return *_str.get(); }
     operator std::basic_string_view<T>() const { return std::basic_string_view<T>(data(), size()); }
 
     value_type    at(size_t index) const { return _str->at(index); }
@@ -162,13 +168,13 @@ template <typename T> struct shared_stringT
 using shared_string  = shared_stringT<char>;
 using shared_wstring = shared_stringT<wchar_t>;
 
-inline shared_string shared_wstring_to_string(const shared_wstring& str)
+inline shared_string shared_wstring_to_string(shared_wstring const& str)
 {
     if (str.empty()) return nullptr;
     return shared_string::make(std::to_string(str));
 }
 
-inline shared_wstring shared_string_to_wstring(const shared_string& str)
+inline shared_wstring shared_string_to_wstring(shared_string const& str)
 {
     if (str.empty()) return nullptr;
     std::wstring out;
@@ -177,7 +183,7 @@ inline shared_wstring shared_string_to_wstring(const shared_string& str)
     return shared_wstring::make(std::move(out));
 }
 
-inline shared_string operator+(const std::string& str1, const shared_string& str2)
+inline shared_string operator+(std::string const& str1, shared_string const& str2)
 {
     return shared_string::make(str1 + str2.str());
 }

@@ -69,7 +69,10 @@ template <ConceptPrimitives64Bit T> struct SerDes<T, ProtocolString>
     template <typename TContext> static auto Write(TContext& ctx, T const& obj)
     {
         if constexpr (std::is_default_constructible_v<fmt::formatter<T>>) { fmt::print(ctx, "{}", obj); }
-        else { fmt::print(ctx, "{}", Primitives64Bit::Traits<T>::Repr(obj)); }
+        else
+        {
+            fmt::print(ctx, "{}", Primitives64Bit::Traits<T>::Repr(obj));
+        }
     }
 
     template <typename TContext> static auto Read(T& obj, TContext& ctx)
@@ -139,7 +142,10 @@ template <size_t N> struct SerDes<std::array<char, N>, ProtocolString>
         auto nullindex = str.find(char{0}, 0);
         if (nullindex == str.npos) { fmt::print(ctx, "{}", str); }
         else if (nullindex == 0) { fmt::print(ctx, "null"); }
-        else { fmt::print(ctx, "{}", str.substr(0, nullindex)); }
+        else
+        {
+            fmt::print(ctx, "{}", str.substr(0, nullindex));
+        }
     }
     template <typename TContext> static auto Read(TObj& obj, TContext& ctx)
     {

@@ -15,7 +15,8 @@ template <typename T> struct OptionalPropsT : OptionalProps
     template <typename TField> static void MarkValid([[maybe_unused]] T& elem, [[maybe_unused]] TField fieldIndex)
     {
         if constexpr (std::is_base_of_v<OptionalPropsT<T>, T>) { elem._fieldtracker.set(static_cast<uint32_t>(fieldIndex) - 1); }
-        else {}
+        else
+        {}
     }
 
     template <typename TField> void MarkInvalid(TField fieldIndex) { _fieldtracker.reset(static_cast<uint32_t>(fieldIndex) - 1); }

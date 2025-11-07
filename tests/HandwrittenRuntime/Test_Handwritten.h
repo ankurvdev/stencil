@@ -87,41 +87,38 @@ struct NamedVariant
     template <typename T> auto operator=(T&& obj) { _variant = std::forward<T>(obj); }
 };
 
-#define DEFINE_STRUCT_FIELD_SERDES(strct, field)                                                                       \
-    template <> struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<strct>::Field_##field, Stencil::ProtocolString> \
-    {                                                                                                                  \
-        using T = Stencil::TypeTraitsForIndexable<strct>::Field_##field;                                               \
-        template <typename Context> static auto Write(Context& ctx, T const& /* obj */)                                \
-        {                                                                                                              \
-            fmt::print(ctx, "{}", #field);                                                                             \
-        }                                                                                                              \
-        template <typename Context> static auto Read(T& /* obj */, Context& ctx)                                       \
-        {                                                                                                              \
-            std::string_view name = #field;                                                                            \
-            if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {     \
-                    return std::tolower(l) == std::tolower(r);                                                         \
-                }))                                                                                                    \
-            {                                                                                                          \
-                throw std::invalid_argument("Invalid");                                                                \
-            }                                                                                                          \
-        }                                                                                                              \
-    };                                                                                                                 \
-    template <> struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<strct>::Field_##field, Stencil::ProtocolBinary> \
-    {                                                                                                                  \
-        using T = Stencil::TypeTraitsForIndexable<strct>::Field_##field;                                               \
-        template <typename Context> static auto Write(Context& ctx, T const& /* obj */)                                \
-        {                                                                                                              \
-            if constexpr (Stencil::ConceptEnumPack<Stencil::TypeTraitsForIndexable<strct>::Key>)                       \
-            {                                                                                                          \
-                using Pack = Stencil::TypeTraitsForIndexable<strct>::Key;                                              \
-                ctx << EnumPackCastToInt(Pack{Stencil::TypeTraitsForIndexable<strct>::Fields::Field_##field});         \
-            }                                                                                                          \
-            else { ctx << static_cast<uint32_t>(Stencil::TypeTraitsForIndexable<strct>::Fields::Field_##field); }      \
-        }                                                                                                              \
-        template <typename Context> static auto Read(T& obj, Context& ctx)                                             \
-        {                                                                                                              \
-            obj = static_cast<T>(ctx.template read<uint32_t>());                                                       \
-        }                                                                                                              \
+#define DEFINE_STRUCT_FIELD_SERDES(strct, field)                                                                                    \
+    template <> struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<strct>::Field_##field, Stencil::ProtocolString>              \
+    {                                                                                                                               \
+        using T = Stencil::TypeTraitsForIndexable<strct>::Field_##field;                                                            \
+        template <typename Context> static auto Write(Context& ctx, T const& /* obj */) { fmt::print(ctx, "{}", #field); }          \
+        template <typename Context> static auto Read(T& /* obj */, Context& ctx)                                                    \
+        {                                                                                                                           \
+            std::string_view name = #field;                                                                                         \
+            if (!std::equal(std::begin(ctx), std::end(ctx), std::begin(name), std::end(name), [](auto l, auto r) {                  \
+                    return std::tolower(l) == std::tolower(r);                                                                      \
+                }))                                                                                                                 \
+            {                                                                                                                       \
+                throw std::invalid_argument("Invalid");                                                                             \
+            }                                                                                                                       \
+        }                                                                                                                           \
+    };                                                                                                                              \
+    template <> struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<strct>::Field_##field, Stencil::ProtocolBinary>              \
+    {                                                                                                                               \
+        using T = Stencil::TypeTraitsForIndexable<strct>::Field_##field;                                                            \
+        template <typename Context> static auto Write(Context& ctx, T const& /* obj */)                                             \
+        {                                                                                                                           \
+            if constexpr (Stencil::ConceptEnumPack<Stencil::TypeTraitsForIndexable<strct>::Key>)                                    \
+            {                                                                                                                       \
+                using Pack = Stencil::TypeTraitsForIndexable<strct>::Key;                                                           \
+                ctx << EnumPackCastToInt(Pack{Stencil::TypeTraitsForIndexable<strct>::Fields::Field_##field});                      \
+            }                                                                                                                       \
+            else                                                                                                                    \
+            {                                                                                                                       \
+                ctx << static_cast<uint32_t>(Stencil::TypeTraitsForIndexable<strct>::Fields::Field_##field);                        \
+            }                                                                                                                       \
+        }                                                                                                                           \
+        template <typename Context> static auto Read(T& obj, Context& ctx) { obj = static_cast<T>(ctx.template read<uint32_t>()); } \
     };
 
 /*

@@ -37,10 +37,8 @@ template <> struct StrOps<std::wstring>
     static Type Copy(View const& str) { return Type(str); }
     static Type Convert(char const* in)
     {
-        if (in == nullptr)
-            return Type{};
-        else
-            return Convert(std::string_view(in));
+        if (in == nullptr) return Type{};
+        else return Convert(std::string_view(in));
     }
 
     static Type Convert(std::string_view const& in)
@@ -88,10 +86,8 @@ template <> struct StrOps<std::string>
     static Type Copy(View const& str) { return Type(str); }
     static Type Convert(wchar_t const* in)
     {
-        if (in == nullptr)
-            return Type{};
-        else
-            return Convert(std::wstring_view(in));
+        if (in == nullptr) return Type{};
+        else return Convert(std::wstring_view(in));
     }
 
     static Type Convert(std::wstring_view const& in)
@@ -474,8 +470,7 @@ struct IValue
         case Type::Array:
         {
 
-            if (GetArray().GetCount() == 0)
-                return L"Value[Array] Length: 0 ";
+            if (GetArray().GetCount() == 0) return L"Value[Array] Length: 0 ";
             else
                 return L"Value[Array] Length: " + Str::Create(std::to_wstring(GetArray().GetCount())) + L"[Type]: "
                        + GetArray().GetObjectAt(0).ObjectTypeName();

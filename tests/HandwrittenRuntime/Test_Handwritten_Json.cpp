@@ -25,10 +25,7 @@ template <typename T> static void RunTestCase(TestCase const& tc, std::vector<st
         auto jstr2 = Stencil::Json::Stringify<T>(obj2);
         REQUIRE(jstr1 == jstr2);
         lines.push_back(fmt::format("Testcase[{}]:{}, Output: {}", name, tc.desc, jstr2));
-    } catch (std::exception const& ex)
-    {
-        lines.push_back(fmt::format("Testcase[{}]:{}, Exception: {}", name, tc.desc, ex.what()));
-    }
+    } catch (std::exception const& ex) { lines.push_back(fmt::format("Testcase[{}]:{}, Exception: {}", name, tc.desc, ex.what())); }
 }
 
 template <typename T> static void RunTestCases(std::initializer_list<TestCase> const& inp, std::string const& name)

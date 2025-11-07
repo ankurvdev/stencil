@@ -203,7 +203,10 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                     continue;
                 }
             }
-            else { return false; }
+            else
+            {
+                return false;
+            }
         }
         return it1 == str1.end() && it2 == std::end(str2);
     }
@@ -249,7 +252,10 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                         SerDes<TKey, ProtocolString>::Write(ss, k);
                         fmt::print(ss, "=");
                     }
-                    else { fmt::print(ss, ","); }
+                    else
+                    {
+                        fmt::print(ss, ",");
+                    }
                     type = 0;
                     SerDes<std::remove_cvref_t<decltype(v1)>, ProtocolString>::Write(ss, v1);
                 }
@@ -288,7 +294,10 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
             Visitor<T>::VisitAll(obj, [&](auto const& k, auto const& v) { _WriteForNamedTupleKeyValue(k, v, obj, ctx); });
             ctx.push_back("-");
         }
-        else { TODO("IndexableWithDynamicKeys"); }
+        else
+        {
+            TODO("IndexableWithDynamicKeys");
+        }
     }
 
     static bool _IsBooleanValue(std::string_view const& value, bool& boolval)
@@ -305,7 +314,10 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
             boolval = false;
             return true;
         }
-        else { return false; }
+        else
+        {
+            return false;
+        }
     }
 
     template <typename TVal, typename TRhs>
@@ -355,12 +367,18 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                     Visitor<TVal>::Visit(visitor->it, val, [&](auto& val2) {
                         using SubTVal = std::remove_cvref_t<decltype(val2)>;
                         if constexpr (ConceptHasProtocolString<SubTVal>) { SerDes<SubTVal, ProtocolString>::Read(val2, value); }
-                        else { throw std::logic_error("Unsupported type"); }
+                        else
+                        {
+                            throw std::logic_error("Unsupported type");
+                        }
                     });
                     // Just insert at the last
                 }
             }
-            else { throw std::logic_error("Cannot read into value"); }
+            else
+            {
+                throw std::logic_error("Cannot read into value");
+            }
         }
         else
         {
@@ -376,7 +394,10 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                         Visitor<TVal>::IteratorBegin(it, val);
                         valid = true;
                     }
-                    else { Visitor<TVal>::IteratorMoveNext(it, val); }
+                    else
+                    {
+                        Visitor<TVal>::IteratorMoveNext(it, val);
+                    }
 
                     if (!Visitor<TVal>::IteratorValid(it, val)) { throw std::runtime_error("Cannot Visit Next Item on the iterable"); }
 
@@ -385,7 +406,10 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                     Visitor<TVal>::Visit(it, val, [&](auto& val2) {
                         using SubTVal = std::remove_cvref_t<decltype(val2)>;
                         if constexpr (ConceptHasProtocolString<SubTVal>) { SerDes<SubTVal, ProtocolString>::Read(val2, subval); }
-                        else { throw std::logic_error("Unsupported type"); }
+                        else
+                        {
+                            throw std::logic_error("Unsupported type");
+                        }
                     });
 
                     if (ei == std::string_view::npos) break;
@@ -398,7 +422,10 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                 SerDes<TVal, ProtocolString>::Read(val, value);
                 return;
             }
-            else { throw std::logic_error("Cannot read into value"); }
+            else
+            {
+                throw std::logic_error("Cannot read into value");
+            }
         }
         return;
     }
@@ -514,7 +541,10 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                         // Has to be a boolean
                         if (!AreEqual(ss.str(), token)) { return; }
                         if constexpr (std::is_same_v<std::remove_cvref_t<decltype(val)>, std::monostate>) { return; }
-                        else { obj = val; }
+                        else
+                        {
+                            obj = val;
+                        }
                     });
                     VisitorForVariant<T>::VisitActiveAlternative(
                         obj, [&](auto, auto& val) { SerDes<std::remove_cvref_t<decltype(val)>, ProtocolCLI>::Read(val, ctx); });
@@ -604,7 +634,10 @@ template <Stencil::ConceptIterable T> struct SerDes<T, ProtocolCLI>
                 Visitor<T>::IteratorBegin(it, obj);
                 valid = true;
             }
-            else { Visitor<T>::IteratorMoveNext(it, obj); }
+            else
+            {
+                Visitor<T>::IteratorMoveNext(it, obj);
+            }
             if (!Visitor<T>::IteratorValid(it, obj)) throw std::runtime_error("Cannot Visit Next Item on the iterable");
 
             Visitor<T>::Visit(it, obj, [&](auto& val) { SerDes<std::remove_cvref_t<decltype(val)>, ProtocolCLI>::Read(val, ctx); });
@@ -642,7 +675,10 @@ template <Stencil::ConceptPrimitive T> struct SerDes<T, ProtocolCLI>
             }
         }
         if constexpr (ConceptHasProtocolString<T>) { SerDes<T, ProtocolString>::Read(obj, token); }
-        else { throw std::logic_error(fmt::format("Cannot Convert from string:{} -> {}", typeid(T).name(), token)); }
+        else
+        {
+            throw std::logic_error(fmt::format("Cannot Convert from string:{} -> {}", typeid(T).name(), token));
+        }
     }
 };
 

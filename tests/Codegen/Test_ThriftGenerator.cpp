@@ -37,7 +37,7 @@ static void RunTest(std::vector<std::string> const& pidlfiles)
 TEST_CASE("CodeGen", "[ThriftGenerator]")
 {
     std::vector<std::string> pidlfiles;
-    for (const auto res : LOAD_RESOURCE_COLLECTION(testdata))
+    for (auto const res : LOAD_RESOURCE_COLLECTION(testdata))
     {
         auto fname = std::filesystem::path(res.name());
         if (fname.extension().string() == ".pidl") { pidlfiles.push_back(fname.string()); }
