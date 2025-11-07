@@ -61,7 +61,7 @@ struct HttpClientListener
 {
     using Params = std::unordered_map<std::string, std::string>;
 
-    static constexpr std::string_view LocalHostName = "localhost";
+    static constexpr std::string_view LocalHostName = "127.0.0.1";
     static constexpr std::string_view Port          = "44444";
 
     HttpClientListener(std::string_view const& url) : _url(url), ioc(), resolver(ioc), stream(ioc)
