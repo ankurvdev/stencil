@@ -235,10 +235,10 @@ macro(EnableStrictCompilation)
                 # -std=c++20 via CMAKE_CXX_STANDARD
                 # -fvisibility-inlines-hidden via CMAKE_VISIBILITY_INLINES_HIDDEN
             )
-            if (CMAKE_LINKER_TYPE STREQUAL GNU AND APPLE)
+            if (APPLE AND CMAKE_LINKER_TYPE STREQUAL GNU)
                 message(WARNING "GNU linked on apple can sometimes cause issues. Consider using CMAKE_LINKER_TYPE=LLD")
             endif()
-            if (("${CMAKE_LINKER_TYPE}" STREQUAL "") AND ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"))
+            if (APPLE AND ("${CMAKE_LINKER_TYPE}" STREQUAL "") AND ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"))
                 find_program(LLVM_LD_EXECUTABLE NAMES "ld.lld" "ld64.lld" "lld")
                 if (LLVM_LD_EXECUTABLE AND EXISTS "${LLVM_LD_EXECUTABLE}")
                     message(STATUS "Using lld from ${LLVM_LD_EXECUTABLE} as linker")
