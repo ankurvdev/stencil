@@ -13,6 +13,10 @@
 #include "typetraits.h"
 #include "uuidobject.h"
 
+#ifndef HAVE_SET_THREAD_NAME
+#define SetThreadName(...)
+#endif
+
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
 SUPPRESS_MSVC_WARNING(4242)
@@ -77,14 +81,19 @@ template <typename T> auto create_response(Request const& req, std::string_view 
     res.set(boost::beast::http::field::content_type, content_type);
     res.set(boost::beast::http::field::access_control_allow_origin, "*");
     res.set(boost::beast::http::field::server, "stencil_webserver");
-    SUPPRESS_WARNINGS_START
-    SUPPRESS_CLANG_WARNING("-Wnrvo")
     return res;
-    SUPPRESS_WARNINGS_END
 }
 }    // namespace Stencil::websvc::impl
 namespace Stencil::websvc
 {
+template <typename TImpl, ConceptInterface TInterface> struct WebServiceImplTraits;
+
+template <typename TImpl, ConceptInterface TInterface>
+    requires std::is_base_of_v<TInterface, TImpl>
+struct WebServiceImplTraits<TImpl, TInterface>
+{
+    static TInterface& QueryInterface(TImpl& impl) { return *static_cast<TInterface*>(&impl); }
+};
 
 using tcp        = boost::asio::ip::tcp;    // from <boost/asio/ip/tcp.hpp>
 using tcp_stream = typename boost::beast::tcp_stream::rebind_executor<
@@ -258,7 +267,6 @@ struct SSEListenerManager
         bool _streamEnded() const { return _ctx == nullptr; }
         void Start(SSEContext& ctx, std::span<char const> const& msg)
         {
-
             {
                 auto lock = std::unique_lock<std::mutex>(_manager->_mutex);
                 _manager->Register(lock, shared_from_this());
@@ -381,7 +389,7 @@ template <typename TContext> struct RequestHandlerForAllEvents
     {
         SSEListenerManager::Instance::SSEContext ctx1(ctx.stream, ctx.req);
         ctx.sse.CreateInstance(typeid(TContext).hash_code())->Start(ctx1, "event: init\ndata: \n\n");
-        ctx.impl.OnSSEInstanceEnded();
+        // ctx.impl.OnSSEInstanceEnded();
     }
 };
 
@@ -450,10 +458,7 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
             auto& jsonval = param.value;    // Clang complains about capturing localbinding variables
             Visitor<TArgsStruct>::VisitKey(args, key, [&](auto& val) { Stencil::SerDesRead<Stencil::ProtocolJsonVal>(val, jsonval); });
         }
-        SUPPRESS_WARNINGS_START
-        SUPPRESS_CLANG_WARNING("-Wnrvo")
         return args;
-        SUPPRESS_WARNINGS_END
     }
 
     static auto Invoke(TContext& ctx)
@@ -551,6 +556,9 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
 
 template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunctions
 {
+    using TImpl      = typename TContext::Impl;
+    using TInterface = typename TContext::Interface;
+
     static bool Matches(TContext& ctx) { return impl::iequals(Stencil::InterfaceApiTraits<TArgsStruct>::Name(), *ctx.url_seg_it); }
     static auto _CreateArgStruct(TContext& ctx)
     {
@@ -565,19 +573,13 @@ template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunct
                 auto& jsonval = param.value;    // Clang complains about capturing localbinding variables
                 Visitor<TArgsStruct>::VisitKey(args, key, [&](auto& val) { Stencil::SerDesRead<Stencil::ProtocolJsonVal>(val, jsonval); });
             }
-            SUPPRESS_WARNINGS_START
-            SUPPRESS_CLANG_WARNING("-Wnrvo")
             return args;
-            SUPPRESS_WARNINGS_END
         }
         else if (ctx.req.method() == boost::beast::http::verb::put)
         {
             auto data = ctx.req.body();
             Stencil::SerDesRead<Stencil::ProtocolJsonVal>(args, data);
-            SUPPRESS_WARNINGS_START
-            SUPPRESS_CLANG_WARNING("-Wnrvo")
             return args;
-            SUPPRESS_WARNINGS_END
         }
         else
         {
@@ -590,10 +592,11 @@ template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunct
         using Traits = ::Stencil::InterfaceApiTraits<TArgsStruct>;
         std::ostringstream rslt;
 
-        auto args = _CreateArgStruct(ctx);
-        if constexpr (std::is_same_v<void, decltype(Traits::Invoke(ctx.impl, args))>)
+        auto  args  = _CreateArgStruct(ctx);
+        auto& ifobj = WebServiceImplTraits<TImpl, TInterface>::QueryInterface(ctx.impl);
+        if constexpr (std::is_same_v<void, decltype(Traits::Invoke(ifobj, args))>)
         {
-            Traits::Invoke(ctx.impl, args);
+            Traits::Invoke(ifobj, args);
             auto res   = impl::create_response<boost::beast::http::string_body>(ctx.req, "application/json");
             res.body() = "{}";
             boost::beast::http::response_serializer<boost::beast::http::string_body, boost::beast::http::fields> sr{res};
@@ -601,7 +604,7 @@ template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunct
         }
         else
         {
-            auto retval = Traits::Invoke(ctx.impl, args);
+            auto retval = Traits::Invoke(ifobj, args);
             rslt << Stencil::Json::Stringify<decltype(retval)>(retval);
             auto msg   = rslt.str();
             auto res   = impl::create_response<boost::beast::http::string_body>(ctx.req, "application/json");
@@ -731,10 +734,7 @@ template <typename TInterfaceImpl> struct SessionInterface
     {
         auto sptr                = std::make_shared<TInterfaceImpl>(impl);
         _sessions[sptr->id.uuid] = sptr;
-        SUPPRESS_WARNINGS_START
-        SUPPRESS_CLANG_WARNING("-Wnrvo")
         return sptr;
-        SUPPRESS_WARNINGS_END
     }
 
     auto FindSession(Uuid const& uuid) { return _sessions[uuid]; }
@@ -864,12 +864,21 @@ using Request                                  = impl::Request;
 
 template <typename TImpl, typename T> struct WebServiceInterfaceImplT;
 
+// template <typename TImpl, ConceptInterface TInterface>
+//     requires std::is_base_of_v<TInterface, TImpl>
+// struct WebServiceInterfaceImplT<TImpl, TInterface> : TInterface,    // TImpl implements the virtual functions in this interface,
+//                                                      Stencil::impl::Interface::InterfaceEventHandlerT<TImpl, TInterface>
+//{
+//     WebServiceInterfaceImplT() { TInterface::SetHandler(this); }
+//     virtual ~WebServiceInterfaceImplT() override = default;
+//     CLASS_DELETE_COPY_AND_MOVE(WebServiceInterfaceImplT);
+// };
+
 template <typename TImpl, ConceptInterface TInterface>
-struct WebServiceInterfaceImplT<TImpl, TInterface> : TInterface,    // TImpl implements the virtual functions in this interface,
-                                                     Stencil::impl::Interface::InterfaceEventHandlerT<TImpl, TInterface>
+struct WebServiceInterfaceImplT<TImpl, TInterface> : Stencil::impl::Interface::InterfaceEventHandlerT<TImpl, TInterface>
 {
-    WebServiceInterfaceImplT() { TInterface::SetHandler(this); }
-    virtual ~WebServiceInterfaceImplT() override = default;
+    WebServiceInterfaceImplT()           = default;
+    ~WebServiceInterfaceImplT() override = default;
     CLASS_DELETE_COPY_AND_MOVE(WebServiceInterfaceImplT);
 };
 
@@ -895,11 +904,11 @@ using WebSessionInterfaceT = impl::SessionInterfaceT<TInterfaceImpl, TInterface>
 
 template <typename TInterfaceImpl> using WebSessionInterface = impl::SessionInterface<TInterfaceImpl>;
 
-template <typename TImpl, typename TInterfaceImpl>
-struct WebServiceInterfaceImplT<TImpl, WebSessionInterface<TInterfaceImpl>> : WebSessionInterface<TInterfaceImpl>
+template <typename TImpl, typename TInterface>
+struct WebServiceInterfaceImplT<TImpl, WebSessionInterface<TInterface>> : WebSessionInterface<TInterface>
 {
-    WebServiceInterfaceImplT()          = default;
-    virtual ~WebServiceInterfaceImplT() = default;
+    WebServiceInterfaceImplT()  = default;
+    ~WebServiceInterfaceImplT() = default;
     CLASS_DELETE_COPY_AND_MOVE(WebServiceInterfaceImplT);
 };
 
@@ -947,7 +956,10 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
         _sseManager.Send(0, msg);
     }
 
-    template <ConceptInterface T> auto& GetInterface() { return *static_cast<T*>(this); }
+    template <ConceptInterface TInterface> auto& GetInterface()
+    {
+        return WebServiceImplTraits<TImpl, TInterface>::QueryInterface(*static_cast<TImpl*>(this));
+    }
 
     virtual bool HandleRequest(tcp_stream& /* stream */, Stencil::websvc::Request const& /* req */, boost::urls::url_view const& /* url */)
     {
@@ -1010,7 +1022,10 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
             // Read a request
             boost::beast::http::request<boost::beast::http::string_body> req;
             [[maybe_unused]] auto data = co_await boost::beast::http::async_read(stream, buffer, req, boost::asio::use_awaitable);
+            SetThreadName(fmt::format("w:{}", req.target()).c_str());
             _handle_request(stream, std::move(req));
+            SetThreadName("w:...");
+
         } catch (boost::system::system_error& se)
         {
             if (se.code() != boost::beast::http::error::end_of_stream) throw;
