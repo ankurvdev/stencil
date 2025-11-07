@@ -388,6 +388,7 @@ template <typename TContext> struct RequestHandlerForAllEvents
     static auto Invoke(TContext& ctx)
     {
         SSEListenerManager::Instance::SSEContext ctx1(ctx.stream, ctx.req);
+        ctx.impl.template GetInterface<typename TContext::Interface>().SetHandler(&ctx.impl);
         ctx.sse.CreateInstance(typeid(TContext).hash_code())->Start(ctx1, "event: init\ndata: \n\n");
         // ctx.impl.OnSSEInstanceEnded();
     }
@@ -399,6 +400,7 @@ template <typename TContext, typename TEventStructs> struct RequestHandlerForEve
     static auto Invoke(TContext& ctx)
     {
         SSEListenerManager::Instance::SSEContext ctx1(ctx.stream, ctx.req);
+        ctx.impl.template GetInterface<typename TContext::Interface>().SetHandler(&ctx.impl);
         ctx.sse.CreateInstance(typeid(TContext).hash_code())->Start(ctx1, "event: init\ndata: \n\n");
     }
 };
@@ -698,6 +700,7 @@ template <typename TImpl, ConceptInterface TInterface> struct RequestHandler<TIm
             }
             rslt << ']';
             auto rsltstr = rslt.str();
+            ctx.impl.template GetInterface<typename TContext::Interface>().SetHandler(&ctx.impl);
             ctx.sse.CreateInstance(typeid(TContext).hash_code())->Start(ctx1, fmt::format("event: init\ndata: {}\n\n", rsltstr));
         }
     };
