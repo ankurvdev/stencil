@@ -274,7 +274,8 @@ struct SSEListenerManager
                 _ctx = &ctx;
                 Send(lock, msg);
             }
-            do {
+            do
+            {
                 auto constexpr KeepAliveInterval = 10s;
                 auto lock                        = std::unique_lock<std::mutex>(_manager->_mutex);
                 if (_manager->_stopRequested) return;
@@ -423,7 +424,8 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
             rslt << '{';
             bool   first  = true;
             size_t sindex = 0;
-            do {
+            do
+            {
                 auto eindex = ids.find(',', sindex);
                 if (eindex == std::string_view::npos) eindex = ids.size();
                 auto idstr = ids.substr(sindex, eindex - sindex);
@@ -540,14 +542,14 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
                     rslt << "true";
                     ctx.sse.Send(typeid(TContext).hash_code(), fmt::format("{}{}", (first ? ' ' : ','), id));
                     first = false;
-                } catch (std::exception const& /*ex*/)
-                {
-                    rslt << "false";
-                }
+                } catch (std::exception const& /*ex*/) { rslt << "false"; }
             });
             ctx.sse.Send(typeid(TContext).hash_code(), "]}\n\n");
         }
-        else { throw std::invalid_argument(fmt::format("Unknown object store action: {}", action)); }
+        else
+        {
+            throw std::invalid_argument(fmt::format("Unknown object store action: {}", action));
+        }
         return rslt.str();
     }
 };
@@ -579,7 +581,10 @@ template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunct
             Stencil::SerDesRead<Stencil::ProtocolJsonVal>(args, data);
             return args;
         }
-        else { throw std::runtime_error("Only get and put supported for functions"); }
+        else
+        {
+            throw std::runtime_error("Only get and put supported for functions");
+        }
     }
 
     static auto Invoke(TContext& ctx)
@@ -928,10 +933,7 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
             if (e) try
                 {
                     std::rethrow_exception(e);
-                } catch (std::exception& e)
-                {
-                    fmt::print(stderr, "Error in acceptor: {}\n", e.what());
-                }
+                } catch (std::exception& e) { fmt::print(stderr, "Error in acceptor: {}\n", e.what()); }
         });
 
         for (size_t i = 0; i < numThreads + NumServices; i++)
@@ -1061,10 +1063,7 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
                 if (e) try
                     {
                         std::rethrow_exception(e);
-                    } catch (std::exception& e)
-                    {
-                        fmt::print(stderr, "Session Terminated with Error:  {}\n", e.what());
-                    }
+                    } catch (std::exception& e) { fmt::print(stderr, "Session Terminated with Error:  {}\n", e.what()); }
             });
     }
 
