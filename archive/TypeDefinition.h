@@ -11,7 +11,7 @@ using TextValue         = Str::Type;
 using KVP               = std::pair<Str::Type, Str::Type>;
 using ContainerTypeList = std::vector<Str::Type>;
 using NameWithTypeList  = std::pair<Str::Type, std::vector<Str::Type>>;
-using AttributeMap   = std::unordered_map<Str::Type, Str::Type>;
+using AttributeMap      = std::unordered_map<Str::Type, Str::Type>;
 
 inline Attributes CreateAttributeMapEntry(Attributes& ptr, KVP& entry)
 {

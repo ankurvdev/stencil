@@ -150,7 +150,10 @@ template <typename T> struct Stencil::Visitor<Stencil::RefMap<T>> : Stencil::Vis
                 // TODO: Should it really auto-create on demand
                 if (obj.get() == nullptr) { obj = std::make_shared<T>(); }
             }
-            else { return; }
+            else
+            {
+                return;
+            }
         }
 
         Stencil::Visitor<T>::VisitKey(*obj.get(), std::forward<TKey>(key), std::forward<TLambda>(lambda));
@@ -167,7 +170,10 @@ template <typename T> struct Stencil::Visitor<Stencil::RefMap<T>> : Stencil::Vis
                 // TODO: Should it really auto-create on demand
                 if (obj.get() == nullptr) { obj = std::make_shared<T>(); }
             }
-            else { return; }
+            else
+            {
+                return;
+            }
         }
 
         Stencil::Visitor<T>::VisitAll(*obj.get(), std::forward<TLambda>(lambda));

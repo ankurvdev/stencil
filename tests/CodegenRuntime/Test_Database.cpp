@@ -190,7 +190,10 @@ struct DatabaseTester
                 todelete.insert(it->second);
                 it = generated_ids.erase(it);
             }
-            else { ++it; }
+            else
+            {
+                ++it;
+            }
         }
 
         for (auto [ref, rec] : datastore->Items<T>(lock))
@@ -214,7 +217,10 @@ struct DatabaseTester
                 lines.push_back(fmt::format("{{\"delete\": {}}}", it->second));
                 it = generated_ids.erase(it);
             }
-            else { ++it; }
+            else
+            {
+                ++it;
+            }
         }
     }
     std::unique_ptr<DataStore>                  datastore = std::make_unique<DataStore>();

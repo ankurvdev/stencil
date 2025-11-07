@@ -60,7 +60,10 @@ template <typename T, typename TTup, size_t I = 0> constexpr size_t tuple_index_
     else
     {
         if constexpr (std::is_same_v<std::tuple_element_t<I, TTup>, T>) { return I; }
-        else { return tuple_index_of<T, TTup, I + 1>(); }
+        else
+        {
+            return tuple_index_of<T, TTup, I + 1>();
+        }
     }
 }
 
@@ -191,9 +194,15 @@ struct SerDes
             {
                 AttachStream(std::ifstream(path));
             }
-            else { AttachStream(std::fstream(path, std::fstream::binary | std::fstream::in | std::fstream::out)); }
+            else
+            {
+                AttachStream(std::fstream(path, std::fstream::binary | std::fstream::in | std::fstream::out));
+            }
         }
-        else { AttachStream(std::fstream(path, std::fstream::binary | std::fstream::in | std::fstream::out | std::fstream::trunc)); }
+        else
+        {
+            AttachStream(std::fstream(path, std::fstream::binary | std::fstream::in | std::fstream::out | std::fstream::trunc));
+        }
     }
 
     void AttachStream(std::fstream&& stream)
@@ -870,10 +879,16 @@ struct PageManager
                 journal.SetNextJornalPage(page._pageIndex);
                 _journalPageIndex = page._pageIndex;
             }
-            else { assert(_pageRuntimeStates[_journalPageIndex]._typeId == 0); }
+            else
+            {
+                assert(_pageRuntimeStates[_journalPageIndex]._typeId == 0);
+            }
             _RecordJournalEntry(pageIndex, objTypeId, pageRecDataSize);
         }
-        else { journal.RecordJournalEntry(pageIndex, {objTypeId, pageRecDataSize}); }
+        else
+        {
+            journal.RecordJournalEntry(pageIndex, {objTypeId, pageRecDataSize});
+        }
     }
 
     private:    // Members
@@ -1166,7 +1181,10 @@ template <ConceptRecord... Ts> struct Database
                 return RefAndRecord<T>(ref, *rec);
             }
         }
-        else { throw std::logic_error("Unknown Type"); }
+        else
+        {
+            throw std::logic_error("Unknown Type");
+        }
     }
 
     public:    // Methods
@@ -1433,9 +1451,15 @@ template <Stencil::Database::ConceptRecordView T> struct Stencil::Visitor<T>
                         auto  krecv = Stencil::Database::CreateRecordView(obj._db, obj._lock, key, krec);
                         lambda(krecv, vrecv);
                     }
-                    else { lambda(key, vrecv); }
+                    else
+                    {
+                        lambda(key, vrecv);
+                    }
                 }
-                else { lambda(key, subobj.get()); }
+                else
+                {
+                    lambda(key, subobj.get());
+                }
             });
         }
         else if constexpr (Stencil::ConceptPreferIterable<Type>)
@@ -1447,10 +1471,16 @@ template <Stencil::Database::ConceptRecordView T> struct Stencil::Visitor<T>
                     auto  itemrecv = Stencil::Database::CreateRecordView(obj._db, obj._lock, subobj, vrec);
                     lambda(k, itemrecv);
                 }
-                else { lambda(k, subobj.get()); }
+                else
+                {
+                    lambda(k, subobj.get());
+                }
             });
         }
-        else { throw std::logic_error("Unknown Type"); }
+        else
+        {
+            throw std::logic_error("Unknown Type");
+        }
     }
 };
 

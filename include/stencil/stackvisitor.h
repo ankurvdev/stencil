@@ -105,7 +105,10 @@ template <ConceptProtocol TProto, typename TOwner, ConceptIterable T> struct Ite
             Visitor<T>::IteratorBegin(it, obj);
             valid = true;
         }
-        else { Visitor<T>::IteratorMoveNext(it, obj); }
+        else
+        {
+            Visitor<T>::IteratorMoveNext(it, obj);
+        }
 
         if (!Visitor<T>::IteratorValid(it, obj)) throw std::runtime_error("Cannot Visit Next Item on the iterable");
 
@@ -240,7 +243,10 @@ template <ConceptProtocol TProto, typename TOwner, typename T> struct VisitorTyp
              using ElemType = typename Stencil::TransactionTraits<T>::ElemType;
              (*reinterpret_cast<T*>(ptr)).Assign(val.cast<ElemType>());
          }*/
-        else { TODO(""); }
+        else
+        {
+            TODO("");
+        }
     }
     virtual void      Assign(void* ptr, std::string_view const& val) override { primitive.Assign(*reinterpret_cast<T*>(ptr), val); }
     [[noreturn]] void Assign(void* /*ptr*/, std::wstring_view const& /*val*/) override

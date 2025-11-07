@@ -172,7 +172,7 @@ template <Stencil::ConceptPreferPrimitive TElem, Stencil::ConceptTransaction TCo
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
     ElemType const& Elem() const { return _elem; }
-    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
+                    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
 
     template <typename TKey, typename TLambda> auto Edit(TKey const& /*key*/, TLambda const& /*lambda*/)
     {
@@ -314,7 +314,7 @@ template <typename TVal, Stencil::ConceptTransaction TContainer> struct Stencil:
     }
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
-    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
+                    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
     ElemType const& Elem() const { return _elem; }
 
     bool IsChanged() const { return !_elemState.deltas.empty(); }
@@ -525,7 +525,7 @@ struct Stencil::Transaction<std::unordered_map<TKey, TVal>, TContainer>
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
-    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
+                    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
     ElemType const& Elem() const { return _elem; }
 
     bool IsChanged() const { return !_elemState.deltas.empty(); }
@@ -557,7 +557,10 @@ struct Stencil::Transaction<std::unordered_map<TKey, TVal>, TContainer>
         _elem.erase(key);
         auto it = _elemState.deltas.find(key);
         if (it == _elemState.deltas.end()) { it = _elemState.deltas.insert({key, TxnState::Delta::Delete(key)}).first; }
-        else { it->second.type = TxnState::Delta::Type::Delete; }
+        else
+        {
+            it->second.type = TxnState::Delta::Type::Delete;
+        }
     }
 
     template <typename TLambda> auto Visit(TKey const& key, TLambda&& lambda) { lambda(key, _elem.at(key)); }
@@ -581,7 +584,10 @@ struct Stencil::Transaction<std::unordered_map<TKey, TVal>, TContainer>
     {
         auto it = _elemState.deltas.find(key);
         if (it == _elemState.deltas.end()) { it = _elemState.deltas.insert({key, TxnState::Delta::New(key)}).first; }
-        else { it->second.type = TxnState::Delta::Type::New; }
+        else
+        {
+            it->second.type = TxnState::Delta::Type::New;
+        }
         return it->second;
     }
 
@@ -690,7 +696,7 @@ template <Stencil::ConceptPreferIterable TElem, Stencil::ConceptTransaction TCon
     }
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
-    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
+                    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
     ElemType const& Elem() const { return _elem; }
 
     template <typename TArg> void RecordMutation_add_(TArg&)

@@ -53,7 +53,10 @@ struct Primitives64Bit
                 return Type{.width = W, .category = Primitives64Bit::Type::Category::Unsigned};
             }
             else if constexpr (std::is_signed<T>::value) { return Type{.width = W, .category = Primitives64Bit::Type::Category::Signed}; }
-            else { return Type{.width = 0, .category = Primitives64Bit::Type::Category::Unknown}; }
+            else
+            {
+                return Type{.width = 0, .category = Primitives64Bit::Type::Category::Unknown};
+            }
         }
 
         public:
@@ -186,7 +189,10 @@ struct Primitives64Bit
             default: throw std::logic_error("Unsupported Cast");
             }
         }
-        else { throw std::logic_error("Unknown type"); }
+        else
+        {
+            throw std::logic_error("Unknown type");
+        }
     }
 };
 template <typename T>

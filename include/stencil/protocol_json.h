@@ -221,10 +221,8 @@ template <> struct SerDes<char, ProtocolJsonVal>
 
     template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
-        if (obj == 0)
-            fmt::print(ctx, "null");
-        else
-            fmt::print(ctx, "\"{}\"", obj);
+        if (obj == 0) fmt::print(ctx, "null");
+        else fmt::print(ctx, "\"{}\"", obj);
     }
     template <typename TContext> static auto Read(TObj& obj, TContext& ctx)
     {
@@ -264,8 +262,7 @@ template <> struct SerDes<std::string, ProtocolJsonVal>
     template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
         if (obj.empty()) { fmt::print(ctx, "null"); }
-        else
-            _WriteQuotedString(ctx, obj);
+        else _WriteQuotedString(ctx, obj);
     }
     template <typename TContext> static auto Read(TObj& obj, TContext& ctx) { _ReadQuotedString(obj, ctx); }
 };
@@ -277,8 +274,7 @@ template <typename T> struct SerDes<std::basic_string_view<T>, ProtocolJsonVal>
     template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
         if (obj.empty()) { fmt::print(ctx, "null"); }
-        else
-            _WriteQuotedString(ctx, obj);
+        else _WriteQuotedString(ctx, obj);
     }
 
     template <typename TContext> static auto Read(TObj& obj, TContext& ctx) = delete;
@@ -291,8 +287,7 @@ template <> struct SerDes<std::wstring, ProtocolJsonVal>
     template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
         if (obj.empty()) { fmt::print(ctx, "null"); }
-        else
-            _WriteQuotedString(ctx, obj);
+        else _WriteQuotedString(ctx, obj);
     }
     template <typename TContext> static auto Read(TObj& obj, TContext& ctx) { _ReadQuotedString(obj, ctx); }
 };
@@ -304,8 +299,7 @@ template <> struct SerDes<std::wstring_view, ProtocolJsonVal>
     template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
         if (obj.empty()) { fmt::print(ctx, "null"); }
-        else
-            _WriteQuotedString(ctx, obj);
+        else _WriteQuotedString(ctx, obj);
     }
     template <typename TContext> static auto Read(TObj& obj, TContext& ctx) { _ReadQuotedString(obj, ctx); }
 };
@@ -317,8 +311,7 @@ template <typename T> struct SerDes<shared_stringT<T>, ProtocolJsonVal>
     template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
         if (obj.empty()) { fmt::print(ctx, "null"); }
-        else
-            _WriteQuotedString(ctx, obj);
+        else _WriteQuotedString(ctx, obj);
     }
     template <typename TContext> static auto Read(TObj& obj, TContext& ctx) { _ReadQuotedString(obj, ctx); }
 };

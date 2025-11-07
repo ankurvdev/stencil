@@ -130,7 +130,10 @@ struct StringTransactionSerDes
                         auto subkey = Stencil::Deserialize<uint32_t, Stencil::ProtocolString>(mutatordata);
                         _ListAdd(subtxn, subkey, rhs);
                     }
-                    else { throw std::logic_error("Invalid operation"); }
+                    else
+                    {
+                        throw std::logic_error("Invalid operation");
+                    }
                 });
             }
             else if (mutator == 2)    // List remove
@@ -149,10 +152,16 @@ struct StringTransactionSerDes
                         auto subkey = Stencil::Deserialize<uint32_t, Stencil::ProtocolString>(mutatordata);
                         subtxn.Remove(subkey);
                     }
-                    else { throw std::logic_error("Invalid operation"); }
+                    else
+                    {
+                        throw std::logic_error("Invalid operation");
+                    }
                 });
             }
-            else { throw std::logic_error("Unknown Mutator"); }
+            else
+            {
+                throw std::logic_error("Unknown Mutator");
+            }
         }
     };
 
@@ -195,7 +204,10 @@ struct StringTransactionSerDes
                 return retval;
             }
 
-            else { throw std::logic_error("Unable to indirect into a non-indexable"); }
+            else
+            {
+                throw std::logic_error("Unable to indirect into a non-indexable");
+            }
         }
 
         auto name = it.token;
@@ -218,7 +230,10 @@ struct StringTransactionSerDes
             }
             if (mutatorname == "add") { mutator = 1; }
             else if (mutatorname == "remove") { mutator = 2; }
-            else { throw std::logic_error("Invalid Mutator"); }
+            else
+            {
+                throw std::logic_error("Invalid Mutator");
+            }
         }
         size_t i = it.startIndex + it.token.size() + 1;
         while (i < it.data.size() && it.data[i] == ' ') i++;
@@ -239,7 +254,10 @@ struct StringTransactionSerDes
             }
             else if (mutator == 1) { _ListApplicator<T>::Add(txn, index, rhs); }
             else if (mutator == 2) { _ListApplicator<T>::Remove(txn, index); }
-            else { throw std::logic_error("Invalid List operation"); }
+            else
+            {
+                throw std::logic_error("Invalid List operation");
+            }
         }
         return i + 1;
     }
@@ -248,7 +266,8 @@ struct StringTransactionSerDes
     template <ConceptTransaction T> static auto Apply(T& txn, std::string_view const& txndata)
     {
         size_t startIndex = 0;
-        do {
+        do
+        {
             TokenIterator it(txndata.substr(startIndex));
             startIndex += _Apply(it, txn);
         } while (startIndex < txndata.size());
@@ -281,7 +300,10 @@ struct StringTransactionSerDes
                 }
                 else if (mutator == 1) { ostr << ":add[" << index << "] = " << Stencil::Json::Stringify(subtxn.Elem()) << ";"; }
                 else if (mutator == 2) { ostr << ":remove[" << index << "] = {};"; }
-                else { throw std::logic_error("Unknown mutator"); }
+                else
+                {
+                    throw std::logic_error("Unknown mutator");
+                }
             });
             return ostr;
         }
@@ -312,11 +334,17 @@ struct StringTransactionSerDes
                     _DeserializeTo(subtxn, ostr, stack);
                     stack.pop_back();
                 }
-                else { throw std::logic_error("Unknown mutator"); }
+                else
+                {
+                    throw std::logic_error("Unknown mutator");
+                }
             });
             return ostr;
         }
-        else { throw std::logic_error("Unsupported transaction type"); }
+        else
+        {
+            throw std::logic_error("Unsupported transaction type");
+        }
     }
 
     template <ConceptTransactionView T> static std::string Deserialize(T const& txn)

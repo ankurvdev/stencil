@@ -59,7 +59,7 @@ try
         auto outfiles = Execute(dryrun, true, format, templates, outdir, {i});
         for (auto const& o : outfiles) { std::cout << o.string() << std::endl; }
     }
-} catch (const std::exception& ex)
+} catch (std::exception const& ex)
 {
     std::cerr << ex.what() << std::endl;
     // std::cerr << IDLDebug::ErrorAggregator::Get().GetErrors() << std::endl;

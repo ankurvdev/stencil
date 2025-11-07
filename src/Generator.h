@@ -33,7 +33,10 @@ struct TypeDefinitions
             if (decl.args.size() != 0)
             {
                 if (args.size() == 0) { args = std::move(decl.args); }
-                else { throw std::logic_error("Cannot reset args"); }
+                else
+                {
+                    throw std::logic_error("Cannot reset args");
+                }
             }
             FieldTypeDecl::Merge(std::move(decl));
         }
