@@ -22,7 +22,6 @@ else
 fi
 
 vcpkgurl=$(git -C ${scriptdir} config remote.origin.url | grep -oE '.*ankurvdev')/vcpkg
-echo $vcpkgdir
 echo "${vcpkgurl} ${vcpkgdir}"
 
 if [ ! -e ${vcpkgdir} ]; then

@@ -95,6 +95,7 @@ URLS["resvg_Windows_x64"] = "https://github.com/ankurvdev/resvg/releases/latest/
 URLS["resvg_Windows_arm64"] = "https://github.com/ankurvdev/resvg/releases/latest/download/resvg-windows-arm64.zip"
 URLS["resvg_Linux_x64"] = "https://github.com/ankurvdev/resvg/releases/latest/download/resvg-linux-x86_64.zip"
 URLS["resvg_Linux_arm64"] = "https://github.com/ankurvdev/resvg/releases/latest/download/resvg-linux-aarch64.zip"
+URLS["resvg_Darwin_arm64"] = "https://github.com/ankurvdev/resvg/releases/latest/download/resvg-macos-aarch64.zip"
 URLS["deno_Windows_x64"] = "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-pc-windows-msvc.zip"
 URLS["deno_Linux_x64"] = "https://github.com/denoland/deno/releases/latest/download//deno-x86_64-unknown-linux-gnu.zip"
 URLS["deno_Linux_arm64"] = "https://github.com/LukeChannings/deno-arm64/releases/latest/download/deno-linux-arm64.zip"

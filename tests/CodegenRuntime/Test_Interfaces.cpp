@@ -358,7 +358,8 @@ struct SSEFormat : TestCommon::JsonFormat
 };
 
 struct Server1Impl
-    : Stencil::websvc::WebServiceT<Server1Impl, Interfaces::Server1, Stencil::websvc::WebSynchronizedState<Objects::NestedObject>>
+    : Stencil::websvc::WebServiceT<Server1Impl, Interfaces::Server1, Stencil::websvc::WebSynchronizedState<Objects::NestedObject>>,
+      Interfaces::Server1
 {
     Server1Impl() { objects.Init(std::filesystem::path("SaveAndLoad.bin")); }
     ~Server1Impl() override = default;
@@ -401,7 +402,7 @@ struct Tester : ObjectsTester
     {
         if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
         svc = std::make_unique<Server1Impl>();
-        svc->StartOnPort(44444, 6);
+        svc->StartOnPort(44444, 4);
     }
 
     ~Tester()

@@ -235,7 +235,16 @@ macro(EnableStrictCompilation)
                 # -std=c++20 via CMAKE_CXX_STANDARD
                 # -fvisibility-inlines-hidden via CMAKE_VISIBILITY_INLINES_HIDDEN
             )
-
+            if (APPLE AND CMAKE_LINKER_TYPE STREQUAL GNU)
+                message(WARNING "GNU linked on apple can sometimes cause issues. Consider using CMAKE_LINKER_TYPE=LLD")
+            endif()
+            if (APPLE AND ("${CMAKE_LINKER_TYPE}" STREQUAL "") AND ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"))
+                find_program(LLVM_LD_EXECUTABLE NAMES "ld.lld" "ld64.lld" "lld")
+                if (LLVM_LD_EXECUTABLE AND EXISTS "${LLVM_LD_EXECUTABLE}")
+                    message(STATUS "Using lld from ${LLVM_LD_EXECUTABLE} as linker")
+                    set(CMAKE_LINKER_TYPE LLD)
+                endif()
+            endif()
             if (CMAKE_LINKER_TYPE STREQUAL GNU)
                 string(APPEND CMAKE_SHARED_LINKER_FLAGS " -Wl,--exclude-libs,ALL -Wl,--no-undefined -Wl,--gc-sections")
                 string(APPEND CMAKE_EXE_LINKER_FLAGS " -Wl,--exclude-libs,ALL -Wl,--no-undefined -Wl,--gc-sections")
@@ -293,6 +302,7 @@ macro(EnableStrictCompilation)
                     -Wno-unsafe-buffer-usage
                     -Wno-disabled-macro-expansion # fmt::print(stderr, ...)
                     -Wno-nrvo # clang-21
+                    -Wno-thread-safety-negative # clang-21
                     )
             else()
                 list(APPEND extracxxflags -Wno-error=stringop-overflow)
