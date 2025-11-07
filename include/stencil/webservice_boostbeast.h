@@ -274,8 +274,7 @@ struct SSEListenerManager
                 _ctx = &ctx;
                 Send(lock, msg);
             }
-            do
-            {
+            do {
                 auto constexpr KeepAliveInterval = 10s;
                 auto lock                        = std::unique_lock<std::mutex>(_manager->_mutex);
                 if (_manager->_stopRequested) return;
@@ -424,8 +423,7 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
             rslt << '{';
             bool   first  = true;
             size_t sindex = 0;
-            do
-            {
+            do {
                 auto eindex = ids.find(',', sindex);
                 if (eindex == std::string_view::npos) eindex = ids.size();
                 auto idstr = ids.substr(sindex, eindex - sindex);
@@ -542,14 +540,14 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
                     rslt << "true";
                     ctx.sse.Send(typeid(TContext).hash_code(), fmt::format("{}{}", (first ? ' ' : ','), id));
                     first = false;
-                } catch (std::exception const& /*ex*/) { rslt << "false"; }
+                } catch (std::exception const& /*ex*/)
+                {
+                    rslt << "false";
+                }
             });
             ctx.sse.Send(typeid(TContext).hash_code(), "]}\n\n");
         }
-        else
-        {
-            throw std::invalid_argument(fmt::format("Unknown object store action: {}", action));
-        }
+        else { throw std::invalid_argument(fmt::format("Unknown object store action: {}", action)); }
         return rslt.str();
     }
 };
@@ -581,10 +579,7 @@ template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunct
             Stencil::SerDesRead<Stencil::ProtocolJsonVal>(args, data);
             return args;
         }
-        else
-        {
-            throw std::runtime_error("Only get and put supported for functions");
-        }
+        else { throw std::runtime_error("Only get and put supported for functions"); }
     }
 
     static auto Invoke(TContext& ctx)
@@ -867,14 +862,17 @@ template <typename TImpl, typename T> struct WebServiceInterfaceImplT;
 template <typename TImpl, ConceptInterface TInterface>
 struct WebServiceInterfaceImplT<TImpl, TInterface> : Stencil::impl::Interface::InterfaceEventHandlerT<TImpl, TInterface>
 {
-    WebServiceInterfaceImplT()
+    WebServiceInterfaceImplT()           = default;
+    ~WebServiceInterfaceImplT() override = default;
+    CLASS_DELETE_COPY_AND_MOVE(WebServiceInterfaceImplT);
+
+    void OnStart()
     {
+        // Cannot do this in in the constructor because the constructor Interface might be called later on
+        // which resets it back to nullptr
         auto impl = static_cast<TImpl*>(this);
         impl->template GetInterface<TInterface>().SetHandler(impl);
     }
-
-    ~WebServiceInterfaceImplT() override = default;
-    CLASS_DELETE_COPY_AND_MOVE(WebServiceInterfaceImplT);
 };
 
 template <typename TImpl, ConceptIndexable T>
@@ -890,6 +888,8 @@ struct WebServiceInterfaceImplT<TImpl, impl::SynchronizedState<T>> : impl::Synch
         auto msg  = fmt::format("event: changed\ndata: {}\n\n", Stencil::StringTransactionSerDes::Deserialize(txn));
         impl->_sseManager.Send(typeid(T).hash_code(), msg);
     }
+
+    void OnStart() {}
 };
 
 template <ConceptIndexable TState> using WebSynchronizedState = impl::SynchronizedState<TState>;
@@ -905,6 +905,8 @@ struct WebServiceInterfaceImplT<TImpl, WebSessionInterface<TInterface>> : WebSes
     WebServiceInterfaceImplT()  = default;
     ~WebServiceInterfaceImplT() = default;
     CLASS_DELETE_COPY_AND_MOVE(WebServiceInterfaceImplT);
+
+    void OnStart() {}
 };
 
 template <typename TImpl, typename... TServices> struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TServices>...
@@ -920,12 +922,16 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
 
     void StartOnPort(uint16_t port, uint16_t numThreads = 4)
     {
+        (WebServiceInterfaceImplT<TImpl, TServices>::OnStart(), ...);
         auto const address = boost::asio::ip::make_address("0.0.0.0");
         boost::asio::co_spawn(ioc, _do_listen(tcp::endpoint{address, port}), [](std::exception_ptr e) {
             if (e) try
                 {
                     std::rethrow_exception(e);
-                } catch (std::exception& e) { fmt::print(stderr, "Error in acceptor: {}\n", e.what()); }
+                } catch (std::exception& e)
+                {
+                    fmt::print(stderr, "Error in acceptor: {}\n", e.what());
+                }
         });
 
         for (size_t i = 0; i < numThreads + NumServices; i++)
@@ -1055,7 +1061,10 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
                 if (e) try
                     {
                         std::rethrow_exception(e);
-                    } catch (std::exception& e) { fmt::print(stderr, "Session Terminated with Error:  {}\n", e.what()); }
+                    } catch (std::exception& e)
+                    {
+                        fmt::print(stderr, "Session Terminated with Error:  {}\n", e.what());
+                    }
             });
     }
 
