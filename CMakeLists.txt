@@ -17,83 +17,96 @@ endif()
 include(CMakePackageConfigHelpers)
 
 option(BUILD_TESTING "Build Test" ON)
+option(BUILD_TOOL "Build the code generator" ON)
+option(BUILD_RUNTIME "Build the runtime library" ON)
+
 option(STENCIL_INSTALL_BUILDTOOLS "Install Extra Build Tools with install" OFF)
 
 set(CMAKE_CXX_STANDARD 20)
 EnableStrictCompilation()
 
-
 find_package(Threads REQUIRED)
 
 file(GLOB public_headers ${CMAKE_CURRENT_LIST_DIR}/include/stencil/*)
-
-include(cmake/modules/cxxopts.cmake)
-include(cmake/modules/date.cmake)
-include(cmake/modules/EmbedResource.cmake)
-include(cmake/modules/fmt.cmake)
-include(cmake/modules/BoostBeast.cmake)
-include(cmake/modules/LexYacc.cmake)
-include(cmake/modules/RapidJSON.cmake)
-include(cmake/modules/stduuid.cmake)
-include(cmake/modules/tinyxml2.cmake)
-include(cmake/modules/toml11.cmake)
 
 include(cmake/CommonMacros.cmake)
 
 list(APPEND public_headers "${COMMONMACROS_INCLUDE_FILE}")
 
 if (BUILD_TESTING)
+    set(BUILD_TOOL ON CACHE BOOL "Enable BUILD_TOOL when BUILD_TESTING is enabled")
+    set(BUILD_RUNTIME ON CACHE BOOL "Enable BUILD_RUNTIME when BUILD_TESTING is enabled")
+endif()
+
+if (BUILD_TOOL)
+    include(cmake/modules/cxxopts.cmake)
+    include(cmake/modules/EmbedResource.cmake)
+    include(cmake/modules/fmt.cmake)
+    include(cmake/modules/LexYacc.cmake)
+    include(cmake/modules/tinyxml2.cmake)
+    include(cmake/modules/toml11.cmake)
+endif()
+
+if (BUILD_RUNTIME)
+    include(cmake/modules/BoostBeast.cmake)
+    include(cmake/modules/date.cmake)
+    include(cmake/modules/fmt.cmake)
+    include(cmake/modules/RapidJSON.cmake)
+    include(cmake/modules/stduuid.cmake)
+endif()
+
+if (BUILD_TESTING)
     enable_testing()
     include(cmake/modules/Catch2.cmake)
 endif()
 
-file(GLOB resfiles src/templates/*)
+if (BUILD_TOOL)
+    file(GLOB resfiles src/templates/*)
 
-add_library(libstencil OBJECT
-    src/ModelGenerator.cpp
-    src/Binding.h
-    src/DebugInfo.h
-    src/GeneratedCodeFragment.h
-    src/Generator.h
-    src/IDL2.h
-    src/IDL3Generics.h
-    src/TemplateFragment.h
-    src/Thrift.h
-    src/tree.h
-)
-target_include_directories(libstencil PUBLIC src include)
-add_lexyacc_library(TARGET Thrift LYFILE src/Thrift.ly SOURCES src/Thrift.cpp)
-target_include_directories(Thrift PUBLIC src include)
-target_link_libraries(Thrift PUBLIC CommonMacros fmt::fmt-header-only)
-if (MSVC)
-    # TOML11 has a nasty usage of insecure apis
-    set_source_files_properties("src/ModelGenerator.cpp" PROPERTIES COMPILE_FLAGS "/D_CRT_SECURE_NO_WARNINGS")
-endif()
-target_link_libraries(libstencil PUBLIC Thrift)
-target_add_resource(libstencil RESOURCE_COLLECTION_NAME templates RESOURCES ${resfiles})
-list(APPEND resfiles ${public_headers})
-if (NOT BUILD_TESTING)
-    target_add_resource(libstencil RESOURCE_COLLECTION_NAME commonheaders RESOURCES ${resfiles})
-endif()
+    add_library(libstencil OBJECT
+        src/ModelGenerator.cpp
+        src/Binding.h
+        src/DebugInfo.h
+        src/GeneratedCodeFragment.h
+        src/Generator.h
+        src/IDL2.h
+        src/IDL3Generics.h
+        src/TemplateFragment.h
+        src/Thrift.h
+        src/tree.h
+    )
+    target_include_directories(libstencil PUBLIC src include)
+    add_lexyacc_library(TARGET Thrift LYFILE src/Thrift.ly SOURCES src/Thrift.cpp)
+    target_include_directories(Thrift PUBLIC src include)
+    target_link_libraries(Thrift PUBLIC CommonMacros fmt::fmt-header-only)
+    if (MSVC)
+        # TOML11 has a nasty usage of insecure apis
+        set_source_files_properties("src/ModelGenerator.cpp" PROPERTIES COMPILE_FLAGS "/D_CRT_SECURE_NO_WARNINGS")
+    endif()
+    target_link_libraries(libstencil PUBLIC Thrift)
+    target_add_resource(libstencil RESOURCE_COLLECTION_NAME templates RESOURCES ${resfiles})
+    list(APPEND resfiles ${public_headers})
+    if (NOT BUILD_TESTING)
+        target_add_resource(libstencil RESOURCE_COLLECTION_NAME commonheaders RESOURCES ${resfiles})
+    endif()
 
-target_link_libraries(libstencil PUBLIC
-    toml11::toml11
-    tinyxml2::tinyxml2
-    fmt::fmt-header-only
-    CommonMacros
-)
+    target_link_libraries(libstencil PUBLIC
+        toml11::toml11
+        tinyxml2::tinyxml2
+        fmt::fmt-header-only
+        CommonMacros
+    )
+
+    add_executable(stencil src/main.cpp)
+    #set_target_properties(stencil PROPERTIES PUBLIC_HEADER "${public_headers}")
+    target_link_libraries(stencil PRIVATE libstencil Thrift cxxopts::cxxopts)
+endif()
 
 set(stencil_INCLUDE_PATH "${CMAKE_CURRENT_LIST_DIR}/include" CACHE PATH "Stencil include path")
 # For add_subdirectory mode
 include(stencilTargets)
 
 target_link_libraries(stencil_runtime INTERFACE CommonMacros)
-
-add_executable(stencil src/main.cpp)
-
-set_target_properties(stencil PROPERTIES PUBLIC_HEADER "${public_headers}")
-
-target_link_libraries(stencil PRIVATE libstencil Thrift cxxopts::cxxopts)
 
 if (BUILD_TESTING)
     add_subdirectory(tests/CodegenRuntime)
@@ -143,16 +156,18 @@ configure_package_config_file(cmake/stencilConfig.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/stencilConfig.cmake
     INSTALL_DESTINATION share/stencil
 )
+if (BUILD_TOOL)
+    install(
+        TARGETS stencil
+        EXPORT stencilTargets
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+    )
+endif()
 
-install(
-    TARGETS stencil
-    EXPORT stencilTargets
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    PUBLIC_HEADER DESTINATION include/stencil
-)
 
+install(FILES ${public_headers} DESTINATION include/stencil)
 install(FILES
     cmake/stencilTargets.cmake
     cmake/FindOrBuildTool.cmake

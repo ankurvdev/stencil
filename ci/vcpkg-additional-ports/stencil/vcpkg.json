@@ -17,6 +17,7 @@
         "ankurvdev-embedresource",
         "ankurvdev-lexyacc",
         "cxxopts",
+        "fmt",
         "tinyxml2",
         "toml11",
         "tsl-ordered-map"
