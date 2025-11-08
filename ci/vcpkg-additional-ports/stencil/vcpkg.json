@@ -32,7 +32,11 @@
         "rapidjson",
         "stduuid",
         {
-          "name": "stencil[tool]",
+          "name": "stencil",
+          "default-features": false,
+          "features": [
+            "tool"
+          ],
           "host": true
         }
       ]
