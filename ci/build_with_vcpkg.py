@@ -203,9 +203,7 @@ for runtime_triplet in runtime_triplets:
                 log.unlink()
         logging.debug(myenv)
 
-        vcpkg_install(portname + ":" + host_triplet)
-        if host_triplet != runtime_triplet:
-            vcpkg_install(portname + ":" + runtime_triplet)
+        vcpkg_install(portname + ":" + runtime_triplet)
     except subprocess.CalledProcessError:
         if args.verbose:
             logs = list(pathlib.Path(vcpkgroot / "buildtrees").rglob("*.log"))

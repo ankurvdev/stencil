@@ -6,27 +6,45 @@
   "license": "BSD-3-Clause",
   "dependencies": [
     {
-      "name": "stencil",
-      "host": true
-    },
-    {
       "name": "vcpkg-cmake",
       "host": true
-    },
-    "ankurvdev-embedresource",
-    "ankurvdev-lexyacc",
-    "boost-beast",
-    "boost-url",
-    "cxxopts",
-    "date",
-    "fmt",
-    "rapidjson",
-    "stduuid",
-    "tinyxml2",
-    "toml11",
-    "tsl-ordered-map"
+    }
+  ],
+  "default-features": [
+    "runtime"
   ],
   "features": {
+    "tool": {
+      "description": "Build stencil tool",
+      "dependencies": [
+        "ankurvdev-embedresource",
+        "ankurvdev-lexyacc",
+        "cxxopts",
+        "fmt",
+        "tinyxml2",
+        "toml11",
+        "tsl-ordered-map"
+      ]
+    },
+    "runtime": {
+      "description": "Build with runtime components",
+      "dependencies": [
+        "boost-beast",
+        "boost-url",
+        "date",
+        "fmt",
+        "rapidjson",
+        "stduuid",
+        {
+          "name": "stencil",
+          "default-features": false,
+          "features": [
+            "tool"
+          ],
+          "host": true
+        }
+      ]
+    },
     "tests": {
       "description": "Build with unittests",
       "dependencies": [
