@@ -27,11 +27,13 @@ find_package(Threads REQUIRED)
 
 file(GLOB public_headers ${CMAKE_CURRENT_LIST_DIR}/include/stencil/*)
 
+set(BOOST_INCLUDE_LIBRARIES beast asio url)
+include(cmake/modules/Boost.cmake)
+
 include(cmake/modules/cxxopts.cmake)
 include(cmake/modules/date.cmake)
 include(cmake/modules/EmbedResource.cmake)
 include(cmake/modules/fmt.cmake)
-include(cmake/modules/BoostBeast.cmake)
 include(cmake/modules/LexYacc.cmake)
 include(cmake/modules/RapidJSON.cmake)
 include(cmake/modules/stduuid.cmake)
