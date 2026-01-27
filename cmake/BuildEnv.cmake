@@ -247,7 +247,9 @@ macro(EnableStrictCompilation)
             endif()
             if (CMAKE_LINKER_TYPE STREQUAL GNU OR "${CMAKE_LINKER_TYPE}" STREQUAL "")
                 string(APPEND linker_flags " -Wl,--gc-sections") # Remove unused code sections
-                string(APPEND linker_flags " -Wl,--exclude-libs,ALL") # Exclude all static libs from symbol table
+                if (NOT EMSCRIPTEN) # TODO Find a better way to do this
+                    string(APPEND linker_flags " -Wl,--exclude-libs,ALL") # Exclude all static libs from symbol table
+                endif() 
                 string(APPEND linker_flags " -Wl,--no-whole-archive") # Disable whole archive by
 
                 string(APPEND shlib_linker_flags " -Wl,--no-undefined") # No undefined symbols in shared libraries. aka -Wl,-z,defs
