@@ -1,6 +1,6 @@
 #pragma once
 #include "CommonMacros.h"
-#include <stencil/shared_string.h>
+
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
 SUPPRESS_FMT_WARNINGS
@@ -17,16 +17,6 @@ SUPPRESS_MSVC_WARNING(5262)    // implicit fall-through occurs here;
 #include <fmt/ostream.h>
 
 SUPPRESS_WARNINGS_END
-
-template <> struct fmt::formatter<shared_string> : fmt::formatter<std::string_view>
-{
-    // Formats the point p using the parsed format specification (presentation)
-    // stored in this formatter.
-    auto format(shared_string const& item, fmt::format_context& ctx) const    // NOLINT
-    {
-        return fmt::format_to(ctx.out(), "{}", item.str());
-    }
-};
 
 template <> struct fmt::formatter<boost::system::error_code> : fmt::formatter<std::string_view>
 {
