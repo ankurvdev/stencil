@@ -5,6 +5,7 @@
 #endif
 
 #include "database.h"
+#include "fmtboostbeast.h"
 #include "interfaces.h"
 #include "protocol_json.h"
 #include "serdes.h"
@@ -914,16 +915,7 @@ template <typename TInterfaceImpl> struct SessionInterface
 };
 
 template <ConceptIndexable TState> struct SynchronizedState
-{
-    SynchronizedState()          = default;
-    virtual ~SynchronizedState() = default;
-    CLASS_DEFAULT_COPY_AND_MOVE(SynchronizedState);
-
-    void* handler{nullptr};
-
-    virtual std::string_view Name()           = 0;
-    virtual std::string      StateStringify() = 0;
-};
+{};
 
 template <typename TImpl, ConceptIndexable TState> struct RequestHandler<TImpl, SynchronizedState<TState>>
 {
@@ -934,7 +926,7 @@ template <typename TImpl, ConceptIndexable TState> struct RequestHandler<TImpl, 
                         boost::urls::url_view& /*url*/,
                         boost::urls::segments_base::iterator& it)
     {
-        return iequals(static_cast<SynchronizedState<TState>*>(&impl)->Name(), *it);
+        return iequals(impl.Name(), *it);
     }
 
     static void Invoke(SSEListenerManager& sseMgr,
@@ -946,8 +938,7 @@ template <typename TImpl, ConceptIndexable TState> struct RequestHandler<TImpl, 
     {
         ++it;
         SSEListenerManager::Instance::SSEContext ctx1(stream, req);
-        sseMgr.CreateInstance(typeid(TState).hash_code())
-            ->Start(ctx1, fmt::format("event: init\ndata: {}\n\n", static_cast<SynchronizedState<TState>*>(&impl)->StateStringify()));
+        sseMgr.CreateInstance(typeid(TState).hash_code())->Start(ctx1, fmt::format("event: init\ndata: {}\n\n", impl.StateStringify()));
     }
 };
 
@@ -1020,8 +1011,8 @@ template <typename TImpl, ConceptInterface TInterface> struct WebServiceInterfac
 template <typename TImpl, ConceptIndexable T>
 struct WebServiceInterfaceImplT<TImpl, impl::SynchronizedState<T>> : impl::SynchronizedState<T>
 {
-    WebServiceInterfaceImplT()           = default;
-    ~WebServiceInterfaceImplT() override = default;
+    WebServiceInterfaceImplT()  = default;
+    ~WebServiceInterfaceImplT() = default;
     CLASS_DELETE_COPY_AND_MOVE(WebServiceInterfaceImplT);
 
     void NotifyStateChanged(Stencil::Transaction<T>::View const& txn)
