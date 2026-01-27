@@ -37,12 +37,10 @@ SUPPRESS_MSVC_WARNING(5262)    // implicit fall-through occurs here;
 #include <boost/config.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/url.hpp>
-
-SUPPRESS_WARNINGS_END
-
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 #include <fmt/std.h>
+SUPPRESS_WARNINGS_END
 
 #include <chrono>
 #include <condition_variable>

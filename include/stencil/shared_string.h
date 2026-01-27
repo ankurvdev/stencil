@@ -4,11 +4,16 @@
 #include <memory>
 #include <string>
 #include <string_view>
-#include <type_traits>
 
 #if defined HAVE_FMTLIB
+#include "CommonMacros.h"
+SUPPRESS_WARNINGS_START
+SUPPRESS_STL_WARNINGS
+SUPPRESS_FMT_WARNINGS
 #include <fmt/format.h>
+SUPPRESS_WARNINGS_END
 #endif
+
 namespace std
 {
 inline std::string to_string(std::wstring_view str)
