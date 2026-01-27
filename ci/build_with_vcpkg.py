@@ -50,7 +50,7 @@ def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str, clean
         cmakeconfigargs += [
             f"-DCMAKE_TOOLCHAIN_FILE:PATH={info['cmake_toolchain_file'].as_posix()}",
             "-DANDROID=1",
-            "-DANDROID_NATIVE_API_LEVEL=26",
+            "-DANDROID_NATIVE_API_LEVEL=28",
         ] + abis[runtime_triplet]
 
         if shutil.which("make") is not None:
