@@ -8,3 +8,8 @@ interface Server1 {
     void Function2()
     void Function3(uint32 arg2);
 }
+
+interface NoEvent {
+    void Function2()
+    void Function3(uint32 arg2);
+}

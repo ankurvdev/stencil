@@ -35,7 +35,7 @@ struct zzVariant_Namezz;
 //</Variant>
 
 //<Interface>
-struct zzInterface_Namezz;
+template <typename TImpl> struct zzInterface_Namezz;
 
 //<InterfaceObjectStore>
 struct zzInterface_Namezz_ObjectStore_zzNamezz;
@@ -52,7 +52,7 @@ template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzVariant_Namezz>;
 //</Variant>
 
 //<Interface>
-template <> struct Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz>;
+template <typename TImpl> struct Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz<TImpl>>;
 
 //<InterfaceObjectStore>
 template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz_ObjectStore_zzNamezz>;
@@ -661,9 +661,27 @@ struct Stencil::Visitor<Stencil::Database::Record<zzProgram_Namezz::zzInterface_
 
 namespace zzProgram_Namezz
 {
-struct zzInterface_Namezz : public Stencil::InterfaceT<zzInterface_Namezz>
+
+//<InterfaceFunction>
+struct Args_zzInterface_Namezz_zzInterfaceFunction_Namezz
 {
-    using BaseClass = Stencil::InterfaceT<zzInterface_Namezz>;
+    //<Args_Field>
+    zzFieldType_NativeTypezz zzNamezz{};
+    //</Args_Field>
+};
+//</InterfaceFunction>
+//<InterfaceEvent>
+struct Args_zzInterface_Namezz_zzInterfaceEvent_Namezz
+{
+    //<Args_Field>
+    zzFieldType_NativeTypezz zzNamezz{};
+    //</Args_Field>
+};
+//</InterfaceEvent>
+template <typename TImpl> struct zzInterface_Namezz : public Stencil::InterfaceT<zzInterface_Namezz<TImpl>>
+{
+    using Impl      = TImpl;
+    using BaseClass = Stencil::InterfaceT<zzInterface_Namezz<TImpl>>;
 
     public:
     struct Dummy
@@ -686,14 +704,8 @@ struct zzInterface_Namezz : public Stencil::InterfaceT<zzInterface_Namezz>
         //</Args_Field>
         )
         = 0;
-    struct Args_zzInterfaceFunction_Namezz
-    {
-        //<Args_Field>
-        zzFieldType_NativeTypezz zzNamezz{};
-        //</Args_Field>
-    };
 
-    zzReturnType_NativeTypezz zzInterfaceFunction_Namezz([[maybe_unused]] Args_zzInterfaceFunction_Namezz const& args)
+    zzReturnType_NativeTypezz zzInterfaceFunction_Namezz([[maybe_unused]] Args_zzInterface_Namezz_zzInterfaceFunction_Namezz const& args)
     {
         return this->zzInterfaceFunction_Namezz(
             //<Args_Field Join=','>
@@ -702,7 +714,7 @@ struct zzInterface_Namezz : public Stencil::InterfaceT<zzInterface_Namezz>
         );
     }
 
-    zzReturnType_NativeTypezz zzInterfaceFunction_Namezz([[maybe_unused]] Args_zzInterfaceFunction_Namezz&& args)
+    zzReturnType_NativeTypezz zzInterfaceFunction_Namezz([[maybe_unused]] Args_zzInterface_Namezz_zzInterfaceFunction_Namezz&& args)
     {
         return this->zzInterfaceFunction_Namezz(
             //<Args_Field Join=','>
@@ -714,12 +726,6 @@ struct zzInterface_Namezz : public Stencil::InterfaceT<zzInterface_Namezz>
     //</InterfaceFunction>
 
     //<InterfaceEvent>
-    struct Args_zzInterfaceEvent_Namezz
-    {
-        //<Args_Field>
-        zzFieldType_NativeTypezz zzNamezz{};
-        //</Args_Field>
-    };
 
     void Raise_zzInterfaceEvent_Namezz(
         //<Args_Field Join=','>
@@ -727,31 +733,32 @@ struct zzInterface_Namezz : public Stencil::InterfaceT<zzInterface_Namezz>
         //</Args_Field>
     )
     {
-        BaseClass::RaiseEvent(Args_zzInterfaceEvent_Namezz{
-            //<Args_Field Join=','>
-            zzNamezz
-            //</Args_Field>
-        });
+        BaseClass::RaiseEvent(static_cast<TImpl&>(*this),
+                              Args_zzInterface_Namezz_zzInterfaceEvent_Namezz{
+                                  //<Args_Field Join=','>
+                                  zzNamezz
+                                  //</Args_Field>
+                              });
     }
     //</InterfaceEvent>
 
     ObjectStore objects;
 
-    static std::unique_ptr<zzInterface_Namezz> Create();
-    static std::shared_ptr<zzInterface_Namezz> CreateShared();
-    static std::shared_ptr<zzInterface_Namezz> Activate();
+    static std::unique_ptr<zzInterface_Namezz<TImpl>> Create();
+    static std::shared_ptr<zzInterface_Namezz<TImpl>> CreateShared();
+    static std::shared_ptr<zzInterface_Namezz<TImpl>> Activate();
 };
 }    // namespace zzProgram_Namezz
 //<InterfaceFunction>
 
-template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
+template <> struct Stencil::TypeTraits<zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceFunction_Namezz>
 {
     using Categories = std::tuple<Stencil::Category::Indexable>;
 };
 
-template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
+template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceFunction_Namezz>
 {
-    using TObj = zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz;
+    using TObj = zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceFunction_Namezz;
     enum class Fields
     {
         Invalid,
@@ -772,9 +779,9 @@ template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface
 };
 
 template <>
-struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>::Fields>
+struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceFunction_Namezz>::Fields>
 {
-    using Enum = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>::Fields;
+    using Enum = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceFunction_Namezz>::Fields;
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
@@ -786,19 +793,19 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzI
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
     SUPPRESS_WARNINGS_END
-    static Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>::Fields
+    static Stencil::TypeTraitsForIndexable<zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceFunction_Namezz>::Fields
     ForIndex(size_t index)
     {
-        return static_cast<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>::Fields>(
+        return static_cast<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceFunction_Namezz>::Fields>(
             index);
     }
 };
 
 template <>
-struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
-    : Stencil::VisitorT<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
+struct Stencil::Visitor<zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceFunction_Namezz>
+    : Stencil::VisitorT<zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceFunction_Namezz>
 {
-    using TData  = zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz;
+    using TData  = zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceFunction_Namezz;
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
@@ -832,10 +839,10 @@ struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFu
 };
 
 template <>
-struct Stencil::Comparator<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz,
-                           zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
+struct Stencil::Comparator<zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceFunction_Namezz,
+                           zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceFunction_Namezz>
 {
-    using ThisType = zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz;
+    using ThisType = zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceFunction_Namezz;
     static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
     {
         return true
@@ -846,13 +853,13 @@ struct Stencil::Comparator<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfac
     }
 };
 
-template <> struct Stencil::InterfaceApiTraits<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>
+template <> struct Stencil::InterfaceApiTraits<zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceFunction_Namezz>
 {
-    using ArgsStruct = zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz;
+    using ArgsStruct = zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceFunction_Namezz;
     static constexpr bool             IsStatic() { return false; }
     static constexpr std::string_view Name() { return "zzNamezz"; }
 
-    static auto Invoke(zzProgram_Namezz::zzInterface_Namezz& instance, [[maybe_unused]] ArgsStruct& args)
+    template <typename TImpl> static auto Invoke(zzProgram_Namezz::zzInterface_Namezz<TImpl>& instance, [[maybe_unused]] ArgsStruct& args)
     {
         return instance.zzNamezz(
             //<Args_Field Join=','>
@@ -864,14 +871,14 @@ template <> struct Stencil::InterfaceApiTraits<zzProgram_Namezz::zzInterface_Nam
 //</InterfaceFunction>
 
 //<InterfaceEvent>
-template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>
+template <> struct Stencil::TypeTraits<zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceEvent_Namezz>
 {
     using Categories = std::tuple<Stencil::Category::Indexable>;
 };
 
-template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>
+template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceEvent_Namezz>
 {
-    using TObj = zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz;
+    using TObj = zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceEvent_Namezz;
     enum class Fields
     {
         Invalid,
@@ -893,9 +900,9 @@ template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface
 };
 
 template <>
-struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>::Fields>
+struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceEvent_Namezz>::Fields>
 {
-    using Enum = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>::Fields;
+    using Enum = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceEvent_Namezz>::Fields;
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
@@ -907,19 +914,18 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzI
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
     SUPPRESS_WARNINGS_END
-    static Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>::Fields
-    ForIndex(size_t index)
+    static Stencil::TypeTraitsForIndexable<zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceEvent_Namezz>::Fields ForIndex(size_t index)
     {
-        return static_cast<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>::Fields>(
+        return static_cast<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceEvent_Namezz>::Fields>(
             index);
     }
 };
 
 template <>
-struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>
-    : Stencil::VisitorT<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>
+struct Stencil::Visitor<zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceEvent_Namezz>
+    : Stencil::VisitorT<zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceEvent_Namezz>
 {
-    using TData  = zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz;
+    using TData  = zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceEvent_Namezz;
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
@@ -953,10 +959,10 @@ struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEv
 };
 
 template <>
-struct Stencil::Comparator<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz,
-                           zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>
+struct Stencil::Comparator<zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceEvent_Namezz,
+                           zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceEvent_Namezz>
 {
-    using ThisType = zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz;
+    using ThisType = zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceEvent_Namezz;
     static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
     {
         return true
@@ -967,20 +973,20 @@ struct Stencil::Comparator<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfac
     }
 };
 
-template <> struct Stencil::InterfaceApiTraits<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>
+template <> struct Stencil::InterfaceApiTraits<zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceEvent_Namezz>
 {
-    using ArgsStruct = zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz;
+    using ArgsStruct = zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceEvent_Namezz;
     static constexpr std::string_view Name() { return "zzNamezz"; }
 };
 //</InterfaceEvent>
 
-template <> struct Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz>
+template <typename TImpl> struct Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz<TImpl>>
 {
     static constexpr std::string_view Name() { return "zzInterface_Namezz"; }
 
     using ApiStructs = std::tuple<
         //<InterfaceFunction Join=','>
-        zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz
+        zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceFunction_Namezz
         //</InterfaceFunction>
         >;
 
@@ -992,7 +998,7 @@ template <> struct Stencil::InterfaceTraits<zzProgram_Namezz::zzInterface_Namezz
 
     using EventStructs = std::tuple<
         //<InterfaceEvent Join=','>
-        zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz
+        zzProgram_Namezz::Args_zzInterface_Namezz_zzInterfaceEvent_Namezz
         //</InterfaceEvent>
         >;
 };

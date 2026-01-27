@@ -357,9 +357,10 @@ struct SSEFormat : TestCommon::JsonFormat
     }
 };
 
-struct Server1Impl
-    : Stencil::websvc::WebServiceT<Server1Impl, Interfaces::Server1, Stencil::websvc::WebSynchronizedState<Objects::NestedObject>>,
-      Interfaces::Server1
+struct Server1Impl : Stencil::websvc::WebServiceT<Server1Impl,
+                                                  Interfaces::Server1<Server1Impl>,
+                                                  Stencil::websvc::WebSynchronizedState<Objects::NestedObject>>,
+                     Interfaces::Server1<Server1Impl>
 {
     Server1Impl() { objects.Init(std::filesystem::path("SaveAndLoad.bin")); }
     ~Server1Impl() override = default;
@@ -386,13 +387,17 @@ struct Server1Impl
     void Function2() override {}
     void Function3(uint32_t const& /* arg1 */) override {}
 
-    void OnSSEInstanceEnded() {}
+    void OnStateChange(Stencil::Transaction<Objects::NestedObject>::View const& txnv) { NotifyStateChanged(txnv); }
 
-    void                  OnStateChange(Stencil::Transaction<Objects::NestedObject>::View const& txnv) { NotifyStateChanged(txnv); }
     Objects::NestedObject state;
     // Event listeners ?
 };
 
+struct NoEventImpl : Stencil::websvc::WebServiceT<NoEventImpl, Interfaces::NoEvent<NoEventImpl>>, Interfaces::NoEvent<NoEventImpl>
+{
+    void Function2() override {}
+    void Function3(uint32_t const& /* arg1 */) override {}
+};
 // Generated code ends
 
 struct Tester : ObjectsTester
@@ -522,14 +527,14 @@ struct Tester : ObjectsTester
     {
         auto arg1 = create_uint32();
         auto arg2 = create_simple_object1();
-        svc->GetInterface<Interfaces::Server1>().Raise_SomethingHappened(arg1, arg2);
+        svc->GetInterface<Interfaces::Server1<Server1Impl>>().Raise_SomethingHappened(arg1, arg2);
     }
 
     void svc_call_function()
     {
         auto arg1 = create_uint32();
         auto arg2 = create_simple_object1();
-        svc->GetInterface<Interfaces::Server1>().Function1(arg1, arg2);
+        svc->GetInterface<Interfaces::Server1<Server1Impl>>().Function1(arg1, arg2);
     }
 
     void svc_state_change()
