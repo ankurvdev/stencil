@@ -48,15 +48,6 @@ namespace http  = beast::http;
 namespace net   = boost::asio;
 using tcp       = net::ip::tcp;
 
-template <> struct fmt::formatter<beast::error_code> : fmt::formatter<std::string_view>
-{
-    auto format(beast::error_code const& ec, fmt::format_context& ctx) const
-    {
-        return fmt::format_to(
-            ctx.out(), "ec.value() = {}, ec.category() = {}, ec.message() = {}", ec.value(), ec.category().name(), ec.message());
-    }
-};
-
 struct HttpClientListener
 {
     using Params = std::unordered_map<std::string, std::string>;
@@ -357,15 +348,16 @@ struct SSEFormat : TestCommon::JsonFormat
     }
 };
 
-struct Server1Impl
-    : Stencil::websvc::WebServiceT<Server1Impl, Interfaces::Server1, Stencil::websvc::WebSynchronizedState<Objects::NestedObject>>,
-      Interfaces::Server1
+struct Server1Impl : Stencil::websvc::WebServiceT<Server1Impl,
+                                                  Interfaces::Server1<Server1Impl>,
+                                                  Stencil::websvc::WebSynchronizedState<Objects::NestedObject>>,
+                     Interfaces::Server1<Server1Impl>
 {
     Server1Impl() { objects.Init(std::filesystem::path("SaveAndLoad.bin")); }
     ~Server1Impl() override = default;
     CLASS_DELETE_COPY_AND_MOVE(Server1Impl);
-    std::string_view Name() override { return "state"; }
-    std::string      StateStringify() override { return Stencil::Json::Stringify(state); }
+    std::string_view Name() { return "state"; }
+    std::string      StateStringify() { return Stencil::Json::Stringify(state); }
 
     std::unordered_map<uint32_t, Objects::SimpleObject1> Function1(uint32_t const& arg1, Objects::SimpleObject1 const& arg2) override
     {
@@ -386,13 +378,21 @@ struct Server1Impl
     void Function2() override {}
     void Function3(uint32_t const& /* arg1 */) override {}
 
-    void OnSSEInstanceEnded() {}
+    void OnStateChange(Stencil::Transaction<Objects::NestedObject>::View const& txnv) { NotifyStateChanged(txnv); }
 
-    void                  OnStateChange(Stencil::Transaction<Objects::NestedObject>::View const& txnv) { NotifyStateChanged(txnv); }
     Objects::NestedObject state;
     // Event listeners ?
 };
 
+struct NoEventImpl : Stencil::websvc::WebServiceT<NoEventImpl, Interfaces::NoEvent<NoEventImpl>>, Interfaces::NoEvent<NoEventImpl>
+{
+    NoEventImpl()           = default;
+    ~NoEventImpl() override = default;
+    CLASS_DELETE_COPY_AND_MOVE(NoEventImpl);
+
+    void Function2() override {}
+    void Function3(uint32_t const& /* arg1 */) override {}
+};
 // Generated code ends
 
 struct Tester : ObjectsTester
@@ -522,14 +522,14 @@ struct Tester : ObjectsTester
     {
         auto arg1 = create_uint32();
         auto arg2 = create_simple_object1();
-        svc->GetInterface<Interfaces::Server1>().Raise_SomethingHappened(arg1, arg2);
+        svc->GetInterface<Interfaces::Server1<Server1Impl>>().Raise_SomethingHappened(arg1, arg2);
     }
 
     void svc_call_function()
     {
         auto arg1 = create_uint32();
         auto arg2 = create_simple_object1();
-        svc->GetInterface<Interfaces::Server1>().Function1(arg1, arg2);
+        svc->GetInterface<Interfaces::Server1<Server1Impl>>().Function1(arg1, arg2);
     }
 
     void svc_state_change()

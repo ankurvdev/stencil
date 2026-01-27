@@ -22,14 +22,14 @@ endif()
 macro(_PrintFlags)
     foreach (flagname
             CMAKE_C_FLAGS CMAKE_CXX_FLAGS
-            CMAKE_EXE_LINKER_FLAGS CMAKE_SHARED_LINKER_FLAGS
+            CMAKE_EXE_LINKER_FLAGS CMAKE_SHARED_LINKER_FLAGS CMAKE_MODULE_LINKER_FLAGS
             CMAKE_INTERPROCEDURAL_OPTIMIZATION)
         foreach(variantstr _INIT
-                    "               "
-                    "_DEBUG         "
-                    "_RELEASE       "
+                    ""
+                    "_DEBUG"
+                    "_RELEASE"
                     "_RELWITHDEBINFO"
-                    "_MINSIZEREL    ")
+                    "_MINSIZEREL")
             set(varname ${flagname}${variantstr})
             message(STATUS "${varname}:${${varname}}")
         endforeach()
@@ -245,9 +245,21 @@ macro(EnableStrictCompilation)
                     set(CMAKE_LINKER_TYPE LLD)
                 endif()
             endif()
-            if (CMAKE_LINKER_TYPE STREQUAL GNU)
-                string(APPEND CMAKE_SHARED_LINKER_FLAGS " -Wl,--exclude-libs,ALL -Wl,--no-undefined -Wl,--gc-sections")
-                string(APPEND CMAKE_EXE_LINKER_FLAGS " -Wl,--exclude-libs,ALL -Wl,--no-undefined -Wl,--gc-sections")
+            if (CMAKE_LINKER_TYPE STREQUAL GNU OR "${CMAKE_LINKER_TYPE}" STREQUAL "")
+                string(APPEND linker_flags " -Wl,--gc-sections") # Remove unused code sections
+                if (NOT EMSCRIPTEN) # TODO Find a better way to do this
+                    string(APPEND linker_flags " -Wl,--exclude-libs,ALL") # Exclude all static libs from symbol table
+                endif() 
+                string(APPEND linker_flags " -Wl,--no-whole-archive") # Disable whole archive by
+
+                string(APPEND shlib_linker_flags " -Wl,--no-undefined") # No undefined symbols in shared libraries. aka -Wl,-z,defs
+                string(APPEND shlib_linker_flags " -Wl,-no-allow-shlib-undefined") # No undefined symbols in shared libraries
+                # string(APPEND shlib_linker_flags "-Wl,--unresolved-symbols=ignore-in-shared-libs") # Ignore undefined symbols in shared libs when linking executables
+                # string(APPEND shlib_linker_flags " -Wl,--as-needed") # Link only needed libraries. CMAKE_LINK_WHAT_YOU_USE handles this
+                # string(APPEND shlib_linker_flags " -Wl,--copy-dt-needed-entries") # Copy transitive dependencies of shared libraries. We dont want this
+                string(APPEND CMAKE_SHARED_LINKER_FLAGS " ${linker_flags} ${shlib_linker_flags}")
+                string(APPEND CMAKE_MODULE_LINKER_FLAGS " ${linker_flags} ${shlib_linker_flags}")
+                string(APPEND CMAKE_EXE_LINKER_FLAGS " ${linker_flags}")
             endif()
             if (NOT EMSCRIPTEN)
                 list(APPEND extraflags -Werror)     # All warnings as errors

@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python3  # noqa: EXE001
 # cppforge-sync
 import argparse
 import contextlib
@@ -206,25 +206,25 @@ def get_env_config_var(name: str, default_val: str | None = None) -> str | None:
     if name in os.environ:
         return os.environ[name]
     try:
-        import configenv  # noqa: ignore, pylint: disable=import-outside-toplevel  # noqa: PLC0415
+        import configenv  # noqa: PLC0415 ignore, pylint: disable=import-outside-toplevel
 
         return configenv.ConfigEnv(None).GetConfigStr(name, default=default_val)
     except ImportError:
         return default_val
 
 
-def get_path_var(name: str, default_path: Path | None = Path().absolute()) -> Path | None:  # noqa: B008
-    val = get_env_config_var(name, default_path.as_posix())
+def get_path_var(name: str, default_path: Path | None = None) -> Path | None:
+    val = get_env_config_var(name, default_path.as_posix() if default_path else None)
     if val:
         return Path(os.path.expandvars(val)).expanduser()
     return default_path
 
 
-def get_bin_path(default_path: Path | None = Path().absolute()) -> Path | None:  # noqa: B008
+def get_bin_path(default_path: Path | None = None) -> Path | None:
     return get_path_var("DEVEL_BINPATH", default_path)
 
 
-def get_vcpkg_root(default_path: Path | None = Path().absolute() / "vcpkg") -> Path | None:  # noqa: B008
+def get_vcpkg_root(default_path: Path | None = None) -> Path | None:
     return get_path_var("VCPKG_ROOT", default_path)
 
 
@@ -234,7 +234,7 @@ def is_linux_march_native() -> bool:
 
 def get_vcpkg_port_tool(vcpkg_root: Path, packname: str, binname: str) -> Path | None:
     try:
-        import vcpkg  # noqa: ignore, pylint: disable=import-outside-toplevel  # noqa: PLC0415
+        import vcpkg  # noqa: PLC0415 ignore, pylint: disable=import-outside-toplevel, PLC0415
 
         vcpkgobj = vcpkg.Vcpkg(vcpkg_root)
         host_triplet = vcpkgobj.detect_host_triplet()
@@ -275,7 +275,8 @@ def download_android_studio(path: Path) -> None:
     ext = {"linux": "tar.gz", "win32": "zip"}[sys.platform]
     urls = HTMLUrlExtractor("https://developer.android.com/studio").urls
     ossuffix = {"linux": "linux", "win32": "windows"}[sys.platform]
-    pattern = f"https://redirector.gvt1.com/edgedl/android/studio/.*/android-studio-.*-{ossuffix}.{ext}"
+    #pattern = f"https://redirector.gvt1.com/edgedl/android/studio/.*/android-studio-.*-{ossuffix}.{ext}"
+    pattern = f"https://edgedl.me.gvt1.com/android/studio/.*/android-studio-.*-{ossuffix}.{ext}"
     url = next(u for u in urls if re.match(pattern, u))
     downloadtofile = path / "downloads" / f"studio.{ext}"
     downloadtofile.parent.mkdir(exist_ok=True)
@@ -302,7 +303,7 @@ def get_binary(
     return rslt
 
 
-def _get_binary(  # noqa: PLR0912, PLR0915, C901
+def _get_binary(  # noqa: C901, PLR0911, PLR0912, PLR0915
     packname: str,
     binname: str | None = None,
     search_paths: list[Path] | None = None,
@@ -710,7 +711,7 @@ def get_android_toolchain(_expiry: int = 30) -> dict[str, str | Path | _Environ[
             "PATH": [java.parent],
             "ANDROID_HOME": sdk_root.as_posix(),
             "ANDROID_SDK_ROOT": sdk_root.as_posix(),
-            "ANDROID_NDK_HOME": ndk_home.as_posix(),
+            "ANDROID_NDK_ROOT": ndk_home.as_posix(),
             "JAVA_HOME": java.parent.parent.as_posix(),
         },
         "ndk": ndk_home,

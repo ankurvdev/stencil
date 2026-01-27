@@ -1,7 +1,8 @@
 include(${CMAKE_CURRENT_LIST_DIR}/../../cmake/stencilTargets.cmake)
 set(stencil_INCLUDE_PATH "../../include" CACHE PATH "Stencil include path")
 include(../../cmake/TestCommon.cmake)
-include(../../cmake/modules/BoostBeast.cmake)
+set(BOOST_INCLUDE_LIBRARIES beast asio url)
+include(../../cmake/modules/Boost.cmake)
 
 file(GLOB test_data_files CONFIGURE_DEPENDS "../testdata/*")
 file(GLOB pidlfiles "../*.pidl")

@@ -5,6 +5,7 @@
 #endif
 
 #include "database.h"
+#include "fmtboostbeast.h"
 #include "interfaces.h"
 #include "protocol_json.h"
 #include "serdes.h"
@@ -19,6 +20,7 @@
 
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
+SUPPRESS_FMT_WARNINGS
 SUPPRESS_MSVC_WARNING(4242)
 SUPPRESS_MSVC_WARNING(4702)
 SUPPRESS_MSVC_WARNING(5219)
@@ -28,17 +30,17 @@ SUPPRESS_MSVC_WARNING(5262)    // implicit fall-through occurs here;
 #include <boost/asio/use_awaitable.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
+#include <boost/beast/http/empty_body.hpp>
 #include <boost/beast/http/field.hpp>
 #include <boost/beast/http/file_body.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/config.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/url.hpp>
-
-SUPPRESS_WARNINGS_END
-
 #include <fmt/format.h>
 #include <fmt/ostream.h>
+#include <fmt/std.h>
+SUPPRESS_WARNINGS_END
 
 #include <chrono>
 #include <condition_variable>
@@ -53,6 +55,7 @@ SUPPRESS_WARNINGS_END
 #if !defined(BOOST_ASIO_HAS_CO_AWAIT)
 #error Need co await
 #endif
+
 namespace Stencil::websvc::impl
 {
 template <typename TImpl, typename TSvc> struct RequestHandler;
@@ -113,33 +116,182 @@ WriteStringResponse(tcp_stream& stream, Request const& req, std::string_view con
     boost::beast::http::write(stream, sr);
 }
 
-inline void
-WriteFileResponse(tcp_stream& stream, Request const& req, std::filesystem::path const& path, boost::beast::string_view const& content_type)
+template <typename TCallback>
+inline void WriteFileResponse(tcp_stream&                      stream,
+                              Request const&                   req,
+                              std::filesystem::path const&     path,
+                              boost::beast::string_view const& contentType,
+                              TCallback const&                 customizeResponse)
 {
-    if (!std::filesystem::exists(path))
+    auto filePath = path;
+
+    if (!std::filesystem::exists(filePath))
     {
-        throw std::invalid_argument(fmt::format("Cannot send File Response. File does not exist: {}", path.string()));
+        throw std::invalid_argument(fmt::format("Cannot send File Response. File does not exist: {}", filePath));
     }
 
-    std::ifstream file(path, std::ios::binary);
-    if (!file.is_open()) throw std::runtime_error(fmt::format("Cannot send File Response. Failed to open file: {}", path.string()));
-    boost::beast::http::response<boost::beast::http::file_body> res;
-    boost::system::error_code                                   ec;
-    auto                                                        pathstr = path.string();
-    res.body().open(pathstr.c_str(), boost::beast::file_mode::scan, ec);
-    res.result(boost::beast::http::status::ok);
-    res.version(req.version());
-    res.keep_alive(req.keep_alive());
-    res.set(boost::beast::http::field::server, BOOST_BEAST_VERSION_STRING);
-    res.set(boost::beast::http::field::content_type, content_type);
-    res.set(boost::beast::http::field::access_control_allow_origin, "*");
-    res.set(boost::beast::http::field::server, "stencil_webserver");
-    res.content_length(res.body().size());
+    while (std::filesystem::is_symlink(filePath)) { filePath = std::filesystem::read_symlink(filePath); }
+    filePath = std::filesystem::absolute(filePath);
+    // Open file to get size
+    auto const fileSize = static_cast<size_t>(std::filesystem::file_size(filePath));
+    if (fileSize == 0) { throw std::runtime_error(fmt::format("Media file is empty: {}", filePath)); }
+    std::ifstream file(filePath, std::ios::binary);
+    if (!file.is_open()) { throw std::runtime_error(fmt::format("Cannot send File Response. Failed to open file: {}", filePath)); }
+    file.seekg(0);
 
-    boost::beast::http::response_serializer<boost::beast::http::file_body> sr{res};
-    boost::beast::http::write_header(stream, sr);
+    // Check for Range header
+    auto rangeHeader = req.find(boost::beast::http::field::range);
+    bool hasRange    = rangeHeader != req.end();
 
-    boost::beast::http::write(stream, sr);
+    size_t startByte = 0;
+    size_t endByte   = fileSize - 1;
+    if (hasRange)
+    {
+        // Parse Range header (format: "bytes=start-end")
+        std::string rangeValue = std::string(rangeHeader->value());
+
+        if (rangeValue.starts_with("bytes="))
+        {
+            constexpr size_t bytesPrefix = 6;    // length of "bytes="
+            std::string      rangeSpec   = rangeValue.substr(bytesPrefix);
+            size_t           dashPos     = rangeSpec.find('-');
+
+            if (dashPos != std::string::npos)
+            {
+                std::string startStr = rangeSpec.substr(0, dashPos);
+                std::string endStr   = rangeSpec.substr(dashPos + 1);
+
+                try
+                {
+                    if (!startStr.empty()) { startByte = static_cast<size_t>(std::stoull(startStr)); }
+
+                    if (!endStr.empty()) { endByte = static_cast<size_t>(std::stoull(endStr)); }
+                    else
+                    {
+                        endByte = fileSize - 1;
+                    }
+
+                    // Validate range
+                    if (startByte > endByte || startByte >= fileSize) {}
+
+                    // Clamp end byte to file size
+                    if (endByte >= fileSize) { endByte = fileSize - 1; }
+                } catch (...)
+                {
+                    // Invalid range format, ignore and send full file
+                    hasRange  = false;
+                    startByte = 0;
+                    endByte   = fileSize - 1;
+                }
+            }
+        }
+    }
+
+    boost::system::error_code ec;
+
+    auto fillResponseHeaders = [&](auto& res) {
+        res.result(boost::beast::http::status::ok);
+        res.version(req.version());
+        res.keep_alive(req.keep_alive());
+        res.set(boost::beast::http::field::content_type, contentType);
+        res.set(boost::beast::http::field::access_control_allow_origin, "*");
+        res.set(boost::beast::http::field::server, "stencil_webserver");
+        res.set(boost::beast::http::field::accept_ranges, "bytes");
+        res.set(boost::beast::http::field::content_length, std::to_string(fileSize));
+    };
+
+    if (hasRange && (startByte != 0 || endByte != fileSize - 1))
+    {
+        // Seek to start position
+        file.seekg(static_cast<std::streamoff>(startByte));
+
+        if (!file.good())
+        {
+            fmt::print(stderr, "Error seeking file {}\n", filePath.string());
+            file.close();
+            throw std::runtime_error(fmt::format("Failed to open media file: {}", filePath.string()));
+        }
+
+        // Read the requested range
+        size_t      contentLength = endByte - startByte + 1;
+        std::string fileContent;
+
+        fileContent.resize(contentLength);
+
+        file.read(fileContent.data(), static_cast<std::streamsize>(contentLength));
+        auto bytesRead = static_cast<size_t>(file.gcount());
+        file.close();
+
+        if (bytesRead < contentLength)
+        {
+            // Adjust content length if we read less than expected
+            fileContent.resize(bytesRead);
+            contentLength = bytesRead;
+            endByte       = startByte + bytesRead - 1;
+        }
+
+        // Prepare partial content response
+        boost::beast::http::response<boost::beast::http::string_body> res;
+        res.version(req.version());
+        fillResponseHeaders(res);
+        res.result(boost::beast::http::status::partial_content);
+        res.set(boost::beast::http::field::content_range, fmt::format("bytes {}-{}/{}", startByte, endByte, fileSize));
+        customizeResponse(res);
+        res.body() = std::move(fileContent);
+        res.prepare_payload();
+
+        // Send the response
+        boost::beast::http::response_serializer<boost::beast::http::string_body> sr{res};
+        boost::beast::http::write_header(stream, sr);
+        boost::beast::http::write(stream, sr);
+        ec = stream.socket().shutdown(tcp::socket::shutdown_send, ec);
+        return;
+    }
+
+    if (req.method() == boost::beast::http::verb::head)
+    {
+        boost::beast::http::response<boost::beast::http::empty_body> res;
+        fillResponseHeaders(res);
+        customizeResponse(res);
+        boost::beast::http::response_serializer<boost::beast::http::empty_body> sr{res};
+        boost::beast::http::write_header(stream, sr);
+        boost::beast::http::write(stream, sr, ec);
+        ec = stream.socket().shutdown(tcp::socket::shutdown_send, ec);
+    }
+    else
+    {
+        boost::beast::http::response<boost::beast::http::file_body> res;
+        res.body().open(filePath.string().c_str(), boost::beast::file_mode::scan, ec);
+        res.content_length(res.body().size());
+        fillResponseHeaders(res);
+        customizeResponse(res);
+        res.prepare_payload();
+        boost::beast::http::response_serializer<boost::beast::http::file_body> sr{res};
+        boost::beast::http::write_header(stream, sr);
+        boost::beast::http::write(stream, sr, ec);
+        if (ec)
+        {
+            if (ec == boost::beast::http::error::end_of_stream || ec == boost::asio::error::broken_pipe)
+            {
+                ec = stream.socket().shutdown(tcp::socket::shutdown_send, ec);
+                // Ignore end of stream errors
+                return;
+            }
+            fmt::print(stderr, "Error writing file response: {}\n", ec);
+            if (ec == boost::asio::error::connection_reset)
+            {
+                ec = stream.socket().shutdown(tcp::socket::shutdown_send, ec);
+                return;
+            }
+            throw ec;
+        }
+        ec = stream.socket().shutdown(tcp::socket::shutdown_send, ec);
+    }
+}
+inline void
+WriteFileResponse(tcp_stream& stream, Request const& req, std::filesystem::path const& path, boost::beast::string_view const& contentType)
+{
+    WriteFileResponse(stream, req, path, contentType, [](auto&) {});
 }
 
 inline void Redirect(tcp_stream& stream, Request const& req, std::string_view const& redirect_path)
@@ -168,36 +320,53 @@ inline boost::beast::string_view mime_type(boost::beast::string_view path)
 {
     auto const ext = [&path] {
         auto const pos = path.rfind(".");
-        if (pos == boost::beast::string_view::npos) return boost::beast::string_view{};
+        if (pos == boost::beast::string_view::npos) { return boost::beast::string_view{}; }
         return path.substr(pos);
     }();
-    if (impl::iequals(ext, ".htm")) return "text/html";
-    if (impl::iequals(ext, ".html")) return "text/html";
-    if (impl::iequals(ext, ".php")) return "text/html";
-    if (impl::iequals(ext, ".css")) return "text/css";
-    if (impl::iequals(ext, ".txt")) return "text/plain";
-    if (impl::iequals(ext, ".js")) return "application/javascript";
-    if (impl::iequals(ext, ".json")) return "application/json";
-    if (impl::iequals(ext, ".xml")) return "application/xml";
-    if (impl::iequals(ext, ".swf")) return "application/x-shockwave-flash";
-    if (impl::iequals(ext, ".flv")) return "video/x-flv";
-    if (impl::iequals(ext, ".png")) return "image/png";
-    if (impl::iequals(ext, ".jpe")) return "image/jpeg";
-    if (impl::iequals(ext, ".jpeg")) return "image/jpeg";
-    if (impl::iequals(ext, ".jpg")) return "image/jpeg";
-    if (impl::iequals(ext, ".gif")) return "image/gif";
-    if (impl::iequals(ext, ".bmp")) return "image/bmp";
-    if (impl::iequals(ext, ".ico")) return "image/vnd.microsoft.icon";
-    if (impl::iequals(ext, ".tiff")) return "image/tiff";
-    if (impl::iequals(ext, ".tif")) return "image/tiff";
-    if (impl::iequals(ext, ".svg")) return "image/svg+xml";
-    if (impl::iequals(ext, ".svgz")) return "image/svg+xml";
-    if (impl::iequals(ext, ".kml")) return "application/vnd.google-earth.kml+xml";
-    if (impl::iequals(ext, ".m3u8")) return "application/x-mpegURL";
-    if (impl::iequals(ext, ".ts")) return "video/mp4";
-    if (impl::iequals(ext, ".mp4")) return "video/mp4";
-    if (impl::iequals(ext, ".m4s")) return "video/mp4";
-    return "application/text";
+
+    if (impl::iequals(ext, ".css")) { return "text/css"; }
+    if (impl::iequals(ext, ".htm")) { return "text/html"; }
+    if (impl::iequals(ext, ".html")) { return "text/html"; }
+    if (impl::iequals(ext, ".php")) { return "text/html"; }
+    if (impl::iequals(ext, ".txt")) { return "text/plain"; }
+
+    if (impl::iequals(ext, ".js")) { return "application/javascript"; }
+    if (impl::iequals(ext, ".json")) { return "application/json"; }
+    if (impl::iequals(ext, ".kml")) { return "application/vnd.google-earth.kml+xml"; }
+    if (impl::iequals(ext, ".m3u8")) { return "application/x-mpegURL"; }
+    if (impl::iequals(ext, ".m3u")) { return "application/x-mpegURL"; }
+    if (impl::iequals(ext, ".swf")) { return "application/x-shockwave-flash"; }
+    if (impl::iequals(ext, ".xml")) { return "application/xml"; }
+
+    if (impl::iequals(ext, ".bmp")) { return "image/bmp"; }
+    if (impl::iequals(ext, ".gif")) { return "image/gif"; }
+    if (impl::iequals(ext, ".ico")) { return "image/vnd.microsoft.icon"; }
+    if (impl::iequals(ext, ".jpe")) { return "image/jpeg"; }
+    if (impl::iequals(ext, ".jpeg")) { return "image/jpeg"; }
+    if (impl::iequals(ext, ".jpg")) { return "image/jpeg"; }
+    if (impl::iequals(ext, ".png")) { return "image/png"; }
+    if (impl::iequals(ext, ".svg")) { return "image/svg+xml"; }
+    if (impl::iequals(ext, ".svgz")) { return "image/svg+xml"; }
+    if (impl::iequals(ext, ".tif")) { return "image/tiff"; }
+    if (impl::iequals(ext, ".tiff")) { return "image/tiff"; }
+
+    if (impl::iequals(ext, ".avi")) { return "video/x-msvideo"; }
+    if (impl::iequals(ext, ".flv")) { return "video/x-flv"; }
+    if (impl::iequals(ext, ".m4s")) { return "video/mp4"; }
+    if (impl::iequals(ext, ".mkv")) { return "video/x-matroska"; }
+    if (impl::iequals(ext, ".mov")) { return "video/quicktime"; }
+    if (impl::iequals(ext, ".mp4")) { return "video/mp4"; }
+    if (impl::iequals(ext, ".ts")) { return "video/vnd.dlna.mpeg-tts"; }
+    if (impl::iequals(ext, ".webm")) { return "video/webm"; }
+    if (impl::iequals(ext, ".wmv")) { return "video/x-ms-wmv"; }
+
+    if (impl::iequals(ext, ".flac")) { return "audio/flac"; }
+    if (impl::iequals(ext, ".m4a")) { return "audio/mp4"; }
+    if (impl::iequals(ext, ".mp3")) { return "audio/mpeg"; }
+    if (impl::iequals(ext, ".ogg")) { return "audio/ogg"; }
+    if (impl::iequals(ext, ".wav")) { return "audio/wav"; }
+
+    return "application/octet-stream";
 }
 
 }    // namespace Stencil::websvc
@@ -744,40 +913,8 @@ template <typename TInterfaceImpl> struct SessionInterface
     std::unordered_map<Uuid, std::shared_ptr<TInterfaceImpl>> _sessions;
 };
 
-template <typename TInterfaceImpl, ConceptInterface TInterface>
-struct SessionInterfaceT : TInterface,
-                           UuidObjectT<TInterfaceImpl>,
-                           Stencil::impl::Interface::InterfaceEventHandlerT<TInterfaceImpl, TInterface>
-{
-    using Interface = TInterface;
-    SessionInterfaceT() { TInterface::SetHandler(this); }
-    ~SessionInterfaceT() override = default;
-    CLASS_DELETE_COPY_AND_MOVE(SessionInterfaceT);
-
-    void* handler{nullptr};
-
-    template <typename TEventArgs> void OnEvent(TEventArgs const& args)
-    {
-        auto msg = fmt::format("event: {}\ndata: {}\n\n", Stencil::InterfaceApiTraits<TEventArgs>::Name(), Stencil::Json::Stringify(args));
-        _sseManager.Send(0, msg);
-    }
-    virtual bool HandleRequest(tcp_stream& /* stream */, Request const& /* req */, boost::urls::url_view const& /* url */) { return false; }
-    virtual void OnSSEInstanceEnded() = 0;
-
-    impl::SSEListenerManager _sseManager;
-};
-
 template <ConceptIndexable TState> struct SynchronizedState
-{
-    SynchronizedState()          = default;
-    virtual ~SynchronizedState() = default;
-    CLASS_DEFAULT_COPY_AND_MOVE(SynchronizedState);
-
-    void* handler{nullptr};
-
-    virtual std::string_view Name()           = 0;
-    virtual std::string      StateStringify() = 0;
-};
+{};
 
 template <typename TImpl, ConceptIndexable TState> struct RequestHandler<TImpl, SynchronizedState<TState>>
 {
@@ -788,7 +925,7 @@ template <typename TImpl, ConceptIndexable TState> struct RequestHandler<TImpl, 
                         boost::urls::url_view& /*url*/,
                         boost::urls::segments_base::iterator& it)
     {
-        return iequals(static_cast<SynchronizedState<TState>*>(&impl)->Name(), *it);
+        return iequals(impl.Name(), *it);
     }
 
     static void Invoke(SSEListenerManager& sseMgr,
@@ -800,8 +937,7 @@ template <typename TImpl, ConceptIndexable TState> struct RequestHandler<TImpl, 
     {
         ++it;
         SSEListenerManager::Instance::SSEContext ctx1(stream, req);
-        sseMgr.CreateInstance(typeid(TState).hash_code())
-            ->Start(ctx1, fmt::format("event: init\ndata: {}\n\n", static_cast<SynchronizedState<TState>*>(&impl)->StateStringify()));
+        sseMgr.CreateInstance(typeid(TState).hash_code())->Start(ctx1, fmt::format("event: init\ndata: {}\n\n", impl.StateStringify()));
     }
 };
 
@@ -864,28 +1000,12 @@ using Request                                  = impl::Request;
 
 template <typename TImpl, typename T> struct WebServiceInterfaceImplT;
 
-template <typename TImpl, ConceptInterface TInterface>
-struct WebServiceInterfaceImplT<TImpl, TInterface> : Stencil::impl::Interface::InterfaceEventHandlerT<TImpl, TInterface>
-{
-    WebServiceInterfaceImplT()           = default;
-    ~WebServiceInterfaceImplT() override = default;
-    CLASS_DELETE_COPY_AND_MOVE(WebServiceInterfaceImplT);
-
-    void OnStart()
-    {
-        // Cannot do this in in the constructor because the constructor Interface might be called later on
-        // which resets it back to nullptr
-        auto impl = static_cast<TImpl*>(this);
-        impl->template GetInterface<TInterface>().SetHandler(impl);
-    }
-};
+template <typename TImpl, ConceptInterface TInterface> struct WebServiceInterfaceImplT<TImpl, TInterface>
+{};
 
 template <typename TImpl, ConceptIndexable T>
 struct WebServiceInterfaceImplT<TImpl, impl::SynchronizedState<T>> : impl::SynchronizedState<T>
 {
-    WebServiceInterfaceImplT()           = default;
-    ~WebServiceInterfaceImplT() override = default;
-    CLASS_DELETE_COPY_AND_MOVE(WebServiceInterfaceImplT);
 
     void NotifyStateChanged(Stencil::Transaction<T>::View const& txn)
     {
@@ -893,26 +1013,9 @@ struct WebServiceInterfaceImplT<TImpl, impl::SynchronizedState<T>> : impl::Synch
         auto msg  = fmt::format("event: changed\ndata: {}\n\n", Stencil::StringTransactionSerDes::Deserialize(txn));
         impl->_sseManager.Send(typeid(T).hash_code(), msg);
     }
-
-    void OnStart() {}
 };
 
 template <ConceptIndexable TState> using WebSynchronizedState = impl::SynchronizedState<TState>;
-
-template <typename TInterfaceImpl, ConceptInterface TInterface>
-using WebSessionInterfaceT = impl::SessionInterfaceT<TInterfaceImpl, TInterface>;
-
-template <typename TInterfaceImpl> using WebSessionInterface = impl::SessionInterface<TInterfaceImpl>;
-
-template <typename TImpl, typename TInterface>
-struct WebServiceInterfaceImplT<TImpl, WebSessionInterface<TInterface>> : WebSessionInterface<TInterface>
-{
-    WebServiceInterfaceImplT()  = default;
-    ~WebServiceInterfaceImplT() = default;
-    CLASS_DELETE_COPY_AND_MOVE(WebServiceInterfaceImplT);
-
-    void OnStart() {}
-};
 
 template <typename TImpl, typename... TServices> struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TServices>...
 {
@@ -921,13 +1024,12 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
     static constexpr size_t NumServices = sizeof...(TServices);
 
     WebServiceT() = default;
-    virtual ~WebServiceT() override { StopDaemon(); }
+    virtual ~WebServiceT() { StopDaemon(); }
 
     CLASS_DELETE_COPY_AND_MOVE(WebServiceT);
 
     void StartOnPort(uint16_t port, uint16_t numThreads = 4)
     {
-        (WebServiceInterfaceImplT<TImpl, TServices>::OnStart(), ...);
         auto const address = boost::asio::ip::make_address("0.0.0.0");
         boost::asio::co_spawn(ioc, _do_listen(tcp::endpoint{address, port}), [](std::exception_ptr e) {
             if (e) try
@@ -938,7 +1040,10 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
 
         for (size_t i = 0; i < numThreads + NumServices; i++)
         {
-            _listenthreads.emplace_back([this]() { ioc.run(); });
+            _listenthreads.emplace_back([this]() {
+                SetThreadName("ios-runner");
+                ioc.run();
+            });
         }
     }
 
@@ -988,11 +1093,13 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
         switch (req.method())
         {
         case boost::beast::http::verb::get: [[fallthrough]];
+        case boost::beast::http::verb::head: [[fallthrough]];
         case boost::beast::http::verb::put:
         {
             auto target = req.target();
-            auto url    = boost::urls::parse_origin_form(target).value();
-            auto segs   = url.segments();
+            if (target == "/.well-known/appspecific/com.chrome.devtools.json") { return; }
+            auto url  = boost::urls::parse_origin_form(target).value();
+            auto segs = url.segments();
 
             auto it = segs.begin();
             if (it == segs.end() || *it != "api")
@@ -1017,6 +1124,8 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
     // Handles an HTTP server connection
     boost::asio::awaitable<void> _do_session(boost::asio::ip::tcp::socket&& socket)
     {
+        boost::beast::error_code ec;
+
         tcp_stream stream(std::move(socket));
         // This buffer is required to persist across reads
         boost::beast::flat_buffer buffer;
@@ -1031,13 +1140,17 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
             _handle_request(stream, std::move(req));
             SetThreadName("w:...");
 
-        } catch (boost::system::system_error& se)
+        } catch (boost::system::system_error const& se)
         {
-            if (se.code() != boost::beast::http::error::end_of_stream) throw;
+            if (se.code() != boost::beast::http::error::end_of_stream)
+            {
+                fmt::print(stderr, "Error Starting Session: {}\n", se.code());
+                throw;
+            }
         }
 
-        stream.socket().shutdown(tcp::socket::shutdown_send);
-
+        ec = stream.socket().shutdown(tcp::socket::shutdown_send, ec);
+        if (ec && ec != boost::system::errc::not_connected) { fmt::print(stderr, "Shutdown Error: {}\n", ec); }
         // At this point the connection is closed gracefully
         // we ignore the error because the client might have
         // dropped the connection already.
@@ -1063,7 +1176,10 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
                 if (e) try
                     {
                         std::rethrow_exception(e);
-                    } catch (std::exception& e) { fmt::print(stderr, "Session Terminated with Error:  {}\n", e.what()); }
+                    } catch (std::exception& e)
+                    {    //
+                        fmt::print(stderr, "Session Terminated with Error:  {}\n", e.what());
+                    }
             });
     }
 

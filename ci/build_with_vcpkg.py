@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3  # noqa: EXE001
 # cppforge-sync
 import argparse
 import logging
@@ -24,7 +24,7 @@ def vcpkg_install(port: str) -> None:
     subprocess.check_call(cmd, env=myenv, cwd=vcpkgroot)
 
 
-def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str, clean: bool = False) -> None:
+def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str, clean: bool = False) -> None:  # noqa: PT028
     testdir = workdir / f"{runtime_triplet}_Test_{config}"
     if clean and testdir.exists():
         shutil.rmtree(testdir.as_posix())
@@ -50,7 +50,7 @@ def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str, clean
         cmakeconfigargs += [
             f"-DCMAKE_TOOLCHAIN_FILE:PATH={info['cmake_toolchain_file'].as_posix()}",
             "-DANDROID=1",
-            "-DANDROID_NATIVE_API_LEVEL=26",
+            "-DANDROID_NATIVE_API_LEVEL=28",
         ] + abis[runtime_triplet]
 
         if shutil.which("make") is not None:
@@ -131,7 +131,7 @@ scriptdir = (reporoot / "ci").absolute()
 portname = next((reporoot / "ci" / "vcpkg-additional-ports").glob("*")).name
 workdir = pathlib.Path(args.workdir or ".").absolute()
 workdir.mkdir(exist_ok=True)
-vcpkgroot = args.vcpkg or externaltools.get_vcpkg_root() or (workdir / "vcpkg")
+vcpkgroot = args.vcpkg or externaltools.get_vcpkg_root(Path().absolute() / "vcpkg") or (workdir / "vcpkg")
 bindir = externaltools.get_bin_path(workdir / "bin")
 externaltools.DEVEL_BINPATH = bindir
 
@@ -164,7 +164,7 @@ for portdir in (scriptdir / "vcpkg-additional-ports").glob("*"):
 
 vcpkgportfile.write_text(vcpkgportfile.read_text().replace("SOURCE_PATH ${SOURCE_PATH}", f'SOURCE_PATH "{scriptdir.parent.as_posix()}"'))
 
-subprocess.check_call((vcpkgroot / bootstrapscript).as_posix(), shell=True, cwd=vcpkgroot)
+subprocess.check_call((vcpkgroot / bootstrapscript).as_posix(), shell=True, cwd=vcpkgroot)  # noqa: S602
 vcpkgexe = pathlib.Path(shutil.which("vcpkg", path=vcpkgroot) or "")
 VCPKG_EXE = vcpkgexe
 if args.clean:
@@ -176,7 +176,7 @@ for runtime_triplet in runtime_triplets:
     myenv = os.environ.copy()
     myenv["VCPKG_ROOT"] = vcpkgroot.as_posix()
     myenv["VCPKG_BINARY_SOURCES"] = "clear"
-    myenv["VCPKG_KEEP_ENV_VARS"] = "ANDROID_NDK_HOME"
+    myenv["VCPKG_KEEP_ENV_VARS"] = "ANDROID_NDK_ROOT"
     myenv["VERBOSE"] = "1"
     if "android" in host_triplet or "android" in runtime_triplet:
         externaltools.init_toolchain("android", myenv)
@@ -189,7 +189,7 @@ for runtime_triplet in runtime_triplets:
     myenv = os.environ.copy()
     myenv["VCPKG_ROOT"] = vcpkgroot.as_posix()
     myenv["VCPKG_BINARY_SOURCES"] = "clear"
-    myenv["VCPKG_KEEP_ENV_VARS"] = "ANDROID_NDK_HOME"
+    myenv["VCPKG_KEEP_ENV_VARS"] = "ANDROID_NDK_ROOT"
     myenv["VERBOSE"] = "1"
     if "android" in host_triplet or "android" in runtime_triplet:
         externaltools.init_toolchain("android", myenv)
@@ -201,7 +201,7 @@ for runtime_triplet in runtime_triplets:
         for log in pathlib.Path(vcpkgroot / "buildtrees").rglob("*.log"):
             if log.parent.parent.name == "buildtrees":
                 log.unlink()
-        logging.debug(myenv)
+        logging.debug(myenv)  # noqa: LOG015
 
         vcpkg_install(portname + ":" + host_triplet)
         if host_triplet != runtime_triplet:
@@ -211,9 +211,9 @@ for runtime_triplet in runtime_triplets:
             logs = list(pathlib.Path(vcpkgroot / "buildtrees").rglob("*.log"))
             for log in logs:
                 if log.parent.parent.name == "buildtrees":
-                    logging.debug(f"\n\n ========= START: {log} ===========")
-                    logging.debug(log.read_text())
-                    logging.debug(f" ========= END: {log} =========== \n\n")
+                    logging.debug(f"\n\n ========= START: {log} ===========")  # noqa: LOG015
+                    logging.debug(log.read_text())  # noqa: LOG015
+                    logging.debug(f" ========= END: {log} =========== \n\n")  # noqa: LOG015
         raise
 
     test_vcpkg_build("Debug", host_triplet, runtime_triplet, clean=args.clean)

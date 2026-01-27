@@ -4,7 +4,15 @@
 #include <memory>
 #include <string>
 #include <string_view>
-#include <type_traits>
+
+#if defined HAVE_FMTLIB
+#include "CommonMacros.h"
+SUPPRESS_WARNINGS_START
+SUPPRESS_STL_WARNINGS
+SUPPRESS_FMT_WARNINGS
+#include <fmt/format.h>
+SUPPRESS_WARNINGS_END
+#endif
 
 namespace std
 {
@@ -197,3 +205,16 @@ template <typename T> struct hash<shared_stringT<T>>
 };
 
 }    // namespace std
+
+#if defined FMT_VERSION
+template <> struct fmt::formatter<shared_string> : fmt::formatter<std::string_view>
+{
+    // Formats the point p using the parsed format specification (presentation)
+    // stored in this formatter.
+    auto format(shared_string const& item, fmt::format_context& ctx) const    // NOLINT
+    {
+        return fmt::format_to(ctx.out(), "{}", item.str());
+    }
+};
+
+#endif
