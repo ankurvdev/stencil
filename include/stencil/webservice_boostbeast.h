@@ -87,14 +87,7 @@ template <typename T> auto CreateResponse(Request const& req, std::string_view c
 }    // namespace Stencil::websvc::impl
 namespace Stencil::websvc
 {
-template <typename TImpl, ConceptInterface TInterface> struct WebServiceImplTraits;
 
-template <typename TImpl, ConceptInterface TInterface>
-    requires std::is_base_of_v<TInterface, TImpl>
-struct WebServiceImplTraits<TImpl, TInterface>
-{
-    static TInterface& QueryInterface(TImpl& impl) { return *static_cast<TInterface*>(&impl); }
-};
 
 using tcp        = boost::asio::ip::tcp;    // from <boost/asio/ip/tcp.hpp>
 using tcp_stream = typename boost::beast::tcp_stream::rebind_executor<
@@ -649,7 +642,7 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
     {
         std::ostringstream rslt;
 
-        auto& ifobj   = ctx.impl.template GetInterface<typename TContext::Interface>();
+        auto& ifobj   = ctx.impl;
         auto& objects = ifobj.objects;
         if (action == "create")
         {
@@ -765,10 +758,9 @@ template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunct
         std::ostringstream rslt;
 
         auto  args  = CreateArgStruct(ctx);
-        auto& ifobj = WebServiceImplTraits<TImpl, TInterface>::QueryInterface(ctx.impl);
-        if constexpr (std::is_same_v<void, decltype(Traits::Invoke(ifobj, args))>)
+        if constexpr (std::is_same_v<void, decltype(Traits::Invoke(ctx.impl, args))>)
         {
-            Traits::Invoke(ifobj, args);
+            Traits::Invoke(ctx.impl, args);
             auto res   = impl::CreateResponse<boost::beast::http::string_body>(ctx.req, "application/json");
             res.body() = "{}";
             boost::beast::http::response_serializer<boost::beast::http::string_body, boost::beast::http::fields> sr{res};
@@ -776,7 +768,7 @@ template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunct
         }
         else
         {
-            auto retval = Traits::Invoke(ifobj, args);
+            auto retval = Traits::Invoke(ctx.impl, args);
             rslt << Stencil::Json::Stringify<decltype(retval)>(retval);
             auto msg   = rslt.str();
             auto res   = impl::CreateResponse<boost::beast::http::string_body>(ctx.req, "application/json");
@@ -1041,11 +1033,6 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
     {
         auto msg = fmt::format("event: {}\ndata: {}\n\n", Stencil::InterfaceApiTraits<TEventArgs>::Name(), Stencil::Json::Stringify(args));
         _mgr.Send(0, msg);
-    }
-
-    template <ConceptInterface TInterface> auto& GetInterface()
-    {
-        return WebServiceImplTraits<TImpl, TInterface>::QueryInterface(*static_cast<TImpl*>(this));
     }
 
     void SSESend(size_t typeHash, std::span<char const> const& msg) { _mgr.Send(typeHash, msg); }
