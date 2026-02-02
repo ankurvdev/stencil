@@ -22,3 +22,11 @@ event: changed
 data: obj1.val1 = 20;
 
 
+event: changed
+data: obj2.val1 = true;
+
+
+event: changed
+data: obj1.val1 = -20;obj2.val1 = false;
+
+

@@ -359,6 +359,20 @@ struct Server1Impl : Stencil::websvc::WebServiceT<Server1Impl,
     std::string_view Name() { return "state"; }
     std::string      StateStringify() { return Stencil::Json::Stringify(state); }
 
+    struct EditCtx
+    {
+        EditCtx(Server1Impl* thatIn, Objects::NestedObject& state) :
+            txn(Stencil::CreateRootTransaction<Objects::NestedObject>(state)), that(thatIn)
+        {}
+        ~EditCtx() { that->OnStateChange(txn); }
+        auto& TXN() { return txn; }
+
+        Stencil::Transaction<Objects::NestedObject> txn;
+        Server1Impl*                                that;
+    };
+
+    auto EditContext() { return EditCtx(this, state); }
+
     std::unordered_map<uint32_t, Objects::SimpleObject1> Function1(uint32_t const& arg1, Objects::SimpleObject1 const& arg2) override
     {
         std::unordered_map<uint32_t, Objects::SimpleObject1> retval;
@@ -507,6 +521,8 @@ struct Tester : ObjectsTester
         auto arg2 = Stencil::Json::Stringify(create_simple_object1());
         _valid_cli_json_get("/api/server1/function1", Params{{"arg1", arg1}, {"arg2", arg2}});
     }
+    void cli_request_state_change1() { _valid_cli_json_get("/api/state/apply", Params{{"obj1.val1", "20"}, {"obj2.val1", "true"}}); }
+    void cli_request_state_change2() { _valid_cli_json_get("/api/state/apply", Params{{"obj1.val1", "-20"}, {"obj2.val1", "false"}}); }
 
     void svc_create_obj1() {}
     void svc_read_obj1() {}
@@ -588,6 +604,9 @@ TEST_CASE("WebService-objectstore", "[interfaces]")
     tester.svc_raise_event();
     tester.svc_call_function();
     tester.svc_state_change();
+    tester.cli_request_state_change1();
+    tester.cli_request_state_change2();
+
     std::this_thread::sleep_for(std::chrono::milliseconds(100ms));
 }
 
@@ -599,5 +618,7 @@ TEST_CASE("WebService-nolistener", "[interfaces]")
     tester._sseListener1.Start();
     tester.cli_create_obj1();
     tester.svc_state_change();
+    tester.cli_request_state_change1();
+    tester.cli_request_state_change2();
     std::this_thread::sleep_for(std::chrono::milliseconds(100ms));
 }
