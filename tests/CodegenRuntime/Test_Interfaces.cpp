@@ -1,3 +1,4 @@
+#include "CommonMacros.h"
 #include "ObjectsTester.h"
 #include "TestUtils.h"
 
@@ -361,10 +362,11 @@ struct Server1Impl : Stencil::websvc::WebServiceT<Server1Impl,
 
     struct EditCtx
     {
-        EditCtx(Server1Impl* thatIn, Objects::NestedObject& state) :
-            txn(Stencil::CreateRootTransaction<Objects::NestedObject>(state)), that(thatIn)
+        EditCtx(Server1Impl* thatIn, Objects::NestedObject& stateIn) :
+            txn(Stencil::CreateRootTransaction<Objects::NestedObject>(stateIn)), that(thatIn)
         {}
         ~EditCtx() { that->OnStateChange(txn); }
+        CLASS_DELETE_COPY_AND_MOVE(EditCtx);
         auto& TXN() { return txn; }
 
         Stencil::Transaction<Objects::NestedObject> txn;

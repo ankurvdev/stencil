@@ -1,3 +1,4 @@
+#pragma once
 #include "CommonMacros.h"
 
 #if !defined HAVE_BOOSTBEAST
@@ -420,7 +421,7 @@ struct SvcMgr
         size_t     category      = {0};
 
         public:
-        ~SSEInstance() { /*TryCleanShutdown(stream); */ };
+        ~SSEInstance() { /*TryCleanShutdown(stream); */ }
 
         CLASS_DELETE_COPY_AND_MOVE(SSEInstance);
         SSEInstance(size_t categoryIn, tcp_stream&& streamIn, Request const& req) : stream(std::move(streamIn)), category(categoryIn)
@@ -1103,8 +1104,6 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
 
     boost::asio::awaitable<void> DoListen_(tcp::endpoint endpoint)
     {
-        using Request = boost::beast::http::request<boost::beast::http::string_body>;
-
         auto acceptor = boost::asio::use_awaitable_t<boost::asio::any_io_executor>::as_default_on(
             tcp::acceptor(co_await boost::asio::this_coro::executor));
         acceptor.open(endpoint.protocol());
