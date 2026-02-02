@@ -424,9 +424,6 @@ struct SvcMgr
         size_t     category      = {0};
 
         public:
-        ~SSEInstance() { /*TryCleanShutdown(stream); */ }
-
-        CLASS_DELETE_COPY_AND_MOVE(SSEInstance);
         SSEInstance(size_t categoryIn, tcp_stream&& streamIn, Request const& req) : stream(std::move(streamIn)), category(categoryIn)
         {
             auto res = impl::CreateResponse<boost::beast::http::buffer_body>(req, "text/event-stream");
@@ -437,11 +434,14 @@ struct SvcMgr
             res.body().more = true;
             boost::beast::http::write_header(stream, sr);    // TODO : async_write
         }
+        ~SSEInstance() = default;
+        CLASS_DELETE_COPY_AND_MOVE(SSEInstance);
 
         void Release(std::unique_lock<std::mutex> const& /* lock */)
         {
             stopRequested = true;
             TryCleanShutdown(stream);
+            stream.close();
         }
 
         bool Send(std::unique_lock<std::mutex> const& lock, std::span<char const> const& msg)
@@ -526,15 +526,11 @@ struct SvcMgr
 
     void Stop()
     {
-        auto lock = std::unique_lock<std::mutex>(_mutex);
-        _ioc.stop();
+        auto lock      = std::unique_lock<std::mutex>(_mutex);
         _stopRequested = true;
-
-        for (auto const& inst : _sseListeners)
-        {
-            inst->stopRequested = true;
-            // inst->dataAvailable.notify_all();
-        }
+        for (auto const& inst : _sseListeners) { inst->Release(lock); }
+        _sseListeners.clear();
+        _ioc.stop();
     }
 
     auto& IOC() { return _ioc; }
