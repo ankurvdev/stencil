@@ -382,18 +382,20 @@ namespace Stencil::websvc::impl
 
 template <typename... Types> struct Selector
 {
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_MSVC_WARNING(4702)    // unreachable code
     template <typename T, typename... TArgs> static bool InvokeIfMatch(TArgs&&... args)
     {
         if (T::Matches(std::forward<TArgs>(args)...))
         {
+
             T::Invoke(std::forward<TArgs>(args)...);
-            SUPPRESS_WARNINGS_START
-            SUPPRESS_MSVC_WARNING(4702)    // unreachable code
             return true;
-            SUPPRESS_WARNINGS_END
         }
         return false;
     }
+    SUPPRESS_WARNINGS_END
+
     template <typename... TArgs> static auto Invoke([[maybe_unused]] TArgs&&... args)
     {
         if constexpr (sizeof...(Types) == 0) {}
