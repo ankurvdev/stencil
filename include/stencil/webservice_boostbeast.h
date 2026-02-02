@@ -88,7 +88,6 @@ template <typename T> auto CreateResponse(Request const& req, std::string_view c
 namespace Stencil::websvc
 {
 
-
 using tcp        = boost::asio::ip::tcp;    // from <boost/asio/ip/tcp.hpp>
 using tcp_stream = typename boost::beast::tcp_stream::rebind_executor<
     boost::asio::use_awaitable_t<>::executor_with_default<boost::asio::any_io_executor>>::other;
@@ -101,7 +100,10 @@ inline void TryCleanShutdown(tcp_stream& stream)
 {
     boost::system::error_code ec;
     ec = stream.socket().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
-    if (ec && ec != boost::system::errc::not_connected) { fmt::print(stderr, "Shutdown Error: {}\n", ec); }
+    if (ec && ec != boost::system::errc::not_connected)
+    {    //
+        fmt::print(stderr, "Shutdown Error: {}\n", ec);
+    }
 }
 
 inline void
@@ -439,8 +441,9 @@ struct SvcMgr
             stream.close();
         }
 
-        bool Send(std::unique_lock<std::mutex> const& lock, std::span<char const> const& msg)
+        bool Send(std::unique_lock<std::mutex> const& /* lock */, std::span<char const> const& msg)
         {
+            if (stopRequested) return false;
             if (msg.size() == 0) return true;
             lastSendAt   = Stencil::Timestamp::clock::now();
             auto msgSize = msg[msg.size() - 1] == '\0' ? msg.size() - 1 : msg.size();
@@ -448,12 +451,7 @@ struct SvcMgr
             boost::asio::const_buffer b{msg.data(), msgSize};
             boost::system::error_code ec;
             boost::beast::net::write(stream, boost::beast::http::make_chunk(b), ec);
-            if (ec.failed())
-            {
-                Release(lock);
-                return false;
-            }
-            return true;
+            return !(stopRequested = ec.failed());
         }
     };
 
@@ -492,9 +490,18 @@ struct SvcMgr
         {
             co_await timer.async_wait(boost::asio::redirect_error(boost::asio::use_awaitable, ec));
             auto lock = std::unique_lock<std::mutex>(_mutex);
-            for (auto const& listener : _sseListeners)
+            for (auto it = _sseListeners.begin(); it != _sseListeners.end();)
             {
-                if ((listener->lastSendAt + KeepAliveInterval) < Stencil::Timestamp::clock::now()) { listener->Release(lock); }
+                if (((*it)->lastSendAt + KeepAliveInterval) < Stencil::Timestamp::clock::now()) { (*it)->Send(lock, "\n\n"); }
+                if ((*it)->stopRequested)
+                {
+                    (*it)->Release(lock);
+                    it = _sseListeners.erase(it);
+                }
+                else
+                {
+                    ++it;
+                }
             }
             if (_sseListeners.empty()) { co_return; }
         }
@@ -757,7 +764,7 @@ template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunct
         using Traits = ::Stencil::InterfaceApiTraits<TArgsStruct>;
         std::ostringstream rslt;
 
-        auto  args  = CreateArgStruct(ctx);
+        auto args = CreateArgStruct(ctx);
         if constexpr (std::is_same_v<void, decltype(Traits::Invoke(ctx.impl, args))>)
         {
             Traits::Invoke(ctx.impl, args);
@@ -1109,16 +1116,32 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
             {
                 [[maybe_unused]] auto bytesTransferred
                     = co_await boost::beast::http::async_read(stream, buffer, req, boost::asio::use_awaitable);
-                SetThreadName(fmt::format("w:{}", req.target()).c_str());
-                HandleRequest_(stream, req);
-                SetThreadName("w:...");
             } catch (boost::system::system_error const& e)
             {
+                TryCleanShutdown(stream);
                 if (e.code() != boost::beast::http::error::end_of_stream)
                 {
                     fmt::print(stderr, "Error Starting Session: {}\n", e.what());
                     throw;
                 }
+            }
+            try
+            {
+                SetThreadName(fmt::format("w:{}", req.target()).c_str());
+                HandleRequest_(stream, req);
+                SetThreadName("w:...");
+            } catch (boost::system::system_error const& e)
+            {
+                TryCleanShutdown(stream);
+                if (e.code() != boost::beast::http::error::end_of_stream)
+                {
+                    fmt::print(stderr, "Error Starting Session: {}\n", e.what());
+                    throw;
+                }
+            } catch (std::exception const& e)
+            {
+                TryCleanShutdown(stream);
+                fmt::print(stderr, "Error: {}\n", e.what());
             }
         }
     }

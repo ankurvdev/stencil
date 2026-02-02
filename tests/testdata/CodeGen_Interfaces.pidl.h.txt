@@ -133,6 +133,10 @@ struct Server1
         using BaseClass = Stencil::InterfaceT<Svc<TImpl>>;
 
         public:
+        Svc()  = default;
+        ~Svc() = default;
+        CLASS_DELETE_COPY_AND_MOVE(Svc);
+
         struct Dummy
         {};
 
@@ -691,6 +695,10 @@ struct NoEvent
         using BaseClass = Stencil::InterfaceT<Svc<TImpl>>;
 
         public:
+        Svc()  = default;
+        ~Svc() = default;
+        CLASS_DELETE_COPY_AND_MOVE(Svc);
+
         struct Dummy
         {};
 

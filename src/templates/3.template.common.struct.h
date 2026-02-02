@@ -1,4 +1,5 @@
 // Anything here is not part of the generated code
+#include "CommonMacros.h"
 int const zzFieldType_Idzz = 0;
 int const zzStruct_Idzz    = 0;
 int const zzVariant_Idzz   = 0;
@@ -701,6 +702,10 @@ struct zzInterface_Namezz
         using BaseClass = Stencil::InterfaceT<Svc<TImpl>>;
 
         public:
+        Svc()  = default;
+        ~Svc() = default;
+        CLASS_DELETE_COPY_AND_MOVE(Svc);
+
         struct Dummy
         {};
 
