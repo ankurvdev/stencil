@@ -387,7 +387,10 @@ template <typename... Types> struct Selector
         if (T::Matches(std::forward<TArgs>(args)...))
         {
             T::Invoke(std::forward<TArgs>(args)...);
+            SUPPRESS_WARNINGS_START
+            SUPPRESS_MSVC_WARNING(4702)    // unreachable code
             return true;
+            SUPPRESS_WARNINGS_END
         }
         return false;
     }
