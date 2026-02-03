@@ -1,3 +1,4 @@
+#include "CommonMacros.h"
 #include "ObjectsTester.h"
 #include "TestUtils.h"
 
@@ -348,16 +349,31 @@ struct SSEFormat : TestCommon::JsonFormat
     }
 };
 
-struct Server1Impl : Stencil::websvc::WebServiceT<Server1Impl,
-                                                  Interfaces::Server1<Server1Impl>,
-                                                  Stencil::websvc::WebSynchronizedState<Objects::NestedObject>>,
-                     Interfaces::Server1<Server1Impl>
+struct Server1Impl
+    : Stencil::websvc::WebServiceT<Server1Impl, Interfaces::Server1, Stencil::websvc::WebSynchronizedState<Objects::NestedObject>>,
+      Interfaces::Server1::Svc<Server1Impl>,
+      Interfaces::Server1::Interface
 {
     Server1Impl() { objects.Init(std::filesystem::path("SaveAndLoad.bin")); }
     ~Server1Impl() override = default;
     CLASS_DELETE_COPY_AND_MOVE(Server1Impl);
     std::string_view Name() { return "state"; }
     std::string      StateStringify() { return Stencil::Json::Stringify(state); }
+
+    struct EditCtx
+    {
+        EditCtx(Server1Impl* thatIn, Objects::NestedObject& stateIn) :
+            txn(Stencil::CreateRootTransaction<Objects::NestedObject>(stateIn)), that(thatIn)
+        {}
+        ~EditCtx() { that->OnStateChange(txn); }
+        CLASS_DELETE_COPY_AND_MOVE(EditCtx);
+        auto& TXN() { return txn; }
+
+        Stencil::Transaction<Objects::NestedObject> txn;
+        Server1Impl*                                that;
+    };
+
+    auto EditContext() { return EditCtx(this, state); }
 
     std::unordered_map<uint32_t, Objects::SimpleObject1> Function1(uint32_t const& arg1, Objects::SimpleObject1 const& arg2) override
     {
@@ -384,7 +400,7 @@ struct Server1Impl : Stencil::websvc::WebServiceT<Server1Impl,
     // Event listeners ?
 };
 
-struct NoEventImpl : Stencil::websvc::WebServiceT<NoEventImpl, Interfaces::NoEvent<NoEventImpl>>, Interfaces::NoEvent<NoEventImpl>
+struct NoEventImpl : Stencil::websvc::WebServiceT<NoEventImpl, Interfaces::NoEvent>, Interfaces::NoEvent::Interface
 {
     NoEventImpl()           = default;
     ~NoEventImpl() override = default;
@@ -393,15 +409,76 @@ struct NoEventImpl : Stencil::websvc::WebServiceT<NoEventImpl, Interfaces::NoEve
     void Function2() override {}
     void Function3(uint32_t const& /* arg1 */) override {}
 };
+
+struct SvcSeparateImplSvc
+    : Stencil::websvc::WebServiceT<SvcSeparateImplSvc, Interfaces::Server1, Stencil::websvc::WebSynchronizedState<Objects::NestedObject>>,
+      Interfaces::Server1::Svc<SvcSeparateImplSvc>
+{
+    SvcSeparateImplSvc() { objects.Init(std::filesystem::path("SaveAndLoad.bin")); }
+    ~SvcSeparateImplSvc() = default;
+    CLASS_DELETE_COPY_AND_MOVE(SvcSeparateImplSvc);
+
+    std::string_view Name() { return "state"; }
+    std::string      StateStringify() { return Stencil::Json::Stringify(state); }
+
+    struct EditCtx
+    {
+        EditCtx(SvcSeparateImplSvc* thatIn, Objects::NestedObject& stateIn) :
+            txn(Stencil::CreateRootTransaction<Objects::NestedObject>(stateIn)), that(thatIn)
+        {}
+        ~EditCtx() { that->OnStateChange(txn); }
+        CLASS_DELETE_COPY_AND_MOVE(EditCtx);
+        auto& TXN() { return txn; }
+
+        Stencil::Transaction<Objects::NestedObject> txn;
+        SvcSeparateImplSvc*                         that;
+    };
+
+    auto EditContext() { return EditCtx(this, state); }
+
+    void OnStateChange(Stencil::Transaction<Objects::NestedObject>::View const& txnv) { NotifyStateChanged(txnv); }
+
+    Objects::NestedObject                           state;
+    std::unique_ptr<Interfaces::Server1::Interface> impl;
+};
+
+template <> struct Stencil::InterfaceSvcTraits<SvcSeparateImplSvc, Interfaces::Server1>
+{
+    static auto& QueryInterface(SvcSeparateImplSvc& impl) { return *impl.impl.get(); }
+};
+
+struct ImplSeparateImplSvc : Interfaces::Server1::Interface
+{
+    std::unordered_map<uint32_t, Objects::SimpleObject1> Function1(uint32_t const& arg1, Objects::SimpleObject1 const& arg2) override
+    {
+        std::unordered_map<uint32_t, Objects::SimpleObject1> retval;
+
+        auto key    = arg1 + 1;
+        auto copied = arg2;
+        copied.val1 += 1;
+        copied.val2 += 1;
+        copied.val3 += 1;
+        copied.val5 += 1.0;
+        retval[key] = std::move(copied);
+
+        svc->Raise_SomethingHappened(key, copied);
+        return retval;
+    }
+
+    void                Function2() override {}
+    void                Function3(uint32_t const& /* arg1 */) override {}
+    SvcSeparateImplSvc* svc{nullptr};
+};
+
 // Generated code ends
 
-struct Tester : ObjectsTester
+template <typename TSvc> struct Tester : ObjectsTester
 {
     using Params = HttpClientListener::Params;
     Tester()
     {
         if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
-        svc = std::make_unique<Server1Impl>();
+        svc = std::make_unique<TSvc>();
         svc->StartOnPort(44444, 4);
     }
 
@@ -507,6 +584,8 @@ struct Tester : ObjectsTester
         auto arg2 = Stencil::Json::Stringify(create_simple_object1());
         _valid_cli_json_get("/api/server1/function1", Params{{"arg1", arg1}, {"arg2", arg2}});
     }
+    void cli_request_state_change1() { _valid_cli_json_get("/api/state/apply", Params{{"obj1.val1", "20"}, {"obj2.val1", "true"}}); }
+    void cli_request_state_change2() { _valid_cli_json_get("/api/state/apply", Params{{"obj1.val1", "-20"}, {"obj2.val1", "false"}}); }
 
     void svc_create_obj1() {}
     void svc_read_obj1() {}
@@ -522,14 +601,14 @@ struct Tester : ObjectsTester
     {
         auto arg1 = create_uint32();
         auto arg2 = create_simple_object1();
-        svc->GetInterface<Interfaces::Server1<Server1Impl>>().Raise_SomethingHappened(arg1, arg2);
+        svc->Raise_SomethingHappened(arg1, arg2);
     }
 
     void svc_call_function()
     {
         auto arg1 = create_uint32();
         auto arg2 = create_simple_object1();
-        svc->GetInterface<Interfaces::Server1<Server1Impl>>().Function1(arg1, arg2);
+        Stencil::InterfaceSvcTraits<TSvc, Interfaces::Server1>::QueryInterface(*svc).Function1(arg1, arg2);
     }
 
     void svc_state_change()
@@ -554,14 +633,12 @@ struct Tester : ObjectsTester
     HttpClientListener _sseListener3{"/api/state"};
 
     // SSEListener _sseListener3{"/api/server1/obj2/events"};
-    std::unique_ptr<Server1Impl> svc;
+    std::unique_ptr<TSvc> svc;
 };
 
 TEST_CASE("WebService-objectstore", "[interfaces]")
 {
-    std::filesystem::path dbfile{"SaveAndLoad.bin"};
-
-    Tester tester;
+    Tester<Server1Impl> tester;
     tester.StartListeners();
 
     tester.cli_call_function();
@@ -588,16 +665,59 @@ TEST_CASE("WebService-objectstore", "[interfaces]")
     tester.svc_raise_event();
     tester.svc_call_function();
     tester.svc_state_change();
+    tester.cli_request_state_change1();
+    tester.cli_request_state_change2();
+
     std::this_thread::sleep_for(std::chrono::milliseconds(100ms));
 }
 
 TEST_CASE("WebService-nolistener", "[interfaces]")
 {
-    std::filesystem::path dbfile{"SaveAndLoad.bin"};
 
-    Tester tester;
+    Tester<Server1Impl> tester;
     tester._sseListener1.Start();
     tester.cli_create_obj1();
     tester.svc_state_change();
+    tester.cli_request_state_change1();
+    tester.cli_request_state_change2();
+    std::this_thread::sleep_for(std::chrono::milliseconds(100ms));
+}
+
+TEST_CASE("WebService-SvcSeparateImplSvc", "[interfaces]")
+{
+    auto                       impl = std::make_unique<ImplSeparateImplSvc>();
+    Tester<SvcSeparateImplSvc> tester;
+    impl->svc        = tester.svc.get();
+    tester.svc->impl = std::move(impl);
+
+    tester.StartListeners();
+
+    tester.cli_call_function();
+    tester.svc_call_function();
+
+    tester.cli_create_obj1();
+    tester.cli_read_obj1();
+    tester.cli_edit_obj1();
+    tester.cli_destroy_obj1();
+    tester.svc_create_obj1();
+    tester.svc_read_obj1();
+    tester.svc_edit_obj1();
+    tester.svc_destroy_obj1();
+
+    tester.cli_create_obj2();
+    tester.cli_read_obj2();
+    tester.cli_edit_obj2();
+    tester.cli_destroy_obj2();
+    tester.svc_create_obj2();
+    tester.svc_read_obj2();
+    tester.svc_edit_obj2();
+    tester.svc_destroy_obj2();
+
+    tester.svc_raise_event();
+    tester.svc_call_function();
+    tester.svc_state_change();
+    tester.cli_request_state_change1();
+    tester.cli_request_state_change2();
+
     std::this_thread::sleep_for(std::chrono::milliseconds(100ms));
 }

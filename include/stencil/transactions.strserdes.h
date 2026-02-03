@@ -225,7 +225,7 @@ struct StringTransactionSerDes
                 while (i < it.data.size() && it.data[i] != ']') i++;
                 if (i == it.data.size()) throw std::logic_error("Invalid Format. Cannot find end ']'");
                 mutatordata   = it.data.substr(s, i - s);
-                it.startIndex = i;
+                it.startIndex = ++i;
                 it.token      = {};
             }
             if (mutatorname == "add") { mutator = 1; }
@@ -235,11 +235,16 @@ struct StringTransactionSerDes
                 throw std::logic_error("Invalid Mutator");
             }
         }
-        size_t i = it.startIndex + it.token.size() + 1;
-        while (i < it.data.size() && it.data[i] == ' ') i++;
-        if (i == it.data.size() || it.data[i] != '=') throw std::logic_error("Invalid Format. Expected '='");
+        size_t i = it.startIndex + it.token.size();
+        while (i < it.data.size() && (it.data[i] == ' ' || it.data[i] == '\t')) i++;
+        if (i == it.data.size() || it.data[i] != '=')
+        {
+
+            throw std::logic_error(fmt::format("Invalid Format. Expected '=' in {} at {}. Found {}", it.data, i, it.data[i]));
+        }
+
         ++i;    // skip =
-        while (i < it.data.size() && it.data[i] == ' ') i++;
+        while (i < it.data.size() && (it.data[i] == ' ' || it.data[i] == '\t')) i++;
         if (i == it.data.size()) throw std::logic_error("Invalid Format. Cannot find rhs");
         size_t rhsS = i;
         while (i < it.data.size() && it.data[i] != ';') i++;

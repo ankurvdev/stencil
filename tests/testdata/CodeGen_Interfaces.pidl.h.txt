@@ -6,19 +6,19 @@
 
 namespace Interfaces
 {
-template <typename TImpl> struct Server1;
+struct Server1;
 
 struct Server1_ObjectStore_obj1;
 struct Server1_ObjectStore_obj2;
-template <typename TImpl> struct NoEvent;
+struct NoEvent;
 
 }    // namespace Interfaces
 
-template <typename TImpl> struct Stencil::InterfaceTraits<Interfaces::Server1<TImpl>>;
+template <> struct Stencil::InterfaceTraits<Interfaces::Server1>;
 
 template <> struct Stencil::TypeTraits<Interfaces::Server1_ObjectStore_obj1>;
 template <> struct Stencil::TypeTraits<Interfaces::Server1_ObjectStore_obj2>;
-template <typename TImpl> struct Stencil::InterfaceTraits<Interfaces::NoEvent<TImpl>>;
+template <> struct Stencil::InterfaceTraits<Interfaces::NoEvent>;
 
 #endif
 // SECTION END: DECLARATIONS
@@ -89,125 +89,132 @@ struct Stencil::Visitor<Stencil::Database::Record<Interfaces::Server1_ObjectStor
 
 namespace Interfaces
 {
-
-struct Args_Server1_Function1
+struct Server1
 {
-    uint32_t arg1{};
-    ::Objects::SimpleObject1 arg2{};
-};
-struct Args_Server1_Function2
-{
-};
-struct Args_Server1_Function3
-{
-    uint32_t arg2{};
-};
-struct Args_Server1_SomethingHappened
-{
-    uint32_t arg1{};
-    ::Objects::SimpleObject1 arg2{};
-};
-template <typename TImpl> struct Server1 : public Stencil::InterfaceT<Server1<TImpl>>
-{
-    using Impl      = TImpl;
-    using BaseClass = Stencil::InterfaceT<Server1<TImpl>>;
+    struct Args_Function1
+    {
+        uint32_t arg1{};
+        ::Objects::SimpleObject1 arg2{};
+    };
+    struct Args_Function2
+    {
+    };
+    struct Args_Function3
+    {
+        uint32_t arg2{};
+    };
+    struct Args_SomethingHappened
+    {
+        uint32_t arg1{};
+        ::Objects::SimpleObject1 arg2{};
+    };
+    struct Interface
+    {
+        Interface()          = default;
+        virtual ~Interface() = default;
 
-    public:
-    struct Dummy
-    {};
+        virtual std::unordered_map<uint32_t, ::Objects::SimpleObject1> Function1(
+            uint32_t const& arg1
+,            ::Objects::SimpleObject1 const& arg2
+            )
+            = 0;
+        virtual void Function2(
+            )
+            = 0;
+        virtual void Function3(
+            uint32_t const& arg2
+            )
+            = 0;
+    };
 
-    using ObjectStore = Stencil::Database::Database<
-        Server1_ObjectStore_obj1
-,        Server1_ObjectStore_obj2
-        >;
+    template <typename TImpl> struct Svc : public Stencil::InterfaceT<Svc<TImpl>>
+    {
+        using Impl      = TImpl;
+        using BaseClass = Stencil::InterfaceT<Svc<TImpl>>;
 
-    Server1()          = default;
-    virtual ~Server1() = default;
-    CLASS_DELETE_COPY_AND_MOVE(Server1);
+        public:
+        Svc()  = default;
+        ~Svc() = default;
+        CLASS_DELETE_COPY_AND_MOVE(Svc);
 
-    virtual std::unordered_map<uint32_t, ::Objects::SimpleObject1> Function1(
-        uint32_t const& arg1
-,        ::Objects::SimpleObject1 const& arg2
+        struct Dummy
+        {};
+
+        using ObjectStore = Stencil::Database::Database<
+            Server1_ObjectStore_obj1
+,            Server1_ObjectStore_obj2
+            >;
+        std::unordered_map<uint32_t, ::Objects::SimpleObject1> Function1([[maybe_unused]] Args_Function1 const& args)
+        {
+            return this->Function1(
+                args.arg1
+,                args.arg2
+            );
+        }
+
+        std::unordered_map<uint32_t, ::Objects::SimpleObject1> Function1([[maybe_unused]] Args_Function1&& args)
+        {
+            return this->Function1(
+                std::move(args.arg1)
+,                std::move(args.arg2)
+            );
+        }
+
+        void Function2([[maybe_unused]] Args_Function2 const& args)
+        {
+            return this->Function2(
+            );
+        }
+
+        void Function2([[maybe_unused]] Args_Function2&& args)
+        {
+            return this->Function2(
+            );
+        }
+
+        void Function3([[maybe_unused]] Args_Function3 const& args)
+        {
+            return this->Function3(
+                args.arg2
+            );
+        }
+
+        void Function3([[maybe_unused]] Args_Function3&& args)
+        {
+            return this->Function3(
+                std::move(args.arg2)
+            );
+        }
+
+        void Raise_SomethingHappened(
+            uint32_t const& arg1
+,            ::Objects::SimpleObject1 const& arg2
         )
-        = 0;
+        {
+            BaseClass::RaiseEvent(static_cast<TImpl&>(*this),
+                                  Args_SomethingHappened{
+                                      arg1
+,                                      arg2
+                                  });
+        }
+        ObjectStore objects;
 
-    std::unordered_map<uint32_t, ::Objects::SimpleObject1> Function1([[maybe_unused]] Args_Server1_Function1 const& args)
-    {
-        return this->Function1(
-            args.arg1
-,            args.arg2
-        );
-    }
-
-    std::unordered_map<uint32_t, ::Objects::SimpleObject1> Function1([[maybe_unused]] Args_Server1_Function1&& args)
-    {
-        return this->Function1(
-            std::move(args.arg1)
-,            std::move(args.arg2)
-        );
-    }
-
-    virtual void Function2(
-        )
-        = 0;
-
-    void Function2([[maybe_unused]] Args_Server1_Function2 const& args)
-    {
-        return this->Function2(
-        );
-    }
-
-    void Function2([[maybe_unused]] Args_Server1_Function2&& args)
-    {
-        return this->Function2(
-        );
-    }
-
-    virtual void Function3(
-        uint32_t const& arg2
-        )
-        = 0;
-
-    void Function3([[maybe_unused]] Args_Server1_Function3 const& args)
-    {
-        return this->Function3(
-            args.arg2
-        );
-    }
-
-    void Function3([[maybe_unused]] Args_Server1_Function3&& args)
-    {
-        return this->Function3(
-            std::move(args.arg2)
-        );
-    }
-
-    void Raise_SomethingHappened(
-        uint32_t const& arg1
-,        ::Objects::SimpleObject1 const& arg2
-    )
-    {
-        BaseClass::RaiseEvent(static_cast<TImpl&>(*this),
-                              Args_Server1_SomethingHappened{
-                                  arg1
-,                                  arg2
-                              });
-    }
-    ObjectStore objects;
-
-    static std::unique_ptr<Server1<TImpl>> Create();
-    static std::shared_ptr<Server1<TImpl>> CreateShared();
-    static std::shared_ptr<Server1<TImpl>> Activate();
+        // static std::unique_ptr<Server1::Svc<TImpl>> Create();
+        // static std::shared_ptr<Server1::Svc<TImpl>> CreateShared();
+        // static std::shared_ptr<Server1::Svc<TImpl>> Activate();
+    };
 };
+
 }    // namespace Interfaces
-template <> struct Stencil::TypeTraits<Interfaces::Args_Server1_Function1>
+
+template <> struct Stencil::TypeTraits<Interfaces::Server1::Args_Function1>
 {
     using Categories = std::tuple<Stencil::Category::Indexable>;
 };
 
-template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Args_Server1_Function1>
+template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function1>
 {
-    using TObj = Interfaces::Args_Server1_Function1;
+    using TObj = Interfaces::Server1::Args_Function1;
     enum class Fields
     {
         Invalid,
@@ -226,9 +233,9 @@ template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Args_Server1_Func
 };
 
 template <>
-struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Args_Server1_Function1>::Fields>
+struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function1>::Fields>
 {
-    using Enum = Stencil::TypeTraitsForIndexable<Interfaces::Args_Server1_Function1>::Fields;
+    using Enum = Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function1>::Fields;
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
@@ -239,19 +246,19 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Args_Serv
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
     SUPPRESS_WARNINGS_END
-    static Stencil::TypeTraitsForIndexable<Interfaces::Args_Server1_Function1>::Fields
+    static Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function1>::Fields
     ForIndex(size_t index)
     {
-        return static_cast<Stencil::TypeTraitsForIndexable<Interfaces::Args_Server1_Function1>::Fields>(
+        return static_cast<Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function1>::Fields>(
             index);
     }
 };
 
 template <>
-struct Stencil::Visitor<Interfaces::Args_Server1_Function1>
-    : Stencil::VisitorT<Interfaces::Args_Server1_Function1>
+struct Stencil::Visitor<Interfaces::Server1::Args_Function1>
+    : Stencil::VisitorT<Interfaces::Server1::Args_Function1>
 {
-    using TData  = Interfaces::Args_Server1_Function1;
+    using TData  = Interfaces::Server1::Args_Function1;
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
@@ -282,10 +289,10 @@ struct Stencil::Visitor<Interfaces::Args_Server1_Function1>
 };
 
 template <>
-struct Stencil::Comparator<Interfaces::Args_Server1_Function1,
-                           Interfaces::Args_Server1_Function1>
+struct Stencil::Comparator<Interfaces::Server1::Args_Function1,
+                           Interfaces::Server1::Args_Function1>
 {
-    using ThisType = Interfaces::Args_Server1_Function1;
+    using ThisType = Interfaces::Server1::Args_Function1;
     static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
     {
         return true
@@ -295,28 +302,28 @@ struct Stencil::Comparator<Interfaces::Args_Server1_Function1,
     }
 };
 
-template <> struct Stencil::InterfaceApiTraits<Interfaces::Args_Server1_Function1>
+template <> struct Stencil::InterfaceApiTraits<Interfaces::Server1::Args_Function1>
 {
-    using ArgsStruct = Interfaces::Args_Server1_Function1;
+    using ArgsStruct = Interfaces::Server1::Args_Function1;
     static constexpr bool             IsStatic() { return false; }
     static constexpr std::string_view Name() { return "Function1"; }
 
-    template <typename TImpl> static auto Invoke(Interfaces::Server1<TImpl>& instance, [[maybe_unused]] ArgsStruct& args)
+    template <typename TImpl> static auto Invoke(TImpl& instance, [[maybe_unused]] ArgsStruct& args)
     {
-        return instance.Function1(
+        return InterfaceSvcTraits<TImpl, Interfaces::Server1>::QueryInterface(instance).Function1(
             args.arg1
 ,            args.arg2
         );
     }
 };
-template <> struct Stencil::TypeTraits<Interfaces::Args_Server1_Function2>
+template <> struct Stencil::TypeTraits<Interfaces::Server1::Args_Function2>
 {
     using Categories = std::tuple<Stencil::Category::Indexable>;
 };
 
-template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Args_Server1_Function2>
+template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function2>
 {
-    using TObj = Interfaces::Args_Server1_Function2;
+    using TObj = Interfaces::Server1::Args_Function2;
     enum class Fields
     {
         Invalid,
@@ -327,9 +334,9 @@ template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Args_Server1_Func
 };
 
 template <>
-struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Args_Server1_Function2>::Fields>
+struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function2>::Fields>
 {
-    using Enum = Stencil::TypeTraitsForIndexable<Interfaces::Args_Server1_Function2>::Fields;
+    using Enum = Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function2>::Fields;
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
@@ -338,19 +345,19 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Args_Serv
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
     SUPPRESS_WARNINGS_END
-    static Stencil::TypeTraitsForIndexable<Interfaces::Args_Server1_Function2>::Fields
+    static Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function2>::Fields
     ForIndex(size_t index)
     {
-        return static_cast<Stencil::TypeTraitsForIndexable<Interfaces::Args_Server1_Function2>::Fields>(
+        return static_cast<Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function2>::Fields>(
             index);
     }
 };
 
 template <>
-struct Stencil::Visitor<Interfaces::Args_Server1_Function2>
-    : Stencil::VisitorT<Interfaces::Args_Server1_Function2>
+struct Stencil::Visitor<Interfaces::Server1::Args_Function2>
+    : Stencil::VisitorT<Interfaces::Server1::Args_Function2>
 {
-    using TData  = Interfaces::Args_Server1_Function2;
+    using TData  = Interfaces::Server1::Args_Function2;
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
@@ -375,10 +382,10 @@ struct Stencil::Visitor<Interfaces::Args_Server1_Function2>
 };
 
 template <>
-struct Stencil::Comparator<Interfaces::Args_Server1_Function2,
-                           Interfaces::Args_Server1_Function2>
+struct Stencil::Comparator<Interfaces::Server1::Args_Function2,
+                           Interfaces::Server1::Args_Function2>
 {
-    using ThisType = Interfaces::Args_Server1_Function2;
+    using ThisType = Interfaces::Server1::Args_Function2;
     static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
     {
         return true
@@ -386,26 +393,26 @@ struct Stencil::Comparator<Interfaces::Args_Server1_Function2,
     }
 };
 
-template <> struct Stencil::InterfaceApiTraits<Interfaces::Args_Server1_Function2>
+template <> struct Stencil::InterfaceApiTraits<Interfaces::Server1::Args_Function2>
 {
-    using ArgsStruct = Interfaces::Args_Server1_Function2;
+    using ArgsStruct = Interfaces::Server1::Args_Function2;
     static constexpr bool             IsStatic() { return false; }
     static constexpr std::string_view Name() { return "Function2"; }
 
-    template <typename TImpl> static auto Invoke(Interfaces::Server1<TImpl>& instance, [[maybe_unused]] ArgsStruct& args)
+    template <typename TImpl> static auto Invoke(TImpl& instance, [[maybe_unused]] ArgsStruct& args)
     {
-        return instance.Function2(
+        return InterfaceSvcTraits<TImpl, Interfaces::Server1>::QueryInterface(instance).Function2(
         );
     }
 };
-template <> struct Stencil::TypeTraits<Interfaces::Args_Server1_Function3>
+template <> struct Stencil::TypeTraits<Interfaces::Server1::Args_Function3>
 {
     using Categories = std::tuple<Stencil::Category::Indexable>;
 };
 
-template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Args_Server1_Function3>
+template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function3>
 {
-    using TObj = Interfaces::Args_Server1_Function3;
+    using TObj = Interfaces::Server1::Args_Function3;
     enum class Fields
     {
         Invalid,
@@ -420,9 +427,9 @@ template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Args_Server1_Func
 };
 
 template <>
-struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Args_Server1_Function3>::Fields>
+struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function3>::Fields>
 {
-    using Enum = Stencil::TypeTraitsForIndexable<Interfaces::Args_Server1_Function3>::Fields;
+    using Enum = Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function3>::Fields;
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
@@ -432,19 +439,19 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Args_Serv
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
     SUPPRESS_WARNINGS_END
-    static Stencil::TypeTraitsForIndexable<Interfaces::Args_Server1_Function3>::Fields
+    static Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function3>::Fields
     ForIndex(size_t index)
     {
-        return static_cast<Stencil::TypeTraitsForIndexable<Interfaces::Args_Server1_Function3>::Fields>(
+        return static_cast<Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function3>::Fields>(
             index);
     }
 };
 
 template <>
-struct Stencil::Visitor<Interfaces::Args_Server1_Function3>
-    : Stencil::VisitorT<Interfaces::Args_Server1_Function3>
+struct Stencil::Visitor<Interfaces::Server1::Args_Function3>
+    : Stencil::VisitorT<Interfaces::Server1::Args_Function3>
 {
-    using TData  = Interfaces::Args_Server1_Function3;
+    using TData  = Interfaces::Server1::Args_Function3;
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
@@ -472,10 +479,10 @@ struct Stencil::Visitor<Interfaces::Args_Server1_Function3>
 };
 
 template <>
-struct Stencil::Comparator<Interfaces::Args_Server1_Function3,
-                           Interfaces::Args_Server1_Function3>
+struct Stencil::Comparator<Interfaces::Server1::Args_Function3,
+                           Interfaces::Server1::Args_Function3>
 {
-    using ThisType = Interfaces::Args_Server1_Function3;
+    using ThisType = Interfaces::Server1::Args_Function3;
     static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
     {
         return true
@@ -484,27 +491,27 @@ struct Stencil::Comparator<Interfaces::Args_Server1_Function3,
     }
 };
 
-template <> struct Stencil::InterfaceApiTraits<Interfaces::Args_Server1_Function3>
+template <> struct Stencil::InterfaceApiTraits<Interfaces::Server1::Args_Function3>
 {
-    using ArgsStruct = Interfaces::Args_Server1_Function3;
+    using ArgsStruct = Interfaces::Server1::Args_Function3;
     static constexpr bool             IsStatic() { return false; }
     static constexpr std::string_view Name() { return "Function3"; }
 
-    template <typename TImpl> static auto Invoke(Interfaces::Server1<TImpl>& instance, [[maybe_unused]] ArgsStruct& args)
+    template <typename TImpl> static auto Invoke(TImpl& instance, [[maybe_unused]] ArgsStruct& args)
     {
-        return instance.Function3(
+        return InterfaceSvcTraits<TImpl, Interfaces::Server1>::QueryInterface(instance).Function3(
             args.arg2
         );
     }
 };
-template <> struct Stencil::TypeTraits<Interfaces::Args_Server1_SomethingHappened>
+template <> struct Stencil::TypeTraits<Interfaces::Server1::Args_SomethingHappened>
 {
     using Categories = std::tuple<Stencil::Category::Indexable>;
 };
 
-template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Args_Server1_SomethingHappened>
+template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_SomethingHappened>
 {
-    using TObj = Interfaces::Args_Server1_SomethingHappened;
+    using TObj = Interfaces::Server1::Args_SomethingHappened;
     enum class Fields
     {
         Invalid,
@@ -523,9 +530,9 @@ template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Args_Server1_Some
 };
 
 template <>
-struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Args_Server1_SomethingHappened>::Fields>
+struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_SomethingHappened>::Fields>
 {
-    using Enum = Stencil::TypeTraitsForIndexable<Interfaces::Args_Server1_SomethingHappened>::Fields;
+    using Enum = Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_SomethingHappened>::Fields;
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
@@ -536,18 +543,19 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Args_Serv
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
     SUPPRESS_WARNINGS_END
-    static Stencil::TypeTraitsForIndexable<Interfaces::Args_Server1_SomethingHappened>::Fields ForIndex(size_t index)
+    static Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_SomethingHappened>::Fields
+    ForIndex(size_t index)
     {
-        return static_cast<Stencil::TypeTraitsForIndexable<Interfaces::Args_Server1_SomethingHappened>::Fields>(
+        return static_cast<Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_SomethingHappened>::Fields>(
             index);
     }
 };
 
 template <>
-struct Stencil::Visitor<Interfaces::Args_Server1_SomethingHappened>
-    : Stencil::VisitorT<Interfaces::Args_Server1_SomethingHappened>
+struct Stencil::Visitor<Interfaces::Server1::Args_SomethingHappened>
+    : Stencil::VisitorT<Interfaces::Server1::Args_SomethingHappened>
 {
-    using TData  = Interfaces::Args_Server1_SomethingHappened;
+    using TData  = Interfaces::Server1::Args_SomethingHappened;
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
@@ -578,10 +586,10 @@ struct Stencil::Visitor<Interfaces::Args_Server1_SomethingHappened>
 };
 
 template <>
-struct Stencil::Comparator<Interfaces::Args_Server1_SomethingHappened,
-                           Interfaces::Args_Server1_SomethingHappened>
+struct Stencil::Comparator<Interfaces::Server1::Args_SomethingHappened,
+                           Interfaces::Server1::Args_SomethingHappened>
 {
-    using ThisType = Interfaces::Args_Server1_SomethingHappened;
+    using ThisType = Interfaces::Server1::Args_SomethingHappened;
     static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
     {
         return true
@@ -591,19 +599,21 @@ struct Stencil::Comparator<Interfaces::Args_Server1_SomethingHappened,
     }
 };
 
-template <> struct Stencil::InterfaceApiTraits<Interfaces::Args_Server1_SomethingHappened>
+template <> struct Stencil::InterfaceApiTraits<Interfaces::Server1::Args_SomethingHappened>
 {
-    using ArgsStruct = Interfaces::Args_Server1_SomethingHappened;
+    using ArgsStruct = Interfaces::Server1::Args_SomethingHappened;
     static constexpr std::string_view Name() { return "SomethingHappened"; }
 };
-template <typename TImpl> struct Stencil::InterfaceTraits<Interfaces::Server1<TImpl>>
+template <> struct Stencil::InterfaceTraits<Interfaces::Server1>
 {
+    using Interface = Interfaces::Server1::Interface;
+
     static constexpr std::string_view Name() { return "Server1"; }
 
     using ApiStructs = std::tuple<
-        Interfaces::Args_Server1_Function1
-,        Interfaces::Args_Server1_Function2
-,        Interfaces::Args_Server1_Function3
+        Interfaces::Server1::Args_Function1
+,        Interfaces::Server1::Args_Function2
+,        Interfaces::Server1::Args_Function3
         >;
 
     using Objects = std::tuple<
@@ -612,7 +622,7 @@ template <typename TImpl> struct Stencil::InterfaceTraits<Interfaces::Server1<TI
         >;
 
     using EventStructs = std::tuple<
-        Interfaces::Args_Server1_SomethingHappened
+        Interfaces::Server1::Args_SomethingHappened
         >;
 };
 
@@ -656,80 +666,88 @@ template <> struct Stencil::InterfaceObjectTraits<Interfaces::Server1_ObjectStor
 };
 namespace Interfaces
 {
-
-struct Args_NoEvent_Function2
+struct NoEvent
 {
+    struct Args_Function2
+    {
+    };
+    struct Args_Function3
+    {
+        uint32_t arg2{};
+    };
+    struct Interface
+    {
+        Interface()          = default;
+        virtual ~Interface() = default;
+
+        virtual void Function2(
+            )
+            = 0;
+        virtual void Function3(
+            uint32_t const& arg2
+            )
+            = 0;
+    };
+
+    template <typename TImpl> struct Svc : public Stencil::InterfaceT<Svc<TImpl>>
+    {
+        using Impl      = TImpl;
+        using BaseClass = Stencil::InterfaceT<Svc<TImpl>>;
+
+        public:
+        Svc()  = default;
+        ~Svc() = default;
+        CLASS_DELETE_COPY_AND_MOVE(Svc);
+
+        struct Dummy
+        {};
+
+        using ObjectStore = Stencil::Database::Database<
+            >;
+        void Function2([[maybe_unused]] Args_Function2 const& args)
+        {
+            return this->Function2(
+            );
+        }
+
+        void Function2([[maybe_unused]] Args_Function2&& args)
+        {
+            return this->Function2(
+            );
+        }
+
+        void Function3([[maybe_unused]] Args_Function3 const& args)
+        {
+            return this->Function3(
+                args.arg2
+            );
+        }
+
+        void Function3([[maybe_unused]] Args_Function3&& args)
+        {
+            return this->Function3(
+                std::move(args.arg2)
+            );
+        }
+
+        ObjectStore objects;
+
+        // static std::unique_ptr<NoEvent::Svc<TImpl>> Create();
+        // static std::shared_ptr<NoEvent::Svc<TImpl>> CreateShared();
+        // static std::shared_ptr<NoEvent::Svc<TImpl>> Activate();
+    };
 };
-struct Args_NoEvent_Function3
-{
-    uint32_t arg2{};
-};
-template <typename TImpl> struct NoEvent : public Stencil::InterfaceT<NoEvent<TImpl>>
-{
-    using Impl      = TImpl;
-    using BaseClass = Stencil::InterfaceT<NoEvent<TImpl>>;
 
-    public:
-    struct Dummy
-    {};
-
-    using ObjectStore = Stencil::Database::Database<
-        >;
-
-    NoEvent()          = default;
-    virtual ~NoEvent() = default;
-    CLASS_DELETE_COPY_AND_MOVE(NoEvent);
-
-    virtual void Function2(
-        )
-        = 0;
-
-    void Function2([[maybe_unused]] Args_NoEvent_Function2 const& args)
-    {
-        return this->Function2(
-        );
-    }
-
-    void Function2([[maybe_unused]] Args_NoEvent_Function2&& args)
-    {
-        return this->Function2(
-        );
-    }
-
-    virtual void Function3(
-        uint32_t const& arg2
-        )
-        = 0;
-
-    void Function3([[maybe_unused]] Args_NoEvent_Function3 const& args)
-    {
-        return this->Function3(
-            args.arg2
-        );
-    }
-
-    void Function3([[maybe_unused]] Args_NoEvent_Function3&& args)
-    {
-        return this->Function3(
-            std::move(args.arg2)
-        );
-    }
-
-    ObjectStore objects;
-
-    static std::unique_ptr<NoEvent<TImpl>> Create();
-    static std::shared_ptr<NoEvent<TImpl>> CreateShared();
-    static std::shared_ptr<NoEvent<TImpl>> Activate();
-};
 }    // namespace Interfaces
-template <> struct Stencil::TypeTraits<Interfaces::Args_NoEvent_Function2>
+
+template <> struct Stencil::TypeTraits<Interfaces::NoEvent::Args_Function2>
 {
     using Categories = std::tuple<Stencil::Category::Indexable>;
 };
 
-template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Args_NoEvent_Function2>
+template <> struct Stencil::TypeTraitsForIndexable<Interfaces::NoEvent::Args_Function2>
 {
-    using TObj = Interfaces::Args_NoEvent_Function2;
+    using TObj = Interfaces::NoEvent::Args_Function2;
     enum class Fields
     {
         Invalid,
@@ -740,9 +758,9 @@ template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Args_NoEvent_Func
 };
 
 template <>
-struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Args_NoEvent_Function2>::Fields>
+struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::NoEvent::Args_Function2>::Fields>
 {
-    using Enum = Stencil::TypeTraitsForIndexable<Interfaces::Args_NoEvent_Function2>::Fields;
+    using Enum = Stencil::TypeTraitsForIndexable<Interfaces::NoEvent::Args_Function2>::Fields;
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
@@ -751,19 +769,19 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Args_NoEv
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
     SUPPRESS_WARNINGS_END
-    static Stencil::TypeTraitsForIndexable<Interfaces::Args_NoEvent_Function2>::Fields
+    static Stencil::TypeTraitsForIndexable<Interfaces::NoEvent::Args_Function2>::Fields
     ForIndex(size_t index)
     {
-        return static_cast<Stencil::TypeTraitsForIndexable<Interfaces::Args_NoEvent_Function2>::Fields>(
+        return static_cast<Stencil::TypeTraitsForIndexable<Interfaces::NoEvent::Args_Function2>::Fields>(
             index);
     }
 };
 
 template <>
-struct Stencil::Visitor<Interfaces::Args_NoEvent_Function2>
-    : Stencil::VisitorT<Interfaces::Args_NoEvent_Function2>
+struct Stencil::Visitor<Interfaces::NoEvent::Args_Function2>
+    : Stencil::VisitorT<Interfaces::NoEvent::Args_Function2>
 {
-    using TData  = Interfaces::Args_NoEvent_Function2;
+    using TData  = Interfaces::NoEvent::Args_Function2;
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
@@ -788,10 +806,10 @@ struct Stencil::Visitor<Interfaces::Args_NoEvent_Function2>
 };
 
 template <>
-struct Stencil::Comparator<Interfaces::Args_NoEvent_Function2,
-                           Interfaces::Args_NoEvent_Function2>
+struct Stencil::Comparator<Interfaces::NoEvent::Args_Function2,
+                           Interfaces::NoEvent::Args_Function2>
 {
-    using ThisType = Interfaces::Args_NoEvent_Function2;
+    using ThisType = Interfaces::NoEvent::Args_Function2;
     static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
     {
         return true
@@ -799,26 +817,26 @@ struct Stencil::Comparator<Interfaces::Args_NoEvent_Function2,
     }
 };
 
-template <> struct Stencil::InterfaceApiTraits<Interfaces::Args_NoEvent_Function2>
+template <> struct Stencil::InterfaceApiTraits<Interfaces::NoEvent::Args_Function2>
 {
-    using ArgsStruct = Interfaces::Args_NoEvent_Function2;
+    using ArgsStruct = Interfaces::NoEvent::Args_Function2;
     static constexpr bool             IsStatic() { return false; }
     static constexpr std::string_view Name() { return "Function2"; }
 
-    template <typename TImpl> static auto Invoke(Interfaces::NoEvent<TImpl>& instance, [[maybe_unused]] ArgsStruct& args)
+    template <typename TImpl> static auto Invoke(TImpl& instance, [[maybe_unused]] ArgsStruct& args)
     {
-        return instance.Function2(
+        return InterfaceSvcTraits<TImpl, Interfaces::NoEvent>::QueryInterface(instance).Function2(
         );
     }
 };
-template <> struct Stencil::TypeTraits<Interfaces::Args_NoEvent_Function3>
+template <> struct Stencil::TypeTraits<Interfaces::NoEvent::Args_Function3>
 {
     using Categories = std::tuple<Stencil::Category::Indexable>;
 };
 
-template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Args_NoEvent_Function3>
+template <> struct Stencil::TypeTraitsForIndexable<Interfaces::NoEvent::Args_Function3>
 {
-    using TObj = Interfaces::Args_NoEvent_Function3;
+    using TObj = Interfaces::NoEvent::Args_Function3;
     enum class Fields
     {
         Invalid,
@@ -833,9 +851,9 @@ template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Args_NoEvent_Func
 };
 
 template <>
-struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Args_NoEvent_Function3>::Fields>
+struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::NoEvent::Args_Function3>::Fields>
 {
-    using Enum = Stencil::TypeTraitsForIndexable<Interfaces::Args_NoEvent_Function3>::Fields;
+    using Enum = Stencil::TypeTraitsForIndexable<Interfaces::NoEvent::Args_Function3>::Fields;
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
     static constexpr std::string_view Names[] = {
@@ -845,19 +863,19 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Args_NoEv
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
     SUPPRESS_WARNINGS_END
-    static Stencil::TypeTraitsForIndexable<Interfaces::Args_NoEvent_Function3>::Fields
+    static Stencil::TypeTraitsForIndexable<Interfaces::NoEvent::Args_Function3>::Fields
     ForIndex(size_t index)
     {
-        return static_cast<Stencil::TypeTraitsForIndexable<Interfaces::Args_NoEvent_Function3>::Fields>(
+        return static_cast<Stencil::TypeTraitsForIndexable<Interfaces::NoEvent::Args_Function3>::Fields>(
             index);
     }
 };
 
 template <>
-struct Stencil::Visitor<Interfaces::Args_NoEvent_Function3>
-    : Stencil::VisitorT<Interfaces::Args_NoEvent_Function3>
+struct Stencil::Visitor<Interfaces::NoEvent::Args_Function3>
+    : Stencil::VisitorT<Interfaces::NoEvent::Args_Function3>
 {
-    using TData  = Interfaces::Args_NoEvent_Function3;
+    using TData  = Interfaces::NoEvent::Args_Function3;
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
@@ -885,10 +903,10 @@ struct Stencil::Visitor<Interfaces::Args_NoEvent_Function3>
 };
 
 template <>
-struct Stencil::Comparator<Interfaces::Args_NoEvent_Function3,
-                           Interfaces::Args_NoEvent_Function3>
+struct Stencil::Comparator<Interfaces::NoEvent::Args_Function3,
+                           Interfaces::NoEvent::Args_Function3>
 {
-    using ThisType = Interfaces::Args_NoEvent_Function3;
+    using ThisType = Interfaces::NoEvent::Args_Function3;
     static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
     {
         return true
@@ -897,26 +915,28 @@ struct Stencil::Comparator<Interfaces::Args_NoEvent_Function3,
     }
 };
 
-template <> struct Stencil::InterfaceApiTraits<Interfaces::Args_NoEvent_Function3>
+template <> struct Stencil::InterfaceApiTraits<Interfaces::NoEvent::Args_Function3>
 {
-    using ArgsStruct = Interfaces::Args_NoEvent_Function3;
+    using ArgsStruct = Interfaces::NoEvent::Args_Function3;
     static constexpr bool             IsStatic() { return false; }
     static constexpr std::string_view Name() { return "Function3"; }
 
-    template <typename TImpl> static auto Invoke(Interfaces::NoEvent<TImpl>& instance, [[maybe_unused]] ArgsStruct& args)
+    template <typename TImpl> static auto Invoke(TImpl& instance, [[maybe_unused]] ArgsStruct& args)
     {
-        return instance.Function3(
+        return InterfaceSvcTraits<TImpl, Interfaces::NoEvent>::QueryInterface(instance).Function3(
             args.arg2
         );
     }
 };
-template <typename TImpl> struct Stencil::InterfaceTraits<Interfaces::NoEvent<TImpl>>
+template <> struct Stencil::InterfaceTraits<Interfaces::NoEvent>
 {
+    using Interface = Interfaces::NoEvent::Interface;
+
     static constexpr std::string_view Name() { return "NoEvent"; }
 
     using ApiStructs = std::tuple<
-        Interfaces::Args_NoEvent_Function2
-,        Interfaces::Args_NoEvent_Function3
+        Interfaces::NoEvent::Args_Function2
+,        Interfaces::NoEvent::Args_Function3
         >;
 
     using Objects = std::tuple<
