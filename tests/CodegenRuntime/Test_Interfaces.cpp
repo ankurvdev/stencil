@@ -415,6 +415,9 @@ struct SvcSeparateImplSvc
       Interfaces::Server1::Svc<SvcSeparateImplSvc>
 {
     SvcSeparateImplSvc() { objects.Init(std::filesystem::path("SaveAndLoad.bin")); }
+    ~SvcSeparateImplSvc() = default;
+    CLASS_DELETE_COPY_AND_MOVE(SvcSeparateImplSvc);
+
     std::string_view Name() { return "state"; }
     std::string      StateStringify() { return Stencil::Json::Stringify(state); }
 
