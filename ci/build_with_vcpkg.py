@@ -153,7 +153,7 @@ if not vcpkgroot.exists():
     )
 
 bootstrapscript = "bootstrap-vcpkg.bat" if sys.platform == "win32" else "bootstrap-vcpkg.sh"
-defaulttriplet = f"{externaltools.DefaultArch}-windows-static" if sys.platform == "win32" else f"{externaltools.DefaultArch}-linux-perf"
+defaulttriplet = f"{externaltools.DefaultArch}-windows-static" if sys.platform == "win32" else f"{externaltools.DefaultArch}-linux"
 host_triplet = args.host_triplet or defaulttriplet
 runtime_triplets = (args.runtime_triplets or defaulttriplet).split(",")
 

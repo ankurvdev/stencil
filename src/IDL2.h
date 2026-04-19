@@ -213,9 +213,7 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
     }
 
     std::shared_ptr<Binding::Expression> TransformValue(Binding::BindingContext& context, Binding::Expression const& expr)
-    {
-        return context.EvaluateExpression(*this, expr);
-    }
+    { return context.EvaluateExpression(*this, expr); }
 
     virtual Str::Type GetFieldName() override { return GenerateFieldName(m_Container, bindable->m_ContainerFieldTypeMap); }
 
@@ -354,9 +352,7 @@ struct Program : public std::enable_shared_from_this<Program>,
     Program() :
         std::enable_shared_from_this<Program>(),
         Binding::BindableT<Program>(Str::Create(L"Name"), &Program::Name, Str::Create(L"FileName"), &Program::FileName)
-    {
-        Register(_imports);
-    }
+    { Register(_imports); }
 
     void SetFileName(std::filesystem::path const& file)
     {
@@ -368,9 +364,7 @@ struct Program : public std::enable_shared_from_this<Program>,
     void InitializeModelDataSources(std::wstring_view const& datasources);
 
     template <typename TObject, typename... TArgs> auto CreateNamedObject(TArgs&&... args)
-    {
-        return IDLGenerics::NamedIndexT<Program, TObject>::Owner::CreateNamedObject(this->shared_from_this(), std::forward<TArgs>(args)...);
-    }
+    { return IDLGenerics::NamedIndexT<Program, TObject>::Owner::CreateNamedObject(this->shared_from_this(), std::forward<TArgs>(args)...); }
 
     template <typename TObject, typename... TArgs> auto CreateStorageObject(TArgs&&... args)
     {
@@ -386,13 +380,9 @@ struct Program : public std::enable_shared_from_this<Program>,
 
     template <typename TObject> auto _GetObjects() { return IDLGenerics::NamedIndexT<Program, TObject>::Owner::GetRange(); }
     template <typename TObject, typename... TArgs> auto TryLookup(TArgs&&... args)
-    {
-        return IDLGenerics::NamedIndexT<Program, TObject>::Owner::TryLookup(std::forward<TArgs>(args)...);
-    }
+    { return IDLGenerics::NamedIndexT<Program, TObject>::Owner::TryLookup(std::forward<TArgs>(args)...); }
     template <typename TObject, typename... TArgs> auto& Lookup(TArgs&&... args)
-    {
-        return IDLGenerics::NamedIndexT<Program, TObject>::Owner::Lookup(std::forward<TArgs>(args)...);
-    }
+    { return IDLGenerics::NamedIndexT<Program, TObject>::Owner::Lookup(std::forward<TArgs>(args)...); }
 
     void Import(Program& importedProgram)
     {
@@ -473,9 +463,7 @@ struct Struct : public std::enable_shared_from_this<Struct>,
     {}
 
     template <typename TObject, typename... TArgs> auto CreateNamedObject(TArgs&&... args)
-    {
-        return IDLGenerics::NamedIndexT<Struct, TObject>::Owner::CreateNamedObject(this->shared_from_this(), std::forward<TArgs>(args)...);
-    }
+    { return IDLGenerics::NamedIndexT<Struct, TObject>::Owner::CreateNamedObject(this->shared_from_this(), std::forward<TArgs>(args)...); }
 };
 
 struct Variant : public std::enable_shared_from_this<Variant>,
@@ -490,9 +478,7 @@ struct Variant : public std::enable_shared_from_this<Variant>,
     {}
 
     template <typename TObject, typename... TArgs> auto CreateNamedObject(TArgs&&... args)
-    {
-        return IDLGenerics::NamedIndexT<Struct, TObject>::Owner::CreateNamedObject(this->shared_from_this(), std::forward<TArgs>(args)...);
-    }
+    { return IDLGenerics::NamedIndexT<Struct, TObject>::Owner::CreateNamedObject(this->shared_from_this(), std::forward<TArgs>(args)...); }
 };
 
 struct PrimitiveConstValue : public std::enable_shared_from_this<PrimitiveConstValue>,
@@ -543,9 +529,9 @@ struct PrimitiveConstValue : public std::enable_shared_from_this<PrimitiveConstV
         {
             switch (primitive.GetType().category)
             {
-            case Primitives64Bit::Type::Category::Float: return Str::Convert(fmt::format("{}", primitive.cast<double>()));
-            case Primitives64Bit::Type::Category::Signed: return Str::Convert(fmt::format("{}", primitive.cast<int64_t>()));
-            case Primitives64Bit::Type::Category::Unsigned: return Str::Convert(fmt::format("{}", primitive.cast<uint64_t>()));
+            case Primitives64Bit::Type::Category::Float: return Str::Convert(fmt::format("{}", primitive.Cast<double>()));
+            case Primitives64Bit::Type::Category::Signed: return Str::Convert(fmt::format("{}", primitive.Cast<int64_t>()));
+            case Primitives64Bit::Type::Category::Unsigned: return Str::Convert(fmt::format("{}", primitive.Cast<uint64_t>()));
             case Primitives64Bit::Type::Category::Unknown: break;
             default: break;
             }
@@ -609,14 +595,10 @@ struct Enum : public std::enable_shared_from_this<Enum>,
     }
 
     template <typename TObject, typename... TArgs> auto CreateNamedObject(TArgs&&... args)
-    {
-        return IDLGenerics::NamedIndexT<Enum, TObject>::Owner::CreateNamedObject(this->shared_from_this(), std::forward<TArgs>(args)...);
-    }
+    { return IDLGenerics::NamedIndexT<Enum, TObject>::Owner::CreateNamedObject(this->shared_from_this(), std::forward<TArgs>(args)...); }
 
     template <typename TObject, typename... TArgs> auto& Lookup(TArgs&&... args)
-    {
-        return IDLGenerics::NamedIndexT<Enum, TObject>::Owner::Lookup(std::forward<TArgs>(args)...);
-    }
+    { return IDLGenerics::NamedIndexT<Enum, TObject>::Owner::Lookup(std::forward<TArgs>(args)...); }
 
     // Binding::IBindable& GetFieldTypeBindable() const { return _basetype->GetBindable(); }
 };

@@ -1,6 +1,9 @@
 # cppforge-sync
 include_guard(GLOBAL)
-cmake_minimum_required(VERSION 3.26)
+cmake_minimum_required(VERSION 3.31)
+cmake_policy(SET CMP0167 NEW)
+cmake_policy(SET CMP0168 NEW)
+
 include(GenerateExportHeader)
 set(BuildEnvCMAKE_LOCATION "${CMAKE_CURRENT_LIST_DIR}")
 
@@ -249,7 +252,7 @@ macro(EnableStrictCompilation)
                 string(APPEND linker_flags " -Wl,--gc-sections") # Remove unused code sections
                 if (NOT EMSCRIPTEN) # TODO Find a better way to do this
                     string(APPEND linker_flags " -Wl,--exclude-libs,ALL") # Exclude all static libs from symbol table
-                endif() 
+                endif()
                 string(APPEND linker_flags " -Wl,--no-whole-archive") # Disable whole archive by
 
                 string(APPEND shlib_linker_flags " -Wl,--no-undefined") # No undefined symbols in shared libraries. aka -Wl,-z,defs
@@ -315,6 +318,7 @@ macro(EnableStrictCompilation)
                     -Wno-disabled-macro-expansion # fmt::print(stderr, ...)
                     -Wno-nrvo # clang-21
                     -Wno-thread-safety-negative # clang-21
+                    -Wno-shadow-header # clang-22
                     )
             else()
                 list(APPEND extracxxflags -Wno-error=stringop-overflow)

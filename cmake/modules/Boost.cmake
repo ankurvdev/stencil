@@ -1,6 +1,6 @@
 include_guard()
 set(BOOST_VERSION 1.90.0)
-
+cmake_policy(SET CMP0167 NEW)
 FetchContent_Declare(
     boostbuild
     OVERRIDE_FIND_PACKAGE TRUE
