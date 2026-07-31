@@ -28,6 +28,7 @@ EMSDK_VERSION = "latest"
 # ANDROID_NDK_VERSION = "27.3.13750724" LTS
 ANDROID_NDK_VERSION = "29.0.14206865"
 ANDROID_SDK_VERSION = 36
+ANDROID_MIN_SDK_VERSION = 28
 NODE_LATEST = "latest"  # latest-v20.x
 DefaultArch = {"amd64": "x64", "x86_64": "x64", "aarch64": "arm64"}.get(platform.machine().lower(), platform.machine().lower())
 
@@ -44,7 +45,7 @@ URLS["cmake_Windows_arm64"] = {
 }
 
 URLS["patch_Windows_x64"] = ""
-URLS["gradle_Linux_x64"] = URLS["gradle_Windows_x64"] = "https://services.gradle.org/distributions/gradle-8.14.2-bin.zip"
+URLS["gradle_Linux_x64"] = URLS["gradle_Windows_x64"] = "https://services.gradle.org/distributions/gradle-9.1.0-bin.zip"
 URLS["flexbison_Windows_x64"] = "https://github.com/lexxmark/winflexbison/releases/download/v2.5.25/win_flex_bison-2.5.25.zip"
 URLS["ninja_Windows_x64"] = "https://github.com/ninja-build/ninja/releases/latest/download/ninja-win.zip"
 URLS["ninja_Windows_arm64"] = "https://github.com/ninja-build/ninja/releases/latest/download/ninja-winarm64.zip"
@@ -275,7 +276,7 @@ def download_android_studio(path: Path) -> None:
     ext = {"linux": "tar.gz", "win32": "zip"}[sys.platform]
     urls = HTMLUrlExtractor("https://developer.android.com/studio").urls
     ossuffix = {"linux": "linux", "win32": "windows"}[sys.platform]
-    #pattern = f"https://redirector.gvt1.com/edgedl/android/studio/.*/android-studio-.*-{ossuffix}.{ext}"
+    # pattern = f"https://redirector.gvt1.com/edgedl/android/studio/.*/android-studio-.*-{ossuffix}.{ext}"
     pattern = f"https://edgedl.me.gvt1.com/android/studio/.*/android-studio-.*-{ossuffix}.{ext}"
     url = next(u for u in urls if re.match(pattern, u))
     downloadtofile = path / "downloads" / f"studio.{ext}"
@@ -484,14 +485,14 @@ def _detect_toolchain(
     environ: dict[str, str] | _Environ[str] | None = None,
 ) -> dict[str, str | Path | _Environ[str] | dict[str, Path]]:
     environ = environ or os.environ.copy()
-    for toolchain in ["msvc", "mingw", "visualstudio"]:
-        envvarsf = get_bin_path() / f"toolchain_{toolchain}.json"
-        if envvarsf.exists():
-            return init_envvars_from_file(toolchain, envvarsf, environ)
-        envvarsf = get_bin_path().parent / f"toolchain_{toolchain}.json"
-        if envvarsf.exists():
-            return init_envvars_from_file(toolchain, envvarsf, environ)
     if sys.platform == "win32":
+        for toolchain in ["msvc", "mingw", "visualstudio"]:
+            envvarsf = get_bin_path() / f"toolchain_{toolchain}.json"
+            if envvarsf.exists():
+                return init_envvars_from_file(toolchain, envvarsf, environ)
+            envvarsf = get_bin_path().parent / f"toolchain_{toolchain}.json"
+            if envvarsf.exists():
+                return init_envvars_from_file(toolchain, envvarsf, environ)
         info = get_visualstudio_toolchain()
         if info:
             (get_bin_path() / "toolchain_visualstudio.json").write_text(json.dumps(info, cls=CustomEncoder, indent=2))
@@ -667,6 +668,21 @@ def acquire_tool(name: str, extra: list[str] | None = None) -> Path:
     return get_binary(name)
 
 
+def try_get_android_sdk_from_env() -> Path | None:
+    if "ANDROID_SDK_ROOT" not in os.environ:
+        return None
+    path = Path(os.environ["ANDROID_SDK_ROOT"]).absolute()
+    if not path.is_dir():
+        return None
+    if not (path / "ndk").is_dir():
+        return None
+    if not (path / "build-tools").is_dir():
+        return None
+    if not (path / "platform-tools").is_dir():
+        return None
+    return path
+
+
 def get_android_toolchain(_expiry: int = 30) -> dict[str, str | Path | _Environ[str] | dict[str, Path]]:
     sdkpath = get_bin_path() / "android"
     sdk_root = sdkpath / "sdk"
@@ -717,6 +733,7 @@ def get_android_toolchain(_expiry: int = 30) -> dict[str, str | Path | _Environ[
         "ndk": ndk_home,
         "ndk_version": ANDROID_NDK_VERSION,
         "sdk_version": ANDROID_SDK_VERSION,
+        "min_sdk_version": ANDROID_MIN_SDK_VERSION,
         "java_home": java.parent.parent,
         "sdk_root": sdk_root,
         "jarsigner": _download_or_get_binary("jarsigner", sdkpath),
@@ -827,13 +844,16 @@ def get_portable_msvc_toolchain(  # noqa: PLR0912, PLR0915, C901
     for file in download_cache.rglob("*"):
         if not file.is_dir() and (now - datetime.datetime.fromtimestamp(file.stat().st_mtime, tz=datetime.timezone.utc)).days > expiry:
             file.unlink(missing_ok=True)
-    msiexec = shutil.which("msiexec")
-
     # shutil.rmtree(output_dir / "VC", ignore_errors=True)
     # shutil.rmtree(output_dir / "VC", ignore_errors=True)
 
     def msiextract(msi: Path, out: Path) -> None:
-        subprocess.check_call([msiexec, "/a", str(msi), "/quiet", "/qn", f"TARGETDIR={out!s}"])
+        if sys.platform == "win32":
+            subprocess.check_call([shutil.which("msiexec"), "/a", str(msi), "/quiet", "/qn", f"TARGETDIR={out!s}"])
+        else:
+            subprocess.check_call([shutil.which("msiextract"), msi.as_posix(), "-C", out.as_posix()])
+            # if (out / "Program Files").exists():
+            #    move_up(out / "Program Files")
         return out
 
     def download(url: str, fname: str | None = None) -> bytes:
@@ -993,9 +1013,9 @@ def get_portable_msvc_toolchain(  # noqa: PLR0912, PLR0915, C901
         msiextract(m, output_dir)
 
     ### versions
-
+    sdk_root = output_dir / "Program Files" / "Windows Kits/10"
     msvcv = next(iter((output_dir / "VC/Tools/MSVC").glob("*"))).name
-    sdkv = next(iter((output_dir / "Windows Kits/10/bin").glob("*"))).name
+    sdkv = next(iter((sdk_root / "bin").glob("*"))).name
 
     # place debug CRT runtime files into MSVC folder (not what real Visual Studio installer does... but is reasonable)
     pkg = "microsoft.visualcpp.runtimedebug.14"
@@ -1033,21 +1053,20 @@ def get_portable_msvc_toolchain(  # noqa: PLR0912, PLR0915, C901
     for f in output_dir.glob("*.msi"):
         f.unlink()
     for f in ["Catalogs", "DesignTime", f"bin/{sdkv}/chpe", f"Lib/{sdkv}/ucrt_enclave"]:
-        shutil.rmtree(output_dir / "Windows Kits/10" / f, ignore_errors=True)
+        shutil.rmtree(sdk_root / "" / f, ignore_errors=True)
     for arch in ["x86", "x64", "arm", "arm64"]:
         if arch != target_arch:
             shutil.rmtree(output_dir / "VC/Tools/MSVC" / msvcv / f"bin/Host{arch}", ignore_errors=True)
-            shutil.rmtree(output_dir / "Windows Kits/10/bin" / sdkv / arch, ignore_errors=True)
-            shutil.rmtree(output_dir / "Windows Kits/10/Lib" / sdkv / "ucrt" / arch, ignore_errors=True)
-            shutil.rmtree(output_dir / "Windows Kits/10/Lib" / sdkv / "um" / arch, ignore_errors=True)
+            shutil.rmtree(sdk_root / "/bin" / sdkv / arch, ignore_errors=True)
+            shutil.rmtree(sdk_root / "/Lib" / sdkv / "ucrt" / arch, ignore_errors=True)
+            shutil.rmtree(sdk_root / "/Lib" / sdkv / "um" / arch, ignore_errors=True)
     shutil.rmtree(msi_dir, ignore_errors=True)
     shutil.rmtree(msi_dir, ignore_errors=True)
     msvc_root = output_dir / "VC/Tools/MSVC" / msvcv
-    sdk_root = output_dir / "Windows Kits/10"
-    mt_exe = Path(shutil.which("mt", path=sdk_root / "bin" / sdkv / target_arch))
-    rc_exe = Path(shutil.which("rc", path=sdk_root / "bin" / sdkv / target_arch))
-    cl_exe = Path(shutil.which("cl", path=msvc_root / "bin" / f"Host{host}" / target_arch))
-    clang_cl_exe = Path(shutil.which("clang-cl", path=msvc_root / f"../../Llvm/{host}/bin"))
+    mt_exe = sdk_root / "bin" / sdkv / target_arch / "mt.exe"
+    rc_exe = sdk_root / "bin" / sdkv / target_arch / "rc.exe"
+    cl_exe = msvc_root / "bin" / f"Host{host}" / target_arch / "cl.exe"
+    clang_cl_exe = msvc_root / f"../../Llvm/{host}/bin/clang-cl.exe"
 
     if not cl_exe.is_file():
         raise ExternalToolsDownloadError("Cannot find cl.exe")

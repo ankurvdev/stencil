@@ -34,19 +34,13 @@ struct TypeHandler
 };
 
 inline auto VisitKey(TypeHandlerAndPtr const& item)
-{
-    return item.handler->VisitKey(item.ptr);
-}
+{ return item.handler->VisitKey(item.ptr); }
 
 inline auto VisitValueForKey(TypeHandlerAndPtr const& item)
-{
-    return item.handler->VisitValueForKey(item.ptr);
-}
+{ return item.handler->VisitValueForKey(item.ptr); }
 
 inline auto VisitNext(TypeHandlerAndPtr const& item)
-{
-    return item.handler->VisitNext(item.ptr);
-}
+{ return item.handler->VisitNext(item.ptr); }
 
 template <ConceptProtocol TProto, typename T> struct ProtocolHelper;
 
@@ -58,9 +52,7 @@ template <ConceptProtocol TProto, ConceptPrimitives64Bit TVal> struct ProtocolHe
 template <ConceptProtocol TProto, typename T> struct ProtocolHelper<TProto, std::span<T const>>
 {
     void operator()(TypeHandlerAndPtr const& item, std::span<T const> const& val)
-    {
-        return item.handler->Assign(item.ptr, std::as_bytes(val));
-    }
+    { return item.handler->Assign(item.ptr, std::as_bytes(val)); }
 };
 
 template <ConceptProtocol TProto, typename T> struct ProtocolHelper<TProto, std::basic_string_view<T>>
@@ -80,9 +72,7 @@ template <ConceptProtocol TProto, typename TOwner, typename T> struct IterableVi
 template <ConceptProtocol TProto, typename TOwner, typename T> struct PrimitiveVisitorTypeHandler
 {
     template <typename T2> [[noreturn]] void Assign(T& /*obj*/, T2& /*obj*/) const
-    {
-        throw std::logic_error("Add Not supported on primitive types");
-    }
+    { throw std::logic_error("Add Not supported on primitive types"); }
     TOwner* owner;
 };
 
@@ -133,9 +123,7 @@ template <ConceptProtocol TProto, typename TOwner, typename T> struct IndexableV
 {
     [[noreturn]] TypeHandlerAndPtr                        KeyHandler() const { throw std::logic_error("Not an indexable type"); }
     template <typename T1> [[noreturn]] TypeHandlerAndPtr VisitValueForKey(T1& /*obj*/) const
-    {
-        throw std::logic_error("Not an indexable type");
-    }
+    { throw std::logic_error("Not an indexable type"); }
     TOwner* owner;
 };
 
@@ -237,11 +225,11 @@ template <ConceptProtocol TProto, typename TOwner, typename T> struct VisitorTyp
 
     virtual void Assign(void* ptr, Primitives64Bit const& val) override
     {
-        if constexpr (ConceptPrimitives64Bit<T>) { *reinterpret_cast<T*>(ptr) = val.cast<T>(); }
+        if constexpr (ConceptPrimitives64Bit<T>) { *reinterpret_cast<T*>(ptr) = val.Cast<T>(); }
         /* else if constexpr (ConceptTransactionForPrimitive<T>)
          {
              using ElemType = typename Stencil::TransactionTraits<T>::ElemType;
-             (*reinterpret_cast<T*>(ptr)).Assign(val.cast<ElemType>());
+             (*reinterpret_cast<T*>(ptr)).Assign(val.Cast<ElemType>());
          }*/
         else
         {
@@ -250,9 +238,7 @@ template <ConceptProtocol TProto, typename TOwner, typename T> struct VisitorTyp
     }
     virtual void      Assign(void* ptr, std::string_view const& val) override { primitive.Assign(*reinterpret_cast<T*>(ptr), val); }
     [[noreturn]] void Assign(void* /*ptr*/, std::wstring_view const& /*val*/) override
-    {
-        TODO("primitive.Assign(*reinterpret_cast<T*>(ptr), val);");
-    }
+    { TODO("primitive.Assign(*reinterpret_cast<T*>(ptr), val);"); }
 
     TOwner*                                        owner;
     PrimitiveVisitorTypeHandler<TProto, TOwner, T> primitive;

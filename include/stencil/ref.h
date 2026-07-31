@@ -49,28 +49,20 @@ template <Stencil::ConceptIterable T> struct Stencil::VisitorForIterable<Stencil
     template <typename T1>
         requires std::is_same_v<std::remove_const_t<T1>, ThisType>
     static void IteratorBegin(Iterator& it, T1& obj)
-    {
-        Stencil::Visitor<T>::IteratorBegin(it, *obj.get());
-    }
+    { Stencil::Visitor<T>::IteratorBegin(it, *obj.get()); }
     template <typename T1>
         requires std::is_same_v<std::remove_const_t<T1>, ThisType>
     static void IteratorMoveNext(Iterator& it, T1& obj)
-    {
-        Stencil::Visitor<T>::IteratorMoveNext(it, *obj.get());
-    }
+    { Stencil::Visitor<T>::IteratorMoveNext(it, *obj.get()); }
     template <typename T1>
         requires std::is_same_v<std::remove_const_t<T1>, ThisType>
     static bool IteratorValid(Iterator& it, T1& obj)
-    {
-        return Stencil::Visitor<T>::IteratorValid(it, *obj.get());
-    }
+    { return Stencil::Visitor<T>::IteratorValid(it, *obj.get()); }
 
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, ThisType>
     static void Visit(Iterator& it, T1& obj, TLambda&& lambda)
-    {
-        Stencil::Visitor<T>::Visit(it, *obj.get(), std::forward<TLambda>(lambda));
-    }
+    { Stencil::Visitor<T>::Visit(it, *obj.get(), std::forward<TLambda>(lambda)); }
 };
 
 template <Stencil::ConceptIndexable T> struct Stencil::VisitorForIndexable<Stencil::Ref<T>>
@@ -184,8 +176,8 @@ template <typename T> struct Primitives64Bit::Traits<Stencil::Ref<T>>
 {
     using _ThisType = Stencil::Ref<T>;
     static constexpr auto Type() { return Primitives64Bit::Type::Unsigned(4); }
-    static void           Assign(Primitives64Bit& obj, _ThisType& val) { obj._uVal = Repr(val); }
-    static auto           Get(Primitives64Bit const& obj) { return _ThisType(static_cast<uint32_t>(obj._uVal)); }
+    static void           Assign(Primitives64Bit& obj, _ThisType& val) { obj._val.u = Repr(val); }
+    static auto           Get(Primitives64Bit const& obj) { return _ThisType(static_cast<uint32_t>(obj._val.u)); }
     static auto           Convert(uint64_t val) { return _ThisType(static_cast<uint32_t>(val)); }
     static uint64_t       Repr(_ThisType const& val) { return val.id; }
 };
