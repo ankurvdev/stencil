@@ -6,7 +6,7 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/cubicdaiya/dtl
     GIT_TAG v1.21
     SOURCE_SUBDIR .
-    GIT_PROGRESS FALSE GIT_SHALLOW 1 SYSTEM
+    GIT_PROGRESS FALSE GIT_SHALLOW ON SYSTEM
     FIND_PACKAGE_ARGS NAMES dtl
 )
 

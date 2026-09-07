@@ -1,4 +1,3 @@
-// cppforge-sync
 #pragma once
 #include "CommonMacros.h"
 
@@ -42,9 +41,7 @@ namespace TestCommon
 {
 #if !defined _WIN32
 inline bool IsDebuggerPresent()
-{
-    return true;
-}
+{ return true; }
 #endif
 
 /*
@@ -302,9 +299,7 @@ struct StrFormat
 {
     static auto ReadStream(std::istream& ss) { return ReadStrStream(ss); }
     static auto WriteResource(std::vector<std::string> const& actualstring, std::string_view const& resname)
-    {
-        return WriteStrResourse(actualstring, resname);
-    }
+    { return WriteStrResourse(actualstring, resname); }
     static auto PrintDiff(std::vector<std::string> const& actualstring, std::istream& ss) { PrintLinesDiff(actualstring, ReadStream(ss)); }
 
     static bool Compare(std::vector<std::string> const& actual, std::istream& ss)
@@ -351,9 +346,7 @@ struct BinFormat
     static auto ReadStream(std::istream& ss) { return ReadBinStream(ss); }
 
     static auto WriteResource(std::vector<std::string> const& actualstring, std::string_view const& resname)
-    {
-        return WriteBinResourse(actualstring, resname);
-    }
+    { return WriteBinResourse(actualstring, resname); }
     static auto PrintDiff(std::vector<std::string> const& /*actualstring*/, std::istream& /*ss*/) {}
 
     static bool Compare(std::vector<std::string> const& actual, std::istream& ss) { return actual == ReadStream(ss); }
@@ -387,9 +380,7 @@ template <typename TFormat> inline bool _CheckResource(std::vector<std::string> 
 }
 
 template <typename TFormat> inline void CheckResource(std::vector<std::string> const& actual, std::string_view const& resourcename)
-{
-    _CheckResource<TFormat>(actual, resourcename);
-}
+{ _CheckResource<TFormat>(actual, resourcename); }
 #endif
 
 }    // namespace TestCommon

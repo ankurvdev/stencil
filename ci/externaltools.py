@@ -104,7 +104,7 @@ URL_NOTEPAD = "http://download.notepad-plus-plus.org/repository/7.x/7.8.1/npp.7.
 URL_VSWHERE = "https://github.com/Microsoft/vswhere/releases/download/2.6.7/vswhere.exe"
 
 
-class ExternalToolsDownloadError(Exception):
+class ExternalToolsDownloadError(RuntimeError):
     pass
 
 
@@ -781,6 +781,7 @@ def init_toolchain(
 ) -> dict[str, str | Path | _Environ[str] | dict[str, Path]]:
     mapping = {
         "and": "android",
+        "andcli": "android",
         "android": "android",
         "mingw": "mingw",
         "msvc": "msvc",
