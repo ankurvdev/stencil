@@ -142,8 +142,8 @@ struct zzVariant_Namezz : public Stencil::VariantT<zzVariant_Namezz>
         return *this;
     }
 
-    zzFieldType_NativeTypezz&       zzNamezz() { return std::get<zzFieldType_NativeTypezz>(_variant); }
-    zzFieldType_NativeTypezz const& zzNamezz() const { return std::get<zzFieldType_NativeTypezz>(_variant); }
+    zzFieldType_NativeTypezz&       zzNamezz() LFTBND { return std::get<zzFieldType_NativeTypezz>(_variant); }
+    zzFieldType_NativeTypezz const& zzNamezz() const LFTBND { return std::get<zzFieldType_NativeTypezz>(_variant); }
     //</Field>
 };
 //</Variant>
@@ -339,7 +339,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
         //</Field>
     };
 
-    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
+    Transaction(TxnState& elemState LFTBND, ContainerTxnState& containerState LFTBND, TContainer& container LFTBND, ElemType& elem LFTBND) :
         _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
     {}
 
@@ -398,7 +398,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
 
     public:
     //<Field>
-    auto zzNamezz()
+    auto zzNamezz() LFTBND
     {
         return Stencil::CreateTransaction<Transaction_zzNamezz>(_elemState.zzNamezz, _txnStateForElem.zzNamezz, *this, _elem.zzNamezz);
     }
@@ -466,7 +466,7 @@ template <Stencil::ConceptTransactionView TContainer> struct Stencil::Transactio
     using TxnState        = Txn::TxnState;
     using TxnStateForElem = Txn::TxnStateForElem;
 
-    TransactionView(TxnState const& elemState, ContainerTxnState const& containerState, TContainer const& container, ElemType const& elem) :
+    TransactionView(TxnState const& elemState LFTBND, ContainerTxnState const& containerState LFTBND, TContainer const& container LFTBND, ElemType const& elem LFTBND) :
         _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
     {}
 
@@ -510,7 +510,7 @@ template <Stencil::ConceptTransactionView TContainer> struct Stencil::Transactio
 
     public:
     //<Field>
-    auto zzNamezz() const
+    auto zzNamezz() const LFTBND
     {
         return Stencil::CreateTransactionView<TransactionView_zzNamezz>(
             _elemState.zzNamezz, _txnStateForElem.zzNamezz, *this, _elem.zzNamezz);

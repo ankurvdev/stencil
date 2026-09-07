@@ -1,3 +1,4 @@
+#include "CommonMacros.h"
 #include "DebugInfo.h"
 #include "GeneratedCodeFragment.h"
 #include "Generator.h"
@@ -42,7 +43,7 @@ inline std::string readfile(std::filesystem::path const& filepath)
     return contents;
 }
 
-static std::ostream& operator<<(std::ostream& strm, std::wstring_view wstr)
+static std::ostream& operator<<(std::ostream& strm LFTBND, std::wstring_view wstr)
 {
     for (auto& c : wstr) { strm << static_cast<char>(c); }
     return strm;
@@ -220,7 +221,7 @@ template <typename TKey, typename TVal> struct OrderedMap
             return out.operator->();
         }
 
-        iterator& operator++()
+        iterator& operator++() LFTBND
         {
             vecit++;
             return *this;
@@ -242,7 +243,7 @@ template <typename TKey, typename TVal> struct OrderedMap
             return out.operator->();
         }
 
-        const_iterator& operator++()
+        const_iterator& operator++() LFTBND
         {
             vecit++;
             return *this;
@@ -263,10 +264,10 @@ template <typename TKey, typename TVal> struct OrderedMap
     auto find(TKey const& key) { return iterator{std::find(_keyorder.begin(), _keyorder.end(), key), &_map}; }
     auto find(TKey const& key) const { return const_iterator{std::find(_keyorder.begin(), _keyorder.end(), key), &_map}; }
 
-    TVal&       at(TKey const& key) { return _map.at(key); }
-    TVal const& at(TKey const& key) const { return _map.at(key); }
+    TVal&       at(TKey const& key) LFTBND { return _map.at(key); }
+    TVal const& at(TKey const& key) const LFTBND { return _map.at(key); }
 
-    TVal&       operator[](TKey const& key) { return _map.at(key); }
+    TVal&       operator[](TKey const& key) LFTBND { return _map.at(key); }
     TVal const& operator[](TKey const& key) const { return _map.at(key); }
 
     void emplace(TKey const& key, TVal&& val)
@@ -393,14 +394,14 @@ void TypeDefinitions::AddTypeDefinitions(std::string_view const& /*name*/, std::
                 _FindOrInsertFieldTypeDecl(fieldTypeDecl.name).Merge(std::move(fieldTypeDecl));
             }
         }
-        else if (propname == "Struct") { _structDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
-        else if (propname == "Variant") { _unionDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
-        else if (propname == "Interface") { _interfaceDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
-        else if (propname == "FunctionArgs") { _fnargsDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
-        else if (propname == "Typedef") { _typedefDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
-        else if (propname == "Enum") { _enumDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
-        else if (propname == "EnumValue") { _enumValueDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
-        else if (propname == "NamedConst") { _namedConstDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
+        else if (propname == "Struct") { structDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
+        else if (propname == "Variant") { unionDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
+        else if (propname == "Interface") { interfaceDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
+        else if (propname == "FunctionArgs") { fnargsDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
+        else if (propname == "Typedef") { typedefDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
+        else if (propname == "Enum") { enumDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
+        else if (propname == "EnumValue") { enumValueDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
+        else if (propname == "NamedConst") { namedConstDefault.Merge(FieldTypeDeclFromTomlNode(node)); }
         else if (propname == "Containers")
         {
             for (auto [key, node1] : node.as_table())
@@ -414,7 +415,7 @@ void TypeDefinitions::AddTypeDefinitions(std::string_view const& /*name*/, std::
         {
             for (auto [key, node1] : node.as_table())
             {
-                auto& objmap = _attributeDefs[Str::Convert(key)];
+                auto& objmap = attributeDefs[Str::Convert(key)];
                 for (auto const& [key1, node2] : node1.as_table()) { objmap[Str::Convert(key1)] = Str::Convert(node2.as_string()); }
             }
         }
@@ -646,7 +647,7 @@ void Generator::_AddContent(std::string_view const& name, std::string_view const
 
 void TypeDefinitions::_RegisterFieldDefForProgram(TypeDefinitions::FieldTypeDecl const& v, IDL::Program& program) const
 {
-    if (!v.baseField.empty()) { _RegisterFieldDefForProgram(_fieldTypeDecls[_fieldTypeDeclMap.at(v.baseField)], program); }
+    if (!v.baseField.empty()) { _RegisterFieldDefForProgram(fieldTypeDecls[fieldTypeDeclMap.at(v.baseField)], program); }
 
     if (program.TryGetFieldTypeName(v.name).has_value()) { return; }
 
@@ -674,21 +675,21 @@ void Generator::FinalizeTypeDefinitions()
 }
 void TypeDefinitions::FinalizeTypeDefinitions()
 {
-    auto defaultFieldTypeDecl = &_fieldTypeDecls[_fieldTypeDeclMap[L"default"]];
+    auto defaultFieldTypeDecl = &fieldTypeDecls[fieldTypeDeclMap[L"default"]];
 
     // Relay inheritance
-    for (auto& v : _fieldTypeDecls)
+    for (auto& v : fieldTypeDecls)
     {
         if (v.name == L"default") continue;
         auto baseFieldType = defaultFieldTypeDecl;
-        if (!v.baseField.empty()) { baseFieldType = &_fieldTypeDecls[_fieldTypeDeclMap[v.baseField]]; }
+        if (!v.baseField.empty()) { baseFieldType = &fieldTypeDecls[fieldTypeDeclMap[v.baseField]]; }
         for (auto& m : baseFieldType->mutators) { v.mutators.push_back(m); }
         for (auto& a : baseFieldType->accessors) { v.accessors.push_back(a); }
     }
-    for (auto& v : _containerDecls)
+    for (auto& v : containerDecls)
     {
         if (v.baseField.empty()) { continue; }
-        auto baseFieldType = &_containerDecls[_containerDeclMap[v.baseField]];
+        auto baseFieldType = &containerDecls[containerDeclMap[v.baseField]];
         for (auto& m : baseFieldType->mutators) { v.mutators.push_back(m); }
         for (auto& a : baseFieldType->accessors) { v.accessors.push_back(a); }
     }
@@ -696,39 +697,38 @@ void TypeDefinitions::FinalizeTypeDefinitions()
 
 void TypeDefinitions::LoadIntoProgram(IDL::Program& program) const
 {
-    for (auto& v : _fieldTypeDecls)
+    for (const auto& v : fieldTypeDecls)
     {
-        if (v.name.substr(0, 7) == L"default") _RegisterFieldDefForProgram(v, program);
+        if (v.name.starts_with(L"default")) _RegisterFieldDefForProgram(v, program);
     }
 
-    for (auto& v : _fieldTypeDecls)
+    for (const auto& v : fieldTypeDecls)
     {
-        if (v.name.substr(0, 7) != L"default") _RegisterFieldDefForProgram(v, program);
+        if (!v.name.starts_with(L"default")) _RegisterFieldDefForProgram(v, program);
     }
 
-    for (auto& v : _containerDecls)
+    for (const auto& v : containerDecls)
     {
         auto base = program.TryLookup<IDL::Container>(v.baseField);
-        auto container
-            = program.CreateNamedObject<IDL::Container>(Str::Copy(v.name), std::vector<Str::Type>(v.args), base, v.annotationMap);
-        for (auto& m : v.mutators) { container->AddMutator({m}); }
-        for (auto& m : v.accessors) { container->AddAccessor({m}); }
+        auto container  = program.CreateNamedObject<IDL::Container>(Str::Copy(v.name), std::vector<Str::Type>(v.args), base, v.annotationMap);
+        for (const auto& m : v.mutators) { container->AddMutator({m}); }
+        for (const auto& m : v.accessors) { container->AddAccessor({m}); }
     }
 
-    for (auto& [k, v] : _attributeDefs)
+    for (auto& [k, v] : attributeDefs)
     {
         program.CreateNamedObject<IDL::AttributeDefinition>(Str::Create(k), nullptr, IDL::AttributeDefinition::AttributeComponentMap(v));
     }
 
     std::optional<std::shared_ptr<IDLGenerics::IFieldType>> emptyBaseField;
-    program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_struct", emptyBaseField, _structDefault.annotationMap);
-    program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_union", emptyBaseField, _unionDefault.annotationMap);
-    program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_interface", emptyBaseField, _interfaceDefault.annotationMap);
-    program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_typedef", emptyBaseField, _typedefDefault.annotationMap);
-    program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_functionargs", emptyBaseField, _fnargsDefault.annotationMap);
-    program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_enum", emptyBaseField, _enumDefault.annotationMap);
-    program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_enumvalue", emptyBaseField, _enumValueDefault.annotationMap);
-    program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_namedconst", emptyBaseField, _namedConstDefault.annotationMap);
+    program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_struct", emptyBaseField, structDefault.annotationMap);
+    program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_union", emptyBaseField, unionDefault.annotationMap);
+    program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_interface", emptyBaseField, interfaceDefault.annotationMap);
+    program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_typedef", emptyBaseField, typedefDefault.annotationMap);
+    program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_functionargs", emptyBaseField, fnargsDefault.annotationMap);
+    program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_enum", emptyBaseField, enumDefault.annotationMap);
+    program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_enumvalue", emptyBaseField, enumValueDefault.annotationMap);
+    program.CreateFieldTypeObject<IDL::NativeFieldType>(L"default_namedconst", emptyBaseField, namedConstDefault.annotationMap);
 }
 
 void Generator::LoadBuilltinTemplates()

@@ -139,7 +139,7 @@ struct Ref
 
     static Ref Invalid() { return Ref{}; }
     bool       Valid() const { return page >= 2 && slot < 1000; }
-    Ref&       IncrementSlot()
+    Ref&       IncrementSlot() LFTBND
     {
         slot++;
         return *this;
@@ -434,8 +434,8 @@ struct PageRuntime
     PageRuntime(Ref::PageIndex pageIndex) { _pageIndex = pageIndex; }
     CLASS_DELETE_COPY_DEFAULT_MOVE(PageRuntime);
 
-    std::span<uint8_t>       RawData() { return _page->buffer; }
-    std::span<uint8_t const> RawData() const { return _page->buffer; }
+    std::span<uint8_t>       RawData()  LFTBND { return _page->buffer; }
+    std::span<uint8_t const> RawData() const LFTBND { return _page->buffer; }
     SUPPRESS_WARNINGS_START  SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
 
         template <typename T>
@@ -451,7 +451,7 @@ struct PageRuntime
         return std::span<T>(ptr, std::size(_page->buffer) - offset);
     }
 
-    template <typename TPage> TPage As() { return TPage(*this); }
+    template <typename TPage> TPage As() LFTBND { return TPage(*this); }
 
     // private:
 
@@ -508,7 +508,7 @@ template <size_t RecordSize> struct PageForRecord
 
     static constexpr size_t SlotCount = GetSlotCapacity(RecordSize);
 
-    PageForRecord(PageRuntime& page) : _page(page)
+    PageForRecord(PageRuntime& page LFTBND) : _page(page)
     {
         SUPPRESS_WARNINGS_START
         SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
@@ -673,7 +673,7 @@ template <> struct PageForRecord<0>
         return slotObj;
     }
 
-    PageForRecord(PageRuntime& page) : _page(page)
+    PageForRecord(PageRuntime& page LFTBND) : _page(page)
     {
         _recordSize = *reinterpret_cast<uint16_t*>(page.RawData().data());
         if (_recordSize != 0) { _SetRecordSize(_recordSize); }
@@ -745,7 +745,7 @@ struct JournalPage
     Ref::PageIndex _StartPageIndex() const { return _page.Get<Header>()[0].startPageIndex; }
 
     private:
-    JournalPage(PageRuntime& page) : _page(page) {}
+    JournalPage(PageRuntime& page LFTBND) : _page(page) {}
 
     PageRuntime& _page;
     friend struct PageRuntime;
@@ -815,7 +815,7 @@ struct PageManager
     uint32_t       GetPageObjTypeId(Ref::PageIndex pageIndex) const { return _pageRuntimeStates[pageIndex]._typeId; }
     uint32_t       GetPageDataSize(Ref::PageIndex pageIndex) const { return _pageRuntimeStates[pageIndex]._pageRecDataSize; }
 
-    PageRuntime& LoadPage(Ref::PageIndex pageIndex)
+    PageRuntime& LoadPage(Ref::PageIndex pageIndex) LFTBND
     {
         auto& pageRT = _pageRuntimeStates[pageIndex];
         if (pageRT.Loaded()) { return pageRT; }
@@ -823,7 +823,7 @@ struct PageManager
         return pageRT;
     }
 
-    PageRuntime& CreateNewPage(uint32_t objTypeId, uint32_t pageRecDataSize)
+    PageRuntime& CreateNewPage(uint32_t objTypeId, uint32_t pageRecDataSize) LFTBND
     {
         auto pageIndex = static_cast<impl::Ref::PageIndex>(_pageRuntimeStates.size());
         _pageRuntimeStates.push_back(PageRuntime{pageIndex});
@@ -927,7 +927,7 @@ template <ConceptRecord T, typename TDb, typename TLock> struct Iterator
 
     bool      operator==(Iterator const& rhs) const { return _lock == rhs._lock && _db == rhs._db && _current == rhs._current; }
     bool      operator!=(Iterator const& rhs) const { return !(*this == rhs); }
-    Iterator& operator++()
+    Iterator& operator++() LFTBND
     {
         _current = impl::Ref(_current).IncrementSlot();
         _MoveToValidSlot();
@@ -1021,13 +1021,13 @@ struct Blob
     private:
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
-    uint8_t*       _GetDataPtr() { return reinterpret_cast<uint8_t*>(this) + sizeof(Blob); }
-    uint8_t const* _GetDataPtr() const { return reinterpret_cast<uint8_t const*>(this) + sizeof(Blob); }
+    uint8_t*       _GetDataPtr() LFTBND { return reinterpret_cast<uint8_t*>(this) + sizeof(Blob); }
+    uint8_t const* _GetDataPtr() const LFTBND { return reinterpret_cast<uint8_t const*>(this) + sizeof(Blob); }
     SUPPRESS_WARNINGS_END
     public:
     template <typename T> size_t   Count() const { return static_cast<size_t>(blobSize) / sizeof(T); }
-    template <typename T> T const* Data() const { return reinterpret_cast<T const*>(_GetDataPtr()); }
-    template <typename T> T*       Data() { return reinterpret_cast<T*>(_GetDataPtr()); }
+    template <typename T> T const* Data() const LFTBND { return reinterpret_cast<T const*>(_GetDataPtr()); }
+    template <typename T> T*       Data() LFTBND { return reinterpret_cast<T*>(_GetDataPtr()); }
 
     template <typename T> std::span<T>       AsSpan() { return std::span<T>(Data<T>(), Count<T>()); }
     template <typename T> std::span<T const> AsSpan() const { return std::span<T const>(Data<T>(), Count<T>()); }
@@ -1371,7 +1371,7 @@ template <ConceptRecord T> struct RecordNest<std::shared_ptr<T>>
 
 template <ConceptFixedSize T> struct Record<T>
 {
-    T const& get() const { return data; }
+    T const& get() const LFTBND { return data; }
 
     T data;
 };
@@ -1386,7 +1386,7 @@ template <typename T, typename TDb> struct RecordEdit;
 template <typename T, typename TDb> struct RecordView
 {
 
-    RecordView(TDb& db, ROLock& lock, Ref<T> const& id, Record<T> const& rec) : _db(db), _lock(lock), _id(id), _rec(rec) {}
+    RecordView(TDb& db LFTBND, ROLock& lock LFTBND, Ref<T> const& id LFTBND, Record<T> const& rec LFTBND) : _db(db), _lock(lock), _id(id), _rec(rec) {}
     ~RecordView() = default;
     CLASS_DELETE_COPY_AND_MOVE(RecordView);
 
@@ -1405,7 +1405,7 @@ template <typename T, typename TDb> struct RecordViewTraits<RecordView<T, TDb>>
     using NestType   = RecordNest<T>;
 };
 
-template <typename T, typename TDb> RecordView<T, TDb> CreateRecordView(TDb& db, ROLock& lock, Ref<T> const& id, Record<T> const& rec)
+template <typename T, typename TDb> RecordView<T, TDb> CreateRecordView(TDb& db LFTBND, ROLock& lock LFTBND, Ref<T> const& id LFTBND, Record<T> const& rec LFTBND)
 {
     return RecordView<T, TDb>(db, lock, id, rec);
 }

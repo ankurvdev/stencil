@@ -538,7 +538,7 @@ struct SvcMgr
         _ioc.stop();
     }
 
-    auto& IOC() { return _ioc; }
+    auto& IOC() LFTBND { return _ioc; }
 
     private:
     std::unordered_set<std::shared_ptr<SSEInstance>> _sseListeners;
@@ -1041,7 +1041,7 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
 
         for (size_t i = 0; i < numThreads; i++)
         {
-            _listenthreads.emplace_back([this, i]() {
+            _listenthreads.emplace_back([=, this]() {
                 SetThreadName(fmt::format("ncs:ios:{}", i).c_str());
                 _mgr.IOC().run();
             });

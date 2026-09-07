@@ -276,7 +276,7 @@ template <ConceptProtocol TProto, typename T> struct _StackVisitor
     void Add() { _stack.push_back(VisitNext(_stack.back())); }
 
     // TODO : Yuck! Revisit and try to convince PROP1
-    template <typename T1> TypeHandler* FindOrCreateHandler(void* ptr)
+    template <typename T1> TypeHandler* FindOrCreateHandler(void* ptr) LFTBND
     {
         // auto hashcode = typeid(T1).hash_code();
         auto it = _allhandlers.find(ptr);
@@ -288,8 +288,8 @@ template <ConceptProtocol TProto, typename T> struct _StackVisitor
             uptr->iterable.owner  = this;
             uptr->indexable.owner = this;
             auto hptr             = uptr.get();
-            _allhandlers.insert(std::make_pair(hptr, std::move(uptr)));
-            return hptr;
+            auto [nit, inserted] = _allhandlers.insert(std::make_pair(hptr, std::move(uptr)));
+            return nit->second.get();
         }
         return it->second.get();
     }

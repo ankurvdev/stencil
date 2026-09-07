@@ -29,27 +29,28 @@ struct Writer
 {
     Writer() = default;
 
-    template <typename TVal, std::enable_if_t<std::is_trivially_default_constructible<TVal>::value, bool> = true>
-    Writer& operator<<(TVal const& val)
-    {
+    template <typename TVal>
+     requires std::is_trivially_default_constructible_v<TVal> 
+    Writer& operator<<(TVal const& val) LFTBND
+   {
         auto spn = AsCSpan(val);
         std::copy(spn.begin(), spn.end(), back_inserter(_buffer));
         return *this;
     }
 
-    Writer& operator<<(std::span<std::byte const> const& bytespn)
+    Writer& operator<<(std::span<std::byte const> const& bytespn) LFTBND
     {
         std::span<uint8_t const> spn(reinterpret_cast<uint8_t const*>(bytespn.data()), bytespn.size());
         std::copy(spn.begin(), spn.end(), back_inserter(_buffer));
         return *this;
     }
 
-    Writer& operator<<(std::span<uint8_t const> const& spn)
+    Writer& operator<<(std::span<uint8_t const> const& spn) LFTBND
     {
         std::copy(spn.begin(), spn.end(), back_inserter(_buffer));
         return *this;
     }
-    template <typename TChar, typename TStr> Writer& _WriteStr(TStr const& str)
+    template <typename TChar, typename TStr> Writer& _WriteStr(TStr const& str) LFTBND
     {
         uint32_t bytesize = static_cast<uint32_t>(str.size() * sizeof(TChar));
         *this << bytesize;
@@ -58,10 +59,10 @@ struct Writer
         return *this;
     }
 
-    Writer& operator<<(std::string const& str) { return _WriteStr<char>(str); }
-    Writer& operator<<(std::wstring const& str) { return _WriteStr<wchar_t>(str); }
-    Writer& operator<<(shared_string const& str) { return _WriteStr<char>(str); }
-    Writer& operator<<(shared_wstring const& str) { return _WriteStr<wchar_t>(str); }
+    Writer& operator<<(std::string const& str)  LFTBND { return _WriteStr<char>(str); }
+    Writer& operator<<(std::wstring const& str) LFTBND { return _WriteStr<wchar_t>(str); }
+    Writer& operator<<(shared_string const& str) LFTBND { return _WriteStr<char>(str); }
+    Writer& operator<<(shared_wstring const& str) LFTBND { return _WriteStr<wchar_t>(str); }
 
     std::vector<uint8_t> Reset() { return std::move(_buffer); }
 

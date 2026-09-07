@@ -1,28 +1,28 @@
 #pragma once
 #include <list>
 #include <memory>
-
+// NOLINTBEGIN(readability-identifier-naming)
 template <typename T> struct tree
 {
-    struct _Node
+    struct Node
     {
-        _Node(T&& val) : data(std::move(val)) {}
-        _Node(_Node const&)            = delete;
-        _Node()                        = delete;
-        _Node& operator=(_Node const&) = delete;
+        explicit Node(T&& val) : data(std::move(val)) {}
+        Node(Node const&)            = delete;
+        Node()                        = delete;
+        Node& operator=(Node const&) = delete;
 
-        _Node(_Node&& r)            = default;
-        _Node& operator=(_Node&& r) = default;
+        Node(Node&& r)            = default;
+        Node& operator=(Node&& r) = default;
 
         T      data;
-        _Node* firstchild{};
-        _Node* lastchild{};
-        _Node* nextsibling{};
-        _Node* prevsibling{};
-        _Node* parent{};
+        Node* firstchild{};
+        Node* lastchild{};
+        Node* nextsibling{};
+        Node* prevsibling{};
+        Node* parent{};
     };
 
-    std::list<std::unique_ptr<_Node>> _nodes;    // TODO : avoid wastage
+    std::list<std::unique_ptr<Node>> _nodes;    // TODO : avoid wastage
 
     public:
     tree()                         = default;
@@ -42,22 +42,22 @@ template <typename T> struct tree
         bool operator!=(iterator const& r) const { return !((*this) == r); }
         bool operator==(iterator const& r) const { return _current == r._current && _parent == r._parent; }
 
-        iterator& operator++()
+        iterator& operator++() LFTBND
         {
             _current = _current->nextsibling;
             return *this;
         }
 
         private:
-        static iterator create(_Node* node) { return iterator(node); }
+        static iterator create(Node* node LFTBND) { return iterator(node); }
         static iterator end() { return iterator{}; }
 
         iterator() = default;
-        iterator(_Node* node) : _current(node), _parent(node == nullptr ? nullptr : node->parent) {}
-        iterator(_Node* cur, _Node* par) : _current(cur), _parent(par) {}
+        explicit iterator(Node* node LFTBND) : _current(node), _parent(node == nullptr ? nullptr : node->parent) {}
+        iterator(Node* cur LFTBND, Node* par LFTBND)  : _current(cur), _parent(par) {}
 
-        _Node* _current{nullptr};
-        _Node* _parent{nullptr};
+        Node* _current{nullptr};
+        Node* _parent{nullptr};
         friend struct tree;
     };
 
@@ -70,18 +70,18 @@ template <typename T> struct tree
         auto end() const { return _end; }
     };
 
-    iterator rootbegin() const { return _nodes.size() == 0 ? iterator::end() : iterator::create(_nodes.front().get()); }
-    iterator rootend() const { return iterator::end(); }
+    [[nodiscard]] iterator rootbegin() const LFTBND { return _nodes.size() == 0 ? iterator::end() : iterator::create(_nodes.front().get()); }
+    [[nodiscard]] iterator rootend() const { return iterator::end(); }
 
-    range<iterator> children(iterator it) const
+    [[nodiscard]] range<iterator> children(iterator it) const
     {
         return range<iterator>{iterator{it._current->firstchild, it._current}, iterator{nullptr, it._current}};
     }
 
     // Insert after last child
-    iterator addchild(iterator it, T&& data)
+    iterator addchild(iterator it, T&& data) LFTBND
     {
-        auto item = std::make_unique<_Node>(std::forward<T>(data));
+        auto item = std::make_unique<Node>(std::forward<T>(data));
         if (it != iterator::end())
         {
             auto parent       = it._current;
@@ -102,16 +102,15 @@ template <typename T> struct tree
             if (_nodes.size() != 0) { throw std::logic_error("Use add_sibling to add multiple roots"); }
         }
 
-        auto retit = iterator::create(item.get());
         _nodes.push_back(std::move(item));
-        return retit;
+        return iterator::create(_nodes.back().get());
     }
 
-    iterator addsibling(iterator it, T&& data)
+    iterator addsibling(iterator it, T&& data) LFTBND
     {
         if (it == iterator::end()) { throw std::logic_error("Add Sibling on last not allowed"); }
 
-        auto item = std::make_unique<_Node>(std::forward<T>(data));
+        auto item = std::make_unique<Node>(std::forward<T>(data));
 
         auto crnt = it._current;
         auto prnt = crnt->parent;
@@ -126,9 +125,8 @@ template <typename T> struct tree
         if (prnt != nullptr && prnt->lastchild == crnt) prnt->lastchild = item.get();
         if (next != nullptr) next->prevsibling = item.get();
 
-        auto retit = iterator::create(item.get());
-
         _nodes.push_back(std::move(item));
-        return retit;
+        return iterator::create(_nodes.back().get());
     }
 };
+// NOLINTEND(readability-identifier-naming)

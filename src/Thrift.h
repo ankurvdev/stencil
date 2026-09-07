@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <variant>
 
+//NOLINTBEGIN(readability-identifier-naming)
+
 namespace std
 {
 template <typename TStr1, typename TStr2> bool iequals(TStr1 const& str1, TStr2 const& str2)
@@ -65,7 +67,7 @@ namespace IDL::Lang::Thrift
 class Context
 {
     public:
-    Context(IDL::Program& p, TypeDefinitions& t) : program(p), typeDefinitions(t) { typeDefinitions.LoadIntoProgram(p); }
+    Context(IDL::Program& p LFTBND, TypeDefinitions& t LFTBND) : program(p), typeDefinitions(t) { typeDefinitions.LoadIntoProgram(p); }
 
     CLASS_ONLY_MOVE_CONSTRUCT(Context);
 
@@ -170,7 +172,7 @@ void CreateAttribute(Context& context, Str::Type& name, AttributeComponentList& 
 struct StrValueType : public Binding::ValueT<Binding::Type::String>, public std::enable_shared_from_this<StrValueType>
 {
     StrValueType(Str::Type&& value) : _value(std::move(value)) {}
-    virtual Str::Type const& GetString() override { return _value; }
+    Str::Type const& GetString() LFTBND override { return _value; }
     Str::Type                _value;
 };
 
@@ -321,3 +323,4 @@ inline auto CreateNamedConst(Context& context, FieldType& fieldType, Str::Type& 
     return context.program.CreateNamedObject<IDL::NamedConst>(fieldType.value(), std::move(name), val);
 }
 }    // namespace IDL::Lang::Thrift
+//NOLINTEND(readability-identifier-naming)

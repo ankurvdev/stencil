@@ -361,18 +361,18 @@ struct Server1Impl
 
     struct EditCtx
     {
-        EditCtx(Server1Impl* thatIn, Objects::NestedObject& stateIn) :
+        EditCtx(Server1Impl* thatIn LFTBND, Objects::NestedObject& stateIn LFTBND) :
             txn(Stencil::CreateRootTransaction<Objects::NestedObject>(stateIn)), that(thatIn)
         {}
         ~EditCtx() { that->OnStateChange(txn); }
         CLASS_DELETE_COPY_AND_MOVE(EditCtx);
-        auto& TXN() { return txn; }
+        auto& TXN() LFTBND { return txn; }
 
         Stencil::Transaction<Objects::NestedObject> txn;
         Server1Impl*                                that;
     };
 
-    auto EditContext() { return EditCtx(this, state); }
+    auto EditContext() LFTBND { return EditCtx(this, state); }
 
     std::unordered_map<uint32_t, Objects::SimpleObject1> Function1(uint32_t const& arg1, Objects::SimpleObject1 const& arg2) override
     {
@@ -421,18 +421,18 @@ struct SvcSeparateImplSvc
 
     struct EditCtx
     {
-        EditCtx(SvcSeparateImplSvc* thatIn, Objects::NestedObject& stateIn) :
+        EditCtx(SvcSeparateImplSvc* thatIn LFTBND, Objects::NestedObject& stateIn LFTBND) :
             txn(Stencil::CreateRootTransaction<Objects::NestedObject>(stateIn)), that(thatIn)
         {}
         ~EditCtx() { that->OnStateChange(txn); }
         CLASS_DELETE_COPY_AND_MOVE(EditCtx);
-        auto& TXN() { return txn; }
+        auto& TXN() LFTBND { return txn; }
 
         Stencil::Transaction<Objects::NestedObject> txn;
         SvcSeparateImplSvc*                         that;
     };
 
-    auto EditContext() { return EditCtx(this, state); }
+    auto EditContext() LFTBND { return EditCtx(this, state); }
 
     void OnStateChange(Stencil::Transaction<Objects::NestedObject>::View const& txnv) { NotifyStateChanged(txnv); }
 
@@ -442,7 +442,7 @@ struct SvcSeparateImplSvc
 
 template <> struct Stencil::InterfaceSvcTraits<SvcSeparateImplSvc, Interfaces::Server1>
 {
-    static auto& QueryInterface(SvcSeparateImplSvc& impl) { return *impl.impl.get(); }
+    static auto& QueryInterface(SvcSeparateImplSvc& impl LFTBND) { return *impl.impl.get(); }
 };
 
 struct ImplSeparateImplSvc : Interfaces::Server1::Interface

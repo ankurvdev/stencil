@@ -1,7 +1,7 @@
 include_guard()
 include(FetchContent)
 
-set(BOOST_VERSION 1.91.0)
+set(BOOST_VERSION 1.92.0)
 cmake_policy(SET CMP0167 NEW)
 FetchContent_Declare(
     boostbuild

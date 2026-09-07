@@ -1,4 +1,5 @@
 #pragma once
+#include "CommonMacros.h"
 #include "typetraits_builtins.h"    // IWYU pragma: keep
 #include "typetraits_std.h"         //IWYU pragma: keep
 #include "uuidobject.h"
@@ -145,9 +146,7 @@ template <typename T> struct Stencil::StructFieldsVisitor<Stencil::TimestampedT<
     }
 
     template <typename T1, typename TLambda> static void VisitAllFields(T1& obj, TLambda&& lambda)
-    {
-        lambda(Fields::Field_timestamp, obj.lastmodified);
-    }
+    { lambda(Fields::Field_timestamp, obj.lastmodified); }
 };
 
 template <typename T> struct Stencil::StructFieldsVisitor<UuidBasedId<T>>
@@ -174,28 +173,20 @@ template <Stencil::ConceptIterable T> struct Stencil::VisitorForIterable<std::sh
     template <typename T1>
         requires std::is_same_v<std::remove_const_t<T1>, ThisType>
     static void IteratorBegin(Iterator& it, T1& obj)
-    {
-        Stencil::Visitor<T>::IteratorBegin(it, *obj.get());
-    }
+    { Stencil::Visitor<T>::IteratorBegin(it, *obj.get()); }
     template <typename T1>
         requires std::is_same_v<std::remove_const_t<T1>, ThisType>
     static void IteratorMoveNext(Iterator& it, T1& obj)
-    {
-        Stencil::Visitor<T>::IteratorMoveNext(it, *obj.get());
-    }
+    { Stencil::Visitor<T>::IteratorMoveNext(it, *obj.get()); }
     template <typename T1>
         requires std::is_same_v<std::remove_const_t<T1>, ThisType>
     static bool IteratorValid(Iterator& it, T1& obj)
-    {
-        return Stencil::Visitor<T>::IteratorValid(it, *obj.get());
-    }
+    { return Stencil::Visitor<T>::IteratorValid(it, *obj.get()); }
 
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, ThisType>
     static void Visit(Iterator& it, T1& obj, TLambda&& lambda)
-    {
-        Stencil::Visitor<T>::Visit(it, *obj.get(), std::forward<TLambda>(lambda));
-    }
+    { Stencil::Visitor<T>::Visit(it, *obj.get(), std::forward<TLambda>(lambda)); }
 };
 
 template <Stencil::ConceptIndexable T> struct Stencil::VisitorForIndexable<std::shared_ptr<T>>
@@ -259,9 +250,7 @@ template <typename T, size_t N> struct Stencil::Visitor<std::array<T, N>> : Sten
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, std::array<T, N>>
     static void VisitKey(T1& obj, size_t index, TLambda&& lambda)
-    {
-        lambda(obj.at(index));
-    }
+    { lambda(obj.at(index)); }
 
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, std::array<T, N>>
@@ -274,28 +263,20 @@ template <typename T, size_t N> struct Stencil::Visitor<std::array<T, N>> : Sten
     template <typename T1>
         requires std::is_same_v<std::remove_const_t<T1>, std::array<T, N>>
     static void IteratorBegin(Iterator& it, T1&)
-    {
-        it = Iterator{};
-    }
+    { it = Iterator{}; }
     template <typename T1>
         requires std::is_same_v<std::remove_const_t<T1>, std::array<T, N>>
     static void IteratorMoveNext(Iterator& it, T1&)
-    {
-        ++it;
-    }
+    { ++it; }
     template <typename T1>
         requires std::is_same_v<std::remove_const_t<T1>, std::array<T, N>>
     static bool IteratorValid(Iterator& it, T1&)
-    {
-        return it <= N;
-    }
+    { return it <= N; }
 
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, std::array<T, N>>
     static void Visit(Iterator& it, T1& obj, TLambda&& lambda)
-    {
-        lambda(obj.at(it));
-    }
+    { lambda(obj.at(it)); }
 };
 
 template <typename T> struct Stencil::Visitor<std::vector<T>> : Stencil::VisitorT<std::vector<T>>
@@ -304,9 +285,7 @@ template <typename T> struct Stencil::Visitor<std::vector<T>> : Stencil::Visitor
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
     static void VisitKey(T1& obj, size_t index, TLambda&& lambda)
-    {
-        lambda(obj.at(index));
-    }
+    { lambda(obj.at(index)); }
 
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
@@ -319,22 +298,18 @@ template <typename T> struct Stencil::Visitor<std::vector<T>> : Stencil::Visitor
     template <typename T1>
         requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
     static void IteratorBegin(Iterator& it, T1&)
-    {
-        it = Iterator{};
-    }
+    { it = Iterator{}; }
     template <typename T1>
         requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
     static void IteratorMoveNext(Iterator& it, T1&)
-    {
-        ++it;
-    }
+    { ++it; }
     template <typename T1>
         requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
     static bool IteratorValid(Iterator& it, T1& obj)
-    {
-        return it <= obj.size();
-    }
+    { return it <= obj.size(); }
 
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("-Wlifetime-safety-invalidation")
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
     static void Visit(Iterator& it, T1& obj, TLambda&& lambda)
@@ -342,6 +317,7 @@ template <typename T> struct Stencil::Visitor<std::vector<T>> : Stencil::Visitor
         if (obj.size() == it) { obj.resize(it + 1); }
         lambda(obj.at(it));
     }
+    SUPPRESS_WARNINGS_END
 };
 
 template <typename K, typename V> struct Stencil::Visitor<std::unordered_map<K, V>> : Stencil::VisitorT<std::unordered_map<K, V>>

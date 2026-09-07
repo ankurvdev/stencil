@@ -23,14 +23,15 @@ struct Template
     enum FileType
     {
         Code,
-        Header
+        Header,
     };
 
     tree<TemplateFragment>               root;
     Binding::Str::Type                   dataSource;
     std::shared_ptr<Binding::Expression> fileName;
-    FileType                             fileType;
+    FileType                             fileType{FileType::Code};
 
     Template() = default;
+    ~Template() = default;
     CLASS_DELETE_COPY_DEFAULT_MOVE(Template);
 };

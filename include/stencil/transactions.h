@@ -1,4 +1,5 @@
 #pragma once
+#include "CommonMacros.h"
 #include "comparator.h"
 #include "mutatorsaccessors.h"
 #include "serdes.h"
@@ -95,32 +96,28 @@ template <typename TElem, typename TContainer> struct TransactionTraits<Transact
 };
 
 template <ConceptTransaction TTxn, ConceptTransaction TContainer, typename TElem>
-TTxn CreateTransaction(typename TTxn::TxnState&           elemState,
-                       typename TContainer::ElemTxnState& containerState,
-                       TContainer&                        container,
-                       TElem&                             elem)
-{
-    return TTxn(elemState, containerState, container, elem);
-}
+TTxn CreateTransaction(typename TTxn::TxnState& elemState                LFTBND,
+                       typename TContainer::ElemTxnState& containerState LFTBND,
+                       TContainer& container                             LFTBND,
+                       TElem& elem                                       LFTBND)
+{ return TTxn(elemState, containerState, container, elem); }
 
 template <ConceptTransactionView TTxn, ConceptTransactionView TContainer, typename TElem>
-TTxn CreateTransactionView(typename TTxn::TxnState const&           elemState,
-                           typename TContainer::ElemTxnState const& containerState,
-                           TContainer const&                        container,
-                           TElem const&                             elem)
-{
-    return TTxn(elemState, containerState, container, elem);
-}
+TTxn CreateTransactionView(typename TTxn::TxnState const& elemState                LFTBND,
+                           typename TContainer::ElemTxnState const& containerState LFTBND,
+                           TContainer const& container                             LFTBND,
+                           TElem const& elem                                       LFTBND)
+{ return TTxn(elemState, containerState, container, elem); }
 
 template <typename TElem> struct Transaction<TElem, void> : Transaction<TElem, RootTransaction>
 {
     using Txn  = Transaction<TElem, RootTransaction>;
     using View = TransactionView<TElem, RootTransactionView>;
 
-    Transaction(TElem& elem) : Txn(elemState, containerState, container, elem), _elem(elem) {}
+    Transaction(TElem& elem LFTBND) : Txn(elemState, containerState, container, elem), _elem(elem) {}
     ~Transaction() = default;
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
-    operator View() const { return View(elemState, containerState, container, _elem); }
+    operator View() const LFTBND { return View(elemState, containerState, container, _elem); }
 
     TElem&                        _elem;
     RootTransaction               container{};
@@ -131,7 +128,7 @@ template <typename TElem> struct Transaction<TElem, void> : Transaction<TElem, R
 template <typename TElem> struct TransactionView<TElem, void> : TransactionView<TElem, RootTransactionView>
 {
     using Txn = Transaction<TElem, RootTransaction>;
-    TransactionView(TElem const& elem) : TransactionView<TElem, RootTransactionView>(elemState, containerState, container, elem) {}
+    TransactionView(TElem const& elem LFTBND) : TransactionView<TElem, RootTransactionView>(elemState, containerState, container, elem) {}
     ~TransactionView() = default;
     CLASS_DELETE_COPY_AND_MOVE(TransactionView);
 
@@ -140,15 +137,11 @@ template <typename TElem> struct TransactionView<TElem, void> : TransactionView<
     RootTransactionView::ElemTxnState const containerState{};
 };
 
-template <typename TElem> Transaction<TElem, void> CreateRootTransaction(TElem& elem)
-{
-    return Transaction<TElem, void>(elem);
-}
+template <typename TElem> Transaction<TElem, void> CreateRootTransaction(TElem& elem LFTBND)
+{ return Transaction<TElem, void>(elem); }
 
 template <typename TElem> Transaction<TElem, void> CreateRootTransactionView(TElem const& elem)
-{
-    return TransactionView<TElem, void>(elem);
-}
+{ return TransactionView<TElem, void>(elem); }
 
 }    // namespace Stencil
 
@@ -164,7 +157,7 @@ template <Stencil::ConceptPreferPrimitive TElem, Stencil::ConceptTransaction TCo
     struct TxnState
     {};
 
-    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
+    Transaction(TxnState& elemState LFTBND, ContainerTxnState& containerState LFTBND, TContainer& container LFTBND, ElemType& elem LFTBND) :
         _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
     {}
 
@@ -175,9 +168,7 @@ template <Stencil::ConceptPreferPrimitive TElem, Stencil::ConceptTransaction TCo
                     operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
 
     template <typename TKey, typename TLambda> auto Edit(TKey const& /*key*/, TLambda const& /*lambda*/)
-    {
-        throw std::logic_error("Elem Not supported on Transaction");
-    }
+    { throw std::logic_error("Elem Not supported on Transaction"); }
 
     bool IsChanged() { return _container.IsElementChanged(_containerState); }
 
@@ -219,7 +210,10 @@ struct Stencil::TransactionView<TElem, TContainer>
     //{};
     using TxnState = Txn::TxnState;
 
-    TransactionView(TxnState const& elemState, ContainerTxnState const& containerState, TContainer const& container, ElemType const& elem) :
+    TransactionView(TxnState const& elemState               LFTBND,
+                    ContainerTxnState const& containerState LFTBND,
+                    TContainer const& container             LFTBND,
+                    ElemType const& elem                    LFTBND) :
         _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
     {}
     ~TransactionView() = default;
@@ -238,9 +232,7 @@ struct Stencil::TransactionView<TElem, TContainer>
 template <typename TVal, Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<std::vector<TVal>, TContainer>
 {
     struct ElemTxnState
-    {
-        size_t index;
-    };
+    { size_t index; };
 
     using Txn               = Transaction<std::vector<TVal>, TContainer>;
     using View              = TransactionView<std::vector<TVal>, typename TContainer::View>;
@@ -304,7 +296,7 @@ template <typename TVal, Stencil::ConceptTransaction TContainer> struct Stencil:
         int                dummy = -1;
     };
 
-    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
+    Transaction(TxnState& elemState LFTBND, ContainerTxnState& containerState LFTBND, TContainer& container LFTBND, ElemType& elem LFTBND) :
         _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
     {}
 
@@ -327,7 +319,7 @@ template <typename TVal, Stencil::ConceptTransaction TContainer> struct Stencil:
         lambda(txn);
     }
 
-    auto Edit(size_t const& index)
+    auto Edit(size_t const& index) LFTBND
     {
         _elemState.deltas.push_back(TxnState::Delta::Edit(index));
         auto& state = _elemState.deltas.back();
@@ -367,9 +359,7 @@ template <typename TVal, Stencil::ConceptTransaction TContainer> struct Stencil:
 
     void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _elemState.deltas.push_back(TxnState::Delta::Edit(elemTxnState.index)); }
     void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
-    {
-        _elemState.deltas.push_back(TxnState::Delta::Assign(elemTxnState.index));
-    }
+    { _elemState.deltas.push_back(TxnState::Delta::Assign(elemTxnState.index)); }
 
     private:
     TxnState&          _elemState{};
@@ -390,7 +380,10 @@ template <typename TVal, Stencil::ConceptTransactionView TContainer> struct Sten
     using ValTxnState       = typename ValTxn::TxnState;
     using ContainerTxnState = typename TContainer::ElemTxnState;
 
-    TransactionView(TxnState const& elemState, ContainerTxnState const& containerState, TContainer const& container, ElemType const& elem) :
+    TransactionView(TxnState const& elemState               LFTBND,
+                    ContainerTxnState const& containerState LFTBND,
+                    TContainer const& container             LFTBND,
+                    ElemType const& elem                    LFTBND) :
         _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
     {}
 
@@ -463,9 +456,7 @@ template <Stencil::ConceptTransaction TContainer, typename TKey, typename TVal>
 struct Stencil::Transaction<std::unordered_map<TKey, TVal>, TContainer>
 {
     struct ElemTxnState
-    {
-        TKey key;
-    };
+    { TKey key; };
 
     using Txn               = Transaction<std::unordered_map<TKey, TVal>, TContainer>;
     using View              = TransactionView<std::unordered_map<TKey, TVal, typename TContainer::View>>;
@@ -514,7 +505,7 @@ struct Stencil::Transaction<std::unordered_map<TKey, TVal>, TContainer>
         std::unordered_map<TKey, Delta> deltas;
     };
 
-    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
+    Transaction(TxnState& elemState LFTBND, ContainerTxnState& containerState LFTBND, TContainer& container LFTBND, ElemType& elem LFTBND) :
         _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
     {}
 
@@ -610,7 +601,10 @@ struct Stencil::TransactionView<std::unordered_map<TKey, TVal>, TContainer>
     using ValTxnState       = typename ValTxn::TxnState;
     using ContainerTxnState = typename TContainer::ElemTxnState;
 
-    TransactionView(TxnState const& elemState, ContainerTxnState const& containerState, TContainer const& container, ElemType const& elem) :
+    TransactionView(TxnState const& elemState               LFTBND,
+                    ContainerTxnState const& containerState LFTBND,
+                    TContainer const& container             LFTBND,
+                    ElemType const& elem                    LFTBND) :
         _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
     {}
 
@@ -680,9 +674,7 @@ template <Stencil::ConceptPreferIterable TElem, Stencil::ConceptTransaction TCon
     };
 
     struct TxnState
-    {
-        std::vector<CombinedTxnState> changes;
-    };
+    { std::vector<CombinedTxnState> changes; };
 
     using TContainerTxnState = typename TContainer::ElemTxnState;
 
@@ -700,9 +692,7 @@ template <Stencil::ConceptPreferIterable TElem, Stencil::ConceptTransaction TCon
     ElemType const& Elem() const { return _elem; }
 
     template <typename TArg> void RecordMutation_add_(TArg&)
-    {
-        _elemState.changes.push_back(CombinedTxnState{.elemState{1u, static_cast<uint32_t>(Elem().size())}, .valState{}});
-    }
+    { _elemState.changes.push_back(CombinedTxnState{.elemState{1u, static_cast<uint32_t>(Elem().size())}, .valState{}}); }
 
     void RecordMutation_remove_(IteratorType it) { _elemState.changes.push_back(CombinedTxnState{.elemState{2u, it}, .valState{}}); }
     void RecordMutation_edit_(IteratorType /* index */) {}
@@ -852,30 +842,22 @@ template <Stencil::ConceptTransactionForIterable TTxn> struct Stencil::VisitorFo
     template <typename T1>
         requires std::is_same_v<std::remove_const_t<T1>, TTxn>
     [[noreturn]] static void IteratorBegin(Iterator& /*it*/, T1& /*elem*/)
-    {
-        TODO("DoNotCommit: Stencil::Visitor<T>::IteratorBegin(it, *elem.get());");
-    }
+    { TODO("DoNotCommit: Stencil::Visitor<T>::IteratorBegin(it, *elem.get());"); }
 
     template <typename T1>
         requires std::is_same_v<std::remove_const_t<T1>, TTxn>
     [[noreturn]] static void IteratorMoveNext(Iterator& /*it*/, T1& /*elem*/)
-    {
-        TODO("DoNotCommit: Stencil::Visitor<T>::IteratorMoveNext(it, *elem.get());");
-    }
+    { TODO("DoNotCommit: Stencil::Visitor<T>::IteratorMoveNext(it, *elem.get());"); }
 
     template <typename T1>
         requires std::is_same_v<std::remove_const_t<T1>, TTxn>
     [[noreturn]] static bool IteratorValid(Iterator& /*it*/, T1& /*elem*/)
-    {
-        TODO("DoNotCommit: return Stencil::Visitor<T>::IteratorValid(it, *elem.get());");
-    }
+    { TODO("DoNotCommit: return Stencil::Visitor<T>::IteratorValid(it, *elem.get());"); }
 
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, TTxn>
     [[noreturn]] static void Visit(Iterator& /*it*/, T1& /*elem*/, TLambda&& /*lambda*/)
-    {
-        TODO("DoNotCommit: Stencil::Visitor<T>::Visit(it, *elem.get(), std::forward<TLambda>(lambda));");
-    }
+    { TODO("DoNotCommit: Stencil::Visitor<T>::Visit(it, *elem.get(), std::forward<TLambda>(lambda));"); }
 };
 
 template <Stencil::ConceptTransactionForIndexable T> struct Stencil::VisitorForIndexable<T>
@@ -888,9 +870,7 @@ struct Stencil::Visitor<TTxn> : Stencil::VisitorT<TTxn>, Stencil::VisitorForIter
 
     // So that this works for both const and non-const
     template <typename TKey, typename TLambda> static void VisitKey(TTxn& txn, TKey&& key, TLambda&& lambda)
-    {
-        txn.Edit(std::forward<TKey>(key), std::forward<TLambda>(lambda));
-    }
+    { txn.Edit(std::forward<TKey>(key), std::forward<TLambda>(lambda)); }
 
     template <typename TLambda> static void VisitAll(TTxn& txn, TLambda&& lambda) { txn.VisitAll(std::forward<TLambda>(lambda)); }
 };
@@ -900,9 +880,7 @@ template <Stencil::ConceptTransactionForPrimitive TTxn, Stencil::ConceptProtocol
     using ElemType = typename TransactionTraits<TTxn>::ElemType;
 
     template <typename TContext> static auto Write(TContext& ctx, TTxn const& txn)
-    {
-        Stencil::SerDes<ElemType, TProtocol>::Write(ctx, txn.Elem());
-    }
+    { Stencil::SerDes<ElemType, TProtocol>::Write(ctx, txn.Elem()); }
 
     template <typename TContext> static auto Read(TTxn& txn, TContext& ctx)
     {

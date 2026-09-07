@@ -19,7 +19,7 @@ include(CMakePackageConfigHelpers)
 option(BUILD_TESTING "Build Test" ON)
 option(STENCIL_INSTALL_BUILDTOOLS "Install Extra Build Tools with install" OFF)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 EnableStrictCompilation()
 
 
@@ -50,7 +50,7 @@ if (BUILD_TESTING)
 endif()
 
 file(GLOB resfiles src/templates/*)
-
+file(COPY .clang-tidy DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 add_library(libstencil OBJECT
     src/ModelGenerator.cpp
     src/Binding.h

@@ -35,7 +35,7 @@ namespace Stencil::impl::rapidjson_
 {
 template <typename T> struct Tokenizer : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, Tokenizer<T>>
 {
-    Tokenizer(Stencil::StackVisitor<Stencil::ProtocolJsonVal, T>& stackvisitor) : _stackvisitor(stackvisitor) {}
+    Tokenizer(Stencil::StackVisitor<Stencil::ProtocolJsonVal, T>& stackvisitor LFTBND) : _stackvisitor(stackvisitor) {}
     CLASS_DELETE_COPY_AND_MOVE(Tokenizer);
 
     void Parse(T& obj, std::string_view const& ctx)

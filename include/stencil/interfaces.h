@@ -28,7 +28,7 @@ template <typename TImpl, ConceptInterface TInterface>
     requires std::is_base_of_v<typename Stencil::InterfaceTraits<TInterface>::Interface, TImpl>
 struct InterfaceSvcTraits<TImpl, TInterface>
 {
-    static auto& QueryInterface(TImpl& impl) { return *static_cast<Stencil::InterfaceTraits<TInterface>::Interface*>(&impl); }
+    static auto& QueryInterface(TImpl& impl LFTBND) { return *static_cast<Stencil::InterfaceTraits<TInterface>::Interface*>(&impl); }
 };
 
 }    // namespace Stencil

@@ -43,7 +43,7 @@ struct StringTransactionSerDes
             }
             throw std::logic_error("Invalid Format");
         }
-        TokenIterator& operator++()
+        TokenIterator& operator++() LFTBND
         {
             if (delimiter == 0)
             {
@@ -68,17 +68,13 @@ struct StringTransactionSerDes
                                        uint8_t /* mutator */,
                                        std::string_view const& /* mutatordata */,
                                        std::string_view const& /* rhs */)
-        {
-            throw std::logic_error("Invalid");
-        }
+        { throw std::logic_error("Invalid"); }
     };
 
     template <typename T> struct _ListApplicator
     {
         [[noreturn]] static void Add(T& /* txn */, size_t /* listindex */, std::string_view const& /* rhs */)
-        {
-            throw std::logic_error("Invalid");
-        }
+        { throw std::logic_error("Invalid"); }
 
         [[noreturn]] static void Remove(T& /* txn */, size_t /* listindex */) { throw std::logic_error("Invalid"); }
     };
@@ -96,9 +92,7 @@ struct StringTransactionSerDes
     };
 
     template <ConceptTransaction T> static void _ListAdd(T& txn, uint32_t listindex, std::string_view const& rhs)
-    {
-        _ListApplicator<T>::Add(txn, listindex, rhs);
-    }
+    { _ListApplicator<T>::Add(txn, listindex, rhs); }
 
     template <ConceptTransaction T> static void _ListRemove(T& txn, uint32_t listindex) { _ListApplicator<T>::Remove(txn, listindex); }
 
@@ -171,9 +165,7 @@ struct StringTransactionSerDes
                                uint8_t                 mutator,
                                std::string_view const& mutatordata,
                                std::string_view const& rhs)
-    {
-        _StructApplicator<T>::Apply(txn, fieldname, mutator, mutatordata, rhs);
-    }
+    { _StructApplicator<T>::Apply(txn, fieldname, mutator, mutatordata, rhs); }
 
     template <ConceptTransaction T> static size_t _Apply(TokenIterator& it, T& txn)
     {
@@ -279,7 +271,7 @@ struct StringTransactionSerDes
     }
 
     template <ConceptTransactionView T>
-    static std::ostream& _DeserializeTo(T const& txn, std::ostream& ostr, std::vector<std::string>& stack)
+    static void _DeserializeTo(T const& txn, std::ostream& ostr, std::vector<std::string>& stack)
     {
         if constexpr (ConceptTransactionViewForIterable<T>)
         {
@@ -310,7 +302,6 @@ struct StringTransactionSerDes
                     throw std::logic_error("Unknown mutator");
                 }
             });
-            return ostr;
         }
 
         else if constexpr (ConceptTransactionViewForIndexable<T>)
@@ -344,7 +335,6 @@ struct StringTransactionSerDes
                     throw std::logic_error("Unknown mutator");
                 }
             });
-            return ostr;
         }
         else
         {

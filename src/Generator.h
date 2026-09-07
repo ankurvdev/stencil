@@ -30,9 +30,9 @@ struct TypeDefinitions
 
         void Merge(ContainerTypeDecl&& decl)
         {
-            if (decl.args.size() != 0)
+            if (!decl.args.empty())
             {
-                if (args.size() == 0) { args = std::move(decl.args); }
+                if (args.empty()) { args = std::move(decl.args); }
                 else
                 {
                     throw std::logic_error("Cannot reset args");
@@ -44,38 +44,38 @@ struct TypeDefinitions
     void _RegisterFieldDefForProgram(FieldTypeDecl const& v, IDL::Program& program) const;
     void AddTypeDefinitions(std::string_view const& name, std::string_view const& text);
 
-    FieldTypeDecl& _FindOrInsertFieldTypeDecl(StrType const& name)
+    FieldTypeDecl& _FindOrInsertFieldTypeDecl(StrType const& name)LFTBND
     {
-        auto it = _fieldTypeDeclMap.find(name);
-        if (it == _fieldTypeDeclMap.end())
+        auto it = fieldTypeDeclMap.find(name);
+        if (it == fieldTypeDeclMap.end())
         {
-            _fieldTypeDeclMap[name] = _fieldTypeDecls.size();
-            _fieldTypeDecls.push_back(FieldTypeDecl{});
-            return _fieldTypeDecls.back();
+            fieldTypeDeclMap[name] = fieldTypeDecls.size();
+            fieldTypeDecls.push_back(FieldTypeDecl{});
+            return fieldTypeDecls.back();
         }
-        return _fieldTypeDecls.at(it->second);
+        return fieldTypeDecls.at(it->second);
     }
 
-    ContainerTypeDecl& _FindOrInsertContainerDecls(StrType const& name)
+    ContainerTypeDecl& _FindOrInsertContainerDecls(StrType const& name) LFTBND
     {
-        auto it = _containerDeclMap.find(name);
-        if (it == _containerDeclMap.end())
+        auto it = containerDeclMap.find(name);
+        if (it == containerDeclMap.end())
         {
-            _containerDeclMap[name] = _containerDecls.size();
-            _containerDecls.push_back(ContainerTypeDecl{});
-            return _containerDecls.back();
+            containerDeclMap[name] = containerDecls.size();
+            containerDecls.push_back(ContainerTypeDecl{});
+            return containerDecls.back();
         }
-        return _containerDecls.at(it->second);
+        return containerDecls.at(it->second);
     }
 
-    std::vector<FieldTypeDecl>     _fieldTypeDecls;
-    std::vector<ContainerTypeDecl> _containerDecls;
+    std::vector<FieldTypeDecl>     fieldTypeDecls;
+    std::vector<ContainerTypeDecl> containerDecls;
 
-    std::map<StrType, size_t>                               _fieldTypeDeclMap;
-    std::map<StrType, size_t>                               _containerDeclMap;
-    std::map<StrType, std::unordered_map<StrType, StrType>> _attributeDefs;
-    FieldTypeDecl _structDefault, _interfaceDefault, _unionDefault, _typedefDefault, _fnargsDefault, _enumDefault;
-    FieldTypeDecl _enumValueDefault, _namedConstDefault;
+    std::map<StrType, size_t>                               fieldTypeDeclMap;
+    std::map<StrType, size_t>                               containerDeclMap;
+    std::map<StrType, std::unordered_map<StrType, StrType>> attributeDefs;
+    FieldTypeDecl structDefault, interfaceDefault, unionDefault, typedefDefault, fnargsDefault, enumDefault;
+    FieldTypeDecl enumValueDefault, namedConstDefault;
 
     void LoadIntoProgram(IDL::Program& program) const;
     void FinalizeTypeDefinitions();
@@ -83,6 +83,7 @@ struct TypeDefinitions
 
 struct Generator
 {
+    Generator() = default;
     virtual ~Generator() = default;
 
     void LoadBuilltinTemplates();
@@ -106,8 +107,8 @@ struct Generator
     std::shared_ptr<IDL::Program> Program() { return _program; }
 
     protected:
-    IDL::Program&    Program_() { return *_program; }
-    TypeDefinitions& TypeDefinitions_() { return *_typeDefinitions; }
+    //IDL::Program&    Program() { return *_program; }
+    TypeDefinitions& GetTypeDefinitions() { return *_typeDefinitions; }
 
     private:
     bool _finalized{false};

@@ -10,7 +10,7 @@
 using namespace std::chrono_literals;
 
 using TransactionNestObject = Stencil::Transaction<Objects::NestedObject, void>;
-static TransactionNestObject CreateNestedObjectTransaction(Objects::NestedObject& obj)
+static TransactionNestObject CreateNestedObjectTransaction(Objects::NestedObject& obj LFTBND)
 {
     return Stencil::CreateRootTransaction<Objects::NestedObject>(obj);
 }

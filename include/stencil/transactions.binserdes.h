@@ -12,11 +12,12 @@ namespace Stencil
 
 struct OStrmWriter
 {
-    OStrmWriter(std::ostream& ostr) : _ostr(ostr) {}
+    OStrmWriter(std::ostream& ostr LFTBND) : _ostr(ostr) {}
     CLASS_DELETE_COPY_AND_MOVE(OStrmWriter);
 
-    template <typename TVal, std::enable_if_t<std::is_trivially_default_constructible<TVal>::value, bool> = true>
-    auto& operator<<(TVal const& val)
+    template <typename TVal>
+    requires std::is_trivially_default_constructible_v<TVal> 
+    auto& operator<<(TVal const& val) LFTBND
     {
         auto spn = AsCSpan(val);
         _ostr.write(reinterpret_cast<char const*>(spn.data()), static_cast<std::streamsize>(spn.size()));
@@ -25,7 +26,7 @@ struct OStrmWriter
 
     auto& strm() { return _ostr; }
 
-    auto& operator<<(shared_string const& val)
+    auto& operator<<(shared_string const& val) LFTBND
     {
         *this << static_cast<uint32_t>(val.size());
         if (val.size() > 0) _ostr.write(reinterpret_cast<char const*>(val.data()), static_cast<std::streamsize>(val.size()));
@@ -37,7 +38,7 @@ struct OStrmWriter
 
 struct IStrmReader
 {
-    IStrmReader(std::istream& istrm) : _istrm(istrm) {}
+    IStrmReader(std::istream& istrm LFTBND) : _istrm(istrm) {}
     CLASS_DELETE_COPY_AND_MOVE(IStrmReader);
 
     bool  isEof() { return !_istrm.good(); }
@@ -67,7 +68,7 @@ struct IStrmReader
 
 struct BinaryTransactionSerDes
 {
-    template <ConceptTransactionView T> static auto& _DeserializeTo(T const& txn, OStrmWriter& writer)
+    template <ConceptTransactionView T> static auto& _DeserializeTo(T const& txn, OStrmWriter& writer LFTBND)
     {
         if constexpr (ConceptTransactionViewForIndexable<T> || ConceptTransactionViewForIterable<T>)
         {
@@ -109,14 +110,14 @@ struct BinaryTransactionSerDes
         return writer;
     }
 
-    template <ConceptTransactionView T> static std::ostream& Deserialize(T const& txn, std::ostream& ostr)
+    template <ConceptTransactionView T> static std::ostream& Deserialize(T const& txn, std::ostream& ostr LFTBND)
     {
         OStrmWriter writer(ostr);
         _DeserializeTo(txn, writer);
         return ostr;
     }
 
-    template <ConceptTransaction T> static auto& Deserialize(T const& txn, std::ostream& ostr)
+    template <ConceptTransaction T> static auto& Deserialize(T const& txn, std::ostream& ostr LFTBND)
     {
         return Deserialize(static_cast<typename T::View>(txn), ostr);
     }
@@ -232,7 +233,7 @@ struct BinaryTransactionSerDes
     }
 
     public:
-    template <ConceptTransaction T> static std::istream& Apply(T& txn, std::istream& strm)
+    template <ConceptTransaction T> static std::istream& Apply(T& txn, std::istream& strm LFTBND)
     {
         IStrmReader reader(strm);
         _Apply(txn, reader);

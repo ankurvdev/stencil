@@ -311,6 +311,7 @@ macro(EnableStrictCompilation)
                     -Wno-c++98-compat # Dont care about c++98 compatibility
                     -Wno-c++20-compat
                     -Wno-c++20-extensions
+                    -Wno-c++23-extensions
                     -Wno-c++98-compat-pedantic
                     -Wno-reserved-identifier # Allow names starting with underscore
                     -Wno-reserved-id-macro

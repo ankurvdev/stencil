@@ -17,5 +17,5 @@ endif()
 
 FetchContent_MakeAvailable(toml11)
 if (COMMAND SupressWarningForTarget)
-    # SupressWarningForTarget(toml11)
+    SupressWarningForTarget(toml11)
 endif()

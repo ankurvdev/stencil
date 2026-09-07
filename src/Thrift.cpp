@@ -109,11 +109,11 @@ void CreateAttribute(Context& context, Str::Type& name, AttributeComponentList& 
 
 struct ThriftGenerator : Generator
 {
-    virtual void LoadFile(std::filesystem::path const& inputFile) override
+    void LoadFile(std::filesystem::path const& inputFile) override
     {
         IDLDebug::ErrorAggregator errorAggregator;
 
-        IDL::Lang::Thrift::Context context{Program_(), TypeDefinitions_()};
+        IDL::Lang::Thrift::Context context{*Program(), GetTypeDefinitions()};
         context.program.SetFileName(inputFile);
         try
         {

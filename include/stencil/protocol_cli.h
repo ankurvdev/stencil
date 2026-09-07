@@ -350,8 +350,8 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                     if (it == visitorState.end())
                     {
                         auto newvisitor    = std::make_unique<CustomVisitor>();
-                        visitor            = newvisitor.get();
-                        visitorState[&val] = std::move(newvisitor);
+                        auto [nit, inserted] = visitorState.emplace(&val, std::move(newvisitor));
+                        visitor = static_cast<CustomVisitor*>(nit->second.get());
                         Visitor<TVal>::IteratorBegin(visitor->it, val);
                     }
                     else
