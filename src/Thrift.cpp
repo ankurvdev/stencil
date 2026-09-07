@@ -87,7 +87,7 @@ static void CreateRelectionshipDefinitionRecursively(Context&                   
             }
 
             auto& strct     = context.program.Lookup<IDL::Struct>(it.second);
-            auto& container = context.program.Lookup<IDL::Container>(def.value()->getComponentName(it.first));
+            auto& container = context.program.Lookup<IDL::Container>(def.value()->GetComponentName(it.first));
             auto  existing  = context.program.TryGetFieldTypeName(IDL::ContainerFieldType::GenerateFieldName(container, containermap));
             if (!existing.has_value())
             {

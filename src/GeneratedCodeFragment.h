@@ -9,9 +9,9 @@
 
 struct GeneratedCode
 {
-    tree<Binding::Str::Type> content{};
-    std::wstring             datasource{};
-    std::filesystem::path    filename{};
+    tree<Binding::Str::Type> content;
+    std::wstring             datasource;
+    std::filesystem::path    filename;
 
     GeneratedCode() = default;
     CLASS_DELETE_COPY_DEFAULT_MOVE(GeneratedCode);

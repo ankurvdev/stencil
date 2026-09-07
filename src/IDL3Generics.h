@@ -59,8 +59,14 @@ struct AnnotatedObjectT : public Binding::BindableObjectArray<AnnotatedObjectT<T
 {
     using Self = AnnotatedObjectT<TOwner, TParent>;
 
-    explicit AnnotatedObjectT(std::shared_ptr<Binding::AttributeMap> const& map) : Binding::BindableDictionaryT<Self>(map)
+   private:
+private:
+ explicit AnnotatedObjectT(std::shared_ptr<Binding::AttributeMap> const& map) : Binding::BindableDictionaryT<Self>(map)
     { AddAttributes(map); }
+public:
+
+public:
+
 
     public:
     ~AnnotatedObjectT() override = default;
@@ -80,6 +86,7 @@ struct AnnotatedObjectT : public Binding::BindableObjectArray<AnnotatedObjectT<T
 
     std::vector<std::shared_ptr<AttributeT<TOwner, TParent>>> attributes;
     friend TOwner;
+friend TParent;
 };
 
 template <typename TOwner, typename TObject> struct NamedIndexT
@@ -192,7 +199,7 @@ struct FieldTypeStore
 
     void AddFieldType(Str::Type&& name, std::shared_ptr<IFieldType> ptr) { fieldTypeMap[std::move(name)] = std::move(ptr); }
 
-    size_t                                                               GetFieldCount() const { return fieldTypeMap.size(); }
+    [[nodiscard]] size_t                                                               GetFieldCount() const { return fieldTypeMap.size(); }
     std::unordered_map<Str::Type, std::shared_ptr</*const*/ IFieldType>> fieldTypeMap;
 };
 
@@ -334,7 +341,7 @@ template <typename TOwner, typename TObject> struct FieldTypeIndex
         FieldType(std::shared_ptr<TOwner> const&           ownerIn,
                   Str::Type&&                                name,
                   std::optional<std::shared_ptr<IFieldType>> basetype,
-                  std::shared_ptr<Binding::AttributeMap>     map) :
+                  const std::shared_ptr<Binding::AttributeMap>&     map) :
             Binding::BindableT<TObject, FieldType>(Str::Create(L"Id"), &FieldType::GetFieldId),
             IDLGenerics::AnnotatedObjectT<TOwner, FieldType>(std::move(map)),
             NamedIndexT<TOwner, TObject>::NamedObject(ownerIn, std::move(name)),

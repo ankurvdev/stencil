@@ -15,6 +15,7 @@ SUPPRESS_MSVC_WARNING(4582)    // constructor not implicitly called
 SUPPRESS_MSVC_WARNING(4702)    // Unreachable code
 
 #include <tinyxml2.h>
+#include <memory>
 #include <toml.hpp>
 
 #include <fstream>
@@ -29,9 +30,9 @@ SUPPRESS_WARNINGS_END
 DECLARE_RESOURCE_COLLECTION(templates);
 
 using namespace tinyxml2;
-using Str = Binding::Str;
+using Binding::Str;
 
-inline std::string readfile(std::filesystem::path const& filepath)
+static inline std::string Readfile(std::filesystem::path const& filepath)
 {
     std::ifstream file(filepath);
     if (file.fail()) throw std::runtime_error("Cannot Load File : " + filepath.string());
@@ -45,7 +46,7 @@ inline std::string readfile(std::filesystem::path const& filepath)
 
 static std::ostream& operator<<(std::ostream& strm LFTBND, std::wstring_view wstr)
 {
-    for (auto& c : wstr) { strm << static_cast<char>(c); }
+    for (const auto& c : wstr) { strm << static_cast<char>(c); }
     return strm;
 }
 
@@ -81,7 +82,7 @@ void TypeDefinitions::FieldTypeDecl::Merge(TypeDefinitions::FieldTypeDecl&& decl
     for (auto& v : decl.accessors) { accessors.push_back(std::move(v)); }
 }
 
-#if defined USING_YAML_CPP
+#ifdef USING_YAML_CPP
 namespace YAML
 {
 template <> struct convert<std::wstring>
@@ -211,7 +212,7 @@ static void debug(YAML::Node const& node)
 
 template <typename TKey, typename TVal> struct OrderedMap
 {
-    struct iterator
+    struct Iterator
     {
 
         std::pair<TKey, TVal&> operator*() { return {*vecit, mapref->at(*vecit)}; }
@@ -221,19 +222,19 @@ template <typename TKey, typename TVal> struct OrderedMap
             return out.operator->();
         }
 
-        iterator& operator++() LFTBND
+        Iterator& operator++() LFTBND
         {
             vecit++;
             return *this;
         }
-        bool operator!=(iterator const& rhs) const { return vecit != rhs.vecit; }
-        bool operator==(iterator const& rhs) const { return vecit == rhs.vecit; }
+        bool operator!=(Iterator const& rhs) const { return vecit != rhs.vecit; }
+        bool operator==(Iterator const& rhs) const { return vecit == rhs.vecit; }
 
-        typename std::vector<TKey>::iterator vecit;
+        std::vector<TKey>::iterator vecit;
         std::unordered_map<TKey, TVal>*      mapref;
     };
 
-    struct const_iterator
+    struct ConstIterator
     {
 
         std::pair<TKey, TVal const&> operator*() const { return {*vecit, mapref->at(*vecit)}; }
@@ -243,41 +244,41 @@ template <typename TKey, typename TVal> struct OrderedMap
             return out.operator->();
         }
 
-        const_iterator& operator++() LFTBND
+        ConstIterator& operator++() LFTBND
         {
             vecit++;
             return *this;
         }
-        bool operator!=(const_iterator const& rhs) const { return vecit != rhs.vecit; }
-        bool operator==(const_iterator const& rhs) const { return vecit == rhs.vecit; }
-        bool operator==(iterator const& rhs) const { return vecit == rhs.vecit; }
+        bool operator!=(ConstIterator const& rhs) const { return vecit != rhs.vecit; }
+        bool operator==(ConstIterator const& rhs) const { return vecit == rhs.vecit; }
+        bool operator==(Iterator const& rhs) const { return vecit == rhs.vecit; }
 
-        typename std::vector<TKey>::const_iterator vecit;
+        std::vector<TKey>::const_iterator vecit;
         std::unordered_map<TKey, TVal> const*      mapref;
     };
 
-    auto begin() { return iterator{_keyorder.begin(), &_map}; }
-    auto end() { return iterator{_keyorder.end(), &_map}; }
-    auto begin() const { return const_iterator{_keyorder.begin(), &_map}; }
-    auto end() const { return const_iterator{_keyorder.end(), &_map}; }
+    auto begin() { return Iterator{keyorder.begin(), &map}; } //NOLINT
+    auto end() { return Iterator{keyorder.end(), &map}; }//NOLINT
+    [[nodiscard]] auto begin() const { return ConstIterator{keyorder.begin(), &map}; } //NOLINT
+    [[nodiscard]] auto end() const { return ConstIterator{keyorder.end(), &map}; }//NOLINT
 
-    auto find(TKey const& key) { return iterator{std::find(_keyorder.begin(), _keyorder.end(), key), &_map}; }
-    auto find(TKey const& key) const { return const_iterator{std::find(_keyorder.begin(), _keyorder.end(), key), &_map}; }
+    auto find(TKey const& key) { return Iterator{std::find(keyorder.begin(), keyorder.end(), key), &map}; } //NOLINT
+    [[nodiscard]] auto find(TKey const& key) const { return ConstIterator{std::find(keyorder.begin(), keyorder.end(), key), &map}; } //NOLINT
 
-    TVal&       at(TKey const& key) LFTBND { return _map.at(key); }
-    TVal const& at(TKey const& key) const LFTBND { return _map.at(key); }
+    TVal&       at(TKey const& key) LFTBND { return map.at(key); } //NOLINT
+    [[nodiscard]] TVal const& At(TKey const& key) const LFTBND { return map.at(key); }
 
-    TVal&       operator[](TKey const& key) LFTBND { return _map.at(key); }
-    TVal const& operator[](TKey const& key) const { return _map.at(key); }
+    TVal&       operator[](TKey const& key) LFTBND { return map.at(key); }
+    TVal const& operator[](TKey const& key) const { return map.at(key); }
 
-    void emplace(TKey const& key, TVal&& val)
+    void emplace(TKey const& key, TVal&& val) //NOLINT
     {
-        _keyorder.push_back(key);
-        _map.emplace(key, std::move(val));
+        keyorder.push_back(key);
+        map.emplace(key, std::move(val));
     }
 
-    std::vector<TKey>              _keyorder;
-    std::unordered_map<TKey, TVal> _map;
+    std::vector<TKey>              keyorder;
+    std::unordered_map<TKey, TVal> map;
 };
 
 struct MyConfig : toml::type_config
@@ -288,13 +289,13 @@ struct MyConfig : toml::type_config
 template <typename TTableNode>
 static TypeDefinitions::MutatorAccessorDefinition ParseMutatorAccessorDefinitionFromTomlNode(TTableNode const& node, std::wstring&& key)
 {
-    auto&                                      valtbl = (node.as_table());
+    auto&                                      valtbl = node.as_table();
     TypeDefinitions::MutatorAccessorDefinition val;
     val.name = std::move(key);
-    val.id   = static_cast<uint8_t>(valtbl.at("Id").as_integer());
+    val.id   = static_cast<uint8_t>(valtbl.At("Id").as_integer());
     val.returnType
-        = Binding::Expression::Create(Str::Convert(valtbl.at("ReturnType").as_string()), Str::Create(L"%"), Str::Create(L"%"), L':');
-    auto args = valtbl.at("Args");
+        = Binding::Expression::Create(Str::Convert(valtbl.At("ReturnType").as_string()), Str::Create(L"%"), Str::Create(L"%"), L':');
+    auto args = valtbl.At("Args");
 
     if (args.is_string())
     {
@@ -336,7 +337,7 @@ template <typename TTableNode> static TypeDefinitions::ContainerTypeDecl Contain
         else if (propname == L"Inherits") { val.baseField = Str::Convert(value.as_string()); }
         else if (propname == L"Params")
         {
-            for (auto const& sub : (value.as_array())) { val.args.push_back(Str::Convert(sub.as_string())); }
+            for (auto const& sub : value.as_array()) { val.args.push_back(Str::Convert(sub.as_string())); }
         }
         else
         {
@@ -431,21 +432,21 @@ static void CreateTemplateFromNode(tree<TemplateFragment>&          tmpl,
                                    std::wstring_view const&         name,
                                    XMLNode const&                   xml)
 {
-    auto textNode = xml.ToText();
-    auto elemNode = xml.ToElement();
+    const auto *textNode = xml.ToText();
+    const auto *elemNode = xml.ToElement();
 
     TemplateFragment data;
-    data.body = [&]() -> decltype(data.body) {
+    data.body = [&] -> decltype(data.body) {
         if (textNode != nullptr)
         {
             auto textval = Str::Convert(textNode->Value());
-            if (textval.length() > 0) { return Binding::Expression::Create(textval, Str::Create(L"zz"), Str::Create(L"zz"), L'_'); }
+            if (!textval.empty()) { return Binding::Expression::Create(textval, Str::Create(L"zz"), Str::Create(L"zz"), L'_'); }
         }
         return {};
     }();
 
     data.name = elemNode != nullptr ? Str::Convert(elemNode->Value()) : Str::Create(L"");
-    for (auto attr = elemNode == nullptr ? nullptr : elemNode->FirstAttribute(); attr; attr = attr->Next())
+    for (const auto *attr = elemNode == nullptr ? nullptr : elemNode->FirstAttribute(); attr != nullptr; attr = attr->Next())
     {
         data.attributes[attr->Name()] = Str::Value(Str::Convert(attr->Value()));
     }
@@ -455,10 +456,10 @@ static void CreateTemplateFromNode(tree<TemplateFragment>&          tmpl,
 
     auto it = tmpl.addchild(parent, std::move(data));
 
-    for (auto node = xml.FirstChild(); node != nullptr; node = node->NextSibling()) { CreateTemplateFromNode(tmpl, it, name, *node); }
+    for (const auto *node = xml.FirstChild(); node != nullptr; node = node->NextSibling()) { CreateTemplateFromNode(tmpl, it, name, *node); }
 }
 
-template <typename TMap, typename TKey> auto FindInMapOrDefault(TMap const& map, TKey const& key)
+template <typename TMap, typename TKey> static auto FindInMapOrDefault(TMap const& map, TKey const& key)
 {
     auto it = map.find(key);
     if (it == map.end()) return decltype(it->second){};
@@ -473,7 +474,7 @@ static void ExpandTemplate(tree<Str::Type>&                 codetree,
                            Binding::IBindable&              data)
 {
 
-    auto it = codetree.addchild(root, [&]() {
+    auto it = codetree.addchild(root, [&] {
         if (tmplrootit->body != nullptr) { return context.EvaluateExpression(data, *tmplrootit->body)->String(); }
         return std::wstring();
     }());
@@ -493,7 +494,7 @@ static void ExpandTemplate(tree<Str::Type>&                 codetree,
     auto tmplrange = tmpl.children(tmplrootit);
     for (auto tmplit = tmplrange.begin(); tmplit != tmplrange.end(); ++tmplit)
     {
-        auto& name = tmplit->name;
+        const auto& name = tmplit->name;
         if (Str::IsEmpty(name) || Str::Equal(name, Str::Create(L"Template")) || Str::Equal(name, Str::Create(L"Include")))
         {
             ExpandTemplate(codetree, it, tmpl, tmplit, context, data);
@@ -508,7 +509,7 @@ static void ExpandTemplate(tree<Str::Type>&                 codetree,
                 Binding::Expression    expr;
                 std::vector<Str::Type> b;
                 b.push_back(Str::Convert(lhs.c_str()));
-                expr.AddBindingExpression(std::unique_ptr<Binding::BindingExpr>(new Binding::BindingExpr{std::move(b)}));
+                expr.AddBindingExpression(std::make_unique<Binding::BindingExpr>(Binding::BindingExpr{std::move(b)}));
                 auto rslt = context.EvaluateExpression(data, expr)->String();
                 if (!Str::Equal(rslt, Str::Create(rhs)))
                 {
@@ -521,12 +522,12 @@ static void ExpandTemplate(tree<Str::Type>&                 codetree,
             continue;
         }
 
-        it = codetree.addsibling(it, [&]() {
+        it = codetree.addsibling(it, [&] {
             if (tmplrootit->body != nullptr) { return context.EvaluateExpression(data, *tmplit->body)->String(); }
             return std::wstring();
         }());
 
-        auto actionctxvar = IDLDebug::ThreadActionContext(L"", [&]() {
+        auto actionctxvar = IDLDebug::ThreadActionContext(L"", [&] {
             return fmt::format(L"Template : {}:{}-{} :: TagName: {}  {}",
                                tmplit->sourceFileName,
                                tmplit->rowstart,
@@ -586,7 +587,7 @@ static std::string AddCDataBegin(std::string const& tmplview)
 
     for (std::sregex_iterator i = begin; i != end; ++i)
     {
-        auto match = *i;
+        const auto& match = *i;
         assert(match.size() == 2);
         sstr << match.prefix();
         sstr << "]]>" << match[1].str() << "<![CDATA[";
@@ -607,7 +608,7 @@ static std::string AddCDataEnd(std::string const& tmplview)
     for (std::sregex_iterator i = begin; i != end; ++i)
     {
 
-        std::smatch match = *i;
+        const std::smatch& match = *i;
         assert(match.size() == 2);
         sstr << match.prefix();
         sstr << "]]>" << match[1].str() << "<![CDATA[";
@@ -619,7 +620,7 @@ static std::string AddCDataEnd(std::string const& tmplview)
 
 void Generator::_AddTemplate(std::string_view const& name, std::string_view const& text)
 {
-    if (text.length() == 0) { return; }
+    if (text.empty()) { return; }
     auto fullTemplateContents = fmt::format("<ModelGenerator><![CDATA[{}]]></ModelGenerator>", text);
     auto modified             = AddCDataEnd(AddCDataBegin(fullTemplateContents));
 
@@ -627,9 +628,9 @@ void Generator::_AddTemplate(std::string_view const& name, std::string_view cons
     auto                  rc = doc.Parse(modified.c_str());
     if (rc != XMLError::XML_SUCCESS) { throw std::logic_error(("Error Loading Template: \n\t%s\n" + std::string(doc.ErrorStr())).c_str()); }
 
-    auto fullTemplateElem = doc.FirstChildElement();
+    auto *fullTemplateElem = doc.FirstChildElement();
 
-    for (auto child = fullTemplateElem->FirstChildElement(); child != nullptr; child = child->NextSiblingElement())
+    for (auto *child = fullTemplateElem->FirstChildElement(); child != nullptr; child = child->NextSiblingElement())
     {
         if (std::string_view(child->Name()) != "Template")
         {
@@ -641,8 +642,8 @@ void Generator::_AddTemplate(std::string_view const& name, std::string_view cons
 
 void Generator::_AddContent(std::string_view const& name, std::string_view const& text)
 {
-    if (name.find("typedecl") != std::string_view ::npos) { _typeDefinitions->AddTypeDefinitions(name, text); }
-    else if (name.find("template") != std::string_view ::npos) { _AddTemplate(name, text); }
+    if (name.contains("typedecl")) { _typeDefinitions->AddTypeDefinitions(name, text); }
+    else if (name.contains("template")) { _AddTemplate(name, text); }
 }
 
 void TypeDefinitions::_RegisterFieldDefForProgram(TypeDefinitions::FieldTypeDecl const& v, IDL::Program& program) const
@@ -653,13 +654,13 @@ void TypeDefinitions::_RegisterFieldDefForProgram(TypeDefinitions::FieldTypeDecl
 
     auto fieldtype
         = program.CreateFieldTypeObject<IDL::NativeFieldType>(Str::Copy(v.name), program.TryGetFieldTypeName(v.baseField), v.annotationMap);
-    for (auto& m : v.mutators)
+    for (const auto& m : v.mutators)
     {
         if (m.args.size() > 1) { throw std::logic_error("Multiple args not yet supported"); }
 
         fieldtype->CreateMutator(Str::Copy(m.name), m.id, m.returnType, m.args[0]);
     }
-    for (auto& m : v.accessors)
+    for (const auto& m : v.accessors)
     {
         if (m.args.size() > 1) { throw std::logic_error("Multiple args not yet supported"); }
 
@@ -675,13 +676,13 @@ void Generator::FinalizeTypeDefinitions()
 }
 void TypeDefinitions::FinalizeTypeDefinitions()
 {
-    auto defaultFieldTypeDecl = &fieldTypeDecls[fieldTypeDeclMap[L"default"]];
+    auto *defaultFieldTypeDecl = &fieldTypeDecls[fieldTypeDeclMap[L"default"]];
 
     // Relay inheritance
     for (auto& v : fieldTypeDecls)
     {
         if (v.name == L"default") continue;
-        auto baseFieldType = defaultFieldTypeDecl;
+        auto *baseFieldType = defaultFieldTypeDecl;
         if (!v.baseField.empty()) { baseFieldType = &fieldTypeDecls[fieldTypeDeclMap[v.baseField]]; }
         for (auto& m : baseFieldType->mutators) { v.mutators.push_back(m); }
         for (auto& a : baseFieldType->accessors) { v.accessors.push_back(a); }
@@ -689,7 +690,7 @@ void TypeDefinitions::FinalizeTypeDefinitions()
     for (auto& v : containerDecls)
     {
         if (v.baseField.empty()) { continue; }
-        auto baseFieldType = &containerDecls[containerDeclMap[v.baseField]];
+        auto *baseFieldType = &containerDecls[containerDeclMap[v.baseField]];
         for (auto& m : baseFieldType->mutators) { v.mutators.push_back(m); }
         for (auto& a : baseFieldType->accessors) { v.accessors.push_back(a); }
     }
@@ -715,7 +716,7 @@ void TypeDefinitions::LoadIntoProgram(IDL::Program& program) const
         for (const auto& m : v.accessors) { container->AddAccessor({m}); }
     }
 
-    for (auto& [k, v] : attributeDefs)
+    for (const auto& [k, v] : attributeDefs)
     {
         program.CreateNamedObject<IDL::AttributeDefinition>(Str::Create(k), nullptr, IDL::AttributeDefinition::AttributeComponentMap(v));
     }
@@ -744,7 +745,7 @@ void Generator::LoadTemplate(std::filesystem::path const& templateFilePath)
         return;
     }
 
-    _AddContent(templateFilePath.filename().string(), readfile(templateFilePath));
+    _AddContent(templateFilePath.filename().string(), Readfile(templateFilePath));
 }
 
 static GeneratedCode GenerateCode(Template const& tmpl, Binding::IBindable& data)
@@ -759,7 +760,7 @@ static GeneratedCode GenerateCode(Template const& tmpl, Binding::IBindable& data
     return code;
 }
 
-inline void WriteCodeToStream(std::ostream&                    strm,
+static inline void WriteCodeToStream(std::ostream&                    strm,
                               tree<Str::Type> const&           codetree,
                               tree<Str::Type>::iterator const& b,
                               tree<Str::Type>::iterator const& e)

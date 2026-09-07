@@ -66,8 +66,8 @@ template <typename T> struct tree
         TIt _begin;
         TIt _end;
 
-        auto begin() const { return _begin; }
-        auto end() const { return _end; }
+        [[nodiscard]] auto begin() const { return _begin; }
+        [[nodiscard]] auto end() const { return _end; }
     };
 
     [[nodiscard]] iterator rootbegin() const LFTBND { return _nodes.size() == 0 ? iterator::end() : iterator::create(_nodes.front().get()); }
