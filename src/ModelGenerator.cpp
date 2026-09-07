@@ -14,8 +14,8 @@ SUPPRESS_MSVC_WARNING(4583)    // destructor not implicitly called
 SUPPRESS_MSVC_WARNING(4582)    // constructor not implicitly called
 SUPPRESS_MSVC_WARNING(4702)    // Unreachable code
 
-#include <tinyxml2.h>
 #include <memory>
+#include <tinyxml2.h>
 #include <toml.hpp>
 
 #include <fstream>

@@ -18,7 +18,7 @@
 
 SUPPRESS_WARNINGS_START
 SUPPRESS_MSVC_WARNING(4371)    // Object layout under /vd2 will change due to virtual base
-#define SUPER(T) (*static_cast<T*>(this))
+#define SUPER(T) (*static_cast<T*>(this)) //NOLINT
 
 namespace Binding
 {
@@ -389,34 +389,34 @@ struct IValueArray
     struct Iterator
     {
         Iterator() = default;
-        explicit Iterator(IValueArray& ptr) : _ptr(ptr) { CheckEnd(); }
+        explicit Iterator(IValueArray& ptr LFTBND)  : _ptr(&ptr) { CheckEnd(); }
         Iterator& operator++() LFTBND
         {
-            if (!_ptr.has_value()) return *this;
+            if (_ptr == nullptr) return *this;
             _index++;
             CheckEnd();
             return *this;
         }
         void CheckEnd()
         {
-            if (_index >= _ptr->get().GetCount())
+            if (_index >= _ptr->GetCount())
             {
-                _ptr.reset();
+                _ptr = nullptr;
                 _index = 0;
             }
         }
 
         bool operator==(Iterator const& rhs) const
         {
-            return _index == rhs._index && _ptr.has_value() == rhs._ptr.has_value()
-                   && (!_ptr.has_value() || &_ptr.value().get() == &rhs._ptr.value().get());
+            return _index == rhs._index && (_ptr == nullptr) == (rhs._ptr == nullptr)
+                   && (!(_ptr == nullptr) || _ptr == rhs._ptr);
         }
 
         bool       operator!=(Iterator const& rhs) const { return !((*this) == rhs); }
-        IBindable& operator*() const { return _ptr->get().GetObjectAt(_index); }
+        IBindable& operator*() const { return _ptr->GetObjectAt(_index); }
 
         private:
-        std::optional<std::reference_wrapper<IValueArray>> _ptr;
+        IValueArray* _ptr{};
 
         size_t _index{0};
     };
@@ -570,7 +570,7 @@ struct BindingContext
         return false;
     }
 
-    std::shared_ptr<IValue> _TryEvaluateBindingExprOrNull(BindingExpr const& expr)
+    std::shared_ptr<IValue> TryEvaluateBindingExprOrNull(BindingExpr const& expr)
     {
         assert(!expr.binding.empty());
         if (expr.binding.size() == 1)
@@ -614,7 +614,7 @@ struct BindingContext
     std::shared_ptr<Expression> _EvaluateExpression(Expression const& expr)
     {
         auto result = expr.Evaluate([this](BindingExpr const& expr1) -> std::shared_ptr<Expression> {
-            auto value = _TryEvaluateBindingExprOrNull(expr1);
+            auto value = TryEvaluateBindingExprOrNull(expr1);
             if (value == nullptr) { return {}; }
             switch (value->GetType())
             {
@@ -651,10 +651,10 @@ struct BindingContext
         ACTION_CONTEXT([&]() { return L"Bindable: " + ptr.ObjectTypeName() + L" Expression:" + expr.Stringify(); });
 
         Scope scope(_stack, ptr);
-        auto  val = _TryEvaluateBindingExprOrNull(expr);
+        auto  val = TryEvaluateBindingExprOrNull(expr);
         if (val == nullptr)
         {
-            _TryEvaluateBindingExprOrNull(expr);
+            TryEvaluateBindingExprOrNull(expr);
             throw std::logic_error("Unable to Evaluate");
         }
         assert(val->GetType() == Type::Array);
@@ -670,7 +670,7 @@ struct BindingContext
     std::shared_ptr<IValue> TryEvaluateBindingExprOrNull(IBindable& ptr, BindingExpr const& expr)
     {
         Scope scope(_stack, ptr);
-        return _TryEvaluateBindingExprOrNull(expr);
+        return TryEvaluateBindingExprOrNull(expr);
     }
 
     static auto EvaluateExpression(Expression const& expr) { return CurrentThreadContext->_EvaluateExpression(expr); }
@@ -703,7 +703,7 @@ struct BindableBase : public IBindable, public ValueT<Type::Object>
 
     std::shared_ptr<IValue> TryLookupOrNull(BindingContext& context, Str::View const& param) override
     {
-        auto val = _TryLookupOrNull(context, param);
+        auto val = TryLookupOrNullImpl(context, param);
         if (val != nullptr && val->GetType() == Type::Expr)
         {
             struct Value : ValueT<Type::Expr>
@@ -711,6 +711,7 @@ struct BindableBase : public IBindable, public ValueT<Type::Object>
                 std::shared_ptr<Expression> expr;
                 explicit Value(std::shared_ptr<Expression>&& exprIn) : expr(std::move(exprIn)) {}
                 CLASS_DELETE_COPY_AND_MOVE(Value);
+                ~Value() override = default;
                 Expression const& GetExpr() override { return *expr; }
             };
 
@@ -722,8 +723,8 @@ struct BindableBase : public IBindable, public ValueT<Type::Object>
         SUPPRESS_WARNINGS_END
     }
 
-    std::shared_ptr<IValue> _TryLookupOrNull(BindingContext& context, Str::View const& param)
-    {
+    std::shared_ptr<IValue> TryLookupOrNullImpl(BindingContext& context, Str::View const& param)
+    { 
         if (Str::IEqual(param, ObjectTypeName()))
         {
             // TODO

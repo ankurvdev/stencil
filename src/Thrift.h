@@ -3,6 +3,7 @@
 #include "IDL2.h"
 
 #include <algorithm>
+#include <utility>
 #include <variant>
 
 //NOLINTBEGIN(readability-identifier-naming)
@@ -19,7 +20,7 @@ template <typename TStr1, typename TStr2> bool iequals(TStr1 const& str1, TStr2 
 namespace IDL::Lang::Thrift
 {
 template <typename T> using StrOps = Binding::StrOps<T>;
-using Str                          = Binding::Str;
+using                          Binding::Str;
 class Context;
 struct Field;
 struct InterfaceFunction;
@@ -77,11 +78,11 @@ class Context
         int         col;
         std::string msg;
     };
-    bool Debug() { return false; }
+    static bool Debug() { return false; }
     void InitializeModelDataSources(std::wstring_view const& datasource) { program.InitializeModelDataSources(datasource); }
     void LoadFile(std::filesystem::path const& fpath);
     void Import(Str::View const& file);
-    void NotifyError(int line, int col, std::string const& msg) { errors.push_back(ExceptionInfo{line, col, msg}); }
+    void NotifyError(int line, int col, std::string const& msg) { errors.push_back(ExceptionInfo{.line=line, .col=col, .msg=msg}); }
 
     IDL::Program&              program;
     TypeDefinitions&           typeDefinitions;
@@ -93,32 +94,32 @@ struct Field
 {
     int               m_FieldId{};
     bool              m_IsOptional{};
-    FieldType         m_FieldType{};
-    Str::Type         m_Id{};
-    ConstValue        m_FieldValue{};
-    TypeAttributeList m_AttributeMap{};
+    FieldType         m_FieldType;
+    Str::Type         m_Id;
+    ConstValue        m_FieldValue;
+    TypeAttributeList m_AttributeMap;
     Field() = default;
     Field(int fieldId, Str::View const& attributes, FieldType fieldType, Str::Type& id, ConstValue& fieldValue, TypeAttributeList map) :
 
         m_FieldId(fieldId),
         m_IsOptional(!Str::IsEmpty(attributes) && Str::IEqual(attributes, Str::Create(L"optional"))),
-        m_FieldType(fieldType),
+        m_FieldType(std::move(std::move(fieldType))),
         m_Id(std::move(id)),
         m_FieldValue(std::move(fieldValue)),
-        m_AttributeMap(map)
+        m_AttributeMap(std::move(std::move(map)))
     {}
 };
 
 struct InterfaceFunction
 {
     Str::Type         m_Name;
-    bool              m_isStatic;
+    bool              m_isStatic{};
     FieldType         m_ReturnType;
     FieldList         m_Fields;
     TypeAttributeList m_Attributes;
     InterfaceFunction() = default;
     InterfaceFunction(Str::View const& isStatic, FieldType retType, Str::Type& name, FieldList& fields, TypeAttributeList& map) :
-        m_Name(std::move(name)), m_isStatic(!Str::IsEmpty(isStatic)), m_ReturnType(retType), m_Fields(std::move(fields)), m_Attributes(map)
+        m_Name(std::move(name)), m_isStatic(!Str::IsEmpty(isStatic)), m_ReturnType(std::move(std::move(retType))), m_Fields(std::move(fields)), m_Attributes(map)
     {}
 };
 
@@ -140,11 +141,11 @@ struct InterfaceObjectStore
     TypeAttributeList m_Attributes;
     InterfaceObjectStore() = default;
     InterfaceObjectStore(FieldType objectType, Str::Type& name, TypeAttributeList& map) :
-        m_ObjectType(objectType), m_Name(std::move(name)), m_Attributes(map)
+        m_ObjectType(std::move(std::move(objectType))), m_Name(std::move(name)), m_Attributes(map)
     {}
 };
 
-inline std::shared_ptr<IDL::Typedef> CreateTypedef(Context& context, FieldType fieldType, Str::Type& name, TypeAttributeList map)
+inline std::shared_ptr<IDL::Typedef> CreateTypedef(Context& context, FieldType fieldType, Str::Type& name, const TypeAttributeList& map)
 {
     return context.program.CreateFieldTypeObject<IDL::Typedef>(std::move(name), fieldType.value(), map);
 }
@@ -171,7 +172,7 @@ void CreateAttribute(Context& context, Str::Type& name, AttributeComponentList& 
 
 struct StrValueType : public Binding::ValueT<Binding::Type::String>, public std::enable_shared_from_this<StrValueType>
 {
-    StrValueType(Str::Type&& value) : _value(std::move(value)) {}
+    explicit StrValueType(Str::Type&& value) : _value(std::move(value)) {}
     Str::Type const& GetString() LFTBND override { return _value; }
     Str::Type                _value;
 };
@@ -231,7 +232,7 @@ CreateInterface(Context& context, Str::Type& name, Interface& /*base*/, Interfac
             auto argsstruct = iface->CreateStorageObject<IDL::FunctionArgs>(Str::Copy(f.m_Name), nullptr);
             for (auto& a : f.m_Fields)
             {
-                argsstruct->CreateField(a.m_FieldType.value(), std::move(a.m_Id), std::move(a.m_FieldValue), std::move(a.m_AttributeMap));
+                argsstruct->CreateField(a.m_FieldType.value(), std::move(a.m_Id), a.m_FieldValue, a.m_AttributeMap);
             }
 
             iface->CreateNamedObject<IDL::InterfaceFunction>(std::move(f.m_Name), f.m_ReturnType.value(), std::move(argsstruct));
@@ -243,7 +244,7 @@ CreateInterface(Context& context, Str::Type& name, Interface& /*base*/, Interfac
             auto argsstruct = iface->CreateStorageObject<IDL::FunctionArgs>(Str::Copy(e.m_Name), nullptr);
             for (auto& a : e.m_Fields)
             {
-                argsstruct->CreateField(a.m_FieldType.value(), std::move(a.m_Id), std::move(a.m_FieldValue), std::move(a.m_AttributeMap));
+                argsstruct->CreateField(a.m_FieldType.value(), std::move(a.m_Id), a.m_FieldValue, a.m_AttributeMap);
             }
 
             iface->CreateNamedObject<IDL::InterfaceEvent>(std::move(e.m_Name), std::move(argsstruct));
@@ -282,16 +283,16 @@ inline ConstValue FindConstValue(Context& context, Str::Type&& name)
 {
     if (Str::IEqual(name, Str::Create(L"null"))) return nullptr;
     auto dotindex = name.find('.');
-    if (dotindex != name.npos)
+    if (dotindex != Str::Type::npos)
     {
         auto& enumtype = context.program.Lookup<IDL::Enum>(name.substr(0, dotindex));
         auto& enumval  = enumtype.Lookup<IDL::EnumValue>(name.substr(dotindex + 1));
         return enumval.shared_from_this();
     }
-    else
-    {
+    
+    
         return context.program.Lookup<IDL::NamedConst>(name).shared_from_this();
-    }
+    
 
     // throw std::logic_error("Not Implement. Named Keyword (%s). Const Values not yet supported" /*, name.c_str()*/);
 }

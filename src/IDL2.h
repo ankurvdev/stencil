@@ -7,7 +7,6 @@
 #include <optional>
 #include <unordered_map>
 #include <utility>
-#include <utility>
 #include <vector>
 
 SUPPRESS_WARNINGS_START
@@ -46,11 +45,11 @@ struct Container : public std::enable_shared_from_this<Container>,
     OBJECTNAME(Container);
     CLASS_DELETE_COPY_AND_MOVE(Container);
 
-    Container(std::shared_ptr<Program>                  program,
-              Str::Type&&                               name,
-              std::vector<Str::Type>&&                  componentsIn,
-              std::optional<std::shared_ptr<Container>> base,
-              const std::shared_ptr<Binding::AttributeMap>&    unorderedMap) :
+    Container(std::shared_ptr<Program>                      program,
+              Str::Type&&                                   name,
+              std::vector<Str::Type>&&                      componentsIn,
+              std::optional<std::shared_ptr<Container>>     base,
+              std::shared_ptr<Binding::AttributeMap> const& unorderedMap) :
         IDLGenerics::AnnotatedObjectT<Container>(unorderedMap),
         IDLGenerics::NamedIndexT<Program, Container>::NamedObject(std::move(program), std::move(name)),
         components(std::move(componentsIn))
@@ -68,7 +67,7 @@ struct Container : public std::enable_shared_from_this<Container>,
         expr->AddString(Str::Copy(this->Name()));
         expr->AddString(Str::Create(L"<"));
         bool first = true;
-        for (const auto& cname : components)
+        for (auto const& cname : components)
         {
             if (!first) { expr->AddString(Str::Create(L",")); }
             first = false;
@@ -87,11 +86,11 @@ struct Container : public std::enable_shared_from_this<Container>,
     size_t     ComponentSize() const { return components.size(); }
     Str::Type& Component(size_t index) LFTBND { return components[index]; }
 
-    static std::shared_ptr<Container> FindOrCreate(const std::shared_ptr<Program>&               program,
-                                                   Str::Type&&                            name,
-                                                   std::vector<Str::Type>&                components,
-                                                   Str::Type&&                            baseName,
-                                                   const std::shared_ptr<Binding::AttributeMap>& unorderedMap);
+    static std::shared_ptr<Container> FindOrCreate(std::shared_ptr<Program> const&               program,
+                                                   Str::Type&&                                   name,
+                                                   std::vector<Str::Type>&                       components,
+                                                   Str::Type&&                                   baseName,
+                                                   std::shared_ptr<Binding::AttributeMap> const& unorderedMap);
 
     std::vector<Str::Type>                 components;
     std::vector<MutatorAccessorDefinition> mutators;
@@ -109,18 +108,18 @@ struct NativeFieldType : public std::enable_shared_from_this<NativeFieldType>,
 
     Str::Type GetFieldName() override { return Str::Copy(Name()); }
 
-    NativeFieldType(const std::shared_ptr<Program>&                   program,
-                    Str::Type&&                                name,
-                    std::optional<std::shared_ptr<IFieldType>> basetype,
-                    std::shared_ptr<Binding::AttributeMap>     map) :
-        
-        IDLGenerics::FieldTypeIndex<Program, NativeFieldType>::FieldType(program, std::move(name), std::move(basetype), std::move(map))
+    NativeFieldType(std::shared_ptr<Program> const&               program,
+                    Str::Type&&                                   name,
+                    std::optional<std::shared_ptr<IFieldType>>    basetype,
+                    std::shared_ptr<Binding::AttributeMap> const& map) :
+
+        IDLGenerics::FieldTypeIndex<Program, NativeFieldType>::FieldType(program, std::move(name), std::move(basetype), map)
     {}
 
-    static std::shared_ptr<IDLGenerics::IFieldType> FindOrCreate(const std::shared_ptr<Program>&               program,
-                                                                 Str::Type&&                            name,
-                                                                 Str::Type&&                            baseName,
-                                                                 const std::shared_ptr<Binding::AttributeMap>& map);
+    static std::shared_ptr<IDLGenerics::IFieldType> FindOrCreate(std::shared_ptr<Program> const&               program,
+                                                                 Str::Type&&                                   name,
+                                                                 Str::Type&&                                   baseName,
+                                                                 std::shared_ptr<Binding::AttributeMap> const& map);
 };
 
 struct Typedef : public std::enable_shared_from_this<Typedef>,
@@ -135,12 +134,12 @@ struct Typedef : public std::enable_shared_from_this<Typedef>,
 
     std::shared_ptr<IDLGenerics::IFieldType> basetype;
 
-    Typedef(const std::shared_ptr<Program>&                 program,
-            Str::Type&&                              name,
-            std::shared_ptr<IDLGenerics::IFieldType> basetypeIn,
-            std::shared_ptr<Binding::AttributeMap>   unorderedMapIn) :
+    Typedef(std::shared_ptr<Program> const&               program,
+            Str::Type&&                                   name,
+            std::shared_ptr<IDLGenerics::IFieldType>      basetypeIn,
+            std::shared_ptr<Binding::AttributeMap> const& unorderedMapIn) :
         Binding::BindableT<Typedef>(Str::Create(L"ChildFieldType"), &Typedef::GetFieldTypeBindable),
-        IDLGenerics::FieldTypeIndex<Program, Typedef>::FieldType(program, std::move(name), basetypeIn, std::move(unorderedMapIn)),
+        IDLGenerics::FieldTypeIndex<Program, Typedef>::FieldType(program, std::move(name), basetypeIn, unorderedMapIn),
         basetype(basetypeIn)
 
     {
@@ -188,16 +187,16 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
     CLASS_DELETE_COPY_AND_MOVE(ContainerFieldType);
 
     Container const& GetContainer() const;
-    ContainerFieldType(const std::shared_ptr<Program>&                                program,
-                       Container&                                              container LFTBND,
+    ContainerFieldType(std::shared_ptr<Program> const&                         program,
+                       Container& container                                    LFTBND,
                        ContainerFieldTypeMap&&                                 typemap,
                        std::optional<std::shared_ptr<IDLGenerics::IFieldType>> base,
-                       std::shared_ptr<Binding::AttributeMap>                  unorderedMap) :
-        
+                       std::shared_ptr<Binding::AttributeMap> const&           unorderedMap) :
+
         IDLGenerics::FieldTypeIndex<Program, ContainerFieldType>::FieldType(program,
                                                                             GenerateFieldName(container, typemap),
                                                                             std::move(base),
-                                                                            std::move(unorderedMap)),
+                                                                            unorderedMap),
         _typemap(typemap),
         _m_Container(container),
         _bindable(std::make_shared<BindableComponent>(std::move(typemap)))
@@ -220,12 +219,12 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
 
     Str::Type GetFieldName() override { return GenerateFieldName(_m_Container, _bindable->mContainerFieldTypeMap); }
 
-    static std::shared_ptr<Binding::Expression> ResolveExpression(const std::shared_ptr<Binding::Expression>& expr,
-                                                                  ContainerFieldTypeMap const&         typemap)
+    static std::shared_ptr<Binding::Expression> ResolveExpression(std::shared_ptr<Binding::Expression> const& expr,
+                                                                  ContainerFieldTypeMap const&                typemap)
     {
         return expr->Evaluate([&](Binding::BindingExpr const& expr1) {
-            auto  rslt = std::make_shared<Binding::Expression>();
-            const auto& val  = typemap.at(expr1.binding[0]);
+            auto        rslt = std::make_shared<Binding::Expression>();
+            auto const& val  = typemap.at(expr1.binding[0]);
             ACTION_CONTEXT([&]() { return L"Evaluating Expression :" + rslt->Stringify() + L" On Value: " + val->Stringify(); });
             if (val->GetType() == Binding::Type::String)
             {
@@ -274,17 +273,17 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
         return expr->String();
     }
 
-    static std::shared_ptr<IDLGenerics::IFieldType> FindOrCreate(std::shared_ptr<Program>                                program,
-                                                                 Container&                                              container,
-                                                                 std::vector<std::shared_ptr<IFieldType>> const&         containerFields,
-                                                                 std::optional<std::shared_ptr<IDLGenerics::IFieldType>> base,
-                                                                 std::shared_ptr<Binding::AttributeMap>                  unorderedMap);
+    static std::shared_ptr<IDLGenerics::IFieldType> FindOrCreate(std::shared_ptr<Program> const&                 program,
+                                                                 Container&                                      container,
+                                                                 std::vector<std::shared_ptr<IFieldType>> const& containerFields,
+                                                                 std::optional<std::shared_ptr<IDLGenerics::IFieldType>> const& base,
+                                                                 std::shared_ptr<Binding::AttributeMap> const& unorderedMap);
 
-    static std::shared_ptr<IDLGenerics::IFieldType> FindOrCreate(const std::shared_ptr<Program>&                                program,
-                                                                 Container&                                              container,
-                                                                 ContainerFieldTypeMap&&                                 typemap,
-                                                                 const std::optional<std::shared_ptr<IDLGenerics::IFieldType>>& base,
-                                                                 const std::shared_ptr<Binding::AttributeMap>&                  unorderedMap);
+    static std::shared_ptr<IDLGenerics::IFieldType> FindOrCreate(std::shared_ptr<Program> const&                                program,
+                                                                 Container&                                                     container,
+                                                                 ContainerFieldTypeMap&&                                        typemap,
+                                                                 std::optional<std::shared_ptr<IDLGenerics::IFieldType>> const& base,
+                                                                 std::shared_ptr<Binding::AttributeMap> const& unorderedMap);
 };
 
 struct AttributeDefinition : public std::enable_shared_from_this<AttributeDefinition>,
@@ -302,7 +301,7 @@ struct AttributeDefinition : public std::enable_shared_from_this<AttributeDefini
 
     AttributeDefinition(std::shared_ptr<Program> program,
                         Str::Type&&              name,
-                        const std::shared_ptr<Binding::AttributeMap>& /* attributes */,
+                        std::shared_ptr<Binding::AttributeMap> const& /* attributes */,
                         AttributeComponentMap&& unorderedMap) :
         IDLGenerics::NamedIndexT<Program, AttributeDefinition>::NamedObject(std::move(program), std::move(name)),
         _m_ComponentMap(std::move(unorderedMap))
@@ -353,7 +352,7 @@ struct Program : public std::enable_shared_from_this<Program>,
     auto      File() const { return mFile; }
 
     Program() :
-        
+
         Binding::BindableT<Program>(Str::Create(L"Name"), &Program::Name, Str::Create(L"FileName"), &Program::FileName)
     { Register(imports); }
 
@@ -364,7 +363,7 @@ struct Program : public std::enable_shared_from_this<Program>,
         mFileName      = Str::Create(file.filename().wstring());
         mFileDirectory = Str::Create(file.parent_path().wstring());
     }
-    void InitializeModelDataSources(std::wstring_view const& datasources);
+    void InitializeModelDataSources(std::wstring_view const& datasourcesIn);
 
     template <typename TObject, typename... TArgs> auto CreateNamedObject(TArgs&&... args)
     { return IDLGenerics::NamedIndexT<Program, TObject>::Owner::CreateNamedObject(this->shared_from_this(), std::forward<TArgs>(args)...); }
@@ -401,9 +400,9 @@ struct Program : public std::enable_shared_from_this<Program>,
     {
         CLASS_DELETE_COPY_AND_MOVE(ImportBindableComponent);
 
-        ImportBindableComponent() = default;
+        ImportBindableComponent()           = default;
         ~ImportBindableComponent() override = default;
-        
+
         size_t    GetKeyCount() override { return 1; }
         Str::Type GetKeyAt([[maybe_unused]] size_t index) override
         {
@@ -441,8 +440,8 @@ struct AttributeTag : public std::enable_shared_from_this<AttributeTag>,
 
     AttributeTag(std::shared_ptr<Struct> owner,
                  Str::Type&&             name,
-                 const std::optional<std::shared_ptr<AttributeDefinition const>>& /*def*/,
-                 const std::shared_ptr<IDLGenerics::IFieldType>& fieldTypeIn) :
+                 std::optional<std::shared_ptr<AttributeDefinition const>> const& /*def*/,
+                 std::shared_ptr<IDLGenerics::IFieldType> const& fieldTypeIn) :
         Binding::BindableT<AttributeTag>(Str::Create(L"TagType"), &AttributeTag::GetAttributeDefinitionBindable),
         IDLGenerics::NamedIndexT<Struct, AttributeTag>::NamedObject(std::move(owner), std::move(name)),
         fieldType(fieldTypeIn)
@@ -463,8 +462,8 @@ struct Struct : public std::enable_shared_from_this<Struct>,
     OBJECTNAME(Struct);
     CLASS_DELETE_COPY_AND_MOVE(Struct);
 
-    Struct(const std::shared_ptr<Program>& program, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> unorderedMap) :
-        IDLGenerics::StorageIndexT<Program, Struct>::StorageType(program, std::move(name), {}, std::move(unorderedMap))
+    Struct(std::shared_ptr<Program> const& program, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> const& unorderedMap) :
+        IDLGenerics::StorageIndexT<Program, Struct>::StorageType(program, std::move(name), {}, unorderedMap)
     {}
 
     template <typename TObject, typename... TArgs> auto CreateNamedObject(TArgs&&... args)
@@ -478,8 +477,8 @@ struct Variant : public std::enable_shared_from_this<Variant>,
     OBJECTNAME(Variant);
     CLASS_DELETE_COPY_AND_MOVE(Variant);
 
-    Variant(const std::shared_ptr<Program>& program, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> unorderedMap) :
-        IDLGenerics::StorageIndexT<Program, Variant>::StorageType(program, std::move(name), {}, std::move(unorderedMap))
+    Variant(const std::shared_ptr<Program>& program, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> const& unorderedMap) :
+        IDLGenerics::StorageIndexT<Program, Variant>::StorageType(program, std::move(name), {}, unorderedMap)
     {}
 
     template <typename TObject, typename... TArgs> auto CreateNamedObject(TArgs&&... args)
@@ -521,7 +520,7 @@ struct PrimitiveConstValue : public std::enable_shared_from_this<PrimitiveConstV
 
     CLASS_DELETE_COPY_AND_MOVE(PrimitiveConstValue);
     OBJECTNAME(PrimitiveConstValue);
-    void              _AddBaseObject() {}
+    void      _AddBaseObject() {}
     Str::Type Stringify() const override
     {
         switch (valueType)
@@ -556,7 +555,7 @@ struct NamedConst : public std::enable_shared_from_this<NamedConst>,
     OBJECTNAME(NamedConst);
     CLASS_DELETE_COPY_AND_MOVE(NamedConst);
 
-    NamedConst(const std::shared_ptr<Program>&                        owner,
+    NamedConst(std::shared_ptr<Program> const&                 owner,
                std::shared_ptr<IDLGenerics::IFieldType>        fieldTypeIn,
                Str::Type&&                                     name,
                std::shared_ptr<IDLGenerics::ConstValue> const& valueIn) :
@@ -592,9 +591,9 @@ struct Enum : public std::enable_shared_from_this<Enum>,
 
     Str::Type GetFieldName() override { return Str::Copy(Name()); }
 
-    Enum(const std::shared_ptr<Program>& program, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> unorderedMap) :
+    Enum(std::shared_ptr<Program> const& program, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> const& unorderedMap) :
         // Binding::BindableT<Typedef>(Str::Create(L"ChildFieldType"), &Typedef::GetFieldTypeBindable),
-        IDLGenerics::FieldTypeIndex<Program, Enum>::FieldType(program, std::move(name), {}, std::move(unorderedMap))
+        IDLGenerics::FieldTypeIndex<Program, Enum>::FieldType(program, std::move(name), {}, unorderedMap)
     {
         //        assert(basetype != {});
     }
@@ -613,7 +612,7 @@ struct EnumValue : public std::enable_shared_from_this<EnumValue>,
                    public IDLGenerics::NamedIndexT<Enum, EnumValue>::NamedObject
 {
     OBJECTNAME(EnumValue);
-    EnumValue(const std::shared_ptr<Enum>& owner, Str::Type&& name, uint64_t /* value */) :
+    EnumValue(std::shared_ptr<Enum> const& owner, Str::Type&& name, uint64_t /* value */) :
         IDLGenerics::NamedIndexT<Enum, EnumValue>::NamedObject(owner, Str::Copy(name))
     {
         auto base = owner->Parent().TryGetFieldTypeName(Str::Create(L"default_enumvalue"));
@@ -644,8 +643,8 @@ struct Interface : public std::enable_shared_from_this<Interface>,
     OBJECTNAME(Interface);
     CLASS_DELETE_COPY_AND_MOVE(Interface);
 
-    Interface(const std::shared_ptr<Program>& program, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> unorderedMap) :
-        IDLGenerics::StorageIndexT<Program, Interface>::StorageType(program, std::move(name), {}, std::move(unorderedMap))
+    Interface(std::shared_ptr<Program> const& program, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> const& unorderedMap) :
+        IDLGenerics::StorageIndexT<Program, Interface>::StorageType(program, std::move(name), {}, unorderedMap)
     {
         // HACK : We want default types from Program to propagate to the interface
         // Should we just have the search be recursive ?
@@ -677,8 +676,8 @@ struct FunctionArgs : public std::enable_shared_from_this<FunctionArgs>,
     OBJECTNAME(FunctionArgs);
     CLASS_DELETE_COPY_AND_MOVE(FunctionArgs);
 
-    FunctionArgs(const std::shared_ptr<Interface>& iface, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> unorderedMap) :
-        IDLGenerics::StorageIndexT<Interface, FunctionArgs>::StorageType(iface, std::move(name), {}, std::move(unorderedMap))
+    FunctionArgs(std::shared_ptr<Interface> const& iface, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> const& unorderedMap) :
+        IDLGenerics::StorageIndexT<Interface, FunctionArgs>::StorageType(iface, std::move(name), {}, unorderedMap)
     {}
 };
 
@@ -692,10 +691,10 @@ struct InterfaceFunction : public std::enable_shared_from_this<InterfaceFunction
     CLASS_DELETE_COPY_AND_MOVE(InterfaceFunction);
 
     auto& Args() const LFTBND { return mArgs; }
-    InterfaceFunction(std::shared_ptr<Interface>               iface,
-                      Str::Type&&                              name,
-                      const std::shared_ptr<IDLGenerics::IFieldType>& returnType,
-                      std::shared_ptr<FunctionArgs>            args) :
+    InterfaceFunction(std::shared_ptr<Interface>                      iface,
+                      Str::Type&&                                     name,
+                      std::shared_ptr<IDLGenerics::IFieldType> const& returnType,
+                      std::shared_ptr<FunctionArgs>                   args) :
 
         Binding::BindableT<InterfaceFunction>(Str::Create(L"ReturnType"),
                                               &InterfaceFunction::GetBindableReturnType,
@@ -742,7 +741,7 @@ struct InterfaceObjectStore : public std::enable_shared_from_this<InterfaceObjec
     public:
     OBJECTNAME(InterfaceObjectStore);
     CLASS_DELETE_COPY_AND_MOVE(InterfaceObjectStore);
-    InterfaceObjectStore(std::shared_ptr<Interface> iface, const std::shared_ptr<IDLGenerics::IFieldType>& objectType, Str::Type&& name) :
+    InterfaceObjectStore(std::shared_ptr<Interface> iface, std::shared_ptr<IDLGenerics::IFieldType> const& objectType, Str::Type&& name) :
         Binding::BindableT<InterfaceObjectStore>(Str::Create(L"ObjectType"), &InterfaceObjectStore::GetBindableObjectType),
         IDLGenerics::NamedIndexT<Interface, InterfaceObjectStore>::NamedObject(std::move(iface), std::move(name)),
         mObjectType(objectType)
@@ -764,11 +763,11 @@ inline void Program::InitializeModelDataSources(std::wstring_view const& datasou
 }
 
 inline std::shared_ptr<IDLGenerics::IFieldType>
-ContainerFieldType::FindOrCreate(const std::shared_ptr<Program>& program,
-                                 Container&               container,
-                                 ContainerFieldTypeMap&&  typemap,
-                                 const std::optional<std::shared_ptr<IDLGenerics::IFieldType>>& /*base*/,
-                                 const std::shared_ptr<Binding::AttributeMap>& unorderedMap)
+ContainerFieldType::FindOrCreate(std::shared_ptr<Program> const& program,
+                                 Container&                      container,
+                                 ContainerFieldTypeMap&&         typemap,
+                                 std::optional<std::shared_ptr<IDLGenerics::IFieldType>> const& /*base*/,
+                                 std::shared_ptr<Binding::AttributeMap> const& unorderedMap)
 {
     auto ctName    = ContainerFieldType::GenerateFieldName(container, typemap);
     auto fieldType = program->TryGetFieldTypeName(ctName);
@@ -785,23 +784,23 @@ ContainerFieldType::FindOrCreate(const std::shared_ptr<Program>& program,
 }
 
 inline std::shared_ptr<IDLGenerics::IFieldType>
-ContainerFieldType::FindOrCreate(std::shared_ptr<Program>                                program,
-                                 Container&                                              container,
-                                 std::vector<std::shared_ptr<IFieldType>> const&         containerFields,
-                                 std::optional<std::shared_ptr<IDLGenerics::IFieldType>> base,
-                                 std::shared_ptr<Binding::AttributeMap>                  unorderedMap)
+ContainerFieldType::FindOrCreate(std::shared_ptr<Program> const&                                program,
+                                 Container&                                                     container,
+                                 std::vector<std::shared_ptr<IFieldType>> const&                containerFields,
+                                 std::optional<std::shared_ptr<IDLGenerics::IFieldType>> const& base,
+                                 std::shared_ptr<Binding::AttributeMap> const&                  unorderedMap)
 {
     auto&                                     typeNames = container.components;
     ContainerFieldType::ContainerFieldTypeMap fieldMap;
     size_t                                    i = 0;
     for (auto it = typeNames.begin(); it != typeNames.end(); ++it, ++i) { fieldMap[Str::Copy(*it)] = containerFields.at(i); }
-    return FindOrCreate(std::move(program), container, std::move(fieldMap), std::move(base), std::move(unorderedMap));
+    return FindOrCreate(program, container, std::move(fieldMap), base, unorderedMap);
 }
 
-inline std::shared_ptr<IDLGenerics::IFieldType> NativeFieldType::FindOrCreate(const std::shared_ptr<Program>&               program,
-                                                                              Str::Type&&                            name,
-                                                                              Str::Type&&                            baseNameIn,
-                                                                              const std::shared_ptr<Binding::AttributeMap>& unorderedMap)
+inline std::shared_ptr<IDLGenerics::IFieldType> NativeFieldType::FindOrCreate(std::shared_ptr<Program> const&               program,
+                                                                              Str::Type&&                                   name,
+                                                                              Str::Type&&                                   baseNameIn,
+                                                                              std::shared_ptr<Binding::AttributeMap> const& unorderedMap)
 {
     auto fieldType = program->TryGetFieldTypeName(name);
     if (fieldType.has_value())
@@ -819,20 +818,18 @@ inline std::shared_ptr<IDLGenerics::IFieldType> NativeFieldType::FindOrCreate(co
         {
             return program->CreateNamedObject<NativeFieldType>(std::move(name), fieldType, unorderedMap);
         }
-        
-        
-            baseName = Str::Create(L"default");
-        
+
+        baseName = Str::Create(L"default");
     }
 
     return program->CreateNamedObject<NativeFieldType>(std::move(name), program->GetFieldTypeName(std::move(baseName)), unorderedMap);
 }
 
-inline std::shared_ptr<Container> Container::FindOrCreate(const std::shared_ptr<Program>&               program,
-                                                          Str::Type&&                            name,
-                                                          std::vector<Str::Type>&                components,
-                                                          Str::Type&&                            baseNameIn,
-                                                          const std::shared_ptr<Binding::AttributeMap>& unorderedMap)
+inline std::shared_ptr<Container> Container::FindOrCreate(std::shared_ptr<Program> const&               program,
+                                                          Str::Type&&                                   name,
+                                                          std::vector<Str::Type>&                       components,
+                                                          Str::Type&&                                   baseNameIn,
+                                                          std::shared_ptr<Binding::AttributeMap> const& unorderedMap)
 {
     auto container = program->TryLookup<Container>(name);
     if (container.has_value())

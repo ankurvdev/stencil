@@ -533,7 +533,7 @@ template <typename TOwner, typename TObject> struct StorageIndexT
         StorageType(std::shared_ptr<TOwner> const&            ownerIn,
                     Str::Type&&                                name,
                     std::optional<std::shared_ptr<IFieldType>> basetype,
-                    std::shared_ptr<Binding::AttributeMap>     map) :
+                    const std::shared_ptr<Binding::AttributeMap>&     map) :
             FieldTypeIndex<TOwner, TObject>::FieldType(ownerIn, std::move(name), std::move(basetype), std::move(map)), owner(std::move(ownerIn))
         { static_assert(std::is_base_of_v<StorageType, TObject>, "StorageType should be a base of TObject"); }
 
