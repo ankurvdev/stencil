@@ -1,4 +1,8 @@
 #pragma once
+// TODO :
+// Buffered body
+// Let clients handle request first
+
 #include "CommonMacros.h"
 
 #if !defined HAVE_BOOSTBEAST
@@ -27,14 +31,11 @@ SUPPRESS_MSVC_WARNING(5219)
 SUPPRESS_MSVC_WARNING(5262)    // implicit fall-through occurs here;
 
 #include <boost/asio/co_spawn.hpp>
-#include <boost/asio/use_awaitable.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/redirect_error.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
-#include <boost/beast/http/empty_body.hpp>
-#include <boost/beast/http/field.hpp>
-#include <boost/beast/http/file_body.hpp>
 #include <boost/beast/version.hpp>
-#include <boost/config.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/url.hpp>
 #include <fmt/format.h>
@@ -47,11 +48,9 @@ SUPPRESS_WARNINGS_END
 #include <filesystem>
 #include <memory>
 #include <string>
-#include <thread>
 #include <unordered_set>
-#include <vector>
 
-#if !defined(BOOST_ASIO_HAS_CO_AWAIT)
+#ifndef BOOST_ASIO_HAS_CO_AWAIT
 #error Need co await
 #endif
 
@@ -88,14 +87,18 @@ template <typename T> auto CreateResponse(Request const& req, std::string_view c
 namespace Stencil::websvc
 {
 
-using tcp        = boost::asio::ip::tcp;    // from <boost/asio/ip/tcp.hpp>
-using tcp_stream = typename boost::beast::tcp_stream::rebind_executor<
-    boost::asio::use_awaitable_t<>::executor_with_default<boost::asio::any_io_executor>>::other;
+using boost::asio::ip::tcp;    // from <boost/asio/ip/tcp.hpp>
+using tcp_stream
+    = boost::beast::tcp_stream::rebind_executor<boost::asio::use_awaitable_t<>::executor_with_default<boost::asio::any_io_executor>>::other;
 using Field                                    = boost::beast::http::field;
 template <typename T> using Response           = boost::beast::http::response<T>;
 template <typename T> using ResponseSerializer = boost::beast::http::response_serializer<T>;
+struct ErrorAlreadyRunning : std::runtime_error
+{
+    ErrorAlreadyRunning() : std::runtime_error("server is already running") {}
+};
 
-using Request = impl::Request;
+using impl::Request;
 inline void TryCleanShutdown(tcp_stream& stream)
 {
     boost::system::error_code ec;
@@ -261,7 +264,7 @@ inline void WriteFileResponse(tcp_stream&                      stream,    // NOL
     else
     {
         boost::beast::http::response<boost::beast::http::file_body> res;
-        res.body().open(filePath.string().c_str(), boost::beast::file_mode::scan, ec);
+        res.body().open(filePath.string().c_str(), boost::beast::file_mode::read, ec);
         res.content_length(res.body().size());
         fillResponseHeaders(res);
         customizeResponse(res);
@@ -444,7 +447,7 @@ struct SvcMgr
         bool Send(std::unique_lock<std::mutex> const& /* lock */, std::span<char const> const& msg)
         {
             if (stopRequested) return false;
-            if (msg.size() == 0) return true;
+            if (msg.empty()) return true;
             lastSendAt   = Stencil::Timestamp::clock::now();
             auto msgSize = msg[msg.size() - 1] == '\0' ? msg.size() - 1 : msg.size();
             if (msgSize == 0) return true;
@@ -572,9 +575,7 @@ template <typename TContext, typename TEventStructs> struct RequestHandlerForEve
 {
     static bool Matches(TContext& ctx) { return impl::iequals(Stencil::InterfaceApiTraits<TEventStructs>::Name(), *ctx.urlSegIt); }
     static auto Invoke(TContext& ctx)
-    {
-        ctx.mgr.CreateInstance(typeid(TContext).hash_code(), std::move(ctx.stream), std::move(ctx.req), "event: init\ndata: \n\n");
-    }
+    { ctx.mgr.CreateInstance(typeid(TContext).hash_code(), std::move(ctx.stream), std::move(ctx.req), "event: init\ndata: \n\n"); }
 };
 
 template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForObjectStore
@@ -626,7 +627,7 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
 
         for (auto const& param : ctx.url.params())
         {
-            using TKey = typename Stencil::TypeTraitsForIndexable<TArgsStruct>::Key;
+            using TKey = Stencil::TypeTraitsForIndexable<TArgsStruct>::Key;
             TKey key{};
             Stencil::SerDesRead<Stencil::ProtocolString>(key, param.key);
             auto& jsonval = param.value;    // Clang complains about capturing localbinding variables
@@ -730,8 +731,8 @@ template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForO
 
 template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunctions
 {
-    using TImpl      = typename TContext::Impl;
-    using TInterface = typename TContext::Interface;
+    using TImpl      = TContext::Impl;
+    using TInterface = TContext::Interface;
 
     static bool Matches(TContext& ctx) { return impl::iequals(Stencil::InterfaceApiTraits<TArgsStruct>::Name(), *ctx.urlSegIt); }
     static auto CreateArgStruct(TContext& ctx)
@@ -741,7 +742,7 @@ template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunct
         {
             for (auto const& param : ctx.url.params())
             {
-                using TKey = typename Stencil::TypeTraitsForIndexable<TArgsStruct>::Key;
+                using TKey = Stencil::TypeTraitsForIndexable<TArgsStruct>::Key;
                 TKey key{};
                 Stencil::SerDesRead<Stencil::ProtocolString>(key, param.key);
                 auto& jsonval = param.value;    // Clang complains about capturing localbinding variables
@@ -807,9 +808,7 @@ template <typename TImpl, ConceptInterface TInterface> struct RequestHandler<TIm
                         Request const& /* req */,
                         boost::urls::url_view& /*url*/,
                         boost::urls::segments_base::iterator& it)
-    {
-        return iequals(Stencil::InterfaceTraits<TInterface>::Name(), *it);
-    }
+    { return iequals(Stencil::InterfaceTraits<TInterface>::Name(), *it); }
 
     template <typename T1> struct EventTransform;
     template <typename... T1s> struct EventTransform<std::tuple<T1s...>>
@@ -860,8 +859,8 @@ template <typename TImpl, ConceptInterface TInterface> struct RequestHandler<TIm
                     auto [query1, remaining] = Split(query, ',');
                     ctx.url                  = query1;
                     ctx.urlSegIt             = ctx.url.segments().begin();
-                    using TypesT    = typename ObjectStoreTransform<typename Stencil::InterfaceTraits<TInterface>::Objects>::Handler;
-                    using SelectorT = typename SelectorTransform<TypesT>::SelectorT;
+                    using TypesT             = ObjectStoreTransform<typename Stencil::InterfaceTraits<TInterface>::Objects>::Handler;
+                    using SelectorT          = SelectorTransform<TypesT>::SelectorT;
                     SelectorT::Invoke(ctx);
                     query = remaining;
                 }
@@ -882,10 +881,9 @@ template <typename TImpl, ConceptInterface TInterface> struct RequestHandler<TIm
     {
         ++it;
         WebRequestContext<TImpl, TInterface> ctx{mgr, impl, stream, req, url, it};
-        using RequestHandlerForEventsT    = typename EventTransform<typename Stencil::InterfaceTraits<TInterface>::EventStructs>::Handler;
-        using RequestHandlerForFunctionsT = typename ApiStructTransform<typename Stencil::InterfaceTraits<TInterface>::ApiStructs>::Handler;
-        using RequestHandlerForObjectStoreT =
-            typename ObjectStoreTransform<typename Stencil::InterfaceTraits<TInterface>::Objects>::Handler;
+        using RequestHandlerForEventsT      = EventTransform<typename Stencil::InterfaceTraits<TInterface>::EventStructs>::Handler;
+        using RequestHandlerForFunctionsT   = ApiStructTransform<typename Stencil::InterfaceTraits<TInterface>::ApiStructs>::Handler;
+        using RequestHandlerForObjectStoreT = ObjectStoreTransform<typename Stencil::InterfaceTraits<TInterface>::Objects>::Handler;
 
         using TypesT    = tuple_cat_t<std::tuple<RequestHandlerForAllEvents<WebRequestContext<TImpl, TInterface>>>,
                                       RequestHandlerForEventsT,
@@ -893,7 +891,7 @@ template <typename TImpl, ConceptInterface TInterface> struct RequestHandler<TIm
                                       std::tuple<RequestHandlerForObjectStoreListener<WebRequestContext<TImpl, TInterface>>>,
                                       RequestHandlerForFunctionsT,
                                       std::tuple<RequestHandlerFallback<WebRequestContext<TImpl, TInterface>>>>;
-        using SelectorT = typename SelectorTransform<TypesT>::SelectorT;
+        using SelectorT = SelectorTransform<TypesT>::SelectorT;
         return SelectorT::Invoke(ctx);
     }
 };
@@ -909,9 +907,7 @@ template <typename TImpl, ConceptIndexable TState> struct RequestHandler<TImpl, 
                         Request const& /* req */,
                         boost::urls::url_view& /*url*/,
                         boost::urls::segments_base::iterator& it)
-    {
-        return iequals(impl.Name(), *it);
-    }
+    { return iequals(impl.Name(), *it); }
 
     static void Invoke(SvcMgr&                               mgr,
                        TImpl&                                impl,
@@ -966,17 +962,17 @@ SUPPRESS_MSVC_WARNING(4583)
 SUPPRESS_MSVC_WARNING(4582)
 SUPPRESS_MSVC_WARNING(4702)
 
-using tcp        = boost::asio::ip::tcp;    // from <boost/asio/ip/tcp.hpp>
-using tcp_stream = typename boost::beast::tcp_stream::rebind_executor<
-    boost::asio::use_awaitable_t<>::executor_with_default<boost::asio::any_io_executor>>::other;
+using boost::asio::ip::tcp;    // from <boost/asio/ip/tcp.hpp>
+using tcp_stream
+    = boost::beast::tcp_stream::rebind_executor<boost::asio::use_awaitable_t<>::executor_with_default<boost::asio::any_io_executor>>::other;
 using Field                                    = boost::beast::http::field;
 template <typename T> using Response           = boost::beast::http::response<T>;
 template <typename T> using ResponseSerializer = boost::beast::http::response_serializer<T>;
-using Request                                  = impl::Request;
+using impl::Request;
 
 template <typename TImpl, typename T> struct WebServiceInterfaceImplT;
 
-template <typename TImpl, ConceptInterface TInterface> struct WebServiceInterfaceImplT<TImpl, TInterface>
+template <typename TImpl, ConceptInterface TInterface> struct WebServiceInterfaceImplT<TImpl, TInterface> : TInterface::template Svc<TImpl>
 {};
 
 template <typename TImpl, ConceptIndexable T>
@@ -996,29 +992,57 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
 {
     using WebService = WebServiceT<TImpl, TServices...>;
 
-    static constexpr size_t NumServices = sizeof...(TServices);
-
-    static constexpr auto Timeout = std::chrono::seconds{30};
+    static constexpr size_t NumServices   = sizeof...(TServices);
+    static constexpr size_t AcceptorCount = 4;
 
     WebServiceT() = default;
     ~WebServiceT() { StopDaemon(); }
 
     CLASS_DELETE_COPY_AND_MOVE(WebServiceT);
 
-    void StartOnPort(uint16_t port, uint16_t numThreads = 4)
+    void StartOnPort(uint16_t port, uint16_t numThreads = 8)
     {
-        auto const address = boost::asio::ip::make_address("0.0.0.0");
-        boost::asio::co_spawn(_mgr.IOC(), DoListen_(tcp::endpoint{address, port}), [](std::exception_ptr const& e) {
-            if (e) try
-                {
-                    std::rethrow_exception(e);
-                } catch (std::exception& e) { fmt::print(stderr, "Error in acceptor: {}\n", e.what()); }
-        });
+        _mgr.IOC().restart();
+        _handlerPool = std::make_unique<boost::asio::thread_pool>(numThreads);
+        using boost::asio::ip::tcp;
+        auto const    address = boost::asio::ip::make_address("0.0.0.0");
+        tcp::endpoint endpoint(address, port);
 
-        for (size_t i = 0; i < numThreads + NumServices; i++)
+        _tcpAcceptors.clear();
+        _tcpAcceptors.reserve(numThreads);
+        for (size_t i = 0; i < numThreads; ++i)
         {
-            _listenthreads.emplace_back([this]() {
-                SetThreadName("ios-runner");
+            auto& acceptor = _tcpAcceptors.emplace_back(_mgr.IOC());
+            acceptor.open(endpoint.protocol());
+            acceptor.set_option(boost::asio::socket_base::reuse_address(true));
+#if defined(SO_REUSEPORT)
+            int const enable = 1;
+            ::setsockopt(acceptor.native_handle(), SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(enable));
+#endif
+            boost::system::error_code ec;
+            ec = acceptor.bind(endpoint, ec);
+            if (ec) { throw ErrorAlreadyRunning(); }
+            ec = acceptor.listen(boost::asio::socket_base::max_listen_connections, ec);
+            if (ec) { throw ErrorAlreadyRunning(); }
+        }
+
+        for (auto& acceptor : _tcpAcceptors)
+        {
+            boost::asio::co_spawn(_mgr.IOC(), DoListen_(acceptor), [](std::exception_ptr const& e) {
+                if (e) try
+                    {
+                        std::rethrow_exception(e);
+                    } catch (boost::system::system_error& e)
+                    {
+                        if (e.code() != boost::asio::error::operation_aborted) { throw; }
+                    } catch (std::exception& e) { fmt::print(stderr, "Error in acceptor: {}", e.what()); }
+            });
+        }
+
+        for (size_t i = 0; i < numThreads; i++)
+        {
+            _listenthreads.emplace_back([this, i]() {
+                SetThreadName(fmt::format("ncs:ios:{}", i).c_str());
                 _mgr.IOC().run();
             });
         }
@@ -1027,6 +1051,14 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
     void StopDaemon()
     {
         _mgr.Stop();
+        boost::system::error_code ec;
+        for (auto& acceptor : _tcpAcceptors)
+        {
+            if (acceptor.close(ec)) { fmt::print(stderr, "[TCP][WARN] Failed to close acceptor: {}\n", ec.message()); }
+        }
+        // Drain in-flight connection handlers before tearing down the io_context their
+        // accepted sockets are bound to.
+        if (_handlerPool) { _handlerPool->stop(); }
         WaitForStop();
     }
 
@@ -1034,6 +1066,7 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
     {
         for (auto& thrd : _listenthreads)
             if (thrd.joinable()) thrd.join();
+        if (_handlerPool) { _handlerPool->join(); }
     }
 
     template <typename TEventArgs> void OnEvent(TEventArgs const& args)
@@ -1097,58 +1130,69 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
         SUPPRESS_WARNINGS_END
     }
 
-    boost::asio::awaitable<void> DoListen_(tcp::endpoint endpoint)
+    boost::asio::awaitable<void>
+    DoListen_(boost::asio::ip::tcp::acceptor& acceptor)    // NOLINT(cppcoreguidelines-avoid-reference-coroutine-parameters)
     {
-        auto acceptor = boost::asio::use_awaitable_t<boost::asio::any_io_executor>::as_default_on(
-            tcp::acceptor(co_await boost::asio::this_coro::executor));
-        acceptor.open(endpoint.protocol());
-        acceptor.set_option(boost::asio::socket_base::reuse_address(true));
-        acceptor.bind(endpoint);
-        acceptor.listen(boost::asio::socket_base::max_listen_connections);
-
         while (true)
         {
-            boost::beast::flat_buffer buffer;
-            Request                   req;
-            tcp_stream                stream(co_await acceptor.async_accept());
-            stream.expires_after(Timeout);
-            try
-            {
-                [[maybe_unused]] auto bytesTransferred
-                    = co_await boost::beast::http::async_read(stream, buffer, req, boost::asio::use_awaitable);
-            } catch (boost::system::system_error const& e)
-            {
-                TryCleanShutdown(stream);
-                if (e.code() != boost::beast::http::error::end_of_stream)
-                {
-                    fmt::print(stderr, "Error Starting Session: {}\n", e.what());
-                    throw;
-                }
+            boost::system::error_code ec;
+            auto                      socket = co_await acceptor.async_accept(boost::asio::redirect_error(boost::asio::use_awaitable, ec));
+            if (ec == boost::asio::error::operation_aborted)
+            {    //
+                co_return;
             }
-            try
+            if (ec)
             {
-                SetThreadName(fmt::format("w:{}", req.target()).c_str());
-                HandleRequest_(stream, req);
-                SetThreadName("w:...");
-            } catch (boost::system::system_error const& e)
-            {
-                TryCleanShutdown(stream);
-                if (e.code() != boost::beast::http::error::end_of_stream)
-                {
-                    fmt::print(stderr, "Error Starting Session: {}\n", e.what());
-                    throw;
-                }
-            } catch (std::exception const& e)
-            {
-                TryCleanShutdown(stream);
-                fmt::print(stderr, "Error: {}\n", e.what());
+                fmt::print(stderr, "accept error: {}", ec.message());
+                co_return;
             }
+
+            boost::asio::post(*_handlerPool, [this, sock = std::move(socket)]() mutable {
+                static constexpr auto Timeout = std::chrono::seconds{30};
+                tcp_stream            stream(std::move(sock));
+                stream.expires_after(Timeout);
+                boost::beast::flat_buffer buffer;
+                Request                   req;
+                try
+                {
+                    [[maybe_unused]] auto bytesTransferred = boost::beast::http::read(stream, buffer, req);
+                } catch (boost::system::system_error const& e)
+                {
+                    TryCleanShutdown(stream);
+                    if (e.code() != boost::beast::http::error::end_of_stream)
+                    {
+                        fmt::print(stderr, "Error Starting Session: {}\n", e.what());
+                        // throw;
+                    }
+                }
+                try
+                {
+                    SetThreadName(fmt::format("w:{}", req.target()).c_str());
+                    HandleRequest_(stream, req);
+                    SetThreadName("ios-runner");
+                } catch (boost::system::system_error const& e)
+                {
+                    TryCleanShutdown(stream);
+                    if (e.code() != boost::beast::http::error::end_of_stream)
+                    {
+                        fmt::print(stderr, "Error Starting Session: {}\n", e.what());
+                        // throw;
+                    }
+                } catch (std::exception const& e)
+                {
+                    TryCleanShutdown(stream);
+                    fmt::print(stderr, "Error: {}\n", e.what());
+                }
+            });
         }
     }
 
-    std::vector<std::thread> _listenthreads;
-    int                      _port{};
-    impl::SvcMgr             _mgr;
+    std::vector<boost::asio::ip::tcp::acceptor> _tcpAcceptors;
+    std::unique_ptr<boost::asio::thread_pool>   _handlerPool;
+    std::vector<std::thread>                    _listenthreads;
+
+    int          _port{};
+    impl::SvcMgr _mgr;
 };
 SUPPRESS_WARNINGS_END
 }    // namespace Stencil::websvc

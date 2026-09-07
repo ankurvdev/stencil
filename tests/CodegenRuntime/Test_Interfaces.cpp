@@ -351,7 +351,6 @@ struct SSEFormat : TestCommon::JsonFormat
 
 struct Server1Impl
     : Stencil::websvc::WebServiceT<Server1Impl, Interfaces::Server1, Stencil::websvc::WebSynchronizedState<Objects::NestedObject>>,
-      Interfaces::Server1::Svc<Server1Impl>,
       Interfaces::Server1::Interface
 {
     Server1Impl() { objects.Init(std::filesystem::path("SaveAndLoad.bin")); }
@@ -411,8 +410,7 @@ struct NoEventImpl : Stencil::websvc::WebServiceT<NoEventImpl, Interfaces::NoEve
 };
 
 struct SvcSeparateImplSvc
-    : Stencil::websvc::WebServiceT<SvcSeparateImplSvc, Interfaces::Server1, Stencil::websvc::WebSynchronizedState<Objects::NestedObject>>,
-      Interfaces::Server1::Svc<SvcSeparateImplSvc>
+    : Stencil::websvc::WebServiceT<SvcSeparateImplSvc, Interfaces::Server1, Stencil::websvc::WebSynchronizedState<Objects::NestedObject>>
 {
     SvcSeparateImplSvc() { objects.Init(std::filesystem::path("SaveAndLoad.bin")); }
     ~SvcSeparateImplSvc() = default;

@@ -66,12 +66,14 @@ boolean = "bool"
   NativeType = "shared_string"
   DefaultValue = "{}"
 
-
   [FieldTypes.wstring]
   NativeType = "shared_wstring"
 
   [FieldTypes.timestamp]
   NativeType = "Stencil::Timestamp"
+
+  [FieldTypes.path]
+  NativeType = "std::filesystem::path"
 
 [Struct]
 NativeType = "::%Struct:Parent:Name%::%Struct:Name%"
