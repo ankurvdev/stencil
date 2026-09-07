@@ -87,7 +87,7 @@ struct Generator
     virtual ~Generator() = default;
 
     void LoadBuilltinTemplates();
-    void LoadTemplate(std::filesystem::path const& templatePath);
+    void LoadTemplate(std::filesystem::path const& templateFilePath);
 
     void FinalizeTypeDefinitions();
 

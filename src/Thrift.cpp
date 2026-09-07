@@ -17,7 +17,7 @@ void AddFieldsToStruct(Context& /* context */, std::shared_ptr<IDL::Struct> strc
     strct->AddAttributes(map);
     for (auto& f : fields)
     {
-        strct->CreateField(f.m_FieldType.value(), std::move(f.m_Id), std::move(f.m_FieldValue), std::move(f.m_AttributeMap));
+        strct->CreateField(f.m_FieldType.value(), std::move(f.m_Id), f.m_FieldValue, f.m_AttributeMap);
     }
 
     fields.clear();
@@ -27,7 +27,7 @@ void AddFieldsToStruct(Context& /* context */, std::shared_ptr<IDL::Struct> strc
 std::shared_ptr<IDL::Variant> CreateVariant(Context& context, Str::Type& id, FieldList& fields, TypeAttributeList& map)
 {
     auto strct = context.program.CreateStorageObject<IDL::Variant>(std::move(id), map);
-    for (auto& f : fields) { strct->CreateField(f.m_FieldType.value(), std::move(f.m_Id), f.m_FieldValue, std::move(f.m_AttributeMap)); }
+    for (auto& f : fields) { strct->CreateField(f.m_FieldType.value(), std::move(f.m_Id), f.m_FieldValue, f.m_AttributeMap); }
 
     fields.clear();
     map.reset();
@@ -103,7 +103,7 @@ static void CreateRelectionshipDefinitionRecursively(Context&                   
 void CreateAttribute(Context& context, Str::Type& name, AttributeComponentList& map)
 {
     ComponentList componentmap;
-    return CreateRelectionshipDefinitionRecursively(context, std::move(name), map, componentmap, map.begin());
+    CreateRelectionshipDefinitionRecursively(context, std::move(name), map, componentmap, map.begin());
 }
 }    // namespace IDL::Lang::Thrift
 
@@ -124,7 +124,7 @@ struct ThriftGenerator : Generator
             {
                 std::cerr << "error: " << inputFile.string() << "[" << err.line << ":" << err.col << "] " << err.msg;
             }
-            std::wcerr << " " << context.errors.size() << std::endl << errorAggregator.GetErrors() << std::endl << ex.what() << std::endl;
+            std::wcerr << " " << context.errors.size() << '\n' << errorAggregator.GetErrors() << '\n' << ex.what() << '\n';
             throw;
         }
     }
@@ -141,7 +141,7 @@ void IDL::Lang::Thrift::Context::Import(Str::View const& name)
 
     std::shared_ptr<IDL::Program> importedProgram = std::make_shared<IDL::Program>();
     importedProgram->SetFileName(path);
-    IDL::Lang::Thrift::Context importedCtx{*importedProgram.get(), typeDefinitions};
+    IDL::Lang::Thrift::Context importedCtx{*importedProgram, typeDefinitions};
     IDL::Lang::Thrift::LoadFile(importedCtx, path);
     program.Import(*importedProgram);
 }

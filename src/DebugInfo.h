@@ -30,14 +30,14 @@ struct ErrorAggregator
     std::wstring GetErrors()
     {
         std::wstringstream str;
-        for (auto& err : _lines) { str << err << std::endl; }
+        for (auto& err : _lines) { str << err << '\n'; }
         return str.str();
     }
 
     ErrorAggregator()
     {
-        assert(GetPtr() == nullptr);
-        GetPtr() = this;
+        assert(GetPtr_() == nullptr);
+        GetPtr_() = this;
     }
 
     size_t Incr() { return _indent++; }
@@ -49,21 +49,21 @@ struct ErrorAggregator
 
     ~ErrorAggregator()
     {
-        GetPtr() = nullptr;
+        GetPtr_() = nullptr;
         if (std::uncaught_exceptions() > 0) { std::wcerr << GetErrors(); }
     }
 
     private:
-    static ErrorAggregator*& GetPtr()
+    static ErrorAggregator*& GetPtr_()
     {
         SUPPRESS_WARNINGS_START
         SUPPRESS_CLANG_WARNING("-Wunique-object-duplication")
-        thread_local ErrorAggregator* ptr = nullptr;
+        thread_local ErrorAggregator* Ptr = nullptr;
         SUPPRESS_WARNINGS_END
-        return ptr;
+        return Ptr;
     }
 
-    static ErrorAggregator& Get() { return *GetPtr(); }
+    static ErrorAggregator& Get_() { return *GetPtr_(); }
 
     size_t                    _indent = 0;
     std::vector<std::wstring> _lines;
@@ -72,16 +72,16 @@ struct ErrorAggregator
 
 struct ThreadActionContextImpl
 {
-    ThreadActionContextImpl(std::wstring_view const& what, std::function<std::wstring()>&& func) : _what(what), _func(std::move(func)) {}
+    ThreadActionContextImpl(std::wstring_view const& whatIn, std::function<std::wstring()>&& funcIn) : what(whatIn), func(std::move(funcIn)) {}
     ~ThreadActionContextImpl()
     {
-        if (std::uncaught_exceptions() > 0) { ErrorAggregator::Get().AddContextInfo(_indent, _what, _func()); }
-        ErrorAggregator::Get().Decr();
+        if (std::uncaught_exceptions() > 0) { ErrorAggregator::Get_().AddContextInfo(indent, what, func()); }
+        ErrorAggregator::Get_().Decr();
     }
 
-    size_t                        _indent = ErrorAggregator::Get().Incr();
-    std::wstring_view             _what;
-    std::function<std::wstring()> _func;
+    size_t                        indent = ErrorAggregator::Get_().Incr();
+    std::wstring_view             what;
+    std::function<std::wstring()> func;
 };
 
 inline auto ThreadActionContext(std::wstring_view const& what, std::function<std::wstring()>&& func)
@@ -91,11 +91,11 @@ inline auto ThreadActionContext(std::wstring_view const& what, std::function<std
 
 struct DebugContext
 {
-    std::wstring context{};
-    std::wstring filename{};
+    std::wstring context;
+    std::wstring filename;
     size_t       row{}, col{};
 
-    std::wstring str() const
+    [[nodiscard]] std::wstring Str() const
     {
         std::wstringstream strm;
         strm << context.c_str() << L" -- " << filename.c_str() << L" [" << row << L":" << col << L"]";

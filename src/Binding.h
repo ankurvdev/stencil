@@ -357,7 +357,7 @@ struct Expression
 // Bindable Dictionary Object with Name and Bindable Named Values.
 struct IBindable
 {
-    IBindable() = default;
+    IBindable()          = default;
     virtual ~IBindable() = default;
     CLASS_DELETE_COPY_AND_MOVE(IBindable);
 
@@ -370,7 +370,7 @@ struct IBindable
 // TODO : Do we really need it
 struct IBindableComponent
 {
-    IBindableComponent() = default;
+    IBindableComponent()          = default;
     virtual ~IBindableComponent() = default;
     CLASS_DELETE_COPY_AND_MOVE(IBindableComponent);
 
@@ -382,7 +382,7 @@ struct IBindableComponent
 
 struct IValueArray
 {
-    IValueArray() = default;
+    IValueArray()          = default;
     virtual ~IValueArray() = default;
     CLASS_DELETE_COPY_AND_MOVE(IValueArray);
 
@@ -440,7 +440,7 @@ template <typename TBegin, typename TEnd = TBegin> auto Range(TBegin begin, TEnd
 struct IValue
 {
     public:
-    IValue() = default;
+    IValue()          = default;
     virtual ~IValue() = default;
     CLASS_DELETE_COPY_AND_MOVE(IValue);
 
@@ -452,8 +452,8 @@ struct IValue
 
     struct Getter
     {
-        Getter() = default;
-        virtual ~Getter()                     = default;
+        Getter()          = default;
+        virtual ~Getter() = default;
         CLASS_DELETE_COPY_AND_MOVE(Getter);
 
         virtual std::shared_ptr<IValue> Get() = 0;
@@ -539,16 +539,16 @@ struct BindingContext
 {
     CLASS_DELETE_COPY_AND_MOVE(BindingContext);
 
-    BindingContext() : _previousContext(_currentThreadContext) { _currentThreadContext = this; }
+    BindingContext() : _previousContext(CurrentThreadContext) { CurrentThreadContext = this; }
 
-    ~BindingContext() { _currentThreadContext = _previousContext; }
+    ~BindingContext() { CurrentThreadContext = _previousContext; }
 
     auto GetRange(IBindable& ptr, BindingExpr const& expr)
     {
         struct Range
         {
-            [[nodiscard]] auto        begin() const { return IValueArray::Iterator(value->GetArray()); } //NOLINT
-             auto end() { return IValueArray::Iterator(); } //NOLINT
+            [[nodiscard]] auto begin() const { return IValueArray::Iterator(value->GetArray()); }    // NOLINT
+            auto               end() { return IValueArray::Iterator(); }                             // NOLINT
 
             std::shared_ptr<IValue> value;
         };
@@ -637,7 +637,8 @@ struct BindingContext
     struct Scope
     {
         Scope(BindingContext& context, IBindable& ptr) : Scope(context._stack, ptr) {}
-        Scope(std::vector<std::reference_wrapper<IBindable>>& stackIn LFTBND, IBindable& ptrIn) : stack(stackIn) { stack.push_back(std::ref(ptrIn)); }
+        Scope(std::vector<std::reference_wrapper<IBindable>>& stackIn LFTBND, IBindable& ptrIn) : stack(stackIn)
+        { stack.push_back(std::ref(ptrIn)); }
         ~Scope() { stack.pop_back(); }
         CLASS_DELETE_COPY_AND_MOVE(Scope);
         std::vector<std::reference_wrapper<IBindable>>& stack;
@@ -672,12 +673,12 @@ struct BindingContext
         return _TryEvaluateBindingExprOrNull(expr);
     }
 
-    static auto EvaluateExpression(Expression const& expr) { return _currentThreadContext->_EvaluateExpression(expr); }
+    static auto EvaluateExpression(Expression const& expr) { return CurrentThreadContext->_EvaluateExpression(expr); }
 
     private:
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunique-object-duplication")
-    thread_local static inline BindingContext* _currentThreadContext = nullptr;
+    thread_local static inline BindingContext* CurrentThreadContext = nullptr;
     SUPPRESS_WARNINGS_END
 
     BindingContext*                                _previousContext = nullptr;
@@ -757,7 +758,7 @@ struct BindableBase : public IBindable, public ValueT<Type::Object>
     {
         struct Value : public ValueT<Type::Expr>
         {
-            explicit Value(std::shared_ptr<Binding::Expression>&& exprIn  ) : expr(std::move(exprIn)) {}
+            explicit Value(std::shared_ptr<Binding::Expression>&& exprIn) : expr(std::move(exprIn)) {}
 
             Expression const&                    GetExpr() override { return *expr; }
             std::shared_ptr<Binding::Expression> expr;
@@ -843,10 +844,8 @@ template <typename TParent, typename TObject> struct BindableParent : public vir
     SUPPRESS_WARNINGS_START
     SUPPRESS_MSVC_WARNING(4355)    // this used in base member initializer list
                                    // TODO remove this disable
-    public:
-    BindableParent() : bindableComponent(std::make_shared<BindableComponent>(*this)) { Register(bindableComponent); }
+    BindableParent() : bindableComponent(std::make_shared<BindableComponent>(*this)) { Register(bindableComponent); } //NOLINT
 
-    public:
     SUPPRESS_WARNINGS_END
 
     CLASS_DELETE_COPY_AND_MOVE(BindableParent);
@@ -857,9 +856,7 @@ template <typename TParent, typename TObject> struct BindableParent : public vir
 
 template <typename TOwner, typename TObject> struct BindableObjectArray : public virtual BindableBase
 {
-    public:
-    BindableObjectArray() { Register(bindableComponent); }
-
+    BindableObjectArray() { Register(bindableComponent); }    // NOLINT
     ~BindableObjectArray() override = default;
     CLASS_DELETE_COPY_AND_MOVE(BindableObjectArray);
 
