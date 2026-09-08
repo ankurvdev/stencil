@@ -103,7 +103,7 @@ template <ConceptFixedSize T> struct FixedSizeRecordTraits<T>
     static void               WriteToBuffer(T const& obj, Record<T>& rec)
     {
         static_assert(sizeof(T) == sizeof(Record<T>), "For Fixed sized records Object and Record should be identical");
-        rec = *reinterpret_cast<Record<T> const*>(&obj);
+        rec = *reinterpret_cast<Record<T> const*>(&obj);    // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
     }
 };
 
@@ -123,20 +123,21 @@ struct Ref
 
     constexpr Ref() = default;
     constexpr Ref(PageIndex pageIn, SlotIndex slotIn) : page(pageIn), slot(slotIn) {}
+    ~Ref() = default;
 
     template <ConceptRecord T>
     constexpr explicit Ref(Stencil::Database::Ref<T> const& ref) :
-        page(static_cast<uint16_t>(ref.id >> 16)), slot(static_cast<uint16_t>(ref.id & 0xffff))
+        page(static_cast<uint16_t>(ref.id >> 16u)), slot(static_cast<uint16_t>(ref.id & 0xffffu))
     {}
 
     Ref(Ref const& val)            = default;
     Ref& operator=(Ref const& val) = default;
 
     template <ConceptRecord T> explicit operator Stencil::Database::Ref<T>() const
-    { return Stencil::Database::Ref<T>{(uint32_t{page} << 16) | uint32_t{slot}}; }
+    { return Stencil::Database::Ref<T>{(uint32_t{page} << 16u) | uint32_t{slot}}; }
 
     static Ref         Invalid() { return Ref{}; }
-    [[nodiscard]] bool Valid() const { return page >= 2 && slot < 1000; }
+    [[nodiscard]] bool Valid() const { return page >= 2 && slot < 1000; }    // NOLINT
     Ref&               IncrementSlot() LFTBND
     {
         slot++;
@@ -145,8 +146,8 @@ struct Ref
 
     static auto FromUInt(uint32_t value)
     {
-        auto slot = static_cast<uint16_t>(value & 0xff);
-        auto page = static_cast<uint16_t>(value >> 16);
+        auto slot = static_cast<uint16_t>(value & 0xffu);
+        auto page = static_cast<uint16_t>(value >> 16u);
         return Ref(page, slot);
     }
 };
@@ -207,25 +208,25 @@ struct SerDes
     {
         assert(!stream.fail());
         _iostream = std::move(stream);
-        _AttachStream(static_cast<std::istream*>(&_iostream));
-        _AttachStream(static_cast<std::ostream*>(&_iostream));
+        AttachStream_(static_cast<std::istream*>(&_iostream));
+        AttachStream_(static_cast<std::ostream*>(&_iostream));
     }
 
     void AttachStream(std::ifstream&& stream)
     {
         _istream = std::move(stream);
-        _AttachStream(&_istream);
+        AttachStream_(&_istream);
     }
 
     private:
-    void _AttachStream(std::ostream* stream)
+    void AttachStream_(std::ostream* stream)
     {
         _flushto = stream;
-        _EnsureHeader(_curheader, *stream);
+        EnsureHeader_(_curheader, *stream);
         assert(GetInputPageCount() >= 2);
     }
 
-    void _AttachStream(std::istream* stream)
+    void AttachStream_(std::istream* stream)
     {
         _readFrom = stream;
         assert(_loadedPages.empty());
@@ -260,9 +261,9 @@ struct SerDes
         _loadedPages[1] = std::make_unique<Page>();
         if (offset == 0) { return; }
 
-        _ReadHeader(_curheader, istream);
-        _ReadPage(*_loadedPages[0], 0, istream);
-        _ReadPage(*_loadedPages[1], 1, istream);
+        ReadHeader_(_curheader, istream);
+        ReadPage_(*_loadedPages[0], 0, istream);
+        ReadPage_(*_loadedPages[1], 1, istream);
     }
 
     void ReadPage(Page& page, uint32_t index)
@@ -270,7 +271,7 @@ struct SerDes
         if (_loadedPages.empty())
         {
             if (_readFrom == nullptr) throw std::runtime_error("No Input file attached");
-            _ReadPage(page, index, *_readFrom);
+            ReadPage_(page, index, *_readFrom);
         }
         else
         {
@@ -282,13 +283,13 @@ struct SerDes
     void WritePage(Page const& page, uint32_t index)
     {
         if (_flushto == nullptr) return;
-        _WritePage(page, index, *_flushto);
+        WritePage_(page, index, *_flushto);
     }
 
     void Close()
     {
         if (_flushto == nullptr) return;
-        _WriteHeader(_curheader, *_flushto);
+        WriteHeader_(_curheader, *_flushto);
     }
 
     uint32_t GetInputPageCount()
@@ -315,7 +316,7 @@ struct SerDes
         return static_cast<uint32_t>((static_cast<uint32_t>(offset) - sizeof(Header)) / Page::PageSizeInBytes);
     }
 
-    static void _EnsureHeader(Header const& header, std::ostream& stream)
+    static void EnsureHeader_(Header const& header, std::ostream& stream)
     {
         assert(!stream.fail());
         stream.seekp(0, std::ios_base::end);
@@ -324,30 +325,30 @@ struct SerDes
         assert(!stream.fail());
         if (offset == 0)
         {
-            _WriteHeader(header, stream);
-            _WritePage(Page{/*headerPage*/}, 0, stream);
-            _WritePage(Page{/*journalPage*/}, 1, stream);
+            WriteHeader_(header, stream);
+            WritePage_(Page { /*headerPage*/ }, 0, stream);
+            WritePage_(Page { /*journalPage*/ }, 1, stream);
         }
         assert(!stream.fail());
     }
 
-    static void _WriteHeader(Header const& header, std::ostream& stream)
+    static void WriteHeader_(Header const& header, std::ostream& stream)
     {
         assert(!stream.fail());
         stream.seekp(0, std::ios_base::beg);
-        stream.write(reinterpret_cast<char const*>(&header), sizeof(header));
+        stream.write(reinterpret_cast<char const*>(&header), sizeof(header)); //NOLINT
         assert(!stream.fail());
     }
 
-    static void _ReadHeader(Header& header, std::istream& stream)
+    static void ReadHeader_(Header& header, std::istream& stream)
     {
         assert(!stream.fail());
         stream.seekg(0, std::ios_base::beg);
-        stream.read(reinterpret_cast<char*>(&header), sizeof(header));
+        stream.read(reinterpret_cast<char*>(&header), sizeof(header)); //NOLINT
         assert(!stream.fail());
     }
 
-    static void _ReadPage(Page& page, uint32_t index, std::istream& stream)
+    static void ReadPage_(Page& page, uint32_t index, std::istream& stream)
     {
         assert(!stream.fail());
         std::streamoff offsetreq{PageStreamOffset_(index)};
@@ -360,13 +361,13 @@ struct SerDes
         assert(!stream.fail());
         if (offsetcur != static_cast<std::streampos>(offsetreq)) throw std::runtime_error("Invalid Page Ref");
 
-        stream.read(reinterpret_cast<char*>(&page), Page::PageSizeInBytes);
+        stream.read(reinterpret_cast<char*>(&page), Page::PageSizeInBytes); //NOLINT
         assert(!stream.fail());
     }
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
 
-    static void _WritePage(Page const& page, uint32_t index, std::ostream& stream)
+    static void WritePage_(Page const& page, uint32_t index, std::ostream& stream)
     {
         assert(!stream.fail());
         std::streamoff offsetreq{PageStreamOffset_(index)};
@@ -760,32 +761,32 @@ struct PageManager
     explicit PageManager(std::filesystem::path const& path)
     {
         _serdes.Attach(path);
-        _Initialize();
+        Initialize_();
     }
 
     template <typename TStream> explicit PageManager(TStream&& stream)
     {
         _serdes.AttachStream(std::forward<TStream>(stream));
-        _Initialize();
+        Initialize_();
     }
     ~PageManager() { Flush(); }
 
     void Init(std::filesystem::path const& path)
     {
         _serdes.Attach(path);
-        _Initialize();
+        Initialize_();
     }
 
     void Init(std::ifstream&& istrm)
     {
         _serdes.AttachStream(std::move(istrm));
-        _Initialize();
+        Initialize_();
     }
 
     void Init()
     {
         _serdes.InitInMemory();
-        _Initialize();
+        Initialize_();
     }
 
     void Flush()
@@ -821,12 +822,12 @@ struct PageManager
         pageRT.InitPage();
         pageRT.WriteTo(_serdes);
         pageRT.SetTypeId(objTypeId, pageRecDataSize);
-        if (objTypeId != 0) { _RecordJournalEntry(pageIndex, objTypeId, pageRecDataSize); }
+        if (objTypeId != 0) { RecordJournalEntry_(pageIndex, objTypeId, pageRecDataSize); }
         return pageRT;
     }
 
     private:    // Methods
-    void _Initialize()
+    void Initialize_()
     {
         auto pageCount = _serdes.GetInputPageCount();
         assert(pageCount >= 2);
@@ -855,7 +856,7 @@ struct PageManager
     /// </summary>
     /// <param name="pageIndex"></param>
     /// <param name="objTypeId"></param>
-    void _RecordJournalEntry(Ref::PageIndex pageIndex, uint32_t objTypeId, uint32_t pageRecDataSize)
+    void RecordJournalEntry_(Ref::PageIndex pageIndex, uint32_t objTypeId, uint32_t pageRecDataSize)
     {
         auto journal = LoadPage(_journalPageIndex).As<JournalPage>();
         if (journal.Full(pageIndex))
@@ -873,7 +874,7 @@ struct PageManager
             {
                 assert(_pageRuntimeStates[_journalPageIndex].typeId == 0);
             }
-            _RecordJournalEntry(pageIndex, objTypeId, pageRecDataSize);
+            RecordJournalEntry_(pageIndex, objTypeId, pageRecDataSize);
         }
         else
         {
@@ -905,7 +906,7 @@ template <ConceptRecord T, typename TDb, typename TLock> struct Iterator
         it.lock    = lock;
         it.db      = db;
         it.current = impl::Ref(0, 0);
-        it._MoveToValidSlot();
+        it.MoveToValidSlot_();
         SUPPRESS_WARNINGS_START
         SUPPRESS_CLANG_WARNING("-Wnrvo")
         return it;
@@ -920,7 +921,7 @@ template <ConceptRecord T, typename TDb, typename TLock> struct Iterator
     Iterator& operator++() LFTBND
     {
         current = impl::Ref(current).IncrementSlot();
-        _MoveToValidSlot();
+        MoveToValidSlot_();
         return *this;
     }
 
@@ -932,7 +933,7 @@ template <ConceptRecord T, typename TDb, typename TLock> struct Iterator
         return this->db->Get(*this->lock, Stencil::Database::Ref<T>(this->current));
     }
 
-    void _MoveToValidSlot()
+    void MoveToValidSlot_()
     {
         if (db == nullptr) { return; }
 
@@ -977,7 +978,7 @@ template <ConceptRecord T, typename TDb, typename TLock> struct RangeForView
     using IteratorType = Iterator<T, TDb, TLock>;
 
     RangeForView(TLock& lock, TDb& db) : beginIt{IteratorType::begin(&lock, &db)} {}
-
+    ~RangeForView() = default;
     CLASS_DELETE_COPY_DEFAULT_MOVE(RangeForView);
 
     IteratorType beginIt;
@@ -1007,13 +1008,13 @@ struct Blob
     private:
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
-    uint8_t*                     _GetDataPtr() LFTBND { return reinterpret_cast<uint8_t*>(this) + sizeof(Blob); }
-    [[nodiscard]] uint8_t const* _GetDataPtr() const LFTBND { return reinterpret_cast<uint8_t const*>(this) + sizeof(Blob); }
+    uint8_t*                     GetDataPtr_() LFTBND { return reinterpret_cast<uint8_t*>(this) + sizeof(Blob); }    // NOLINT
+    [[nodiscard]] uint8_t const* GetDataPtr_() const LFTBND { return reinterpret_cast<uint8_t const*>(this) + sizeof(Blob); }
     SUPPRESS_WARNINGS_END
     public:
     template <typename T> [[nodiscard]] size_t   Count() const { return static_cast<size_t>(blobSize) / sizeof(T); }
-    template <typename T> [[nodiscard]] T const* Data() const LFTBND { return reinterpret_cast<T const*>(_GetDataPtr()); }
-    template <typename T> T*                     Data() LFTBND { return reinterpret_cast<T*>(_GetDataPtr()); }
+    template <typename T> [[nodiscard]] T const* Data() const LFTBND { return reinterpret_cast<T const*>(GetDataPtr_()); }    // NOLINT
+    template <typename T> T*                     Data() LFTBND { return reinterpret_cast<T*>(GetDataPtr_()); }                // NOLINT
 
     template <typename T> std::span<T>                     AsSpan() { return std::span<T>(Data<T>(), Count<T>()); }
     template <typename T> [[nodiscard]] std::span<T const> AsSpan() const { return std::span<T const>(Data<T>(), Count<T>()); }
@@ -1029,11 +1030,11 @@ namespace Stencil::Database    // Class/Inferface
 template <typename T> static constexpr T BitCeil(T v) noexcept
 {
     v--;
-    v |= v >> 1;
-    v |= v >> 2;
-    v |= v >> 4;
-    v |= v >> 8;
-    v |= v >> 16;
+    v |= v >> 1u;
+    v |= v >> 2u;
+    v |= v >> 4u;
+    v |= v >> 8u;
+    v |= v >> 16u;
     v++;
     return v;
 }
@@ -1058,7 +1059,7 @@ template <ConceptRecord... Ts> struct Database
         impl::PageForRecord<RecordSize> page(_pagemgr->LoadPage(dbId.page));
 
         auto slot = page.Get(lock, dbId.slot);
-        auto rec  = reinterpret_cast<Record<T> const*>(slot.data.data());
+        auto rec  = reinterpret_cast<Record<T> const*>(slot.data.data());    // NOLINT
         return *rec;
     }
 
@@ -1074,7 +1075,7 @@ template <ConceptRecord... Ts> struct Database
 
         auto slot = page.Edit(lock, dbId.slot);
         page._page.MarkDirty();
-        auto rec = reinterpret_cast<Record<T>*>(slot.data.data());
+        auto rec = reinterpret_cast<Record<T>*>(slot.data.data());    // NOLINT
         return *rec;
     }
     template <ConceptRecord T> auto Items(ROLock& lock) { return impl::RangeForView<T, ThisT, ROLock>(lock, *this); }
@@ -1114,8 +1115,8 @@ template <ConceptRecord... Ts> struct Database
             recsize = BitCeil(recsize);
             recsize = std::min(impl::PageForRecord<0>::MaxRecordSize, recsize);
 
-            auto [ref, slotobj] = _Allocate<0>(lock, TypeId<T, ThisT>, static_cast<uint32_t>(recsize));
-            auto rec            = reinterpret_cast<Record<T>*>(slotobj.data.data());
+            auto [ref, slotobj] = Allocate_<0>(lock, TypeId<T, ThisT>, static_cast<uint32_t>(recsize));
+            auto rec            = reinterpret_cast<Record<T>*>(slotobj.data.data());    // NOLINT
             rec->blobSize       = static_cast<uint32_t>(datasize);
             RecordTraits<T>::WriteToBuffer(*this, lock, obj, *rec);
             // assert(ref.id.Valid());
@@ -1125,9 +1126,9 @@ template <ConceptRecord... Ts> struct Database
         else if constexpr (ConceptFixedSize<T>)
         {
             static constexpr auto RecordSize = static_cast<uint32_t>(FixedSizeRecordTraits<T>::GetDataSize());
-            auto [ref, slotobj]              = _Allocate<RecordSize>(lock, TypeId<T, ThisT>, RecordSize);
+            auto [ref, slotobj]              = Allocate_<RecordSize>(lock, TypeId<T, ThisT>, RecordSize);
             assert(impl::Ref{ref}.page < _pagemgr->GetPageCount());
-            auto rec = reinterpret_cast<Record<T>*>(slotobj.data.data());
+            auto rec = reinterpret_cast<Record<T>*>(slotobj.data.data());    // NOLINT
             FixedSizeRecordTraits<T>::WriteToBuffer(obj, *rec);
             return RefAndRecord<T>(ref, *rec);
         }
@@ -1150,19 +1151,19 @@ template <ConceptRecord... Ts> struct Database
                 recsize = BitCeil(recsize);
                 recsize = std::min(impl::PageForRecord<0>::MaxRecordSize, recsize);
 
-                auto [ref, slotobj] = _Allocate<0>(lock, TypeId<T, ThisT>, static_cast<uint32_t>(recsize));
+                auto [ref, slotobj] = Allocate_<0>(lock, TypeId<T, ThisT>, static_cast<uint32_t>(recsize));
                 assert(impl::Ref{ref}.page < _pagemgr->GetPageCount());
 
-                auto rec      = reinterpret_cast<Record<T>*>(slotobj.data.data());
+                auto rec      = reinterpret_cast<Record<T>*>(slotobj.data.data());    // NOLINT
                 rec->blobSize = static_cast<uint32_t>(datasize);
                 RecordTraits<T>::WriteToBuffer(*this, lock, obj, *rec);
                 return RefAndRecord<T>(ref, *rec);
             }
             else
             {
-                auto [ref, slotobj] = _Allocate<RecordSize>(lock, TypeId<T, ThisT>, RecordSize);
+                auto [ref, slotobj] = Allocate_<RecordSize>(lock, TypeId<T, ThisT>, RecordSize);
                 assert(impl::Ref{ref}.page < _pagemgr->GetPageCount());
-                auto rec = reinterpret_cast<Record<T>*>(slotobj.data.data());
+                auto rec = reinterpret_cast<Record<T>*>(slotobj.data.data());    // NOLINT
                 RecordTraits<T>::WriteToBuffer(*this, lock, obj, *rec);
                 return RefAndRecord<T>(ref, *rec);
             }
@@ -1177,7 +1178,7 @@ template <ConceptRecord... Ts> struct Database
     auto LockForRead() { return _pagemgr->LockForRead(); }
     auto LockForEdit() { return _pagemgr->LockForEdit(); }
 
-    template <size_t TRecordSize> impl::PageRuntime& _FindOrCreatePage(RWLock const& lock, uint16_t typeId, uint32_t recDataSize)
+    template <size_t TRecordSize> impl::PageRuntime& FindOrCreatePage_(RWLock const& lock, uint16_t typeId, uint32_t recDataSize)
     {
         assert(_pagemgr->GetPageCount() > 1);
         for (impl::Ref::PageIndex i = _pagemgr->GetPageCount() - 1u; i > 0; i--)
@@ -1194,9 +1195,9 @@ template <ConceptRecord... Ts> struct Database
         return pageRT;
     }
 
-    template <size_t TRecordSize> std::tuple<impl::Ref, impl::SlotObj> _Allocate(RWLock const& lock, uint16_t typeId, uint32_t recDataSize)
+    template <size_t TRecordSize> std::tuple<impl::Ref, impl::SlotObj> Allocate_(RWLock const& lock, uint16_t typeId, uint32_t recDataSize)
     {
-        auto page = _FindOrCreatePage<TRecordSize>(lock, typeId, recDataSize).template As<impl::PageForRecord<TRecordSize>>();
+        auto page = FindOrCreatePage_<TRecordSize>(lock, typeId, recDataSize).template As<impl::PageForRecord<TRecordSize>>();
         auto slot = page.Allocate(lock);
         return std::make_tuple(impl::Ref(page.PageIndex(), slot.index), slot);
     }

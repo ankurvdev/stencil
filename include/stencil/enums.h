@@ -1,6 +1,7 @@
 #pragma once
 #include "CommonMacros.h"
 #include "typetraits.h"
+#include <algorithm>
 
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
@@ -24,7 +25,7 @@ template <typename... Ts> struct EnumPack
     using PackType                   = EnumPack<Ts...>;
     static constexpr size_t PackSize = sizeof...(Ts);
 
-    template <typename T1, typename T2, typename TCtx> static bool _TryMatch(T2& lhs, TCtx const& rhs)
+    template <typename T1, typename T2, typename TCtx> static bool TryMatch_(T2& lhs, TCtx const& rhs)
     {
         using EnumTrait = Stencil::EnumTraits<T1>;
         for (size_t i = 0; i < std::size(EnumTrait::Names); i++)
@@ -44,7 +45,7 @@ template <typename... Ts> struct EnumPack
     template <typename TContext> static PackType CastFromString(TContext const& rhs)
     {
         Stencil::EnumPack<Ts...> lhs;
-        bool                     found = (_TryMatch<Ts>(lhs, rhs) || ...);
+        bool                     found = (TryMatch_<Ts>(lhs, rhs) || ...);
         if (!found) throw std::invalid_argument("Invalid");
         return lhs;
     }
@@ -56,21 +57,21 @@ template <typename... Ts> struct EnumPack
         return out;
     }
 
-    template <size_t TIndex = 0> static PackType _CastFromInt(size_t const idx, uint32_t val)
+    template <size_t TIndex = 0> static PackType CastFromInt_(size_t const idx, uint32_t val)
     {
         if constexpr (TIndex == PackSize) { throw std::out_of_range("Exceeded maximum tuple range"); }
         else
         {
             if (TIndex == idx) { return PackType{static_cast<std::tuple_element_t<TIndex, std::tuple<Ts...>>>(val)}; }
-            return _CastFromInt<TIndex + 1>(idx, val);
+            return CastFromInt_<TIndex + 1>(idx, val);
         }
     }
 
     static PackType CastFromInt(uint32_t val)
     {
-        auto index = static_cast<uint8_t>(val & 0xff);
-        val           = val >> 8;
-        return _CastFromInt(index, val);
+        auto index = static_cast<uint8_t>(val & 0xffu);
+        val           = val >> 8u;
+        return CastFromInt_(index, val);
     }
 
     static uint32_t CastToInt(PackType const& rhs)
@@ -78,7 +79,7 @@ template <typename... Ts> struct EnumPack
         uint32_t out = 0;
         auto  type = static_cast<uint8_t>(rhs.variant.index());
         std::visit([&](auto&& arg) { out = static_cast<uint32_t>(arg); }, rhs.variant);
-        return (out << 8 | type);
+        return (out << 8u | type);
     }
 
     std::variant<Ts...> variant;

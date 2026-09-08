@@ -4,6 +4,7 @@
 #include "shared_string.h"
 #include "visitor.h"
 
+#include <algorithm>
 #include <span>
 #include <string>
 #include <type_traits>
@@ -15,14 +16,16 @@ using ByteIt = std::span<uint8_t const>::iterator;
 
 template <typename TVal>
 static std::span<uint8_t const> AsCSpan(TVal const& val)
-requires std::is_trivially_default_constructible_v<TVal> {
-    return {reinterpret_cast<uint8_t const*>(&val), sizeof(TVal)};
+    requires std::is_trivially_default_constructible_v<TVal>
+{
+    return {reinterpret_cast<uint8_t const*>(&val), sizeof(TVal)};    // NOLINT
 }
 
 template <typename TVal>
 static std::span<uint8_t> AsSpan(TVal& val)
-requires std::is_trivially_default_constructible_v<TVal> {
-    return {reinterpret_cast<uint8_t*>(&val), sizeof(TVal)};
+    requires std::is_trivially_default_constructible_v<TVal>
+{
+    return {reinterpret_cast<uint8_t*>(&val), sizeof(TVal)};    // NOLINT
 }
 
 struct Writer
@@ -30,9 +33,9 @@ struct Writer
     Writer() = default;
 
     template <typename TVal>
-     requires std::is_trivially_default_constructible_v<TVal> 
+        requires std::is_trivially_default_constructible_v<TVal>
     Writer& operator<<(TVal const& val) LFTBND
-   {
+    {
         auto spn = AsCSpan(val);
         std::copy(spn.begin(), spn.end(), back_inserter(buffer));
         return *this;
@@ -41,25 +44,25 @@ struct Writer
     Writer& operator<<(std::span<std::byte const> const& bytespn) LFTBND
     {
         std::span<uint8_t const> spn(reinterpret_cast<uint8_t const*>(bytespn.data()), bytespn.size());
-        std::copy(spn.begin(), spn.end(), back_inserter(buffer));
+        std::ranges::copy(spn, back_inserter(buffer));
         return *this;
     }
 
     Writer& operator<<(std::span<uint8_t const> const& spn) LFTBND
     {
-        std::copy(spn.begin(), spn.end(), back_inserter(buffer));
+        std::ranges::copy(spn, back_inserter(buffer));
         return *this;
     }
     template <typename TChar, typename TStr> Writer& _WriteStr(TStr const& str) LFTBND
     {
         auto bytesize = static_cast<uint32_t>(str.size() * sizeof(TChar));
         *this << bytesize;
-        std::span<uint8_t const> spn(reinterpret_cast<uint8_t const*>(str.data()), bytesize);
+        std::span<uint8_t const> spn(reinterpret_cast<uint8_t const*>(str.data()), bytesize);    // NOLINT
         *this << spn;
         return *this;
     }
 
-    Writer& operator<<(std::string const& str)  LFTBND { return _WriteStr<char>(str); }
+    Writer& operator<<(std::string const& str) LFTBND { return _WriteStr<char>(str); }
     Writer& operator<<(std::wstring const& str) LFTBND { return _WriteStr<wchar_t>(str); }
     Writer& operator<<(shared_string const& str) LFTBND { return _WriteStr<char>(str); }
     Writer& operator<<(shared_wstring const& str) LFTBND { return _WriteStr<wchar_t>(str); }
@@ -74,8 +77,10 @@ struct Reader
     explicit Reader(std::span<uint8_t const> const& w) : it(w.begin()) {}
     explicit Reader(ByteIt const& itbeg) : it(itbeg) {}
 
-    template <typename TVal> TVal Read()
-    requires std::is_trivially_default_constructible_v<TVal> {
+    template <typename TVal>
+    TVal Read()
+        requires std::is_trivially_default_constructible_v<TVal>
+    {
         TVal val;
         auto endIt = it + sizeof(TVal);
         std::copy(it, endIt, AsSpan(val).begin());
@@ -83,25 +88,25 @@ struct Reader
         return val;
     }
 
-    template <typename TChar, typename TStr> TStr _ReadStr()
+    template <typename TChar, typename TStr> TStr ReadStr_()
     {
         size_t bytesize = Read<uint32_t>();
         TStr   str;
         str.resize(bytesize / sizeof(TChar));
-        std::span<uint8_t> spn(reinterpret_cast<uint8_t*>(str.data()), bytesize);
+        std::span<uint8_t> spn(reinterpret_cast<uint8_t*>(str.data()), bytesize);    // NOLINT
         auto               endIt = it + static_cast<ByteIt::difference_type>(bytesize);
         std::copy(it, endIt, spn.begin());
         it = endIt;
         return str;
     }
 
-    shared_string  ReadSharedString() { return _ReadStr<char, shared_string>(); }
-    shared_wstring ReadSharedWstring() { return _ReadStr<wchar_t, shared_wstring>(); }
-    std::string    ReadString() { return _ReadStr<char, std::string>(); }
-    std::wstring   ReadWstring() { return _ReadStr<wchar_t, std::wstring>(); }
+    shared_string  ReadSharedString() { return ReadStr_<char, shared_string>(); }
+    shared_wstring ReadSharedWstring() { return ReadStr_<wchar_t, shared_wstring>(); }
+    std::string    ReadString() { return ReadStr_<char, std::string>(); }
+    std::wstring   ReadWstring() { return ReadStr_<wchar_t, std::wstring>(); }
 
-    [[nodiscard]] auto   GetIterator() const { return it; }
-    ByteIt it;
+    [[nodiscard]] auto GetIterator() const { return it; }
+    ByteIt             it;
 };
 
 struct ProtocolBinary
@@ -182,9 +187,7 @@ template <ConceptPrimitives64Bit T> struct SerDes<T, ProtocolBinary>
 {
     template <typename TContext> static auto Write(TContext& ctx, T const& obj) { ctx << Primitives64Bit::Traits<T>::Repr(obj); }
     template <typename TContext> static auto Read(T& obj, TContext& ctx)
-    {
-        obj = Primitives64Bit::Traits<T>::Convert(ctx.template Read<decltype(Primitives64Bit::Traits<T>::Repr(obj))>());
-    }
+    { obj = Primitives64Bit::Traits<T>::Convert(ctx.template Read<decltype(Primitives64Bit::Traits<T>::Repr(obj))>()); }
 };
 
 template <ConceptPreferVariant T> struct SerDes<T, ProtocolBinary>
@@ -270,8 +273,6 @@ template <> struct SerDes<uuids::uuid, ProtocolBinary>
     template <typename TContext> static auto Write(TContext& ctx, uuids::uuid const& obj) { ctx << obj.as_bytes(); }
 
     template <typename TContext> static auto Read(uuids::uuid& obj, TContext& ctx)
-    {
-        obj = uuids::uuid{ctx.template read<std::array<uint8_t, 16>>()};
-    }
+    { obj = uuids::uuid{ctx.template read<std::array<uint8_t, 16>>()}; }
 };
 }    // namespace Stencil
