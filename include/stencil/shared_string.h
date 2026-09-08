@@ -81,7 +81,7 @@ template <typename T> struct shared_stringT
         bool rhsempty = str.empty();
         if (!lhsempty && !rhsempty) { return *_str.get() <=> *str._str.get(); }
         if (lhsempty == rhsempty) { return std::strong_ordering::equal; }
-        else if (lhsempty) { return std::strong_ordering::less; }
+        if (lhsempty) { return std::strong_ordering::less; }
         else
         {
             return std::strong_ordering::greater;

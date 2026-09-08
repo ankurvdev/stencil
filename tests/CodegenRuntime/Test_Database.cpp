@@ -57,7 +57,7 @@ struct DatabaseTester
         REQUIRE(rec.val8.data == ref.val8);
     }
 
-    void Check(Stencil::Database::RWLock& lock, Objects::ListObject const& ref, Stencil::Database::Record<Objects::ListObject> const& rec)
+    void Check(Stencil::Database::RWLock& lock, Objects::ListObject const& ref, Stencil::Database::Record<Objects::ListObject> const& rec) const
     {
         Check(lock, ref.obj1, datastore->Get(lock, rec.obj1));
         // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
@@ -97,7 +97,7 @@ struct DatabaseTester
         }
     }
 
-    void Check(Stencil::Database::RWLock& lock, Objects::DictObject const& ref, Stencil::Database::Record<Objects::DictObject> const& rec)
+    void Check(Stencil::Database::RWLock& lock, Objects::DictObject const& ref, Stencil::Database::Record<Objects::DictObject> const& rec) const
     {
         // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
         Check(lock, ref.dictval, datastore->Get(lock, rec.dictval));

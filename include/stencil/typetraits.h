@@ -104,7 +104,7 @@ template <typename T> struct StructT
     friend T;
 };
 
-template <typename T> struct VariantT
+template <typename T> struct VariantT //NOLINT
 {};
 
 template <typename TAttr, typename TObj> struct Attribute;

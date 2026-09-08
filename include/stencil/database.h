@@ -406,7 +406,7 @@ struct PageRuntime
     }
 
     [[nodiscard]] bool Loaded() const { return page != nullptr; }
-    void Load(SerDes& serdes)
+    void               Load(SerDes& serdes)
     {
         page = std::make_unique<Page>();
         serdes.ReadPage(*page, pageIndex);
@@ -461,7 +461,7 @@ struct PageRuntime
     using Flags = std::bitset<1>;
 
     Ref::SlotIndex availableSlot   = 0;
-    Ref::PageIndex pageIndex      = 0;
+    Ref::PageIndex pageIndex       = 0;
     uint32_t       typeId          = 0;
     uint32_t       pageRecDataSize = 0;
 
@@ -499,7 +499,7 @@ template <size_t RecordSize> struct PageForRecord
 
     static constexpr size_t SlotCount = GetSlotCapacity(RecordSize);
 
-    PageForRecord(PageRuntime& pageIn LFTBND) : page(pageIn) //NOLINT
+    PageForRecord(PageRuntime& pageIn LFTBND) : page(pageIn)    // NOLINT
     {
         SUPPRESS_WARNINGS_START
         SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
@@ -1015,8 +1015,8 @@ struct Blob
     template <typename T> [[nodiscard]] T const* Data() const LFTBND { return reinterpret_cast<T const*>(_GetDataPtr()); }
     template <typename T> T*                     Data() LFTBND { return reinterpret_cast<T*>(_GetDataPtr()); }
 
-    template <typename T> std::span<T>       AsSpan() { return std::span<T>(Data<T>(), Count<T>()); }
-    template <typename T> std::span<T const> AsSpan() const { return std::span<T const>(Data<T>(), Count<T>()); }
+    template <typename T> std::span<T>                     AsSpan() { return std::span<T>(Data<T>(), Count<T>()); }
+    template <typename T> [[nodiscard]] std::span<T const> AsSpan() const { return std::span<T const>(Data<T>(), Count<T>()); }
 };
 
 template <typename T, typename TRec> auto AsBlob(Record<TRec> /*unused*/)
@@ -1242,8 +1242,8 @@ template <ConceptRecord K, ConceptRecord V> struct Record<std::unordered_map<K, 
     Record()  = default;
     ~Record() = default;
     CLASS_DEFAULT_COPY_AND_MOVE(Record);
-    auto Items() { return AsSpan<MapItem<K, V>>(); }
-    auto Items() const { return AsSpan<MapItem<K, V>>(); }
+    auto               Items() { return AsSpan<MapItem<K, V>>(); }
+    [[nodiscard]] auto Items() const { return AsSpan<MapItem<K, V>>(); }
 };
 
 template <ConceptRecord K, ConceptRecord V> struct RecordTraits<std::unordered_map<K, V>>
@@ -1276,8 +1276,8 @@ template <ConceptRecord T> struct Record<std::vector<T>> : impl::Blob
     Record()  = default;
     ~Record() = default;
     CLASS_DEFAULT_COPY_AND_MOVE(Record);
-    auto Items() { return AsSpan<Ref<T>>(); }
-    auto Items() const { return AsSpan<Ref<T>>(); }
+    auto               Items() { return AsSpan<Ref<T>>(); }
+    [[nodiscard]] auto Items() const { return AsSpan<Ref<T>>(); }
 };
 
 template <ConceptRecord T> struct RecordTraits<std::vector<T>>

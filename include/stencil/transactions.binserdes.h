@@ -45,7 +45,7 @@ struct IStrmReader
     auto& Strm() { return istrm; }
 
     template <typename TVal> TVal Read()
-    requires std::is_trivially_default_constructible<TVal>::value {
+    requires std::is_trivially_default_constructible_v<TVal> {
         TVal val{};
         auto spn = AsSpan(val);
         istrm.read(reinterpret_cast<char*>(spn.data()), static_cast<std::streamsize>(spn.size()));

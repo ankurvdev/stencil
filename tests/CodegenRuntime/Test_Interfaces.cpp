@@ -357,7 +357,7 @@ struct Server1Impl
     ~Server1Impl() override = default;
     CLASS_DELETE_COPY_AND_MOVE(Server1Impl);
     static std::string_view Name() { return "state"; }
-    std::string      StateStringify() const { return Stencil::Json::Stringify(state); }
+    [[nodiscard]] std::string      StateStringify() const { return Stencil::Json::Stringify(state); }
 
     struct EditCtx
     {
@@ -417,7 +417,7 @@ struct SvcSeparateImplSvc
     CLASS_DELETE_COPY_AND_MOVE(SvcSeparateImplSvc);
 
     static std::string_view Name() { return "state"; }
-    std::string      StateStringify() const { return Stencil::Json::Stringify(state); }
+    [[nodiscard]] std::string      StateStringify() const { return Stencil::Json::Stringify(state); }
 
     struct EditCtx
     {

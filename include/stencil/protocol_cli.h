@@ -343,7 +343,7 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                     struct CustomVisitor : IterableValuesVisitors
                     {
                         ~CustomVisitor() override = default;
-                        Visitor<TVal>::Iterator it;
+                        Visitor<TVal>::Iterator it{};
                     };
                     CustomVisitor* visitor{nullptr};
 
@@ -731,7 +731,7 @@ template <typename TStrArr> struct SpanStr
 {
     TStrArr const* strList;
 
-    auto const& At(size_t index) const { return (*strList)[index]; }
+    [[nodiscard]] auto const& At(size_t index) const { return (*strList)[index]; }
     [[nodiscard]] size_t      Count() const { return std::size(*strList); }
 };
 
