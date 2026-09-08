@@ -1,8 +1,10 @@
 #pragma once
 #include <stencil/stencil.h>
+
 #include "Objects.pidl.h"
-// SECTION START: DECLARATIONS
-#if true
+// NOLINTBEGIN(cppcoreguidelines-rvalue-reference-param-not-moved,readability-identifier-naming, readability-redundant-member-init,
+// bugprone-branch-clone) SECTION START: DECLARATIONS
+#pragma region Declarations
 
 namespace Interfaces
 {
@@ -20,11 +22,11 @@ template <> struct Stencil::TypeTraits<Interfaces::Server1_ObjectStore_obj1>;
 template <> struct Stencil::TypeTraits<Interfaces::Server1_ObjectStore_obj2>;
 template <> struct Stencil::InterfaceTraits<Interfaces::NoEvent>;
 
-#endif
+#pragma endregion Declarations
 // SECTION END: DECLARATIONS
 
 // SECTION START: Definitions
-#if true
+#pragma region Definitions
 namespace Interfaces
 {
 struct Server1_ObjectStore_obj1 : ::Objects::SimpleObject1    //, Database::ObjectT<ObjectStore, ObjectStore_obj1>
@@ -32,13 +34,12 @@ struct Server1_ObjectStore_obj1 : ::Objects::SimpleObject1    //, Database::Obje
 struct Server1_ObjectStore_obj2 : ::Objects::NestedObject    //, Database::ObjectT<ObjectStore, ObjectStore_obj2>
 {};
 }    // namespace Interfaces
-#endif
+#pragma endregion Definitions
 
 // SECTION END: Definitions
 
 // SECTION START: Template specializations
-#if true
-
+#pragma region TemplateSpecializations
 // SECTION:
 
 template <>
@@ -116,15 +117,12 @@ struct Server1
         virtual std::unordered_map<uint32_t, ::Objects::SimpleObject1> Function1(
             uint32_t const& arg1
 ,            ::Objects::SimpleObject1 const& arg2
-            )
-            = 0;
+            ) = 0;
         virtual void Function2(
-            )
-            = 0;
+            ) = 0;
         virtual void Function3(
             uint32_t const& arg2
-            )
-            = 0;
+            ) = 0;
     };
 
     template <typename TImpl> struct Svc : public Stencil::InterfaceT<Svc<TImpl>>
@@ -218,8 +216,8 @@ template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Fun
     enum class Fields
     {
         Invalid,
-        arg_arg1
-,        arg_arg2
+        arg_arg1,
+        arg_arg2,
     };
 
     struct Field_arg_arg1T
@@ -238,10 +236,10 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Server1::
     using Enum = Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function1>::Fields;
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
-    static constexpr std::string_view Names[] = {
+    static constexpr std::string_view Names[] /* NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)*/ = {
         "Invalid",
-        "arg1"
-,        "arg2"
+        "arg1",
+        "arg2",
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
@@ -262,7 +260,8 @@ struct Stencil::Visitor<Interfaces::Server1::Args_Function1>
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
+    template <typename T, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -339,7 +338,7 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Server1::
     using Enum = Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function2>::Fields;
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
-    static constexpr std::string_view Names[] = {
+    static constexpr std::string_view Names[] /* NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)*/ = {
         "Invalid",
     };
 
@@ -361,7 +360,8 @@ struct Stencil::Visitor<Interfaces::Server1::Args_Function2>
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
+    template <typename T, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -416,7 +416,7 @@ template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Fun
     enum class Fields
     {
         Invalid,
-        arg_arg2
+        arg_arg2,
     };
 
     struct Field_arg_arg2T
@@ -432,9 +432,9 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Server1::
     using Enum = Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Function3>::Fields;
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
-    static constexpr std::string_view Names[] = {
+    static constexpr std::string_view Names[] /* NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)*/ = {
         "Invalid",
-        "arg2"
+        "arg2",
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
@@ -455,7 +455,8 @@ struct Stencil::Visitor<Interfaces::Server1::Args_Function3>
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
+    template <typename T, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -515,8 +516,8 @@ template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_Som
     enum class Fields
     {
         Invalid,
-        arg_arg1
-,        arg_arg2
+        arg_arg1,
+        arg_arg2,
     };
 
     struct Field_arg_arg1T
@@ -535,10 +536,10 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Server1::
     using Enum = Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_SomethingHappened>::Fields;
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
-    static constexpr std::string_view Names[] = {
+    static constexpr std::string_view Names[] /* NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)*/ = {
         "Invalid",
-        "arg1"
-,        "arg2"
+        "arg1",
+        "arg2",
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
@@ -559,7 +560,8 @@ struct Stencil::Visitor<Interfaces::Server1::Args_SomethingHappened>
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
+    template <typename T, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -681,12 +683,10 @@ struct NoEvent
         virtual ~Interface() = default;
 
         virtual void Function2(
-            )
-            = 0;
+            ) = 0;
         virtual void Function3(
             uint32_t const& arg2
-            )
-            = 0;
+            ) = 0;
     };
 
     template <typename TImpl> struct Svc : public Stencil::InterfaceT<Svc<TImpl>>
@@ -763,7 +763,7 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::NoEvent::
     using Enum = Stencil::TypeTraitsForIndexable<Interfaces::NoEvent::Args_Function2>::Fields;
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
-    static constexpr std::string_view Names[] = {
+    static constexpr std::string_view Names[] /* NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)*/ = {
         "Invalid",
     };
 
@@ -785,7 +785,8 @@ struct Stencil::Visitor<Interfaces::NoEvent::Args_Function2>
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
+    template <typename T, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -840,7 +841,7 @@ template <> struct Stencil::TypeTraitsForIndexable<Interfaces::NoEvent::Args_Fun
     enum class Fields
     {
         Invalid,
-        arg_arg2
+        arg_arg2,
     };
 
     struct Field_arg_arg2T
@@ -856,9 +857,9 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::NoEvent::
     using Enum = Stencil::TypeTraitsForIndexable<Interfaces::NoEvent::Args_Function3>::Fields;
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
-    static constexpr std::string_view Names[] = {
+    static constexpr std::string_view Names[] /* NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)*/ = {
         "Invalid",
-        "arg2"
+        "arg2",
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
@@ -879,7 +880,8 @@ struct Stencil::Visitor<Interfaces::NoEvent::Args_Function3>
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
+    template <typename T, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -946,11 +948,15 @@ template <> struct Stencil::InterfaceTraits<Interfaces::NoEvent>
         >;
 };
 
-#endif
+#pragma endregion TemplateSpecializations
+
 // SECTION END: Template specializations
 
 // SECTION START: Inline Function Definitions
-#if true
+#pragma region InlineFunctionDefinitions
 
-#endif
+#pragma endregion
 // SECTION END: Inline Function Definitions
+
+// NOLINTEND(cppcoreguidelines-rvalue-reference-param-not-moved,readability-identifier-naming, readability-redundant-member-init,
+// bugprone-branch-clone)

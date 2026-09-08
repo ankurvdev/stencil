@@ -1,0 +1,339 @@
+#pragma once
+#include <stencil/stencil.h>
+
+// NOLINTBEGIN(cppcoreguidelines-rvalue-reference-param-not-moved,readability-identifier-naming, readability-redundant-member-init,
+// bugprone-branch-clone) SECTION START: DECLARATIONS
+#pragma region Declarations
+
+namespace Web
+{
+struct WebFileServer;
+
+}    // namespace Web
+
+template <> struct Stencil::InterfaceTraits<Web::WebFileServer>;
+
+#pragma endregion Declarations
+// SECTION END: DECLARATIONS
+
+// SECTION START: Definitions
+#pragma region Definitions
+namespace Web
+{
+}    // namespace Web
+#pragma endregion Definitions
+
+// SECTION END: Definitions
+
+// SECTION START: Template specializations
+#pragma region TemplateSpecializations
+// SECTION:
+
+namespace Web
+{
+struct WebFileServer
+{
+    struct Args_GetFile
+    {
+        std::filesystem::path p{};
+    };
+    struct Args_GetStream
+    {
+        std::filesystem::path p{};
+    };
+    struct Interface
+    {
+        Interface()          = default;
+        virtual ~Interface() = default;
+
+        virtual ::Stencil::websvc::File GetFile(
+            std::filesystem::path const& p
+            ) = 0;
+        virtual ::Stencil::websvc::Stream GetStream(
+            std::filesystem::path const& p
+            ) = 0;
+    };
+
+    template <typename TImpl> struct Svc : public Stencil::InterfaceT<Svc<TImpl>>
+    {
+        using Impl      = TImpl;
+        using BaseClass = Stencil::InterfaceT<Svc<TImpl>>;
+
+        public:
+        Svc()  = default;
+        ~Svc() = default;
+        CLASS_DELETE_COPY_AND_MOVE(Svc);
+
+        struct Dummy
+        {};
+
+        using ObjectStore = Stencil::Database::Database<
+            >;
+        ::Stencil::websvc::File GetFile([[maybe_unused]] Args_GetFile const& args)
+        {
+            return this->GetFile(
+                args.p
+            );
+        }
+
+        ::Stencil::websvc::File GetFile([[maybe_unused]] Args_GetFile&& args)
+        {
+            return this->GetFile(
+                std::move(args.p)
+            );
+        }
+
+        ::Stencil::websvc::Stream GetStream([[maybe_unused]] Args_GetStream const& args)
+        {
+            return this->GetStream(
+                args.p
+            );
+        }
+
+        ::Stencil::websvc::Stream GetStream([[maybe_unused]] Args_GetStream&& args)
+        {
+            return this->GetStream(
+                std::move(args.p)
+            );
+        }
+
+        ObjectStore objects;
+
+        // static std::unique_ptr<WebFileServer::Svc<TImpl>> Create();
+        // static std::shared_ptr<WebFileServer::Svc<TImpl>> CreateShared();
+        // static std::shared_ptr<WebFileServer::Svc<TImpl>> Activate();
+    };
+};
+
+}    // namespace Web
+
+template <> struct Stencil::TypeTraits<Web::WebFileServer::Args_GetFile>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<Web::WebFileServer::Args_GetFile>
+{
+    using TObj = Web::WebFileServer::Args_GetFile;
+    enum class Fields
+    {
+        Invalid,
+        arg_p,
+    };
+
+    struct Field_arg_pT
+    {};
+    using Key = Fields;
+
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_arg_pT /* key */) { return false; }
+};
+
+template <>
+struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Web::WebFileServer::Args_GetFile>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<Web::WebFileServer::Args_GetFile>::Fields;
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
+    static constexpr std::string_view Names[] /* NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)*/ = {
+        "Invalid",
+        "p",
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+    SUPPRESS_WARNINGS_END
+    static Stencil::TypeTraitsForIndexable<Web::WebFileServer::Args_GetFile>::Fields
+    ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<Web::WebFileServer::Args_GetFile>::Fields>(
+            index);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Web::WebFileServer::Args_GetFile>
+    : Stencil::VisitorT<Web::WebFileServer::Args_GetFile>
+{
+    using TData  = Web::WebFileServer::Args_GetFile;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
+
+    template <typename T, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
+    {
+        switch (field)
+        {
+        case Fields::arg_p: return lambda(obj.p);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TField, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda const& lambda)
+    {
+        if constexpr (std::is_same_v<TField, typename Traits::Field_arg_pT>) { return lambda(obj.p); }
+        throw std::logic_error("Invalid Key");
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
+    {
+        lambda(Fields::arg_p, obj.p);
+    }
+};
+
+template <>
+struct Stencil::Comparator<Web::WebFileServer::Args_GetFile,
+                           Web::WebFileServer::Args_GetFile>
+{
+    using ThisType = Web::WebFileServer::Args_GetFile;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.p, obj2.p)
+            ;
+    }
+};
+
+template <> struct Stencil::InterfaceApiTraits<Web::WebFileServer::Args_GetFile>
+{
+    using ArgsStruct = Web::WebFileServer::Args_GetFile;
+    static constexpr bool             IsStatic() { return false; }
+    static constexpr std::string_view Name() { return "GetFile"; }
+
+    template <typename TImpl> static auto Invoke(TImpl& instance, [[maybe_unused]] ArgsStruct& args)
+    {
+        return InterfaceSvcTraits<TImpl, Web::WebFileServer>::QueryInterface(instance).GetFile(
+            args.p
+        );
+    }
+};
+template <> struct Stencil::TypeTraits<Web::WebFileServer::Args_GetStream>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<Web::WebFileServer::Args_GetStream>
+{
+    using TObj = Web::WebFileServer::Args_GetStream;
+    enum class Fields
+    {
+        Invalid,
+        arg_p,
+    };
+
+    struct Field_arg_pT
+    {};
+    using Key = Fields;
+
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_arg_pT /* key */) { return false; }
+};
+
+template <>
+struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Web::WebFileServer::Args_GetStream>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<Web::WebFileServer::Args_GetStream>::Fields;
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
+    static constexpr std::string_view Names[] /* NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)*/ = {
+        "Invalid",
+        "p",
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+    SUPPRESS_WARNINGS_END
+    static Stencil::TypeTraitsForIndexable<Web::WebFileServer::Args_GetStream>::Fields
+    ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<Web::WebFileServer::Args_GetStream>::Fields>(
+            index);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Web::WebFileServer::Args_GetStream>
+    : Stencil::VisitorT<Web::WebFileServer::Args_GetStream>
+{
+    using TData  = Web::WebFileServer::Args_GetStream;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
+
+    template <typename T, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
+    {
+        switch (field)
+        {
+        case Fields::arg_p: return lambda(obj.p);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TField, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda const& lambda)
+    {
+        if constexpr (std::is_same_v<TField, typename Traits::Field_arg_pT>) { return lambda(obj.p); }
+        throw std::logic_error("Invalid Key");
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
+    {
+        lambda(Fields::arg_p, obj.p);
+    }
+};
+
+template <>
+struct Stencil::Comparator<Web::WebFileServer::Args_GetStream,
+                           Web::WebFileServer::Args_GetStream>
+{
+    using ThisType = Web::WebFileServer::Args_GetStream;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.p, obj2.p)
+            ;
+    }
+};
+
+template <> struct Stencil::InterfaceApiTraits<Web::WebFileServer::Args_GetStream>
+{
+    using ArgsStruct = Web::WebFileServer::Args_GetStream;
+    static constexpr bool             IsStatic() { return false; }
+    static constexpr std::string_view Name() { return "GetStream"; }
+
+    template <typename TImpl> static auto Invoke(TImpl& instance, [[maybe_unused]] ArgsStruct& args)
+    {
+        return InterfaceSvcTraits<TImpl, Web::WebFileServer>::QueryInterface(instance).GetStream(
+            args.p
+        );
+    }
+};
+template <> struct Stencil::InterfaceTraits<Web::WebFileServer>
+{
+    using Interface = Web::WebFileServer::Interface;
+
+    static constexpr std::string_view Name() { return "WebFileServer"; }
+
+    using ApiStructs = std::tuple<
+        Web::WebFileServer::Args_GetFile
+,        Web::WebFileServer::Args_GetStream
+        >;
+
+    using Objects = std::tuple<
+        >;
+
+    using EventStructs = std::tuple<
+        >;
+};
+
+#pragma endregion TemplateSpecializations
+
+// SECTION END: Template specializations
+
+// SECTION START: Inline Function Definitions
+#pragma region InlineFunctionDefinitions
+
+#pragma endregion
+// SECTION END: Inline Function Definitions
+
+// NOLINTEND(cppcoreguidelines-rvalue-reference-param-not-moved,readability-identifier-naming, readability-redundant-member-init,
+// bugprone-branch-clone)

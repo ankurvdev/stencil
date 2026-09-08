@@ -5,13 +5,13 @@ DECLARE_RESOURCE_COLLECTION(testdata);
 static void RunTest(std::vector<std::string> const& pidlfiles)
 {
     TestCommon::ResourceFileManager resfiles;
-    for (auto const& pidlfile : pidlfiles) { resfiles.load(std::string(pidlfile), ""); }
+    for (auto const& pidlfile : pidlfiles) { resfiles.Load(std::string(pidlfile), ""); }
 
     for (auto const& pidlfile : pidlfiles)
     {
         auto generator = Generator::Get("thrift");
         generator->LoadBuilltinTemplates();
-        generator->LoadFile(resfiles.load(std::string(pidlfile), ""));
+        generator->LoadFile(resfiles.Load(std::string(pidlfile), ""));
         auto outfiles = generator->Generate(false, std::filesystem::current_path());
     }
 
@@ -20,7 +20,7 @@ static void RunTest(std::vector<std::string> const& pidlfiles)
 
         auto generator = Generator::Get("thrift");
         generator->LoadBuilltinTemplates();
-        generator->LoadFile(resfiles.load(std::string(pidlfile), ""));
+        generator->LoadFile(resfiles.Load(std::string(pidlfile), ""));
 
         auto outfiles = generator->Generate(false, std::filesystem::current_path());
 
