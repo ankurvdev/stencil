@@ -172,17 +172,17 @@ inline std::string GeneratePrefixFromTestName()
     return prefix;
 }
 
-struct ResourceFileManager
+struct ResourceFileManager    // NOLINT(cppcoreguidelines-pro-type-member-init)
 {
     ResourceFileManager() = default;
-    ~ResourceFileManager()
+    ~ResourceFileManager()    // NOLINT(modernize-use-equals-default)
     {
         for (auto const& [k, v] : openedfiles) { std::filesystem::remove(v); }
     }
 
     CLASS_DELETE_COPY_AND_MOVE(ResourceFileManager);
 
-    auto Load(std::string const& name, std::string const& prefix) //NOLINT
+    auto Load(std::string const& name, std::string const& prefix)    // NOLINT
     {
         auto testresname = GeneratePrefixFromTestName() + name;
 

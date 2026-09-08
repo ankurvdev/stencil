@@ -216,7 +216,7 @@ struct HttpClientListener
 
             // Gracefully close
             ec = stream.socket().shutdown(tcp::socket::shutdown_both, ec);
-            if (ec)
+            if (ec && ec != net::error::not_connected)
             {    //
                 fmt::print(stderr, "Error in shutdown: {}\n", ec);
             }

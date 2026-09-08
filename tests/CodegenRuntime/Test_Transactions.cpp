@@ -279,6 +279,12 @@ struct UnorderedMapTester : public ObjectsTester
     UnorderedMapTester()  = default;
     ~UnorderedMapTester() = default;
 
+    template <typename T> static auto Copy(T const& obj)
+    {
+        auto copy = obj;
+        return copy;
+    }
+
     TestReplay replay;
     auto       DictValueCreate(shared_string const& key)
     {
@@ -287,7 +293,7 @@ struct UnorderedMapTester : public ObjectsTester
             auto subtxn1 = txn.dict1();
             {
                 auto subtxn2 = subtxn1.dictval();
-                subtxn2.Assign(key, std::move(ts));
+                subtxn2.Assign(key, Copy(ts));
             }
         });
     }
@@ -299,7 +305,7 @@ struct UnorderedMapTester : public ObjectsTester
             auto subtxn1 = txn.dict1();
             {
                 auto subtxn2 = subtxn1.dictval();
-                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign(std::move(ts)); });
+                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign(Copy(ts)); });
             }
         });
     }
@@ -323,8 +329,8 @@ struct UnorderedMapTester : public ObjectsTester
             auto subtxn1 = txn.dict1();
             {
                 auto subtxn2 = subtxn1.dictval();
-                subtxn2.Assign(key, std::move(ts1));
-                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign(std::move(ts2)); });
+                subtxn2.Assign(key, Copy(ts1));
+                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign(Copy(ts2)); });
                 subtxn2.Remove(key);
             }
         });
@@ -338,11 +344,11 @@ struct UnorderedMapTester : public ObjectsTester
             auto subtxn1 = txn.dict1();
             {
                 auto subtxn2 = subtxn1.dictval();
-                subtxn2.Assign(key, std::move(ts1));
+                subtxn2.Assign(key, Copy(ts1));
             }
             {
                 auto subtxn2 = subtxn1.dictval();
-                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign(std::move(ts2)); });
+                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign(Copy(ts2)); });
             }
             {
                 auto subtxn2 = subtxn1.dictval();
@@ -369,7 +375,7 @@ struct UnorderedMapTester : public ObjectsTester
             auto subtxn1 = txn.dict1();
             {
                 auto subtxn2 = subtxn1.dictval();
-                subtxn2.Assign(key, std::move(ts));
+                subtxn2.Assign(key, Copy(ts));
             }
         });
     }
@@ -381,7 +387,7 @@ struct UnorderedMapTester : public ObjectsTester
             auto subtxn1 = txn.dict1();
             {
                 auto subtxn2 = subtxn1.dictval();
-                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign(std::move(ts)); });
+                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign(Copy(ts)); });
             }
         });
     }
@@ -405,8 +411,8 @@ struct UnorderedMapTester : public ObjectsTester
             auto subtxn1 = txn.dict1();
             {
                 auto subtxn2 = subtxn1.dictval();
-                subtxn2.Assign(key, std::move(ts1));
-                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign(std::move(ts2)); });
+                subtxn2.Assign(key, Copy(ts1));
+                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign(Copy(ts2)); });
                 subtxn2.Remove(key);
             }
         });
@@ -420,11 +426,11 @@ struct UnorderedMapTester : public ObjectsTester
             auto subtxn1 = txn.dict1();
             {
                 auto subtxn2 = subtxn1.dictval();
-                subtxn2.Assign(key, std::move(ts1));
+                subtxn2.Assign(key, Copy(ts1));
             }
             {
                 auto subtxn2 = subtxn1.dictval();
-                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign(std::move(ts2)); });
+                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.Assign(Copy(ts2)); });
             }
             {
                 auto subtxn2 = subtxn1.dictval();
@@ -440,7 +446,7 @@ struct UnorderedMapTester : public ObjectsTester
             auto subtxn1 = txn.dict1();
             {
                 auto subtxn2 = subtxn1.dictobj();
-                subtxn2.Assign(key, std::move(obj));
+                subtxn2.Assign(key, Copy(obj));
             }
         });
     }
@@ -452,7 +458,7 @@ struct UnorderedMapTester : public ObjectsTester
             auto subtxn1 = txn.dict1();
             {
                 auto subtxn2 = subtxn1.dictobj();
-                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.set_val1(std::move(val1)); });
+                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.set_val1(Copy(val1)); });
             }
         });
     }
@@ -475,8 +481,8 @@ struct UnorderedMapTester : public ObjectsTester
             auto subtxn1 = txn.dict1();
             {
                 auto subtxn2 = subtxn1.dictobj();
-                subtxn2.Assign(key, std::move(obj));
-                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.set_val1(std::move(val1)); });
+                subtxn2.Assign(key, Copy(obj));
+                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.set_val1(Copy(val1)); });
                 subtxn2.Remove(key);
             }
         });
@@ -489,11 +495,11 @@ struct UnorderedMapTester : public ObjectsTester
             auto subtxn1 = txn.dict1();
             {
                 auto subtxn2 = subtxn1.dictobj();
-                subtxn2.Assign(key, std::move(obj));
+                subtxn2.Assign(key, Copy(obj));
             }
             {
                 auto subtxn2 = subtxn1.dictobj();
-                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.set_val1(std::move(val1)); });
+                subtxn2.Edit(key, [&](auto& subtxn3) { subtxn3.set_val1(Copy(val1)); });
             }
             {
                 auto subtxn2 = subtxn1.dictobj();
