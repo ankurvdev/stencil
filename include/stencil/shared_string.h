@@ -35,7 +35,7 @@ template <typename T> struct shared_stringT
 
     using value_type = TString::value_type;
 
-    template <size_t N>  shared_stringT(T const (&str)[N]) { *this = make(str); } //NOLINT
+    template <size_t N> shared_stringT(T const (&str)[N]) { *this = make(str); }    // NOLINT
 
     explicit shared_stringT(TStringView const& str)
     {
@@ -44,9 +44,9 @@ template <typename T> struct shared_stringT
     }
 
     shared_stringT() = default;
-     shared_stringT(std::nullptr_t) {} //NOLINT
+    shared_stringT(std::nullptr_t) {}    // NOLINT
 
-     shared_stringT(std::shared_ptr<TString>& str) : _str(str) {}//NOLINT
+    shared_stringT(std::shared_ptr<TString>& str) : _str(str) {}    // NOLINT
     shared_stringT(shared_stringT const& str) : _str(std::make_shared<TString>(str)) {}
     shared_stringT(shared_stringT&& str) noexcept : _str(std::move(str._str)) {}
 
@@ -82,10 +82,8 @@ template <typename T> struct shared_stringT
         if (!lhsempty && !rhsempty) { return *_str.get() <=> *str._str.get(); }
         if (lhsempty == rhsempty) { return std::strong_ordering::equal; }
         if (lhsempty) { return std::strong_ordering::less; }
-        else
-        {
-            return std::strong_ordering::greater;
-        }
+
+        return std::strong_ordering::greater;
     }
 
     [[nodiscard]] TStringView view() const { return empty() ? TStringView() : TStringView(*_str.get()); }
@@ -140,21 +138,20 @@ template <typename T> struct shared_stringT
     template <typename T1, typename T2> auto find(T1 obj, T2 index) const { return _str->find(obj, index); }
     template <typename T1> auto              find(T1 obj) const { return _str->find(obj); }
     template <typename T1> auto              rfind(T1 obj) const { return _str->rfind(obj); }
-    [[nodiscard]] auto                                     substr(size_t start, size_t len) const { return shared_stringT(_str->substr(start, len)); }
-    [[nodiscard]] auto                                     substr(size_t start) const { return shared_stringT(_str->substr(start)); }
+    [[nodiscard]] auto                       substr(size_t start, size_t len) const { return shared_stringT(_str->substr(start, len)); }
+    [[nodiscard]] auto                       substr(size_t start) const { return shared_stringT(_str->substr(start)); }
     void                                     clear() { _str->reset(); }
-    [[nodiscard]] TString const&                           str() const { return *_str.get(); }
+    [[nodiscard]] TString const&             str() const { return *_str.get(); }
 
-    shared_stringT& operator=(shared_stringT const& str)
-    = default;
+    shared_stringT& operator=(shared_stringT const& str) = default;
 
-     operator TString const&() const { return *_str.get(); }//NOLINT
-     operator std::basic_string_view<T>() const { return std::basic_string_view<T>(data(), size()); }//NOLINT
+    operator TString const&() const { return *_str.get(); }                                             // NOLINT
+    operator std::basic_string_view<T>() const { return std::basic_string_view<T>(data(), size()); }    // NOLINT
 
     [[nodiscard]] value_type    at(size_t index) const { return _str->at(index); }
     [[nodiscard]] const_pointer c_str() const { return _str.get() == nullptr ? nullptr : _str->c_str(); }
     [[nodiscard]] const_pointer data() const { return _str.get() == nullptr ? nullptr : _str->c_str(); }
-    pointer       data() { return _str.get() == nullptr ? nullptr : _str->data(); }
+    pointer                     data() { return _str.get() == nullptr ? nullptr : _str->data(); }
 
     [[nodiscard]] size_t length() const { return _str.get() == nullptr ? 0 : _str->length(); }
     [[nodiscard]] size_t size() const { return length(); }
@@ -190,9 +187,7 @@ inline shared_wstring shared_string_to_wstring(shared_string const& str)
 }
 
 inline shared_string operator+(std::string const& str1, shared_string const& str2)
-{
-    return shared_string::make(str1 + str2.str());
-}
+{ return shared_string::make(str1 + str2.str()); }
 
 namespace std
 {
@@ -210,9 +205,7 @@ template <> struct fmt::formatter<shared_string> : fmt::formatter<std::string_vi
     // Formats the point p using the parsed format specification (presentation)
     // stored in this formatter.
     auto format(shared_string const& item, fmt::format_context& ctx) const    // NOLINT
-    {
-        return fmt::format_to(ctx.out(), "{}", item.str());
-    }
+    { return fmt::format_to(ctx.out(), "{}", item.str()); }
 };
 
 #endif
