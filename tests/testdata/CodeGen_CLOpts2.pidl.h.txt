@@ -82,7 +82,7 @@ struct CommandLineOptions : public Stencil::VariantT<CommandLineOptions>
 ,                 ::CLOpts2::UpdateOptions
 ,                 ::CLOpts2::HydrateOptions
                  >
-        _variant;
+        variants;
 
     enum class VariantType
     {
@@ -112,99 +112,99 @@ struct CommandLineOptions : public Stencil::VariantT<CommandLineOptions>
     {};
     struct Variant_hydrateT
     {};
-    VariantType Type() const { return static_cast<VariantType>(_variant.index()); }
+    VariantType Type() const { return static_cast<VariantType>(variants.index()); }
 
     auto operator=(::CLOpts2::InstallOptions&& obj)
     {
-        _variant = std::forward<::CLOpts2::InstallOptions>(obj);
+        variants = std::forward<::CLOpts2::InstallOptions>(obj);
         return *this;
     }
     auto operator=(::CLOpts2::InstallOptions const& obj)
     {
-        _variant = obj;
+        variants = obj;
         return *this;
     }
 
-    ::CLOpts2::InstallOptions&       install() LFTBND { return std::get<::CLOpts2::InstallOptions>(_variant); }
-    ::CLOpts2::InstallOptions const& install() const LFTBND { return std::get<::CLOpts2::InstallOptions>(_variant); }
+    ::CLOpts2::InstallOptions&       install() LFTBND { return std::get<::CLOpts2::InstallOptions>(variants); }
+    ::CLOpts2::InstallOptions const& install() const LFTBND { return std::get<::CLOpts2::InstallOptions>(variants); }
     auto operator=(::CLOpts2::QueueOptions&& obj)
     {
-        _variant = std::forward<::CLOpts2::QueueOptions>(obj);
+        variants = std::forward<::CLOpts2::QueueOptions>(obj);
         return *this;
     }
     auto operator=(::CLOpts2::QueueOptions const& obj)
     {
-        _variant = obj;
+        variants = obj;
         return *this;
     }
 
-    ::CLOpts2::QueueOptions&       queue() LFTBND { return std::get<::CLOpts2::QueueOptions>(_variant); }
-    ::CLOpts2::QueueOptions const& queue() const LFTBND { return std::get<::CLOpts2::QueueOptions>(_variant); }
+    ::CLOpts2::QueueOptions&       queue() LFTBND { return std::get<::CLOpts2::QueueOptions>(variants); }
+    ::CLOpts2::QueueOptions const& queue() const LFTBND { return std::get<::CLOpts2::QueueOptions>(variants); }
     auto operator=(::CLOpts2::PauseOptions&& obj)
     {
-        _variant = std::forward<::CLOpts2::PauseOptions>(obj);
+        variants = std::forward<::CLOpts2::PauseOptions>(obj);
         return *this;
     }
     auto operator=(::CLOpts2::PauseOptions const& obj)
     {
-        _variant = obj;
+        variants = obj;
         return *this;
     }
 
-    ::CLOpts2::PauseOptions&       pause() LFTBND { return std::get<::CLOpts2::PauseOptions>(_variant); }
-    ::CLOpts2::PauseOptions const& pause() const LFTBND { return std::get<::CLOpts2::PauseOptions>(_variant); }
+    ::CLOpts2::PauseOptions&       pause() LFTBND { return std::get<::CLOpts2::PauseOptions>(variants); }
+    ::CLOpts2::PauseOptions const& pause() const LFTBND { return std::get<::CLOpts2::PauseOptions>(variants); }
     auto operator=(::CLOpts2::CancelOptions&& obj)
     {
-        _variant = std::forward<::CLOpts2::CancelOptions>(obj);
+        variants = std::forward<::CLOpts2::CancelOptions>(obj);
         return *this;
     }
     auto operator=(::CLOpts2::CancelOptions const& obj)
     {
-        _variant = obj;
+        variants = obj;
         return *this;
     }
 
-    ::CLOpts2::CancelOptions&       cancel() LFTBND { return std::get<::CLOpts2::CancelOptions>(_variant); }
-    ::CLOpts2::CancelOptions const& cancel() const LFTBND { return std::get<::CLOpts2::CancelOptions>(_variant); }
+    ::CLOpts2::CancelOptions&       cancel() LFTBND { return std::get<::CLOpts2::CancelOptions>(variants); }
+    ::CLOpts2::CancelOptions const& cancel() const LFTBND { return std::get<::CLOpts2::CancelOptions>(variants); }
     auto operator=(::CLOpts2::ResumeOptions&& obj)
     {
-        _variant = std::forward<::CLOpts2::ResumeOptions>(obj);
+        variants = std::forward<::CLOpts2::ResumeOptions>(obj);
         return *this;
     }
     auto operator=(::CLOpts2::ResumeOptions const& obj)
     {
-        _variant = obj;
+        variants = obj;
         return *this;
     }
 
-    ::CLOpts2::ResumeOptions&       resume() LFTBND { return std::get<::CLOpts2::ResumeOptions>(_variant); }
-    ::CLOpts2::ResumeOptions const& resume() const LFTBND { return std::get<::CLOpts2::ResumeOptions>(_variant); }
+    ::CLOpts2::ResumeOptions&       resume() LFTBND { return std::get<::CLOpts2::ResumeOptions>(variants); }
+    ::CLOpts2::ResumeOptions const& resume() const LFTBND { return std::get<::CLOpts2::ResumeOptions>(variants); }
     auto operator=(::CLOpts2::UpdateOptions&& obj)
     {
-        _variant = std::forward<::CLOpts2::UpdateOptions>(obj);
+        variants = std::forward<::CLOpts2::UpdateOptions>(obj);
         return *this;
     }
     auto operator=(::CLOpts2::UpdateOptions const& obj)
     {
-        _variant = obj;
+        variants = obj;
         return *this;
     }
 
-    ::CLOpts2::UpdateOptions&       update() LFTBND { return std::get<::CLOpts2::UpdateOptions>(_variant); }
-    ::CLOpts2::UpdateOptions const& update() const LFTBND { return std::get<::CLOpts2::UpdateOptions>(_variant); }
+    ::CLOpts2::UpdateOptions&       update() LFTBND { return std::get<::CLOpts2::UpdateOptions>(variants); }
+    ::CLOpts2::UpdateOptions const& update() const LFTBND { return std::get<::CLOpts2::UpdateOptions>(variants); }
     auto operator=(::CLOpts2::HydrateOptions&& obj)
     {
-        _variant = std::forward<::CLOpts2::HydrateOptions>(obj);
+        variants = std::forward<::CLOpts2::HydrateOptions>(obj);
         return *this;
     }
     auto operator=(::CLOpts2::HydrateOptions const& obj)
     {
-        _variant = obj;
+        variants = obj;
         return *this;
     }
 
-    ::CLOpts2::HydrateOptions&       hydrate() LFTBND { return std::get<::CLOpts2::HydrateOptions>(_variant); }
-    ::CLOpts2::HydrateOptions const& hydrate() const LFTBND { return std::get<::CLOpts2::HydrateOptions>(_variant); }
+    ::CLOpts2::HydrateOptions&       hydrate() LFTBND { return std::get<::CLOpts2::HydrateOptions>(variants); }
+    ::CLOpts2::HydrateOptions const& hydrate() const LFTBND { return std::get<::CLOpts2::HydrateOptions>(variants); }
 };
 }    // namespace CLOpts2
 #pragma endregion Definitions
@@ -3335,25 +3335,25 @@ template <> struct Stencil::Visitor<CLOpts2::CommandLineOptions>
         switch (fields)
         {
         case Fields::install:
-            _SetAndVisit<::CLOpts2::InstallOptions>(obj._variant, std::forward<TLambda>(lambda));
+            _SetAndVisit<::CLOpts2::InstallOptions>(obj.variants, std::forward<TLambda>(lambda));
             break;
         case Fields::queue:
-            _SetAndVisit<::CLOpts2::QueueOptions>(obj._variant, std::forward<TLambda>(lambda));
+            _SetAndVisit<::CLOpts2::QueueOptions>(obj.variants, std::forward<TLambda>(lambda));
             break;
         case Fields::pause:
-            _SetAndVisit<::CLOpts2::PauseOptions>(obj._variant, std::forward<TLambda>(lambda));
+            _SetAndVisit<::CLOpts2::PauseOptions>(obj.variants, std::forward<TLambda>(lambda));
             break;
         case Fields::cancel:
-            _SetAndVisit<::CLOpts2::CancelOptions>(obj._variant, std::forward<TLambda>(lambda));
+            _SetAndVisit<::CLOpts2::CancelOptions>(obj.variants, std::forward<TLambda>(lambda));
             break;
         case Fields::resume:
-            _SetAndVisit<::CLOpts2::ResumeOptions>(obj._variant, std::forward<TLambda>(lambda));
+            _SetAndVisit<::CLOpts2::ResumeOptions>(obj.variants, std::forward<TLambda>(lambda));
             break;
         case Fields::update:
-            _SetAndVisit<::CLOpts2::UpdateOptions>(obj._variant, std::forward<TLambda>(lambda));
+            _SetAndVisit<::CLOpts2::UpdateOptions>(obj.variants, std::forward<TLambda>(lambda));
             break;
         case Fields::hydrate:
-            _SetAndVisit<::CLOpts2::HydrateOptions>(obj._variant, std::forward<TLambda>(lambda));
+            _SetAndVisit<::CLOpts2::HydrateOptions>(obj.variants, std::forward<TLambda>(lambda));
             break;
         case Fields::Invalid: [[fallthrough]];
         default: break;
@@ -3364,64 +3364,64 @@ template <> struct Stencil::Visitor<CLOpts2::CommandLineOptions>
     {
         if constexpr (std::is_same_v<TField, Variant::Variant_installT>)
         {
-            _SetAndVisit<::CLOpts2::InstallOptions>(obj._variant, std::forward<TLambda>(lambda));
+            _SetAndVisit<::CLOpts2::InstallOptions>(obj.variants, std::forward<TLambda>(lambda));
         }
         if constexpr (std::is_same_v<TField, Variant::Variant_queueT>)
         {
-            _SetAndVisit<::CLOpts2::QueueOptions>(obj._variant, std::forward<TLambda>(lambda));
+            _SetAndVisit<::CLOpts2::QueueOptions>(obj.variants, std::forward<TLambda>(lambda));
         }
         if constexpr (std::is_same_v<TField, Variant::Variant_pauseT>)
         {
-            _SetAndVisit<::CLOpts2::PauseOptions>(obj._variant, std::forward<TLambda>(lambda));
+            _SetAndVisit<::CLOpts2::PauseOptions>(obj.variants, std::forward<TLambda>(lambda));
         }
         if constexpr (std::is_same_v<TField, Variant::Variant_cancelT>)
         {
-            _SetAndVisit<::CLOpts2::CancelOptions>(obj._variant, std::forward<TLambda>(lambda));
+            _SetAndVisit<::CLOpts2::CancelOptions>(obj.variants, std::forward<TLambda>(lambda));
         }
         if constexpr (std::is_same_v<TField, Variant::Variant_resumeT>)
         {
-            _SetAndVisit<::CLOpts2::ResumeOptions>(obj._variant, std::forward<TLambda>(lambda));
+            _SetAndVisit<::CLOpts2::ResumeOptions>(obj.variants, std::forward<TLambda>(lambda));
         }
         if constexpr (std::is_same_v<TField, Variant::Variant_updateT>)
         {
-            _SetAndVisit<::CLOpts2::UpdateOptions>(obj._variant, std::forward<TLambda>(lambda));
+            _SetAndVisit<::CLOpts2::UpdateOptions>(obj.variants, std::forward<TLambda>(lambda));
         }
         if constexpr (std::is_same_v<TField, Variant::Variant_hydrateT>)
         {
-            _SetAndVisit<::CLOpts2::HydrateOptions>(obj._variant, std::forward<TLambda>(lambda));
+            _SetAndVisit<::CLOpts2::HydrateOptions>(obj.variants, std::forward<TLambda>(lambda));
         }
     }
 
     template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda const& lambda)
     {
-        // auto fieldType = static_cast<Fields>(obj._variant.index());
-        if (std::holds_alternative<::CLOpts2::InstallOptions>(obj._variant))
+        // auto fieldType = static_cast<Fields>(obj.variants.index());
+        if (std::holds_alternative<::CLOpts2::InstallOptions>(obj.variants))
         {
-            lambda(Variant::Variant_installT{}, std::get<::CLOpts2::InstallOptions>(obj._variant));
+            lambda(Variant::Variant_installT{}, std::get<::CLOpts2::InstallOptions>(obj.variants));
         }
-        if (std::holds_alternative<::CLOpts2::QueueOptions>(obj._variant))
+        if (std::holds_alternative<::CLOpts2::QueueOptions>(obj.variants))
         {
-            lambda(Variant::Variant_queueT{}, std::get<::CLOpts2::QueueOptions>(obj._variant));
+            lambda(Variant::Variant_queueT{}, std::get<::CLOpts2::QueueOptions>(obj.variants));
         }
-        if (std::holds_alternative<::CLOpts2::PauseOptions>(obj._variant))
+        if (std::holds_alternative<::CLOpts2::PauseOptions>(obj.variants))
         {
-            lambda(Variant::Variant_pauseT{}, std::get<::CLOpts2::PauseOptions>(obj._variant));
+            lambda(Variant::Variant_pauseT{}, std::get<::CLOpts2::PauseOptions>(obj.variants));
         }
-        if (std::holds_alternative<::CLOpts2::CancelOptions>(obj._variant))
+        if (std::holds_alternative<::CLOpts2::CancelOptions>(obj.variants))
         {
-            lambda(Variant::Variant_cancelT{}, std::get<::CLOpts2::CancelOptions>(obj._variant));
+            lambda(Variant::Variant_cancelT{}, std::get<::CLOpts2::CancelOptions>(obj.variants));
         }
-        if (std::holds_alternative<::CLOpts2::ResumeOptions>(obj._variant))
+        if (std::holds_alternative<::CLOpts2::ResumeOptions>(obj.variants))
         {
-            lambda(Variant::Variant_resumeT{}, std::get<::CLOpts2::ResumeOptions>(obj._variant));
+            lambda(Variant::Variant_resumeT{}, std::get<::CLOpts2::ResumeOptions>(obj.variants));
         }
-        if (std::holds_alternative<::CLOpts2::UpdateOptions>(obj._variant))
+        if (std::holds_alternative<::CLOpts2::UpdateOptions>(obj.variants))
         {
-            lambda(Variant::Variant_updateT{}, std::get<::CLOpts2::UpdateOptions>(obj._variant));
+            lambda(Variant::Variant_updateT{}, std::get<::CLOpts2::UpdateOptions>(obj.variants));
         }
-        if (std::holds_alternative<::CLOpts2::HydrateOptions>(obj._variant))
+        if (std::holds_alternative<::CLOpts2::HydrateOptions>(obj.variants))
         {
-            lambda(Variant::Variant_hydrateT{}, std::get<::CLOpts2::HydrateOptions>(obj._variant));
+            lambda(Variant::Variant_hydrateT{}, std::get<::CLOpts2::HydrateOptions>(obj.variants));
         }
     }
 };
@@ -3438,7 +3438,7 @@ template <> struct Stencil::VisitorForVariant<CLOpts2::CommandLineOptions>
     using T      = CLOpts2::CommandLineOptions;
     using Fields = CLOpts2::CommandLineOptions::VariantType;
 
-    static bool IsMonostate(T const& obj) { return obj._variant.index() == 0; }
+    static bool IsMonostate(T const& obj) { return obj.variants.index() == 0; }
 
     template <typename TLambda> static void VisitAlternatives(T const& /* obj */, TLambda const& lambda)
     {
@@ -3479,10 +3479,10 @@ template <> struct Stencil::VisitorForVariant<CLOpts2::CommandLineOptions>
                 if constexpr (std::is_same_v<std::remove_cvref_t<decltype(o)>, std::monostate>) {}
                 else
                 {
-                    lambda(static_cast<Fields>(obj._variant.index()), o);
+                    lambda(static_cast<Fields>(obj.variants.index()), o);
                 }
             },
-            obj._variant);
+            obj.variants);
     }
 
     template <typename TLambda> static void VisitActiveAlternative(T& obj, TLambda const& lambda)
@@ -3492,10 +3492,10 @@ template <> struct Stencil::VisitorForVariant<CLOpts2::CommandLineOptions>
                 if constexpr (std::is_same_v<std::remove_cvref_t<decltype(o)>, std::monostate>) {}
                 else
                 {
-                    lambda(static_cast<Fields>(obj._variant.index()), o);
+                    lambda(static_cast<Fields>(obj.variants.index()), o);
                 }
             },
-            obj._variant);
+            obj.variants);
     }
 };
 #pragma endregion TemplateSpecializations

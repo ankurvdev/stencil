@@ -24,7 +24,7 @@ static void RunTest(std::vector<std::string> const& pidlfiles)
 
         auto outfiles = generator->Generate(false, std::filesystem::current_path());
 
-        REQUIRE(outfiles.size() > 0);
+        REQUIRE(!outfiles.empty());
         for (auto const& path : outfiles)
         {
             auto          fname = path.filename().string();

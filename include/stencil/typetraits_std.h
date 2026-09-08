@@ -126,7 +126,7 @@ concept ConceptVariantTType = std::is_base_of_v<Stencil::VariantT<T>, T>;
 
 template <ConceptVariantTType T> struct Stencil::TypeTraitsForVariant<T>
 {
-    using AlternativeTuple = Stencil::TypeTraitsForVariant<decltype(T{}._variant)>::AlternativeTuple;
+    using AlternativeTuple = Stencil::TypeTraitsForVariant<decltype(T{}.variants)>::AlternativeTuple;
 };
 
 template <typename K, typename V> struct Stencil::TypeTraits<std::unordered_map<K, V>>

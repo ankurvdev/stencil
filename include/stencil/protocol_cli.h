@@ -132,7 +132,7 @@ template <ConceptPreferVariant T> struct SerDes<T, ProtocolCLI>
 
     template <typename TContext> static auto Read(T& obj, TContext& ctx)
     {
-        std::string_view token = ctx.move_next();
+        std::string_view token = ctx.MoveNext();
         bool             done  = false;
         VisitorForVariant<T>::VisitAlternatives(obj, [&](auto const& k, auto& v) {
             if (done) { return; }
@@ -230,6 +230,8 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
     }
 
     private:
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("-Wlifetime-safety-invalidation")
     template <typename TKey, typename TVal, typename TObj, typename TContext>
     static void WriteForNamedTupleKeyValue_(TKey const& k, TVal const& v, TObj const& /*obj*/, TContext& ctx)
     {
@@ -303,6 +305,7 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
             TODO("Unknown");
         }
     }
+    SUPPRESS_WARNINGS_END
 
     [[noreturn]] static void Error_() { throw std::logic_error("Unsupported type"); }
 
@@ -745,7 +748,7 @@ template <typename TStrArr> struct SpanStr
 
 SUPPRESS_WARNINGS_START
 SUPPRESS_CLANG_WARNING("-Wnrvo")
-template <typename T, typename TInCtx> inline auto Parse(ArgsIterator<TInCtx>&& argsIt) //NOLINT
+template <typename T, typename TInCtx> inline auto Parse(ArgsIterator<TInCtx>&& argsIt)    // NOLINT
 {
     struct ParseResult
     {
@@ -864,7 +867,7 @@ struct Table
         return columnwidths;
     }
 
-public:
+    public:
     [[nodiscard]] std::vector<std::string> PrintAsLines() const
     {
         auto                widths = FindColumnWidths_();

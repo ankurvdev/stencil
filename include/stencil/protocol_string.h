@@ -93,7 +93,7 @@ template <ConceptPrimitives64Bit T> struct SerDes<T, ProtocolString>
         {
             using TRepr = decltype(Primitives64Bit::Traits<T>::Repr(T{}));
             TRepr              ival;
-            std::string const  str(ctx); //NOLINT
+            std::string const  str(ctx);    // NOLINT
             std::istringstream iss(str);
             iss >> ival;
             if (!iss.eof() || iss.fail()) throw std::logic_error("Cannot convert");
@@ -182,7 +182,8 @@ template <> struct SerDes<std::wstring, ProtocolString>
 
     template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     { SerDes<std::wstring_view, ProtocolString>::Write(ctx, obj); }
-
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("-Wlifetime-safety-invalidation")
     template <typename TContext> static auto Read(TObj& obj, TContext& ctx)
     {
         std::string str;
@@ -190,6 +191,7 @@ template <> struct SerDes<std::wstring, ProtocolString>
         obj.resize(str.size());
         std::transform(str.begin(), str.end(), obj.begin(), [](auto l) { return static_cast<wchar_t>(l); });
     }
+    SUPPRESS_WARNINGS_END
 };
 
 template <typename TClock> struct SerDes<std::chrono::time_point<TClock>, ProtocolString>

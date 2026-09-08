@@ -107,7 +107,7 @@ struct zzVariant_Namezz : public Stencil::VariantT<zzVariant_Namezz>
                  zzFieldType_NativeTypezz
                  //</Field>
                  >
-        _variant;
+        variants;
 
     enum class VariantType
     {
@@ -124,22 +124,22 @@ struct zzVariant_Namezz : public Stencil::VariantT<zzVariant_Namezz>
     {};
     //</Field>
 
-    VariantType Type() const { return static_cast<VariantType>(_variant.index()); }
+    VariantType Type() const { return static_cast<VariantType>(variants.index()); }
 
     //<Field>
     auto operator=(zzFieldType_NativeTypezz&& obj)
     {
-        _variant = std::forward<zzFieldType_NativeTypezz>(obj);
+        variants = std::forward<zzFieldType_NativeTypezz>(obj);
         return *this;
     }
     auto operator=(zzFieldType_NativeTypezz const& obj)
     {
-        _variant = obj;
+        variants = obj;
         return *this;
     }
 
-    zzFieldType_NativeTypezz&       zzNamezz() LFTBND { return std::get<zzFieldType_NativeTypezz>(_variant); }
-    zzFieldType_NativeTypezz const& zzNamezz() const LFTBND { return std::get<zzFieldType_NativeTypezz>(_variant); }
+    zzFieldType_NativeTypezz&       zzNamezz() LFTBND { return std::get<zzFieldType_NativeTypezz>(variants); }
+    zzFieldType_NativeTypezz const& zzNamezz() const LFTBND { return std::get<zzFieldType_NativeTypezz>(variants); }
     //</Field>
 };
 //</Variant>
@@ -1123,7 +1123,7 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzVariant_Namezz>
         {
             //<Field>
         case Fields::zzNamezz:
-            _SetAndVisit<zzFieldType_NativeTypezz>(obj._variant, std::forward<TLambda>(lambda));
+            _SetAndVisit<zzFieldType_NativeTypezz>(obj.variants, std::forward<TLambda>(lambda));
             break;
             //</Field>
         case Fields::Invalid: [[fallthrough]];
@@ -1136,18 +1136,18 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzVariant_Namezz>
         //<Field>
         if constexpr (std::is_same_v<TField, Variant::Variant_zzNamezzT>)
         {
-            _SetAndVisit<zzFieldType_NativeTypezz>(obj._variant, std::forward<TLambda>(lambda));
+            _SetAndVisit<zzFieldType_NativeTypezz>(obj.variants, std::forward<TLambda>(lambda));
         }
         //</Field>
     }
 
     template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda const& lambda)
     {
-        // auto fieldType = static_cast<Fields>(obj._variant.index());
+        // auto fieldType = static_cast<Fields>(obj.variants.index());
         //<Field>
-        if (std::holds_alternative<zzFieldType_NativeTypezz>(obj._variant))
+        if (std::holds_alternative<zzFieldType_NativeTypezz>(obj.variants))
         {
-            lambda(Variant::Variant_zzNamezzT{}, std::get<zzFieldType_NativeTypezz>(obj._variant));
+            lambda(Variant::Variant_zzNamezzT{}, std::get<zzFieldType_NativeTypezz>(obj.variants));
         }
         //</Field>
     }
@@ -1180,7 +1180,7 @@ template <> struct Stencil::VisitorForVariant<zzProgram_Namezz::zzVariant_Namezz
     using T      = zzProgram_Namezz::zzVariant_Namezz;
     using Fields = zzProgram_Namezz::zzVariant_Namezz::VariantType;
 
-    static bool IsMonostate(T const& obj) { return obj._variant.index() == 0; }
+    static bool IsMonostate(T const& obj) { return obj.variants.index() == 0; }
 
     template <typename TLambda> static void VisitAlternatives(T const& /* obj */, TLambda const& lambda)
     {
@@ -1199,10 +1199,10 @@ template <> struct Stencil::VisitorForVariant<zzProgram_Namezz::zzVariant_Namezz
                 if constexpr (std::is_same_v<std::remove_cvref_t<decltype(o)>, std::monostate>) {}
                 else
                 {
-                    lambda(static_cast<Fields>(obj._variant.index()), o);
+                    lambda(static_cast<Fields>(obj.variants.index()), o);
                 }
             },
-            obj._variant);
+            obj.variants);
     }
 
     template <typename TLambda> static void VisitActiveAlternative(T& obj, TLambda const& lambda)
@@ -1212,10 +1212,10 @@ template <> struct Stencil::VisitorForVariant<zzProgram_Namezz::zzVariant_Namezz
                 if constexpr (std::is_same_v<std::remove_cvref_t<decltype(o)>, std::monostate>) {}
                 else
                 {
-                    lambda(static_cast<Fields>(obj._variant.index()), o);
+                    lambda(static_cast<Fields>(obj.variants.index()), o);
                 }
             },
-            obj._variant);
+            obj.variants);
     }
 };
 //</Variant>

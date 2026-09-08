@@ -35,7 +35,7 @@ template <typename... Ts> struct EnumPack
                     return std::tolower(l) == std::tolower(r);
                 }))
             {
-                lhs._variant = EnumTrait::ForIndex(i);
+                lhs.variants = EnumTrait::ForIndex(i);
                 return true;
             }
         }
@@ -53,7 +53,7 @@ template <typename... Ts> struct EnumPack
     static std::string_view CastToString(PackType const& rhs)
     {
         std::string_view out = "Invalid";
-        std::visit([&](auto arg) { out = Stencil::EnumTraits<decltype(arg)>::Names[static_cast<size_t>(arg)]; }, rhs.variant);
+        std::visit([&](auto arg) { out = Stencil::EnumTraits<decltype(arg)>::Names[static_cast<size_t>(arg)]; }, rhs.variants);
         return out;
     }
 
@@ -77,12 +77,12 @@ template <typename... Ts> struct EnumPack
     static uint32_t CastToInt(PackType const& rhs)
     {
         uint32_t out = 0;
-        auto  type = static_cast<uint8_t>(rhs.variant.index());
-        std::visit([&](auto&& arg) { out = static_cast<uint32_t>(arg); }, rhs.variant);
+        auto  type = static_cast<uint8_t>(rhs.variants.index());
+        std::visit([&](auto&& arg) { out = static_cast<uint32_t>(arg); }, rhs.variants);
         return (out << 8u | type);
     }
 
-    std::variant<Ts...> variant;
+    std::variant<Ts...> variants;
 };
 
 template <typename T> constexpr bool     IsEnumPack                  = false;
@@ -101,12 +101,12 @@ namespace std
 {
 template <typename T, typename... Ts> constexpr bool HoldsAlternative(Stencil::EnumPack<Ts...> const& pack) noexcept
 {
-    return std::holds_alternative<T>(pack._variant);
+    return std::holds_alternative<T>(pack.variants);
 }
 
 template <typename T, typename... Ts> constexpr auto Get(Stencil::EnumPack<Ts...> const& pack) noexcept
 {
-    return std::get<T>(pack._variant);
+    return std::get<T>(pack.variants);
 }
 }    // namespace std
 

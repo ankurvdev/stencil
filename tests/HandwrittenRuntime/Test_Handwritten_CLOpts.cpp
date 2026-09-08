@@ -1,3 +1,4 @@
+#include "CommonMacros.h"
 #include "TestUtils.h"
 #include "Test_Handwritten.h"
 
@@ -16,11 +17,10 @@ template <> struct fmt::formatter<TestCaseCLI> : fmt::formatter<std::string_view
     // Formats the point p using the parsed format specification (presentation)
     // stored in this formatter.
     template <typename FormatContext> auto format(TestCaseCLI const& tc, FormatContext& ctx) const
-    {
-        return fmt::format_to(ctx.out(), "{} :: {}", fmt::join(tc.args, " "), tc.desc);
-    }
+    { return fmt::format_to(ctx.out(), "{} :: {}", fmt::join(tc.args, " "), tc.desc); }
 };
-
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("-Wlifetime-safety-invalidation")
 template <typename T> static void RunTestCase(TestCaseCLI const& tc, std::vector<std::string>& lines, std::string const& name)
 {
     if (!tc.valid)
@@ -42,6 +42,8 @@ template <typename T> static void RunTestCase(TestCaseCLI const& tc, std::vector
     } catch (std::exception const& ex) { lines.push_back(fmt::format("Testcase[{}]:{}, Exception,{}", name, tc.desc, ex.what())); }
 }
 
+SUPPRESS_WARNINGS_END
+
 template <typename T> static void RunTestCases(std::initializer_list<TestCaseCLI> cases, std::string const& name)
 {
 
@@ -59,9 +61,7 @@ template <typename T> static void RunTestCases(std::initializer_list<TestCaseCLI
 TEST_CASE("CLI", "[CLI]")
 {
     SECTION("TestObj")
-    {
-        RunTestCases<TestObj>({}, "TestObj");
-    }
+    { RunTestCases<TestObj>({}, "TestObj"); }
     SECTION("WithPrimitives64Bit")
     {
         RunTestCases<WithPrimitives64Bit>({{{"--f1=-1"}, "int64-1", true},

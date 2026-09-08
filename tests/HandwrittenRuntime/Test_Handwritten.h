@@ -2,7 +2,7 @@
 
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
-#include <assert.h>
+#include <cassert>
 #include <string>
 #include <variant>
 
@@ -75,16 +75,16 @@ struct WithVariant
 
 struct NamedVariant
 {
-    std::variant<std::monostate, MultiAttributed, Nested, WithBlobs, WithPrimitives64Bit, double, std::string> _variant;
+    std::variant<std::monostate, MultiAttributed, Nested, WithBlobs, WithPrimitives64Bit, double, std::string> variants;
 
-    MultiAttributed&     f1() { return std::get<MultiAttributed>(_variant); }
-    Nested&              f2() { return std::get<Nested>(_variant); }
-    WithBlobs&           f3() { return std::get<WithBlobs>(_variant); }
-    WithPrimitives64Bit& f4() { return std::get<WithPrimitives64Bit>(_variant); }
-    double&              f5() { return std::get<double>(_variant); }
-    std::string&         f6() { return std::get<std::string>(_variant); }
+    MultiAttributed&     f1() LFTBND { return std::get<MultiAttributed>(variants); }
+    Nested&              f2() LFTBND { return std::get<Nested>(variants); }
+    WithBlobs&           f3() LFTBND { return std::get<WithBlobs>(variants); }
+    WithPrimitives64Bit& f4() LFTBND { return std::get<WithPrimitives64Bit>(variants); }
+    double&              f5() LFTBND { return std::get<double>(variants); }
+    std::string&         f6() LFTBND { return std::get<std::string>(variants); }
 
-    template <typename T> auto operator=(T&& obj) { _variant = std::forward<T>(obj); }
+    template <typename T> auto operator=(T&& obj) { variants = std::forward<T>(obj); }
 };
 
 #define DEFINE_STRUCT_FIELD_SERDES(strct, field)                                                                                    \
@@ -136,9 +136,7 @@ struct NamedVariant
     };
 */
 struct TestObj
-{
-    MultiAttributed f1;
-};
+{ MultiAttributed f1; };
 
 template <> struct Stencil::TypeTraits<WithPrimitives64Bit>
 {
@@ -214,9 +212,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<WithPrimi
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
 
     static Stencil::TypeTraitsForIndexable<WithPrimitives64Bit>::Fields ForIndex(size_t index)
-    {
-        return static_cast<Stencil::TypeTraitsForIndexable<WithPrimitives64Bit>::Fields>(index);
-    }
+    { return static_cast<Stencil::TypeTraitsForIndexable<WithPrimitives64Bit>::Fields>(index); }
 };
 
 template <> struct Stencil::Visitor<WithPrimitives64Bit> : Stencil::VisitorT<WithPrimitives64Bit>
@@ -299,9 +295,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<ComplexPr
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
 
     static Stencil::TypeTraitsForIndexable<ComplexPrimitives>::Fields ForIndex(size_t index)
-    {
-        return static_cast<Stencil::TypeTraitsForIndexable<ComplexPrimitives>::Fields>(index);
-    }
+    { return static_cast<Stencil::TypeTraitsForIndexable<ComplexPrimitives>::Fields>(index); }
 };
 
 template <> struct Stencil::Visitor<ComplexPrimitives> : Stencil::VisitorT<ComplexPrimitives>
@@ -378,9 +372,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<LargePrim
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
 
     static Stencil::TypeTraitsForIndexable<LargePrimitives>::Fields ForIndex(size_t index)
-    {
-        return static_cast<Stencil::TypeTraitsForIndexable<LargePrimitives>::Fields>(index);
-    }
+    { return static_cast<Stencil::TypeTraitsForIndexable<LargePrimitives>::Fields>(index); }
 };
 
 template <> struct Stencil::Visitor<LargePrimitives> : Stencil::VisitorT<LargePrimitives>
@@ -459,9 +451,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<WithBlobs
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
 
     static Stencil::TypeTraitsForIndexable<WithBlobs>::Fields ForIndex(size_t index)
-    {
-        return static_cast<Stencil::TypeTraitsForIndexable<WithBlobs>::Fields>(index);
-    }
+    { return static_cast<Stencil::TypeTraitsForIndexable<WithBlobs>::Fields>(index); }
 };
 
 template <> struct Stencil::Visitor<WithBlobs> : Stencil::VisitorT<WithBlobs>
@@ -538,9 +528,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Nested>::
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
 
     static Stencil::TypeTraitsForIndexable<Nested>::Fields ForIndex(size_t index)
-    {
-        return static_cast<Stencil::TypeTraitsForIndexable<Nested>::Fields>(index);
-    }
+    { return static_cast<Stencil::TypeTraitsForIndexable<Nested>::Fields>(index); }
 };
 
 template <> struct Stencil::Visitor<Nested> : Stencil::VisitorT<Nested>
@@ -664,9 +652,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<MultiAttr
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
 
     static Stencil::TypeTraitsForIndexable<MultiAttributed>::Fields ForIndex(size_t index)
-    {
-        return static_cast<Stencil::TypeTraitsForIndexable<MultiAttributed>::Fields>(index);
-    }
+    { return static_cast<Stencil::TypeTraitsForIndexable<MultiAttributed>::Fields>(index); }
 };
 SUPPRESS_WARNINGS_START
 SUPPRESS_MSVC_WARNING(4702) /*Unreachable code*/    // Seems to only work in global scope
@@ -752,9 +738,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<WithVaria
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
 
     static Stencil::TypeTraitsForIndexable<WithVariant>::Fields ForIndex(size_t index)
-    {
-        return static_cast<Stencil::TypeTraitsForIndexable<WithVariant>::Fields>(index);
-    }
+    { return static_cast<Stencil::TypeTraitsForIndexable<WithVariant>::Fields>(index); }
 };
 SUPPRESS_WARNINGS_START
 SUPPRESS_MSVC_WARNING(4702) /*Unreachable code*/    // Seems to only work in global scope
@@ -804,7 +788,6 @@ template <> struct Stencil::TypeTraitsForVariant<NamedVariant>
         Field_f4,
         Field_f5,
         Field_f6
-
     };
 
     struct Field_f1
@@ -850,16 +833,14 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForVariant<NamedVarian
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
 
     static Stencil::TypeTraitsForVariant<NamedVariant>::Fields ForIndex(size_t index)
-    {
-        return static_cast<Stencil::TypeTraitsForVariant<NamedVariant>::Fields>(index);
-    }
+    { return static_cast<Stencil::TypeTraitsForVariant<NamedVariant>::Fields>(index); }
 };
 
 template <> struct Stencil::VisitorForVariant<NamedVariant>
 {
     using TObj   = NamedVariant;
     using Fields = Stencil::TypeTraitsForVariant<NamedVariant>::Fields;
-    static bool IsMonostate(TObj const& obj) { return obj._variant.index() == 0; }
+    static bool IsMonostate(TObj const& obj) { return obj.variants.index() == 0; }
 
     template <typename TLambda> static void VisitAlternatives(TObj& /* obj */, TLambda const& lambda)
     {
@@ -895,10 +876,10 @@ template <> struct Stencil::VisitorForVariant<NamedVariant>
             [&](auto const& val) {
                 if constexpr (!std::is_same_v<std::remove_cvref_t<decltype(val)>, std::monostate>)
                 {
-                    lambda(static_cast<Fields>(obj._variant.index()), val);
+                    lambda(static_cast<Fields>(obj.variants.index()), val);
                 }
             },
-            obj._variant);
+            obj.variants);
     }
     template <typename TLambda> static void VisitActiveAlternative(TObj& obj, TLambda const& lambda)
     {
@@ -906,10 +887,10 @@ template <> struct Stencil::VisitorForVariant<NamedVariant>
             [&](auto& val) {
                 if constexpr (!std::is_same_v<std::remove_cvref_t<decltype(val)>, std::monostate>)
                 {
-                    lambda(static_cast<Fields>(obj._variant.index()), val);
+                    lambda(static_cast<Fields>(obj.variants.index()), val);
                 }
             },
-            obj._variant);
+            obj.variants);
     }
 };
 
@@ -946,9 +927,7 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<TestObj>:
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
 
     static Stencil::TypeTraitsForIndexable<TestObj>::Fields ForIndex(size_t index)
-    {
-        return static_cast<Stencil::TypeTraitsForIndexable<TestObj>::Fields>(index);
-    }
+    { return static_cast<Stencil::TypeTraitsForIndexable<TestObj>::Fields>(index); }
 };
 
 template <> struct Stencil::Visitor<TestObj> : Stencil::VisitorT<TestObj>
