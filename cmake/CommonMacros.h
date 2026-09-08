@@ -152,7 +152,7 @@ SUPPRESS_CLANG_WARNING("-Wunused-macros")
 
 #ifndef TODO
 #ifdef __cpp_exceptions
-#define TODO(...) throw "TODO:" __VA_ARGS__    // NOLINT(cppcoreguidelines-macro-usage)
+#define TODO(...) throw "TODO:" __VA_ARGS__    // NOLINT(cppcoreguidelines-macro-usage, bugprone-std-exception-baseclass)
 #endif
 SUPPRESS_WARNINGS_END
 #endif
