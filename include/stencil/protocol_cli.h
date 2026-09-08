@@ -90,16 +90,16 @@ struct ProtocolCLI
     using OutType = std::vector<std::string>;
 };
 
-template <typename, typename = void> struct is_specialized : std::false_type
+template <typename, typename = void> struct IsSpecialized : std::false_type
 {};
 
-template <typename T> struct is_specialized<T, std::void_t<decltype(T{})>> : std::true_type
+template <typename T> struct IsSpecialized<T, std::void_t<decltype(T{})>> : std::true_type
 {};
 
 template <typename T>
-concept ConceptHasProtocolString = is_specialized<Stencil::SerDes<T, Stencil::ProtocolString>>::value;
+concept ConceptHasProtocolString = IsSpecialized<Stencil::SerDes<T, Stencil::ProtocolString>>::value;
 template <typename T>
-concept ConceptHasProtocolCLI = is_specialized<Stencil::SerDes<T, Stencil::ProtocolCLI>>::value;
+concept ConceptHasProtocolCLI = IsSpecialized<Stencil::SerDes<T, Stencil::ProtocolCLI>>::value;
 
 static_assert(ConceptHasProtocolString<Timestamp>, "Chrono should be defined");
 static_assert(ConceptHasProtocolString<uint64_t>, "uint64_t should be defined");
@@ -315,10 +315,10 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
             boolval = false;
             return true;
         }
-        else
-        {
+        
+        
             return false;
-        }
+        
     }
 
     template <typename TVal, typename TRhs>

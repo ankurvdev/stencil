@@ -405,15 +405,15 @@ struct PageRuntime
         pageRecDataSize = pageRecDataSizeIn;
     }
 
-    bool Loaded() const { return page != nullptr; }
+    [[nodiscard]] bool Loaded() const { return page != nullptr; }
     void Load(SerDes& serdes)
     {
         page = std::make_unique<Page>();
-        serdes.ReadPage(*page, _pageIndex);
+        serdes.ReadPage(*page, pageIndex);
     }
 
     void InitPage() { page = std::make_unique<Page>(); }
-    void WriteTo(SerDes& serdes) const { serdes.WritePage(*page, _pageIndex); }
+    void WriteTo(SerDes& serdes) const { serdes.WritePage(*page, pageIndex); }
     void MarkSlotFree(Ref::SlotIndex slot)
     {
         availableSlot = std::min(slot, availableSlot);
@@ -424,11 +424,11 @@ struct PageRuntime
     void Flush(SerDes& serdes)
     {
         if (!flags.test(static_cast<size_t>(Flag::Dirty))) return;
-        serdes.WritePage(*page, _pageIndex);
+        serdes.WritePage(*page, pageIndex);
         flags.reset(static_cast<size_t>(Flag::Dirty));
     }
     PageRuntime() = default;
-    PageRuntime(Ref::PageIndex pageIndex) : _pageIndex(pageIndex) {}    // NOLINT
+    PageRuntime(Ref::PageIndex pageIndexIn) : pageIndex(pageIndexIn) {}    // NOLINT
     CLASS_DELETE_COPY_DEFAULT_MOVE(PageRuntime);
 
     std::span<uint8_t>                     RawData() LFTBND { return page->buffer; }
@@ -461,7 +461,7 @@ struct PageRuntime
     using Flags = std::bitset<1>;
 
     Ref::SlotIndex availableSlot   = 0;
-    Ref::PageIndex _pageIndex      = 0;
+    Ref::PageIndex pageIndex      = 0;
     uint32_t       typeId          = 0;
     uint32_t       pageRecDataSize = 0;
 
@@ -518,7 +518,7 @@ template <size_t RecordSize> struct PageForRecord
 
     CLASS_DELETE_COPY_AND_MOVE(PageForRecord);
 
-    [[nodiscard]] Ref::PageIndex PageIndex() const { return page._pageIndex; }
+    [[nodiscard]] Ref::PageIndex PageIndex() const { return page.pageIndex; }
 
     [[nodiscard]] size_t GetSlotCount() const { return SlotCount; }
     [[nodiscard]] bool   ValidSlot(size_t index) const { return (slots->at(index / 32) & (0x1 << (index % 32))) > 0; }
@@ -634,7 +634,7 @@ template <> struct PageForRecord<0>
         _SetRecordSize(static_cast<uint16_t>(recordSizeIn));
         page.MarkDirty();
     }
-    [[nodiscard]] auto   PageIndex() const { return page._pageIndex; }
+    [[nodiscard]] auto   PageIndex() const { return page.pageIndex; }
     [[nodiscard]] auto   GetPageDataSize() const { return recordSize; }
     [[nodiscard]] size_t GetSlotCount() const { return GetSlotCapacity(recordSize); }
     [[nodiscard]] bool   ValidSlot(size_t slot) const { return (*(slots + (slot / 8)) & (0x1 << (slot % 8))) != 0; }
@@ -834,16 +834,16 @@ struct PageManager
 
         Ref::PageIndex curJournalPage = 1;
         _pageRuntimeStates[1].SetTypeId(0, 0);
-        _pageRuntimeStates[1]._pageIndex = 1;
+        _pageRuntimeStates[1].pageIndex = 1;
 
         while (curJournalPage != 0)
         {
             auto journal = LoadPage(curJournalPage).As<JournalPage>();
-            for (Ref::PageIndex j = 0; j < journal.GetEntryCount(); j++)
+            for (Ref::PageIndex j = 0; j < Stencil::Database::impl::JournalPage::GetEntryCount(); j++)
             {
                 auto entry = journal.GetJournalEntry(j);
                 if (entry.typeId == 0) { continue; }
-                _pageRuntimeStates[j]._pageIndex = j;
+                _pageRuntimeStates[j].pageIndex = j;
                 _pageRuntimeStates[j].SetTypeId(entry.typeId, entry.pageRecDataSize);
             }
             curJournalPage = journal.GetNextJornalPage();
@@ -866,8 +866,8 @@ struct PageManager
                 auto& page       = CreateNewPage(0, pageRecDataSize);
                 auto  newJournal = page.As<JournalPage>();
                 newJournal.InitializeEmptyJournal(pageIndex);
-                journal.SetNextJornalPage(page._pageIndex);
-                _journalPageIndex = page._pageIndex;
+                journal.SetNextJornalPage(page.pageIndex);
+                _journalPageIndex = page.pageIndex;
             }
             else
             {

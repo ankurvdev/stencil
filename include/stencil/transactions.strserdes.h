@@ -20,16 +20,10 @@ struct StringTransactionSerDes
         size_t           startIndex = 0;
 
         TokenIterator() = default;
-        TokenIterator(std::string_view const& dataIn) : data(dataIn) { _Init(); }
+        explicit TokenIterator(std::string_view const& dataIn) : data(dataIn) { _Init(); }
         bool           operator!=(TokenIterator const& rhs) const { return data != rhs.data || startIndex != rhs.startIndex; }
         TokenIterator& operator=(TokenIterator const& rhs)
-        {
-            data       = rhs.data;
-            token      = rhs.token;
-            delimiter  = rhs.delimiter;
-            startIndex = rhs.startIndex;
-            return *this;
-        }
+        = default;
         void _Init()
         {
             for (size_t i = startIndex; i < data.size(); i++)
@@ -45,16 +39,15 @@ struct StringTransactionSerDes
         }
         TokenIterator& operator++() LFTBND
         {
-            if (delimiter == 0)
-            {
+            if ((delimiter == 0) && (startIndex != 0))
+            
                 // Its either end or beginning or empty data
-                if (startIndex != 0)
                 {
                     *this = TokenIterator();
                     // Its the end
                     return *this;
                 }
-            }
+            
             startIndex = startIndex + token.size() + 1;    // for delimiter;
             _Init();
             return *this;
@@ -83,7 +76,7 @@ struct StringTransactionSerDes
     {
         static void Add(T& txn, uint32_t /* listindex */, std::string_view const& rhs)
         {
-            using ElemType = typename Stencil::TypeTraitsForIterable<typename TransactionTraits<T>::ElemType>::ElementType;
+            using ElemType = Stencil::TypeTraitsForIterable<typename TransactionTraits<T>::ElemType>::ElementType;
             ElemType obj;
             Stencil::SerDes<decltype(obj), ProtocolJsonVal>::Read(obj, rhs);
             txn.Add(std::move(obj));
@@ -101,13 +94,13 @@ struct StringTransactionSerDes
         static void
         Apply(T& txn, std::string_view const& fieldname, uint8_t mutator, std::string_view const& mutatordata, std::string_view const& rhs)
         {
-            using TKey = typename Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::ElemType>::Key;
+            using TKey = Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::ElemType>::Key;
             TKey key   = Stencil::Deserialize<TKey, ProtocolString>(fieldname);
 
             if (mutator == 0)    // Set
             {
                 txn.Assign(key, [&](auto& subtxn) {
-                    using ElemType = typename Stencil::TransactionTraits<std::remove_cvref_t<decltype(subtxn)>>::ElemType;
+                    using ElemType = Stencil::TransactionTraits<std::remove_cvref_t<decltype(subtxn)>>::ElemType;
                     ElemType rhsval{};
                     Stencil::SerDesRead<ProtocolJsonVal>(rhsval, rhs);
                     subtxn.Assign(std::move(rhsval));
@@ -137,7 +130,7 @@ struct StringTransactionSerDes
 
                     if constexpr (Stencil::ConceptTransactionForIndexable<TSubTxn>)
                     {
-                        using TSubKey = typename Stencil::TypeTraitsForIndexable<typename TransactionTraits<TSubTxn>::ElemType>::Key;
+                        using TSubKey = Stencil::TypeTraitsForIndexable<typename TransactionTraits<TSubTxn>::ElemType>::Key;
                         auto subkey   = Stencil::Deserialize<TSubKey, Stencil::ProtocolString>(mutatordata);
                         subtxn.Remove(subkey);
                     }
@@ -169,12 +162,12 @@ struct StringTransactionSerDes
 
     template <ConceptTransaction T> static size_t _Apply(TokenIterator& it, T& txn)
     {
-        if (!(it.delimiter == ':' || it.delimiter == ' ' || it.delimiter == '='))
+        if (it.delimiter != ':' && it.delimiter != ' ' && it.delimiter != '=')
         {
             if constexpr (Stencil::ConceptTransactionForIndexable<T>)
             {
                 auto keystr = it.token;
-                using TKey  = typename Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::ElemType>::Key;
+                using TKey  = Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::ElemType>::Key;
                 TKey key    = Stencil::Deserialize<TKey, ProtocolString>(keystr);
                 ++it;
                 size_t retval = 0;
@@ -188,7 +181,7 @@ struct StringTransactionSerDes
             else if constexpr (Stencil::ConceptTransactionForIterable<T>)
             {
                 auto     keystr = it.token;
-                uint32_t key    = Stencil::Deserialize<uint32_t, ProtocolString>(keystr);
+                auto key    = Stencil::Deserialize<uint32_t, ProtocolString>(keystr);
                 ++it;
                 size_t retval = 0;
                 // Sometime its a bad visit and we throw exceptions for error
@@ -244,7 +237,7 @@ struct StringTransactionSerDes
         if constexpr (Stencil::ConceptTransactionForIndexable<T>) { _ApplyOnStruct(txn, name, mutator, mutatordata, rhs); }
         else if constexpr (Stencil::ConceptTransactionForIterable<T>)
         {
-            uint32_t index = Stencil::Deserialize<uint32_t, ProtocolString>(name);
+            auto index = Stencil::Deserialize<uint32_t, ProtocolString>(name);
             if (mutator == 0)
             {
                 txn.Edit(index, [&](auto& args) { _Apply(it, args); });

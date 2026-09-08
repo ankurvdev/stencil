@@ -115,8 +115,8 @@ template <ConceptProtocol TProto, typename TOwner, ConceptIterable T> struct Ite
     }
 
     bool                          valid = false;
-    Visitor<T>::Iterator it;
-    TOwner*                       owner;
+    Visitor<T>::Iterator it{};
+    TOwner*                       owner{};
 };
 
 template <ConceptProtocol TProto, typename TOwner, typename T> struct IndexableVisitorTypeHandler
@@ -189,7 +189,7 @@ template <ConceptProtocol TProto, typename TOwner, ConceptIndexable T> struct In
         return {.handler=handler, .ptr=ptr};
     }
 
-    TOwner* owner;
+    TOwner* owner{};
 
     Traits::Key key{};
 
@@ -240,10 +240,10 @@ template <ConceptProtocol TProto, typename TOwner, typename T> struct VisitorTyp
     [[noreturn]] void Assign(void* /*ptr*/, std::wstring_view const& /*val*/) override
     { TODO("primitive.Assign(*reinterpret_cast<T*>(ptr), val);"); }
 
-    TOwner*                                        owner;
-    PrimitiveVisitorTypeHandler<TProto, TOwner, T> primitive;
-    IterableVisitorTypeHandler<TProto, TOwner, T>  iterable;
-    IndexableVisitorTypeHandler<TProto, TOwner, T> indexable;
+    TOwner*                                        owner{};
+    PrimitiveVisitorTypeHandler<TProto, TOwner, T> primitive{};
+    IterableVisitorTypeHandler<TProto, TOwner, T>  iterable{};
+    IndexableVisitorTypeHandler<TProto, TOwner, T> indexable{};
 };
 
 template <ConceptProtocol TProto, typename T> struct _StackVisitor
@@ -287,7 +287,7 @@ template <ConceptProtocol TProto, typename T> struct _StackVisitor
             uptr->primitive.owner = this;
             uptr->iterable.owner  = this;
             uptr->indexable.owner = this;
-            auto hptr             = uptr.get();
+            auto *hptr             = uptr.get();
             auto [nit, inserted] = allhandlers.insert(std::make_pair(hptr, std::move(uptr)));
             return nit->second.get();
         }

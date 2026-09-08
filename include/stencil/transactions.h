@@ -169,9 +169,9 @@ template <Stencil::ConceptPreferPrimitive TElem, Stencil::ConceptTransaction TCo
     ~Transaction() = default;
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
-    ElemType const& Elem() const { return elem; }
+    [[nodiscard]] ElemType const& Elem() const { return elem; }
 
-    operator View() const { return CreateTransactionView<View>(elemState, containerState, container, elem); }
+    explicit operator View() const { return CreateTransactionView<View>(elemState, containerState, container, elem); }
 
     template <typename TKey, typename TLambda> auto Edit(TKey const& /*key*/, TLambda const& /*lambda*/)
     { throw std::logic_error("Elem Not supported on Transaction"); }
@@ -225,7 +225,7 @@ struct Stencil::TransactionView<TElem, TContainer>
     ~TransactionView() = default;
     CLASS_DELETE_COPY_AND_MOVE(TransactionView);
 
-    ElemType const& Elem() const { return elem; }
+    [[nodiscard]] ElemType const& Elem() const { return elem; }
 
     bool IsChanged() { return container.IsElementChanged(containerState); }
 
@@ -259,12 +259,12 @@ template <typename TVal, Stencil::ConceptTransaction TContainer> struct Stencil:
                 Edit,
             } type;
 
-            size_t       index;
-            ElemTxnState container;
+            size_t       index{};
+            ElemTxnState container{};
             ValTxnState  elem;
             static Delta Assign(size_t const& index)
             {
-                Delta state;
+                Delta state{};
                 state.index           = index;
                 state.type            = Type::Assign;
                 state.container.index = index;
@@ -273,7 +273,7 @@ template <typename TVal, Stencil::ConceptTransaction TContainer> struct Stencil:
 
             static Delta ListAdd(size_t const& index)
             {
-                Delta state;
+                Delta state{};
                 state.index           = index;
                 state.type            = Type::ListAdd;
                 state.container.index = index;
@@ -282,7 +282,7 @@ template <typename TVal, Stencil::ConceptTransaction TContainer> struct Stencil:
 
             static Delta ListDelete(size_t const& index)
             {
-                Delta state;
+                Delta state{};
                 state.index           = index;
                 state.type            = Type::ListDelete;
                 state.container.index = index;
@@ -291,7 +291,7 @@ template <typename TVal, Stencil::ConceptTransaction TContainer> struct Stencil:
 
             static Delta Edit(size_t const& index)
             {
-                Delta state;
+                Delta state{};
                 state.index           = index;
                 state.type            = Type::Edit;
                 state.container.index = index;
@@ -313,7 +313,7 @@ template <typename TVal, Stencil::ConceptTransaction TContainer> struct Stencil:
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
     explicit        operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
-    ElemType const& Elem() const { return _elem; }
+    [[nodiscard]] ElemType const& Elem() const { return _elem; }
 
     [[nodiscard]] bool IsChanged() const { return !_elemState.deltas.empty(); }
 
@@ -397,7 +397,7 @@ template <typename TVal, Stencil::ConceptTransactionView TContainer> struct Sten
 
     CLASS_DELETE_COPY_AND_MOVE(TransactionView);
 
-    ElemType const& Elem() const { return _elem; }
+    [[nodiscard]] ElemType const& Elem() const { return _elem; }
 
     [[nodiscard]] bool IsChanged() const { return !_elemState.deltas.empty(); }
 
@@ -482,7 +482,7 @@ struct Stencil::Transaction<std::unordered_map<TKey, TVal>, TContainer>
                 Delete,
             } type;
 
-            ElemTxnState container;
+            ElemTxnState container{};
             ValTxnState  elem;
             static Delta New(TKey const& key)
             {
@@ -523,7 +523,7 @@ struct Stencil::Transaction<std::unordered_map<TKey, TVal>, TContainer>
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
     explicit        operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
-    ElemType const& Elem() const { return _elem; }
+    [[nodiscard]] ElemType const& Elem() const { return _elem; }
 
     [[nodiscard]] bool IsChanged() const { return !_elemState.deltas.empty(); }
 
@@ -616,7 +616,7 @@ struct Stencil::TransactionView<std::unordered_map<TKey, TVal>, TContainer>
 
     ~TransactionView() = default;
     CLASS_DELETE_COPY_AND_MOVE(TransactionView);
-    ElemType const& Elem() const { return elem; }
+    [[nodiscard]] ElemType const& Elem() const { return elem; }
 
     [[nodiscard]] bool IsChanged() const { return !elemState.deltas.empty(); }
 

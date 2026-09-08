@@ -275,7 +275,7 @@ struct UnorderedMapTester : public ObjectsTester
     ~UnorderedMapTester() = default;
 
     TestReplay replay;
-    auto       dict_value_create(shared_string const& key)
+    auto       DictValueCreate(shared_string const& key)
     {
         auto ts = CreateTimestamp();
         return replay.Test([&](auto& txn) {
@@ -287,7 +287,7 @@ struct UnorderedMapTester : public ObjectsTester
         });
     }
 
-    auto dict_value_edit(shared_string const& key)
+    auto DictValueEdit(shared_string const& key)
     {
         auto ts = CreateTimestamp();
         return replay.Test([&](auto& txn) {
@@ -299,7 +299,7 @@ struct UnorderedMapTester : public ObjectsTester
         });
     }
 
-    auto dict_value_destroy(shared_string const& key)
+    auto DictValueDestroy(shared_string const& key)
     {
         return replay.Test([&](auto& txn) {
             auto subtxn1 = txn.dict1();
@@ -310,7 +310,7 @@ struct UnorderedMapTester : public ObjectsTester
         });
     }
 
-    auto dict_value_create_edit_destroy(shared_string const& key)
+    auto DictValueCreateEditDestroy(shared_string const& key)
     {
         auto ts1 = CreateTimestamp();
         auto ts2 = CreateTimestamp();
@@ -325,7 +325,7 @@ struct UnorderedMapTester : public ObjectsTester
         });
     }
 
-    auto dict_value_create_edit_destroy2(shared_string const& key)
+    auto DictValueCreateEditDestroy2(shared_string const& key)
     {
         auto ts1 = CreateTimestamp();
         auto ts2 = CreateTimestamp();
@@ -428,7 +428,7 @@ struct UnorderedMapTester : public ObjectsTester
         });
     }
 
-    auto dict_obj_create(uint32_t const& key)
+    auto DictObjCreate(uint32_t const& key)
     {
         auto obj = CreateObj();
         return replay.Test([&](auto& txn) {
@@ -440,7 +440,7 @@ struct UnorderedMapTester : public ObjectsTester
         });
     }
 
-    auto dict_obj_edit(uint32_t const& key)
+    auto DictObjEdit(uint32_t const& key)
     {
         auto val1 = CreateInt32();
         return replay.Test([&](auto& txn) {
@@ -452,7 +452,7 @@ struct UnorderedMapTester : public ObjectsTester
         });
     }
 
-    auto dict_obj_destroy(uint32_t const& key)
+    auto DictObjDestroy(uint32_t const& key)
     {
         return replay.Test([&](auto& txn) {
             auto subtxn1 = txn.dict1();
@@ -462,7 +462,7 @@ struct UnorderedMapTester : public ObjectsTester
             }
         });
     }
-    auto dict_obj_create_edit_destroy(uint32_t const& key)
+    auto DictObjCreateEditDestroy(uint32_t const& key)
     {
         auto val1 = CreateInt32();
         auto obj  = CreateObj();
@@ -476,7 +476,7 @@ struct UnorderedMapTester : public ObjectsTester
             }
         });
     }
-    auto dict_obj_create_edit_destroy2(uint32_t const& key)
+    auto DictObjCreateEditDestroy2(uint32_t const& key)
     {
         auto val1 = CreateInt32();
         auto obj  = CreateObj();
@@ -510,22 +510,22 @@ TEST_CASE("Transactions unordered_map dict_value", "[transaction]")
         for (auto& key : keylist)
         {
             if (done.contains(key)) continue;
-            CHECK(!tester.dict_value_create(key).empty());
-            CHECK(!tester.dict_value_edit(key).empty());
-            CHECK(!tester.dict_value_edit(key).empty());
-            CHECK(!tester.dict_value_destroy(key).empty());
-            CHECK(!tester.dict_value_create(key).empty());
-            CHECK(!tester.dict_value_create_edit_destroy(key).empty());
-            CHECK(!tester.dict_value_create_edit_destroy2(key).empty());
+            CHECK(!tester.DictValueCreate(key).empty());
+            CHECK(!tester.DictValueEdit(key).empty());
+            CHECK(!tester.DictValueEdit(key).empty());
+            CHECK(!tester.DictValueDestroy(key).empty());
+            CHECK(!tester.DictValueCreate(key).empty());
+            CHECK(!tester.DictValueCreateEditDestroy(key).empty());
+            CHECK(!tester.DictValueCreateEditDestroy2(key).empty());
         }
-        CHECK(!tester.dict_value_create(key1).empty());
-        CHECK(!tester.dict_value_edit(key1).empty());
+        CHECK(!tester.DictValueCreate(key1).empty());
+        CHECK(!tester.DictValueEdit(key1).empty());
         done.insert(key1);
     }
 
-    for (auto const& key : keylist) { CHECK(!tester.dict_value_edit(key).empty()); }
+    for (auto const& key : keylist) { CHECK(!tester.DictValueEdit(key).empty()); }
 
-    for (auto const& key : keylist) { CHECK(!tester.dict_value_destroy(key).empty()); }
+    for (auto const& key : keylist) { CHECK(!tester.DictValueDestroy(key).empty()); }
 }
 
 TEST_CASE("Transactions unordered_map dict_obj")
@@ -538,21 +538,21 @@ TEST_CASE("Transactions unordered_map dict_obj")
         for (auto& key : keylist)
         {
             if (done.contains(key)) continue;
-            CHECK(!tester.dict_obj_create(key).empty());
-            CHECK(!tester.dict_obj_edit(key).empty());
-            CHECK(!tester.dict_obj_edit(key).empty());
-            CHECK(!tester.dict_obj_destroy(key).empty());
-            CHECK(!tester.dict_obj_create(key).empty());
-            CHECK(!tester.dict_obj_create_edit_destroy(key).empty());
-            CHECK(!tester.dict_obj_create_edit_destroy2(key).empty());
+            CHECK(!tester.DictObjCreate(key).empty());
+            CHECK(!tester.DictObjEdit(key).empty());
+            CHECK(!tester.DictObjEdit(key).empty());
+            CHECK(!tester.DictObjDestroy(key).empty());
+            CHECK(!tester.DictObjCreate(key).empty());
+            CHECK(!tester.DictObjCreateEditDestroy(key).empty());
+            CHECK(!tester.DictObjCreateEditDestroy2(key).empty());
         }
-        CHECK(!tester.dict_obj_create(key1).empty());
-        CHECK(!tester.dict_obj_edit(key1).empty());
+        CHECK(!tester.DictObjCreate(key1).empty());
+        CHECK(!tester.DictObjEdit(key1).empty());
         done.insert(key1);
     }
-    for (auto key : keylist) { CHECK(!tester.dict_obj_edit(key).empty()); }
+    for (auto key : keylist) { CHECK(!tester.DictObjEdit(key).empty()); }
 
-    for (auto key : keylist) { CHECK(!tester.dict_obj_destroy(key).empty()); }
+    for (auto key : keylist) { CHECK(!tester.DictObjDestroy(key).empty()); }
 }
 
 TEST_CASE("Transactions unordered_map timestamp update : create edit destroy")

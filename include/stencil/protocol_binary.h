@@ -15,13 +15,13 @@ using ByteIt = std::span<uint8_t const>::iterator;
 
 template <typename TVal>
 static std::span<uint8_t const> AsCSpan(TVal const& val)
-requires std::is_trivially_default_constructible<TVal>::value {
+requires std::is_trivially_default_constructible_v<TVal> {
     return {reinterpret_cast<uint8_t const*>(&val), sizeof(TVal)};
 }
 
 template <typename TVal>
 static std::span<uint8_t> AsSpan(TVal& val)
-requires std::is_trivially_default_constructible<TVal>::value {
+requires std::is_trivially_default_constructible_v<TVal> {
     return {reinterpret_cast<uint8_t*>(&val), sizeof(TVal)};
 }
 
@@ -100,7 +100,7 @@ struct Reader
     std::string    ReadString() { return _ReadStr<char, std::string>(); }
     std::wstring   ReadWstring() { return _ReadStr<wchar_t, std::wstring>(); }
 
-    auto   GetIterator() const { return it; }
+    [[nodiscard]] auto   GetIterator() const { return it; }
     ByteIt it;
 };
 
@@ -127,7 +127,7 @@ template <ConceptPreferIndexable T> struct SerDes<T, ProtocolBinary>
     {
         while (true)
         {
-            auto marker = ctx.template read<uint8_t>();
+            auto marker = ctx.template Read<uint8_t>();
             if (marker == 0) return;
             if (marker != 1) throw std::logic_error("Invalid marker");
             TKey key;
@@ -157,7 +157,7 @@ template <ConceptPreferIterable T> struct SerDes<T, ProtocolBinary>
     template <typename TContext> static auto Read(T& obj, TContext& ctx)
     {
         {
-            auto marker = ctx.template read<uint8_t>();
+            auto marker = ctx.template Read<uint8_t>();
             if (marker == 0) return;
             if (marker != 1) throw std::logic_error("Invalid marker");
         }
@@ -168,7 +168,7 @@ template <ConceptPreferIterable T> struct SerDes<T, ProtocolBinary>
 
             if (!Visitor<T>::IteratorValid(it, obj)) { throw std::runtime_error("Cannot Visit Next Item on the iterable"); }
             Visitor<T>::Visit(it, obj, [&](auto& val) { SerDes<std::remove_cvref_t<decltype(val)>, ProtocolBinary>::Read(val, ctx); });
-            auto marker = ctx.template read<uint8_t>();
+            auto marker = ctx.template Read<uint8_t>();
             if (marker == 0) return;
             if (marker != 1) throw std::logic_error("Invalid marker");
 
@@ -183,7 +183,7 @@ template <ConceptPrimitives64Bit T> struct SerDes<T, ProtocolBinary>
     template <typename TContext> static auto Write(TContext& ctx, T const& obj) { ctx << Primitives64Bit::Traits<T>::Repr(obj); }
     template <typename TContext> static auto Read(T& obj, TContext& ctx)
     {
-        obj = Primitives64Bit::Traits<T>::Convert(ctx.template read<decltype(Primitives64Bit::Traits<T>::Repr(obj))>());
+        obj = Primitives64Bit::Traits<T>::Convert(ctx.template Read<decltype(Primitives64Bit::Traits<T>::Repr(obj))>());
     }
 };
 
@@ -225,7 +225,7 @@ template <ConceptEnum T> struct SerDes<T, ProtocolBinary>
 {
     template <typename TContext> static auto Write(TContext& ctx, T const& obj) { ctx << static_cast<uint32_t>(obj); }
 
-    template <typename TContext> static auto Read(T& obj, TContext& ctx) { obj = static_cast<T>(ctx.template read<uint32_t>()); }
+    template <typename TContext> static auto Read(T& obj, TContext& ctx) { obj = static_cast<T>(ctx.template Read<uint32_t>()); }
 };
 
 template <ConceptEnumPack T> struct SerDes<T, ProtocolBinary>
@@ -237,7 +237,7 @@ template <ConceptEnumPack T> struct SerDes<T, ProtocolBinary>
 template <> struct SerDes<shared_string, ProtocolBinary>
 {
     template <typename TContext> static auto Write(TContext& ctx, shared_string const& obj) { ctx << obj; }
-    template <typename TContext> static auto Read(shared_string& obj, TContext& ctx) { obj = ctx.read_shared_string(); }
+    template <typename TContext> static auto Read(shared_string& obj, TContext& ctx) { obj = ctx.ReadSharedString(); }
 };
 
 template <> struct SerDes<shared_wstring, ProtocolBinary>
@@ -262,7 +262,7 @@ template <size_t N> struct SerDes<std::array<char, N>, ProtocolBinary>
 {
     using TObj = std::array<char, N>;
     template <typename TContext> static auto Write(TContext& ctx, TObj const& obj) { ctx << obj; }
-    template <typename TContext> static auto Read(TObj& obj, TContext& ctx) { obj = ctx.template read<TObj>(); }
+    template <typename TContext> static auto Read(TObj& obj, TContext& ctx) { obj = ctx.template Read<TObj>(); }
 };
 
 template <> struct SerDes<uuids::uuid, ProtocolBinary>

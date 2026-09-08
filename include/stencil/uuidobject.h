@@ -18,9 +18,9 @@ template <typename T> struct UuidBasedId
     {
         UuidBasedId<T>     uuid;
         std::random_device rd;
-        auto               seed_data = std::array<unsigned, std::mt19937::state_size>{};
-        std::ranges::generate(seed_data, std::ref(rd));
-        std::seed_seq                seq(std::begin(seed_data), std::end(seed_data));
+        auto               seedData = std::array<unsigned, std::mt19937::state_size>{};
+        std::ranges::generate(seedData, std::ref(rd));
+        std::seed_seq                seq(std::begin(seedData), std::end(seedData));
         std::mt19937                 generator(seq);
         uuids::uuid_random_generator gen{generator};
         uuid.uuid = gen();
