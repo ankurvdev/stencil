@@ -14,13 +14,13 @@ SUPPRESS_FMT_WARNINGS
 SUPPRESS_WARNINGS_END
 #endif
 
-// NOLINTBEGIN(readability-identifier-naming)
+// NOLINTBEGIN(readability-identifier-naming, cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
 namespace std
 {
 inline std::string to_string(std::wstring_view str)
 {
     std::string s(str.size(), 0);
-    std::transform(str.begin(), str.end(), s.begin(), [](wchar_t c) { return static_cast<char>(c); });
+    std::ranges::transform(str, s.begin(), [](wchar_t c) { return static_cast<char>(c); });
     return s;
 }
 }    // namespace std
@@ -49,6 +49,7 @@ template <typename T> struct shared_stringT
     shared_stringT(std::shared_ptr<TString>& str) : _str(str) {}    // NOLINT
     shared_stringT(shared_stringT const& str) : _str(std::make_shared<TString>(str)) {}
     shared_stringT(shared_stringT&& str) noexcept : _str(std::move(str._str)) {}
+    ~shared_stringT() = default;
 
     public:
     template <size_t N> shared_stringT& operator=(T const (&str)[N])
@@ -60,6 +61,11 @@ template <typename T> struct shared_stringT
     {
         if (str.empty()) return *this;
         *this = make(str);
+        return *this;
+    }
+    template <size_t N> shared_stringT& operator=(TStringView&& str) //NOLINT
+    {
+        std::swap(_str, str._str);
         return *this;
     }
     static shared_stringT make(auto&&... args)
@@ -209,4 +215,4 @@ template <> struct fmt::formatter<shared_string> : fmt::formatter<std::string_vi
 };
 
 #endif
-// NOLINTEND(readability-identifier-naming)
+// NOLINTEND(readability-identifier-naming, cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)

@@ -6,6 +6,7 @@
 #include <string>
 #include <unordered_map>
 
+// NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
 namespace Stencil
 {
 namespace impl
@@ -21,7 +22,9 @@ struct TypeHandlerAndPtr
 // Limits choice of primitives but helps with SAX parsers
 struct TypeHandler
 {
+    TypeHandler()          = default;
     virtual ~TypeHandler() = default;
+    CLASS_DEFAULT_COPY_AND_MOVE(TypeHandler);
 
     virtual TypeHandlerAndPtr VisitNext(void* ptr)        = 0;
     virtual TypeHandlerAndPtr VisitKey(void* ptr)         = 0;
@@ -111,12 +114,12 @@ template <ConceptProtocol TProto, typename TOwner, ConceptIterable T> struct Ite
             handler              = owner->template FindOrCreateHandler<VisitorHandler>(ptr);
         });
 
-        return {.handler=handler, .ptr=ptr};
+        return {.handler = handler, .ptr = ptr};
     }
 
-    bool                          valid = false;
+    bool                 valid = false;
     Visitor<T>::Iterator it{};
-    TOwner*                       owner{};
+    TOwner*              owner{};
 };
 
 template <ConceptProtocol TProto, typename TOwner, typename T> struct IndexableVisitorTypeHandler
@@ -160,7 +163,7 @@ template <ConceptProtocol TProto, typename TOwner, ConceptVariant T> struct Inde
             VisitorForVariant<T>::VisitActiveAlternative(obj, [&](auto const& /* k */, auto& val1) { ptr = &val1; });
             handler = owner->template FindOrCreateHandler<VisitorHandler>(ptr);
         });
-        return {.handler=handler, .ptr=ptr};
+        return {.handler = handler, .ptr = ptr};
     }
 
     VariantKeyTypeHandler keyhandler;
@@ -186,7 +189,7 @@ template <ConceptProtocol TProto, typename TOwner, ConceptIndexable T> struct In
             ptr                  = &val;
             handler              = owner->template FindOrCreateHandler<VisitorHandler>(ptr);
         });
-        return {.handler=handler, .ptr=ptr};
+        return {.handler = handler, .ptr = ptr};
     }
 
     TOwner* owner{};
@@ -236,7 +239,7 @@ template <ConceptProtocol TProto, typename TOwner, typename T> struct VisitorTyp
             TODO("");
         }
     }
-    void      Assign(void* ptr, std::string_view const& val) override { primitive.Assign(*reinterpret_cast<T*>(ptr), val); }
+    void              Assign(void* ptr, std::string_view const& val) override { primitive.Assign(*reinterpret_cast<T*>(ptr), val); }
     [[noreturn]] void Assign(void* /*ptr*/, std::wstring_view const& /*val*/) override
     { TODO("primitive.Assign(*reinterpret_cast<T*>(ptr), val);"); }
 
@@ -246,9 +249,9 @@ template <ConceptProtocol TProto, typename TOwner, typename T> struct VisitorTyp
     IndexableVisitorTypeHandler<TProto, TOwner, T> indexable{};
 };
 
-template <ConceptProtocol TProto, typename T> struct _StackVisitor
+template <ConceptProtocol TProto, typename T> struct StackVisitor
 {
-    _StackVisitor() = default;
+    StackVisitor() = default;
 
     void Start(T& obj)
     {
@@ -287,8 +290,8 @@ template <ConceptProtocol TProto, typename T> struct _StackVisitor
             uptr->primitive.owner = this;
             uptr->iterable.owner  = this;
             uptr->indexable.owner = this;
-            auto *hptr             = uptr.get();
-            auto [nit, inserted] = allhandlers.insert(std::make_pair(hptr, std::move(uptr)));
+            auto* hptr            = uptr.get();
+            auto [nit, inserted]  = allhandlers.insert(std::make_pair(hptr, std::move(uptr)));
             return nit->second.get();
         }
         return it->second.get();
@@ -296,11 +299,13 @@ template <ConceptProtocol TProto, typename T> struct _StackVisitor
 
     std::unordered_map<void*, std::unique_ptr<TypeHandler>> allhandlers;
     std::vector<TypeHandlerAndPtr>                          stack;
-    VisitorTypeHandler<TProto, _StackVisitor<TProto, T>, T> handler;
+    VisitorTypeHandler<TProto, StackVisitor<TProto, T>, T> handler;
     T*                                                      rootObj{nullptr};
 };
 }    // namespace impl
 
-template <ConceptProtocol TProto, typename T> using StackVisitor = impl::_StackVisitor<TProto, T>;
+template <ConceptProtocol TProto, typename T> using StackVisitor = impl::StackVisitor<TProto, T>;
 
 }    // namespace Stencil
+
+// NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)

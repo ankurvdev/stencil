@@ -1,6 +1,6 @@
 #pragma once
 #include "IDL3Generics.h"
-#include "tree.h"
+#include "stencil/tree.h"
 
 #include <memory>
 #include <string>

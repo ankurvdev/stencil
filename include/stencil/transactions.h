@@ -114,10 +114,10 @@ template <typename TElem> struct Transaction<TElem, void> : Transaction<TElem, R
     using Txn  = Transaction<TElem, RootTransaction>;
     using View = TransactionView<TElem, RootTransactionView>;
 
-    Transaction(TElem& elemIn LFTBND) : Txn(elemState, containerState, container, elemIn), elem(elemIn) {} //NOLINT
+    Transaction(TElem& elemIn LFTBND) : Txn(elemState, containerState, container, elemIn), elem(elemIn) {}    // NOLINT
     ~Transaction() = default;
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
-    operator View() const LFTBND { return View(elemState, containerState, container, elem); } //NOLINT
+    operator View() const LFTBND { return View(elemState, containerState, container, elem); }    // NOLINT
 
     TElem&                        elem;
     RootTransaction               container{};
@@ -312,12 +312,12 @@ template <typename TVal, Stencil::ConceptTransaction TContainer> struct Stencil:
     }
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
-    explicit        operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
+    explicit operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
     [[nodiscard]] ElemType const& Elem() const { return _elem; }
 
     [[nodiscard]] bool IsChanged() const { return !_elemState.deltas.empty(); }
 
-    template <typename TLambda> void Edit(size_t const& index, TLambda&& lambda)
+    template <typename TLambda> void Edit(size_t const& index, TLambda const& lambda)
     {
         _elemState.deltas.push_back(TxnState::Delta::Edit(index));
         auto& state = _elemState.deltas.back();
@@ -332,7 +332,7 @@ template <typename TVal, Stencil::ConceptTransaction TContainer> struct Stencil:
         return Stencil::CreateTransaction<ValTxn>(state.elem, state.container, *this, _elem[index]);
     }
 
-    template <typename TLambda> void Assign(size_t const& index, TLambda&& lambda)
+    template <typename TLambda> void Assign(size_t const& index, TLambda const& lambda)
     {
         _elemState.deltas.push_back(TxnState::Delta::Assign(index));
         auto& state = _elemState.deltas.back();
@@ -346,7 +346,7 @@ template <typename TVal, Stencil::ConceptTransaction TContainer> struct Stencil:
         return _elemState.deltas.insert(TxnState::Delta::Assign(index));
     }
 
-    [[noreturn]] void Assign(ElemType&& /* elem */) { throw std::logic_error("Invalid operation"); }
+    [[noreturn]] void Assign(ElemType&& /* elem */) { throw std::logic_error("Invalid operation"); }    // NOLINT
 
     void Add(TVal&& elem)
     {
@@ -361,7 +361,7 @@ template <typename TVal, Stencil::ConceptTransaction TContainer> struct Stencil:
         _elemState.deltas.push_back(TxnState::Delta::ListDelete(index));
     }
 
-    template <typename TLambda> auto Visit(size_t const& index, TLambda&& lambda) { lambda(index, _elem.at(index)); }
+    template <typename TLambda> auto Visit(size_t const& index, TLambda const& lambda) { lambda(index, _elem.at(index)); }
 
     void NotifyElementEdited(ElemTxnState const& elemTxnState) { _elemState.deltas.push_back(TxnState::Delta::Edit(elemTxnState.index)); }
     void NotifyElementAssigned(ElemTxnState const& elemTxnState)
@@ -401,7 +401,7 @@ template <typename TVal, Stencil::ConceptTransactionView TContainer> struct Sten
 
     [[nodiscard]] bool IsChanged() const { return !_elemState.deltas.empty(); }
 
-    template <typename TLambda> void VisitChanges(TLambda&& lambda) const
+    template <typename TLambda> void VisitChanges(TLambda const& lambda) const
     {
         using DeltaType   = TxnState::Delta::Type;
         auto adjustedElem = [&](auto it) -> auto& {
@@ -522,18 +522,18 @@ struct Stencil::Transaction<std::unordered_map<TKey, TVal>, TContainer>
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
-    explicit        operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
+    explicit operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
     [[nodiscard]] ElemType const& Elem() const { return _elem; }
 
     [[nodiscard]] bool IsChanged() const { return !_elemState.deltas.empty(); }
 
-    template <typename TLambda> void Edit(TKey const& key, TLambda&& lambda)
+    template <typename TLambda> void Edit(TKey const& key, TLambda const& lambda)
     {
         auto& state = edit_txn_at_(key);
         auto  txn   = Stencil::CreateTransaction<ValTxn>(state.elem, state.container, *this, _elem[key]);
         lambda(txn);
     }
-    template <typename TLambda> void Assign(TKey const& key, TLambda&& lambda)
+    template <typename TLambda> void Assign(TKey const& key, TLambda const& lambda)
     {
         auto& state = assign_txn_at_(key);
         auto  txn   = Stencil::CreateTransaction<ValTxn>(state.elem, state.container, *this, _elem[key]);
@@ -546,8 +546,8 @@ struct Stencil::Transaction<std::unordered_map<TKey, TVal>, TContainer>
         return assign_txn_at_(key);
     }
 
-    [[noreturn]] void Assign(ElemType&& /* elem */) { throw std::logic_error("Invalid operation"); }
-    [[noreturn]] void Add(ElemType&& /* elem */) { throw std::logic_error("Invalid operation"); }
+    [[noreturn]] void Assign(ElemType&& /* elem */) { throw std::logic_error("Invalid operation"); }    // NOLINT
+    [[noreturn]] void Add(ElemType&& /* elem */) { throw std::logic_error("Invalid operation"); }       // NOLINT
 
     void Remove(TKey const& key)
     {
@@ -560,7 +560,7 @@ struct Stencil::Transaction<std::unordered_map<TKey, TVal>, TContainer>
         }
     }
 
-    template <typename TLambda> auto Visit(TKey const& key, TLambda&& lambda) { lambda(key, _elem.at(key)); }
+    template <typename TLambda> auto Visit(TKey const& key, TLambda const& lambda) { lambda(key, _elem.at(key)); }
 
     void NotifyElementEdited(ElemTxnState const& elemTxnState) { edit_txn_at_(elemTxnState.key); }
     void NotifyElementAssigned(ElemTxnState const& elemTxnState) { assign_txn_at_(elemTxnState.key); }
@@ -620,7 +620,7 @@ struct Stencil::TransactionView<std::unordered_map<TKey, TVal>, TContainer>
 
     [[nodiscard]] bool IsChanged() const { return !elemState.deltas.empty(); }
 
-    template <typename TLambda> void VisitChanges(TLambda&& lambda) const
+    template <typename TLambda> void VisitChanges(TLambda const& lambda) const
     {
         for (auto& [k, v] : elemState.deltas)
         {
@@ -739,9 +739,9 @@ template <Stencil::ConceptPreferIterable TElem, Stencil::ConceptTransaction TCon
                                                                         TODO("DoNotCommit");*/
     }
 
-    [[noreturn]] void Assign(ElemType&& /* elem */) { throw std::logic_error("Self-Assignment not allowed"); }
+    [[noreturn]] void Assign(ElemType&& /* elem */) { throw std::logic_error("Self-Assignment not allowed"); }    // NOLINT
 
-    template <typename TLambda> void VisitAll(TLambda&& /* lambda */) { throw std::logic_error("Visit Not supported on Transaction"); }
+    template <typename TLambda> void VisitAll(TLambda const& /* lambda */) { throw std::logic_error("Visit Not supported on Transaction"); }
 
     bool IsChanged() { return elemState.changes.size() > 0; }
 
@@ -816,9 +816,9 @@ template <Stencil::ConceptTransactionForIterable TTxn> struct Stencil::Mutators<
     using ElemType = Stencil::TransactionTraits<TTxn>::ElemType;
 
     // TODO: DoNotCommit
-    template <typename TVal> static void add(TTxn& txn, TVal&& elem) { txn.Add(std::forward<TVal>(elem)); } //NOLINT
-    static void remove(TTxn& txn, size_t index) { txn.Remove(static_cast<uint32_t>(index)); } //NOLINT
-    static auto edit(TTxn& txn, size_t index) { return txn.Edit(static_cast<uint32_t>(index)); } //NOLINT
+    template <typename TVal> static void add(TTxn& txn, TVal&& elem) { txn.Add(std::forward<TVal>(elem)); }                  // NOLINT
+    static void                          remove(TTxn& txn, size_t index) { txn.Remove(static_cast<uint32_t>(index)); }       // NOLINT
+    static auto                          edit(TTxn& txn, size_t index) { return txn.Edit(static_cast<uint32_t>(index)); }    // NOLINT
 };
 
 template <Stencil::ConceptTransaction TTxn> struct Stencil::TypeTraits<TTxn>

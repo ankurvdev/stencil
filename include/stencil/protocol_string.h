@@ -93,7 +93,7 @@ template <ConceptPrimitives64Bit T> struct SerDes<T, ProtocolString>
         {
             using TRepr = decltype(Primitives64Bit::Traits<T>::Repr(T{}));
             TRepr              ival;
-            std::string const  str(ctx);
+            std::string const  str(ctx); //NOLINT
             std::istringstream iss(str);
             iss >> ival;
             if (!iss.eof() || iss.fail()) throw std::logic_error("Cannot convert");

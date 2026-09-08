@@ -10,8 +10,8 @@ template <typename T> struct Ref
 {
     uint32_t id{0};
 
-    [[nodiscard]] bool           Valid() const { return id != 0; }
-    constexpr auto operator<=>(Ref<T> const& rhs) const = default;
+    [[nodiscard]] bool Valid() const { return id != 0; }
+    constexpr auto     operator<=>(Ref<T> const& rhs) const = default;
 
     static Ref<T> Invalid() { return Ref<T>{}; }
 };
@@ -80,7 +80,7 @@ struct Stencil::Visitor<Stencil::Ref<T>>
     using ThisType = Stencil::Ref<T>;
     // So that this works for both const and non-const
     template <typename T1, typename TKey, typename TLambda>
-    requires std::is_same_v<std::remove_const_t<T1>, ThisType>
+        requires std::is_same_v<std::remove_const_t<T1>, ThisType>
     static void VisitKey(T1& obj, TKey&& key, TLambda&& lambda)
     {
         if (obj.get() == nullptr)
@@ -90,14 +90,17 @@ struct Stencil::Visitor<Stencil::Ref<T>>
                 // TODO: Should it really auto-create on demand
                 if (obj.get() == nullptr) { obj = std::make_shared<T>(); }
             }
-            else { return; }
+            else
+            {
+                return;
+            }
         }
 
         Stencil::Visitor<T>::VisitKey(*obj.get(), std::forward<TKey>(key), std::forward<TLambda>(lambda));
     }
 
     template <typename T1, typename TLambda>
-    requires std::is_same_v<std::remove_const_t<T1>, ThisType>
+        requires std::is_same_v<std::remove_const_t<T1>, ThisType>
     static void VisitAll(T1& obj, TLambda&& lambda)
     {
         if (obj.get() == nullptr)
@@ -107,7 +110,10 @@ struct Stencil::Visitor<Stencil::Ref<T>>
                 // TODO: Should it really auto-create on demand
                 if (obj.get() == nullptr) { obj = std::make_shared<T>(); }
             }
-            else { return; }
+            else
+            {
+                return;
+            }
         }
 
         Stencil::Visitor<T>::VisitAll(*obj.get(), std::forward<TLambda>(lambda));
@@ -176,8 +182,10 @@ template <typename T> struct Primitives64Bit::Traits<Stencil::Ref<T>>
 {
     using ThisType = Stencil::Ref<T>;
     static constexpr auto Type() { return Primitives64Bit::Type::Unsigned(4); }
-    static void           Assign(Primitives64Bit& obj, ThisType& val) { obj._val.u = Repr(val); }
-    static auto           Get(Primitives64Bit const& obj) { return ThisType(static_cast<uint32_t>(obj._val.u)); }
-    static auto           Convert(uint64_t val) { return ThisType(static_cast<uint32_t>(val)); }
-    static uint64_t       Repr(ThisType const& val) { return val.id; }
+    static void           Assign(Primitives64Bit& obj, ThisType& val)
+    { obj._val.u = Repr(val); }    // NOLINT(cppcoreguidelines-pro-type-union-access)
+    static auto Get(Primitives64Bit const& obj)
+    { return ThisType(static_cast<uint32_t>(obj._val.u)); }    // NOLINT(cppcoreguidelines-pro-type-union-access)
+    static auto     Convert(uint64_t val) { return ThisType(static_cast<uint32_t>(val)); }
+    static uint64_t Repr(ThisType const& val) { return val.id; }
 };
