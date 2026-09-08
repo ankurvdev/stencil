@@ -69,15 +69,15 @@ template <typename... Ts> struct EnumPack
 
     static PackType CastFromInt(uint32_t val)
     {
-        auto index = static_cast<uint8_t>(val & 0xffu); //NOLINT
-        val           = val >> 8u;
+        auto index = static_cast<uint8_t>(val & 0xffu);    // NOLINT
+        val        = val >> 8u;
         return CastFromInt(index, val);
     }
 
     static uint32_t CastToInt(PackType const& rhs)
     {
-        uint32_t out = 0;
-        auto  type = static_cast<uint8_t>(rhs.variants.index());
+        uint32_t out  = 0;
+        auto     type = static_cast<uint8_t>(rhs.variants.index());
         std::visit([&](auto&& arg) { out = static_cast<uint32_t>(arg); }, rhs.variants);
         return (out << 8u | type);
     }
@@ -92,22 +92,16 @@ concept ConceptEnumPack = IsEnumPack<T>;
 
 template <typename T> uint32_t        EnumPackCastToInt(T const& rhs);
 template <ConceptEnumPack T> uint32_t EnumPackCastToInt(T const& rhs)
-{
-    return T::CastToInt(rhs);
-}
+{ return T::CastToInt(rhs); }
 }    // namespace Stencil
 
 namespace std
 {
-template <typename T, typename... Ts> constexpr bool HoldsAlternative(Stencil::EnumPack<Ts...> const& pack) noexcept
-{
-    return std::holds_alternative<T>(pack.variants);
-}
+template <typename T, typename... Ts> constexpr bool holds_alternative(Stencil::EnumPack<Ts...> const& pack) noexcept    // NOLINT
+{ return std::holds_alternative<T>(pack.variants); }
 
-template <typename T, typename... Ts> constexpr auto Get(Stencil::EnumPack<Ts...> const& pack) noexcept
-{
-    return std::get<T>(pack.variants);
-}
+template <typename T, typename... Ts> constexpr auto get(Stencil::EnumPack<Ts...> const& pack) noexcept    // NOLINT
+{ return std::get<T>(pack.variants); }
 }    // namespace std
 
 template <Stencil::ConceptEnum T> struct Stencil::TypeTraits<T>

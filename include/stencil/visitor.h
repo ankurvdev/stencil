@@ -190,7 +190,7 @@ template <Stencil::ConceptIterable T> struct Stencil::VisitorForIterable<std::sh
 
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, ThisType>
-    static void Visit(Iterator& it, T1& obj, TLambda && lambda)
+    static void Visit(Iterator& it, T1& obj, TLambda&& lambda)
     { Stencil::Visitor<T>::Visit(it, *obj.get(), std::forward<TLambda>(lambda)); }
 };
 
@@ -230,7 +230,7 @@ struct Stencil::Visitor<std::shared_ptr<T>> : Stencil::VisitorT<std::shared_ptr<
 
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, ThisType>
-    static void VisitAll(T1& obj, TLambda && lambda)
+    static void VisitAll(T1& obj, TLambda&& lambda)
     {
         if (obj.get() == nullptr)
         {
@@ -343,7 +343,6 @@ template <typename K, typename V> struct Stencil::Visitor<std::unordered_map<K, 
         // TODO : Visit should not create keys
         lambda(obj[it]);
     }
-
 };
 
 template <typename... Ts> struct Stencil::VisitorForVariant<std::variant<std::monostate, Ts...>>

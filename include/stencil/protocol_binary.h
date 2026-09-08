@@ -236,7 +236,7 @@ template <ConceptEnum T> struct SerDes<T, ProtocolBinary>
 template <ConceptEnumPack T> struct SerDes<T, ProtocolBinary>
 {
     template <typename TContext> static auto Write(TContext& ctx, T const& obj) { ctx << T::CastToInt(obj); }
-    template <typename TContext> static auto Read(T& obj, TContext& ctx) { obj = T::CastFromInt(ctx.template read<uint32_t>()); }
+    template <typename TContext> static auto Read(T& obj, TContext& ctx) { obj = T::CastFromInt(ctx.template Read<uint32_t>()); }
 };
 
 template <> struct SerDes<shared_string, ProtocolBinary>
@@ -254,13 +254,13 @@ template <> struct SerDes<shared_wstring, ProtocolBinary>
 template <> struct SerDes<std::wstring, ProtocolBinary>
 {
     template <typename TContext> static auto Write(TContext& ctx, std::wstring const& obj) { ctx << obj; }
-    template <typename TContext> static auto Read(std::wstring& obj, TContext& ctx) { obj = ctx.read_wstring(); }
+    template <typename TContext> static auto Read(std::wstring& obj, TContext& ctx) { obj = ctx.ReadWstring(); }
 };
 
 template <> struct SerDes<std::string, ProtocolBinary>
 {
     template <typename TContext> static auto Write(TContext& ctx, std::string const& obj) { ctx << obj; }
-    template <typename TContext> static auto Read(std::string& obj, TContext& ctx) { obj = ctx.read_string(); }
+    template <typename TContext> static auto Read(std::string& obj, TContext& ctx) { obj = ctx.ReadString(); }
 };
 
 template <size_t N> struct SerDes<std::array<char, N>, ProtocolBinary>
@@ -275,6 +275,6 @@ template <> struct SerDes<uuids::uuid, ProtocolBinary>
     template <typename TContext> static auto Write(TContext& ctx, uuids::uuid const& obj) { ctx << obj.as_bytes(); }
 
     template <typename TContext> static auto Read(uuids::uuid& obj, TContext& ctx)
-    { obj = uuids::uuid{ctx.template read<std::array<uint8_t, 16>>()}; }
+    { obj = uuids::uuid{ctx.template Read<std::array<uint8_t, 16>>()}; }
 };
 }    // namespace Stencil
