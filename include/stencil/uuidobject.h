@@ -34,11 +34,11 @@ template <typename T> struct UuidBasedId
     }
 
     public:
-    UuidBasedId() = default;
+    UuidBasedId() = default;    // NOLINT
 
     uuids::uuid uuid;
 
-    [[nodiscard]] constexpr bool                  Empty() const { return uuid == Invalid().uuid; }
+    [[nodiscard]] constexpr bool    Empty() const { return uuid == Invalid().uuid; }
     static constexpr UuidBasedId<T> Invalid() { return UuidBasedId<T>(); }
 
     auto operator==(UuidBasedId<T> const& t) const { return uuid == t.uuid; }
@@ -50,9 +50,9 @@ template <typename T> struct UuidBasedId
 
 template <typename T> struct UuidObjectT
 {
-    using Id = UuidBasedId<T>;
+    using Id      = UuidBasedId<T>;
     UuidObjectT() = default;
-    Id id = Id::Create();
+    Id id         = Id::Create();
 };
 
 template <> struct Stencil::TypeTraits<uuids::uuid>

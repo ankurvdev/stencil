@@ -25,7 +25,7 @@ SUPPRESS_WARNINGS_END
 template <typename T, ConceptProtocol TProt, typename TIn> T Deserialize(TIn& input)
 {
     typename TProt::InType in{input};
-    T                      obj;
+    T                      obj{};
     Stencil::SerDes<T, TProt>::Read(obj, in);
     return obj;
 }

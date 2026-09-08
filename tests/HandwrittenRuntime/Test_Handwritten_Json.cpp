@@ -1,13 +1,19 @@
+#include "CommonMacros.h"
 #include "TestUtils.h"
 #include "Test_Handwritten.h"
-
+namespace
+{
 struct TestCase
 {
     std::string json;
     std::string desc;
     bool        valid;
 };
+}    // namespace
 
+// NOLINTNEXTLINE(clang-diagnostic-lifetime-safety-invalidation)
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("-Wlifetime-safety-invalidation")
 template <typename T> static void RunTestCase(TestCase const& tc, std::vector<std::string>& lines, std::string const& name)
 {
     if (!tc.valid)
@@ -27,6 +33,7 @@ template <typename T> static void RunTestCase(TestCase const& tc, std::vector<st
         lines.push_back(fmt::format("Testcase[{}]:{}, Output: {}", name, tc.desc, jstr2));
     } catch (std::exception const& ex) { lines.push_back(fmt::format("Testcase[{}]:{}, Exception: {}", name, tc.desc, ex.what())); }
 }
+SUPPRESS_WARNINGS_END
 
 template <typename T> static void RunTestCases(std::initializer_list<TestCase> const& inp, std::string const& name)
 {
@@ -47,9 +54,7 @@ template <typename T> static void RunTestCases(std::initializer_list<TestCase> c
 TEST_CASE("Json", "[Json]")
 {
     SECTION("TestObj")
-    {
-        RunTestCases<TestObj>({}, "TestObj");
-    }
+    { RunTestCases<TestObj>({}, "TestObj"); }
 
     SECTION("WithPrimitives64Bit")
     {

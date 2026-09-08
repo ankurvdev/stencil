@@ -70,7 +70,7 @@ struct HttpClientListener
     CLASS_DELETE_COPY_AND_MOVE(HttpClientListener);
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
-    bool ChunkCallback_(char const* data, size_t len)
+    bool ChunkCallback(char const* data, size_t len)
     {
         if (data[len - 1] == '\0') len--;
         sseData.emplace_back(data, len);
@@ -185,7 +185,7 @@ struct HttpClientListener
                     bufchars = reinterpret_cast<char const*>(buf.data().data());
                     if (messageSize != 2 || readBytes != 2 || bufchars[0] != '\n' || bufchars[1] != '\n')
                     {
-                        ChunkCallback_(bufchars, readBytes);
+                        ChunkCallback(bufchars, readBytes);
                     }
                     i += readBytes;
                     remaining -= readBytes;

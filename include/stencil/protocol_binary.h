@@ -81,7 +81,7 @@ struct Reader
     TVal Read()
         requires std::is_trivially_default_constructible_v<TVal>
     {
-        TVal val;
+        TVal val{};
         auto endIt = it + sizeof(TVal);
         std::copy(it, endIt, AsSpan(val).begin());
         it = endIt;

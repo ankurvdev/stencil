@@ -10,15 +10,16 @@ SUPPRESS_WARNINGS_END
 SUPPRESS_WARNINGS_START
 SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
 
+// NOLINTBEGIN(readability-identifier-naming, cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays,misc-multiple-inheritance)
 struct WithPrimitives64Bit
 {
-    int64_t  f1;
-    int16_t  f2;
-    uint64_t f3;
-    char     f4;
-    double   f5;
-    float    f6;
-    bool     f7;
+    int64_t  f1{};
+    int16_t  f2{};
+    uint64_t f3{};
+    char     f4{};
+    double   f5{};
+    float    f6{};
+    bool     f7{};
 
     Stencil::Timestamp f8;
     Stencil::Timestamp f9;
@@ -84,7 +85,11 @@ struct NamedVariant
     double&              f5() LFTBND { return std::get<double>(variants); }
     std::string&         f6() LFTBND { return std::get<std::string>(variants); }
 
-    template <typename T> auto operator=(T&& obj) { variants = std::forward<T>(obj); }
+    template <typename T> auto& operator=(T&& obj)
+    {
+        variants = std::forward<T>(obj);
+        return *this;
+    }
 };
 
 #define DEFINE_STRUCT_FIELD_SERDES(strct, field)                                                                                    \
@@ -566,13 +571,13 @@ template <> struct Stencil::TypeTraits<MultiAttributed>
 enum class Timestamp_Fields
 {
     Invalid,
-    Field_timestamp
+    Field_timestamp,
 };
 
 enum class UuidBasedId_Fields
 {
     Invalid,
-    Field_uuid
+    Field_uuid,
 };
 
 template <typename T> struct Stencil::TypeTraitsForIndexable<Stencil::TimestampedT<T>>
@@ -618,7 +623,7 @@ template <> struct Stencil::TypeTraitsForIndexable<MultiAttributed>
         Invalid,
         Field_f1,
         Field_f2,
-        Field_f3
+        Field_f3,
     };
 
     struct Field_InvalidT
@@ -630,8 +635,8 @@ template <> struct Stencil::TypeTraitsForIndexable<MultiAttributed>
     struct Field_f3
     {};
 
-    using Timestamp_Fields   = typename Stencil::TypeTraitsForIndexable<Stencil::TimestampedT<MultiAttributed>>::Fields;
-    using UuidBasedId_Feilds = typename Stencil::TypeTraitsForIndexable<UuidBasedId<MultiAttributed>>::Fields;
+    using Timestamp_Fields   = Stencil::TypeTraitsForIndexable<Stencil::TimestampedT<MultiAttributed>>::Fields;
+    using UuidBasedId_Feilds = Stencil::TypeTraitsForIndexable<UuidBasedId<MultiAttributed>>::Fields;
 
     using Key = Stencil::EnumPack<Fields, Timestamp_Fields, UuidBasedId_Feilds>;
     static constexpr bool HasDefaultValueForKey(MultiAttributed const& /* obj */, Key /* key */) { return true; }
@@ -701,7 +706,7 @@ template <> struct Stencil::TypeTraitsForIndexable<WithVariant>
         Field_f1,
         Field_f2,
         Field_f3,
-        Field_f4
+        Field_f4,
     };
 
     struct Fields_InvalidT
@@ -787,7 +792,7 @@ template <> struct Stencil::TypeTraitsForVariant<NamedVariant>
         Field_f3,
         Field_f4,
         Field_f5,
-        Field_f6
+        Field_f6,
     };
 
     struct Field_f1
@@ -904,7 +909,7 @@ template <> struct Stencil::TypeTraitsForIndexable<TestObj>
     enum class Fields
     {
         Invalid  = 0,
-        Field_f1 = 1
+        Field_f1 = 1,
     };
 
     struct Field_f1
@@ -951,3 +956,4 @@ template <> struct Stencil::Visitor<TestObj> : Stencil::VisitorT<TestObj>
 static_assert(Stencil::ConceptNamedTuple<TestObj>);
 
 SUPPRESS_WARNINGS_END
+// NOLINTEND(readability-identifier-naming,cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays,misc-multiple-inheritance)

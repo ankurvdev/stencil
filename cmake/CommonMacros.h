@@ -1,9 +1,11 @@
 #pragma once
 
+#ifndef LFTBND
 #if defined(__clang__) && __has_cpp_attribute(clang::lifetimebound)
 #define LFTBND [[clang::lifetimebound]]
 #else
 #define LFTBND
+#endif
 #endif
 
 #ifndef _PRAGMA_STRINGIFY
@@ -55,7 +57,7 @@
         _Pragma("warning(disable : 5204)") /* class has virtual functions, but its trivial destructor is not virtual;*/      \
         _Pragma("warning(disable : 4668)") /* not defined as a preprocessor macro, replacing with '0' f*/
 
-#elifdef __clang__
+#elif defined __clang__    // NOLINT
 #define SUPPRESS_WARNINGS_START _Pragma("clang diagnostic push")
 
 #define SUPPRESS_WARNINGS_END _Pragma("clang diagnostic pop")
@@ -70,7 +72,7 @@
 
 #define SUPPRESS_FMT_WARNINGS _Pragma("clang diagnostic ignored \"-Weverything\"")
 
-#elifdef __GNUC__
+#elif defined __GNUC__    // NOLINT
 
 #define SUPPRESS_WARNINGS_END _Pragma("GCC diagnostic pop")
 
