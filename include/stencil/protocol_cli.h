@@ -5,6 +5,7 @@
 #include "typetraits_builtins.h"    // IWYU pragma: keep
 #include "visitor.h"
 
+#include <algorithm>
 #include <cctype>
 #include <memory>
 #include <span>
@@ -16,6 +17,7 @@
 #include <unordered_map>
 #include <vector>
 
+// NOLINTBEGIN(readability-magic-numbers, cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
 namespace Stencil
 {
 template <typename T> struct Attribute<Stencil::AttributeType::Description, T>
@@ -74,14 +76,14 @@ template <typename T> struct ArgsIterator
 
     std::string_view operator*() const { return std::string_view(ctx.At(current)); }
 
-    [[nodiscard]] bool   Valid() const { return current < ctx.Count(); }
-    [[nodiscard]] bool   RootCtxRequested() const { return rootCtxRequested; }
-    void   ClearRootCtxRequested() { rootCtxRequested = false; }
-    void   MarkRootCtxRequested() { rootCtxRequested = true; }
-    bool   rootCtxRequested{false};
-    bool   helpRequested{false};
-    size_t current{0};
-    T      ctx;
+    [[nodiscard]] bool Valid() const { return current < ctx.Count(); }
+    [[nodiscard]] bool RootCtxRequested() const { return rootCtxRequested; }
+    void               ClearRootCtxRequested() { rootCtxRequested = false; }
+    void               MarkRootCtxRequested() { rootCtxRequested = true; }
+    bool               rootCtxRequested{false};
+    bool               helpRequested{false};
+    size_t             current{0};
+    T                  ctx;
 };
 
 struct ProtocolCLI
@@ -110,6 +112,8 @@ static_assert(!ConceptIterable<shared_string>, "shared_string");
 
 struct IterableValuesVisitors
 {
+    IterableValuesVisitors() = default;
+    CLASS_DELETE_COPY_AND_MOVE(IterableValuesVisitors);
     virtual ~IterableValuesVisitors() = default;
 };
 
@@ -176,8 +180,8 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
 {
     template <typename TContext> static bool AreEqual(std::string_view const& str1, TContext const& str2)
     {
-        const auto *it1 = str1.begin();
-        auto it2 = std::begin(str2);
+        auto const* it1 = str1.begin();
+        auto        it2 = std::begin(str2);
         while (it1 != str1.end() && it2 != std::end(str2))
         {
             auto ch1 = std::tolower(*it1);
@@ -212,8 +216,22 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
         return it1 == str1.end() && it2 == std::end(str2);
     }
 
+    template <typename TContext> static auto Write(TContext& ctx, T const& obj)
+    {
+        if constexpr (ConceptNamedTuple<T>)
+        {
+            Visitor<T>::VisitAll(obj, [&](auto const& k, auto const& v) { WriteForNamedTupleKeyValue_(k, v, obj, ctx); });
+            ctx.push_back("-");
+        }
+        else
+        {
+            TODO("IndexableWithDynamicKeys");
+        }
+    }
+
+    private:
     template <typename TKey, typename TVal, typename TObj, typename TContext>
-    static void _WriteForNamedTupleKeyValue(TKey const& k, TVal const& v, TObj const& /*obj*/, TContext& ctx)
+    static void WriteForNamedTupleKeyValue_(TKey const& k, TVal const& v, TObj const& /*obj*/, TContext& ctx)
     {
         if constexpr (ConceptHasProtocolString<TVal>)
         {
@@ -286,22 +304,9 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
         }
     }
 
-    [[noreturn]] static void _Error() { throw std::logic_error("Unsupported type"); }
+    [[noreturn]] static void Error_() { throw std::logic_error("Unsupported type"); }
 
-    template <typename TContext> static auto Write(TContext& ctx, T const& obj)
-    {
-        if constexpr (ConceptNamedTuple<T>)
-        {
-            Visitor<T>::VisitAll(obj, [&](auto const& k, auto const& v) { _WriteForNamedTupleKeyValue(k, v, obj, ctx); });
-            ctx.push_back("-");
-        }
-        else
-        {
-            TODO("IndexableWithDynamicKeys");
-        }
-    }
-
-    static bool _IsBooleanValue(std::string_view const& value, bool& boolval)
+    static bool IsBooleanValue_(std::string_view const& value, bool& boolval)
     {
         if (value == "1" || value == "on" || value == "On" || value == "ON" || value == "true" || value == "True" || value == "TRUE"
             || value == "y" || value == "yes" || value == "Yes" || value == "YES")
@@ -309,21 +314,21 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
             boolval = true;
             return true;
         }
-        if (value == "0" || value == "off" || value == "Off" || value == "OFF" || value == "false" || value == "False"
-                 || value == "FALSE" || value == "n" || value == "no" || value == "NO" || value == "No")
+        if (value == "0" || value == "off" || value == "Off" || value == "OFF" || value == "false" || value == "False" || value == "FALSE"
+            || value == "n" || value == "no" || value == "NO" || value == "No")
         {
             boolval = false;
             return true;
         }
-        
-        
-            return false;
-        
+
+        return false;
     }
 
     template <typename TVal, typename TRhs>
-    static void
-    _ReadForIterableValue(std::unordered_map<void*, std::unique_ptr<IterableValuesVisitors>>& visitorState, TVal& val, TRhs const& value)
+    static void ReadForIterableValue_(    // NOLINT(readability-function-cognitive-complexity)
+        std::unordered_map<void*, std::unique_ptr<IterableValuesVisitors>>& visitorState,
+        TVal&                                                               val,
+        TRhs const&                                                         value)    // NOLINT(readability-function-cognitive-complexity)
     {
         size_t si = 0;
         size_t ei = value.find(',');
@@ -342,7 +347,9 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
 
                     struct CustomVisitor : IterableValuesVisitors
                     {
+                        CustomVisitor()           = default;
                         ~CustomVisitor() override = default;
+                        CLASS_DELETE_COPY_AND_MOVE(CustomVisitor);
                         Visitor<TVal>::Iterator it{};
                     };
                     CustomVisitor* visitor{nullptr};
@@ -350,9 +357,9 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                     auto it = visitorState.find(&val);
                     if (it == visitorState.end())
                     {
-                        auto newvisitor    = std::make_unique<CustomVisitor>();
+                        auto newvisitor      = std::make_unique<CustomVisitor>();
                         auto [nit, inserted] = visitorState.emplace(&val, std::move(newvisitor));
-                        visitor = static_cast<CustomVisitor*>(nit->second.get());
+                        visitor              = static_cast<CustomVisitor*>(nit->second.get());
                         Visitor<TVal>::IteratorBegin(visitor->it, val);
                     }
                     else
@@ -428,9 +435,10 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                 throw std::logic_error("Cannot read into value");
             }
         }
-           }
+    }
 
-    template <typename TContext> static auto Read(T& obj, TContext& ctx)
+    public:
+    template <typename TContext> static auto Read(T& obj, TContext& ctx)    // NOLINT(readability-function-cognitive-complexity)
     {
         std::unordered_map<void*, std::unique_ptr<IterableValuesVisitors>> iterableVistors;
 
@@ -499,14 +507,14 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                                 if (ctx.Valid())
                                 {
                                     auto next = ctx.MoveNext();
-                                    if (!_IsBooleanValue(next, val)) { ctx.MoveBack(); }
+                                    if (!IsBooleanValue_(next, val)) { ctx.MoveBack(); }
                                 }
                             }
                             else
                             {
                                 if (!ctx.Valid()) { throw std::invalid_argument(fmt::format("Missing value for {}", keystr)); }
                                 auto next = ctx.MoveNext();
-                                _ReadForIterableValue(iterableVistors, val, next);
+                                ReadForIterableValue_(iterableVistors, val, next);
                             }
                         });
                         if (!found) { throw std::logic_error(fmt::format("Cannot find matching arg for key: {}", keystr)); }
@@ -525,7 +533,7 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                         // Has to be a boolean
                         if (!AreEqual(ss.str(), keystr)) { return; }
                         found = true;
-                        _ReadForIterableValue(iterableVistors, val, value);
+                        ReadForIterableValue_(iterableVistors, val, value);
                     });
                     if (!found) { throw std::logic_error(fmt::format("Cannot find matching arg for key: {}", keystr)); }
                 }
@@ -737,7 +745,7 @@ template <typename TStrArr> struct SpanStr
 
 SUPPRESS_WARNINGS_START
 SUPPRESS_CLANG_WARNING("-Wnrvo")
-template <typename T, typename TInCtx> inline auto _Parse(ArgsIterator<TInCtx>&& argsIt)
+template <typename T, typename TInCtx> inline auto Parse(ArgsIterator<TInCtx>&& argsIt) //NOLINT
 {
     struct ParseResult
     {
@@ -763,14 +771,10 @@ template <typename T, typename TInCtx> inline auto _Parse(ArgsIterator<TInCtx>&&
 SUPPRESS_WARNINGS_END
 
 template <typename T> inline auto Parse(int argc, char const* const* const argv)
-{
-    return _Parse<T>(ArgsIterator<ArgcArgv>(ArgcArgv{.argc=argc, .argv=argv}));
-}
+{ return Parse<T>(ArgsIterator<ArgcArgv>(ArgcArgv{.argc = argc, .argv = argv})); }
 
 template <typename T, typename TStrArr> inline auto Parse(TStrArr const& args)
-{
-    return _Parse<T>(ArgsIterator<SpanStr<TStrArr>>(SpanStr<TStrArr>{&args}));
-}
+{ return Parse<T>(ArgsIterator<SpanStr<TStrArr>>(SpanStr<TStrArr>{&args})); }
 SUPPRESS_WARNINGS_END
 template <typename T> inline std::vector<std::string> Stringify(T const& obj)
 {
@@ -789,9 +793,7 @@ struct Table
     };
 
     struct Row
-    {
-        std::vector<ColumnSpan> columns;
-    };
+    { std::vector<ColumnSpan> columns; };
 
     std::vector<Row> rows;
 
@@ -799,7 +801,7 @@ struct Table
 
     void AddColumn(size_t col, size_t span, std::string_view const& text)
     {
-        ColumnSpan col1{.column=col, .colspan=span, .text=std::string(text)};
+        ColumnSpan col1{.column = col, .colspan = span, .text = std::string(text)};
         rows.back().columns.push_back(std::move(col1));
     }
 
@@ -815,22 +817,23 @@ struct Table
         AddColumn(col, span, text);
     }
 
-    [[nodiscard]] static size_t _FindColumnWidth(ColumnSpan const& col) { return static_cast<size_t>(col.text.length() + 4u); }
+    private:
+    [[nodiscard]] static size_t FindColumnWidth_(ColumnSpan const& col) { return static_cast<size_t>(col.text.length() + 4u); }
 
-    static void _PrintColumnTextToBuffer(char* buffer, size_t /*available*/, ColumnSpan const& col) 
+    static void PrintColumnTextToBuffer_(char* buffer, size_t /*available*/, ColumnSpan const& col)
     {
         if (col.text.empty()) return;
-        std::copy(col.text.begin(), col.text.end(), buffer);
+        std::ranges::copy(col.text, buffer);
     }
 
-    [[nodiscard]] size_t _FindTableWidth() const
+    [[nodiscard]] size_t FindTableWidth_() const
     {
         size_t width = 0;
-        for (auto& colwidth : _FindColumnWidths()) { width += colwidth; }
+        for (auto& colwidth : FindColumnWidths_()) { width += colwidth; }
         return width;
     }
 
-    [[nodiscard]] std::vector<size_t> _FindColumnWidths() const
+    [[nodiscard]] std::vector<size_t> FindColumnWidths_() const
     {
         std::vector<size_t> columnwidths;
         for (auto const& row : rows)
@@ -840,18 +843,18 @@ struct Table
                 if (columnwidths.size() <= col.column) { columnwidths.resize(col.column + 1, 0); }
                 if (col.colspan == 0)
                 {
-                    auto neededwidth         = _FindColumnWidth(col);
+                    auto neededwidth         = FindColumnWidth_(col);
                     columnwidths[col.column] = std::max(columnwidths[col.column], neededwidth);
                 }
             }
         }
 
-        for (const auto& row : rows)
+        for (auto const& row : rows)
         {
-            for (const auto& col : row.columns)
+            for (auto const& col : row.columns)
             {
                 auto farright    = std::min(static_cast<size_t>(col.colspan) + col.column, columnwidths.size() - 1);
-                auto neededwidth = _FindColumnWidth(col);
+                auto neededwidth = FindColumnWidth_(col);
                 auto remaining   = neededwidth;
                 for (size_t i = col.column; i < farright && remaining > columnwidths[i]; i++) { remaining -= columnwidths[i]; }
                 columnwidths[farright] = std::max(columnwidths[farright], remaining);
@@ -861,9 +864,10 @@ struct Table
         return columnwidths;
     }
 
+public:
     [[nodiscard]] std::vector<std::string> PrintAsLines() const
     {
-        auto                widths = _FindColumnWidths();
+        auto                widths = FindColumnWidths_();
         std::vector<size_t> offsets{0};
         offsets.reserve(widths.size());
         size_t bufferwidth = 1;
@@ -876,14 +880,14 @@ struct Table
 
         std::unique_ptr<char[]>  buffer(new char[bufferwidth]());
         std::vector<std::string> lines;
-        for (const auto& row : rows)
+        for (auto const& row : rows)
         {
             std::fill(buffer.get(), buffer.get() + bufferwidth, ' ');
             buffer[bufferwidth - 1] = 0;
-            for (const auto& col : row.columns)
+            for (auto const& col : row.columns)
             {
                 auto offset = offsets[col.column];
-                _PrintColumnTextToBuffer(&buffer[offset], bufferwidth - offset, col);
+                PrintColumnTextToBuffer_(&buffer[offset], bufferwidth - offset, col);
             }
             lines.emplace_back(buffer.get());
         }
@@ -963,3 +967,4 @@ template <typename T> inline auto GenerateHelp(T const& obj)
 }
 
 }    // namespace Stencil::CLI
+// NOLINTEND(readability-magic-numbers, cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)

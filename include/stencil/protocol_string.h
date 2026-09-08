@@ -18,6 +18,7 @@ SUPPRESS_MSVC_WARNING(5219)    // implicit conversion (int to double), possible 
 
 SUPPRESS_WARNINGS_END
 
+// NOLINTBEGIN(readability-magic-numbers)
 namespace Stencil
 {
 struct ProtocolString
@@ -92,7 +93,7 @@ template <ConceptPrimitives64Bit T> struct SerDes<T, ProtocolString>
         {
             using TRepr = decltype(Primitives64Bit::Traits<T>::Repr(T{}));
             TRepr              ival;
-            std::string        str(ctx);
+            std::string const  str(ctx);
             std::istringstream iss(str);
             iss >> ival;
             if (!iss.eof() || iss.fail()) throw std::logic_error("Cannot convert");
@@ -180,9 +181,7 @@ template <> struct SerDes<std::wstring, ProtocolString>
     using TObj = std::wstring;
 
     template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
-    {
-        SerDes<std::wstring_view, ProtocolString>::Write(ctx, obj);
-    }
+    { SerDes<std::wstring_view, ProtocolString>::Write(ctx, obj); }
 
     template <typename TContext> static auto Read(TObj& obj, TContext& ctx)
     {
@@ -242,7 +241,7 @@ struct SerDes<std::array<uint16_t, N>, ProtocolString>
     template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
         uint64_t val = 0;
-        for (size_t i = N; i > 0; i--) { val = (val << 16) | obj.at(i - 1); }
+        for (size_t i = N; i > 0; i--) { val = (val << 16u) | obj.at(i - 1u); }
         SerDes<uint64_t, ProtocolString>::Write(ctx, val);
     }
 
@@ -252,8 +251,8 @@ struct SerDes<std::array<uint16_t, N>, ProtocolString>
         SerDes<uint64_t, ProtocolString>::Read(val, ctx);
         for (size_t i = 0; i < N; i++)
         {
-            obj.at(i) = static_cast<uint16_t>(val & 0xff);
-            val       = (val >> 16);
+            obj.at(i) = static_cast<uint16_t>(val & 0xffu);
+            val       = (val >> 16u);
         }
     }
 };
@@ -263,9 +262,7 @@ template <> struct SerDes<shared_wstring, ProtocolString>
     using TObj = shared_wstring;
 
     template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
-    {
-        return SerDes<std::wstring, ProtocolString>::Write(ctx, obj.str());
-    }
+    { return SerDes<std::wstring, ProtocolString>::Write(ctx, obj.str()); }
 
     template <typename TContext> static auto Read(TObj& obj, TContext& ctx)
     {
@@ -280,9 +277,7 @@ template <> struct SerDes<shared_string, ProtocolString>
     using TObj = shared_string;
 
     template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
-    {
-        return SerDes<std::string, ProtocolString>::Write(ctx, obj.str());
-    }
+    { return SerDes<std::string, ProtocolString>::Write(ctx, obj.str()); }
 
     template <typename TContext> static auto Read(TObj& obj, TContext& ctx)
     {
@@ -293,3 +288,4 @@ template <> struct SerDes<shared_string, ProtocolString>
 };
 
 }    // namespace Stencil
+// NOLINTEND(readability-magic-numbers)

@@ -43,7 +43,7 @@ struct Writer
 
     Writer& operator<<(std::span<std::byte const> const& bytespn) LFTBND
     {
-        std::span<uint8_t const> spn(reinterpret_cast<uint8_t const*>(bytespn.data()), bytespn.size());
+        std::span<uint8_t const> spn(reinterpret_cast<uint8_t const*>(bytespn.data()), bytespn.size());    // NOLINT
         std::ranges::copy(spn, back_inserter(buffer));
         return *this;
     }
@@ -53,7 +53,7 @@ struct Writer
         std::ranges::copy(spn, back_inserter(buffer));
         return *this;
     }
-    template <typename TChar, typename TStr> Writer& _WriteStr(TStr const& str) LFTBND
+    template <typename TChar, typename TStr> Writer& WriteStr(TStr const& str) LFTBND
     {
         auto bytesize = static_cast<uint32_t>(str.size() * sizeof(TChar));
         *this << bytesize;
@@ -62,10 +62,10 @@ struct Writer
         return *this;
     }
 
-    Writer& operator<<(std::string const& str) LFTBND { return _WriteStr<char>(str); }
-    Writer& operator<<(std::wstring const& str) LFTBND { return _WriteStr<wchar_t>(str); }
-    Writer& operator<<(shared_string const& str) LFTBND { return _WriteStr<char>(str); }
-    Writer& operator<<(shared_wstring const& str) LFTBND { return _WriteStr<wchar_t>(str); }
+    Writer& operator<<(std::string const& str) LFTBND { return WriteStr<char>(str); }
+    Writer& operator<<(std::wstring const& str) LFTBND { return WriteStr<wchar_t>(str); }
+    Writer& operator<<(shared_string const& str) LFTBND { return WriteStr<char>(str); }
+    Writer& operator<<(shared_wstring const& str) LFTBND { return WriteStr<wchar_t>(str); }
 
     std::vector<uint8_t> Reset() { return std::move(buffer); }
 
@@ -88,6 +88,7 @@ struct Reader
         return val;
     }
 
+    private:
     template <typename TChar, typename TStr> TStr ReadStr_()
     {
         size_t bytesize = Read<uint32_t>();
@@ -100,6 +101,7 @@ struct Reader
         return str;
     }
 
+    public:
     shared_string  ReadSharedString() { return ReadStr_<char, shared_string>(); }
     shared_wstring ReadSharedWstring() { return ReadStr_<wchar_t, shared_wstring>(); }
     std::string    ReadString() { return ReadStr_<char, std::string>(); }

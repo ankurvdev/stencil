@@ -70,7 +70,7 @@ template <Stencil::ConceptIndexable T> struct Stencil::VisitorForIndexable<Stenc
     using ThisType = Stencil::Ref<T>;
 };
 
-#if 0
+#ifdef TODO_VISITOR_FOR_REF
 template <typename T>
 struct Stencil::Visitor<Stencil::Ref<T>>
     : Stencil::VisitorT<Stencil::Ref<T>>, Stencil::VisitorForIterable<Stencil::Ref<T>>, Stencil::VisitorForIndexable<Stencil::Ref<T>>

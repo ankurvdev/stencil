@@ -9,12 +9,15 @@
 
 #include <cassert>
 #include <filesystem>
+#include <fstream>
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
 #include <tuple>
 #include <unordered_map>
 
+// NOLINTBEGIN(readability-magic-numbers, cppcoreguidelines-pro-type-reinterpret-cast, cppcoreguidelines-avoid-c-arrays,
+// modernize-avoid-c-arrays)
 namespace Stencil::Database    // Type/Trait Declarations
 {
 
@@ -124,14 +127,12 @@ struct Ref
     constexpr Ref() = default;
     constexpr Ref(PageIndex pageIn, SlotIndex slotIn) : page(pageIn), slot(slotIn) {}
     ~Ref() = default;
+    CLASS_DEFAULT_COPY_AND_MOVE(Ref);
 
     template <ConceptRecord T>
     constexpr explicit Ref(Stencil::Database::Ref<T> const& ref) :
         page(static_cast<uint16_t>(ref.id >> 16u)), slot(static_cast<uint16_t>(ref.id & 0xffffu))
     {}
-
-    Ref(Ref const& val)            = default;
-    Ref& operator=(Ref const& val) = default;
 
     template <ConceptRecord T> explicit operator Stencil::Database::Ref<T>() const
     { return Stencil::Database::Ref<T>{(uint32_t{page} << 16u) | uint32_t{slot}}; }
@@ -155,13 +156,13 @@ struct Ref
 struct SlotObj
 {
     Ref::SlotIndex     index{0};
-    std::span<uint8_t> data;
+    std::span<uint8_t> data{};
 };
 
 struct SlotView
 {
     Ref::SlotIndex           index{0};
-    std::span<uint8_t const> data;
+    std::span<uint8_t const> data{};
 };
 
 // Keep this always at 8192 uint8_ts to optimize memory usage
@@ -169,20 +170,22 @@ struct Page
 {
     constexpr static size_t PageSizeInBytes      = 8192;
     constexpr static size_t PageDataSize         = PageSizeInBytes;
-    uint8_t                 buffer[PageDataSize] = {};
+    uint8_t                 buffer[PageDataSize] = {};    // NOLINT(cppcoreguidelines-avoid-c-arrays)
 };
 
 static_assert(sizeof(Page) == Page::PageSizeInBytes);
 
 struct SerDes
 {
+    private:
     struct Header
     {
-        uint8_t  magicCode[64] = {};
+        uint8_t  magicCode[64] = {};    // cppcoreguidelines-avoid-c-arrays
         uint64_t lastModified  = 0;
         uint64_t creationDate  = 0;
-    } header;
+    } _header;
 
+    public:
     void Attach(std::filesystem::path const& path)
     {
         if (std::filesystem::exists(path))
@@ -326,8 +329,8 @@ struct SerDes
         if (offset == 0)
         {
             WriteHeader_(header, stream);
-            WritePage_(Page { /*headerPage*/ }, 0, stream);
-            WritePage_(Page { /*journalPage*/ }, 1, stream);
+            WritePage_(Page{/*headerPage*/}, 0, stream);     // NOLINT
+            WritePage_(Page{/*journalPage*/}, 1, stream);    // NOLINT
         }
         assert(!stream.fail());
     }
@@ -336,7 +339,7 @@ struct SerDes
     {
         assert(!stream.fail());
         stream.seekp(0, std::ios_base::beg);
-        stream.write(reinterpret_cast<char const*>(&header), sizeof(header)); //NOLINT
+        stream.write(reinterpret_cast<char const*>(&header), sizeof(header));    // NOLINT
         assert(!stream.fail());
     }
 
@@ -344,7 +347,7 @@ struct SerDes
     {
         assert(!stream.fail());
         stream.seekg(0, std::ios_base::beg);
-        stream.read(reinterpret_cast<char*>(&header), sizeof(header)); //NOLINT
+        stream.read(reinterpret_cast<char*>(&header), sizeof(header));    // NOLINT
         assert(!stream.fail());
     }
 
@@ -361,7 +364,7 @@ struct SerDes
         assert(!stream.fail());
         if (offsetcur != static_cast<std::streampos>(offsetreq)) throw std::runtime_error("Invalid Page Ref");
 
-        stream.read(reinterpret_cast<char*>(&page), Page::PageSizeInBytes); //NOLINT
+        stream.read(reinterpret_cast<char*>(&page), Page::PageSizeInBytes);    // NOLINT
         assert(!stream.fail());
     }
     SUPPRESS_WARNINGS_START
@@ -375,18 +378,18 @@ struct SerDes
         auto offsetcur = stream.tellp();
         assert(offsetcur >= 0);
         assert((offsetcur <= offsetreq) && ((static_cast<size_t>(offsetreq - offsetcur) % Page::PageSizeInBytes) == 0));
-        uint8_t zerobuffer[Page::PageSizeInBytes] = {};
+        uint8_t zerobuffer[Page::PageSizeInBytes] = {};    // NOLINT(cppcoreguidelines-avoid-c-arrays)
         assert(zerobuffer[0] == 0 && zerobuffer[Page::PageSizeInBytes - 1] == 0);
         while (offsetcur < offsetreq)
         {
-            stream.write(reinterpret_cast<char const*>(zerobuffer), Page::PageSizeInBytes);
+            stream.write(reinterpret_cast<char const*>(zerobuffer), Page::PageSizeInBytes);    // NOLINT
             offsetcur = stream.tellp();
         }
-        stream.write(reinterpret_cast<char const*>(&page), sizeof(Page));
+        stream.write(reinterpret_cast<char const*>(&page), sizeof(Page));    // NOLINT
         assert(!stream.fail());
     }
     SUPPRESS_WARNINGS_END
-    std::unordered_map<uint32_t, std::unique_ptr<Page>> _loadedPages;    // for in-memory
+    std::unordered_map<uint32_t, std::unique_ptr<Page>> _loadedPages{};    // for in-memory
 
     Header        _fileheader;
     Header        _curheader;
@@ -430,6 +433,7 @@ struct PageRuntime
     }
     PageRuntime() = default;
     PageRuntime(Ref::PageIndex pageIndexIn) : pageIndex(pageIndexIn) {}    // NOLINT
+    ~PageRuntime() = default;
     CLASS_DELETE_COPY_DEFAULT_MOVE(PageRuntime);
 
     std::span<uint8_t>                     RawData() LFTBND { return page->buffer; }
@@ -466,17 +470,17 @@ struct PageRuntime
     uint32_t       typeId          = 0;
     uint32_t       pageRecDataSize = 0;
 
-    Flags                 flags;
-    std::unique_ptr<Page> page;
+    Flags                 flags{};
+    std::unique_ptr<Page> page{};
 };
 
 static constexpr size_t GetSlotUInt32s(size_t count)
-{ return (((count - 1) | (32 - 1)) + 1) / 32; }
+{ return (((count - 1u) | (32u - 1u)) + 1u) / 32u; }
 static constexpr size_t GetSlotUInt8s(size_t count)
-{ return (((count - 1) | (8 - 1)) + 1) / 8; }
+{ return (((count - 1u) | (8u - 1u)) + 1u) / 8u; }
 
 static constexpr size_t AlignToWord(size_t s)
-{ return (((s - 1) | (sizeof(void*) - 1)) + 1); }
+{ return (((s - 1u) | (sizeof(void*) - 1u)) + 1u); }
 
 // In memory transformation for temporary computation
 template <size_t RecordSize> struct PageForRecord
@@ -1195,6 +1199,7 @@ template <ConceptRecord... Ts> struct Database
         return pageRT;
     }
 
+    private:
     template <size_t TRecordSize> std::tuple<impl::Ref, impl::SlotObj> Allocate_(RWLock const& lock, uint16_t typeId, uint32_t recDataSize)
     {
         auto page = FindOrCreatePage_<TRecordSize>(lock, typeId, recDataSize).template As<impl::PageForRecord<TRecordSize>>();
@@ -1202,6 +1207,7 @@ template <ConceptRecord... Ts> struct Database
         return std::make_tuple(impl::Ref(page.PageIndex(), slot.index), slot);
     }
 
+    public:
     void Init(std::filesystem::path const& path) { _pagemgr->Init(path); }
     void Init() { _pagemgr->Init(); }
     void Init(std::ifstream&& ifstrm) { _pagemgr->Init(std::move(ifstrm)); }
@@ -1575,3 +1581,5 @@ template <typename T> struct Stencil::Database::RecordTraits<SharedTree<T>>
     static void WriteToBuffer(TDb& /*db*/, RWLock const& /*lock*/, SharedTree<T> const& /* obj */, Record<SharedTree<T>>& /* rec */)
     { throw std::logic_error("Not implemented"); }
 };
+// NOLINTEND(readability-magic-numbers, cppcoreguidelines-pro-type-reinterpret-cast, cppcoreguidelines-avoid-c-arrays,
+// modernize-avoid-c-arrays)

@@ -20,7 +20,7 @@ template <typename T> struct Mutators<std::vector<T>>
 
     static auto& edit(std::vector<T>& arr, size_t index) { return arr[index]; } //NOLINT
 
-    template <typename TLambda> static void RemoveMatching(std::vector<T>& arr, TLambda&& lambda)
+    template <typename TLambda> static void RemoveMatching(std::vector<T>& arr, TLambda const& lambda)
     {
         for (auto it = arr.begin(); it != arr.end(); ++it)
         {

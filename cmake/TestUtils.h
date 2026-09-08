@@ -56,7 +56,7 @@ inline auto WriteStrResourse(std::vector<std::string> const& actualstring, std::
 {
     auto          outf = std::filesystem::absolute(std::string(resname) + ".txt");
     std::ofstream f(outf);
-    for (const auto& l : actualstring) { f << l << "\n"; }
+    for (auto const& l : actualstring) { f << l << "\n"; }
     return outf;
 }
 
@@ -64,10 +64,10 @@ inline auto WriteBinResourse(std::vector<std::string> const& actualstring, std::
 {
     auto          outf = std::filesystem::absolute(std::string(resname) + ".bin");
     std::ofstream f(outf, std::ios::binary);
-    for (const auto& l : actualstring)
+    for (auto const& l : actualstring)
     {
         size_t size = l.size();
-        f.write(reinterpret_cast<char const*>(&size), sizeof(size)); //NOLINT
+        f.write(reinterpret_cast<char const*>(&size), sizeof(size));    // NOLINT
         f.write(l.data(), static_cast<std::streamsize>(l.size()));
     }
     return outf;
@@ -78,7 +78,7 @@ inline auto WriteStrmResourse(std::string const& actualstring, std::string_view 
     auto          outf = std::filesystem::absolute(std::string(resname) + ".bin");
     std::ofstream f(outf, std::ios::binary);
     size_t        size = actualstring.size();
-    f.write(reinterpret_cast<char const*>(&size), sizeof(size));//NOLINT
+    f.write(reinterpret_cast<char const*>(&size), sizeof(size));    // NOLINT
     f.write(actualstring.data(), static_cast<std::streamsize>(actualstring.size()));
     return outf;
 }
@@ -100,8 +100,8 @@ inline void PrintLinesDiff(std::vector<std::string> const& actualstring, std::ve
     {
         if (actualstring[i] == expectedstring[i]) { continue; }
 
-        std::cout << "Line: " << i << " Expected: " << expectedstring[i] << std::endl;
-        std::cout << "Line: " << i << " Actual: " << actualstring[i] << std::endl;
+        std::cout << "Line: " << i << " Expected: " << expectedstring[i] << '\n';
+        std::cout << "Line: " << i << " Actual: " << actualstring[i] << '\n';
         std::cout << "Line: " << i << " Delta: ";
         dtl::Diff<char, std::string> ld(expectedstring[i], actualstring[i]);
         ld.compose();
@@ -118,7 +118,11 @@ inline void PrintLinesDiff(std::vector<std::string> const& actualstring, std::ve
             }
             if (sesobj.second.type == dtl::SES_COMMON)
             {
-                if (merged.size() > 0) deltas.push_back(std::move(merged));
+                if (!merged.empty())
+                {
+                    deltas.push_back(std::move(merged));
+                    merged = {};
+                }
             }
             else
             {
@@ -126,9 +130,9 @@ inline void PrintLinesDiff(std::vector<std::string> const& actualstring, std::ve
             }
             lasttype = sesobj.second.type;
         }
-        if (merged.size() > 0) deltas.push_back(std::move(merged));
+        if (!merged.empty()) deltas.push_back(std::move(merged));
         for (auto& delta : deltas) { std::cout << delta << " "; }
-        std::cout << std::endl;
+        std::cout << '\n';
     }
 }
 /*
@@ -170,14 +174,15 @@ inline std::string GeneratePrefixFromTestName()
 
 struct ResourceFileManager
 {
-
     ResourceFileManager() = default;
     ~ResourceFileManager()
     {
         for (auto const& [k, v] : openedfiles) { std::filesystem::remove(v); }
     }
 
-    auto Load(std::string const& name, std::string const& prefix)
+    CLASS_DELETE_COPY_AND_MOVE(ResourceFileManager);
+
+    auto Load(std::string const& name, std::string const& prefix) //NOLINT
     {
         auto testresname = GeneratePrefixFromTestName() + name;
 
@@ -203,6 +208,7 @@ struct ResourceFileManager
     }
     std::unordered_map<std::string, std::filesystem::path> openedfiles;
 };
+
 /*
 inline std::vector<std::string> LoadStrResource(std::string_view const& name)
 {
@@ -270,7 +276,7 @@ inline std::vector<std::string> ReadStrStream(std::istream& istr)
 inline auto ResplitLines(std::vector<std::string> const& actual)
 {
     std::stringstream ss;
-    for (const auto& line : actual) ss << line << '\n';
+    for (auto const& line : actual) ss << line << '\n';
     return TestCommon::ReadStrStream(ss);
 }
 
@@ -281,8 +287,8 @@ inline std::vector<std::string> ReadBinStream(std::istream& ss)
     ss.peek();
     while (!ss.eof())
     {
-        ss.read(reinterpret_cast<char*>(&size), sizeof(size));
-        if (size > 1024 * 1024) { return data; }
+        ss.read(reinterpret_cast<char*>(&size), sizeof(size));    // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+        if (size > size_t{1024u} * 1024u) { return data; }
         std::string line;
         line.resize(size);
         ss.read(line.data(), static_cast<std::streamsize>(size));
@@ -313,8 +319,8 @@ SUPPRESS_CLANG_WARNING("-Wmissing-noreturn")
 inline bool JsonStringEqual([[maybe_unused]] std::string const& lhs, [[maybe_unused]] std::string const& rhs)
 {
 #if ((defined HAVE_RAPIDJSON) && HAVE_RAPIDJSON)
-    rapidjson::Document doclhs;
-    rapidjson::Document docrhs;
+    rapidjson::Document doclhs{};
+    rapidjson::Document docrhs{};
     doclhs.Parse(lhs.c_str());
     docrhs.Parse(rhs.c_str());
     return doclhs == docrhs;
@@ -351,7 +357,7 @@ struct BinFormat
     static bool Compare(std::vector<std::string> const& actual, std::istream& ss) { return actual == ReadStream(ss); }
 };
 
-template <typename TFormat> inline bool _CheckResource(std::vector<std::string> const& actual, std::string_view const& resourcename)
+template <typename TFormat> inline bool CheckResource(std::vector<std::string> const& actual, std::string_view const& resourcename)
 {
     auto testresname = fmt::format("{}{}", GeneratePrefixFromTestName(), resourcename);
     for (auto const r : LOAD_RESOURCE_COLLECTION(testdata))
@@ -378,8 +384,8 @@ template <typename TFormat> inline bool _CheckResource(std::vector<std::string> 
     return false;
 }
 
-template <typename TFormat> inline void CheckResource(std::vector<std::string> const& actual, std::string_view const& resourcename)
-{ _CheckResource<TFormat>(actual, resourcename); }
+// template <typename TFormat> inline void CheckResource(std::vector<std::string> const& actual, std::string_view const& resourcename)
+//{ CheckResource<TFormat>(actual, resourcename); }
 #endif
 
 }    // namespace TestCommon
