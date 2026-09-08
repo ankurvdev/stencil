@@ -98,7 +98,7 @@ struct Primitives64Bit
     template <typename T> struct SignedTraits
     {
         static constexpr auto Type() { return Type::Of<T>(); }
-        static void           Assign(Primitives64Bit& obj, T const& val) { obj._val.i = val; }
+        static void           Assign(Primitives64Bit& obj, T const& val) { obj._val.i = val; }    // NOLINT(bugprone-signed-char-misuse)
         static auto const&    Get(Primitives64Bit const& obj) { return obj._val.i; }
         static T              Convert(int64_t val) { return static_cast<T>(val); }
         static int64_t        Repr(T const& val)

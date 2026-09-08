@@ -387,7 +387,7 @@ template <typename... Types> struct Selector
         if (T::Matches(std::forward<TArgs>(args)...))
         {
 
-            T::Invoke(std::forward<TArgs>(args)...);
+            T::Invoke(std::forward<TArgs>(args)...);    // NOLINT(bugprone-use-after-move)
             return true;
         }
         return false;
@@ -399,7 +399,7 @@ template <typename... Types> struct Selector
         if constexpr (sizeof...(Types) == 0) {}
         else
         {
-            auto result = (InvokeIfMatch<Types>(std::forward<TArgs>(args)...) || ...);
+            auto result = (InvokeIfMatch<Types>(std::forward<TArgs>(args)...) || ...);    // NOLINT(bugprone-use-after-move)
             if (result) return;
         }
         throw std::logic_error("Unexpected error. Unreachable code encountered. Did not match any selector");
@@ -988,7 +988,8 @@ struct WebServiceInterfaceImplT<TImpl, impl::SynchronizedState<T>> : impl::Synch
 
 template <ConceptIndexable TState> using WebSynchronizedState = impl::SynchronizedState<TState>;
 
-template <typename TImpl, typename... TServices> struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TServices>...
+template <typename TImpl, typename... TServices>
+struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TServices>...    // NOLINT(misc-multiple-inheritance)
 {
     using WebService = WebServiceT<TImpl, TServices...>;
 

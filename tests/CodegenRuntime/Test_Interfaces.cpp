@@ -77,7 +77,7 @@ struct HttpClientListener
         return true;
     }
     SUPPRESS_WARNINGS_END
-    void _SSEListener()
+    void SseListener()
     {
         bool reconnect = true;
         while (!stopRequested && reconnect)
@@ -232,7 +232,7 @@ struct HttpClientListener
         sseListener = std::thread([&] {
             try
             {
-                this->_SSEListener();
+                this->SseListener();
             } catch (std::exception const&) { fmt::print(stderr, "Exception caught in SSEListener\n"); }
         });
         std::unique_lock<std::mutex> guard(mutex);

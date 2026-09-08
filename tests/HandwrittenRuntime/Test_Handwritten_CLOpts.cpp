@@ -4,12 +4,15 @@
 
 #include <stencil/protocol_cli.h>
 
+namespace
+{
 struct TestCaseCLI
 {
     std::vector<std::string> args;
     std::string              desc;
     bool                     valid;
 };
+}    // namespace
 
 template <> struct fmt::formatter<TestCaseCLI> : fmt::formatter<std::string_view>
 {
@@ -52,7 +55,7 @@ template <typename T> static void RunTestCases(std::initializer_list<TestCaseCLI
     RunTestCase<T>({{}, "default-2", true}, lines, name);
     RunTestCase<T>({{"[]"}, "default-3", false}, lines, name);
     RunTestCase<T>({{"mismatched"}, "default-4", false}, lines, name);
-    for (const auto& tc : cases) { RunTestCase<T>(tc, lines, name); }
+    for (auto const& tc : cases) { RunTestCase<T>(tc, lines, name); }
     TestCommon::CheckResource<TestCommon::StrFormat>(lines, name);
 
     // CompareFileAgainstResource(logfname, reffname.string());
@@ -64,28 +67,31 @@ TEST_CASE("CLI", "[CLI]")
     { RunTestCases<TestObj>({}, "TestObj"); }
     SECTION("WithPrimitives64Bit")
     {
-        RunTestCases<WithPrimitives64Bit>({{.args={"--f1=-1"}, .desc="int64-1", .valid=true},
-                                           {.args={"--f2=-1"}, .desc="int16-1", .valid=true},
-                                           {.args={"--f3=1"}, .desc="uint64-1", .valid=true},
-                                           {.args={"--f4=a"}, .desc="char-1", .valid=true},
-                                           {.args={"--f5=0.1"}, .desc="double-1", .valid=true},
-                                           {.args={"--f6=0.1"}, .desc="float-1", .valid=true},
-                                           {.args={"--f7=true"}, .desc="bool-1", .valid=true},
-                                           {.args={"--f8=2012-04-23T18:25:43.511Z"}, .desc="time-1", .valid=true},
-                                           {.args={"--f9=100"}, .desc="time-2", .valid=true},},
-                                          "WithPrimitives64Bit");
+        RunTestCases<WithPrimitives64Bit>(
+            {
+                {.args = {"--f1=-1"}, .desc = "int64-1", .valid = true},
+                {.args = {"--f2=-1"}, .desc = "int16-1", .valid = true},
+                {.args = {"--f3=1"}, .desc = "uint64-1", .valid = true},
+                {.args = {"--f4=a"}, .desc = "char-1", .valid = true},
+                {.args = {"--f5=0.1"}, .desc = "double-1", .valid = true},
+                {.args = {"--f6=0.1"}, .desc = "float-1", .valid = true},
+                {.args = {"--f7=true"}, .desc = "bool-1", .valid = true},
+                {.args = {"--f8=2012-04-23T18:25:43.511Z"}, .desc = "time-1", .valid = true},
+                {.args = {"--f9=100"}, .desc = "time-2", .valid = true},
+            },
+            "WithPrimitives64Bit");
     }
 
     SECTION("ComplexPrimitives")
     {
         RunTestCases<ComplexPrimitives>(
             {
-                {.args={"--f1=01234567"}, .desc="char[8]", .valid=true},
-                {.args={"--f2=1"}, .desc="uint16[4]-1", .valid=true},
-                {.args={"--f2=65536"}, .desc="uint16[4]-2", .valid=true},
-                {.args={"--f2=1234567890123456"}, .desc="uint16[4]-3", .valid=true},
-                {.args={"--f2=0,1,2,3"}, .desc="uint16[4]-4", .valid=true},
-                {.args={"--f3=0.1,0.2"}, .desc="float[2]", .valid=true},
+                {.args = {"--f1=01234567"}, .desc = "char[8]", .valid = true},
+                {.args = {"--f2=1"}, .desc = "uint16[4]-1", .valid = true},
+                {.args = {"--f2=65536"}, .desc = "uint16[4]-2", .valid = true},
+                {.args = {"--f2=1234567890123456"}, .desc = "uint16[4]-3", .valid = true},
+                {.args = {"--f2=0,1,2,3"}, .desc = "uint16[4]-4", .valid = true},
+                {.args = {"--f3=0.1,0.2"}, .desc = "float[2]", .valid = true},
             },
             "ComplexPrimitives");
     }
@@ -94,10 +100,10 @@ TEST_CASE("CLI", "[CLI]")
     {
         RunTestCases<LargePrimitives>(
             {
-                {.args={"--f1=01234567"}, .desc="char[16]", .valid=true},
-                {.args={"--f2=0,1,2,3,4,5,6,7"}, .desc="uint16[8]", .valid=true},
-                {.args={"--f3=0.1,0.2,0.3,0.4"}, .desc="float[4]", .valid=true},
-                {.args={"--f4=01234567-8901-2345-6789-012345678901"}, .desc="uuid", .valid=true},
+                {.args = {"--f1=01234567"}, .desc = "char[16]", .valid = true},
+                {.args = {"--f2=0,1,2,3,4,5,6,7"}, .desc = "uint16[8]", .valid = true},
+                {.args = {"--f3=0.1,0.2,0.3,0.4"}, .desc = "float[4]", .valid = true},
+                {.args = {"--f4=01234567-8901-2345-6789-012345678901"}, .desc = "uuid", .valid = true},
             },
             "LargePrimitives");
     }
@@ -106,10 +112,10 @@ TEST_CASE("CLI", "[CLI]")
     {
         RunTestCases<WithBlobs>(
             {
-                {.args={"--f1=01234567"}, .desc="string", .valid=true},
-                {.args={"--f2=abcdef"}, .desc="wstring", .valid=true},
-                {.args={"--f3=0.1,0.2", "--f3=0.3,0.4"}, .desc="vec[double]", .valid=true},
-                {.args={"--f4=abc,def,ghi"}, .desc="vec[string]", .valid=true},
+                {.args = {"--f1=01234567"}, .desc = "string", .valid = true},
+                {.args = {"--f2=abcdef"}, .desc = "wstring", .valid = true},
+                {.args = {"--f3=0.1,0.2", "--f3=0.3,0.4"}, .desc = "vec[double]", .valid = true},
+                {.args = {"--f4=abc,def,ghi"}, .desc = "vec[string]", .valid = true},
             },
             "WithBlobs");
     }
@@ -118,15 +124,15 @@ TEST_CASE("CLI", "[CLI]")
     {
         RunTestCases<Nested>(
             {
-                {.args={"f1"}, .desc="WithPrimitives64Bit", .valid=true},
-                {.args={"f1", "--f1=1234"}, .desc="WithPrimitives64Bit", .valid=true},
-                {.args={"f2"}, .desc="WithBlobs", .valid=true},
-                {.args={"f2", "--f1=01234567}"}, .desc="WithBlobs", .valid=true},
-                {.args={"f3"}, .desc="WithPrimitives64Bit", .valid=true},
-                {.args={"f3", "--f1=1234"}, .desc="WithPrimitives64Bit", .valid=true},
-                {.args={"f4"}, .desc="vec[WithBlobs]", .valid=true},
-                {.args={"f4", "f1", "-", "f1", "-", "f1"}, .desc="vec[WithBlobs]", .valid=true},
-                {.args={"f4", "--f1=01234567", "-", "--f1=890124"}, .desc="vec[WithBlobs]", .valid=true},
+                {.args = {"f1"}, .desc = "WithPrimitives64Bit", .valid = true},
+                {.args = {"f1", "--f1=1234"}, .desc = "WithPrimitives64Bit", .valid = true},
+                {.args = {"f2"}, .desc = "WithBlobs", .valid = true},
+                {.args = {"f2", "--f1=01234567}"}, .desc = "WithBlobs", .valid = true},
+                {.args = {"f3"}, .desc = "WithPrimitives64Bit", .valid = true},
+                {.args = {"f3", "--f1=1234"}, .desc = "WithPrimitives64Bit", .valid = true},
+                {.args = {"f4"}, .desc = "vec[WithBlobs]", .valid = true},
+                {.args = {"f4", "f1", "-", "f1", "-", "f1"}, .desc = "vec[WithBlobs]", .valid = true},
+                {.args = {"f4", "--f1=01234567", "-", "--f1=890124"}, .desc = "vec[WithBlobs]", .valid = true},
             },
             "Nested");
     }
@@ -135,13 +141,17 @@ TEST_CASE("CLI", "[CLI]")
     {
         RunTestCases<MultiAttributed>(
             {
-                {.args={"timestamp", "2020-01-02:03:04:05.600", "f1"}, .desc="multi-attributed-1", .valid=true},
-                {.args={"timestamp", "bad-timestamp", "f1"}, .desc="multi-attributed-2", .valid=false},
-                {.args={"uuid", "{01234567-8901-2345-6789-012345678901}", "f1"}, .desc="multi-attributed-3", .valid=true},
-                {.args={"uuid", "01234567-8901-2345-6789-012345678901", "f1"}, .desc="multi-attributed-3", .valid=true},
-                {.args={"uuid", "0"}, .desc="multi-attributed-3", .valid=false},
-                {.args={"f1"}, .desc="multi-attributed-3", .valid=true},
-                {.args={"timestamp", "2020-01-02:03:04:05.600", "uuid", "01234567-8901-2345-6789-012345678901", "f1"}, .desc="", .valid=true},
+                {.args = {"timestamp", "2020-01-02:03:04:05.600", "f1"}, .desc = "multi-attributed-1", .valid = true},
+                {.args = {"timestamp", "bad-timestamp", "f1"}, .desc = "multi-attributed-2", .valid = false},
+                {.args = {"uuid", "{01234567-8901-2345-6789-012345678901}", "f1"}, .desc = "multi-attributed-3", .valid = true},
+                {.args = {"uuid", "01234567-8901-2345-6789-012345678901", "f1"}, .desc = "multi-attributed-3", .valid = true},
+                {.args = {"uuid", "0"}, .desc = "multi-attributed-3", .valid = false},
+                {.args = {"f1"}, .desc = "multi-attributed-3", .valid = true},
+                {
+                    .args  = {"timestamp", "2020-01-02:03:04:05.600", "uuid", "01234567-8901-2345-6789-012345678901", "f1"},
+                    .desc  = "",
+                    .valid = true,
+                },
             },
             "MultiAttributed");
     }
@@ -180,12 +190,12 @@ TEST_CASE("CLI", "[CLI]")
     {
         RunTestCases<NamedVariant>(
             {
-                {.args={"f1", "f1", "--f1=1"}, .desc="0", .valid=true},
-                {.args={"f2", "f1", "--f1=2"}, .desc="1", .valid=true},
-                {.args={"f3", "--f1=3"}, .desc="2", .valid=true},
-                {.args={"f4", "--f1=4"}, .desc="3", .valid=true},
-                {.args={"f5", "0.1234"}, .desc="4", .valid=true},
-                {.args={"f6", "abcd"}, .desc="5", .valid=true},
+                {.args = {"f1", "f1", "--f1=1"}, .desc = "0", .valid = true},
+                {.args = {"f2", "f1", "--f1=2"}, .desc = "1", .valid = true},
+                {.args = {"f3", "--f1=3"}, .desc = "2", .valid = true},
+                {.args = {"f4", "--f1=4"}, .desc = "3", .valid = true},
+                {.args = {"f5", "0.1234"}, .desc = "4", .valid = true},
+                {.args = {"f6", "abcd"}, .desc = "5", .valid = true},
 
             },
             "NamedVariant");
