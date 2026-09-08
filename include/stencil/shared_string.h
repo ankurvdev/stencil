@@ -182,7 +182,7 @@ inline shared_wstring shared_string_to_wstring(shared_string const& str)
     if (str.empty()) return nullptr;
     std::wstring out;
     out.reserve(str.size());
-    std::transform(str.begin(), str.end(), out.begin(), [](auto const a) { return static_cast<wchar_t>(a); });
+    std::ranges::transform(str, out.begin(), [](auto const a) { return static_cast<wchar_t>(a); });
     return shared_wstring::make(std::move(out));
 }
 
