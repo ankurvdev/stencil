@@ -14,6 +14,7 @@ SUPPRESS_FMT_WARNINGS
 SUPPRESS_WARNINGS_END
 #endif
 
+// NOLINTBEGIN(readability-identifier-naming)
 namespace std
 {
 inline std::string to_string(std::wstring_view str)
@@ -218,3 +219,4 @@ template <> struct fmt::formatter<shared_string> : fmt::formatter<std::string_vi
 };
 
 #endif
+// NOLINTEND(readability-identifier-naming)

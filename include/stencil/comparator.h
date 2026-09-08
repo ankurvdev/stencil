@@ -30,9 +30,9 @@ template <typename T> struct Comparator<std::vector<T>, std::vector<T>>
     }
 };
 
-template <typename T> struct Comparator<shared_tree<T>, shared_tree<T>>
+template <typename T> struct Comparator<SharedTree<T>, SharedTree<T>>
 {
-    [[noreturn]] static bool AreEqual(shared_tree<T> const& /* t1 */, shared_tree<T> const& /* t2 */)
+    [[noreturn]] static bool AreEqual(SharedTree<T> const& /* t1 */, SharedTree<T> const& /* t2 */)
     {
         throw std::logic_error("Not implemented");
     }

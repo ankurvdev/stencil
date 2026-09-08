@@ -45,7 +45,7 @@ template <ConceptEnum T> struct SerDes<T, ProtocolString>
 
     template <typename TContext> static auto Read(T& obj, TContext& ctx)
     {
-        using EnumTrait = typename Stencil::EnumTraits<T>;
+        using EnumTrait = Stencil::EnumTraits<T>;
 
         for (size_t i = 0; i < std::size(EnumTrait::Names); i++)
         {
@@ -140,7 +140,7 @@ template <size_t N> struct SerDes<std::array<char, N>, ProtocolString>
     {
         auto str       = std::string_view(obj.data(), obj.size());
         auto nullindex = str.find(char{0}, 0);
-        if (nullindex == str.npos) { fmt::print(ctx, "{}", str); }
+        if (nullindex == std::string_view::npos) { fmt::print(ctx, "{}", str); }
         else if (nullindex == 0) { fmt::print(ctx, "null"); }
         else
         {

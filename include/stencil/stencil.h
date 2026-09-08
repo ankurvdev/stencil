@@ -13,4 +13,3 @@
 
 #include "database.h"
 #include "ref.h"
-#include "shared_tree.h"

@@ -1,6 +1,7 @@
 #pragma once
 #include <list>
 #include <memory>
+#include <stdexcept>
 // NOLINTBEGIN(readability-identifier-naming)
 template <typename T> struct tree
 {
@@ -8,13 +9,14 @@ template <typename T> struct tree
     {
         explicit Node(T&& val) : data(std::move(val)) {}
         Node(Node const&)            = delete;
-        Node()                        = delete;
+        Node()                       = delete;
+        ~Node()                      = default;
         Node& operator=(Node const&) = delete;
 
         Node(Node&& r)            = default;
         Node& operator=(Node&& r) = default;
 
-        T      data;
+        T     data;
         Node* firstchild{};
         Node* lastchild{};
         Node* nextsibling{};
@@ -30,6 +32,7 @@ template <typename T> struct tree
     tree& operator=(tree const& r) = delete;
     tree(tree&&)                   = default;
     tree& operator=(tree&&)        = default;
+    ~tree()                        = default;
 
     [[noreturn]] tree<T> clone() const { throw std::logic_error("Not implemented"); }
     // tree(tree&& obj) { std::swap(_nodes, obj._nodes); }
@@ -54,7 +57,7 @@ template <typename T> struct tree
 
         iterator() = default;
         explicit iterator(Node* node LFTBND) : _current(node), _parent(node == nullptr ? nullptr : node->parent) {}
-        iterator(Node* cur LFTBND, Node* par LFTBND)  : _current(cur), _parent(par) {}
+        iterator(Node* cur LFTBND, Node* par LFTBND) : _current(cur), _parent(par) {}
 
         Node* _current{nullptr};
         Node* _parent{nullptr};
@@ -70,18 +73,17 @@ template <typename T> struct tree
         [[nodiscard]] auto end() const { return _end; }
     };
 
-    [[nodiscard]] iterator rootbegin() const LFTBND { return _nodes.size() == 0 ? iterator::end() : iterator::create(_nodes.front().get()); }
+    [[nodiscard]] iterator rootbegin() const LFTBND
+    { return _nodes.size() == 0 ? iterator::end() : iterator::create(_nodes.front().get()); }
     [[nodiscard]] iterator rootend() const { return iterator::end(); }
 
     [[nodiscard]] range<iterator> children(iterator it) const
-    {
-        return range<iterator>{iterator{it._current->firstchild, it._current}, iterator{nullptr, it._current}};
-    }
+    { return range<iterator>{iterator{it._current->firstchild, it._current}, iterator{nullptr, it._current}}; }
 
     // Insert after last child
     iterator addchild(iterator it, T&& data) LFTBND
     {
-        auto item = std::make_unique<Node>(std::forward<T>(data));
+        auto item = std::make_unique<Node>(std::move(data));
         if (it != iterator::end())
         {
             auto parent       = it._current;
@@ -110,7 +112,7 @@ template <typename T> struct tree
     {
         if (it == iterator::end()) { throw std::logic_error("Add Sibling on last not allowed"); }
 
-        auto item = std::make_unique<Node>(std::forward<T>(data));
+        auto item = std::make_unique<Node>(std::move(data));
 
         auto crnt = it._current;
         auto prnt = crnt->parent;

@@ -6,7 +6,7 @@
 #include <utility>
 #include <variant>
 
-//NOLINTBEGIN(readability-identifier-naming)
+// NOLINTBEGIN(readability-identifier-naming,misc-multiple-inheritance,bugprone-unchecked-optional-access )
 
 namespace std
 {
@@ -20,7 +20,7 @@ template <typename TStr1, typename TStr2> bool iequals(TStr1 const& str1, TStr2 
 namespace IDL::Lang::Thrift
 {
 template <typename T> using StrOps = Binding::StrOps<T>;
-using                          Binding::Str;
+using Binding::Str;
 class Context;
 struct Field;
 struct InterfaceFunction;
@@ -69,7 +69,7 @@ class Context
 {
     public:
     Context(IDL::Program& p LFTBND, TypeDefinitions& t LFTBND) : program(p), typeDefinitions(t) { typeDefinitions.LoadIntoProgram(p); }
-
+    ~Context() = default;
     CLASS_ONLY_MOVE_CONSTRUCT(Context);
 
     struct ExceptionInfo
@@ -79,13 +79,13 @@ class Context
         std::string msg;
     };
     static bool Debug() { return false; }
-    void InitializeModelDataSources(std::wstring_view const& datasource) { program.InitializeModelDataSources(datasource); }
-    void LoadFile(std::filesystem::path const& fpath);
-    void Import(Str::View const& file);
-    void NotifyError(int line, int col, std::string const& msg) { errors.push_back(ExceptionInfo{.line=line, .col=col, .msg=msg}); }
+    void        InitializeModelDataSources(std::wstring_view const& datasource) { program.InitializeModelDataSources(datasource); }
+    void        LoadFile(std::filesystem::path const& fpath);
+    void        Import(Str::View const& file);
+    void NotifyError(int line, int col, std::string const& msg) { errors.push_back(ExceptionInfo{.line = line, .col = col, .msg = msg}); }
 
-    IDL::Program&              program;
-    TypeDefinitions&           typeDefinitions;
+    IDL::Program&              program;            // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+    TypeDefinitions&           typeDefinitions;    // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
     Str::Type                  filename;
     std::vector<ExceptionInfo> errors;
 };
@@ -119,7 +119,11 @@ struct InterfaceFunction
     TypeAttributeList m_Attributes;
     InterfaceFunction() = default;
     InterfaceFunction(Str::View const& isStatic, FieldType retType, Str::Type& name, FieldList& fields, TypeAttributeList& map) :
-        m_Name(std::move(name)), m_isStatic(!Str::IsEmpty(isStatic)), m_ReturnType(std::move(std::move(retType))), m_Fields(std::move(fields)), m_Attributes(map)
+        m_Name(std::move(name)),
+        m_isStatic(!Str::IsEmpty(isStatic)),
+        m_ReturnType(std::move(std::move(retType))),
+        m_Fields(std::move(fields)),
+        m_Attributes(map)
     {}
 };
 
@@ -145,10 +149,8 @@ struct InterfaceObjectStore
     {}
 };
 
-inline std::shared_ptr<IDL::Typedef> CreateTypedef(Context& context, FieldType fieldType, Str::Type& name, const TypeAttributeList& map)
-{
-    return context.program.CreateFieldTypeObject<IDL::Typedef>(std::move(name), fieldType.value(), map);
-}
+inline std::shared_ptr<IDL::Typedef> CreateTypedef(Context& context, FieldType fieldType, Str::Type& name, TypeAttributeList const& map)
+{ return context.program.CreateFieldTypeObject<IDL::Typedef>(std::move(name), fieldType.value() /*NOLINT*/, map); }
 
 inline std::shared_ptr<IDL::Enum> CreateEnum(Context& context, Str::Type& name, EnumValueList& enumvalues, TypeAttributeList& map)
 {
@@ -158,9 +160,7 @@ inline std::shared_ptr<IDL::Enum> CreateEnum(Context& context, Str::Type& name, 
 }
 
 inline EnumValue CreateEnumValue(Context& /*context*/, Str::Type& name, uint64_t value = std::numeric_limits<uint64_t>::max())
-{
-    return {name, value};
-}
+{ return {name, value}; }
 
 std::shared_ptr<IDL::Struct> CreateStruct(Context& context, Str::Type& name);
 
@@ -174,7 +174,7 @@ struct StrValueType : public Binding::ValueT<Binding::Type::String>, public std:
 {
     explicit StrValueType(Str::Type&& value) : _value(std::move(value)) {}
     Str::Type const& GetString() LFTBND override { return _value; }
-    Str::Type                _value;
+    Str::Type        _value;
 };
 
 inline std::shared_ptr<IDLGenerics::IFieldType> CreateArrayType(Context& context, FieldType& field, int count, TypeAttributeList& map)
@@ -206,9 +206,7 @@ CreateContainerType(Context& context, Str::Type& id, FieldTypeList& fields, Type
 }
 
 inline std::shared_ptr<IDLGenerics::IFieldType> FindFieldType(Context& context, Str::Type& name)
-{
-    return context.program.GetFieldTypeName(std::move(name));
-}
+{ return context.program.GetFieldTypeName(std::move(name)); }
 
 inline TypeAttributeList CreateAttributeMapEntry(TypeAttributeList ptr, TypeAttribute& entry)
 {
@@ -230,10 +228,7 @@ CreateInterface(Context& context, Str::Type& name, Interface& /*base*/, Interfac
         {
             auto f          = std::get<InterfaceFunction>(m);
             auto argsstruct = iface->CreateStorageObject<IDL::FunctionArgs>(Str::Copy(f.m_Name), nullptr);
-            for (auto& a : f.m_Fields)
-            {
-                argsstruct->CreateField(a.m_FieldType.value(), std::move(a.m_Id), a.m_FieldValue, a.m_AttributeMap);
-            }
+            for (auto& a : f.m_Fields) { argsstruct->CreateField(a.m_FieldType.value(), a.m_Id, a.m_FieldValue, a.m_AttributeMap); }
 
             iface->CreateNamedObject<IDL::InterfaceFunction>(std::move(f.m_Name), f.m_ReturnType.value(), std::move(argsstruct));
         }
@@ -242,10 +237,7 @@ CreateInterface(Context& context, Str::Type& name, Interface& /*base*/, Interfac
         {
             auto e          = std::get<InterfaceEvent>(m);
             auto argsstruct = iface->CreateStorageObject<IDL::FunctionArgs>(Str::Copy(e.m_Name), nullptr);
-            for (auto& a : e.m_Fields)
-            {
-                argsstruct->CreateField(a.m_FieldType.value(), std::move(a.m_Id), a.m_FieldValue, a.m_AttributeMap);
-            }
+            for (auto& a : e.m_Fields) { argsstruct->CreateField(a.m_FieldType.value(), a.m_Id, a.m_FieldValue, a.m_AttributeMap); }
 
             iface->CreateNamedObject<IDL::InterfaceEvent>(std::move(e.m_Name), std::move(argsstruct));
         }
@@ -263,23 +255,15 @@ CreateInterface(Context& context, Str::Type& name, Interface& /*base*/, Interfac
 }
 
 [[noreturn]] inline Interface FindInterface(Context& /*program*/, Str::Type& /*name*/)
-{
-    TODO();
-}
+{ TODO(); }
 
 inline ConstValue CreateConstValue(int value)
-{
-    return std::make_shared<IDL::PrimitiveConstValue>(Primitives64Bit{value});
-}
+{ return std::make_shared<IDL::PrimitiveConstValue>(Primitives64Bit{value}); }
 inline ConstValue CreateConstValue(double value)
-{
-    return std::make_shared<IDL::PrimitiveConstValue>(Primitives64Bit{value});
-}
+{ return std::make_shared<IDL::PrimitiveConstValue>(Primitives64Bit{value}); }
 inline ConstValue CreateConstValue(Str::Type&& value)
-{
-    return std::make_shared<IDL::PrimitiveConstValue>(std::move(value));
-}
-inline ConstValue FindConstValue(Context& context, Str::Type&& name)
+{ return std::make_shared<IDL::PrimitiveConstValue>(std::move(value)); }
+inline ConstValue FindConstValue(Context& context, Str::Type const& name)
 {
     if (Str::IEqual(name, Str::Create(L"null"))) return nullptr;
     auto dotindex = name.find('.');
@@ -289,39 +273,25 @@ inline ConstValue FindConstValue(Context& context, Str::Type&& name)
         auto& enumval  = enumtype.Lookup<IDL::EnumValue>(name.substr(dotindex + 1));
         return enumval.shared_from_this();
     }
-    
-    
-        return context.program.Lookup<IDL::NamedConst>(name).shared_from_this();
-    
+
+    return context.program.Lookup<IDL::NamedConst>(name).shared_from_this();
 
     // throw std::logic_error("Not Implement. Named Keyword (%s). Const Values not yet supported" /*, name.c_str()*/);
 }
-[[noreturn]] inline ConstValue CreateConstValue(ConstValueList&& /*value*/)
-{
-    throw std::logic_error("Not Implement. List Const Values not yet supported");
-}
-[[noreturn]] inline ConstValue CreateConstValue(ConstValueDict&& /*value*/)
-{
-    throw std::logic_error("Not Implement. Map Const Values not yet supported");
-}
-[[noreturn]] inline ConstValueList ConstValueAddValue(ConstValueList&& /*vec*/, ConstValue&& /*value*/)
-{
-    throw std::logic_error("Not Implement. List Const Values not yet supported");
-}
+[[noreturn]] inline ConstValue CreateConstValue(ConstValueList&& /*value*/) //NOLINT
+{ throw std::logic_error("Not Implement. List Const Values not yet supported"); }
+[[noreturn]] inline ConstValue CreateConstValue(ConstValueDict&& /*value*/)//NOLINT
+{ throw std::logic_error("Not Implement. Map Const Values not yet supported"); }
+[[noreturn]] inline ConstValueList ConstValueAddValue(ConstValueList&& /*vec*/, ConstValue&& /*value*/)//NOLINT
+{ throw std::logic_error("Not Implement. List Const Values not yet supported"); }
 
-[[noreturn]] inline ConstValueDict ConstValueAddValue(ConstValueDict&& /*vec*/, ConstValue&& /*key*/, ConstValue&& /*value*/)
-{
-    throw std::logic_error("Not Implement. Map Const Values not yet supported");
-}
+[[noreturn]] inline ConstValueDict ConstValueAddValue(ConstValueDict&& /*vec*/, ConstValue&& /*key*/, ConstValue&& /*value*/)//NOLINT
+{ throw std::logic_error("Not Implement. Map Const Values not yet supported"); }
 
 inline ConstValue CreateDefaultConstValue()
-{
-    return std::make_shared<IDL::PrimitiveConstValue>();
-}
+{ return std::make_shared<IDL::PrimitiveConstValue>(); }
 
 inline auto CreateNamedConst(Context& context, FieldType& fieldType, Str::Type& name, ConstValue& val)
-{
-    return context.program.CreateNamedObject<IDL::NamedConst>(fieldType.value(), std::move(name), val);
-}
+{ return context.program.CreateNamedObject<IDL::NamedConst>(fieldType.value(), std::move(name), val); }
 }    // namespace IDL::Lang::Thrift
-//NOLINTEND(readability-identifier-naming)
+// NOLINTEND(readability-identifier-naming, misc-multiple-inheritance, bugprone-unchecked-optional-access)

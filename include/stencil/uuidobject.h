@@ -1,5 +1,6 @@
 #pragma once
 #include "typetraits.h"
+#include <algorithm>
 #include <span>
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
@@ -18,7 +19,7 @@ template <typename T> struct UuidBasedId
         UuidBasedId<T>     uuid;
         std::random_device rd;
         auto               seed_data = std::array<unsigned, std::mt19937::state_size>{};
-        std::generate(std::begin(seed_data), std::end(seed_data), std::ref(rd));
+        std::ranges::generate(seed_data, std::ref(rd));
         std::seed_seq                seq(std::begin(seed_data), std::end(seed_data));
         std::mt19937                 generator(seq);
         uuids::uuid_random_generator gen{generator};
@@ -37,7 +38,7 @@ template <typename T> struct UuidBasedId
 
     uuids::uuid uuid;
 
-    constexpr bool                  Empty() const { return uuid == Invalid().uuid; }
+    [[nodiscard]] constexpr bool                  Empty() const { return uuid == Invalid().uuid; }
     static constexpr UuidBasedId<T> Invalid() { return UuidBasedId<T>(); }
 
     auto operator==(UuidBasedId<T> const& t) const { return uuid == t.uuid; }
@@ -50,7 +51,7 @@ template <typename T> struct UuidBasedId
 template <typename T> struct UuidObjectT
 {
     using Id = UuidBasedId<T>;
-    UuidObjectT() {}
+    UuidObjectT() = default;
     Id id = Id::Create();
 };
 

@@ -22,9 +22,7 @@ namespace IDLDebug
 struct ErrorAggregator
 {
     void AddContextInfo(size_t indent, std::wstring_view const& what, std::wstring_view const& str)
-    {
-        _lines.push_back(fmt::format(L"{:\t>{}}[{}]\t{}", L"", indent, what, str));
-    }
+    { _lines.push_back(fmt::format(L"{:\t>{}}[{}]\t{}", L"", indent, what, str)); }
     void Clear() { _lines.clear(); }
 
     std::wstring GetErrors()
@@ -52,6 +50,7 @@ struct ErrorAggregator
         GetPtr_() = nullptr;
         if (std::uncaught_exceptions() > 0) { std::wcerr << GetErrors(); }
     }
+    CLASS_DELETE_COPY_AND_MOVE(ErrorAggregator);
 
     private:
     static ErrorAggregator*& GetPtr_()
@@ -72,12 +71,14 @@ struct ErrorAggregator
 
 struct ThreadActionContextImpl
 {
-    ThreadActionContextImpl(std::wstring_view const& whatIn, std::function<std::wstring()>&& funcIn) : what(whatIn), func(std::move(funcIn)) {}
+    ThreadActionContextImpl(std::wstring_view const& whatIn, std::function<std::wstring()>&& funcIn) : what(whatIn), func(std::move(funcIn))
+    {}
     ~ThreadActionContextImpl()
     {
         if (std::uncaught_exceptions() > 0) { ErrorAggregator::Get_().AddContextInfo(indent, what, func()); }
         ErrorAggregator::Get_().Decr();
     }
+    CLASS_DELETE_COPY_AND_MOVE(ThreadActionContextImpl);
 
     size_t                        indent = ErrorAggregator::Get_().Incr();
     std::wstring_view             what;
@@ -85,9 +86,7 @@ struct ThreadActionContextImpl
 };
 
 inline auto ThreadActionContext(std::wstring_view const& what, std::function<std::wstring()>&& func)
-{
-    return ThreadActionContextImpl(what, std::move(func));
-}
+{ return ThreadActionContextImpl(what, std::move(func)); }
 
 struct DebugContext
 {
@@ -105,10 +104,10 @@ struct DebugContext
 
 }    // namespace IDLDebug
 
-#define ACTION_CONTEXT_IMPL1(line, file, fnname, fn) auto actionctxvar_##line = IDLDebug::ThreadActionContextImpl(L##file fnname, (fn))
-#define ACTION_CONTEXT_IMPL2(line, file, fnname, fn) ACTION_CONTEXT_IMPL1(line, file, fnname, fn)
+#define ACTION_CONTEXT_IMPL1(line, file, fnname, fn) auto actionctxvar_##line = IDLDebug::ThreadActionContextImpl(L##file fnname, (fn)) //NOLINT
+#define ACTION_CONTEXT_IMPL2(line, file, fnname, fn) ACTION_CONTEXT_IMPL1(line, file, fnname, fn) //NOLINT
 #ifdef _MSC_VER
 #define ACTION_CONTEXT(fn) ACTION_CONTEXT_IMPL2(__LINE__, __FILE__, __FUNCTION__, fn)
 #else
-#define ACTION_CONTEXT(fn) ACTION_CONTEXT_IMPL2(__LINE__, __FILE__, "", fn)
+#define ACTION_CONTEXT(fn) ACTION_CONTEXT_IMPL2(__LINE__, __FILE__, "", fn) //NOLINT
 #endif

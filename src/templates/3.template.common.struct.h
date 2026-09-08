@@ -5,13 +5,9 @@ int const zzStruct_Idzz    = 0;
 int const zzVariant_Idzz   = 0;
 
 struct zzFieldType_NativeTypezz
-{
-    int a;
-};
+{ int a; };
 struct zzChildFieldType_NativeTypezz
-{
-    int a;
-};
+{ int a; };
 struct zzReturnType_NativeTypezz
 {};
 
@@ -21,9 +17,9 @@ struct zzReturnType_NativeTypezz
 //<Import>
 #include "zzNamezz.pidl.h"
 //</Import>
-
+// NOLINTBEGIN(readability-identifier-naming, readability-redundant-member-init, bugprone-branch-clone)
 // SECTION START: DECLARATIONS
-#if true
+#pragma region Declarations
 
 namespace zzProgram_Namezz
 {
@@ -60,12 +56,11 @@ template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz_Obje
 //</InterfaceObjectStore>
 
 //</Interface>
-
-#endif
+#pragma endregion Declarations
 // SECTION END: DECLARATIONS
 
 // SECTION START: Definitions
-#if true
+#pragma region Definitions
 namespace zzProgram_Namezz
 {
 //<Typedef>
@@ -75,8 +70,8 @@ typedef zzChildFieldType_NativeTypezz zzNamezz;
 //<Enum>
 enum class zzNamezz
 {
-    //<EnumValue Join=','>
-    zzEnumValue_Namezz
+    //<EnumValue>
+    zzEnumValue_Namezz,
     //</EnumValue>
 };
 //</Enum>
@@ -116,8 +111,8 @@ struct zzVariant_Namezz : public Stencil::VariantT<zzVariant_Namezz>
     enum class VariantType
     {
         Invalid,
-        //<Field Join=','>
-        zzNamezz
+        //<Field>
+        zzNamezz,
         //</Field>
     };
 
@@ -156,13 +151,12 @@ struct zzInterface_Namezz_ObjectStore_zzNamezz : zzObjectType_NativeTypezz    //
 //</Interface>
 
 }    // namespace zzProgram_Namezz
-#endif
+#pragma endregion Definitions
 
 // SECTION END: Definitions
 
 // SECTION START: Template specializations
-#if true
-
+#pragma region TemplateSpecializations
 // SECTION:
 
 //<Enum>
@@ -171,10 +165,11 @@ template <> struct Stencil::EnumTraits<zzProgram_Namezz::zzNamezz>
     using Enum = zzProgram_Namezz::zzNamezz;
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
-    static constexpr std::string_view Names[] = {
+    static constexpr std::string_view Names[] /* NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)*/ = {
+
         "Invalid",
-        //<EnumValue Join=','>
-        "zzEnumValue_Namezz"
+        //<EnumValue>
+        "zzEnumValue_Namezz",
         //</EnumValue>
     };
 
@@ -197,8 +192,8 @@ template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Na
     enum class Fields
     {
         Invalid,
-        //<Field Join=','>
-        Field_zzNamezz
+        //<Field>
+        Field_zzNamezz,
         //</Field>
     };
 
@@ -251,9 +246,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruc
     using T      = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Field_zzField_NamezzT;
 
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
-    {
-        ctx << static_cast<uint32_t>(Fields::Field_zzNamezz);
-    }
+    { ctx << static_cast<uint32_t>(Fields::Field_zzNamezz); }
 
     template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
@@ -288,19 +281,17 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram
     using Enum = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields;
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
-    static constexpr std::string_view Names[] = {
+    static constexpr std::string_view Names[] /* NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)*/ = {
         "Invalid",
-        //<Field Join=','>
-        "zzNamezz"
+        //<Field>
+        "zzNamezz",
         //</Field>
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
     SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields ForIndex(size_t index)
-    {
-        return static_cast<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields>(index);
-    }
+    { return static_cast<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields>(index); }
 };
 
 template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TContainer>
@@ -310,9 +301,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
     using Fields = Traits::Fields;
 
     struct ElemTxnState
-    {
-        Fields field;
-    };
+    { Fields field; };
 
     struct TxnStateForElem
     {
@@ -324,7 +313,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
     using Txn               = Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TContainer>;
     using View              = Stencil::TransactionView<zzProgram_Namezz::zzStruct_Namezz, typename TContainer::View>;
     using ElemType          = zzProgram_Namezz::zzStruct_Namezz;
-    using ContainerTxnState = typename TContainer::ElemTxnState;
+    using ContainerTxnState = TContainer::ElemTxnState;
 
     //<Field>
     using Transaction_zzNamezz = Stencil::Transaction<zzFieldType_NativeTypezz, Txn>;
@@ -335,7 +324,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
         std::bitset<64> assigntracker;
         std::bitset<64> edittracker;
         //<Field>
-        typename Transaction_zzNamezz::TxnState zzNamezz{};
+        Transaction_zzNamezz::TxnState zzNamezz{};
         //</Field>
     };
 
@@ -348,7 +337,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
         if (IsChanged())
         {
             Stencil::TimestampedT<ElemType>::UpdateTimestamp(_elem);
-            _container.NotifyElementEdited_(_containerState);
+            _container.NotifyElementEdited(_containerState);
         }
     }
 
@@ -366,13 +355,13 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
 
     size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
 
-    void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
+    void NotifyElementAssigned(ElemTxnState const& elemTxnState)
     {
         _MarkFieldAssigned(elemTxnState.field);
         Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
     }
 
-    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+    void NotifyElementEdited(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
 
     bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
@@ -381,7 +370,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
     {
         // if (Stencil::AreEqual(_elem, elem)) return;
         std::swap(_elem, elem);
-        _container.NotifyElementAssigned_(_containerState);
+        _container.NotifyElementAssigned(_containerState);
     }
 
     // void Assign(ElemType const& /* elem */);
@@ -399,9 +388,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
     public:
     //<Field>
     auto zzNamezz() LFTBND
-    {
-        return Stencil::CreateTransaction<Transaction_zzNamezz>(_elemState.zzNamezz, _txnStateForElem.zzNamezz, *this, _elem.zzNamezz);
-    }
+    { return Stencil::CreateTransaction<Transaction_zzNamezz>(_elemState.zzNamezz, _txnStateForElem.zzNamezz, *this, _elem.zzNamezz); }
     //</Field>
     //<Field>
     void set_zzNamezz(zzFieldType_NativeTypezz&& val)
@@ -437,9 +424,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
     }
 
     template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
-    {
-        return Edit(index, std::forward<TLambda>(lambda));
-    }
+    { return Edit(index, std::forward<TLambda>(lambda)); }
 
     template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
     {
@@ -460,13 +445,16 @@ template <Stencil::ConceptTransactionView TContainer> struct Stencil::Transactio
     using Txn               = Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, typename TContainer::Txn>;
     using View              = Stencil::TransactionView<zzProgram_Namezz::zzStruct_Namezz, TContainer>;
     using ElemType          = zzProgram_Namezz::zzStruct_Namezz;
-    using ContainerTxnState = typename TContainer::ElemTxnState;
+    using ContainerTxnState = TContainer::ElemTxnState;
 
     using ElemTxnState    = Txn::ElemTxnState;
     using TxnState        = Txn::TxnState;
     using TxnStateForElem = Txn::TxnStateForElem;
 
-    TransactionView(TxnState const& elemState LFTBND, ContainerTxnState const& containerState LFTBND, TContainer const& container LFTBND, ElemType const& elem LFTBND) :
+    TransactionView(TxnState const& elemState               LFTBND,
+                    ContainerTxnState const& containerState LFTBND,
+                    TContainer const& container             LFTBND,
+                    ElemType const& elem                    LFTBND) :
         _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
     {}
 
@@ -691,8 +679,7 @@ struct zzInterface_Namezz
             //<Args_Field Join=','>
             zzFieldType_NativeTypezz const& zzNamezz
             //</Args_Field>
-            )
-            = 0;
+            ) = 0;
         //</InterfaceFunction>
     };
 
@@ -776,8 +763,8 @@ template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface
     enum class Fields
     {
         Invalid,
-        //<Args_Field Join=','>
-        arg_zzNamezz
+        //<Args_Field>
+        arg_zzNamezz,
         //</Args_Field>
     };
 
@@ -798,10 +785,10 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzI
     using Enum = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>::Fields;
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
-    static constexpr std::string_view Names[] = {
+    static constexpr std::string_view Names[] /* NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)*/ = {
         "Invalid",
-        //<Args_Field Join=','>
-        "zzNamezz"
+        //<Args_Field>
+        "zzNamezz",
         //</Args_Field>
     };
 
@@ -896,8 +883,8 @@ template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface
     enum class Fields
     {
         Invalid,
-        //<Args_Field Join=','>
-        arg_zzNamezz
+        //<Args_Field>
+        arg_zzNamezz,
         //</Args_Field>
     };
 
@@ -919,10 +906,10 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzI
     using Enum = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>::Fields;
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
-    static constexpr std::string_view Names[] = {
+    static constexpr std::string_view Names[] /* NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)*/ = {
         "Invalid",
-        //<Args_Field Join=','>
-        "zzNamezz"
+        //<Args_Field>
+        "zzNamezz",
         //</Args_Field>
     };
 
@@ -1101,19 +1088,17 @@ template <> struct Stencil::EnumTraits<zzProgram_Namezz::zzVariant_Namezz::Varia
     using Enum = zzProgram_Namezz::zzVariant_Namezz::VariantType;
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
-    static constexpr std::string_view Names[] = {
+    static constexpr std::string_view Names[] /* NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)*/ = {
         "Invalid",
-        //<Field Join=','>
-        "zzNamezz"
+        //<Field>
+        "zzNamezz",
         //</Field>
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
     SUPPRESS_WARNINGS_END
     static zzProgram_Namezz::zzVariant_Namezz::VariantType ForIndex(size_t index)
-    {
-        return static_cast<zzProgram_Namezz::zzVariant_Namezz::VariantType>(index);
-    }
+    { return static_cast<zzProgram_Namezz::zzVariant_Namezz::VariantType>(index); }
 };
 
 template <> struct Stencil::Visitor<zzProgram_Namezz::zzVariant_Namezz>
@@ -1229,12 +1214,15 @@ template <> struct Stencil::VisitorForVariant<zzProgram_Namezz::zzVariant_Namezz
     }
 };
 //</Variant>
-#endif
+#pragma endregion TemplateSpecializations
+
 // SECTION END: Template specializations
 
 // SECTION START: Inline Function Definitions
-#if true
+#pragma region InlineFunctionDefinitions
 
-#endif
+#pragma endregion
 // SECTION END: Inline Function Definitions
+
+// NOLINTEND(readability-identifier-naming, readability-redundant-member-init, bugprone-branch-clone)
 //</Template>

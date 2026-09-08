@@ -35,14 +35,14 @@ namespace Stencil::impl::rapidjson_
 {
 template <typename T> struct Tokenizer : public rapidjson::BaseReaderHandler<rapidjson::UTF8<>, Tokenizer<T>>
 {
-    Tokenizer(Stencil::StackVisitor<Stencil::ProtocolJsonVal, T>& stackvisitor LFTBND) : _stackvisitor(stackvisitor) {}
+    explicit Tokenizer(Stencil::StackVisitor<Stencil::ProtocolJsonVal, T>& stackvisitorIn LFTBND) : stackvisitor(stackvisitorIn) {}
     CLASS_DELETE_COPY_AND_MOVE(Tokenizer);
 
-    void Parse(T& obj, std::string_view const& ctx)
+    void Parse(T& objIn, std::string_view const& ctx)
     {
-        _modes.push_back(Mode::Indexable);
-        _obj = &obj;
-        _stackvisitor.Start(obj);
+        modes.push_back(Mode::Indexable);
+        obj = &objIn;
+        stackvisitor.Start(objIn);
         rapidjson::Reader       reader;
         rapidjson::MemoryStream ss(ctx.data(), ctx.size());
         auto                    rslt = reader.Parse(ss, *this);
@@ -50,7 +50,7 @@ template <typename T> struct Tokenizer : public rapidjson::BaseReaderHandler<rap
         {
             throw std::logic_error(fmt::format("Json parse error : Code:{} Offset:{}", static_cast<uint32_t>(rslt.Code()), rslt.Offset()));
         }
-        if (_modes.size() != 1) { throw std::logic_error("Something is wrong"); }
+        if (modes.size() != 1) { throw std::logic_error("Something is wrong"); }
     }
 
     enum class Mode
@@ -58,26 +58,26 @@ template <typename T> struct Tokenizer : public rapidjson::BaseReaderHandler<rap
         Primitive,
         Indexable,
         Iterable,
-        IndexableValue
+        IndexableValue,
     };
 
     void _Start(Mode mode)
     {
-        if (_modes.back() == Mode::Iterable) { _stackvisitor.Add(); }
-        _modes.push_back(mode);
+        if (modes.back() == Mode::Iterable) { stackvisitor.Add(); }
+        modes.push_back(mode);
     }
 
     void _End()
     {
-        _modes.pop_back();
-        if (_modes.back() == Mode::Iterable || _modes.back() == Mode::IndexableValue) _stackvisitor.Pop();
-        if (_modes.back() == Mode::IndexableValue) _modes.pop_back();
+        modes.pop_back();
+        if (modes.back() == Mode::Iterable || modes.back() == Mode::IndexableValue) stackvisitor.Pop();
+        if (modes.back() == Mode::IndexableValue) modes.pop_back();
     }
 
     template <typename T1> void _Handle(T1 const& val)
     {
         _Start(Mode::Primitive);
-        _stackvisitor.Assign(val);
+        stackvisitor.Assign(val);
         _End();
     }
 
@@ -89,9 +89,9 @@ template <typename T> struct Tokenizer : public rapidjson::BaseReaderHandler<rap
 
     void _AddKey(std::string_view const& key)
     {
-        _stackvisitor.AddKey();
-        _stackvisitor.Assign(key);
-        _stackvisitor.AddValue();
+        stackvisitor.AddKey();
+        stackvisitor.Assign(key);
+        stackvisitor.AddValue();
         _Start(Mode::IndexableValue);
     }
 
@@ -110,9 +110,9 @@ template <typename T> struct Tokenizer : public rapidjson::BaseReaderHandler<rap
     bool StartArray() { RAPIDJSON_CHECK(_StartArray()) }
     bool EndArray(rapidjson::SizeType /* elementCount */){RAPIDJSON_CHECK(_EndArray())}
 
-    std::vector<Mode> _modes;
-    StackVisitor<Stencil::ProtocolJsonVal, T>& _stackvisitor;
-    T*                                         _obj{};
+    std::vector<Mode> modes;
+    StackVisitor<Stencil::ProtocolJsonVal, T>& stackvisitor;
+    T*                                         obj{};
 };    // namespace Stencil::impl::rapidjson_
 
 }    // namespace Stencil::impl::rapidjson_
@@ -146,8 +146,8 @@ SUPPRESS_WARNINGS_START
 SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
 template <typename T> void _ReadQuotedString(T& obj, std::string_view const& ctx)
 {
-    if (ctx.size() == 0 || ctx.data()[0] != '\"') { return SerDes<T, ProtocolString>::Read(obj, ctx); }
-    if (ctx.data()[ctx.size() - 1] != '\"') throw std::logic_error("String does not end with quotes");
+    if (ctx.empty() || ctx[0] != '\"') { return SerDes<T, ProtocolString>::Read(obj, ctx); }
+    if (ctx[ctx.size() - 1] != '\"') throw std::logic_error("String does not end with quotes");
     auto ctx1 = ctx.substr(1, ctx.size() - 2);
     SerDes<T, ProtocolString>::Read(obj, ctx1);
 }
@@ -262,7 +262,8 @@ template <> struct SerDes<std::string, ProtocolJsonVal>
     template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
         if (obj.empty()) { fmt::print(ctx, "null"); }
-        else _WriteQuotedString(ctx, obj);
+        else { _WriteQuotedString(ctx, obj);
+}
     }
     template <typename TContext> static auto Read(TObj& obj, TContext& ctx) { _ReadQuotedString(obj, ctx); }
 };
@@ -274,7 +275,8 @@ template <typename T> struct SerDes<std::basic_string_view<T>, ProtocolJsonVal>
     template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
         if (obj.empty()) { fmt::print(ctx, "null"); }
-        else _WriteQuotedString(ctx, obj);
+        else { _WriteQuotedString(ctx, obj);
+}
     }
 
     template <typename TContext> static auto Read(TObj& obj, TContext& ctx) = delete;
@@ -287,7 +289,8 @@ template <> struct SerDes<std::wstring, ProtocolJsonVal>
     template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
         if (obj.empty()) { fmt::print(ctx, "null"); }
-        else _WriteQuotedString(ctx, obj);
+        else { _WriteQuotedString(ctx, obj);
+}
     }
     template <typename TContext> static auto Read(TObj& obj, TContext& ctx) { _ReadQuotedString(obj, ctx); }
 };
@@ -299,7 +302,8 @@ template <> struct SerDes<std::wstring_view, ProtocolJsonVal>
     template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
         if (obj.empty()) { fmt::print(ctx, "null"); }
-        else _WriteQuotedString(ctx, obj);
+        else { _WriteQuotedString(ctx, obj);
+}
     }
     template <typename TContext> static auto Read(TObj& obj, TContext& ctx) { _ReadQuotedString(obj, ctx); }
 };
@@ -311,7 +315,8 @@ template <typename T> struct SerDes<shared_stringT<T>, ProtocolJsonVal>
     template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
     {
         if (obj.empty()) { fmt::print(ctx, "null"); }
-        else _WriteQuotedString(ctx, obj);
+        else { _WriteQuotedString(ctx, obj);
+}
     }
     template <typename TContext> static auto Read(TObj& obj, TContext& ctx) { _ReadQuotedString(obj, ctx); }
 };

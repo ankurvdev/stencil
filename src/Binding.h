@@ -17,8 +17,8 @@
 #include <vector>
 
 SUPPRESS_WARNINGS_START
-SUPPRESS_MSVC_WARNING(4371)    // Object layout under /vd2 will change due to virtual base
-#define SUPER(T) (*static_cast<T*>(this)) //NOLINT
+SUPPRESS_MSVC_WARNING(4371)                  // Object layout under /vd2 will change due to virtual base
+#define SUPER(T) (*static_cast<T*>(this))    // NOLINT
 
 namespace Binding
 {
@@ -389,7 +389,7 @@ struct IValueArray
     struct Iterator
     {
         Iterator() = default;
-        explicit Iterator(IValueArray& ptr LFTBND)  : _ptr(&ptr) { CheckEnd(); }
+        explicit Iterator(IValueArray& ptr LFTBND) : _ptr(&ptr) { CheckEnd(); }
         Iterator& operator++() LFTBND
         {
             if (_ptr == nullptr) return *this;
@@ -401,16 +401,13 @@ struct IValueArray
         {
             if (_index >= _ptr->GetCount())
             {
-                _ptr = nullptr;
+                _ptr   = nullptr;
                 _index = 0;
             }
         }
 
         bool operator==(Iterator const& rhs) const
-        {
-            return _index == rhs._index && (_ptr == nullptr) == (rhs._ptr == nullptr)
-                   && (!(_ptr == nullptr) || _ptr == rhs._ptr);
-        }
+        { return _index == rhs._index && (_ptr == nullptr) == (rhs._ptr == nullptr) && (!(_ptr == nullptr) || _ptr == rhs._ptr); }
 
         bool       operator!=(Iterator const& rhs) const { return !((*this) == rhs); }
         IBindable& operator*() const { return _ptr->GetObjectAt(_index); }
@@ -593,14 +590,14 @@ struct BindingContext
         std::shared_ptr<IValue>             val;
         std::vector<std::unique_ptr<Scope>> scopes;
 
-        scopes.emplace_back(new Scope(*this, ptr.get()));
+        scopes.emplace_back(std::make_unique<Scope>(*this, ptr.get()));
 
         for (; bit != expr.binding.end(); ++bit)
         {
             if (val != nullptr)
             {
                 ptr = val->GetBindable();
-                scopes.emplace_back(new Scope(*this, ptr.get()));
+                scopes.emplace_back(std::make_unique<Scope>(*this, ptr.get()));
             }
             val = ptr.get().TryLookupOrNull(*this, *bit);
             if (val == nullptr) { return nullptr; }
@@ -611,7 +608,8 @@ struct BindingContext
         SUPPRESS_WARNINGS_END
     }
 
-    std::shared_ptr<Expression> _EvaluateExpression(Expression const& expr)
+    private:
+    std::shared_ptr<Expression> EvaluateExpression_(Expression const& expr)
     {
         auto result = expr.Evaluate([this](BindingExpr const& expr1) -> std::shared_ptr<Expression> {
             auto value = TryEvaluateBindingExprOrNull(expr1);
@@ -634,6 +632,7 @@ struct BindingContext
         return result;
     }
 
+    public:
     struct Scope
     {
         Scope(BindingContext& context, IBindable& ptr) : Scope(context._stack, ptr) {}
@@ -664,7 +663,7 @@ struct BindingContext
     auto EvaluateExpression(IBindable& ptr, Expression const& expr)
     {
         Scope scope(_stack, ptr);
-        return _EvaluateExpression(expr);
+        return EvaluateExpression_(expr);
     }
 
     std::shared_ptr<IValue> TryEvaluateBindingExprOrNull(IBindable& ptr, BindingExpr const& expr)
@@ -673,7 +672,7 @@ struct BindingContext
         return TryEvaluateBindingExprOrNull(expr);
     }
 
-    static auto EvaluateExpression(Expression const& expr) { return CurrentThreadContext->_EvaluateExpression(expr); }
+    static auto EvaluateExpression(Expression const& expr) { return CurrentThreadContext->EvaluateExpression_(expr); }
 
     private:
     SUPPRESS_WARNINGS_START
@@ -724,7 +723,7 @@ struct BindableBase : public IBindable, public ValueT<Type::Object>
     }
 
     std::shared_ptr<IValue> TryLookupOrNullImpl(BindingContext& context, Str::View const& param)
-    { 
+    {
         if (Str::IEqual(param, ObjectTypeName()))
         {
             // TODO
@@ -753,7 +752,7 @@ struct BindableBase : public IBindable, public ValueT<Type::Object>
 
     Str::Type ObjectId() override { return Str::Copy(_name); }
 
-    void SetName(Str::Type&& name) { std::swap(_name, name); }
+    void SetName(Str::Type&& name) { _name = std::move(name); }
 
     template <typename TObject> struct TranformationBindableComponent : public IBindableComponent
     {
@@ -809,11 +808,14 @@ template <typename TParent, typename TObject> struct BindableParent : public vir
 {
     static constexpr Str::View BindingKeyName() { return TParent::BindingKeyName(); }
 
-    struct BindableComponent : public IBindableComponent,
+    struct BindableComponent : public IBindableComponent,    // NOLINT(misc-multiple-inheritance)
                                public ValueT<Type::Object>,
                                public std::enable_shared_from_this<BindableComponent>
     {
         explicit BindableComponent(BindableParent<TParent, TObject>& ownerIn LFTBND) : owner(ownerIn) {}
+        ~BindableComponent() override = default;
+        CLASS_DELETE_COPY_AND_MOVE(BindableComponent);
+
         size_t    GetKeyCount() override { return 3; }
         Str::Type GetKeyAt(size_t index) override
         {
@@ -845,8 +847,8 @@ template <typename TParent, typename TObject> struct BindableParent : public vir
     SUPPRESS_WARNINGS_START
     SUPPRESS_MSVC_WARNING(4355)    // this used in base member initializer list
                                    // TODO remove this disable
-    BindableParent() : bindableComponent(std::make_shared<BindableComponent>(*this)) { Register(bindableComponent); } //NOLINT
-
+    BindableParent() : bindableComponent(std::make_shared<BindableComponent>(*this)) { Register(bindableComponent); }    // NOLINT
+    ~BindableParent() override = default;
     SUPPRESS_WARNINGS_END
 
     CLASS_DELETE_COPY_AND_MOVE(BindableParent);
@@ -863,7 +865,7 @@ template <typename TOwner, typename TObject> struct BindableObjectArray : public
 
     void AddToArray(std::shared_ptr<BindableBase> const& obj) { bindableComponent->array.push_back(obj); }
 
-    struct BindableComponent : public IBindableComponent,
+    struct BindableComponent : public IBindableComponent,    // NOLINT(misc-multiple-inheritance)
                                public ValueT<Type::Array>,
                                public IValueArray,
                                public std::enable_shared_from_this<BindableComponent>
@@ -871,7 +873,9 @@ template <typename TOwner, typename TObject> struct BindableObjectArray : public
     {
         CLASS_DELETE_MOVE_AND_COPY_ASSIGNMENT(BindableComponent);
 
-        BindableComponent() = default;
+        BindableComponent()           = default;
+        ~BindableComponent() override = default;
+
         size_t    GetKeyCount() override { return 1; }
         Str::Type GetKeyAt([[maybe_unused]] size_t index) override
         {
@@ -900,11 +904,13 @@ template <typename TOwner, typename TObject> struct BindableObjectArray : public
 template <typename TObject, typename TReturnValue> struct GetterT;
 
 template <typename TObject>
-struct GetterT<TObject, IBindable&>
+struct GetterT<TObject, IBindable&>    // NOLINT(misc-multiple-inheritance)
     : public ValueT<Type::Object>, public IValue::Getter, public std::enable_shared_from_this<GetterT<TObject, IBindable&>>
 {
     using TFunc = IBindable& (TObject::*)() const;
     GetterT(TObject const& ptrIn LFTBND, TFunc funcIn) : func(funcIn), ptr(ptrIn) {}
+    ~GetterT() override = default;
+    CLASS_DELETE_COPY_AND_MOVE(GetterT);
 
     IBindable& GetBindable() override { return (ptr.*func)(); }
 
@@ -920,6 +926,8 @@ struct GetterT<TObject, std::shared_ptr<IBindable>>
 {
     using TFunc = std::shared_ptr<IBindable> (TObject::*)() const;
     GetterT(TObject const& ptrIn, TFunc funcIn) : func(funcIn), ptr(ptrIn) {}
+    ~GetterT() override = default;
+    CLASS_DELETE_COPY_AND_MOVE(GetterT);
 
     IBindable& GetBindable() override { return (ptr.*func)(); }
 
@@ -934,7 +942,8 @@ template <typename TObject> struct GetterT<TObject, Str::Type> : public IValue::
     using TFunc = Str::Type (TObject::*)() const;
     GetterT(TObject const& ptrIn LFTBND, TFunc funcIn) : ptr(ptrIn), func(funcIn) {}
     ~GetterT() override = default;
-    struct ValueType : public ValueT<Type::String>, public std::enable_shared_from_this<ValueType>
+    CLASS_DELETE_COPY_AND_MOVE(GetterT);
+    struct ValueType : public ValueT<Type::String>, public std::enable_shared_from_this<ValueType>    // NOLINT(misc-multiple-inheritance)
     {
         explicit ValueType(Str::Type&& valueIn) : value(std::move(valueIn)) {}
         Str::Type const& GetString() LFTBND override { return value; }
@@ -948,11 +957,13 @@ template <typename TObject> struct GetterT<TObject, Str::Type> : public IValue::
 };
 
 template <typename TObject>
-struct GetterT<TObject, Binding::Expression const&>
+struct GetterT<TObject, Binding::Expression const&>    // NOLINT(misc-multiple-inheritance)
     : public ValueT<Type::Expr>, public IValue::Getter, public std::enable_shared_from_this<GetterT<TObject, Binding::Expression const&>>
 {
     using TFunc = Binding::Expression const& (TObject::*)() const;
     GetterT(TObject const& ptrIn LFTBND, TFunc funcIn) : func(funcIn), ptr(ptrIn) {}
+    ~GetterT() override = default;
+    CLASS_DELETE_COPY_AND_MOVE(GetterT);
 
     Binding::Expression const& GetExpr() override { return (ptr.*func)(); }
     std::shared_ptr<IValue>    Get() override { return this->shared_from_this(); }
@@ -965,6 +976,8 @@ template <typename TObject> struct GetterT<TObject, Binding::Expression> : publi
 {
     using TFunc = Binding::Expression (TObject::*)() const;
     GetterT(TObject const& ptrIn, TFunc funcIn) : ptr(ptrIn), func(funcIn) {}
+    ~GetterT() override = default;
+    CLASS_DELETE_COPY_AND_MOVE(GetterT);
 
     struct ValueType : public ValueT<Type::Expr>, public std::enable_shared_from_this<ValueType>
     {
@@ -1028,13 +1041,12 @@ template <typename TOwner, typename TParent = TOwner> struct BindableT : public 
 
 template <typename TOwner, typename TParent = TOwner> struct BindableDictionaryT : public virtual BindableBase
 {
-    private:
-    explicit BindableDictionaryT(std::shared_ptr<AttributeMap> const& map)
+    public:
+    explicit BindableDictionaryT(std::shared_ptr<AttributeMap> const& map)    // NOLINT(bugprone-crtp-constructor-accessibility)
     {
         if (map != nullptr) { AddAttributes(map); }
     }
-
-    public:
+    ~BindableDictionaryT() override = default;
     CLASS_DELETE_COPY_AND_MOVE(BindableDictionaryT);
 
     struct BindableComponent : public IBindableComponent
@@ -1064,7 +1076,7 @@ template <typename TOwner, typename TParent = TOwner> struct BindableDictionaryT
         Str::Type               ComponentName() override { return Str::Copy(component); }
         std::shared_ptr<IValue> TryLookupValue(BindingContext& /*context */, Str::View const& key) override
         {
-            auto it = map.find(key.data());
+            auto it = map.find(Str::Type(key));
             return it != map.end() ? it->second : nullptr;
         }
 

@@ -26,7 +26,7 @@ template <typename... Ts> struct EnumPack
 
     template <typename T1, typename T2, typename TCtx> static bool _TryMatch(T2& lhs, TCtx const& rhs)
     {
-        using EnumTrait = typename Stencil::EnumTraits<T1>;
+        using EnumTrait = Stencil::EnumTraits<T1>;
         for (size_t i = 0; i < std::size(EnumTrait::Names); i++)
         {
             auto name = EnumTrait::Names[i];
@@ -52,7 +52,7 @@ template <typename... Ts> struct EnumPack
     static std::string_view CastToString(PackType const& rhs)
     {
         std::string_view out = "Invalid";
-        std::visit([&](auto arg) { out = Stencil::EnumTraits<decltype(arg)>::Names[static_cast<size_t>(arg)]; }, rhs._variant);
+        std::visit([&](auto arg) { out = Stencil::EnumTraits<decltype(arg)>::Names[static_cast<size_t>(arg)]; }, rhs.variant);
         return out;
     }
 
@@ -68,20 +68,20 @@ template <typename... Ts> struct EnumPack
 
     static PackType CastFromInt(uint32_t val)
     {
-        uint8_t index = static_cast<uint8_t>(val & 0xff);
+        auto index = static_cast<uint8_t>(val & 0xff);
         val           = val >> 8;
         return _CastFromInt(index, val);
     }
 
     static uint32_t CastToInt(PackType const& rhs)
     {
-        uint32_t out;
-        uint8_t  type = static_cast<uint8_t>(rhs._variant.index());
-        std::visit([&](auto&& arg) { out = static_cast<uint32_t>(arg); }, rhs._variant);
-        return uint32_t{out << 8 | type};
+        uint32_t out = 0;
+        auto  type = static_cast<uint8_t>(rhs.variant.index());
+        std::visit([&](auto&& arg) { out = static_cast<uint32_t>(arg); }, rhs.variant);
+        return (out << 8 | type);
     }
 
-    std::variant<Ts...> _variant;
+    std::variant<Ts...> variant;
 };
 
 template <typename T> constexpr bool     IsEnumPack                  = false;
@@ -98,12 +98,12 @@ template <ConceptEnumPack T> uint32_t EnumPackCastToInt(T const& rhs)
 
 namespace std
 {
-template <typename T, typename... Ts> constexpr bool holds_alternative(Stencil::EnumPack<Ts...> const& pack) noexcept
+template <typename T, typename... Ts> constexpr bool HoldsAlternative(Stencil::EnumPack<Ts...> const& pack) noexcept
 {
     return std::holds_alternative<T>(pack._variant);
 }
 
-template <typename T, typename... Ts> constexpr auto get(Stencil::EnumPack<Ts...> const& pack) noexcept
+template <typename T, typename... Ts> constexpr auto Get(Stencil::EnumPack<Ts...> const& pack) noexcept
 {
     return std::get<T>(pack._variant);
 }

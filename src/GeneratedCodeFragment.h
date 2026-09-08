@@ -14,5 +14,6 @@ struct GeneratedCode
     std::filesystem::path    filename;
 
     GeneratedCode() = default;
+    ~GeneratedCode() = default;
     CLASS_DELETE_COPY_DEFAULT_MOVE(GeneratedCode);
 };

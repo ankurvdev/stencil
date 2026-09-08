@@ -20,7 +20,7 @@ struct TemplateFragment
 
 struct Template
 {
-    enum FileType
+    enum class FileType
     {
         Code,
         Header,

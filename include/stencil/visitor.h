@@ -98,9 +98,9 @@ template <typename T> struct StructFieldsVisitor;
 
 template <typename T, typename... TAttrs> struct StructVisitor
 {
-    using Key = typename Stencil::TypeTraitsForIndexable<T>::Key;
+    using Key = Stencil::TypeTraitsForIndexable<T>::Key;
 
-    template <typename T1> using Fields = typename Stencil::TypeTraitsForIndexable<T1>::Fields;
+    template <typename T1> using Fields = Stencil::TypeTraitsForIndexable<T1>::Fields;
 
     template <typename T1, typename TLambda> static bool _VisitKeyIfVariantMatches(T1& obj, Key const& key, TLambda&& lambda)
     {
@@ -134,7 +134,7 @@ template <typename T, typename... TAttrs> struct StructVisitor
 
 template <typename T> struct Stencil::StructFieldsVisitor<Stencil::TimestampedT<T>>
 {
-    using Fields = typename TypeTraitsForIndexable<Stencil::TimestampedT<T>>::Fields;
+    using Fields = TypeTraitsForIndexable<Stencil::TimestampedT<T>>::Fields;
     template <typename T1, typename TLambda> static bool VisitField(T1& obj, Fields fields, TLambda&& lambda)
     {
         switch (fields)
@@ -151,7 +151,7 @@ template <typename T> struct Stencil::StructFieldsVisitor<Stencil::TimestampedT<
 
 template <typename T> struct Stencil::StructFieldsVisitor<UuidBasedId<T>>
 {
-    using Fields = typename TypeTraitsForIndexable<UuidBasedId<T>>::Fields;
+    using Fields = TypeTraitsForIndexable<UuidBasedId<T>>::Fields;
     template <typename T1, typename TLambda> static bool VisitField(T1& obj, Fields fields, TLambda&& lambda)
     {
         switch (fields)
@@ -167,7 +167,7 @@ template <typename T> struct Stencil::StructFieldsVisitor<UuidBasedId<T>>
 
 template <Stencil::ConceptIterable T> struct Stencil::VisitorForIterable<std::shared_ptr<T>>
 {
-    using Iterator = typename Stencil::Visitor<T>::Iterator;
+    using Iterator = Stencil::Visitor<T>::Iterator;
     using ThisType = std::shared_ptr<T>;
 
     template <typename T1>
@@ -199,7 +199,7 @@ struct Stencil::Visitor<std::shared_ptr<T>> : Stencil::VisitorT<std::shared_ptr<
                                               Stencil::VisitorForIterable<std::shared_ptr<T>>,
                                               Stencil::VisitorForIndexable<std::shared_ptr<T>>
 {
-    using Key = typename Stencil::TypeTraitsForIndexable<T>::Key;
+    using Key = Stencil::TypeTraitsForIndexable<T>::Key;
 
     using ThisType = std::shared_ptr<T>;
     // So that this works for both const and non-const
@@ -262,15 +262,15 @@ template <typename T, size_t N> struct Stencil::Visitor<std::array<T, N>> : Sten
 
     template <typename T1>
         requires std::is_same_v<std::remove_const_t<T1>, std::array<T, N>>
-    static void IteratorBegin(Iterator& it, T1&)
+    static void IteratorBegin(Iterator& it, T1& /*unused*/)
     { it = Iterator{}; }
     template <typename T1>
         requires std::is_same_v<std::remove_const_t<T1>, std::array<T, N>>
-    static void IteratorMoveNext(Iterator& it, T1&)
+    static void IteratorMoveNext(Iterator& it, T1& /*unused*/)
     { ++it; }
     template <typename T1>
         requires std::is_same_v<std::remove_const_t<T1>, std::array<T, N>>
-    static bool IteratorValid(Iterator& it, T1&)
+    static bool IteratorValid(Iterator& it, T1& /*unused*/)
     { return it <= N; }
 
     template <typename T1, typename TLambda>
@@ -297,11 +297,11 @@ template <typename T> struct Stencil::Visitor<std::vector<T>> : Stencil::Visitor
 
     template <typename T1>
         requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
-    static void IteratorBegin(Iterator& it, T1&)
+    static void IteratorBegin(Iterator& it, T1& /*unused*/)
     { it = Iterator{}; }
     template <typename T1>
         requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
-    static void IteratorMoveNext(Iterator& it, T1&)
+    static void IteratorMoveNext(Iterator& it, T1& /*unused*/)
     { ++it; }
     template <typename T1>
         requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>

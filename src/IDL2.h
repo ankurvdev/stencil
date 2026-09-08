@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 
+// NOLINTBEGIN(misc-multiple-inheritance)
 SUPPRESS_WARNINGS_START
 SUPPRESS_MSVC_WARNING(4435)    // Object layout under /vd2 will change due to virtual base
 
@@ -21,6 +22,7 @@ struct DataSource : public std::enable_shared_from_this<DataSource>, public IDLG
 {
     public:
     OBJECTNAME(DataSource);
+    ~DataSource() override = default;
     CLASS_DELETE_COPY_AND_MOVE(DataSource);
 
     DataSource(std::shared_ptr<Program> owner, Str::Type&& name) :
@@ -43,6 +45,7 @@ struct Container : public std::enable_shared_from_this<Container>,
     };
 
     OBJECTNAME(Container);
+    ~Container() override = default;
     CLASS_DELETE_COPY_AND_MOVE(Container);
 
     Container(std::shared_ptr<Program>                      program,
@@ -104,6 +107,7 @@ struct NativeFieldType : public std::enable_shared_from_this<NativeFieldType>,
 {
     public:
     OBJECTNAME(NativeFieldType);
+    ~NativeFieldType() override = default;
     CLASS_DELETE_COPY_AND_MOVE(NativeFieldType);
 
     Str::Type GetFieldName() override { return Str::Copy(Name()); }
@@ -128,6 +132,7 @@ struct Typedef : public std::enable_shared_from_this<Typedef>,
 {
     public:
     OBJECTNAME(Typedef);
+    ~Typedef() override = default;
     CLASS_DELETE_COPY_AND_MOVE(Typedef);
 
     Str::Type GetFieldName() override { return Str::Copy(Name()); }
@@ -170,7 +175,7 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
         Str::Type               ComponentName() override { return Str::Create(L"ContainerFieldTypeMap"); }
         std::shared_ptr<IValue> TryLookupValue(Binding::BindingContext& /*context*/, Binding::Str::View const& param) override
         {
-            auto it = mContainerFieldTypeMap.find(param.data());
+            auto it = mContainerFieldTypeMap.find(Str::Type(param));
             if (it == mContainerFieldTypeMap.end()) return {};
             return it->second;
         }
@@ -184,6 +189,8 @@ struct ContainerFieldType : public std::enable_shared_from_this<ContainerFieldTy
 
     public:
     OBJECTNAME(ContainerFieldType);
+    ~ContainerFieldType() override = default;
+
     CLASS_DELETE_COPY_AND_MOVE(ContainerFieldType);
 
     Container const& GetContainer() const;
@@ -297,6 +304,7 @@ struct AttributeDefinition : public std::enable_shared_from_this<AttributeDefini
 
     public:
     OBJECTNAME(AttributeDefinition);
+    ~AttributeDefinition() override = default;
     CLASS_DELETE_COPY_AND_MOVE(AttributeDefinition);
 
     AttributeDefinition(std::shared_ptr<Program> program,
@@ -309,7 +317,7 @@ struct AttributeDefinition : public std::enable_shared_from_this<AttributeDefini
         // AddAttribute(std::move(attributes));
     }
 
-    Str::View GetComponentName(Str::View const& name) const LFTBND { return _m_ComponentMap.at(name.data()); }
+    Str::View GetComponentName(Str::View const& name) const LFTBND { return _m_ComponentMap.at(Str::Type(name)); }
 };
 
 struct NamedConst;
@@ -344,6 +352,7 @@ struct Program : public std::enable_shared_from_this<Program>,
 
     public:
     OBJECTNAME(Program);
+    ~Program() override = default;
     CLASS_DELETE_COPY_AND_MOVE(Program);
 
     Str::Type Name() const { return Str::Copy(mName); }
@@ -380,7 +389,7 @@ struct Program : public std::enable_shared_from_this<Program>,
                                                                                            std::forward<TArgs>(args)...);
     }
 
-    template <typename TObject> auto _GetObjects() { return IDLGenerics::NamedIndexT<Program, TObject>::Owner::GetRange(); }
+    template <typename TObject> auto GetObjects() { return IDLGenerics::NamedIndexT<Program, TObject>::Owner::GetRange(); }
     template <typename TObject, typename... TArgs> auto TryLookup(TArgs&&... args)
     { return IDLGenerics::NamedIndexT<Program, TObject>::Owner::TryLookup(std::forward<TArgs>(args)...); }
     template <typename TObject, typename... TArgs> auto& Lookup(TArgs&&... args)
@@ -436,6 +445,7 @@ struct AttributeTag : public std::enable_shared_from_this<AttributeTag>,
                       public IDLGenerics::NamedIndexT<Struct, AttributeTag>::NamedObject
 {
     OBJECTNAME(AttributeTag);
+    ~AttributeTag() override = default;
     CLASS_DELETE_COPY_AND_MOVE(AttributeTag);
 
     AttributeTag(std::shared_ptr<Struct> owner,
@@ -460,6 +470,7 @@ struct Struct : public std::enable_shared_from_this<Struct>,
 {
     public:
     OBJECTNAME(Struct);
+    ~Struct() override = default;
     CLASS_DELETE_COPY_AND_MOVE(Struct);
 
     Struct(std::shared_ptr<Program> const& program, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> const& unorderedMap) :
@@ -475,9 +486,10 @@ struct Variant : public std::enable_shared_from_this<Variant>,
                  public IDLGenerics::NamedIndexT<Variant, AttributeTag>::Owner
 {
     OBJECTNAME(Variant);
+    ~Variant() override = default;
     CLASS_DELETE_COPY_AND_MOVE(Variant);
 
-    Variant(const std::shared_ptr<Program>& program, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> const& unorderedMap) :
+    Variant(std::shared_ptr<Program> const& program, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> const& unorderedMap) :
         IDLGenerics::StorageIndexT<Program, Variant>::StorageType(program, std::move(name), {}, unorderedMap)
     {}
 
@@ -520,7 +532,8 @@ struct PrimitiveConstValue : public std::enable_shared_from_this<PrimitiveConstV
 
     CLASS_DELETE_COPY_AND_MOVE(PrimitiveConstValue);
     OBJECTNAME(PrimitiveConstValue);
-    void      _AddBaseObject() {}
+    ~PrimitiveConstValue() override = default;
+    void      AddBaseObject() {}
     Str::Type Stringify() const override
     {
         switch (valueType)
@@ -536,7 +549,7 @@ struct PrimitiveConstValue : public std::enable_shared_from_this<PrimitiveConstV
             case Primitives64Bit::Type::Category::Float: return Str::Convert(fmt::format("{}", primitive.Cast<double>()));
             case Primitives64Bit::Type::Category::Signed: return Str::Convert(fmt::format("{}", primitive.Cast<int64_t>()));
             case Primitives64Bit::Type::Category::Unsigned: return Str::Convert(fmt::format("{}", primitive.Cast<uint64_t>()));
-            case Primitives64Bit::Type::Category::Unknown: break;
+            case Primitives64Bit::Type::Category::Unknown: [[fallthrough]];
             default: break;
             }
             throw std::invalid_argument("Unknown primitive const value type");
@@ -553,6 +566,7 @@ struct NamedConst : public std::enable_shared_from_this<NamedConst>,
 {
     public:
     OBJECTNAME(NamedConst);
+    ~NamedConst() override = default;
     CLASS_DELETE_COPY_AND_MOVE(NamedConst);
 
     NamedConst(std::shared_ptr<Program> const&                 owner,
@@ -568,7 +582,7 @@ struct NamedConst : public std::enable_shared_from_this<NamedConst>,
         value(valueIn)
     {
         auto base = owner->TryGetFieldTypeName(Str::Create(L"default_namedconst"));
-        AddBaseObject(base.value());
+        AddBaseObject(base.value());    // NOLINT(bugprone-unchecked-optional-access)
     }
 
     Binding::IBindable& GetBindableFieldType() const { return fieldType->GetBindable(); }
@@ -587,6 +601,7 @@ struct Enum : public std::enable_shared_from_this<Enum>,
 {
     public:
     OBJECTNAME(Enum);
+    ~Enum() override = default;
     CLASS_DELETE_COPY_AND_MOVE(Enum);
 
     Str::Type GetFieldName() override { return Str::Copy(Name()); }
@@ -612,15 +627,16 @@ struct EnumValue : public std::enable_shared_from_this<EnumValue>,
                    public IDLGenerics::NamedIndexT<Enum, EnumValue>::NamedObject
 {
     OBJECTNAME(EnumValue);
-    EnumValue(std::shared_ptr<Enum> const& owner, Str::Type&& name, uint64_t /* value */) :
+    EnumValue(std::shared_ptr<Enum> const& owner, Str::Type const& name, uint64_t /* value */) :
         IDLGenerics::NamedIndexT<Enum, EnumValue>::NamedObject(owner, Str::Copy(name))
     {
         auto base = owner->Parent().TryGetFieldTypeName(Str::Create(L"default_enumvalue"));
-        AddBaseObject(base.value());
+        AddBaseObject(base.value());    // NOLINT(bugprone-unchecked-optional-access)
     }
 
     [[noreturn]] Str::Type Stringify() const override { TODO("EnumStringify"); }
 
+    ~EnumValue() override = default;
     CLASS_DELETE_COPY_AND_MOVE(EnumValue);
 };
 
@@ -641,6 +657,7 @@ struct Interface : public std::enable_shared_from_this<Interface>,
 
     public:
     OBJECTNAME(Interface);
+    ~Interface() override = default;
     CLASS_DELETE_COPY_AND_MOVE(Interface);
 
     Interface(std::shared_ptr<Program> const& program, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> const& unorderedMap) :
@@ -674,6 +691,7 @@ struct FunctionArgs : public std::enable_shared_from_this<FunctionArgs>,
                       public IDLGenerics::StorageIndexT<Interface, FunctionArgs>::StorageType
 {
     OBJECTNAME(FunctionArgs);
+    ~FunctionArgs() override = default;
     CLASS_DELETE_COPY_AND_MOVE(FunctionArgs);
 
     FunctionArgs(std::shared_ptr<Interface> const& iface, Str::Type&& name, std::shared_ptr<Binding::AttributeMap> const& unorderedMap) :
@@ -688,6 +706,7 @@ struct InterfaceFunction : public std::enable_shared_from_this<InterfaceFunction
 
     public:
     OBJECTNAME(InterfaceFunction);
+    ~InterfaceFunction() override = default;
     CLASS_DELETE_COPY_AND_MOVE(InterfaceFunction);
 
     auto& Args() const LFTBND { return mArgs; }
@@ -719,6 +738,7 @@ struct InterfaceEvent : public std::enable_shared_from_this<InterfaceEvent>,
 
     public:
     OBJECTNAME(InterfaceEvent);
+    ~InterfaceEvent() override = default;
     CLASS_DELETE_COPY_AND_MOVE(InterfaceEvent);
 
     auto& Args() const LFTBND { return mArgs; }
@@ -740,6 +760,7 @@ struct InterfaceObjectStore : public std::enable_shared_from_this<InterfaceObjec
 
     public:
     OBJECTNAME(InterfaceObjectStore);
+    ~InterfaceObjectStore() override = default;
     CLASS_DELETE_COPY_AND_MOVE(InterfaceObjectStore);
     InterfaceObjectStore(std::shared_ptr<Interface> iface, std::shared_ptr<IDLGenerics::IFieldType> const& objectType, Str::Type&& name) :
         Binding::BindableT<InterfaceObjectStore>(Str::Create(L"ObjectType"), &InterfaceObjectStore::GetBindableObjectType),
@@ -842,3 +863,4 @@ inline std::shared_ptr<Container> Container::FindOrCreate(std::shared_ptr<Progra
 }
 }    // namespace IDL
 SUPPRESS_WARNINGS_END
+// NOLINTEND(misc-multiple-inheritance)

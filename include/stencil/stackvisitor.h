@@ -46,7 +46,7 @@ template <ConceptProtocol TProto, typename T> struct ProtocolHelper;
 
 template <ConceptProtocol TProto, ConceptPrimitives64Bit TVal> struct ProtocolHelper<TProto, TVal>
 {
-    void operator()(TypeHandlerAndPtr const& item, TVal const& val) { return item.handler->Assign(item.ptr, Primitives64Bit(val)); }
+    void operator()(TypeHandlerAndPtr const& item, TVal const& val) { item.handler->Assign(item.ptr, Primitives64Bit(val)); }
 };
 
 template <ConceptProtocol TProto, typename T> struct ProtocolHelper<TProto, std::span<T const>>
@@ -111,11 +111,11 @@ template <ConceptProtocol TProto, typename TOwner, ConceptIterable T> struct Ite
             handler              = owner->template FindOrCreateHandler<VisitorHandler>(ptr);
         });
 
-        return {handler, ptr};
+        return {.handler=handler, .ptr=ptr};
     }
 
     bool                          valid = false;
-    typename Visitor<T>::Iterator it;
+    Visitor<T>::Iterator it;
     TOwner*                       owner;
 };
 
@@ -129,7 +129,7 @@ template <ConceptProtocol TProto, typename TOwner, typename T> struct IndexableV
 
 template <ConceptProtocol TProto, typename TOwner, ConceptVariant T> struct IndexableVisitorTypeHandler<TProto, TOwner, T>
 {
-    using Traits = typename Stencil::TypeTraitsForIndexable<T>;
+    using Traits = Stencil::TypeTraitsForIndexable<T>;
 
     struct VariantKeyTypeHandler : TypeHandler
     {
@@ -137,14 +137,14 @@ template <ConceptProtocol TProto, typename TOwner, ConceptVariant T> struct Inde
         [[noreturn]] TypeHandlerAndPtr VisitKey(void* /* ptr */) override { TODO(""); }
         [[noreturn]] TypeHandlerAndPtr VisitValueForKey(void* /* ptr */) override { TODO(""); }
 
-        void Assign(void* /* ptr */, Primitives64Bit const& val) override { _variant = val; }
-        void Assign(void* /* ptr */, std::string_view const& val) override { _variant = std::string{val}; }
-        void Assign(void* /* ptr */, std::wstring_view const& val) override { _variant = std::wstring{val}; }
+        void Assign(void* /* ptr */, Primitives64Bit const& val) override { variant = val; }
+        void Assign(void* /* ptr */, std::string_view const& val) override { variant = std::string{val}; }
+        void Assign(void* /* ptr */, std::wstring_view const& val) override { variant = std::wstring{val}; }
 
-        std::variant<std::string, std::wstring, Primitives64Bit> _variant{};
+        std::variant<std::string, std::wstring, Primitives64Bit> variant;
     };
 
-    TypeHandlerAndPtr KeyHandler() { return TypeHandlerAndPtr{&_keyhandler, this}; }
+    TypeHandlerAndPtr KeyHandler() { return TypeHandlerAndPtr{&keyhandler, this}; }
 
     template <typename T1> TypeHandlerAndPtr VisitValueForKey(T1& obj) const
     {
@@ -154,16 +154,16 @@ template <ConceptProtocol TProto, typename TOwner, ConceptVariant T> struct Inde
         VisitorForVariant<T>::VisitAlternatives(obj, [&](auto const& k, auto& val) {
             std::stringstream ss;
             SerDes<std::remove_cvref_t<decltype(k)>, ProtocolString>::Write(ss, k);
-            if (ss.str() != std::get<std::string>(_keyhandler._variant)) { return; }
+            if (ss.str() != std::get<std::string>(keyhandler.variant)) { return; }
             using VisitorHandler = VisitorTypeHandler<TProto, TOwner, std::remove_reference_t<decltype(val)>>;
             obj                  = std::move(val);
             VisitorForVariant<T>::VisitActiveAlternative(obj, [&](auto const& /* k */, auto& val1) { ptr = &val1; });
             handler = owner->template FindOrCreateHandler<VisitorHandler>(ptr);
         });
-        return {handler, ptr};
+        return {.handler=handler, .ptr=ptr};
     }
 
-    VariantKeyTypeHandler _keyhandler;
+    VariantKeyTypeHandler keyhandler;
     TOwner*               owner;
     // TODO: This is causing me
     // VisitorTypeHandlerPack<typename Traits::ValueTypes> _handlers;
@@ -173,27 +173,27 @@ SUPPRESS_WARNINGS_START
 SUPPRESS_MSVC_WARNING(4702) /*Unreachable code*/
 template <ConceptProtocol TProto, typename TOwner, ConceptIndexable T> struct IndexableVisitorTypeHandler<TProto, TOwner, T>
 {
-    using Traits = typename Stencil::TypeTraitsForIndexable<T>;
+    using Traits = Stencil::TypeTraitsForIndexable<T>;
 
-    TypeHandlerAndPtr KeyHandler() { return TypeHandlerAndPtr{&_keyhandler, &_key}; }
+    TypeHandlerAndPtr KeyHandler() { return TypeHandlerAndPtr{&keyhandler, &key}; }
 
     template <typename T1> TypeHandlerAndPtr VisitValueForKey(T1& obj) const
     {
         TypeHandler* handler = nullptr;
         void*        ptr     = nullptr;
-        Visitor<T>::VisitKey(obj, std::move(_key), [&](auto& val) {
+        Visitor<T>::VisitKey(obj, std::move(key), [&](auto& val) {
             using VisitorHandler = VisitorTypeHandler<TProto, TOwner, std::remove_reference_t<decltype(val)>>;
             ptr                  = &val;
             handler              = owner->template FindOrCreateHandler<VisitorHandler>(ptr);
         });
-        return {handler, ptr};
+        return {.handler=handler, .ptr=ptr};
     }
 
     TOwner* owner;
 
-    typename Traits::Key _key{};
+    Traits::Key key{};
 
-    VisitorTypeHandler<TProto, TOwner, typename Traits::Key> _keyhandler;
+    VisitorTypeHandler<TProto, TOwner, typename Traits::Key> keyhandler;
 
     // TODO: This is causing me
     // VisitorTypeHandlerPack<typename Traits::ValueTypes> _handlers;
@@ -206,24 +206,24 @@ template <ConceptProtocol TProto, typename TOwner, typename T> struct VisitorTyp
 
     [[noreturn]] void Add(T& /* obj */) { TODO(""); }
 
-    virtual TypeHandlerAndPtr VisitNext(void* ptr) override
+    TypeHandlerAndPtr VisitNext(void* ptr) override
     {
         T& obj = *reinterpret_cast<T*>(ptr);
         return iterable.VisitNext(obj);
     }
 
-    virtual TypeHandlerAndPtr VisitKey(void* /*ptr*/) override
+    TypeHandlerAndPtr VisitKey(void* /*ptr*/) override
     {    // T& obj = *reinterpret_cast<T*>(ptr);
         return indexable.KeyHandler();
     }
 
-    virtual TypeHandlerAndPtr VisitValueForKey(void* ptr) override
+    TypeHandlerAndPtr VisitValueForKey(void* ptr) override
     {
         T& obj = *reinterpret_cast<T*>(ptr);
         return indexable.VisitValueForKey(obj);
     }
 
-    virtual void Assign(void* ptr, Primitives64Bit const& val) override
+    void Assign(void* ptr, Primitives64Bit const& val) override
     {
         if constexpr (ConceptPrimitives64Bit<T>) { *reinterpret_cast<T*>(ptr) = val.Cast<T>(); }
         /* else if constexpr (ConceptTransactionForPrimitive<T>)
@@ -236,7 +236,7 @@ template <ConceptProtocol TProto, typename TOwner, typename T> struct VisitorTyp
             TODO("");
         }
     }
-    virtual void      Assign(void* ptr, std::string_view const& val) override { primitive.Assign(*reinterpret_cast<T*>(ptr), val); }
+    void      Assign(void* ptr, std::string_view const& val) override { primitive.Assign(*reinterpret_cast<T*>(ptr), val); }
     [[noreturn]] void Assign(void* /*ptr*/, std::wstring_view const& /*val*/) override
     { TODO("primitive.Assign(*reinterpret_cast<T*>(ptr), val);"); }
 
@@ -252,35 +252,35 @@ template <ConceptProtocol TProto, typename T> struct _StackVisitor
 
     void Start(T& obj)
     {
-        _rootObj                 = &obj;
-        _handler.owner           = this;
-        _handler.primitive.owner = this;
-        _handler.iterable.owner  = this;
-        _handler.indexable.owner = this;
+        rootObj                 = &obj;
+        handler.owner           = this;
+        handler.primitive.owner = this;
+        handler.iterable.owner  = this;
+        handler.indexable.owner = this;
 
-        _stack.push_back({&_handler, _rootObj});
+        stack.push_back({&handler, rootObj});
     }
 
-    void AddKey() { _stack.push_back(VisitKey(_stack.back())); }
+    void AddKey() { stack.push_back(VisitKey(stack.back())); }
 
     void AddValue()
     {
-        _stack.pop_back();
-        _stack.push_back(VisitValueForKey(_stack.back()));
+        stack.pop_back();
+        stack.push_back(VisitValueForKey(stack.back()));
     }
 
-    template <typename TVal> void Assign(TVal const& k) { ProtocolHelper<TProto, TVal>{}(_stack.back(), k); }
+    template <typename TVal> void Assign(TVal const& k) { ProtocolHelper<TProto, TVal>{}(stack.back(), k); }
 
-    void Pop() { _stack.pop_back(); }
+    void Pop() { stack.pop_back(); }
 
-    void Add() { _stack.push_back(VisitNext(_stack.back())); }
+    void Add() { stack.push_back(VisitNext(stack.back())); }
 
     // TODO : Yuck! Revisit and try to convince PROP1
     template <typename T1> TypeHandler* FindOrCreateHandler(void* ptr) LFTBND
     {
         // auto hashcode = typeid(T1).hash_code();
-        auto it = _allhandlers.find(ptr);
-        if (it == _allhandlers.end())
+        auto it = allhandlers.find(ptr);
+        if (it == allhandlers.end())
         {
             auto uptr             = std::make_unique<T1>();
             uptr->owner           = this;
@@ -288,16 +288,16 @@ template <ConceptProtocol TProto, typename T> struct _StackVisitor
             uptr->iterable.owner  = this;
             uptr->indexable.owner = this;
             auto hptr             = uptr.get();
-            auto [nit, inserted] = _allhandlers.insert(std::make_pair(hptr, std::move(uptr)));
+            auto [nit, inserted] = allhandlers.insert(std::make_pair(hptr, std::move(uptr)));
             return nit->second.get();
         }
         return it->second.get();
     }
 
-    std::unordered_map<void*, std::unique_ptr<TypeHandler>> _allhandlers;
-    std::vector<TypeHandlerAndPtr>                          _stack;
-    VisitorTypeHandler<TProto, _StackVisitor<TProto, T>, T> _handler;
-    T*                                                      _rootObj{nullptr};
+    std::unordered_map<void*, std::unique_ptr<TypeHandler>> allhandlers;
+    std::vector<TypeHandlerAndPtr>                          stack;
+    VisitorTypeHandler<TProto, _StackVisitor<TProto, T>, T> handler;
+    T*                                                      rootObj{nullptr};
 };
 }    // namespace impl
 

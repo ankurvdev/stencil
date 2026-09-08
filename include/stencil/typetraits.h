@@ -33,35 +33,27 @@ struct Category
     struct Variant
     {};
 
-    template <typename T, typename Tuple> struct _HasType;
+    template <typename T, typename Tuple> struct HasType;
 
-    template <typename T, typename... Us> struct _HasType<T, std::tuple<Us...>> : std::disjunction<std::is_same<T, Us>...>
+    template <typename T, typename... Us> struct HasType<T, std::tuple<Us...>> : std::disjunction<std::is_same<T, Us>...>
     {};
 
-    template <typename T> static constexpr bool IsIndexable() { return _HasType<Indexable, typename TypeTraits<T>::Categories>::value; }
-    template <typename T> static constexpr bool IsIterable() { return _HasType<Iterable, typename TypeTraits<T>::Categories>::value; }
-    template <typename T> static constexpr bool IsPrimitive() { return _HasType<Primitive, typename TypeTraits<T>::Categories>::value; }
-    template <typename T> static constexpr bool IsVariant() { return _HasType<Variant, typename TypeTraits<T>::Categories>::value; }
+    template <typename T> static constexpr bool IsIndexable() { return HasType<Indexable, typename TypeTraits<T>::Categories>::value; }
+    template <typename T> static constexpr bool IsIterable() { return HasType<Iterable, typename TypeTraits<T>::Categories>::value; }
+    template <typename T> static constexpr bool IsPrimitive() { return HasType<Primitive, typename TypeTraits<T>::Categories>::value; }
+    template <typename T> static constexpr bool IsVariant() { return HasType<Variant, typename TypeTraits<T>::Categories>::value; }
 
     template <typename T> static constexpr bool PreferIndexable()
-    {
-        return std::is_same_v<Category::Indexable, std::tuple_element_t<0, typename TypeTraits<T>::Categories>>;
-    }
+    { return std::is_same_v<Category::Indexable, std::tuple_element_t<0, typename TypeTraits<T>::Categories>>; }
 
     template <typename T> static constexpr bool PreferIterable()
-    {
-        return std::is_same_v<Category::Iterable, std::tuple_element_t<0, typename TypeTraits<T>::Categories>>;
-    }
+    { return std::is_same_v<Category::Iterable, std::tuple_element_t<0, typename TypeTraits<T>::Categories>>; }
 
     template <typename T> static constexpr bool PreferPrimitive()
-    {
-        return std::is_same_v<Category::Primitive, std::tuple_element_t<0, typename TypeTraits<T>::Categories>>;
-    }
+    { return std::is_same_v<Category::Primitive, std::tuple_element_t<0, typename TypeTraits<T>::Categories>>; }
 
     template <typename T> static constexpr bool PreferVariant()
-    {
-        return std::is_same_v<Category::Variant, std::tuple_element_t<0, typename TypeTraits<T>::Categories>>;
-    }
+    { return std::is_same_v<Category::Variant, std::tuple_element_t<0, typename TypeTraits<T>::Categories>>; }
 };
 
 template <typename T>
@@ -71,7 +63,7 @@ concept ConceptIndexable = requires {
 };
 
 template <typename T>
-concept ConceptNamedTuple = requires(T t, typename TypeTraitsForIndexable<T>::Key k) {
+concept ConceptNamedTuple = requires(T t, TypeTraitsForIndexable<T>::Key k) {
     requires ConceptIndexable<T>;
     { TypeTraitsForIndexable<T>::HasDefaultValueForKey(t, k) } -> std::same_as<bool>;
 };
@@ -107,7 +99,10 @@ template <typename T>
 concept ConceptPreferVariant = Category::PreferVariant<T>();
 
 template <typename T> struct StructT
-{};
+{
+    StructT() = default; //NOLINT
+    friend T;
+};
 
 template <typename T> struct VariantT
 {};

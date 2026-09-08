@@ -14,19 +14,19 @@ SUPPRESS_WARNINGS_END
 
 template <typename T> struct Stencil::TypeTraits<std::shared_ptr<T>>
 {
-    using Categories = typename Stencil::TypeTraits<T>::Categories;
+    using Categories = Stencil::TypeTraits<T>::Categories;
 };
 
 template <Stencil::ConceptIndexable T>
     requires(!Stencil::ConceptNamedTuple<T>)
 struct Stencil::TypeTraitsForIndexable<std::shared_ptr<T>>
 {
-    using Key = typename Stencil::TypeTraitsForIndexable<T>::Key;
+    using Key = Stencil::TypeTraitsForIndexable<T>::Key;
 };
 
 template <Stencil::ConceptNamedTuple T> struct Stencil::TypeTraitsForIndexable<std::shared_ptr<T>>
 {
-    using Key = typename Stencil::TypeTraitsForIndexable<T>::Key;
+    using Key = Stencil::TypeTraitsForIndexable<T>::Key;
     static bool HasDefaultValueForKey(std::shared_ptr<T> const& obj, Key key)
     {
         return Stencil::TypeTraitsForIndexable<T>::HasDefaultValueForKey(*obj.get(), key);
@@ -39,7 +39,7 @@ template <Stencil::ConceptNamedTuple T> struct Stencil::TypeTraitsForIndexable<s
 
 template <Stencil::ConceptIterable T> struct Stencil::TypeTraitsForIterable<std::shared_ptr<T>>
 {
-    using ElementType = typename Stencil::TypeTraitsForIndexable<T>::ElementType;
+    using ElementType = Stencil::TypeTraitsForIndexable<T>::ElementType;
 };
 
 template <Stencil::ConceptPrimitive T> struct Stencil::TypeTraitsForPrimitive<std::shared_ptr<T>>
@@ -122,7 +122,7 @@ template <typename... Ts> struct Stencil::TypeTraitsForVariant<std::variant<Ts..
 static_assert(Stencil::ConceptVariant<std::variant<std::string, int>>);
 
 template <typename T>
-concept ConceptVariantTType = std::is_base_of<Stencil::VariantT<T>, T>::value;
+concept ConceptVariantTType = std::is_base_of_v<Stencil::VariantT<T>, T>;
 
 template <ConceptVariantTType T> struct Stencil::TypeTraitsForVariant<T>
 {

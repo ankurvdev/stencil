@@ -13,16 +13,16 @@ namespace Stencil
 
 using ByteIt = std::span<uint8_t const>::iterator;
 
-template <typename TVal, typename = typename std::enable_if<std::is_trivially_default_constructible<TVal>::value>::type>
+template <typename TVal>
 static std::span<uint8_t const> AsCSpan(TVal const& val)
-{
-    return std::span(reinterpret_cast<uint8_t const*>(&val), sizeof(TVal));
+requires std::is_trivially_default_constructible<TVal>::value {
+    return {reinterpret_cast<uint8_t const*>(&val), sizeof(TVal)};
 }
 
-template <typename TVal, typename = typename std::enable_if<std::is_trivially_default_constructible<TVal>::value>::type>
+template <typename TVal>
 static std::span<uint8_t> AsSpan(TVal& val)
-{
-    return std::span(reinterpret_cast<uint8_t*>(&val), sizeof(TVal));
+requires std::is_trivially_default_constructible<TVal>::value {
+    return {reinterpret_cast<uint8_t*>(&val), sizeof(TVal)};
 }
 
 struct Writer
@@ -34,25 +34,25 @@ struct Writer
     Writer& operator<<(TVal const& val) LFTBND
    {
         auto spn = AsCSpan(val);
-        std::copy(spn.begin(), spn.end(), back_inserter(_buffer));
+        std::copy(spn.begin(), spn.end(), back_inserter(buffer));
         return *this;
     }
 
     Writer& operator<<(std::span<std::byte const> const& bytespn) LFTBND
     {
         std::span<uint8_t const> spn(reinterpret_cast<uint8_t const*>(bytespn.data()), bytespn.size());
-        std::copy(spn.begin(), spn.end(), back_inserter(_buffer));
+        std::copy(spn.begin(), spn.end(), back_inserter(buffer));
         return *this;
     }
 
     Writer& operator<<(std::span<uint8_t const> const& spn) LFTBND
     {
-        std::copy(spn.begin(), spn.end(), back_inserter(_buffer));
+        std::copy(spn.begin(), spn.end(), back_inserter(buffer));
         return *this;
     }
     template <typename TChar, typename TStr> Writer& _WriteStr(TStr const& str) LFTBND
     {
-        uint32_t bytesize = static_cast<uint32_t>(str.size() * sizeof(TChar));
+        auto bytesize = static_cast<uint32_t>(str.size() * sizeof(TChar));
         *this << bytesize;
         std::span<uint8_t const> spn(reinterpret_cast<uint8_t const*>(str.data()), bytesize);
         *this << spn;
@@ -64,44 +64,44 @@ struct Writer
     Writer& operator<<(shared_string const& str) LFTBND { return _WriteStr<char>(str); }
     Writer& operator<<(shared_wstring const& str) LFTBND { return _WriteStr<wchar_t>(str); }
 
-    std::vector<uint8_t> Reset() { return std::move(_buffer); }
+    std::vector<uint8_t> Reset() { return std::move(buffer); }
 
-    std::vector<uint8_t> _buffer;
+    std::vector<uint8_t> buffer;
 };
 
 struct Reader
 {
-    Reader(std::span<uint8_t const> const& w) : _it(w.begin()) {}
-    Reader(ByteIt const& itbeg) : _it(itbeg) {}
+    explicit Reader(std::span<uint8_t const> const& w) : it(w.begin()) {}
+    explicit Reader(ByteIt const& itbeg) : it(itbeg) {}
 
-    template <typename TVal, std::enable_if_t<std::is_trivially_default_constructible<TVal>::value, bool> = true> TVal read()
-    {
+    template <typename TVal> TVal Read()
+    requires std::is_trivially_default_constructible_v<TVal> {
         TVal val;
-        auto endIt = _it + sizeof(TVal);
-        std::copy(_it, endIt, AsSpan(val).begin());
-        _it = endIt;
+        auto endIt = it + sizeof(TVal);
+        std::copy(it, endIt, AsSpan(val).begin());
+        it = endIt;
         return val;
     }
 
     template <typename TChar, typename TStr> TStr _ReadStr()
     {
-        size_t bytesize = read<uint32_t>();
+        size_t bytesize = Read<uint32_t>();
         TStr   str;
         str.resize(bytesize / sizeof(TChar));
         std::span<uint8_t> spn(reinterpret_cast<uint8_t*>(str.data()), bytesize);
-        auto               endIt = _it + static_cast<ByteIt::difference_type>(bytesize);
-        std::copy(_it, endIt, spn.begin());
-        _it = endIt;
+        auto               endIt = it + static_cast<ByteIt::difference_type>(bytesize);
+        std::copy(it, endIt, spn.begin());
+        it = endIt;
         return str;
     }
 
-    shared_string  read_shared_string() { return _ReadStr<char, shared_string>(); }
-    shared_wstring read_shared_wstring() { return _ReadStr<wchar_t, shared_wstring>(); }
-    std::string    read_string() { return _ReadStr<char, std::string>(); }
-    std::wstring   read_wstring() { return _ReadStr<wchar_t, std::wstring>(); }
+    shared_string  ReadSharedString() { return _ReadStr<char, shared_string>(); }
+    shared_wstring ReadSharedWstring() { return _ReadStr<wchar_t, shared_wstring>(); }
+    std::string    ReadString() { return _ReadStr<char, std::string>(); }
+    std::wstring   ReadWstring() { return _ReadStr<wchar_t, std::wstring>(); }
 
-    auto   GetIterator() { return _it; }
-    ByteIt _it;
+    auto   GetIterator() const { return it; }
+    ByteIt it;
 };
 
 struct ProtocolBinary
@@ -112,7 +112,7 @@ struct ProtocolBinary
 
 template <ConceptPreferIndexable T> struct SerDes<T, ProtocolBinary>
 {
-    using TKey = typename Stencil::TypeTraitsForIndexable<T>::Key;
+    using TKey = Stencil::TypeTraitsForIndexable<T>::Key;
     template <typename TContext> static auto Write(TContext& ctx, T const& obj)
     {
         Visitor<T>::VisitAll(obj, [&](auto const& key, auto const& val) {
@@ -206,7 +206,7 @@ template <ConceptPreferVariant T> struct SerDes<T, ProtocolBinary>
     template <typename TContext> static auto Read(T& obj, TContext& ctx)
     {
 
-        TKey key;
+        TKey key = 0;
         SerDes<TKey, ProtocolBinary>::Read(key, ctx);
         bool done = false;
         VisitorForVariant<T>::VisitAlternatives(obj, [&](auto const& k, auto& v) {

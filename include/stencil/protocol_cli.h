@@ -6,6 +6,7 @@
 #include "visitor.h"
 
 #include <cctype>
+#include <memory>
 #include <span>
 #include <sstream>
 #include <stdexcept>
@@ -21,7 +22,7 @@ template <typename T> struct Attribute<Stencil::AttributeType::Description, T>
 {
     static std::string_view Value()
     {
-#if defined DEBUG
+#ifdef DEBUG
         return "<unspecified>";
 #else
         return "";
@@ -29,7 +30,7 @@ template <typename T> struct Attribute<Stencil::AttributeType::Description, T>
     }
 };
 
-template <typename T> struct Attribute_ShortName
+template <typename T> struct AttributeShortName
 {
     static char Value() { return typeid(T).name()[0]; }
 };
@@ -60,27 +61,27 @@ template <typename T> struct Attribute_ShortName
 
 template <typename T> struct ArgsIterator
 {
-    ArgsIterator(T&& ctx) : _ctx(ctx) {}
+    explicit ArgsIterator(T&& ctxIn) : ctx(std::move(ctxIn)) {}
 
-    std::string_view move_next()
+    std::string_view MoveNext()
     {
-        std::string_view retval(_ctx.at(_current));
-        _current++;
+        std::string_view retval(ctx.At(current));
+        current++;
         return retval;
     }
 
-    void move_back() { _current--; }
+    void MoveBack() { current--; }
 
-    std::string_view operator*() const { return std::string_view(_ctx.at(_current)); }
+    std::string_view operator*() const { return std::string_view(ctx.At(current)); }
 
-    bool   valid() const { return _current < _ctx.count(); }
-    bool   root_ctx_requested() const { return _root_ctx_requested; }
-    void   clear_root_ctx_requested() { _root_ctx_requested = false; }
-    void   mark_root_ctx_requested() { _root_ctx_requested = true; }
-    bool   _root_ctx_requested{false};
-    bool   help_requested{false};
-    size_t _current{0};
-    T      _ctx;
+    [[nodiscard]] bool   Valid() const { return current < ctx.Count(); }
+    [[nodiscard]] bool   RootCtxRequested() const { return rootCtxRequested; }
+    void   ClearRootCtxRequested() { rootCtxRequested = false; }
+    void   MarkRootCtxRequested() { rootCtxRequested = true; }
+    bool   rootCtxRequested{false};
+    bool   helpRequested{false};
+    size_t current{0};
+    T      ctx;
 };
 
 struct ProtocolCLI
@@ -151,7 +152,7 @@ inline std::string Normalize(std::string_view const& str)
     bool              last  = false;
     for (auto ch : str)
     {
-        if (std::isupper(ch))
+        if (std::isupper(ch) != 0)
         {
             if (first || last) { ss << static_cast<char>(std::tolower(ch)); }
             else
@@ -175,7 +176,7 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
 {
     template <typename TContext> static bool AreEqual(std::string_view const& str1, TContext const& str2)
     {
-        auto it1 = str1.begin();
+        const auto *it1 = str1.begin();
         auto it2 = std::begin(str2);
         while (it1 != str1.end() && it2 != std::end(str2))
         {
@@ -308,7 +309,7 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
             boolval = true;
             return true;
         }
-        else if (value == "0" || value == "off" || value == "Off" || value == "OFF" || value == "false" || value == "False"
+        if (value == "0" || value == "off" || value == "Off" || value == "OFF" || value == "false" || value == "False"
                  || value == "FALSE" || value == "n" || value == "no" || value == "NO" || value == "No")
         {
             boolval = false;
@@ -341,8 +342,8 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
 
                     struct CustomVisitor : IterableValuesVisitors
                     {
-                        virtual ~CustomVisitor() override = default;
-                        typename Visitor<TVal>::Iterator it;
+                        ~CustomVisitor() override = default;
+                        Visitor<TVal>::Iterator it;
                     };
                     CustomVisitor* visitor{nullptr};
 
@@ -427,8 +428,7 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                 throw std::logic_error("Cannot read into value");
             }
         }
-        return;
-    }
+           }
 
     template <typename TContext> static auto Read(T& obj, TContext& ctx)
     {
@@ -436,22 +436,22 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
 
         size_t positionalarg = 0;
 
-        while (ctx.valid() && !ctx.root_ctx_requested())
+        while (ctx.Valid() && !ctx.RootCtxRequested())
         {
-            std::string_view token = ctx.move_next();
-            if (token.size() == 0) continue;
+            std::string_view token = ctx.MoveNext();
+            if (token.empty()) continue;
             if (token[0] == '-')
             {
                 if (token.size() == 1) return;
                 if (token[1] != '-') { TODO("handle short args"); }
                 if (token.size() == 2)
                 {
-                    ctx.mark_root_ctx_requested();
+                    ctx.MarkRootCtxRequested();
                     return;
                 }
                 if (token == "--help")
                 {
-                    ctx.help_requested = true;
+                    ctx.helpRequested = true;
                     return;
                 }
                 auto index = token.find('=');
@@ -496,16 +496,16 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                             {
                                 val = true;
                                 // check if we need to eat up the next token
-                                if (ctx.valid())
+                                if (ctx.Valid())
                                 {
-                                    auto next = ctx.move_next();
-                                    if (!_IsBooleanValue(next, val)) { ctx.move_back(); }
+                                    auto next = ctx.MoveNext();
+                                    if (!_IsBooleanValue(next, val)) { ctx.MoveBack(); }
                                 }
                             }
                             else
                             {
-                                if (!ctx.valid()) { throw std::invalid_argument(fmt::format("Missing value for {}", keystr)); }
-                                auto next = ctx.move_next();
+                                if (!ctx.Valid()) { throw std::invalid_argument(fmt::format("Missing value for {}", keystr)); }
+                                auto next = ctx.MoveNext();
                                 _ReadForIterableValue(iterableVistors, val, next);
                             }
                         });
@@ -609,9 +609,9 @@ template <Stencil::ConceptIterable T> struct SerDes<T, ProtocolCLI>
         Visitor<T>::IteratorBegin(it, obj);
         bool valid = false;
 
-        while (ctx.valid() && !ctx.root_ctx_requested())
+        while (ctx.Valid() && !ctx.RootCtxRequested())
         {
-            auto token = ctx.move_next();
+            auto token = ctx.MoveNext();
             if (token.size() == 0) continue;
             if (token[0] == '-')
             {
@@ -619,18 +619,18 @@ template <Stencil::ConceptIterable T> struct SerDes<T, ProtocolCLI>
                 if (token[1] != '-') { TODO("handle short args"); }
                 if (token == "--help")
                 {
-                    ctx.help_requested = true;
+                    ctx.helpRequested = true;
                     return;
                 }
                 if (token.size() == 2)
                 {
-                    ctx.mark_root_ctx_requested();
+                    ctx.MarkRootCtxRequested();
                     return;
                 }
             }
             if (!valid)
             {
-                ctx.move_back();
+                ctx.MoveBack();
                 Visitor<T>::IteratorBegin(it, obj);
                 valid = true;
             }
@@ -656,8 +656,8 @@ template <Stencil::ConceptPrimitive T> struct SerDes<T, ProtocolCLI>
 
     template <typename TContext> static auto Read(T& obj, TContext& ctx)
     {
-        if (!ctx.valid() || ctx.root_ctx_requested()) return;
-        auto token = ctx.move_next();
+        if (!ctx.Valid() || ctx.RootCtxRequested()) return;
+        auto token = ctx.MoveNext();
         if (token.size() == 0) return;
         if (token[0] == '-')
         {
@@ -665,12 +665,12 @@ template <Stencil::ConceptPrimitive T> struct SerDes<T, ProtocolCLI>
             if (token[1] != '-') { TODO("handle short args"); }
             if (token.size() == 2)
             {
-                ctx.mark_root_ctx_requested();
+                ctx.MarkRootCtxRequested();
                 return;
             }
             if (token == "--help")
             {
-                ctx.help_requested = true;
+                ctx.helpRequested = true;
                 return;
             }
         }
@@ -720,19 +720,19 @@ SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
 
 struct ArgcArgv
 {
-    int                _argc;
-    char const* const* _argv;
+    int                argc;
+    char const* const* argv;
 
-    auto   at(size_t index) const { return std::string_view(_argv[index]); }
-    size_t count() const { return static_cast<size_t>(_argc); }
+    [[nodiscard]] auto   At(size_t index) const { return std::string_view(argv[index]); }
+    [[nodiscard]] size_t Count() const { return static_cast<size_t>(argc); }
 };
 
 template <typename TStrArr> struct SpanStr
 {
-    TStrArr const* _strList;
+    TStrArr const* strList;
 
-    auto const& at(size_t index) const { return (*_strList)[index]; }
-    size_t      count() const { return std::size(*_strList); }
+    auto const& At(size_t index) const { return (*strList)[index]; }
+    [[nodiscard]] size_t      Count() const { return std::size(*strList); }
 };
 
 SUPPRESS_WARNINGS_START
@@ -746,12 +746,12 @@ template <typename T, typename TInCtx> inline auto _Parse(ArgsIterator<TInCtx>&&
         bool success       = true;
     } parseResult;
 
-    while (argsIt.valid())
+    while (argsIt.Valid())
     {
-        argsIt.clear_root_ctx_requested();
+        argsIt.ClearRootCtxRequested();
 
         Stencil::SerDes<T, ProtocolCLI>::Read(parseResult.obj, argsIt);
-        if (argsIt.help_requested)
+        if (argsIt.helpRequested)
         {
             parseResult.helpRequested = true;
             parseResult.success       = false;
@@ -764,7 +764,7 @@ SUPPRESS_WARNINGS_END
 
 template <typename T> inline auto Parse(int argc, char const* const* const argv)
 {
-    return _Parse<T>(ArgsIterator<ArgcArgv>(ArgcArgv{argc, argv}));
+    return _Parse<T>(ArgsIterator<ArgcArgv>(ArgcArgv{.argc=argc, .argv=argv}));
 }
 
 template <typename T, typename TStrArr> inline auto Parse(TStrArr const& args)
@@ -795,11 +795,11 @@ struct Table
 
     std::vector<Row> rows;
 
-    void AddRow() { rows.push_back(Row{}); }
+    void AddRow() { rows.emplace_back(); }
 
     void AddColumn(size_t col, size_t span, std::string_view const& text)
     {
-        ColumnSpan col1{col, span, std::string(text)};
+        ColumnSpan col1{.column=col, .colspan=span, .text=std::string(text)};
         rows.back().columns.push_back(std::move(col1));
     }
 
@@ -815,22 +815,22 @@ struct Table
         AddColumn(col, span, text);
     }
 
-    size_t _FindColumnWidth(ColumnSpan const& col) const { return static_cast<size_t>(col.text.length() + 4u); }
+    [[nodiscard]] static size_t _FindColumnWidth(ColumnSpan const& col) { return static_cast<size_t>(col.text.length() + 4u); }
 
-    void _PrintColumnTextToBuffer(char* buffer, size_t /*available*/, ColumnSpan const& col) const
+    static void _PrintColumnTextToBuffer(char* buffer, size_t /*available*/, ColumnSpan const& col) 
     {
         if (col.text.empty()) return;
         std::copy(col.text.begin(), col.text.end(), buffer);
     }
 
-    size_t _FindTableWidth() const
+    [[nodiscard]] size_t _FindTableWidth() const
     {
         size_t width = 0;
         for (auto& colwidth : _FindColumnWidths()) { width += colwidth; }
         return width;
     }
 
-    std::vector<size_t> _FindColumnWidths() const
+    [[nodiscard]] std::vector<size_t> _FindColumnWidths() const
     {
         std::vector<size_t> columnwidths;
         for (auto const& row : rows)
@@ -846,9 +846,9 @@ struct Table
             }
         }
 
-        for (auto& row : rows)
+        for (const auto& row : rows)
         {
-            for (auto& col : row.columns)
+            for (const auto& col : row.columns)
             {
                 auto farright    = std::min(static_cast<size_t>(col.colspan) + col.column, columnwidths.size() - 1);
                 auto neededwidth = _FindColumnWidth(col);
@@ -861,31 +861,31 @@ struct Table
         return columnwidths;
     }
 
-    std::vector<std::string> PrintAsLines() const
+    [[nodiscard]] std::vector<std::string> PrintAsLines() const
     {
         auto                widths = _FindColumnWidths();
         std::vector<size_t> offsets{0};
         offsets.reserve(widths.size());
         size_t bufferwidth = 1;
-        for (size_t i = 0; i < widths.size(); i++)
+        for (unsigned long width : widths)
         {
-            bufferwidth += widths[i];
+            bufferwidth += width;
             offsets.push_back(bufferwidth - 1);
         }
         if (bufferwidth == 1) return {};
 
         std::unique_ptr<char[]>  buffer(new char[bufferwidth]());
         std::vector<std::string> lines;
-        for (auto& row : rows)
+        for (const auto& row : rows)
         {
-            std::fill(buffer.get(), buffer.get() + (bufferwidth), ' ');
+            std::fill(buffer.get(), buffer.get() + bufferwidth, ' ');
             buffer[bufferwidth - 1] = 0;
-            for (auto& col : row.columns)
+            for (const auto& col : row.columns)
             {
                 auto offset = offsets[col.column];
                 _PrintColumnTextToBuffer(&buffer[offset], bufferwidth - offset, col);
             }
-            lines.push_back(buffer.get());
+            lines.emplace_back(buffer.get());
         }
         return lines;
     }
@@ -957,7 +957,7 @@ template <typename T> inline auto GenerateHelp(T const& obj, Table& table)
 template <typename T> inline auto GenerateHelp(T const& obj)
 {
     std::vector<std::string> args;
-    std::unique_ptr<Table>   table(new Table());
+    std::unique_ptr<Table>   table = std::make_unique<Table>();
     GenerateHelp(obj, *table);
     return table->PrintAsLines();
 }

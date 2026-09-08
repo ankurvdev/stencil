@@ -30,7 +30,7 @@ struct DatabaseTester
                Stencil::Database::Record<Objects::SimpleObject1> const& rec)
     {
         // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
-        REQUIRE(rec._fieldtracker == ref._fieldtracker);
+        REQUIRE(rec.fieldtracker == ref.fieldtracker);
         REQUIRE(rec.lastmodified == ref.lastmodified);
         REQUIRE(rec.val1.data == ref.val1);
         REQUIRE(rec.val2.data == ref.val2);
@@ -45,7 +45,7 @@ struct DatabaseTester
                Stencil::Database::Record<Objects::SimpleObject2> const& rec)
     {
         // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
-        REQUIRE(rec._fieldtracker == ref._fieldtracker);
+        REQUIRE(rec.fieldtracker == ref.fieldtracker);
         REQUIRE(rec.lastmodified == ref.lastmodified);
         REQUIRE(rec.val1.data == ref.val1);
         REQUIRE(rec.val2.data == Catch::Approx(ref.val2));

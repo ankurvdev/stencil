@@ -41,10 +41,10 @@ struct TypeDefinitions
             FieldTypeDecl::Merge(std::move(decl));
         }
     };
-    void _RegisterFieldDefForProgram(FieldTypeDecl const& v, IDL::Program& program) const;
+    void RegisterFieldDefForProgram(FieldTypeDecl const& v, IDL::Program& program) const;
     void AddTypeDefinitions(std::string_view const& name, std::string_view const& text);
 
-    FieldTypeDecl& _FindOrInsertFieldTypeDecl(StrType const& name)LFTBND
+    FieldTypeDecl& FindOrInsertFieldTypeDecl(StrType const& name)LFTBND
     {
         auto it = fieldTypeDeclMap.find(name);
         if (it == fieldTypeDeclMap.end())
@@ -56,7 +56,7 @@ struct TypeDefinitions
         return fieldTypeDecls.at(it->second);
     }
 
-    ContainerTypeDecl& _FindOrInsertContainerDecls(StrType const& name) LFTBND
+    ContainerTypeDecl& FindOrInsertContainerDecls(StrType const& name) LFTBND
     {
         auto it = containerDeclMap.find(name);
         if (it == containerDeclMap.end())
@@ -85,6 +85,7 @@ struct Generator
 {
     Generator() = default;
     virtual ~Generator() = default;
+CLASS_DELETE_COPY_AND_MOVE(Generator);
 
     void LoadBuilltinTemplates();
     void LoadTemplate(std::filesystem::path const& templateFilePath);
@@ -113,8 +114,8 @@ struct Generator
     private:
     bool _finalized{false};
 
-    void _AddTemplate(std::string_view const& name, std::string_view const& text);
-    void _AddContent(std::string_view const& name, std::string_view const& text);
+    void AddTemplate_(std::string_view const& name, std::string_view const& text);
+    void AddContent_(std::string_view const& name, std::string_view const& text);
 
     std::shared_ptr<TypeDefinitions> _typeDefinitions = std::make_shared<TypeDefinitions>();
 
