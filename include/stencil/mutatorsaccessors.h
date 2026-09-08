@@ -72,7 +72,7 @@ template <typename T, size_t N> struct Mutators<std::array<T, N>>
     template <typename... TArgs> static void remove(TArgs&&... /*unused*/) { throw std::logic_error("Invalid"); } //NOLINT
     template <typename... TArgs> static void edit(TArgs&&... /*unused*/) { throw std::logic_error("Invalid"); } //NOLINT
 
-    template <typename TLambda> static void RemoveMatching(TData& /*arr*/, TLambda&& /*lambda*/) { throw std::logic_error("Invalid"); }
+    template <typename TLambda> static void RemoveMatching(TData& /*arr*/, TLambda const& /*lambda*/) { throw std::logic_error("Invalid"); }
 
     template <ConceptProtocol TProtocol = Stencil::ProtocolBinary>
     static std::vector<uint8_t> GenerateMutationData(uint8_t /*mutationIndex*/, TData const& /*fieldVal*/, T const& /*val*/)

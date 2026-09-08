@@ -757,7 +757,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         subtxn.Assign(std::forward<shared_string>(val));
     }
 
-    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
+    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda const& lambda)
     {
         switch (index)
         {
@@ -806,12 +806,12 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         }
     }
 
-    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
+    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda const& lambda)
     {
         return Edit(index, std::forward<TLambda>(lambda));
     }
 
-    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda const& lambda)
     {
         {
             auto txn = workingDirectory();
@@ -885,7 +885,7 @@ template <Stencil::ConceptTransactionView TContainer> struct Stencil::Transactio
     bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return IsFieldChanged_(elemTxnState.field); }
     bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda const& lambda) const
     {
         if (IsFieldAssigned_(Fields::Field_workingDirectory))
         {
@@ -1025,7 +1025,7 @@ template <> struct Stencil::Visitor<CLOpts1::CommandLineOptions> : Stencil::Visi
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -1042,7 +1042,7 @@ template <> struct Stencil::Visitor<CLOpts1::CommandLineOptions> : Stencil::Visi
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
         lambda(Traits::Field_workingDirectoryT{}, obj.workingDirectory);
         lambda(Traits::Field_librariesT{}, obj.libraries);
@@ -1128,7 +1128,7 @@ struct Stencil::Visitor<Stencil::Database::Record<CLOpts1::CommandLineOptions>>
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -1145,7 +1145,7 @@ struct Stencil::Visitor<Stencil::Database::Record<CLOpts1::CommandLineOptions>>
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
         lambda(Traits::Field_workingDirectoryT{}, obj.workingDirectory);
         lambda(Traits::Field_librariesT{}, obj.libraries);
@@ -1392,7 +1392,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         subtxn.Assign(std::forward<shared_string>(val));
     }
 
-    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
+    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda const& lambda)
     {
         switch (index)
         {
@@ -1411,12 +1411,12 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         }
     }
 
-    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
+    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda const& lambda)
     {
         return Edit(index, std::forward<TLambda>(lambda));
     }
 
-    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda const& lambda)
     {
         {
             auto txn = field1();
@@ -1460,7 +1460,7 @@ template <Stencil::ConceptTransactionView TContainer> struct Stencil::Transactio
     bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return IsFieldChanged_(elemTxnState.field); }
     bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda const& lambda) const
     {
         if (IsFieldAssigned_(Fields::Field_field1))
         {
@@ -1510,7 +1510,7 @@ template <> struct Stencil::Visitor<CLOpts1::SimpleObj> : Stencil::VisitorT<CLOp
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -1521,7 +1521,7 @@ template <> struct Stencil::Visitor<CLOpts1::SimpleObj> : Stencil::VisitorT<CLOp
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
         lambda(Traits::Field_field1T{}, obj.field1);
         lambda(Traits::Field_field2T{}, obj.field2);
@@ -1577,7 +1577,7 @@ struct Stencil::Visitor<Stencil::Database::Record<CLOpts1::SimpleObj>>
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -1588,7 +1588,7 @@ struct Stencil::Visitor<Stencil::Database::Record<CLOpts1::SimpleObj>>
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
         lambda(Traits::Field_field1T{}, obj.field1);
         lambda(Traits::Field_field2T{}, obj.field2);
@@ -1793,7 +1793,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         auto txn = field1();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::edit(txn, std::move(args));
     }
-    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
+    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda const& lambda)
     {
         switch (index)
         {
@@ -1807,12 +1807,12 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         }
     }
 
-    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
+    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda const& lambda)
     {
         return Edit(index, std::forward<TLambda>(lambda));
     }
 
-    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda const& lambda)
     {
         {
             auto txn = field1();
@@ -1851,7 +1851,7 @@ template <Stencil::ConceptTransactionView TContainer> struct Stencil::Transactio
     bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return IsFieldChanged_(elemTxnState.field); }
     bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda const& lambda) const
     {
         if (IsFieldAssigned_(Fields::Field_field1))
         {
@@ -1886,7 +1886,7 @@ template <> struct Stencil::Visitor<CLOpts1::ObjWithList> : Stencil::VisitorT<CL
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -1896,7 +1896,7 @@ template <> struct Stencil::Visitor<CLOpts1::ObjWithList> : Stencil::VisitorT<CL
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
         lambda(Traits::Field_field1T{}, obj.field1);
     }
@@ -1947,7 +1947,7 @@ struct Stencil::Visitor<Stencil::Database::Record<CLOpts1::ObjWithList>>
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -1957,7 +1957,7 @@ struct Stencil::Visitor<Stencil::Database::Record<CLOpts1::ObjWithList>>
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
         lambda(Traits::Field_field1T{}, obj.field1);
     }
@@ -2467,7 +2467,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         subtxn.Assign(std::forward<shared_string>(val));
     }
 
-    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
+    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda const& lambda)
     {
         switch (index)
         {
@@ -2506,12 +2506,12 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<CL
         }
     }
 
-    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
+    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda const& lambda)
     {
         return Edit(index, std::forward<TLambda>(lambda));
     }
 
-    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda const& lambda)
     {
         {
             auto txn = key1();
@@ -2575,7 +2575,7 @@ template <Stencil::ConceptTransactionView TContainer> struct Stencil::Transactio
     bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return IsFieldChanged_(elemTxnState.field); }
     bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda const& lambda) const
     {
         if (IsFieldAssigned_(Fields::Field_key1))
         {
@@ -2685,7 +2685,7 @@ template <> struct Stencil::Visitor<CLOpts1::CLOptsTest> : Stencil::VisitorT<CLO
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -2700,7 +2700,7 @@ template <> struct Stencil::Visitor<CLOpts1::CLOptsTest> : Stencil::VisitorT<CLO
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
         lambda(Traits::Field_key1T{}, obj.key1);
         lambda(Traits::Field_listofintT{}, obj.listofint);
@@ -2776,7 +2776,7 @@ struct Stencil::Visitor<Stencil::Database::Record<CLOpts1::CLOptsTest>>
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -2791,7 +2791,7 @@ struct Stencil::Visitor<Stencil::Database::Record<CLOpts1::CLOptsTest>>
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
         lambda(Traits::Field_key1T{}, obj.key1);
         lambda(Traits::Field_listofintT{}, obj.listofint);

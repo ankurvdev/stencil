@@ -2,6 +2,7 @@
 #include "Interfaces.pidl.h"
 #include "Objects.pidl.h"
 
+//NOLINTBEGIN(readability-magic-numbers)
 struct ObjectsTester
 {
     size_t              counter{0};
@@ -65,7 +66,7 @@ struct ObjectsTester
     auto IncrList()
     {
         ++listCounter;
-        listCounter = listCounter & 0xf;
+        listCounter = listCounter & 0xfu;
         return listCounter + 1;
     }
 
@@ -101,3 +102,4 @@ struct ObjectsTester
         return obj;
     }
 };
+//NOLINTEND(readability-magic-numbers)

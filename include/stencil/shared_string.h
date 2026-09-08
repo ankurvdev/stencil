@@ -57,13 +57,13 @@ template <typename T> struct shared_stringT
         *this = make(str);
         return *this;
     }
-    template <size_t N> shared_stringT& operator=(TStringView const& str)
+    shared_stringT& operator=(TStringView const& str)
     {
         if (str.empty()) return *this;
         *this = make(str);
         return *this;
     }
-    template <size_t N> shared_stringT& operator=(TStringView&& str) //NOLINT
+    shared_stringT& operator=(shared_stringT&& str)    // NOLINT
     {
         std::swap(_str, str._str);
         return *this;
@@ -94,7 +94,8 @@ template <typename T> struct shared_stringT
 
     [[nodiscard]] TStringView view() const { return empty() ? TStringView() : TStringView(*_str.get()); }
 
-    template <size_t N> bool operator==(T const (&str)[N]) const { return view() == str; }
+    template <size_t N> bool operator==(T const (&str)[N]) const
+    { return view() == str; }    // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
 
     bool operator==(shared_stringT const& str) const { return view() == str.view(); }
     bool operator==(TStringView const& str) const { return view() == str; }

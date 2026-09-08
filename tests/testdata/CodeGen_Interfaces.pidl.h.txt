@@ -262,7 +262,7 @@ struct Stencil::Visitor<Interfaces::Server1::Args_Function1>
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -274,14 +274,14 @@ struct Stencil::Visitor<Interfaces::Server1::Args_Function1>
     }
 
     template <typename T, typename TField, typename TLambda>
-    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda&& lambda)
+    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda const& lambda)
     {
         if constexpr (std::is_same_v<TField, typename Traits::Field_arg_arg1T>) { return lambda(obj.arg1); }
         if constexpr (std::is_same_v<TField, typename Traits::Field_arg_arg2T>) { return lambda(obj.arg2); }
         throw std::logic_error("Invalid Key");
     }
 
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
         lambda(Fields::arg_arg1, obj.arg1);
         lambda(Fields::arg_arg2, obj.arg2);
@@ -361,7 +361,7 @@ struct Stencil::Visitor<Interfaces::Server1::Args_Function2>
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -371,12 +371,12 @@ struct Stencil::Visitor<Interfaces::Server1::Args_Function2>
     }
 
     template <typename T, typename TField, typename TLambda>
-    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda&& lambda)
+    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda const& lambda)
     {
         throw std::logic_error("Invalid Key");
     }
 
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
     }
 };
@@ -455,7 +455,7 @@ struct Stencil::Visitor<Interfaces::Server1::Args_Function3>
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -466,13 +466,13 @@ struct Stencil::Visitor<Interfaces::Server1::Args_Function3>
     }
 
     template <typename T, typename TField, typename TLambda>
-    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda&& lambda)
+    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda const& lambda)
     {
         if constexpr (std::is_same_v<TField, typename Traits::Field_arg_arg2T>) { return lambda(obj.arg2); }
         throw std::logic_error("Invalid Key");
     }
 
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
         lambda(Fields::arg_arg2, obj.arg2);
     }
@@ -559,7 +559,7 @@ struct Stencil::Visitor<Interfaces::Server1::Args_SomethingHappened>
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -571,14 +571,14 @@ struct Stencil::Visitor<Interfaces::Server1::Args_SomethingHappened>
     }
 
     template <typename T, typename TField, typename TLambda>
-    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda&& lambda)
+    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda const& lambda)
     {
         if constexpr (std::is_same_v<TField, typename Traits::Field_arg_arg1T>) { return lambda(obj.arg1); }
         if constexpr (std::is_same_v<TField, typename Traits::Field_arg_arg2T>) { return lambda(obj.arg2); }
         throw std::logic_error("Invalid Key");
     }
 
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
         lambda(Fields::arg_arg1, obj.arg1);
         lambda(Fields::arg_arg2, obj.arg2);
@@ -785,7 +785,7 @@ struct Stencil::Visitor<Interfaces::NoEvent::Args_Function2>
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -795,12 +795,12 @@ struct Stencil::Visitor<Interfaces::NoEvent::Args_Function2>
     }
 
     template <typename T, typename TField, typename TLambda>
-    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda&& lambda)
+    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda const& lambda)
     {
         throw std::logic_error("Invalid Key");
     }
 
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
     }
 };
@@ -879,7 +879,7 @@ struct Stencil::Visitor<Interfaces::NoEvent::Args_Function3>
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -890,13 +890,13 @@ struct Stencil::Visitor<Interfaces::NoEvent::Args_Function3>
     }
 
     template <typename T, typename TField, typename TLambda>
-    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda&& lambda)
+    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda const& lambda)
     {
         if constexpr (std::is_same_v<TField, typename Traits::Field_arg_arg2T>) { return lambda(obj.arg2); }
         throw std::logic_error("Invalid Key");
     }
 
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
         lambda(Fields::arg_arg2, obj.arg2);
     }

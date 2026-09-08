@@ -6,6 +6,8 @@
 #include "TestUtils.h"
 #include "stencil/typetraits.h"
 
+// NOLINTBEGIN(readability-magic-numbers,cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays,
+// cppcoreguidelines-pro-bounds-array-to-pointer-decay)
 static_assert(!Stencil::Category::IsPrimitive<CLOpts1::CommandLineOptions>());
 static_assert(Stencil::ConceptIndexable<CLOpts1::CommandLineOptions>);
 static_assert(!Stencil::ConceptPrimitive<CLOpts1::CommandLineOptions>);
@@ -288,9 +290,9 @@ TEST_CASE("CodeGen::CommandLineArgs::Help")
         RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("hydrate", "--help"),
     };
 
-    for (const auto& lines : linesoflines)
+    for (auto const& lines : linesoflines)
     {
-        for (const auto& l : lines) output.push_back(l);
+        for (auto const& l : lines) output.push_back(l);
         output.emplace_back("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     }
 
@@ -302,3 +304,5 @@ TEST_CASE("CodeGen::CLOpts1CommandLineArgs::Help")
     static_assert(Stencil::ConceptNamedTuple<CLOpts1::CommandLineOptions>);
     TestCommon::CheckResource<TestCommon::StrFormat>(RequireGenerateHelpException<::CLOpts1::CommandLineOptions>("--help"), "0");
 }
+// NOLINTEND(readability-magic-numbers,cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays,cppcoreguidelines-pro-bounds-array-to-pointer-decay
+// )

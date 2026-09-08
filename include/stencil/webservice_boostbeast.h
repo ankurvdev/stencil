@@ -931,7 +931,7 @@ template <typename TImpl, ConceptIndexable TState> struct RequestHandler<TImpl, 
             }
             else if (req.method() == boost::beast::http::verb::put)
             {
-                const auto& data = req.body();
+                auto const& data = req.body();
                 Stencil::StringTransactionSerDes::Apply(txn, data);
             }
             else
@@ -995,10 +995,10 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
     static constexpr size_t NumServices   = sizeof...(TServices);
     static constexpr size_t AcceptorCount = 4;
 
-   private:
- WebServiceT() = default;
-public:
+    private:
+    WebServiceT() = default;
 
+    public:
     ~WebServiceT() { StopDaemon(); }
 
     CLASS_DELETE_COPY_AND_MOVE(WebServiceT);
@@ -1196,7 +1196,7 @@ public:
 
     int          _port{};
     impl::SvcMgr _mgr;
-friend TImpl;
+    friend TImpl;
 };
 SUPPRESS_WARNINGS_END
 }    // namespace Stencil::websvc

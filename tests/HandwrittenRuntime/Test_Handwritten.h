@@ -224,7 +224,7 @@ template <> struct Stencil::Visitor<WithPrimitives64Bit> : Stencil::VisitorT<Wit
     using Traits = TypeTraitsForIndexable<WithPrimitives64Bit>;
     using Fields = TypeTraitsForIndexable<WithPrimitives64Bit>::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda const& lambda)
     {
         switch (field)
         {
@@ -242,7 +242,7 @@ template <> struct Stencil::Visitor<WithPrimitives64Bit> : Stencil::VisitorT<Wit
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda const& lambda)
     {
         lambda(Traits::Field_f1{}, obj.f1);
         lambda(Traits::Field_f2{}, obj.f2);
@@ -309,7 +309,7 @@ template <> struct Stencil::Visitor<ComplexPrimitives> : Stencil::VisitorT<Compl
     using Traits = TypeTraitsForIndexable<ComplexPrimitives>;
     using Fields = TypeTraitsForIndexable<ComplexPrimitives>::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda const& lambda)
     {
         switch (field)
         {
@@ -321,7 +321,7 @@ template <> struct Stencil::Visitor<ComplexPrimitives> : Stencil::VisitorT<Compl
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda const& lambda)
     {
         lambda(Traits::Field_f1{}, obj.f1);
         lambda(Traits::Field_f2{}, obj.f2);
@@ -388,7 +388,7 @@ template <> struct Stencil::Visitor<LargePrimitives> : Stencil::VisitorT<LargePr
     using Traits = TypeTraitsForIndexable<LargePrimitives>;
     using Fields = TypeTraitsForIndexable<LargePrimitives>::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda const& lambda)
     {
         switch (field)
         {
@@ -401,7 +401,7 @@ template <> struct Stencil::Visitor<LargePrimitives> : Stencil::VisitorT<LargePr
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda const& lambda)
     {
         lambda(Traits::Field_f1{}, obj.f1);
         lambda(Traits::Field_f2{}, obj.f2);
@@ -469,7 +469,7 @@ template <> struct Stencil::Visitor<WithBlobs> : Stencil::VisitorT<WithBlobs>
     using Traits = TypeTraitsForIndexable<WithBlobs>;
     using Fields = TypeTraitsForIndexable<WithBlobs>::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda const& lambda)
     {
         switch (field)
         {
@@ -482,7 +482,7 @@ template <> struct Stencil::Visitor<WithBlobs> : Stencil::VisitorT<WithBlobs>
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda const& lambda)
     {
         lambda(Traits::Field_f1{}, obj.f1);
         lambda(Traits::Field_f2{}, obj.f2);
@@ -548,7 +548,7 @@ template <> struct Stencil::Visitor<Nested> : Stencil::VisitorT<Nested>
     using Traits = TypeTraitsForIndexable<Nested>;
     using Fields = TypeTraitsForIndexable<Nested>::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda const& lambda)
     {
         switch (field)
         {
@@ -561,7 +561,7 @@ template <> struct Stencil::Visitor<Nested> : Stencil::VisitorT<Nested>
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda const& lambda)
     {
         lambda(Traits::Field_f1{}, obj.f1);
         lambda(Traits::Field_f2{}, obj.f2);
@@ -675,7 +675,7 @@ template <> struct Stencil::StructFieldsVisitor<MultiAttributed>
 {
     using Traits = TypeTraitsForIndexable<MultiAttributed>;
     using Fields = TypeTraitsForIndexable<MultiAttributed>::Fields;
-    template <typename T, typename TLambda> static bool VisitField(T& obj, Fields fields, TLambda&& lambda)
+    template <typename T, typename TLambda> static bool VisitField(T& obj, Fields fields, TLambda const& lambda)
     {
 
         switch (fields)
@@ -688,7 +688,7 @@ template <> struct Stencil::StructFieldsVisitor<MultiAttributed>
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllFields(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAllFields(T& obj, TLambda const& lambda)
     {
         lambda(Traits::Field_f1{}, obj.f1);
         lambda(Traits::Field_f2{}, obj.f2);
@@ -762,7 +762,7 @@ template <> struct Stencil::StructFieldsVisitor<WithVariant>
 {
     using Traits = TypeTraitsForIndexable<WithVariant>;
     using Fields = TypeTraitsForIndexable<WithVariant>::Fields;
-    template <typename T, typename TLambda> static bool VisitField(T& obj, Fields fields, TLambda&& lambda)
+    template <typename T, typename TLambda> static bool VisitField(T& obj, Fields fields, TLambda const& lambda)
     {
         switch (fields)
         {
@@ -775,7 +775,7 @@ template <> struct Stencil::StructFieldsVisitor<WithVariant>
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAllFields(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAllFields(T& obj, TLambda const& lambda)
     {
         lambda(Traits::Field_f1{}, obj.f1);
         lambda(Traits::Field_f2{}, obj.f2);
@@ -861,7 +861,7 @@ template <> struct Stencil::VisitorForVariant<NamedVariant>
     using Fields = Stencil::TypeTraitsForVariant<NamedVariant>::Fields;
     static bool IsMonostate(TObj const& obj) { return obj._variant.index() == 0; }
 
-    template <typename TLambda> static void VisitAlternatives(TObj& /* obj */, TLambda&& lambda)
+    template <typename TLambda> static void VisitAlternatives(TObj& /* obj */, TLambda const& lambda)
     {
         {
             MultiAttributed val{};
@@ -889,7 +889,7 @@ template <> struct Stencil::VisitorForVariant<NamedVariant>
         }
     }
 
-    template <typename TLambda> static void VisitActiveAlternative(TObj const& obj, TLambda&& lambda)
+    template <typename TLambda> static void VisitActiveAlternative(TObj const& obj, TLambda const& lambda)
     {
         std::visit(
             [&](auto const& val) {
@@ -900,7 +900,7 @@ template <> struct Stencil::VisitorForVariant<NamedVariant>
             },
             obj._variant);
     }
-    template <typename TLambda> static void VisitActiveAlternative(TObj& obj, TLambda&& lambda)
+    template <typename TLambda> static void VisitActiveAlternative(TObj& obj, TLambda const& lambda)
     {
         std::visit(
             [&](auto& val) {
@@ -956,7 +956,7 @@ template <> struct Stencil::Visitor<TestObj> : Stencil::VisitorT<TestObj>
     using Traits = TypeTraitsForIndexable<TestObj>;
     using Fields = TypeTraitsForIndexable<TestObj>::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields field, TLambda const& lambda)
     {
         switch (field)
         {
@@ -966,7 +966,7 @@ template <> struct Stencil::Visitor<TestObj> : Stencil::VisitorT<TestObj>
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda) { lambda(Traits::Field_f1{}, obj.f1); }
+    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda const& lambda) { lambda(Traits::Field_f1{}, obj.f1); }
 };
 
 static_assert(Stencil::ConceptNamedTuple<TestObj>);

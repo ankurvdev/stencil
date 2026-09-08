@@ -480,7 +480,7 @@ struct Stencil::Transaction<std::unordered_map<TKey, TVal>, TContainer>
                 New,
                 Edit,
                 Delete,
-            } type;
+            } type{Type::New};
 
             ElemTxnState container{};
             ValTxnState  elem;
@@ -724,7 +724,7 @@ template <Stencil::ConceptPreferIterable TElem, Stencil::ConceptTransaction TCon
         return CreateTransaction<ValTxn>(change.valState, change.elemState, *this, elem.at(it));
     }
 
-    template <typename TLambda> auto Edit(IteratorType it, TLambda&& lambda)
+    template <typename TLambda> auto Edit(IteratorType it, TLambda const& lambda)
     {
         Stencil::Visitor<TElem>::VisitKey(elem, it, [&](auto& /*val*/) {
             RecordMutationEdit(it);
@@ -781,7 +781,7 @@ struct Stencil::TransactionView<TElem, TContainer>
 
     ElemType const& Elem() const { return elem; }
 
-    template <typename TLambda> void VisitChanges(TLambda&& lambda) const
+    template <typename TLambda> void VisitChanges(TLambda const& lambda) const
     {
         if (elemState.changes.size() == 0) return;
 

@@ -10,6 +10,9 @@ using DataStore = Stencil::Database::Database<::Objects::NestedObject>;
 static_assert(Stencil::Database::TypeId<::Objects::SimpleObject1, DataStore> > 0);
 static_assert(Stencil::ConceptIndexable<Stencil::Database::RecordView<::Objects::SimpleObject1, DataStore>>);
 
+// NOLINTBEGIN(readability-magic-numbers)
+namespace
+{
 struct DatabaseTester
 {
     DatabaseTester()
@@ -26,8 +29,8 @@ struct DatabaseTester
 
     CLASS_DELETE_COPY_AND_MOVE(DatabaseTester);
     static void Check(Stencil::Database::RWLock& /*lock*/,
-               Objects::SimpleObject1 const&                            ref,
-               Stencil::Database::Record<Objects::SimpleObject1> const& rec)
+                      Objects::SimpleObject1 const&                            ref,
+                      Stencil::Database::Record<Objects::SimpleObject1> const& rec)
     {
         // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
         REQUIRE(rec.fieldtracker == ref.fieldtracker);
@@ -41,8 +44,8 @@ struct DatabaseTester
     }
 
     static void Check(Stencil::Database::RWLock& /*lock*/,
-               Objects::SimpleObject2 const&                            ref,
-               Stencil::Database::Record<Objects::SimpleObject2> const& rec)
+                      Objects::SimpleObject2 const&                            ref,
+                      Stencil::Database::Record<Objects::SimpleObject2> const& rec)
     {
         // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
         REQUIRE(rec.fieldtracker == ref.fieldtracker);
@@ -57,7 +60,8 @@ struct DatabaseTester
         REQUIRE(rec.val8.data == ref.val8);
     }
 
-    void Check(Stencil::Database::RWLock& lock, Objects::ListObject const& ref, Stencil::Database::Record<Objects::ListObject> const& rec) const
+    void
+    Check(Stencil::Database::RWLock& lock, Objects::ListObject const& ref, Stencil::Database::Record<Objects::ListObject> const& rec) const
     {
         Check(lock, ref.obj1, datastore->Get(lock, rec.obj1));
         // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
@@ -65,9 +69,10 @@ struct DatabaseTester
         REQUIRE(rec.value.data == ref.value);
     }
 
-    void Check(Stencil::Database::RWLock& lock,
-               std::unordered_map<uint32_t, std::unordered_map<uint32_t, ::Objects::SimpleObject1>> const& /*ref*/,
-               Stencil::Database::Record<std::unordered_map<uint32_t, std::unordered_map<uint32_t, ::Objects::SimpleObject1>>> const& rec) const
+    void
+    Check(Stencil::Database::RWLock& lock,
+          std::unordered_map<uint32_t, std::unordered_map<uint32_t, ::Objects::SimpleObject1>> const& /*ref*/,
+          Stencil::Database::Record<std::unordered_map<uint32_t, std::unordered_map<uint32_t, ::Objects::SimpleObject1>>> const& rec) const
     {
         for (auto item : rec.Items())
         {
@@ -97,7 +102,8 @@ struct DatabaseTester
         }
     }
 
-    void Check(Stencil::Database::RWLock& lock, Objects::DictObject const& ref, Stencil::Database::Record<Objects::DictObject> const& rec) const
+    void
+    Check(Stencil::Database::RWLock& lock, Objects::DictObject const& ref, Stencil::Database::Record<Objects::DictObject> const& rec) const
     {
         // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
         Check(lock, ref.dictval, datastore->Get(lock, rec.dictval));
@@ -229,6 +235,7 @@ struct DatabaseTester
     std::filesystem::path                       filepath = "SaveAndLoad.bin"s;
     std::vector<std::string>                    lines;
 };
+}    // namespace
 
 TEST_CASE("Database", "[database]")
 {
@@ -280,7 +287,7 @@ TEST_CASE("Database File Storage", "[database]")
             datastore.Init(dbFileName);
         }
         REQUIRE(std::filesystem::exists(dbFileName));
-        REQUIRE(std::filesystem::file_size(dbFileName) == (8192 * 2 + 80));
+        REQUIRE(std::filesystem::file_size(dbFileName) == ((8192 * 2) + 80));
     }
 
     // Constructor With Path Reads Existing File but doesnt touch it
@@ -330,3 +337,5 @@ TEST_CASE("Database File Storage", "[database]")
         }
     }
 }
+
+// NOLINTEND(readability-magic-numbers)

@@ -882,7 +882,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<En
         subtxn.Assign(std::forward<float>(val));
     }
 
-    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
+    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda const& lambda)
     {
         switch (index)
         {
@@ -951,12 +951,12 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<En
         }
     }
 
-    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
+    template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda const& lambda)
     {
         return Edit(index, std::forward<TLambda>(lambda));
     }
 
-    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda const& lambda)
     {
         {
             auto txn = enum1();
@@ -1050,7 +1050,7 @@ template <Stencil::ConceptTransactionView TContainer> struct Stencil::Transactio
     bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return IsFieldChanged_(elemTxnState.field); }
     bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda const& lambda) const
     {
         if (IsFieldAssigned_(Fields::Field_enum1))
         {
@@ -1250,7 +1250,7 @@ template <> struct Stencil::Visitor<EnumConstsInitializers::DefaultValues> : Ste
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -1271,7 +1271,7 @@ template <> struct Stencil::Visitor<EnumConstsInitializers::DefaultValues> : Ste
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
         lambda(Traits::Field_enum1T{}, obj.enum1);
         lambda(Traits::Field_enum2T{}, obj.enum2);
@@ -1377,7 +1377,7 @@ struct Stencil::Visitor<Stencil::Database::Record<EnumConstsInitializers::Defaul
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -1398,7 +1398,7 @@ struct Stencil::Visitor<Stencil::Database::Record<EnumConstsInitializers::Defaul
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
         lambda(Traits::Field_enum1T{}, obj.enum1);
         lambda(Traits::Field_enum2T{}, obj.enum2);

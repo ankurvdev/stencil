@@ -6,6 +6,7 @@
 
 #include <thread>
 #include <unordered_set>
+// NOLINTBEGIN(readability-magic-numbers, cppcoreguidelines-pro-type-reinterpret-cast, readability-function-cognitive-complexity)
 
 using namespace std::chrono_literals;
 
@@ -18,7 +19,8 @@ template <typename T> static bool TestObjEqual(T const& obj1, T const& obj2)
 
 template <typename T> static bool TestObjEqual(T const& obj1, std::string const& snapshot)
 { return TestCommon::JsonStringEqual(Stencil::Json::Stringify(obj1), snapshot); }
-
+namespace
+{
 struct TestReplay
 {
     TestReplay() : txn2(CreateNestedObjectTransaction(obj2)) {}
@@ -29,8 +31,9 @@ struct TestReplay
             try
             {
                 SelfTest();
-            } catch (...)
+            } catch (std::exception const& ex)
             {
+                fmt::print("Self Test Failed: {}\n", ex.what());
                 // FAIL("Self Test Failed");
             }
         }
@@ -64,7 +67,7 @@ struct TestReplay
         CHECK(!istrm.eof());
     }
 
-    template <typename TLambda> std::string Test(TLambda&& lambda)
+    template <typename TLambda> std::string Test(TLambda const& lambda)
     {
         auto txn1 = CreateNestedObjectTransaction(obj1);
         lambda(txn1);
@@ -195,6 +198,7 @@ TEST_CASE("Transactions", "[transaction]")
     replay.Replay("obj3.obj1.val1 = 110000000");
     replay.Replay("obj3.obj1.val2 = 222000000");
 }
+}    // namespace
 
 TEST_CASE("Timestamped_Transactions", "[transaction][timestamp]")
 {
@@ -267,7 +271,8 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp]")
         }
     }
 }
-
+namespace
+{
 struct UnorderedMapTester : public ObjectsTester
 {
     CLASS_DELETE_COPY_AND_MOVE(UnorderedMapTester);
@@ -357,7 +362,7 @@ struct UnorderedMapTester : public ObjectsTester
         return obj;
     }
 
-    auto DictObjCreate(shared_string const& key)
+    [[maybe_unused]] auto DictObjCreate(shared_string const& key)
     {
         auto ts = CreateTimestamp();
         return replay.Test([&](auto& txn) {
@@ -369,7 +374,7 @@ struct UnorderedMapTester : public ObjectsTester
         });
     }
 
-    auto DictObjEdit(shared_string const& key)
+    [[maybe_unused]] auto DictObjEdit(shared_string const& key)
     {
         auto ts = CreateTimestamp();
         return replay.Test([&](auto& txn) {
@@ -381,7 +386,7 @@ struct UnorderedMapTester : public ObjectsTester
         });
     }
 
-    auto DictObjDestroy(shared_string const& key)
+    [[maybe_unused]] auto DictObjDestroy(shared_string const& key)
     {
         return replay.Test([&](auto& txn) {
             auto subtxn1 = txn.dict1();
@@ -392,7 +397,7 @@ struct UnorderedMapTester : public ObjectsTester
         });
     }
 
-    auto DictObjCreateEditDestroy(shared_string const& key)
+    [[maybe_unused]] auto DictObjCreateEditDestroy(shared_string const& key)
     {
         auto ts1 = CreateTimestamp();
         auto ts2 = CreateTimestamp();
@@ -407,7 +412,7 @@ struct UnorderedMapTester : public ObjectsTester
         });
     }
 
-    auto DictObjCreateEditDestroy2(shared_string const& key)
+    [[maybe_unused]] auto DictObjCreateEditDestroy2(shared_string const& key)
     {
         auto ts1 = CreateTimestamp();
         auto ts2 = CreateTimestamp();
@@ -497,6 +502,7 @@ struct UnorderedMapTester : public ObjectsTester
         });
     }
 };
+}    // namespace
 
 TEST_CASE("Transactions unordered_map dict_value", "[transaction]")
 {
@@ -583,3 +589,4 @@ TEST_CASE("Transactions_Bugs", "[transaction]")
         CHECK(txn.IsChanged());
     }
 }
+// NOLINTEND(readability-magic-numbers, cppcoreguidelines-pro-type-reinterpret-cast, readability-function-cognitive-complexity)

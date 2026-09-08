@@ -1424,7 +1424,7 @@ struct Stencil::TypeTraits<T> : Stencil::TypeTraits<typename Stencil::Database::
 
 template <Stencil::Database::ConceptRecordView T> struct Stencil::Visitor<T>
 {
-    template <typename T1, typename TLambda> static void VisitAll([[maybe_unused]] T1& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T1, typename TLambda> static void VisitAll([[maybe_unused]] T1& obj, [[maybe_unused]] TLambda const& lambda)
     {
         using RecType = Stencil::Database::RecordViewTraits<T>::RecordType;
         using Type    = Stencil::Database::RecordViewTraits<T>::Type;
@@ -1509,7 +1509,7 @@ template <Stencil::Database::ConceptTrivialRecordView T, Stencil::ConceptProtoco
 template <typename K, typename V> struct Stencil::Visitor<Stencil::Database::Record<std::unordered_map<K, V>>>
 {
     using TObj = Stencil::Database::Record<std::unordered_map<K, V>>;
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
         for (auto item : obj.Items()) { lambda(item.k, item.v); }
     }
@@ -1518,7 +1518,7 @@ template <typename K, typename V> struct Stencil::Visitor<Stencil::Database::Rec
 template <typename T> struct Stencil::Visitor<Stencil::Database::Record<std::vector<T>>>
 {
     using TObj = Stencil::Database::Record<std::vector<T>>;
-    template <typename T1, typename TLambda> static void VisitAll([[maybe_unused]] T1& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T1, typename TLambda> static void VisitAll([[maybe_unused]] T1& obj, [[maybe_unused]] TLambda const& lambda)
     {
         size_t index = 0;
         for (auto item : obj.Items()) { lambda(index++, item); }

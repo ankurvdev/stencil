@@ -36,6 +36,7 @@ SUPPRESS_GCC_WARNING("-Wmaybe-uninitialized")
 #include <string>
 SUPPRESS_WARNINGS_END
 
+// NOLINTBEGIN(readability-magic-numbers, cppcoreguidelines-pro-type-reinterpret-cast, readability-function-cognitive-complexity)
 static_assert(Stencil::Database::ConceptRecord<uint32_t>);
 static_assert(Stencil::Database::ConceptTrivial<uint32_t>);
 
@@ -47,8 +48,9 @@ using namespace std::chrono_literals;
 namespace beast = boost::beast;
 namespace http  = beast::http;
 namespace net   = boost::asio;
-using       net::ip::tcp;
-
+using net::ip::tcp;
+namespace
+{
 struct HttpClientListener
 {
     using Params = std::unordered_map<std::string, std::string>;
@@ -120,7 +122,7 @@ struct HttpClientListener
                                bytes);
                 }
 
-                const auto *bufchars = reinterpret_cast<char const*>(buf.data().data());
+                auto const* bufchars = reinterpret_cast<char const*>(buf.data().data());
                 assert(bytes >= 2 && bufchars[bytes - 1] == '\n' && bufchars[bytes - 2] == '\r');
 
                 if (bytes == 2)
@@ -148,7 +150,7 @@ struct HttpClientListener
                 for (size_t i = 0, remaining = messageSize; i < messageSize;)
                 {
                     size_t bufPrevSize = buf.size();
-                    size_t readBytes    = std::min(remaining, buf.max_size());
+                    size_t readBytes   = std::min(remaining, buf.max_size());
                     if (bufPrevSize < readBytes)
                     {
                         bytes = boost::asio::read(stream.socket(), buf, boost::asio::transfer_exactly(readBytes - bufPrevSize), ec);
@@ -231,7 +233,7 @@ struct HttpClientListener
             try
             {
                 this->_SSEListener();
-            } catch (std::exception const&) {}
+            } catch (std::exception const&) { fmt::print(stderr, "Exception caught in SSEListener\n"); }
         });
         std::unique_lock<std::mutex> guard(mutex);
         cv.wait(guard, [&] { return this->responseRecieved; });
@@ -335,7 +337,7 @@ struct SSEFormat : TestCommon::JsonFormat
 
         for (size_t i = 0; i != actual.size(); i++)
         {
-            const auto&            act    = actual[i];
+            auto const&      act    = actual[i];
             auto&            exp    = expected[i];
             std::string_view prefix = "data: ";
             if (act == exp) continue;
@@ -356,8 +358,8 @@ struct Server1Impl
     Server1Impl() { objects.Init(std::filesystem::path("SaveAndLoad.bin")); }
     ~Server1Impl() override = default;
     CLASS_DELETE_COPY_AND_MOVE(Server1Impl);
-    static std::string_view Name() { return "state"; }
-    [[nodiscard]] std::string      StateStringify() const { return Stencil::Json::Stringify(state); }
+    static std::string_view   Name() { return "state"; }
+    [[nodiscard]] std::string StateStringify() const { return Stencil::Json::Stringify(state); }
 
     struct EditCtx
     {
@@ -384,7 +386,7 @@ struct Server1Impl
         copied.val2 += 1;
         copied.val3 += 1;
         copied.val5 += 1.0;
-        retval[key] = std::move(copied);
+        retval[key] = copied;
 
         Raise_SomethingHappened(key, copied);
         return retval;
@@ -399,15 +401,15 @@ struct Server1Impl
     // Event listeners ?
 };
 
-struct NoEventImpl : Stencil::websvc::WebServiceT<NoEventImpl, Interfaces::NoEvent>, Interfaces::NoEvent::Interface
-{
-    NoEventImpl()           = default;
-    ~NoEventImpl() override = default;
-    CLASS_DELETE_COPY_AND_MOVE(NoEventImpl);
-
-    void Function2() override {}
-    void Function3(uint32_t const& /* arg1 */) override {}
-};
+// struct NoEventImpl : Stencil::websvc::WebServiceT<NoEventImpl, Interfaces::NoEvent>, Interfaces::NoEvent::Interface
+//{
+//     NoEventImpl()           = default;
+//     ~NoEventImpl() override = default;
+//     CLASS_DELETE_COPY_AND_MOVE(NoEventImpl);
+//
+//     void Function2() override {}
+//     void Function3(uint32_t const& /* arg1 */) override {}
+// };
 
 struct SvcSeparateImplSvc
     : Stencil::websvc::WebServiceT<SvcSeparateImplSvc, Interfaces::Server1, Stencil::websvc::WebSynchronizedState<Objects::NestedObject>>
@@ -416,8 +418,8 @@ struct SvcSeparateImplSvc
     ~SvcSeparateImplSvc() = default;
     CLASS_DELETE_COPY_AND_MOVE(SvcSeparateImplSvc);
 
-    static std::string_view Name() { return "state"; }
-    [[nodiscard]] std::string      StateStringify() const { return Stencil::Json::Stringify(state); }
+    static std::string_view   Name() { return "state"; }
+    [[nodiscard]] std::string StateStringify() const { return Stencil::Json::Stringify(state); }
 
     struct EditCtx
     {
@@ -439,12 +441,14 @@ struct SvcSeparateImplSvc
     Objects::NestedObject                           state;
     std::unique_ptr<Interfaces::Server1::Interface> impl;
 };
+}    // namespace
 
 template <> struct Stencil::InterfaceSvcTraits<SvcSeparateImplSvc, Interfaces::Server1>
 {
     static auto& QueryInterface(SvcSeparateImplSvc& impl LFTBND) { return *impl.impl; }
 };
-
+namespace
+{
 struct ImplSeparateImplSvc : Interfaces::Server1::Interface
 {
     std::unordered_map<uint32_t, Objects::SimpleObject1> Function1(uint32_t const& arg1, Objects::SimpleObject1 const& arg2) override
@@ -457,7 +461,7 @@ struct ImplSeparateImplSvc : Interfaces::Server1::Interface
         copied.val2 += 1;
         copied.val3 += 1;
         copied.val5 += 1.0;
-        retval[key] = std::move(copied);
+        retval[key] = copied;
 
         svc->Raise_SomethingHappened(key, copied);
         return retval;
@@ -533,7 +537,7 @@ template <typename TSvc> struct Tester : ObjectsTester
 
     void CliCreateObj1()
     {
-        auto obj1  = CreateSimpleObject1();
+        auto obj1 = CreateSimpleObject1();
         cliObj1Id = ValidCliJsonGet("/api/server1/obj1/create", CreateHttpParams(obj1));
     }
 
@@ -633,6 +637,7 @@ template <typename TSvc> struct Tester : ObjectsTester
     // SSEListener _sseListener3{"/api/server1/obj2/events"};
     std::unique_ptr<TSvc> svc;
 };
+}    // namespace
 
 TEST_CASE("WebService-objectstore", "[interfaces]")
 {
@@ -719,3 +724,4 @@ TEST_CASE("WebService-SvcSeparateImplSvc", "[interfaces]")
 
     std::this_thread::sleep_for(std::chrono::milliseconds(100ms));
 }
+// NOLINTEND(readability-magic-numbers, cppcoreguidelines-pro-type-reinterpret-cast, readability-function-cognitive-complexity)

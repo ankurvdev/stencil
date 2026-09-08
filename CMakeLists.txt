@@ -61,7 +61,6 @@ add_library(libstencil OBJECT
     src/IDL3Generics.h
     src/TemplateFragment.h
     src/Thrift.h
-    src/tree.h
 )
 target_include_directories(libstencil PUBLIC src include)
 add_lexyacc_library(TARGET Thrift LYFILE src/Thrift.ly SOURCES src/Thrift.cpp)

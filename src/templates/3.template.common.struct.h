@@ -14,6 +14,7 @@ struct zzReturnType_NativeTypezz
 //<Template file="zzFileNamezz.h">
 #pragma once
 #include <stencil/stencil.h>
+
 //<Import>
 #include "zzNamezz.pidl.h"
 //</Import>
@@ -407,7 +408,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
     //</FieldType_Mutator>
     //</Field>
 
-    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
+    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda const& lambda)
     {
         switch (index)
         {
@@ -426,7 +427,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
     template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
     { return Edit(index, std::forward<TLambda>(lambda)); }
 
-    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda const& lambda)
     {
         //<Field>
         {
@@ -473,7 +474,7 @@ template <Stencil::ConceptTransactionView TContainer> struct Stencil::Transactio
     bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return IsFieldChanged_(elemTxnState.field); }
     bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda const& lambda) const
     {
         //<Field>
         if (IsFieldAssigned_(Fields::Field_zzField_Namezz))
@@ -512,7 +513,8 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz> : Stencil
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -524,7 +526,7 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz> : Stencil
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
         //<Field>
         lambda(Traits::Field_zzNamezzT{}, obj.zzNamezz);
@@ -597,7 +599,8 @@ struct Stencil::Visitor<Stencil::Database::Record<zzProgram_Namezz::zzStruct_Nam
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -609,7 +612,7 @@ struct Stencil::Visitor<Stencil::Database::Record<zzProgram_Namezz::zzStruct_Nam
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
         //<Field>
         lambda(Traits::Field_zzNamezzT{}, obj.zzNamezz);
@@ -810,7 +813,8 @@ struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFu
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -823,7 +827,7 @@ struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFu
     }
 
     template <typename T, typename TField, typename TLambda>
-    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda&& lambda)
+    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda const& lambda)
     {
         //<Args_Field>
         if constexpr (std::is_same_v<TField, typename Traits::Field_arg_zzNamezzT>) { return lambda(obj.zzNamezz); }
@@ -831,7 +835,7 @@ struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFu
         throw std::logic_error("Invalid Key");
     }
 
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
         //<Args_Field>
         lambda(Fields::arg_zzNamezz, obj.zzNamezz);
@@ -931,7 +935,8 @@ struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEv
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -944,7 +949,7 @@ struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEv
     }
 
     template <typename T, typename TField, typename TLambda>
-    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda&& lambda)
+    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda const& lambda)
     {
         //<Args_Field>
         if constexpr (std::is_same_v<TField, typename Traits::Field_arg_zzNamezzT>) { return lambda(obj.zzNamezz); }
@@ -952,7 +957,7 @@ struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEv
         throw std::logic_error("Invalid Key");
     }
 
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
         //<Args_Field>
         lambda(Fields::arg_zzNamezz, obj.zzNamezz);
@@ -1105,14 +1110,14 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzVariant_Namezz>
 {
     using Fields  = zzProgram_Namezz::zzVariant_Namezz::VariantType;
     using Variant = zzProgram_Namezz::zzVariant_Namezz;
-    template <typename TType, typename TObj, typename TLambda> static void _SetAndVisit(TObj& obj, TLambda&& lambda)
+    template <typename TType, typename TObj, typename TLambda> static void _SetAndVisit(TObj& obj, TLambda const& lambda)
     {
         using Type = std::remove_cvref_t<TType>;
         obj        = Type{};
         lambda(std::get<Type>(obj));
     }
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields fields, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields fields, TLambda const& lambda)
     {
         switch (fields)
         {
@@ -1126,7 +1131,7 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzVariant_Namezz>
         }
     }
 
-    template <typename T, typename TField, typename TLambda> static void VisitKey(T& obj, TField /* field */, TLambda&& lambda)
+    template <typename T, typename TField, typename TLambda> static void VisitKey(T& obj, TField /* field */, TLambda const& lambda)
     {
         //<Field>
         if constexpr (std::is_same_v<TField, Variant::Variant_zzNamezzT>)
@@ -1136,7 +1141,7 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzVariant_Namezz>
         //</Field>
     }
 
-    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda const& lambda)
     {
         // auto fieldType = static_cast<Fields>(obj._variant.index());
         //<Field>
@@ -1177,7 +1182,7 @@ template <> struct Stencil::VisitorForVariant<zzProgram_Namezz::zzVariant_Namezz
 
     static bool IsMonostate(T const& obj) { return obj._variant.index() == 0; }
 
-    template <typename TLambda> static void VisitAlternatives(T const& /* obj */, TLambda&& lambda)
+    template <typename TLambda> static void VisitAlternatives(T const& /* obj */, TLambda const& lambda)
     {
         //<Field>
         {
@@ -1187,7 +1192,7 @@ template <> struct Stencil::VisitorForVariant<zzProgram_Namezz::zzVariant_Namezz
         //</Field>
     }
 
-    template <typename TLambda> static void VisitActiveAlternative(T const& obj, TLambda&& lambda)
+    template <typename TLambda> static void VisitActiveAlternative(T const& obj, TLambda const& lambda)
     {
         std::visit(
             [&](auto const& o) {
@@ -1200,7 +1205,7 @@ template <> struct Stencil::VisitorForVariant<zzProgram_Namezz::zzVariant_Namezz
             obj._variant);
     }
 
-    template <typename TLambda> static void VisitActiveAlternative(T& obj, TLambda&& lambda)
+    template <typename TLambda> static void VisitActiveAlternative(T& obj, TLambda const& lambda)
     {
         std::visit(
             [&](auto& o) {

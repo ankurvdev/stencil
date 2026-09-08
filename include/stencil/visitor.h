@@ -59,8 +59,8 @@ template <typename T> struct VisitorT
 
 template <typename... Ts> struct Visitor<std::variant<Ts...>>
 {
-
-    template <size_t N, typename TObj, typename TLambda> static void _SetAndVisit(TObj& obj, size_t const& key, TLambda&& lambda)
+    private:
+    template <size_t N, typename TObj, typename TLambda> static void SetAndVisit_(TObj& obj, size_t const& key, TLambda const& lambda)
     {
         if constexpr (N == sizeof...(Ts)) { throw std::runtime_error("Index out of bounds"); }
         else
@@ -73,11 +73,13 @@ template <typename... Ts> struct Visitor<std::variant<Ts...>>
             }
             else
             {
-                _SetAndVisit<N + 1>(obj, key, lambda);
+                SetAndVisit_<N + 1>(obj, key, lambda);
             }
         }
     }
-    template <typename T1, typename TLambda> static void VisitKey(T1& obj, size_t const& key, TLambda&& lambda)
+
+    public:
+    template <typename T1, typename TLambda> static void VisitKey(T1& obj, size_t const& key, TLambda const& lambda)
     {
         if (obj.index() == key)
         {
@@ -85,10 +87,10 @@ template <typename... Ts> struct Visitor<std::variant<Ts...>>
         }
         else
         {
-            _SetAndVisit<0>(obj, key, lambda);
+            SetAndVisit_<0>(obj, key, lambda);
         }
     }
-    template <typename T1, typename TLambda> static void VisitAll(T1& obj, TLambda&& lambda)
+    template <typename T1, typename TLambda> static void VisitAll(T1& obj, TLambda const& lambda)
     {
         std::visit([&](auto&& arg) { lambda(obj.index(), arg); }, obj);
     }
@@ -102,30 +104,32 @@ template <typename T, typename... TAttrs> struct StructVisitor
 
     template <typename T1> using Fields = Stencil::TypeTraitsForIndexable<T1>::Fields;
 
-    template <typename T1, typename TLambda> static bool _VisitKeyIfVariantMatches(T1& obj, Key const& key, TLambda&& lambda)
+    private:
+    template <typename T1, typename TLambda> static bool VisitKeyIfVariantMatches_(T1& obj, Key const& key, TLambda const& lambda)
     {
         if (!std::holds_alternative<Fields<T1>>(key)) { return false; }
         return StructFieldsVisitor<T1>::VisitField(obj, std::get<Fields<T1>>(key), lambda);
     }
 
-    template <typename T1, typename TLambda> static void VisitKey(T1& obj, Key const& key, TLambda&& lambda)
-    {
-        bool found = (_VisitKeyIfVariantMatches<TAttrs>(obj, key, lambda) || ...) || _VisitKeyIfVariantMatches<T1>(obj, key, lambda);
-        if (!found)
-        {
-            found = (_VisitKeyIfVariantMatches<TAttrs>(obj, key, lambda) || ...) || _VisitKeyIfVariantMatches<T1>(obj, key, lambda);
-            throw std::runtime_error("Key did not match any of the struct fields or attributes");
-        }
-    }
-
-    template <typename TAttr, typename T1, typename TLambda> static bool _VisitAllFieldsHelper(T1& obj, TLambda&& lambda)
+    template <typename TAttr, typename T1, typename TLambda> static bool VisitAllFieldsHelper_(T1& obj, TLambda const& lambda)
     {
         StructFieldsVisitor<TAttr>::VisitAllFields(obj, [&](auto&& key, auto&& val) { lambda(Key{key}, val); });
         return false;
     }
-    template <typename T1, typename TLambda> static void VisitAll(T1& obj, TLambda&& lambda)
+
+    public:
+    template <typename T1, typename TLambda> static void VisitKey(T1& obj, Key const& key, TLambda const& lambda)
     {
-        [[maybe_unused]] bool found = (_VisitAllFieldsHelper<TAttrs>(obj, lambda) || ...);
+        bool found = (VisitKeyIfVariantMatches_<TAttrs>(obj, key, lambda) || ...) || VisitKeyIfVariantMatches_<T1>(obj, key, lambda);
+        if (!found)
+        {
+            found = (VisitKeyIfVariantMatches_<TAttrs>(obj, key, lambda) || ...) || VisitKeyIfVariantMatches_<T1>(obj, key, lambda);
+            throw std::runtime_error("Key did not match any of the struct fields or attributes");
+        }
+    }
+    template <typename T1, typename TLambda> static void VisitAll(T1& obj, TLambda const& lambda)
+    {
+        [[maybe_unused]] bool found = (VisitAllFieldsHelper_<TAttrs>(obj, lambda) || ...);
         StructFieldsVisitor<T>::VisitAllFields(obj, [&](auto&& key, auto&& val) { lambda(key, val); });
     }
 };
@@ -135,7 +139,7 @@ template <typename T, typename... TAttrs> struct StructVisitor
 template <typename T> struct Stencil::StructFieldsVisitor<Stencil::TimestampedT<T>>
 {
     using Fields = TypeTraitsForIndexable<Stencil::TimestampedT<T>>::Fields;
-    template <typename T1, typename TLambda> static bool VisitField(T1& obj, Fields fields, TLambda&& lambda)
+    template <typename T1, typename TLambda> static bool VisitField(T1& obj, Fields fields, TLambda const& lambda)
     {
         switch (fields)
         {
@@ -145,14 +149,14 @@ template <typename T> struct Stencil::StructFieldsVisitor<Stencil::TimestampedT<
         }
     }
 
-    template <typename T1, typename TLambda> static void VisitAllFields(T1& obj, TLambda&& lambda)
+    template <typename T1, typename TLambda> static void VisitAllFields(T1& obj, TLambda const& lambda)
     { lambda(Fields::Field_timestamp, obj.lastmodified); }
 };
 
 template <typename T> struct Stencil::StructFieldsVisitor<UuidBasedId<T>>
 {
     using Fields = TypeTraitsForIndexable<UuidBasedId<T>>::Fields;
-    template <typename T1, typename TLambda> static bool VisitField(T1& obj, Fields fields, TLambda&& lambda)
+    template <typename T1, typename TLambda> static bool VisitField(T1& obj, Fields fields, TLambda const& lambda)
     {
         switch (fields)
         {
@@ -162,7 +166,8 @@ template <typename T> struct Stencil::StructFieldsVisitor<UuidBasedId<T>>
         }
     }
 
-    template <typename T1, typename TLambda> static void VisitAllFields(T1& obj, TLambda&& lambda) { lambda(Fields::Field_uuid, obj.uuid); }
+    template <typename T1, typename TLambda> static void VisitAllFields(T1& obj, TLambda const& lambda)
+    { lambda(Fields::Field_uuid, obj.uuid); }
 };
 
 template <Stencil::ConceptIterable T> struct Stencil::VisitorForIterable<std::shared_ptr<T>>
@@ -185,7 +190,7 @@ template <Stencil::ConceptIterable T> struct Stencil::VisitorForIterable<std::sh
 
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, ThisType>
-    static void Visit(Iterator& it, T1& obj, TLambda&& lambda)
+    static void Visit(Iterator& it, T1& obj, TLambda && lambda)
     { Stencil::Visitor<T>::Visit(it, *obj.get(), std::forward<TLambda>(lambda)); }
 };
 
@@ -225,7 +230,7 @@ struct Stencil::Visitor<std::shared_ptr<T>> : Stencil::VisitorT<std::shared_ptr<
 
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, ThisType>
-    static void VisitAll(T1& obj, TLambda&& lambda)
+    static void VisitAll(T1& obj, TLambda && lambda)
     {
         if (obj.get() == nullptr)
         {
@@ -249,12 +254,12 @@ template <typename T, size_t N> struct Stencil::Visitor<std::array<T, N>> : Sten
     // So that this works for both const and non-const
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, std::array<T, N>>
-    static void VisitKey(T1& obj, size_t index, TLambda&& lambda)
+    static void VisitKey(T1& obj, size_t index, TLambda const& lambda)
     { lambda(obj.at(index)); }
 
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, std::array<T, N>>
-    static void VisitAll(T1& obj, TLambda&& lambda)
+    static void VisitAll(T1& obj, TLambda const& lambda)
     {
         for (size_t i = 0; i < N; i++) { lambda(i, obj.at(i)); }
     }
@@ -275,7 +280,7 @@ template <typename T, size_t N> struct Stencil::Visitor<std::array<T, N>> : Sten
 
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, std::array<T, N>>
-    static void Visit(Iterator& it, T1& obj, TLambda&& lambda)
+    static void Visit(Iterator& it, T1& obj, TLambda const& lambda)
     { lambda(obj.at(it)); }
 };
 
@@ -284,12 +289,12 @@ template <typename T> struct Stencil::Visitor<std::vector<T>> : Stencil::Visitor
     // So that this works for both const and non-const
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
-    static void VisitKey(T1& obj, size_t index, TLambda&& lambda)
+    static void VisitKey(T1& obj, size_t index, TLambda const& lambda)
     { lambda(obj.at(index)); }
 
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
-    static void VisitAll(T1& obj, TLambda&& lambda)
+    static void VisitAll(T1& obj, TLambda const& lambda)
     {
         for (size_t i = 0; i < obj.size(); i++) { lambda(i, obj.at(i)); }
     }
@@ -312,7 +317,7 @@ template <typename T> struct Stencil::Visitor<std::vector<T>> : Stencil::Visitor
     SUPPRESS_CLANG_WARNING("-Wlifetime-safety-invalidation")
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
-    static void Visit(Iterator& it, T1& obj, TLambda&& lambda)
+    static void Visit(Iterator& it, T1& obj, TLambda const& lambda)
     {
         if (obj.size() == it) { obj.resize(it + 1); }
         lambda(obj.at(it));
@@ -326,51 +331,19 @@ template <typename K, typename V> struct Stencil::Visitor<std::unordered_map<K, 
 
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, TObj>
-    static void VisitAll(T1& obj, TLambda&& lambda)
+    static void VisitAll(T1& obj, TLambda const& lambda)
     {
         for (auto& [k, v] : obj) { lambda(k, v); }
     }
 
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, TObj>
-    static void VisitKey(T1& obj, K const& it, TLambda&& lambda)
+    static void VisitKey(T1& obj, K const& it, TLambda const& lambda)
     {
         // TODO : Visit should not create keys
         lambda(obj[it]);
     }
 
-#if 0
-    // So that this works for both const and non-const
-    template <typename T1, typename TLambda>
-    requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
-    static void VisitKey(T1& obj, size_t index, TLambda&& lambda) { lambda(obj.at(index)); }
-
-    template <typename T1, typename TLambda>
-    requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
-    static void VisitAll(T1& obj, TLambda&& lambda)
-    {
-        for (size_t i = 0; i < obj.size(); i++) { lambda(i, obj.at(i)); }
-    }
-    using Iterator = size_t;
-
-    template <typename T1>
-    requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
-    static void IteratorBegin(Iterator& it, T1&) { it = Iterator{}; }
-    template <typename T1>
-    requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
-    static void IteratorMoveNext(Iterator& it, T1&) { ++it; }
-    template <typename T1>
-    requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
-    static bool IteratorValid(Iterator& it, T1& obj) { return it <= obj.size(); }
-
-    template <typename T1, typename TLambda>
-    requires std::is_same_v<std::remove_const_t<T1>, std::vector<T>>
-    static void Visit(Iterator& it, T1& obj, TLambda&& lambda)
-    {
-        if (obj.size() == it) { obj.resize(it + 1); }
-        lambda(obj.at(it));
-    }
-#endif
 };
 
 template <typename... Ts> struct Stencil::VisitorForVariant<std::variant<std::monostate, Ts...>>
@@ -378,7 +351,7 @@ template <typename... Ts> struct Stencil::VisitorForVariant<std::variant<std::mo
     using TObj = std::variant<std::monostate, Ts...>;
     static bool IsMonostate(TObj const& obj) { return obj.index() == 0; }
 
-    template <typename TLambda> static void VisitAlternatives(TObj& /* obj */, TLambda&& lambda)
+    template <typename TLambda> static void VisitAlternatives(TObj& /* obj */, TLambda const& lambda)
     {
         using TypeTuple  = std::tuple<Ts...>;
         auto applylambda = [&](size_t i, auto& arg, size_t index) {
@@ -395,11 +368,11 @@ template <typename... Ts> struct Stencil::VisitorForVariant<std::variant<std::mo
         }
     }
 
-    template <typename TLambda> static void VisitActiveAlternative(TObj const& obj, TLambda&& lambda)
+    template <typename TLambda> static void VisitActiveAlternative(TObj const& obj, TLambda const& lambda)
     {
         std::visit([&](auto val) { lambda(obj.index(), val); }, obj);
     }
-    template <typename TLambda> static void VisitActiveAlternative(TObj& obj, TLambda&& lambda)
+    template <typename TLambda> static void VisitActiveAlternative(TObj& obj, TLambda const& lambda)
     {
         std::visit([&](auto val) { lambda(obj.index(), val); }, obj);
     }
@@ -412,7 +385,7 @@ struct Stencil::VisitorForVariant<std::variant<Ts...>>
     using TObj = std::variant<Ts...>;
     static bool IsMonostate(TObj const& /* obj */) { return false; }
 
-    template <typename TLambda> static void VisitAlternatives(TObj& /* obj */, TLambda&& lambda)
+    template <typename TLambda> static void VisitAlternatives(TObj& /* obj */, TLambda const& lambda)
     {
         using TypeTuple  = std::tuple<Ts...>;
         auto applylambda = [&](size_t i, auto& arg, size_t index) {
@@ -429,11 +402,11 @@ struct Stencil::VisitorForVariant<std::variant<Ts...>>
         }
     }
 
-    template <typename TLambda> static void VisitActiveAlternative(TObj const& obj, TLambda&& lambda)
+    template <typename TLambda> static void VisitActiveAlternative(TObj const& obj, TLambda const& lambda)
     {
         std::visit([&](auto const& val) { lambda(obj.index(), val); }, obj);
     }
-    template <typename TLambda> static void VisitActiveAlternative(TObj& obj, TLambda&& lambda)
+    template <typename TLambda> static void VisitActiveAlternative(TObj& obj, TLambda const& lambda)
     {
         std::visit([&](auto& val) { lambda(obj.index(), val); }, obj);
     }
