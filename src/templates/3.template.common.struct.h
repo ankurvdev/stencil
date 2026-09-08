@@ -17,8 +17,8 @@ struct zzReturnType_NativeTypezz
 //<Import>
 #include "zzNamezz.pidl.h"
 //</Import>
-// NOLINTBEGIN(readability-identifier-naming, readability-redundant-member-init, bugprone-branch-clone)
-// SECTION START: DECLARATIONS
+// NOLINTBEGIN(cppcoreguidelines-rvalue-reference-param-not-moved,readability-identifier-naming, readability-redundant-member-init,
+// bugprone-branch-clone) SECTION START: DECLARATIONS
 #pragma region Declarations
 
 namespace zzProgram_Namezz
@@ -343,28 +343,28 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
-    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
+    operator View() const /*NOLINT*/ { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
 
-    ElemType const& Elem() const { return _elem; }
+    [[nodiscard]] ElemType const& Elem() const { return _elem; }
 
-    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
-    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
-    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+    [[nodiscard]] bool IsFieldAssigned_(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    [[nodiscard]] bool IsFieldEdited_(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    [[nodiscard]] bool IsFieldChanged_(Fields key) const { return IsFieldAssigned_(key) || IsFieldEdited_(key); }
+    void               MarkFieldAssigned_(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void               MarkFieldEdited_(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
 
-    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    [[nodiscard]] size_t CountFieldsChanged_() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
 
     void NotifyElementAssigned(ElemTxnState const& elemTxnState)
     {
-        _MarkFieldAssigned(elemTxnState.field);
+        MarkFieldAssigned_(elemTxnState.field);
         Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
     }
 
-    void NotifyElementEdited(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+    void NotifyElementEdited(ElemTxnState const& elemTxnState) { MarkFieldEdited_(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
-    bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+    [[nodiscard]] bool IsElementChanged(ElemTxnState const& elemTxnState) const { return IsFieldChanged_(elemTxnState.field); }
+    [[nodiscard]] bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
     void Assign(ElemType&& elem)
     {
@@ -400,7 +400,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
     //<FieldType_Mutator>
     zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz&& args)
     {
-        _MarkFieldEdited(Fields::Field_zzField_Namezz);
+        MarkFieldEdited_(Fields::Field_zzField_Namezz);
         auto txn = zzField_Namezz();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::zzNamezz(txn, std::move(args));
     }
@@ -464,24 +464,24 @@ template <Stencil::ConceptTransactionView TContainer> struct Stencil::Transactio
     using TransactionView_zzNamezz = Stencil::TransactionView<zzFieldType_NativeTypezz, View>;
     //</Field>
 
-    ElemType const& Elem() const { return _elem; }
+    [[nodiscard]] ElemType const& Elem() const { return _elem; }
 
-    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
-    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
-    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
-    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsFieldAssigned_(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   IsFieldEdited_(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   IsFieldChanged_(Fields key) const { return IsFieldAssigned_(key) || IsFieldEdited_(key); }
+    size_t CountFieldsChanged_() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return IsFieldChanged_(elemTxnState.field); }
     bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
     template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
     {
         //<Field>
-        if (_IsFieldAssigned(Fields::Field_zzField_Namezz))
+        if (IsFieldAssigned_(Fields::Field_zzField_Namezz))
         {
             auto txn = zzNamezz();
             lambda(Fields::Field_zzField_Namezz, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_zzField_Namezz))
+        else if (IsFieldEdited_(Fields::Field_zzField_Namezz))
         {
             auto txn = zzNamezz();
             lambda(Fields::Field_zzField_Namezz, uint8_t{3u}, uint32_t{0u}, txn);
@@ -1224,5 +1224,6 @@ template <> struct Stencil::VisitorForVariant<zzProgram_Namezz::zzVariant_Namezz
 #pragma endregion
 // SECTION END: Inline Function Definitions
 
-// NOLINTEND(readability-identifier-naming, readability-redundant-member-init, bugprone-branch-clone)
+// NOLINTEND(cppcoreguidelines-rvalue-reference-param-not-moved,readability-identifier-naming, readability-redundant-member-init,
+// bugprone-branch-clone)
 //</Template>

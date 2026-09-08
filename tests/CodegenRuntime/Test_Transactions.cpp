@@ -11,26 +11,13 @@ using namespace std::chrono_literals;
 
 using TransactionNestObject = Stencil::Transaction<Objects::NestedObject, void>;
 static TransactionNestObject CreateNestedObjectTransaction(Objects::NestedObject& obj LFTBND)
-{
-    return Stencil::CreateRootTransaction<Objects::NestedObject>(obj);
-}
+{ return Stencil::CreateRootTransaction<Objects::NestedObject>(obj); }
 
-template <typename T> bool TestObjEqual(T const& obj1, T const& obj2)
-{
-    return TestCommon::JsonStringEqual(Stencil::Json::Stringify(obj1), Stencil::Json::Stringify(obj2));
-}
+template <typename T> static bool TestObjEqual(T const& obj1, T const& obj2)
+{ return TestCommon::JsonStringEqual(Stencil::Json::Stringify(obj1), Stencil::Json::Stringify(obj2)); }
 
-template <typename T> bool TestObjEqual(T const& obj1, std::string const& snapshot)
-{
-    return TestCommon::JsonStringEqual(Stencil::Json::Stringify(obj1), snapshot);
-}
-
-template <typename T> std::string SerDesSer(T const& obj)
-{
-    auto str  = Stencil::Json::Stringify(obj);
-    auto obj1 = Stencil::Json::Parse<T>(str);
-    return Stencil::Json::Stringify(obj1);
-}
+template <typename T> static bool TestObjEqual(T const& obj1, std::string const& snapshot)
+{ return TestCommon::JsonStringEqual(Stencil::Json::Stringify(obj1), snapshot); }
 
 struct TestReplay
 {
@@ -53,7 +40,7 @@ struct TestReplay
     void Replay(std::string_view const& txndata, std::string_view const& expectedIn = {})
     {
         auto delta    = Test([&](auto& txn) { Stencil::StringTransactionSerDes::Apply(txn, txndata); });
-        auto expected = expectedIn.size() == 0 ? txndata : expectedIn;
+        auto expected = expectedIn.empty() ? txndata : expectedIn;
         if (expected[expected.size() - 1] == ';') { CHECK(delta == expected); }
         else
         {
@@ -85,45 +72,45 @@ struct TestReplay
         auto snapshot1 = Stencil::Json::Stringify(obj1);
         auto snapshot2 = Stencil::Json::Stringify(obj2);
 
-        auto txn1str = Stencil::StringTransactionSerDes::Deserialize(txn1);
+        auto testtxn1str = Stencil::StringTransactionSerDes::Deserialize(txn1);
         // if (_debug) CHECK(txn1str == _expected_txn1str[index]);
-        CHECK(TestObjEqual(obj1, snapshot1));                                     // Check deserialization doesnt change anything
-        CHECK(Stencil::StringTransactionSerDes::Deserialize(txn1) == txn1str);    // Check repeat deserialization produces same output
+        CHECK(TestObjEqual(obj1, snapshot1));                                         // Check deserialization doesnt change anything
+        CHECK(Stencil::StringTransactionSerDes::Deserialize(txn1) == testtxn1str);    // Check repeat deserialization produces same output
 
-        auto txn2str = Stencil::StringTransactionSerDes::Deserialize(txn2);
+        auto testtxn2str = Stencil::StringTransactionSerDes::Deserialize(txn2);
         // if (_debug) CHECK(txn2str == _expected_txn2str[index]);
         CHECK(TestObjEqual(obj2, snapshot2));
-        CHECK(Stencil::StringTransactionSerDes::Deserialize(txn2) == txn2str);
+        CHECK(Stencil::StringTransactionSerDes::Deserialize(txn2) == testtxn2str);
 
-        auto txn1bin = BinTxnSerialize(txn1);
+        auto testtxn1bin = BinTxnSerialize(txn1);
         // if (_debug) CHECK(txn1bin == _expected_txn1bin[index]);
         CHECK(TestObjEqual(obj1, snapshot1));
-        CHECK(BinTxnSerialize(txn1) == txn1bin);
+        CHECK(BinTxnSerialize(txn1) == testtxn1bin);
 
-        auto txn2bin = BinTxnSerialize(txn2);
+        auto testtxn2bin = BinTxnSerialize(txn2);
         // if (_debug) CHECK(txn2bin == _expected_txn2bin[index]);
         CHECK(TestObjEqual(obj2, snapshot2));
-        CHECK(BinTxnSerialize(txn2) == txn2bin);
+        CHECK(BinTxnSerialize(txn2) == testtxn2bin);
 
         CHECK(TestObjEqual(obj1, obj2));
-        _json_snapshots.push_back(snapshot1);
-        _txn1str.push_back(txn1str);
-        _txn2str.push_back(txn2str);
-        _txn1bin.push_back(txn1bin);
-        _txn2bin.push_back(txn2bin);
+        jsonSnapshots.push_back(snapshot1);
+        txn1str.push_back(testtxn1str);
+        txn2str.push_back(testtxn2str);
+        txn1bin.push_back(testtxn1bin);
+        txn2bin.push_back(testtxn2bin);
 
-        if (!_debug)
+        if (!debug)
         {
             {
                 Objects::NestedObject obj3{};
                 auto                  txn3 = CreateNestedObjectTransaction(obj3);
-                for (auto& c : _txn1str) { Stencil::StringTransactionSerDes::Apply(txn3, c); }
+                for (auto& c : txn1str) { Stencil::StringTransactionSerDes::Apply(txn3, c); }
                 CHECK(TestObjEqual(obj1, obj3));
             }
             {
                 Objects::NestedObject obj3{};
                 auto                  txn3 = CreateNestedObjectTransaction(obj3);
-                Stencil::StringTransactionSerDes::Apply(txn3, _txn2str.back());
+                Stencil::StringTransactionSerDes::Apply(txn3, txn2str.back());
                 CHECK(TestObjEqual(obj2, obj3));
                 // unordered map can sometime change ordering
                 // CHECK(Stencil::Json::Stringify(obj) == Stencil::Json::Stringify(obj3));
@@ -132,37 +119,37 @@ struct TestReplay
             {
                 Objects::NestedObject obj3{};
                 auto                  txn3 = CreateNestedObjectTransaction(obj3);
-                for (auto& c : _txn1bin) { BinTxnApply(txn3, c); }
+                for (auto& c : txn1bin) { BinTxnApply(txn3, c); }
                 CHECK(TestObjEqual(obj1, obj3));
             }
             {
                 Objects::NestedObject obj3{};
                 auto                  txn3 = CreateNestedObjectTransaction(obj3);
-                BinTxnApply(txn3, _txn2bin.back());
+                BinTxnApply(txn3, txn2bin.back());
                 CHECK(TestObjEqual(obj2, obj3));
                 // unordered map can sometime change ordering
                 // CHECK(Stencil::Json::Stringify(obj1) == Stencil::Json::Stringify(obj3));
             }
         }
-        return txn1str;
+        return testtxn1str;
     }
 
-    void SelfTest()
+    void SelfTest() const
     {
-        TestCommon::CheckResource<TestCommon::StrFormat>(_txn1str, "Deltas");
-        TestCommon::CheckResource<TestCommon::StrFormat>(_txn2str, "CumulativeDeltas");
-        TestCommon::CheckResource<TestCommon::JsonFormat>(_json_snapshots, "ChangeDataSnapshots");
+        TestCommon::CheckResource<TestCommon::StrFormat>(txn1str, "Deltas");
+        TestCommon::CheckResource<TestCommon::StrFormat>(txn2str, "CumulativeDeltas");
+        TestCommon::CheckResource<TestCommon::JsonFormat>(jsonSnapshots, "ChangeDataSnapshots");
         // Too many variations in CumulativeDeltaBin due to unordered_map unstable ordering
         // TestCommon::CheckOutputAgainstBinResource(_txn1bin, "DeltaBin");
         // TestCommon::CheckOutputAgainstBinResource(_txn2bin, "CumulativeDeltaBin");
     }
 
-    std::vector<std::string> _txn1str;
-    std::vector<std::string> _txn1bin;
-    std::vector<std::string> _txn2str;
-    std::vector<std::string> _txn2bin;
+    std::vector<std::string> txn1str;
+    std::vector<std::string> txn1bin;
+    std::vector<std::string> txn2str;
+    std::vector<std::string> txn2bin;
 
-    std::vector<std::string> _json_snapshots;
+    std::vector<std::string> jsonSnapshots;
 
     // std::vector<std::string> _expected_txn1str        = LoadStrResource("Deltas");
     // std::vector<std::string> _expected_txn2str        = LoadStrResource("CumulativeDeltas");
@@ -174,7 +161,7 @@ struct TestReplay
     Objects::NestedObject obj2{};
 
     TransactionNestObject txn2;
-    bool                  _debug = false;
+    bool                  debug = false;
 };
 
 TEST_CASE("Transactions", "[transaction]")
@@ -256,7 +243,8 @@ TEST_CASE("Timestamped_Transactions", "[transaction][timestamp]")
             t2 = obj1.lastmodified;
             {
                 auto                txn = CreateNestedObjectTransaction(obj1);
-                Objects::ListObject lobj1, lobj2;
+                Objects::ListObject lobj1;
+                Objects::ListObject lobj2;
                 lobj1.value = 100;
                 txn.list1().add_listobj(std::move(lobj1));
             }
@@ -289,7 +277,7 @@ struct UnorderedMapTester : public ObjectsTester
     TestReplay replay;
     auto       dict_value_create(shared_string const& key)
     {
-        auto ts = create_timestamp();
+        auto ts = CreateTimestamp();
         return replay.Test([&](auto& txn) {
             auto subtxn1 = txn.dict1();
             {
@@ -301,7 +289,7 @@ struct UnorderedMapTester : public ObjectsTester
 
     auto dict_value_edit(shared_string const& key)
     {
-        auto ts = create_timestamp();
+        auto ts = CreateTimestamp();
         return replay.Test([&](auto& txn) {
             auto subtxn1 = txn.dict1();
             {
@@ -324,8 +312,8 @@ struct UnorderedMapTester : public ObjectsTester
 
     auto dict_value_create_edit_destroy(shared_string const& key)
     {
-        auto ts1 = create_timestamp();
-        auto ts2 = create_timestamp();
+        auto ts1 = CreateTimestamp();
+        auto ts2 = CreateTimestamp();
         return replay.Test([&](auto& txn) {
             auto subtxn1 = txn.dict1();
             {
@@ -339,8 +327,8 @@ struct UnorderedMapTester : public ObjectsTester
 
     auto dict_value_create_edit_destroy2(shared_string const& key)
     {
-        auto ts1 = create_timestamp();
-        auto ts2 = create_timestamp();
+        auto ts1 = CreateTimestamp();
+        auto ts2 = CreateTimestamp();
         return replay.Test([&](auto& txn) {
             auto subtxn1 = txn.dict1();
             {
@@ -358,20 +346,20 @@ struct UnorderedMapTester : public ObjectsTester
         });
     }
 
-    Objects::SimpleObject1 create_obj()
+    Objects::SimpleObject1 CreateObj()
     {
         Objects::SimpleObject1 obj{};
-        obj.val1 = create_int32();
-        obj.val2 = create_uint32();
-        obj.val3 = create_uint8();
-        obj.val4 = create_string();
-        obj.val5 = create_double();
+        obj.val1 = CreateInt32();
+        obj.val2 = CreateUint32();
+        obj.val3 = CreateUint8();
+        obj.val4 = CreateString();
+        obj.val5 = CreateDouble();
         return obj;
     }
 
-    auto dict_obj_create(shared_string const& key)
+    auto DictObjCreate(shared_string const& key)
     {
-        auto ts = create_timestamp();
+        auto ts = CreateTimestamp();
         return replay.Test([&](auto& txn) {
             auto subtxn1 = txn.dict1();
             {
@@ -381,9 +369,9 @@ struct UnorderedMapTester : public ObjectsTester
         });
     }
 
-    auto dict_obj_edit(shared_string const& key)
+    auto DictObjEdit(shared_string const& key)
     {
-        auto ts = create_timestamp();
+        auto ts = CreateTimestamp();
         return replay.Test([&](auto& txn) {
             auto subtxn1 = txn.dict1();
             {
@@ -393,7 +381,7 @@ struct UnorderedMapTester : public ObjectsTester
         });
     }
 
-    auto dict_obj_destroy(shared_string const& key)
+    auto DictObjDestroy(shared_string const& key)
     {
         return replay.Test([&](auto& txn) {
             auto subtxn1 = txn.dict1();
@@ -404,10 +392,10 @@ struct UnorderedMapTester : public ObjectsTester
         });
     }
 
-    auto dict_obj_create_edit_destroy(shared_string const& key)
+    auto DictObjCreateEditDestroy(shared_string const& key)
     {
-        auto ts1 = create_timestamp();
-        auto ts2 = create_timestamp();
+        auto ts1 = CreateTimestamp();
+        auto ts2 = CreateTimestamp();
         return replay.Test([&](auto& txn) {
             auto subtxn1 = txn.dict1();
             {
@@ -419,10 +407,10 @@ struct UnorderedMapTester : public ObjectsTester
         });
     }
 
-    auto dict_obj_create_edit_destroy2(shared_string const& key)
+    auto DictObjCreateEditDestroy2(shared_string const& key)
     {
-        auto ts1 = create_timestamp();
-        auto ts2 = create_timestamp();
+        auto ts1 = CreateTimestamp();
+        auto ts2 = CreateTimestamp();
         return replay.Test([&](auto& txn) {
             auto subtxn1 = txn.dict1();
             {
@@ -442,7 +430,7 @@ struct UnorderedMapTester : public ObjectsTester
 
     auto dict_obj_create(uint32_t const& key)
     {
-        auto obj = create_obj();
+        auto obj = CreateObj();
         return replay.Test([&](auto& txn) {
             auto subtxn1 = txn.dict1();
             {
@@ -454,7 +442,7 @@ struct UnorderedMapTester : public ObjectsTester
 
     auto dict_obj_edit(uint32_t const& key)
     {
-        auto val1 = create_int32();
+        auto val1 = CreateInt32();
         return replay.Test([&](auto& txn) {
             auto subtxn1 = txn.dict1();
             {
@@ -476,8 +464,8 @@ struct UnorderedMapTester : public ObjectsTester
     }
     auto dict_obj_create_edit_destroy(uint32_t const& key)
     {
-        auto val1 = create_int32();
-        auto obj  = create_obj();
+        auto val1 = CreateInt32();
+        auto obj  = CreateObj();
         return replay.Test([&](auto& txn) {
             auto subtxn1 = txn.dict1();
             {
@@ -490,8 +478,8 @@ struct UnorderedMapTester : public ObjectsTester
     }
     auto dict_obj_create_edit_destroy2(uint32_t const& key)
     {
-        auto val1 = create_int32();
-        auto obj  = create_obj();
+        auto val1 = CreateInt32();
+        auto obj  = CreateObj();
         return replay.Test([&](auto& txn) {
             auto subtxn1 = txn.dict1();
             {
@@ -521,50 +509,50 @@ TEST_CASE("Transactions unordered_map dict_value", "[transaction]")
     {
         for (auto& key : keylist)
         {
-            if (done.count(key) > 0) continue;
-            CHECK(tester.dict_value_create(key) != "");
-            CHECK(tester.dict_value_edit(key) != "");
-            CHECK(tester.dict_value_edit(key) != "");
-            CHECK(tester.dict_value_destroy(key) != "");
-            CHECK(tester.dict_value_create(key) != "");
-            CHECK(tester.dict_value_create_edit_destroy(key) != "");
-            CHECK(tester.dict_value_create_edit_destroy2(key) != "");
+            if (done.contains(key)) continue;
+            CHECK(!tester.dict_value_create(key).empty());
+            CHECK(!tester.dict_value_edit(key).empty());
+            CHECK(!tester.dict_value_edit(key).empty());
+            CHECK(!tester.dict_value_destroy(key).empty());
+            CHECK(!tester.dict_value_create(key).empty());
+            CHECK(!tester.dict_value_create_edit_destroy(key).empty());
+            CHECK(!tester.dict_value_create_edit_destroy2(key).empty());
         }
-        CHECK(tester.dict_value_create(key1) != "");
-        CHECK(tester.dict_value_edit(key1) != "");
+        CHECK(!tester.dict_value_create(key1).empty());
+        CHECK(!tester.dict_value_edit(key1).empty());
         done.insert(key1);
     }
 
-    for (auto key : keylist) { CHECK(tester.dict_value_edit(key) != ""); }
+    for (auto const& key : keylist) { CHECK(!tester.dict_value_edit(key).empty()); }
 
-    for (auto key : keylist) { CHECK(tester.dict_value_destroy(key) != ""); }
+    for (auto const& key : keylist) { CHECK(!tester.dict_value_destroy(key).empty()); }
 }
 
 TEST_CASE("Transactions unordered_map dict_obj")
 {
     UnorderedMapTester           tester;
-    std::vector<uint32_t>        keylist = {tester.create_uint32(), tester.create_uint32(), tester.create_uint32(), tester.create_uint32()};
+    std::vector<uint32_t>        keylist = {tester.CreateUint32(), tester.CreateUint32(), tester.CreateUint32(), tester.CreateUint32()};
     std::unordered_set<uint32_t> done;
     for (auto& key1 : keylist)
     {
         for (auto& key : keylist)
         {
-            if (done.count(key) > 0) continue;
-            CHECK(tester.dict_obj_create(key) != "");
-            CHECK(tester.dict_obj_edit(key) != "");
-            CHECK(tester.dict_obj_edit(key) != "");
-            CHECK(tester.dict_obj_destroy(key) != "");
-            CHECK(tester.dict_obj_create(key) != "");
-            CHECK(tester.dict_obj_create_edit_destroy(key) != "");
-            CHECK(tester.dict_obj_create_edit_destroy2(key) != "");
+            if (done.contains(key)) continue;
+            CHECK(!tester.dict_obj_create(key).empty());
+            CHECK(!tester.dict_obj_edit(key).empty());
+            CHECK(!tester.dict_obj_edit(key).empty());
+            CHECK(!tester.dict_obj_destroy(key).empty());
+            CHECK(!tester.dict_obj_create(key).empty());
+            CHECK(!tester.dict_obj_create_edit_destroy(key).empty());
+            CHECK(!tester.dict_obj_create_edit_destroy2(key).empty());
         }
-        CHECK(tester.dict_obj_create(key1) != "");
-        CHECK(tester.dict_obj_edit(key1) != "");
+        CHECK(!tester.dict_obj_create(key1).empty());
+        CHECK(!tester.dict_obj_edit(key1).empty());
         done.insert(key1);
     }
-    for (auto key : keylist) { CHECK(tester.dict_obj_edit(key) != ""); }
+    for (auto key : keylist) { CHECK(!tester.dict_obj_edit(key).empty()); }
 
-    for (auto key : keylist) { CHECK(tester.dict_obj_destroy(key) != ""); }
+    for (auto key : keylist) { CHECK(!tester.dict_obj_destroy(key).empty()); }
 }
 
 TEST_CASE("Transactions unordered_map timestamp update : create edit destroy")

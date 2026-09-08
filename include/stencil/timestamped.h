@@ -17,6 +17,7 @@ template <typename T> struct TimestampedT
     }
 
     Timestamp lastmodified;
+    friend T;
 };
 
 }    // namespace Stencil

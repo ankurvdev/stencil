@@ -5,7 +5,7 @@
 #include <string>
 #include <string_view>
 
-#if defined HAVE_FMTLIB
+#ifdef HAVE_FMTLIB
 #include "CommonMacros.h"
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS

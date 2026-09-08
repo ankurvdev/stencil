@@ -5,7 +5,7 @@
 
 #include "CommonMacros.h"
 
-#if !defined HAVE_BOOSTBEAST
+#ifndef HAVE_BOOSTBEAST
 #error "Need boost::beast to be linked"
 #endif
 
@@ -302,7 +302,7 @@ inline void Redirect(tcp_stream& stream, Request const& req, std::string_view co
 {
     boost::beast::http::response<boost::beast::http::string_body> res{boost::beast::http::status::temporary_redirect, req.version()};
 
-    auto host = [&]() {
+    auto host = [&] {
         if (req.contains(boost::beast::http::field::location)) return req.at(boost::beast::http::field::location);
         if (req.contains(boost::beast::http::field::host)) return req.at(boost::beast::http::field::host);
         throw std::runtime_error("Cannot determine host");
@@ -931,7 +931,7 @@ template <typename TImpl, ConceptIndexable TState> struct RequestHandler<TImpl, 
             }
             else if (req.method() == boost::beast::http::verb::put)
             {
-                auto data = req.body();
+                const auto& data = req.body();
                 Stencil::StringTransactionSerDes::Apply(txn, data);
             }
             else
@@ -995,7 +995,10 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
     static constexpr size_t NumServices   = sizeof...(TServices);
     static constexpr size_t AcceptorCount = 4;
 
-    WebServiceT() = default;
+   private:
+ WebServiceT() = default;
+public:
+
     ~WebServiceT() { StopDaemon(); }
 
     CLASS_DELETE_COPY_AND_MOVE(WebServiceT);
@@ -1015,7 +1018,7 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
             auto& acceptor = _tcpAcceptors.emplace_back(_mgr.IOC());
             acceptor.open(endpoint.protocol());
             acceptor.set_option(boost::asio::socket_base::reuse_address(true));
-#if defined(SO_REUSEPORT)
+#ifdef SO_REUSEPORT
             int const enable = 1;
             ::setsockopt(acceptor.native_handle(), SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(enable));
 #endif
@@ -1041,7 +1044,7 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
 
         for (size_t i = 0; i < numThreads; i++)
         {
-            _listenthreads.emplace_back([=, this]() {
+            _listenthreads.emplace_back([this] {
                 SetThreadName(fmt::format("ncs:ios:{}", i).c_str());
                 _mgr.IOC().run();
             });
@@ -1147,7 +1150,7 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
                 co_return;
             }
 
-            boost::asio::post(*_handlerPool, [this, sock = std::move(socket)]() mutable {
+            boost::asio::post(*_handlerPool, [this, sock = std::move(socket)] mutable {
                 static constexpr auto Timeout = std::chrono::seconds{30};
                 tcp_stream            stream(std::move(sock));
                 stream.expires_after(Timeout);
@@ -1193,6 +1196,7 @@ template <typename TImpl, typename... TServices> struct WebServiceT : public Web
 
     int          _port{};
     impl::SvcMgr _mgr;
+friend TImpl;
 };
 SUPPRESS_WARNINGS_END
 }    // namespace Stencil::websvc

@@ -25,7 +25,7 @@ struct DatabaseTester
     }
 
     CLASS_DELETE_COPY_AND_MOVE(DatabaseTester);
-    void check(Stencil::Database::RWLock& /*lock*/,
+    static void Check(Stencil::Database::RWLock& /*lock*/,
                Objects::SimpleObject1 const&                            ref,
                Stencil::Database::Record<Objects::SimpleObject1> const& rec)
     {
@@ -40,7 +40,7 @@ struct DatabaseTester
         REQUIRE(rec.val5.data == Catch::Approx(ref.val5));
     }
 
-    void check(Stencil::Database::RWLock& /*lock*/,
+    static void Check(Stencil::Database::RWLock& /*lock*/,
                Objects::SimpleObject2 const&                            ref,
                Stencil::Database::Record<Objects::SimpleObject2> const& rec)
     {
@@ -57,17 +57,17 @@ struct DatabaseTester
         REQUIRE(rec.val8.data == ref.val8);
     }
 
-    void check(Stencil::Database::RWLock& lock, Objects::ListObject const& ref, Stencil::Database::Record<Objects::ListObject> const& rec)
+    void Check(Stencil::Database::RWLock& lock, Objects::ListObject const& ref, Stencil::Database::Record<Objects::ListObject> const& rec)
     {
-        check(lock, ref.obj1, datastore->Get(lock, rec.obj1));
+        Check(lock, ref.obj1, datastore->Get(lock, rec.obj1));
         // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
         REQUIRE(rec.lastmodified == ref.lastmodified);
         REQUIRE(rec.value.data == ref.value);
     }
 
-    void check(Stencil::Database::RWLock& lock,
+    void Check(Stencil::Database::RWLock& lock,
                std::unordered_map<uint32_t, std::unordered_map<uint32_t, ::Objects::SimpleObject1>> const& /*ref*/,
-               Stencil::Database::Record<std::unordered_map<uint32_t, std::unordered_map<uint32_t, ::Objects::SimpleObject1>>> const& rec)
+               Stencil::Database::Record<std::unordered_map<uint32_t, std::unordered_map<uint32_t, ::Objects::SimpleObject1>>> const& rec) const
     {
         for (auto item : rec.Items())
         {
@@ -76,9 +76,9 @@ struct DatabaseTester
         }
     }
 
-    void check(Stencil::Database::RWLock& lock,
+    void Check(Stencil::Database::RWLock& lock,
                std::unordered_map<uint32_t, ::Objects::SimpleObject1> const& /*ref*/,
-               Stencil::Database::Record<std::unordered_map<uint32_t, ::Objects::SimpleObject1>> const& rec)
+               Stencil::Database::Record<std::unordered_map<uint32_t, ::Objects::SimpleObject1>> const& rec) const
     {
         for (auto item : rec.Items())
         {
@@ -86,9 +86,9 @@ struct DatabaseTester
             /* auto vrec =  */ datastore->Get(lock, item.v);
         }
     }
-    void check(Stencil::Database::RWLock& lock,
+    void Check(Stencil::Database::RWLock& lock,
                std::unordered_map<shared_string, Stencil::Timestamp> const& /*ref*/,
-               Stencil::Database::Record<std::unordered_map<shared_string, Stencil::Timestamp>> const& rec)
+               Stencil::Database::Record<std::unordered_map<shared_string, Stencil::Timestamp>> const& rec) const
     {
         for (auto item : rec.Items())
         {
@@ -97,98 +97,98 @@ struct DatabaseTester
         }
     }
 
-    void check(Stencil::Database::RWLock& lock, Objects::DictObject const& ref, Stencil::Database::Record<Objects::DictObject> const& rec)
+    void Check(Stencil::Database::RWLock& lock, Objects::DictObject const& ref, Stencil::Database::Record<Objects::DictObject> const& rec)
     {
         // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
-        check(lock, ref.dictval, datastore->Get(lock, rec.dictval));
-        check(lock, ref.dictobj, datastore->Get(lock, rec.dictobj));
-        check(lock, ref.dictdict, datastore->Get(lock, rec.dictdict));
+        Check(lock, ref.dictval, datastore->Get(lock, rec.dictval));
+        Check(lock, ref.dictobj, datastore->Get(lock, rec.dictobj));
+        Check(lock, ref.dictdict, datastore->Get(lock, rec.dictdict));
     }
 
-    void check(Stencil::Database::RWLock& /*lock*/, Objects::List const& /*ref*/, Stencil::Database::Record<Objects::List> const& /*rec*/)
+    void Check(Stencil::Database::RWLock& /*lock*/, Objects::List const& /*ref*/, Stencil::Database::Record<Objects::List> const& /*rec*/)
     {
         // auto& vec = ref.listobj;
         // for (size_t i = 0; i < vec.size(); i++) { check(lock, vec[i], datastore->Get(lock, rec.listobj)[i]); }
         // REQUIRE(obj1.lastmodified == refobj1.lastmodified);
     }
 
-    void test_create_simple_object1(Stencil::Database::RWLock& lock)
+    void TestCreateSimpleObject1(Stencil::Database::RWLock& lock)
     {
-        auto refobj1     = tester.create_simple_object1();
+        auto refobj1     = tester.CreateSimpleObject1();
         auto [id1, obj1] = datastore->Create(lock, refobj1);
         REQUIRE(id1.id > 0);
-        check(lock, refobj1, obj1);
-        generated_ids.insert({Stencil::Database::TypeId<decltype(refobj1), DataStore>, id1.id});
+        Check(lock, refobj1, obj1);
+        generatedIds.insert({Stencil::Database::TypeId<decltype(refobj1), DataStore>, id1.id});
     }
 
-    void test_create_dict(Stencil::Database::RWLock& lock)
+    void TestCreateDict(Stencil::Database::RWLock& lock)
     {
-        auto refobj1     = tester.create_dict();
+        auto refobj1     = tester.CreateDict();
         auto [id1, obj1] = datastore->Create(lock, refobj1);
         REQUIRE(id1.id > 0);
-        check(lock, refobj1, obj1);
-        generated_ids.insert({Stencil::Database::TypeId<decltype(refobj1), DataStore>, id1.id});
+        Check(lock, refobj1, obj1);
+        generatedIds.insert({Stencil::Database::TypeId<decltype(refobj1), DataStore>, id1.id});
     }
 
-    void test_create_list(Stencil::Database::RWLock& lock)
+    void TestCreateList(Stencil::Database::RWLock& lock)
     {
-        auto refobj1     = tester.create_list();
+        auto refobj1     = tester.CreateList();
         auto [id1, obj1] = datastore->Create(lock, refobj1);
         REQUIRE(id1.id > 0);
-        check(lock, refobj1, obj1);
-        generated_ids.insert({Stencil::Database::TypeId<decltype(refobj1), DataStore>, id1.id});
+        Check(lock, refobj1, obj1);
+        generatedIds.insert({Stencil::Database::TypeId<decltype(refobj1), DataStore>, id1.id});
     }
 
-    void test_create_simple_object2(Stencil::Database::RWLock& lock)
+    void TestCreateSimpleObject2(Stencil::Database::RWLock& lock)
     {
-        auto refobj1     = tester.create_simple_object2();
+        auto refobj1     = tester.CreateSimpleObject2();
         auto [id1, obj1] = datastore->Create(lock, refobj1);
         REQUIRE(id1.id > 0);
-        check(lock, refobj1, obj1);
+        Check(lock, refobj1, obj1);
 
         // REQUIRE(obj1.val4 == refobj1.val4);
         // REQUIRE(obj1.val5.data == refobj1.val5);
         static_assert(Stencil::Database::TypeId<::Objects::SimpleObject2, DataStore>
                           != Stencil::Database::TypeId<::Objects::SimpleObject1, DataStore>,
                       "Cannot have two types equal");
-        generated_ids.insert({Stencil::Database::TypeId<decltype(refobj1), DataStore>, id1.id});
+        generatedIds.insert({Stencil::Database::TypeId<decltype(refobj1), DataStore>, id1.id});
     }
 
-    void test_create_nested_object(Stencil::Database::RWLock& lock)
+    void TestCreateNestedObject(Stencil::Database::RWLock& lock)
     {
-        auto refobj1     = tester.create_nested_object();
+        auto refobj1     = tester.CreateNestedObject();
         auto [id1, obj1] = datastore->Create(lock, refobj1);
         REQUIRE(id1.id > 0);
         // static_assert(sizeof(obj1) == sizeof(refobj1) - sizeof(shared_string) + sizeof(Stencil::Database::Ref<shared_string>));
-        check(lock, refobj1.obj1, datastore->Get(lock, obj1.obj1));
-        check(lock, refobj1.obj2, datastore->Get(lock, obj1.obj2));
-        check(lock, refobj1.obj3, datastore->Get(lock, obj1.obj3));
-        check(lock, refobj1.dict1, datastore->Get(lock, obj1.dict1));
-        check(lock, refobj1.list1, datastore->Get(lock, obj1.list1));
+        Check(lock, refobj1.obj1, datastore->Get(lock, obj1.obj1));
+        Check(lock, refobj1.obj2, datastore->Get(lock, obj1.obj2));
+        Check(lock, refobj1.obj3, datastore->Get(lock, obj1.obj3));
+        Check(lock, refobj1.dict1, datastore->Get(lock, obj1.dict1));
+        Check(lock, refobj1.list1, datastore->Get(lock, obj1.list1));
 
         static_assert(Stencil::Database::TypeId<::Objects::SimpleObject2, DataStore>
                           != Stencil::Database::TypeId<::Objects::SimpleObject1, DataStore>,
                       "Cannot have two types equal");
-        generated_ids.insert({Stencil::Database::TypeId<decltype(refobj1), DataStore>, id1.id});
+        generatedIds.insert({Stencil::Database::TypeId<decltype(refobj1), DataStore>, id1.id});
     }
 
     template <typename T>
-    void dump(Stencil::Database::RWLock& lock, Stencil::Database::Ref<T> const& ref, Stencil::Database::Record<T> const& rec)
+    void Dump(Stencil::Database::RWLock& lock, Stencil::Database::Ref<T> const& ref, Stencil::Database::Record<T> const& rec)
     {
         auto recview = Stencil::Database::CreateRecordView(*datastore, lock, ref, rec);
         lines.push_back(Stencil::Json::Stringify(recview));
     }
 
-    template <typename T> void delete_half_with_iterator(Stencil::Database::RWLock& lock)
+    template <typename T> void DeleteHalfWithIterator(Stencil::Database::RWLock& lock)
     {
         size_t                       i = 0;
         std::unordered_set<uint32_t> todelete;
-        for (auto it = generated_ids.cbegin(); it != generated_ids.cend();)
+        for (auto it = generatedIds.cbegin(); it != generatedIds.cend();)
         {
             if (it->first == Stencil::Database::TypeId<T, DataStore> && ((++i) % 2 == 0))
             {
                 todelete.insert(it->second);
-                it = generated_ids.erase(it);
+                it = generatedIds.erase(it);
             }
             else
             {
@@ -206,16 +206,16 @@ struct DatabaseTester
         }
     }
 
-    template <typename T> void delete_half(Stencil::Database::RWLock& lock)
+    template <typename T> void DeleteHalf(Stencil::Database::RWLock& lock)
     {
         size_t i = 0;
-        for (auto it = generated_ids.cbegin(); it != generated_ids.cend();)
+        for (auto it = generatedIds.cbegin(); it != generatedIds.cend();)
         {
             if (it->first == Stencil::Database::TypeId<T, DataStore> && ((++i) % 2 == 0))
             {
                 datastore->Delete(lock, Stencil::Database::Ref<T>{it->second});
                 lines.push_back(fmt::format("{{\"delete\": {}}}", it->second));
-                it = generated_ids.erase(it);
+                it = generatedIds.erase(it);
             }
             else
             {
@@ -225,7 +225,7 @@ struct DatabaseTester
     }
     std::unique_ptr<DataStore>                  datastore = std::make_unique<DataStore>();
     ObjectsTester                               tester;
-    std::unordered_multimap<uint16_t, uint32_t> generated_ids;
+    std::unordered_multimap<uint16_t, uint32_t> generatedIds;
     std::filesystem::path                       filepath = "SaveAndLoad.bin"s;
     std::vector<std::string>                    lines;
 };
@@ -236,31 +236,31 @@ TEST_CASE("Database", "[database]")
     for (size_t count = 1; count < 1000; count = count * 10)
     {
         auto lock = tester.datastore->LockForEdit();
-        for (size_t i = 0; i < count; i++) { tester.test_create_simple_object1(lock); }
-        for (auto [ref, rec] : tester.datastore->Items<Objects::SimpleObject1>(lock)) { tester.dump(lock, ref, rec); }
-        for (size_t i = 0; i < count; i++) { tester.test_create_dict(lock); }
-        for (auto [ref, rec] : tester.datastore->Items<Objects::DictObject>(lock)) { tester.dump(lock, ref, rec); }
-        for (size_t i = 0; i < count; i++) { tester.test_create_list(lock); }
-        for (auto [ref, rec] : tester.datastore->Items<Objects::List>(lock)) { tester.dump(lock, ref, rec); }
-        for (size_t i = 0; i < count; i++) { tester.test_create_simple_object2(lock); }
-        for (auto [ref, rec] : tester.datastore->Items<Objects::SimpleObject2>(lock)) { tester.dump(lock, ref, rec); }
-        for (size_t i = 0; i < count; i++) { tester.test_create_nested_object(lock); }
-        for (auto [ref, rec] : tester.datastore->Items<Objects::NestedObject>(lock)) { tester.dump(lock, ref, rec); }
+        for (size_t i = 0; i < count; i++) { tester.TestCreateSimpleObject1(lock); }
+        for (auto [ref, rec] : tester.datastore->Items<Objects::SimpleObject1>(lock)) { tester.Dump(lock, ref, rec); }
+        for (size_t i = 0; i < count; i++) { tester.TestCreateDict(lock); }
+        for (auto [ref, rec] : tester.datastore->Items<Objects::DictObject>(lock)) { tester.Dump(lock, ref, rec); }
+        for (size_t i = 0; i < count; i++) { tester.TestCreateList(lock); }
+        for (auto [ref, rec] : tester.datastore->Items<Objects::List>(lock)) { tester.Dump(lock, ref, rec); }
+        for (size_t i = 0; i < count; i++) { tester.TestCreateSimpleObject2(lock); }
+        for (auto [ref, rec] : tester.datastore->Items<Objects::SimpleObject2>(lock)) { tester.Dump(lock, ref, rec); }
+        for (size_t i = 0; i < count; i++) { tester.TestCreateNestedObject(lock); }
+        for (auto [ref, rec] : tester.datastore->Items<Objects::NestedObject>(lock)) { tester.Dump(lock, ref, rec); }
         if (count % 2 == 0)
         {
-            tester.delete_half_with_iterator<Objects::NestedObject>(lock);
-            tester.delete_half_with_iterator<Objects::DictObject>(lock);
-            tester.delete_half_with_iterator<Objects::List>(lock);
-            tester.delete_half_with_iterator<Objects::SimpleObject2>(lock);
-            tester.delete_half_with_iterator<Objects::SimpleObject1>(lock);
+            tester.DeleteHalfWithIterator<Objects::NestedObject>(lock);
+            tester.DeleteHalfWithIterator<Objects::DictObject>(lock);
+            tester.DeleteHalfWithIterator<Objects::List>(lock);
+            tester.DeleteHalfWithIterator<Objects::SimpleObject2>(lock);
+            tester.DeleteHalfWithIterator<Objects::SimpleObject1>(lock);
         }
         else
         {
-            tester.delete_half<Objects::NestedObject>(lock);
-            tester.delete_half<Objects::DictObject>(lock);
-            tester.delete_half<Objects::List>(lock);
-            tester.delete_half<Objects::SimpleObject2>(lock);
-            tester.delete_half<Objects::SimpleObject1>(lock);
+            tester.DeleteHalf<Objects::NestedObject>(lock);
+            tester.DeleteHalf<Objects::DictObject>(lock);
+            tester.DeleteHalf<Objects::List>(lock);
+            tester.DeleteHalf<Objects::SimpleObject2>(lock);
+            tester.DeleteHalf<Objects::SimpleObject1>(lock);
         }
 
         tester.datastore->Flush(lock);
@@ -304,7 +304,7 @@ TEST_CASE("Database File Storage", "[database]")
             datastore.Init(std::ifstream(dbFileName));
             ObjectsTester tester;
             auto          lock    = datastore.LockForEdit();
-            auto          refobj1 = tester.create_simple_object1();
+            auto          refobj1 = tester.CreateSimpleObject1();
             datastore.Create(lock, refobj1);
         }
 
@@ -322,7 +322,7 @@ TEST_CASE("Database File Storage", "[database]")
             datastore.Init();
             ObjectsTester tester;
             auto          lock    = datastore.LockForEdit();
-            auto          refobj1 = tester.create_simple_object1();
+            auto          refobj1 = tester.CreateSimpleObject1();
             datastore.Create(lock, refobj1);
         }
         {

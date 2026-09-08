@@ -7,9 +7,9 @@ TEST_CASE("JsonNestedList", "[Json]")
 {
     SECTION("test1")
     {
-        auto jsonstr = R"([{"list1": {"liststr": ["0"]}},{"list1": {"liststr": ["1"]}}])";
+        const auto *jsonstr = R"([{"list1": {"liststr": ["0"]}},{"list1": {"liststr": ["1"]}}])";
         auto obj     = Stencil::Json::Parse<std::vector<std::shared_ptr<Objects::NestedObject>>>(jsonstr);
-        REQUIRE(obj.size() > 0);
+        REQUIRE(!obj.empty());
         CHECK(obj[0]->list1.liststr[0] == "0");
         REQUIRE(obj.size() > 1);
         CHECK(obj[1]->list1.liststr[0] == "1");

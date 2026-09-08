@@ -407,23 +407,23 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
 
     ElemType const& Elem() const { return _elem; }
 
-    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
-    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
-    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+    bool IsFieldAssigned_(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool IsFieldEdited_(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool IsFieldChanged_(Fields key) const { return IsFieldAssigned_(key) || IsFieldEdited_(key); }
+    void MarkFieldAssigned_(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void MarkFieldEdited_(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
 
-    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    size_t CountFieldsChanged_() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
 
     void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
     {
-        _MarkFieldAssigned(elemTxnState.field);
+        MarkFieldAssigned_(elemTxnState.field);
         Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
     }
 
-    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { MarkFieldEdited_(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return IsFieldChanged_(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
     void Assign(ElemType&& elem)
@@ -587,61 +587,61 @@ template <Stencil::ConceptTransactionView TContainer> struct Stencil::Transactio
     using TransactionView_val5 = Stencil::TransactionView<double, View>;
     ElemType const& Elem() const { return _elem; }
 
-    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
-    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
-    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
-    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsFieldAssigned_(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   IsFieldEdited_(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   IsFieldChanged_(Fields key) const { return IsFieldAssigned_(key) || IsFieldEdited_(key); }
+    size_t CountFieldsChanged_() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return IsFieldChanged_(elemTxnState.field); }
     bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
     template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
     {
-        if (_IsFieldAssigned(Fields::Field_val1))
+        if (IsFieldAssigned_(Fields::Field_val1))
         {
             auto txn = val1();
             lambda(Fields::Field_val1, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_val1))
+        else if (IsFieldEdited_(Fields::Field_val1))
         {
             auto txn = val1();
             lambda(Fields::Field_val1, uint8_t{3u}, uint32_t{0u}, txn);
         }
-        if (_IsFieldAssigned(Fields::Field_val2))
+        if (IsFieldAssigned_(Fields::Field_val2))
         {
             auto txn = val2();
             lambda(Fields::Field_val2, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_val2))
+        else if (IsFieldEdited_(Fields::Field_val2))
         {
             auto txn = val2();
             lambda(Fields::Field_val2, uint8_t{3u}, uint32_t{0u}, txn);
         }
-        if (_IsFieldAssigned(Fields::Field_val3))
+        if (IsFieldAssigned_(Fields::Field_val3))
         {
             auto txn = val3();
             lambda(Fields::Field_val3, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_val3))
+        else if (IsFieldEdited_(Fields::Field_val3))
         {
             auto txn = val3();
             lambda(Fields::Field_val3, uint8_t{3u}, uint32_t{0u}, txn);
         }
-        if (_IsFieldAssigned(Fields::Field_val4))
+        if (IsFieldAssigned_(Fields::Field_val4))
         {
             auto txn = val4();
             lambda(Fields::Field_val4, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_val4))
+        else if (IsFieldEdited_(Fields::Field_val4))
         {
             auto txn = val4();
             lambda(Fields::Field_val4, uint8_t{3u}, uint32_t{0u}, txn);
         }
-        if (_IsFieldAssigned(Fields::Field_val5))
+        if (IsFieldAssigned_(Fields::Field_val5))
         {
             auto txn = val5();
             lambda(Fields::Field_val5, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_val5))
+        else if (IsFieldEdited_(Fields::Field_val5))
         {
             auto txn = val5();
             lambda(Fields::Field_val5, uint8_t{3u}, uint32_t{0u}, txn);
@@ -985,23 +985,23 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
 
     ElemType const& Elem() const { return _elem; }
 
-    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
-    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
-    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+    bool IsFieldAssigned_(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool IsFieldEdited_(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool IsFieldChanged_(Fields key) const { return IsFieldAssigned_(key) || IsFieldEdited_(key); }
+    void MarkFieldAssigned_(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void MarkFieldEdited_(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
 
-    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    size_t CountFieldsChanged_() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
 
     void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
     {
-        _MarkFieldAssigned(elemTxnState.field);
+        MarkFieldAssigned_(elemTxnState.field);
         Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
     }
 
-    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { MarkFieldEdited_(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return IsFieldChanged_(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
     void Assign(ElemType&& elem)
@@ -1105,31 +1105,31 @@ template <Stencil::ConceptTransactionView TContainer> struct Stencil::Transactio
     using TransactionView_obj1 = Stencil::TransactionView<::Objects::SimpleObject1, View>;
     ElemType const& Elem() const { return _elem; }
 
-    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
-    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
-    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
-    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsFieldAssigned_(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   IsFieldEdited_(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   IsFieldChanged_(Fields key) const { return IsFieldAssigned_(key) || IsFieldEdited_(key); }
+    size_t CountFieldsChanged_() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return IsFieldChanged_(elemTxnState.field); }
     bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
     template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
     {
-        if (_IsFieldAssigned(Fields::Field_value))
+        if (IsFieldAssigned_(Fields::Field_value))
         {
             auto txn = value();
             lambda(Fields::Field_value, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_value))
+        else if (IsFieldEdited_(Fields::Field_value))
         {
             auto txn = value();
             lambda(Fields::Field_value, uint8_t{3u}, uint32_t{0u}, txn);
         }
-        if (_IsFieldAssigned(Fields::Field_obj1))
+        if (IsFieldAssigned_(Fields::Field_obj1))
         {
             auto txn = obj1();
             lambda(Fields::Field_obj1, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_obj1))
+        else if (IsFieldEdited_(Fields::Field_obj1))
         {
             auto txn = obj1();
             lambda(Fields::Field_obj1, uint8_t{3u}, uint32_t{0u}, txn);
@@ -1472,23 +1472,23 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
 
     ElemType const& Elem() const { return _elem; }
 
-    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
-    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
-    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+    bool IsFieldAssigned_(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool IsFieldEdited_(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool IsFieldChanged_(Fields key) const { return IsFieldAssigned_(key) || IsFieldEdited_(key); }
+    void MarkFieldAssigned_(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void MarkFieldEdited_(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
 
-    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    size_t CountFieldsChanged_() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
 
     void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
     {
-        _MarkFieldAssigned(elemTxnState.field);
+        MarkFieldAssigned_(elemTxnState.field);
         Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
     }
 
-    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { MarkFieldEdited_(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return IsFieldChanged_(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
     void Assign(ElemType&& elem)
@@ -1612,41 +1612,41 @@ template <Stencil::ConceptTransactionView TContainer> struct Stencil::Transactio
     using TransactionView_dictdict = Stencil::TransactionView<std::unordered_map<uint32_t, std::unordered_map<uint32_t, ::Objects::SimpleObject1>>, View>;
     ElemType const& Elem() const { return _elem; }
 
-    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
-    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
-    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
-    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsFieldAssigned_(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   IsFieldEdited_(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   IsFieldChanged_(Fields key) const { return IsFieldAssigned_(key) || IsFieldEdited_(key); }
+    size_t CountFieldsChanged_() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return IsFieldChanged_(elemTxnState.field); }
     bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
     template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
     {
-        if (_IsFieldAssigned(Fields::Field_dictobj))
+        if (IsFieldAssigned_(Fields::Field_dictobj))
         {
             auto txn = dictobj();
             lambda(Fields::Field_dictobj, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_dictobj))
+        else if (IsFieldEdited_(Fields::Field_dictobj))
         {
             auto txn = dictobj();
             lambda(Fields::Field_dictobj, uint8_t{3u}, uint32_t{0u}, txn);
         }
-        if (_IsFieldAssigned(Fields::Field_dictval))
+        if (IsFieldAssigned_(Fields::Field_dictval))
         {
             auto txn = dictval();
             lambda(Fields::Field_dictval, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_dictval))
+        else if (IsFieldEdited_(Fields::Field_dictval))
         {
             auto txn = dictval();
             lambda(Fields::Field_dictval, uint8_t{3u}, uint32_t{0u}, txn);
         }
-        if (_IsFieldAssigned(Fields::Field_dictdict))
+        if (IsFieldAssigned_(Fields::Field_dictdict))
         {
             auto txn = dictdict();
             lambda(Fields::Field_dictdict, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_dictdict))
+        else if (IsFieldEdited_(Fields::Field_dictdict))
         {
             auto txn = dictdict();
             lambda(Fields::Field_dictdict, uint8_t{3u}, uint32_t{0u}, txn);
@@ -1952,23 +1952,23 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
 
     ElemType const& Elem() const { return _elem; }
 
-    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
-    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
-    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+    bool IsFieldAssigned_(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool IsFieldEdited_(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool IsFieldChanged_(Fields key) const { return IsFieldAssigned_(key) || IsFieldEdited_(key); }
+    void MarkFieldAssigned_(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void MarkFieldEdited_(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
 
-    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    size_t CountFieldsChanged_() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
 
     void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
     {
-        _MarkFieldAssigned(elemTxnState.field);
+        MarkFieldAssigned_(elemTxnState.field);
         Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
     }
 
-    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { MarkFieldEdited_(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return IsFieldChanged_(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
     void Assign(ElemType&& elem)
@@ -2007,19 +2007,19 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
 
     void add_listobj(::Objects::ListObject&& args)
     {
-        _MarkFieldEdited(Fields::Field_listobj);
+        MarkFieldEdited_(Fields::Field_listobj);
         auto txn = listobj();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::add(txn, std::move(args));
     }
     void remove_listobj(size_t&& args)
     {
-        _MarkFieldEdited(Fields::Field_listobj);
+        MarkFieldEdited_(Fields::Field_listobj);
         auto txn = listobj();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::remove(txn, std::move(args));
     }
     auto edit_listobj(size_t&& args)
     {
-        _MarkFieldEdited(Fields::Field_listobj);
+        MarkFieldEdited_(Fields::Field_listobj);
         auto txn = listobj();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::edit(txn, std::move(args));
     }
@@ -2031,19 +2031,19 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
 
     void add_liststr(shared_string&& args)
     {
-        _MarkFieldEdited(Fields::Field_liststr);
+        MarkFieldEdited_(Fields::Field_liststr);
         auto txn = liststr();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::add(txn, std::move(args));
     }
     void remove_liststr(size_t&& args)
     {
-        _MarkFieldEdited(Fields::Field_liststr);
+        MarkFieldEdited_(Fields::Field_liststr);
         auto txn = liststr();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::remove(txn, std::move(args));
     }
     auto edit_liststr(size_t&& args)
     {
-        _MarkFieldEdited(Fields::Field_liststr);
+        MarkFieldEdited_(Fields::Field_liststr);
         auto txn = liststr();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::edit(txn, std::move(args));
     }
@@ -2108,31 +2108,31 @@ template <Stencil::ConceptTransactionView TContainer> struct Stencil::Transactio
     using TransactionView_liststr = Stencil::TransactionView<std::vector<shared_string>, View>;
     ElemType const& Elem() const { return _elem; }
 
-    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
-    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
-    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
-    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsFieldAssigned_(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   IsFieldEdited_(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   IsFieldChanged_(Fields key) const { return IsFieldAssigned_(key) || IsFieldEdited_(key); }
+    size_t CountFieldsChanged_() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return IsFieldChanged_(elemTxnState.field); }
     bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
     template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
     {
-        if (_IsFieldAssigned(Fields::Field_listobj))
+        if (IsFieldAssigned_(Fields::Field_listobj))
         {
             auto txn = listobj();
             lambda(Fields::Field_listobj, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_listobj))
+        else if (IsFieldEdited_(Fields::Field_listobj))
         {
             auto txn = listobj();
             lambda(Fields::Field_listobj, uint8_t{3u}, uint32_t{0u}, txn);
         }
-        if (_IsFieldAssigned(Fields::Field_liststr))
+        if (IsFieldAssigned_(Fields::Field_liststr))
         {
             auto txn = liststr();
             lambda(Fields::Field_liststr, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_liststr))
+        else if (IsFieldEdited_(Fields::Field_liststr))
         {
             auto txn = liststr();
             lambda(Fields::Field_liststr, uint8_t{3u}, uint32_t{0u}, txn);
@@ -2695,23 +2695,23 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
 
     ElemType const& Elem() const { return _elem; }
 
-    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
-    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
-    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+    bool IsFieldAssigned_(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool IsFieldEdited_(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool IsFieldChanged_(Fields key) const { return IsFieldAssigned_(key) || IsFieldEdited_(key); }
+    void MarkFieldAssigned_(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void MarkFieldEdited_(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
 
-    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    size_t CountFieldsChanged_() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
 
     void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
     {
-        _MarkFieldAssigned(elemTxnState.field);
+        MarkFieldAssigned_(elemTxnState.field);
         Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
     }
 
-    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { MarkFieldEdited_(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return IsFieldChanged_(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
     void Assign(ElemType&& elem)
@@ -2935,91 +2935,91 @@ template <Stencil::ConceptTransactionView TContainer> struct Stencil::Transactio
     using TransactionView_val8 = Stencil::TransactionView<int16_t, View>;
     ElemType const& Elem() const { return _elem; }
 
-    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
-    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
-    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
-    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsFieldAssigned_(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   IsFieldEdited_(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   IsFieldChanged_(Fields key) const { return IsFieldAssigned_(key) || IsFieldEdited_(key); }
+    size_t CountFieldsChanged_() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return IsFieldChanged_(elemTxnState.field); }
     bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
     template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
     {
-        if (_IsFieldAssigned(Fields::Field_val1))
+        if (IsFieldAssigned_(Fields::Field_val1))
         {
             auto txn = val1();
             lambda(Fields::Field_val1, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_val1))
+        else if (IsFieldEdited_(Fields::Field_val1))
         {
             auto txn = val1();
             lambda(Fields::Field_val1, uint8_t{3u}, uint32_t{0u}, txn);
         }
-        if (_IsFieldAssigned(Fields::Field_val2))
+        if (IsFieldAssigned_(Fields::Field_val2))
         {
             auto txn = val2();
             lambda(Fields::Field_val2, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_val2))
+        else if (IsFieldEdited_(Fields::Field_val2))
         {
             auto txn = val2();
             lambda(Fields::Field_val2, uint8_t{3u}, uint32_t{0u}, txn);
         }
-        if (_IsFieldAssigned(Fields::Field_val3))
+        if (IsFieldAssigned_(Fields::Field_val3))
         {
             auto txn = val3();
             lambda(Fields::Field_val3, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_val3))
+        else if (IsFieldEdited_(Fields::Field_val3))
         {
             auto txn = val3();
             lambda(Fields::Field_val3, uint8_t{3u}, uint32_t{0u}, txn);
         }
-        if (_IsFieldAssigned(Fields::Field_val4))
+        if (IsFieldAssigned_(Fields::Field_val4))
         {
             auto txn = val4();
             lambda(Fields::Field_val4, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_val4))
+        else if (IsFieldEdited_(Fields::Field_val4))
         {
             auto txn = val4();
             lambda(Fields::Field_val4, uint8_t{3u}, uint32_t{0u}, txn);
         }
-        if (_IsFieldAssigned(Fields::Field_val5))
+        if (IsFieldAssigned_(Fields::Field_val5))
         {
             auto txn = val5();
             lambda(Fields::Field_val5, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_val5))
+        else if (IsFieldEdited_(Fields::Field_val5))
         {
             auto txn = val5();
             lambda(Fields::Field_val5, uint8_t{3u}, uint32_t{0u}, txn);
         }
-        if (_IsFieldAssigned(Fields::Field_val6))
+        if (IsFieldAssigned_(Fields::Field_val6))
         {
             auto txn = val6();
             lambda(Fields::Field_val6, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_val6))
+        else if (IsFieldEdited_(Fields::Field_val6))
         {
             auto txn = val6();
             lambda(Fields::Field_val6, uint8_t{3u}, uint32_t{0u}, txn);
         }
-        if (_IsFieldAssigned(Fields::Field_val7))
+        if (IsFieldAssigned_(Fields::Field_val7))
         {
             auto txn = val7();
             lambda(Fields::Field_val7, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_val7))
+        else if (IsFieldEdited_(Fields::Field_val7))
         {
             auto txn = val7();
             lambda(Fields::Field_val7, uint8_t{3u}, uint32_t{0u}, txn);
         }
-        if (_IsFieldAssigned(Fields::Field_val8))
+        if (IsFieldAssigned_(Fields::Field_val8))
         {
             auto txn = val8();
             lambda(Fields::Field_val8, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_val8))
+        else if (IsFieldEdited_(Fields::Field_val8))
         {
             auto txn = val8();
             lambda(Fields::Field_val8, uint8_t{3u}, uint32_t{0u}, txn);
@@ -3534,23 +3534,23 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
 
     ElemType const& Elem() const { return _elem; }
 
-    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
-    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
-    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+    bool IsFieldAssigned_(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool IsFieldEdited_(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool IsFieldChanged_(Fields key) const { return IsFieldAssigned_(key) || IsFieldEdited_(key); }
+    void MarkFieldAssigned_(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void MarkFieldEdited_(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
 
-    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    size_t CountFieldsChanged_() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
 
     void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
     {
-        _MarkFieldAssigned(elemTxnState.field);
+        MarkFieldAssigned_(elemTxnState.field);
         Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
     }
 
-    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { MarkFieldEdited_(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return IsFieldChanged_(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
     void Assign(ElemType&& elem)
@@ -3714,61 +3714,61 @@ template <Stencil::ConceptTransactionView TContainer> struct Stencil::Transactio
     using TransactionView_list1 = Stencil::TransactionView<::Objects::List, View>;
     ElemType const& Elem() const { return _elem; }
 
-    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
-    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
-    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
-    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsFieldAssigned_(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   IsFieldEdited_(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   IsFieldChanged_(Fields key) const { return IsFieldAssigned_(key) || IsFieldEdited_(key); }
+    size_t CountFieldsChanged_() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return IsFieldChanged_(elemTxnState.field); }
     bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
     template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
     {
-        if (_IsFieldAssigned(Fields::Field_obj1))
+        if (IsFieldAssigned_(Fields::Field_obj1))
         {
             auto txn = obj1();
             lambda(Fields::Field_obj1, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_obj1))
+        else if (IsFieldEdited_(Fields::Field_obj1))
         {
             auto txn = obj1();
             lambda(Fields::Field_obj1, uint8_t{3u}, uint32_t{0u}, txn);
         }
-        if (_IsFieldAssigned(Fields::Field_obj2))
+        if (IsFieldAssigned_(Fields::Field_obj2))
         {
             auto txn = obj2();
             lambda(Fields::Field_obj2, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_obj2))
+        else if (IsFieldEdited_(Fields::Field_obj2))
         {
             auto txn = obj2();
             lambda(Fields::Field_obj2, uint8_t{3u}, uint32_t{0u}, txn);
         }
-        if (_IsFieldAssigned(Fields::Field_obj3))
+        if (IsFieldAssigned_(Fields::Field_obj3))
         {
             auto txn = obj3();
             lambda(Fields::Field_obj3, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_obj3))
+        else if (IsFieldEdited_(Fields::Field_obj3))
         {
             auto txn = obj3();
             lambda(Fields::Field_obj3, uint8_t{3u}, uint32_t{0u}, txn);
         }
-        if (_IsFieldAssigned(Fields::Field_dict1))
+        if (IsFieldAssigned_(Fields::Field_dict1))
         {
             auto txn = dict1();
             lambda(Fields::Field_dict1, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_dict1))
+        else if (IsFieldEdited_(Fields::Field_dict1))
         {
             auto txn = dict1();
             lambda(Fields::Field_dict1, uint8_t{3u}, uint32_t{0u}, txn);
         }
-        if (_IsFieldAssigned(Fields::Field_list1))
+        if (IsFieldAssigned_(Fields::Field_list1))
         {
             auto txn = list1();
             lambda(Fields::Field_list1, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_list1))
+        else if (IsFieldEdited_(Fields::Field_list1))
         {
             auto txn = list1();
             lambda(Fields::Field_list1, uint8_t{3u}, uint32_t{0u}, txn);
@@ -4106,23 +4106,23 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<Ob
 
     ElemType const& Elem() const { return _elem; }
 
-    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
-    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
-    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+    bool IsFieldAssigned_(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool IsFieldEdited_(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool IsFieldChanged_(Fields key) const { return IsFieldAssigned_(key) || IsFieldEdited_(key); }
+    void MarkFieldAssigned_(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void MarkFieldEdited_(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
 
-    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    size_t CountFieldsChanged_() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
 
     void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
     {
-        _MarkFieldAssigned(elemTxnState.field);
+        MarkFieldAssigned_(elemTxnState.field);
         Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
     }
 
-    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { MarkFieldEdited_(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return IsFieldChanged_(elemTxnState.field); }
     bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
     void Assign(ElemType&& elem)
@@ -4226,31 +4226,31 @@ template <Stencil::ConceptTransactionView TContainer> struct Stencil::Transactio
     using TransactionView_self = Stencil::TransactionView<Stencil::Ref<::Objects::SelfNested>, View>;
     ElemType const& Elem() const { return _elem; }
 
-    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
-    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
-    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
-    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsFieldAssigned_(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   IsFieldEdited_(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   IsFieldChanged_(Fields key) const { return IsFieldAssigned_(key) || IsFieldEdited_(key); }
+    size_t CountFieldsChanged_() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return IsFieldChanged_(elemTxnState.field); }
     bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
     template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
     {
-        if (_IsFieldAssigned(Fields::Field_obj1))
+        if (IsFieldAssigned_(Fields::Field_obj1))
         {
             auto txn = obj1();
             lambda(Fields::Field_obj1, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_obj1))
+        else if (IsFieldEdited_(Fields::Field_obj1))
         {
             auto txn = obj1();
             lambda(Fields::Field_obj1, uint8_t{3u}, uint32_t{0u}, txn);
         }
-        if (_IsFieldAssigned(Fields::Field_self))
+        if (IsFieldAssigned_(Fields::Field_self))
         {
             auto txn = self();
             lambda(Fields::Field_self, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_self))
+        else if (IsFieldEdited_(Fields::Field_self))
         {
             auto txn = self();
             lambda(Fields::Field_self, uint8_t{3u}, uint32_t{0u}, txn);
