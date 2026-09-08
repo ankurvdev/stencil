@@ -2,11 +2,11 @@
 #include <list>
 #include <memory>
 
-template <typename T> struct Tree
+template <typename T> struct tree
 {
     struct _Node
     {
-        explicit _Node(T&& val) : data(std::move(val)) {}
+        _Node(T&& val) : data(std::move(val)) {}
         _Node(_Node const&)            = delete;
         _Node()                        = delete;
         _Node& operator=(_Node const&) = delete;
@@ -22,67 +22,67 @@ template <typename T> struct Tree
         _Node* parent{};
     };
 
-    std::list<std::unique_ptr<_Node>> nodes;    // TODO : avoid wastage
+    std::list<std::unique_ptr<_Node>> _nodes;    // TODO : avoid wastage
 
     public:
-    Tree()                         = default;
-    Tree(Tree const& r)            = delete;
-    Tree& operator=(Tree const& r) = delete;
-    Tree(Tree&&)                   = default;
-    Tree& operator=(Tree&&)        = default;
+    tree()                         = default;
+    tree(tree const& r)            = delete;
+    tree& operator=(tree const& r) = delete;
+    tree(tree&&)                   = default;
+    tree& operator=(tree&&)        = default;
 
-    [[noreturn]] Tree<T> Clone() const { throw std::logic_error("Not implemented"); }
+    [[noreturn]] tree<T> clone() const { throw std::logic_error("Not implemented"); }
     // tree(tree&& obj) { std::swap(_nodes, obj._nodes); }
 
-    struct Iterator
+    struct iterator
     {
         T const* operator->() const { return &_current->data; }
         T const& operator*() const { return _current->data; }
 
-        bool operator!=(Iterator const& r) const { return !((*this) == r); }
-        bool operator==(Iterator const& r) const { return _current == r._current && _parent == r._parent; }
+        bool operator!=(iterator const& r) const { return !((*this) == r); }
+        bool operator==(iterator const& r) const { return _current == r._current && _parent == r._parent; }
 
-        Iterator& operator++()
+        iterator& operator++()
         {
             _current = _current->nextsibling;
             return *this;
         }
 
         private:
-        static Iterator create_(_Node* node) { return Iterator(node); }
-        static Iterator end_() { return Iterator{}; }
+        static iterator create(_Node* node) { return iterator(node); }
+        static iterator end() { return iterator{}; }
 
-        Iterator() = default;
-        explicit Iterator(_Node* node) : _current(node), _parent(node == nullptr ? nullptr : node->parent) {}
-        Iterator(_Node* cur, _Node* par) : _current(cur), _parent(par) {}
+        iterator() = default;
+        iterator(_Node* node) : _current(node), _parent(node == nullptr ? nullptr : node->parent) {}
+        iterator(_Node* cur, _Node* par) : _current(cur), _parent(par) {}
 
         _Node* _current{nullptr};
         _Node* _parent{nullptr};
-        friend struct Tree;
+        friend struct tree;
     };
 
-    template <typename TIt> struct Range
+    template <typename TIt> struct range
     {
-        TIt begin;
-        TIt end;
+        TIt _begin;
+        TIt _end;
 
-        auto Begin() const { return begin; }
-        auto End() const { return end; }
+        auto begin() const { return _begin; }
+        auto end() const { return _end; }
     };
 
-    Iterator Rootbegin() const { return nodes.size() == 0 ? Iterator::end() : Iterator::create(nodes.front().get()); }
-    Iterator Rootend() const { return Iterator::end(); }
+    iterator rootbegin() const { return _nodes.size() == 0 ? iterator::end() : iterator::create(_nodes.front().get()); }
+    iterator rootend() const { return iterator::end(); }
 
-    Range<Iterator> Children(Iterator it) const
+    range<iterator> children(iterator it) const
     {
-        return Range<Iterator>{Iterator{it._current->firstchild, it._current}, Iterator{nullptr, it._current}};
+        return range<iterator>{iterator{it._current->firstchild, it._current}, iterator{nullptr, it._current}};
     }
 
     // Insert after last child
-    Iterator Addchild(Iterator it, T&& data)
+    iterator addchild(iterator it, T&& data)
     {
         auto item = std::make_unique<_Node>(std::forward<T>(data));
-        if (it != Iterator::end())
+        if (it != iterator::end())
         {
             auto parent       = it._current;
             auto prevsib      = parent->lastchild;
@@ -99,17 +99,17 @@ template <typename T> struct Tree
         }
         else
         {
-            if (nodes.size() != 0) { throw std::logic_error("Use add_sibling to add multiple roots"); }
+            if (_nodes.size() != 0) { throw std::logic_error("Use add_sibling to add multiple roots"); }
         }
 
-        auto retit = Iterator::create(item.get());
-        nodes.push_back(std::move(item));
+        auto retit = iterator::create(item.get());
+        _nodes.push_back(std::move(item));
         return retit;
     }
 
-    Iterator Addsibling(Iterator it, T&& data)
+    iterator addsibling(iterator it, T&& data)
     {
-        if (it == Iterator::end()) { throw std::logic_error("Add Sibling on last not allowed"); }
+        if (it == iterator::end()) { throw std::logic_error("Add Sibling on last not allowed"); }
 
         auto item = std::make_unique<_Node>(std::forward<T>(data));
 
@@ -126,9 +126,9 @@ template <typename T> struct Tree
         if (prnt != nullptr && prnt->lastchild == crnt) prnt->lastchild = item.get();
         if (next != nullptr) next->prevsibling = item.get();
 
-        auto retit = Iterator::create(item.get());
+        auto retit = iterator::create(item.get());
 
-        nodes.push_back(std::move(item));
+        _nodes.push_back(std::move(item));
         return retit;
     }
 };
