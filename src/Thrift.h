@@ -1,4 +1,5 @@
 #pragma once
+#include "CommonMacros.h"
 #include "Generator.h"
 #include "IDL2.h"
 
@@ -173,6 +174,9 @@ void CreateAttribute(Context& context, Str::Type& name, AttributeComponentList& 
 struct StrValueType : public Binding::ValueT<Binding::Type::String>, public std::enable_shared_from_this<StrValueType>
 {
     explicit StrValueType(Str::Type&& value) : _value(std::move(value)) {}
+    ~StrValueType() override = default;
+    CLASS_DEFAULT_COPY_AND_MOVE(StrValueType);
+
     Str::Type const& GetString() LFTBND override { return _value; }
     Str::Type        _value;
 };
@@ -278,14 +282,14 @@ inline ConstValue FindConstValue(Context& context, Str::Type const& name)
 
     // throw std::logic_error("Not Implement. Named Keyword (%s). Const Values not yet supported" /*, name.c_str()*/);
 }
-[[noreturn]] inline ConstValue CreateConstValue(ConstValueList&& /*value*/) //NOLINT
+[[noreturn]] inline ConstValue CreateConstValue(ConstValueList&& /*value*/)    // NOLINT
 { throw std::logic_error("Not Implement. List Const Values not yet supported"); }
-[[noreturn]] inline ConstValue CreateConstValue(ConstValueDict&& /*value*/)//NOLINT
+[[noreturn]] inline ConstValue CreateConstValue(ConstValueDict&& /*value*/)    // NOLINT
 { throw std::logic_error("Not Implement. Map Const Values not yet supported"); }
-[[noreturn]] inline ConstValueList ConstValueAddValue(ConstValueList&& /*vec*/, ConstValue&& /*value*/)//NOLINT
+[[noreturn]] inline ConstValueList ConstValueAddValue(ConstValueList&& /*vec*/, ConstValue&& /*value*/)    // NOLINT
 { throw std::logic_error("Not Implement. List Const Values not yet supported"); }
 
-[[noreturn]] inline ConstValueDict ConstValueAddValue(ConstValueDict&& /*vec*/, ConstValue&& /*key*/, ConstValue&& /*value*/)//NOLINT
+[[noreturn]] inline ConstValueDict ConstValueAddValue(ConstValueDict&& /*vec*/, ConstValue&& /*key*/, ConstValue&& /*value*/)    // NOLINT
 { throw std::logic_error("Not Implement. Map Const Values not yet supported"); }
 
 inline ConstValue CreateDefaultConstValue()

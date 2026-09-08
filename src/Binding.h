@@ -439,7 +439,7 @@ struct IValue
     public:
     IValue()          = default;
     virtual ~IValue() = default;
-    CLASS_DELETE_COPY_AND_MOVE(IValue);
+    CLASS_DEFAULT_COPY_AND_MOVE(IValue);
 
     virtual Type              GetType()     = 0;
     virtual Str::Type const&  GetString()   = 0;
