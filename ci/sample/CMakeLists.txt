@@ -1,4 +1,9 @@
 cmake_minimum_required(VERSION 3.26)
+# On windows vcpkg z-applocal causes issues
+if (WIN32)
+    set(VCPKG_USE_LEGACY_APPLOCAL ON CACHE BOOL "")
+endif()
+
 if(NOT EXISTS "${VCPKG_ROOT}")
     message(FATAL_ERROR "Please run with -DVCPKG_ROOT=<vcpkg-root> ${VCPKG_ROOT} not found")
 endif()
