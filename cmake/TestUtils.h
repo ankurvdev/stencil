@@ -19,6 +19,7 @@ SUPPRESS_WARNINGS_END
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
 SUPPRESS_FMT_WARNINGS
+SUPPRESS_MSVC_WARNING(4426)    // optimization flags changed after including header,
 SUPPRESS_MSVC_WARNING(4388)    // signed / unsigned mismatch (Catch2)
 #include <catch2/catch_all.hpp>
 #include <dtl/dtl.hpp>
