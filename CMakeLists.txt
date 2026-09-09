@@ -70,11 +70,13 @@ if (MSVC)
     # TOML11 has a nasty usage of insecure apis
     set_source_files_properties("src/ModelGenerator.cpp" PROPERTIES COMPILE_FLAGS "/D_CRT_SECURE_NO_WARNINGS")
 endif()
-target_link_libraries(libstencil PUBLIC Thrift)
-target_add_resource(libstencil RESOURCE_COLLECTION_NAME templates RESOURCES ${resfiles})
+add_resource_library(libstencil_templates OBJECT RESOURCE_COLLECTION_NAME templates RESOURCES ${resfiles})
+target_link_libraries(libstencil PUBLIC Thrift libstencil_templates $<TARGET_OBJECTS:libstencil_templates>)
+
 list(APPEND resfiles ${public_headers})
 if (NOT BUILD_TESTING)
-    target_add_resource(libstencil RESOURCE_COLLECTION_NAME commonheaders RESOURCES ${resfiles})
+    add_resource_library(libstencil_commonheaders OBJECT RESOURCE_COLLECTION_NAME commonheaders RESOURCES ${resfiles})
+    target_link_libraries(libstencil PUBLIC libstencil_commonheaders $<TARGET_OBJECTS:libstencil_commonheaders>)
 endif()
 
 target_link_libraries(libstencil PUBLIC
