@@ -179,6 +179,7 @@ macro(EnableStrictCompilation)
                 -Zc:__cplusplus
 
                 #suppression list
+                /wd4426  # optimization flags changed after including header
                 /wd4514  # unreferenced inline function has been removed
                 /wd4619  # pragma warning: there is no warning number
                 /wd4710  # Function not inlined. VS2019 CRT throws this
