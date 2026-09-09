@@ -973,7 +973,11 @@ using impl::Request;
 template <typename TImpl, typename T> struct WebServiceInterfaceImplT;
 
 template <typename TImpl, ConceptInterface TInterface> struct WebServiceInterfaceImplT<TImpl, TInterface> : TInterface::template Svc<TImpl>
-{};
+{
+    WebServiceInterfaceImplT()  = default;
+    ~WebServiceInterfaceImplT() = default;
+    CLASS_DELETE_COPY_AND_MOVE(WebServiceInterfaceImplT);
+};
 
 template <typename TImpl, ConceptIndexable T>
 struct WebServiceInterfaceImplT<TImpl, impl::SynchronizedState<T>> : impl::SynchronizedState<T>

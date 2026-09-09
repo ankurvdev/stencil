@@ -180,8 +180,8 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
 {
     template <typename TContext> static bool AreEqual(std::string_view const& str1, TContext const& str2)
     {
-        auto const* it1 = str1.begin();
-        auto        it2 = std::begin(str2);
+        auto it1 = str1.begin();    // NOLINT
+        auto it2 = std::begin(str2);
         while (it1 != str1.end() && it2 != std::end(str2))
         {
             auto ch1 = std::tolower(*it1);
@@ -353,7 +353,7 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                         CustomVisitor()           = default;
                         ~CustomVisitor() override = default;
                         CLASS_DELETE_COPY_AND_MOVE(CustomVisitor);
-                        Visitor<TVal>::Iterator it{};
+                        typename Visitor<TVal>::Iterator it{};
                     };
                     CustomVisitor* visitor{nullptr};
 
@@ -796,7 +796,9 @@ struct Table
     };
 
     struct Row
-    { std::vector<ColumnSpan> columns; };
+    {
+        std::vector<ColumnSpan> columns;
+    };
 
     std::vector<Row> rows;
 
@@ -874,7 +876,7 @@ struct Table
         std::vector<size_t> offsets{0};
         offsets.reserve(widths.size());
         size_t bufferwidth = 1;
-        for (unsigned long width : widths)
+        for (auto const width : widths)
         {
             bufferwidth += width;
             offsets.push_back(bufferwidth - 1);
