@@ -1,17 +1,12 @@
 #!/usr/bin/env python3
 # cppforge-sync
 import argparse
-import logging
-import os
-import pathlib
-import shutil
-import subprocess
+import json
 import sys
 import urllib.request
 from pathlib import Path
-import json
 
-sys.path.append(pathlib.Path(__file__).parent.parent.as_posix())
+sys.path.append(Path(__file__).parent.parent.as_posix())
 
 import git
 

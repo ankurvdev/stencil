@@ -8,7 +8,7 @@ namespace Stencil
 {
 using Timestamp = decltype(std::chrono::system_clock::now());
 
-template <typename T> struct TimestampedT
+template <typename T> struct TimestampedT //NOLINT
 {
     public:
     static void UpdateTimestamp(T& elem)
@@ -17,6 +17,7 @@ template <typename T> struct TimestampedT
     }
 
     Timestamp lastmodified;
+    friend T;
 };
 
 }    // namespace Stencil

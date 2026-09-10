@@ -10,8 +10,8 @@ template <typename T> struct Ref
 {
     uint32_t id{0};
 
-    bool           Valid() const { return id != 0; }
-    constexpr auto operator<=>(Ref<T> const& rhs) const = default;
+    [[nodiscard]] bool Valid() const { return id != 0; }
+    constexpr auto     operator<=>(Ref<T> const& rhs) const = default;
 
     static Ref<T> Invalid() { return Ref<T>{}; }
 };
@@ -30,12 +30,12 @@ template <typename T> struct Stencil::TypeTraits<Stencil::Ref<T>>
 
 template <Stencil::ConceptIndexable T> struct Stencil::TypeTraitsForIndexable<Stencil::Ref<T>>
 {
-    using Key = typename Stencil::TypeTraitsForIndexable<T>::Key;
+    using Key = Stencil::TypeTraitsForIndexable<T>::Key;
 };
 
 template <Stencil::ConceptIterable T> struct Stencil::TypeTraitsForIterable<Stencil::Ref<T>>
 {
-    using ElementType = typename Stencil::TypeTraitsForIterable<T>::ElementType;
+    using ElementType = Stencil::TypeTraitsForIterable<T>::ElementType;
 };
 
 template <Stencil::ConceptPrimitive T> struct Stencil::TypeTraitsForPrimitive<Stencil::Ref<T>>
@@ -43,7 +43,7 @@ template <Stencil::ConceptPrimitive T> struct Stencil::TypeTraitsForPrimitive<St
 
 template <Stencil::ConceptIterable T> struct Stencil::VisitorForIterable<Stencil::Ref<T>>
 {
-    using Iterator = typename Stencil::Visitor<T>::Iterator;
+    using Iterator = Stencil::Visitor<T>::Iterator;
     using ThisType = Stencil::Ref<T>;
 
     template <typename T1>
@@ -61,7 +61,7 @@ template <Stencil::ConceptIterable T> struct Stencil::VisitorForIterable<Stencil
 
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, ThisType>
-    static void Visit(Iterator& it, T1& obj, TLambda&& lambda)
+    static void Visit(Iterator& it, T1& obj, TLambda && lambda)
     { Stencil::Visitor<T>::Visit(it, *obj.get(), std::forward<TLambda>(lambda)); }
 };
 
@@ -70,7 +70,7 @@ template <Stencil::ConceptIndexable T> struct Stencil::VisitorForIndexable<Stenc
     using ThisType = Stencil::Ref<T>;
 };
 
-#if 0
+#ifdef TODO_VISITOR_FOR_REF
 template <typename T>
 struct Stencil::Visitor<Stencil::Ref<T>>
     : Stencil::VisitorT<Stencil::Ref<T>>, Stencil::VisitorForIterable<Stencil::Ref<T>>, Stencil::VisitorForIndexable<Stencil::Ref<T>>
@@ -80,60 +80,8 @@ struct Stencil::Visitor<Stencil::Ref<T>>
     using ThisType = Stencil::Ref<T>;
     // So that this works for both const and non-const
     template <typename T1, typename TKey, typename TLambda>
-    requires std::is_same_v<std::remove_const_t<T1>, ThisType>
-    static void VisitKey(T1& obj, TKey&& key, TLambda&& lambda)
-    {
-        if (obj.get() == nullptr)
-        {
-            if constexpr (!std::is_const_v<T1>)
-            {
-                // TODO: Should it really auto-create on demand
-                if (obj.get() == nullptr) { obj = std::make_shared<T>(); }
-            }
-            else { return; }
-        }
-
-        Stencil::Visitor<T>::VisitKey(*obj.get(), std::forward<TKey>(key), std::forward<TLambda>(lambda));
-    }
-
-    template <typename T1, typename TLambda>
-    requires std::is_same_v<std::remove_const_t<T1>, ThisType>
-    static void VisitAll(T1& obj, TLambda&& lambda)
-    {
-        if (obj.get() == nullptr)
-        {
-            if constexpr (!std::is_const_v<T1>)
-            {
-                // TODO: Should it really auto-create on demand
-                if (obj.get() == nullptr) { obj = std::make_shared<T>(); }
-            }
-            else { return; }
-        }
-
-        Stencil::Visitor<T>::VisitAll(*obj.get(), std::forward<TLambda>(lambda));
-    }
-};
-#endif
-
-template <typename T> struct Stencil::TypeTraits<Stencil::RefMap<T>>
-{
-    using Categories = typename Stencil::TypeTraits<T>::Categories;
-};
-
-template <Stencil::ConceptIndexable T> struct Stencil::TypeTraitsForIndexable<Stencil::RefMap<T>>
-{
-    using Key = uint32_t;
-};
-
-template <typename T> struct Stencil::Visitor<Stencil::RefMap<T>> : Stencil::VisitorT<Stencil::RefMap<T>>
-{
-    using Key = typename Stencil::TypeTraitsForIndexable<T>::Key;
-
-    using ThisType = Stencil::RefMap<T>;
-    // So that this works for both const and non-const
-    template <typename T1, typename TKey, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, ThisType>
-    static void VisitKey(T1& obj, TKey&& key, TLambda&& lambda)
+    static void VisitKey(T1& obj, TKey&& key, TLambda && lambda)
     {
         if (obj.get() == nullptr)
         {
@@ -153,7 +101,65 @@ template <typename T> struct Stencil::Visitor<Stencil::RefMap<T>> : Stencil::Vis
 
     template <typename T1, typename TLambda>
         requires std::is_same_v<std::remove_const_t<T1>, ThisType>
-    static void VisitAll(T1& obj, TLambda&& lambda)
+    static void VisitAll(T1& obj, TLambda && lambda)
+    {
+        if (obj.get() == nullptr)
+        {
+            if constexpr (!std::is_const_v<T1>)
+            {
+                // TODO: Should it really auto-create on demand
+                if (obj.get() == nullptr) { obj = std::make_shared<T>(); }
+            }
+            else
+            {
+                return;
+            }
+        }
+
+        Stencil::Visitor<T>::VisitAll(*obj.get(), std::forward<TLambda>(lambda));
+    }
+};
+#endif
+
+template <typename T> struct Stencil::TypeTraits<Stencil::RefMap<T>>
+{
+    using Categories = Stencil::TypeTraits<T>::Categories;
+};
+
+template <Stencil::ConceptIndexable T> struct Stencil::TypeTraitsForIndexable<Stencil::RefMap<T>>
+{
+    using Key = uint32_t;
+};
+
+template <typename T> struct Stencil::Visitor<Stencil::RefMap<T>> : Stencil::VisitorT<Stencil::RefMap<T>>
+{
+    using Key = Stencil::TypeTraitsForIndexable<T>::Key;
+
+    using ThisType = Stencil::RefMap<T>;
+    // So that this works for both const and non-const
+    template <typename T1, typename TKey, typename TLambda>
+        requires std::is_same_v<std::remove_const_t<T1>, ThisType>
+    static void VisitKey(T1& obj, TKey&& key, TLambda && lambda)
+    {
+        if (obj.get() == nullptr)
+        {
+            if constexpr (!std::is_const_v<T1>)
+            {
+                // TODO: Should it really auto-create on demand
+                if (obj.get() == nullptr) { obj = std::make_shared<T>(); }
+            }
+            else
+            {
+                return;
+            }
+        }
+
+        Stencil::Visitor<T>::VisitKey(*obj.get(), std::forward<TKey>(key), std::forward<TLambda>(lambda));
+    }
+
+    template <typename T1, typename TLambda>
+        requires std::is_same_v<std::remove_const_t<T1>, ThisType>
+    static void VisitAll(T1& obj, TLambda && lambda)
     {
         if (obj.get() == nullptr)
         {
@@ -174,10 +180,12 @@ template <typename T> struct Stencil::Visitor<Stencil::RefMap<T>> : Stencil::Vis
 
 template <typename T> struct Primitives64Bit::Traits<Stencil::Ref<T>>
 {
-    using _ThisType = Stencil::Ref<T>;
+    using ThisType = Stencil::Ref<T>;
     static constexpr auto Type() { return Primitives64Bit::Type::Unsigned(4); }
-    static void           Assign(Primitives64Bit& obj, _ThisType& val) { obj._val.u = Repr(val); }
-    static auto           Get(Primitives64Bit const& obj) { return _ThisType(static_cast<uint32_t>(obj._val.u)); }
-    static auto           Convert(uint64_t val) { return _ThisType(static_cast<uint32_t>(val)); }
-    static uint64_t       Repr(_ThisType const& val) { return val.id; }
+    static void           Assign(Primitives64Bit& obj, ThisType& val)
+    { obj._val.u = Repr(val); }    // NOLINT(cppcoreguidelines-pro-type-union-access)
+    static auto Get(Primitives64Bit const& obj)
+    { return ThisType(static_cast<uint32_t>(obj._val.u)); }    // NOLINT(cppcoreguidelines-pro-type-union-access)
+    static auto     Convert(uint64_t val) { return ThisType(static_cast<uint32_t>(val)); }
+    static uint64_t Repr(ThisType const& val) { return val.id; }
 };

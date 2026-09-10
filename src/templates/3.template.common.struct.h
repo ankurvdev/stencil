@@ -5,25 +5,22 @@ int const zzStruct_Idzz    = 0;
 int const zzVariant_Idzz   = 0;
 
 struct zzFieldType_NativeTypezz
-{
-    int a;
-};
+{ int a; };
 struct zzChildFieldType_NativeTypezz
-{
-    int a;
-};
+{ int a; };
 struct zzReturnType_NativeTypezz
 {};
 
 //<Template file="zzFileNamezz.h">
 #pragma once
 #include <stencil/stencil.h>
+
 //<Import>
 #include "zzNamezz.pidl.h"
 //</Import>
-
-// SECTION START: DECLARATIONS
-#if true
+// NOLINTBEGIN(cppcoreguidelines-rvalue-reference-param-not-moved,readability-identifier-naming, readability-redundant-member-init,
+// bugprone-branch-clone) SECTION START: DECLARATIONS
+#pragma region Declarations
 
 namespace zzProgram_Namezz
 {
@@ -60,12 +57,11 @@ template <> struct Stencil::TypeTraits<zzProgram_Namezz::zzInterface_Namezz_Obje
 //</InterfaceObjectStore>
 
 //</Interface>
-
-#endif
+#pragma endregion Declarations
 // SECTION END: DECLARATIONS
 
 // SECTION START: Definitions
-#if true
+#pragma region Definitions
 namespace zzProgram_Namezz
 {
 //<Typedef>
@@ -75,8 +71,8 @@ typedef zzChildFieldType_NativeTypezz zzNamezz;
 //<Enum>
 enum class zzNamezz
 {
-    //<EnumValue Join=','>
-    zzEnumValue_Namezz
+    //<EnumValue>
+    zzEnumValue_Namezz,
     //</EnumValue>
 };
 //</Enum>
@@ -111,13 +107,13 @@ struct zzVariant_Namezz : public Stencil::VariantT<zzVariant_Namezz>
                  zzFieldType_NativeTypezz
                  //</Field>
                  >
-        _variant;
+        variants;
 
     enum class VariantType
     {
         Invalid,
-        //<Field Join=','>
-        zzNamezz
+        //<Field>
+        zzNamezz,
         //</Field>
     };
 
@@ -128,22 +124,22 @@ struct zzVariant_Namezz : public Stencil::VariantT<zzVariant_Namezz>
     {};
     //</Field>
 
-    VariantType Type() const { return static_cast<VariantType>(_variant.index()); }
+    VariantType Type() const { return static_cast<VariantType>(variants.index()); }
 
     //<Field>
     auto operator=(zzFieldType_NativeTypezz&& obj)
     {
-        _variant = std::forward<zzFieldType_NativeTypezz>(obj);
+        variants = std::forward<zzFieldType_NativeTypezz>(obj);
         return *this;
     }
     auto operator=(zzFieldType_NativeTypezz const& obj)
     {
-        _variant = obj;
+        variants = obj;
         return *this;
     }
 
-    zzFieldType_NativeTypezz&       zzNamezz() { return std::get<zzFieldType_NativeTypezz>(_variant); }
-    zzFieldType_NativeTypezz const& zzNamezz() const { return std::get<zzFieldType_NativeTypezz>(_variant); }
+    zzFieldType_NativeTypezz&       zzNamezz() LFTBND { return std::get<zzFieldType_NativeTypezz>(variants); }
+    zzFieldType_NativeTypezz const& zzNamezz() const LFTBND { return std::get<zzFieldType_NativeTypezz>(variants); }
     //</Field>
 };
 //</Variant>
@@ -156,13 +152,12 @@ struct zzInterface_Namezz_ObjectStore_zzNamezz : zzObjectType_NativeTypezz    //
 //</Interface>
 
 }    // namespace zzProgram_Namezz
-#endif
+#pragma endregion Definitions
 
 // SECTION END: Definitions
 
 // SECTION START: Template specializations
-#if true
-
+#pragma region TemplateSpecializations
 // SECTION:
 
 //<Enum>
@@ -171,10 +166,11 @@ template <> struct Stencil::EnumTraits<zzProgram_Namezz::zzNamezz>
     using Enum = zzProgram_Namezz::zzNamezz;
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
-    static constexpr std::string_view Names[] = {
+    static constexpr std::string_view Names[] /* NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)*/ = {
+
         "Invalid",
-        //<EnumValue Join=','>
-        "zzEnumValue_Namezz"
+        //<EnumValue>
+        "zzEnumValue_Namezz",
         //</EnumValue>
     };
 
@@ -197,8 +193,8 @@ template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Na
     enum class Fields
     {
         Invalid,
-        //<Field Join=','>
-        Field_zzNamezz
+        //<Field>
+        Field_zzNamezz,
         //</Field>
     };
 
@@ -251,9 +247,7 @@ struct Stencil::SerDes<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruc
     using T      = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Field_zzField_NamezzT;
 
     template <typename Context> static auto Write(Context& ctx, T const& /* obj */)
-    {
-        ctx << static_cast<uint32_t>(Fields::Field_zzNamezz);
-    }
+    { ctx << static_cast<uint32_t>(Fields::Field_zzNamezz); }
 
     template <typename Context> static auto Read(T& /* obj */, Context& ctx)
     {
@@ -288,19 +282,17 @@ template <> struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram
     using Enum = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields;
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
-    static constexpr std::string_view Names[] = {
+    static constexpr std::string_view Names[] /* NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)*/ = {
         "Invalid",
-        //<Field Join=','>
-        "zzNamezz"
+        //<Field>
+        "zzNamezz",
         //</Field>
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
     SUPPRESS_WARNINGS_END
     static Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields ForIndex(size_t index)
-    {
-        return static_cast<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields>(index);
-    }
+    { return static_cast<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzStruct_Namezz>::Fields>(index); }
 };
 
 template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TContainer>
@@ -310,9 +302,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
     using Fields = Traits::Fields;
 
     struct ElemTxnState
-    {
-        Fields field;
-    };
+    { Fields field; };
 
     struct TxnStateForElem
     {
@@ -324,7 +314,7 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
     using Txn               = Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, TContainer>;
     using View              = Stencil::TransactionView<zzProgram_Namezz::zzStruct_Namezz, typename TContainer::View>;
     using ElemType          = zzProgram_Namezz::zzStruct_Namezz;
-    using ContainerTxnState = typename TContainer::ElemTxnState;
+    using ContainerTxnState = TContainer::ElemTxnState;
 
     //<Field>
     using Transaction_zzNamezz = Stencil::Transaction<zzFieldType_NativeTypezz, Txn>;
@@ -335,11 +325,11 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
         std::bitset<64> assigntracker;
         std::bitset<64> edittracker;
         //<Field>
-        typename Transaction_zzNamezz::TxnState zzNamezz{};
+        Transaction_zzNamezz::TxnState zzNamezz{};
         //</Field>
     };
 
-    Transaction(TxnState& elemState, ContainerTxnState& containerState, TContainer& container, ElemType& elem) :
+    Transaction(TxnState& elemState LFTBND, ContainerTxnState& containerState LFTBND, TContainer& container LFTBND, ElemType& elem LFTBND) :
         _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
     {}
 
@@ -348,40 +338,40 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
         if (IsChanged())
         {
             Stencil::TimestampedT<ElemType>::UpdateTimestamp(_elem);
-            _container.NotifyElementEdited_(_containerState);
+            _container.NotifyElementEdited(_containerState);
         }
     }
 
     CLASS_DELETE_COPY_AND_MOVE(Transaction);
 
-    operator View() const { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
+    operator View() const /*NOLINT*/ { return CreateTransactionView<View>(_elemState, _containerState, _container, _elem); }
 
-    ElemType const& Elem() const { return _elem; }
+    [[nodiscard]] ElemType const& Elem() const { return _elem; }
 
-    bool _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
-    bool _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
-    void _MarkFieldAssigned(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
-    void _MarkFieldEdited(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
+    [[nodiscard]] bool IsFieldAssigned_(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    [[nodiscard]] bool IsFieldEdited_(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    [[nodiscard]] bool IsFieldChanged_(Fields key) const { return IsFieldAssigned_(key) || IsFieldEdited_(key); }
+    void               MarkFieldAssigned_(Fields key) { _elemState.assigntracker.set(static_cast<uint8_t>(key)); }
+    void               MarkFieldEdited_(Fields key) { _elemState.edittracker.set(static_cast<uint8_t>(key)); }
 
-    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    [[nodiscard]] size_t CountFieldsChanged_() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
 
-    void NotifyElementAssigned_(ElemTxnState const& elemTxnState)
+    void NotifyElementAssigned(ElemTxnState const& elemTxnState)
     {
-        _MarkFieldAssigned(elemTxnState.field);
+        MarkFieldAssigned_(elemTxnState.field);
         Stencil::OptionalPropsT<ElemType>::MarkValid(_elem, elemTxnState.field);
     }
 
-    void NotifyElementEdited_(ElemTxnState const& elemTxnState) { _MarkFieldEdited(elemTxnState.field); }
+    void NotifyElementEdited(ElemTxnState const& elemTxnState) { MarkFieldEdited_(elemTxnState.field); }
 
-    bool IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
-    bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
+    [[nodiscard]] bool IsElementChanged(ElemTxnState const& elemTxnState) const { return IsFieldChanged_(elemTxnState.field); }
+    [[nodiscard]] bool IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
     void Assign(ElemType&& elem)
     {
         // if (Stencil::AreEqual(_elem, elem)) return;
         std::swap(_elem, elem);
-        _container.NotifyElementAssigned_(_containerState);
+        _container.NotifyElementAssigned(_containerState);
     }
 
     // void Assign(ElemType const& /* elem */);
@@ -398,10 +388,8 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
 
     public:
     //<Field>
-    auto zzNamezz()
-    {
-        return Stencil::CreateTransaction<Transaction_zzNamezz>(_elemState.zzNamezz, _txnStateForElem.zzNamezz, *this, _elem.zzNamezz);
-    }
+    auto zzNamezz() LFTBND
+    { return Stencil::CreateTransaction<Transaction_zzNamezz>(_elemState.zzNamezz, _txnStateForElem.zzNamezz, *this, _elem.zzNamezz); }
     //</Field>
     //<Field>
     void set_zzNamezz(zzFieldType_NativeTypezz&& val)
@@ -413,14 +401,14 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
     //<FieldType_Mutator>
     zzReturnTypezz zzNamezz_zzField_Namezz(zzArgzz&& args)
     {
-        _MarkFieldEdited(Fields::Field_zzField_Namezz);
+        MarkFieldEdited_(Fields::Field_zzField_Namezz);
         auto txn = zzField_Namezz();
         return Stencil::Mutators<std::remove_reference_t<decltype(txn)>>::zzNamezz(txn, std::move(args));
     }
     //</FieldType_Mutator>
     //</Field>
 
-    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda&& lambda)
+    template <typename TLambda> auto Edit(Fields index, [[maybe_unused]] TLambda const& lambda)
     {
         switch (index)
         {
@@ -437,11 +425,9 @@ template <Stencil::ConceptTransaction TContainer> struct Stencil::Transaction<zz
     }
 
     template <typename TLambda> auto Assign(Fields index, [[maybe_unused]] TLambda&& lambda)
-    {
-        return Edit(index, std::forward<TLambda>(lambda));
-    }
+    { return Edit(index, std::forward<TLambda>(lambda)); }
 
-    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda&& lambda)
+    template <typename TLambda> void VisitAll([[maybe_unused]] TLambda const& lambda)
     {
         //<Field>
         {
@@ -460,13 +446,16 @@ template <Stencil::ConceptTransactionView TContainer> struct Stencil::Transactio
     using Txn               = Stencil::Transaction<zzProgram_Namezz::zzStruct_Namezz, typename TContainer::Txn>;
     using View              = Stencil::TransactionView<zzProgram_Namezz::zzStruct_Namezz, TContainer>;
     using ElemType          = zzProgram_Namezz::zzStruct_Namezz;
-    using ContainerTxnState = typename TContainer::ElemTxnState;
+    using ContainerTxnState = TContainer::ElemTxnState;
 
     using ElemTxnState    = Txn::ElemTxnState;
     using TxnState        = Txn::TxnState;
     using TxnStateForElem = Txn::TxnStateForElem;
 
-    TransactionView(TxnState const& elemState, ContainerTxnState const& containerState, TContainer const& container, ElemType const& elem) :
+    TransactionView(TxnState const& elemState               LFTBND,
+                    ContainerTxnState const& containerState LFTBND,
+                    TContainer const& container             LFTBND,
+                    ElemType const& elem                    LFTBND) :
         _elemState(elemState), _containerState(containerState), _container(container), _elem(elem)
     {}
 
@@ -476,24 +465,24 @@ template <Stencil::ConceptTransactionView TContainer> struct Stencil::Transactio
     using TransactionView_zzNamezz = Stencil::TransactionView<zzFieldType_NativeTypezz, View>;
     //</Field>
 
-    ElemType const& Elem() const { return _elem; }
+    [[nodiscard]] ElemType const& Elem() const { return _elem; }
 
-    bool   _IsFieldAssigned(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
-    bool   _IsFieldEdited(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
-    bool   _IsFieldChanged(Fields key) const { return _IsFieldAssigned(key) || _IsFieldEdited(key); }
-    size_t _CountFieldsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
-    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return _IsFieldChanged(elemTxnState.field); }
+    bool   IsFieldAssigned_(Fields key) const { return _elemState.assigntracker.test(static_cast<uint8_t>(key)); }
+    bool   IsFieldEdited_(Fields key) const { return _elemState.edittracker.test(static_cast<uint8_t>(key)); }
+    bool   IsFieldChanged_(Fields key) const { return IsFieldAssigned_(key) || IsFieldEdited_(key); }
+    size_t CountFieldsChanged_() const { return (_elemState.assigntracker | _elemState.edittracker).count(); }
+    bool   IsElementChanged(ElemTxnState const& elemTxnState) const { return IsFieldChanged_(elemTxnState.field); }
     bool   IsChanged() const { return (_elemState.assigntracker | _elemState.edittracker).any(); }
 
-    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda&& lambda) const
+    template <typename TLambda> void VisitChanges([[maybe_unused]] TLambda const& lambda) const
     {
         //<Field>
-        if (_IsFieldAssigned(Fields::Field_zzField_Namezz))
+        if (IsFieldAssigned_(Fields::Field_zzField_Namezz))
         {
             auto txn = zzNamezz();
             lambda(Fields::Field_zzField_Namezz, uint8_t{0u}, uint32_t{0u}, txn);
         }
-        else if (_IsFieldEdited(Fields::Field_zzField_Namezz))
+        else if (IsFieldEdited_(Fields::Field_zzField_Namezz))
         {
             auto txn = zzNamezz();
             lambda(Fields::Field_zzField_Namezz, uint8_t{3u}, uint32_t{0u}, txn);
@@ -510,7 +499,7 @@ template <Stencil::ConceptTransactionView TContainer> struct Stencil::Transactio
 
     public:
     //<Field>
-    auto zzNamezz() const
+    auto zzNamezz() const LFTBND
     {
         return Stencil::CreateTransactionView<TransactionView_zzNamezz>(
             _elemState.zzNamezz, _txnStateForElem.zzNamezz, *this, _elem.zzNamezz);
@@ -524,7 +513,8 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz> : Stencil
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -536,7 +526,7 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzStruct_Namezz> : Stencil
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
         //<Field>
         lambda(Traits::Field_zzNamezzT{}, obj.zzNamezz);
@@ -609,7 +599,8 @@ struct Stencil::Visitor<Stencil::Database::Record<zzProgram_Namezz::zzStruct_Nam
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -621,7 +612,7 @@ struct Stencil::Visitor<Stencil::Database::Record<zzProgram_Namezz::zzStruct_Nam
         }
     }
 
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
         //<Field>
         lambda(Traits::Field_zzNamezzT{}, obj.zzNamezz);
@@ -691,8 +682,7 @@ struct zzInterface_Namezz
             //<Args_Field Join=','>
             zzFieldType_NativeTypezz const& zzNamezz
             //</Args_Field>
-            )
-            = 0;
+            ) = 0;
         //</InterfaceFunction>
     };
 
@@ -776,8 +766,8 @@ template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface
     enum class Fields
     {
         Invalid,
-        //<Args_Field Join=','>
-        arg_zzNamezz
+        //<Args_Field>
+        arg_zzNamezz,
         //</Args_Field>
     };
 
@@ -798,10 +788,10 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzI
     using Enum = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFunction_Namezz>::Fields;
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
-    static constexpr std::string_view Names[] = {
+    static constexpr std::string_view Names[] /* NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)*/ = {
         "Invalid",
-        //<Args_Field Join=','>
-        "zzNamezz"
+        //<Args_Field>
+        "zzNamezz",
         //</Args_Field>
     };
 
@@ -823,7 +813,8 @@ struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFu
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -836,7 +827,7 @@ struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFu
     }
 
     template <typename T, typename TField, typename TLambda>
-    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda&& lambda)
+    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda const& lambda)
     {
         //<Args_Field>
         if constexpr (std::is_same_v<TField, typename Traits::Field_arg_zzNamezzT>) { return lambda(obj.zzNamezz); }
@@ -844,7 +835,7 @@ struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceFu
         throw std::logic_error("Invalid Key");
     }
 
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
         //<Args_Field>
         lambda(Fields::arg_zzNamezz, obj.zzNamezz);
@@ -896,8 +887,8 @@ template <> struct Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface
     enum class Fields
     {
         Invalid,
-        //<Args_Field Join=','>
-        arg_zzNamezz
+        //<Args_Field>
+        arg_zzNamezz,
         //</Args_Field>
     };
 
@@ -919,10 +910,10 @@ struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzI
     using Enum = Stencil::TypeTraitsForIndexable<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEvent_Namezz>::Fields;
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
-    static constexpr std::string_view Names[] = {
+    static constexpr std::string_view Names[] /* NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)*/ = {
         "Invalid",
-        //<Args_Field Join=','>
-        "zzNamezz"
+        //<Args_Field>
+        "zzNamezz",
         //</Args_Field>
     };
 
@@ -944,7 +935,8 @@ struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEv
     using Traits = Stencil::TypeTraitsForIndexable<TData>;
     using Fields = Traits::Fields;
 
-    template <typename T, typename TLambda> static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
     {
         switch (field)
         {
@@ -957,7 +949,7 @@ struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEv
     }
 
     template <typename T, typename TField, typename TLambda>
-    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda&& lambda)
+    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda const& lambda)
     {
         //<Args_Field>
         if constexpr (std::is_same_v<TField, typename Traits::Field_arg_zzNamezzT>) { return lambda(obj.zzNamezz); }
@@ -965,7 +957,7 @@ struct Stencil::Visitor<zzProgram_Namezz::zzInterface_Namezz::Args_zzInterfaceEv
         throw std::logic_error("Invalid Key");
     }
 
-    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
     {
         //<Args_Field>
         lambda(Fields::arg_zzNamezz, obj.zzNamezz);
@@ -1101,39 +1093,37 @@ template <> struct Stencil::EnumTraits<zzProgram_Namezz::zzVariant_Namezz::Varia
     using Enum = zzProgram_Namezz::zzVariant_Namezz::VariantType;
     SUPPRESS_WARNINGS_START
     SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
-    static constexpr std::string_view Names[] = {
+    static constexpr std::string_view Names[] /* NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)*/ = {
         "Invalid",
-        //<Field Join=','>
-        "zzNamezz"
+        //<Field>
+        "zzNamezz",
         //</Field>
     };
 
     static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
     SUPPRESS_WARNINGS_END
     static zzProgram_Namezz::zzVariant_Namezz::VariantType ForIndex(size_t index)
-    {
-        return static_cast<zzProgram_Namezz::zzVariant_Namezz::VariantType>(index);
-    }
+    { return static_cast<zzProgram_Namezz::zzVariant_Namezz::VariantType>(index); }
 };
 
 template <> struct Stencil::Visitor<zzProgram_Namezz::zzVariant_Namezz>
 {
     using Fields  = zzProgram_Namezz::zzVariant_Namezz::VariantType;
     using Variant = zzProgram_Namezz::zzVariant_Namezz;
-    template <typename TType, typename TObj, typename TLambda> static void _SetAndVisit(TObj& obj, TLambda&& lambda)
+    template <typename TType, typename TObj, typename TLambda> static void _SetAndVisit(TObj& obj, TLambda const& lambda)
     {
         using Type = std::remove_cvref_t<TType>;
         obj        = Type{};
         lambda(std::get<Type>(obj));
     }
 
-    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields fields, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitKey(T& obj, Fields fields, TLambda const& lambda)
     {
         switch (fields)
         {
             //<Field>
         case Fields::zzNamezz:
-            _SetAndVisit<zzFieldType_NativeTypezz>(obj._variant, std::forward<TLambda>(lambda));
+            _SetAndVisit<zzFieldType_NativeTypezz>(obj.variants, std::forward<TLambda>(lambda));
             break;
             //</Field>
         case Fields::Invalid: [[fallthrough]];
@@ -1141,23 +1131,23 @@ template <> struct Stencil::Visitor<zzProgram_Namezz::zzVariant_Namezz>
         }
     }
 
-    template <typename T, typename TField, typename TLambda> static void VisitKey(T& obj, TField /* field */, TLambda&& lambda)
+    template <typename T, typename TField, typename TLambda> static void VisitKey(T& obj, TField /* field */, TLambda const& lambda)
     {
         //<Field>
         if constexpr (std::is_same_v<TField, Variant::Variant_zzNamezzT>)
         {
-            _SetAndVisit<zzFieldType_NativeTypezz>(obj._variant, std::forward<TLambda>(lambda));
+            _SetAndVisit<zzFieldType_NativeTypezz>(obj.variants, std::forward<TLambda>(lambda));
         }
         //</Field>
     }
 
-    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda&& lambda)
+    template <typename T, typename TLambda> static void VisitAll(T& obj, TLambda const& lambda)
     {
-        // auto fieldType = static_cast<Fields>(obj._variant.index());
+        // auto fieldType = static_cast<Fields>(obj.variants.index());
         //<Field>
-        if (std::holds_alternative<zzFieldType_NativeTypezz>(obj._variant))
+        if (std::holds_alternative<zzFieldType_NativeTypezz>(obj.variants))
         {
-            lambda(Variant::Variant_zzNamezzT{}, std::get<zzFieldType_NativeTypezz>(obj._variant));
+            lambda(Variant::Variant_zzNamezzT{}, std::get<zzFieldType_NativeTypezz>(obj.variants));
         }
         //</Field>
     }
@@ -1190,9 +1180,9 @@ template <> struct Stencil::VisitorForVariant<zzProgram_Namezz::zzVariant_Namezz
     using T      = zzProgram_Namezz::zzVariant_Namezz;
     using Fields = zzProgram_Namezz::zzVariant_Namezz::VariantType;
 
-    static bool IsMonostate(T const& obj) { return obj._variant.index() == 0; }
+    static bool IsMonostate(T const& obj) { return obj.variants.index() == 0; }
 
-    template <typename TLambda> static void VisitAlternatives(T const& /* obj */, TLambda&& lambda)
+    template <typename TLambda> static void VisitAlternatives(T const& /* obj */, TLambda const& lambda)
     {
         //<Field>
         {
@@ -1202,39 +1192,43 @@ template <> struct Stencil::VisitorForVariant<zzProgram_Namezz::zzVariant_Namezz
         //</Field>
     }
 
-    template <typename TLambda> static void VisitActiveAlternative(T const& obj, TLambda&& lambda)
+    template <typename TLambda> static void VisitActiveAlternative(T const& obj, TLambda const& lambda)
     {
         std::visit(
             [&](auto const& o) {
                 if constexpr (std::is_same_v<std::remove_cvref_t<decltype(o)>, std::monostate>) {}
                 else
                 {
-                    lambda(static_cast<Fields>(obj._variant.index()), o);
+                    lambda(static_cast<Fields>(obj.variants.index()), o);
                 }
             },
-            obj._variant);
+            obj.variants);
     }
 
-    template <typename TLambda> static void VisitActiveAlternative(T& obj, TLambda&& lambda)
+    template <typename TLambda> static void VisitActiveAlternative(T& obj, TLambda const& lambda)
     {
         std::visit(
             [&](auto& o) {
                 if constexpr (std::is_same_v<std::remove_cvref_t<decltype(o)>, std::monostate>) {}
                 else
                 {
-                    lambda(static_cast<Fields>(obj._variant.index()), o);
+                    lambda(static_cast<Fields>(obj.variants.index()), o);
                 }
             },
-            obj._variant);
+            obj.variants);
     }
 };
 //</Variant>
-#endif
+#pragma endregion TemplateSpecializations
+
 // SECTION END: Template specializations
 
 // SECTION START: Inline Function Definitions
-#if true
+#pragma region InlineFunctionDefinitions
 
-#endif
+#pragma endregion
 // SECTION END: Inline Function Definitions
+
+// NOLINTEND(cppcoreguidelines-rvalue-reference-param-not-moved,readability-identifier-naming, readability-redundant-member-init,
+// bugprone-branch-clone)
 //</Template>

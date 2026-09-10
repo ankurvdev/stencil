@@ -4,6 +4,7 @@
 #include "shared_string.h"
 #include "visitor.h"
 
+#include <algorithm>
 #include <span>
 #include <string>
 #include <type_traits>
@@ -13,94 +14,101 @@ namespace Stencil
 
 using ByteIt = std::span<uint8_t const>::iterator;
 
-template <typename TVal, typename = typename std::enable_if<std::is_trivially_default_constructible<TVal>::value>::type>
+template <typename TVal>
 static std::span<uint8_t const> AsCSpan(TVal const& val)
+    requires std::is_trivially_default_constructible_v<TVal>
 {
-    return std::span(reinterpret_cast<uint8_t const*>(&val), sizeof(TVal));
+    return {reinterpret_cast<uint8_t const*>(&val), sizeof(TVal)};    // NOLINT
 }
 
-template <typename TVal, typename = typename std::enable_if<std::is_trivially_default_constructible<TVal>::value>::type>
+template <typename TVal>
 static std::span<uint8_t> AsSpan(TVal& val)
+    requires std::is_trivially_default_constructible_v<TVal>
 {
-    return std::span(reinterpret_cast<uint8_t*>(&val), sizeof(TVal));
+    return {reinterpret_cast<uint8_t*>(&val), sizeof(TVal)};    // NOLINT
 }
 
 struct Writer
 {
     Writer() = default;
 
-    template <typename TVal, std::enable_if_t<std::is_trivially_default_constructible<TVal>::value, bool> = true>
-    Writer& operator<<(TVal const& val)
+    template <typename TVal>
+        requires std::is_trivially_default_constructible_v<TVal>
+    Writer& operator<<(TVal const& val) LFTBND
     {
         auto spn = AsCSpan(val);
-        std::copy(spn.begin(), spn.end(), back_inserter(_buffer));
+        std::copy(spn.begin(), spn.end(), back_inserter(buffer));
         return *this;
     }
 
-    Writer& operator<<(std::span<std::byte const> const& bytespn)
+    Writer& operator<<(std::span<std::byte const> const& bytespn) LFTBND
     {
-        std::span<uint8_t const> spn(reinterpret_cast<uint8_t const*>(bytespn.data()), bytespn.size());
-        std::copy(spn.begin(), spn.end(), back_inserter(_buffer));
+        std::span<uint8_t const> spn(reinterpret_cast<uint8_t const*>(bytespn.data()), bytespn.size());    // NOLINT
+        std::ranges::copy(spn, back_inserter(buffer));
         return *this;
     }
 
-    Writer& operator<<(std::span<uint8_t const> const& spn)
+    Writer& operator<<(std::span<uint8_t const> const& spn) LFTBND
     {
-        std::copy(spn.begin(), spn.end(), back_inserter(_buffer));
+        std::ranges::copy(spn, back_inserter(buffer));
         return *this;
     }
-    template <typename TChar, typename TStr> Writer& _WriteStr(TStr const& str)
+    template <typename TChar, typename TStr> Writer& WriteStr(TStr const& str) LFTBND
     {
-        uint32_t bytesize = static_cast<uint32_t>(str.size() * sizeof(TChar));
+        auto bytesize = static_cast<uint32_t>(str.size() * sizeof(TChar));
         *this << bytesize;
-        std::span<uint8_t const> spn(reinterpret_cast<uint8_t const*>(str.data()), bytesize);
+        std::span<uint8_t const> spn(reinterpret_cast<uint8_t const*>(str.data()), bytesize);    // NOLINT
         *this << spn;
         return *this;
     }
 
-    Writer& operator<<(std::string const& str) { return _WriteStr<char>(str); }
-    Writer& operator<<(std::wstring const& str) { return _WriteStr<wchar_t>(str); }
-    Writer& operator<<(shared_string const& str) { return _WriteStr<char>(str); }
-    Writer& operator<<(shared_wstring const& str) { return _WriteStr<wchar_t>(str); }
+    Writer& operator<<(std::string const& str) LFTBND { return WriteStr<char>(str); }
+    Writer& operator<<(std::wstring const& str) LFTBND { return WriteStr<wchar_t>(str); }
+    Writer& operator<<(shared_string const& str) LFTBND { return WriteStr<char>(str); }
+    Writer& operator<<(shared_wstring const& str) LFTBND { return WriteStr<wchar_t>(str); }
 
-    std::vector<uint8_t> Reset() { return std::move(_buffer); }
+    std::vector<uint8_t> Reset() { return std::move(buffer); }
 
-    std::vector<uint8_t> _buffer;
+    std::vector<uint8_t> buffer;
 };
 
 struct Reader
 {
-    Reader(std::span<uint8_t const> const& w) : _it(w.begin()) {}
-    Reader(ByteIt const& itbeg) : _it(itbeg) {}
+    explicit Reader(std::span<uint8_t const> const& w) : it(w.begin()) {}
+    explicit Reader(ByteIt const& itbeg) : it(itbeg) {}
 
-    template <typename TVal, std::enable_if_t<std::is_trivially_default_constructible<TVal>::value, bool> = true> TVal read()
+    template <typename TVal>
+    TVal Read()
+        requires std::is_trivially_default_constructible_v<TVal>
     {
-        TVal val;
-        auto endIt = _it + sizeof(TVal);
-        std::copy(_it, endIt, AsSpan(val).begin());
-        _it = endIt;
+        TVal val{};
+        auto endIt = it + sizeof(TVal);
+        std::copy(it, endIt, AsSpan(val).begin());
+        it = endIt;
         return val;
     }
 
-    template <typename TChar, typename TStr> TStr _ReadStr()
+    private:
+    template <typename TChar, typename TStr> TStr ReadStr_()
     {
-        size_t bytesize = read<uint32_t>();
+        size_t bytesize = Read<uint32_t>();
         TStr   str;
         str.resize(bytesize / sizeof(TChar));
-        std::span<uint8_t> spn(reinterpret_cast<uint8_t*>(str.data()), bytesize);
-        auto               endIt = _it + static_cast<ByteIt::difference_type>(bytesize);
-        std::copy(_it, endIt, spn.begin());
-        _it = endIt;
+        std::span<uint8_t> spn(reinterpret_cast<uint8_t*>(str.data()), bytesize);    // NOLINT
+        auto               endIt = it + static_cast<ByteIt::difference_type>(bytesize);
+        std::copy(it, endIt, spn.begin());
+        it = endIt;
         return str;
     }
 
-    shared_string  read_shared_string() { return _ReadStr<char, shared_string>(); }
-    shared_wstring read_shared_wstring() { return _ReadStr<wchar_t, shared_wstring>(); }
-    std::string    read_string() { return _ReadStr<char, std::string>(); }
-    std::wstring   read_wstring() { return _ReadStr<wchar_t, std::wstring>(); }
+    public:
+    shared_string  ReadSharedString() { return ReadStr_<char, shared_string>(); }
+    shared_wstring ReadSharedWstring() { return ReadStr_<wchar_t, shared_wstring>(); }
+    std::string    ReadString() { return ReadStr_<char, std::string>(); }
+    std::wstring   ReadWstring() { return ReadStr_<wchar_t, std::wstring>(); }
 
-    auto   GetIterator() { return _it; }
-    ByteIt _it;
+    [[nodiscard]] auto GetIterator() const { return it; }
+    ByteIt             it;
 };
 
 struct ProtocolBinary
@@ -111,7 +119,7 @@ struct ProtocolBinary
 
 template <ConceptPreferIndexable T> struct SerDes<T, ProtocolBinary>
 {
-    using TKey = typename Stencil::TypeTraitsForIndexable<T>::Key;
+    using TKey = Stencil::TypeTraitsForIndexable<T>::Key;
     template <typename TContext> static auto Write(TContext& ctx, T const& obj)
     {
         Visitor<T>::VisitAll(obj, [&](auto const& key, auto const& val) {
@@ -126,7 +134,7 @@ template <ConceptPreferIndexable T> struct SerDes<T, ProtocolBinary>
     {
         while (true)
         {
-            auto marker = ctx.template read<uint8_t>();
+            auto marker = ctx.template Read<uint8_t>();
             if (marker == 0) return;
             if (marker != 1) throw std::logic_error("Invalid marker");
             TKey key;
@@ -156,7 +164,7 @@ template <ConceptPreferIterable T> struct SerDes<T, ProtocolBinary>
     template <typename TContext> static auto Read(T& obj, TContext& ctx)
     {
         {
-            auto marker = ctx.template read<uint8_t>();
+            auto marker = ctx.template Read<uint8_t>();
             if (marker == 0) return;
             if (marker != 1) throw std::logic_error("Invalid marker");
         }
@@ -167,7 +175,7 @@ template <ConceptPreferIterable T> struct SerDes<T, ProtocolBinary>
 
             if (!Visitor<T>::IteratorValid(it, obj)) { throw std::runtime_error("Cannot Visit Next Item on the iterable"); }
             Visitor<T>::Visit(it, obj, [&](auto& val) { SerDes<std::remove_cvref_t<decltype(val)>, ProtocolBinary>::Read(val, ctx); });
-            auto marker = ctx.template read<uint8_t>();
+            auto marker = ctx.template Read<uint8_t>();
             if (marker == 0) return;
             if (marker != 1) throw std::logic_error("Invalid marker");
 
@@ -181,9 +189,7 @@ template <ConceptPrimitives64Bit T> struct SerDes<T, ProtocolBinary>
 {
     template <typename TContext> static auto Write(TContext& ctx, T const& obj) { ctx << Primitives64Bit::Traits<T>::Repr(obj); }
     template <typename TContext> static auto Read(T& obj, TContext& ctx)
-    {
-        obj = Primitives64Bit::Traits<T>::Convert(ctx.template read<decltype(Primitives64Bit::Traits<T>::Repr(obj))>());
-    }
+    { obj = Primitives64Bit::Traits<T>::Convert(ctx.template Read<decltype(Primitives64Bit::Traits<T>::Repr(obj))>()); }
 };
 
 template <ConceptPreferVariant T> struct SerDes<T, ProtocolBinary>
@@ -205,7 +211,7 @@ template <ConceptPreferVariant T> struct SerDes<T, ProtocolBinary>
     template <typename TContext> static auto Read(T& obj, TContext& ctx)
     {
 
-        TKey key;
+        TKey key = 0;
         SerDes<TKey, ProtocolBinary>::Read(key, ctx);
         bool done = false;
         VisitorForVariant<T>::VisitAlternatives(obj, [&](auto const& k, auto& v) {
@@ -224,19 +230,19 @@ template <ConceptEnum T> struct SerDes<T, ProtocolBinary>
 {
     template <typename TContext> static auto Write(TContext& ctx, T const& obj) { ctx << static_cast<uint32_t>(obj); }
 
-    template <typename TContext> static auto Read(T& obj, TContext& ctx) { obj = static_cast<T>(ctx.template read<uint32_t>()); }
+    template <typename TContext> static auto Read(T& obj, TContext& ctx) { obj = static_cast<T>(ctx.template Read<uint32_t>()); }
 };
 
 template <ConceptEnumPack T> struct SerDes<T, ProtocolBinary>
 {
     template <typename TContext> static auto Write(TContext& ctx, T const& obj) { ctx << T::CastToInt(obj); }
-    template <typename TContext> static auto Read(T& obj, TContext& ctx) { obj = T::CastFromInt(ctx.template read<uint32_t>()); }
+    template <typename TContext> static auto Read(T& obj, TContext& ctx) { obj = T::CastFromInt(ctx.template Read<uint32_t>()); }
 };
 
 template <> struct SerDes<shared_string, ProtocolBinary>
 {
     template <typename TContext> static auto Write(TContext& ctx, shared_string const& obj) { ctx << obj; }
-    template <typename TContext> static auto Read(shared_string& obj, TContext& ctx) { obj = ctx.read_shared_string(); }
+    template <typename TContext> static auto Read(shared_string& obj, TContext& ctx) { obj = ctx.ReadSharedString(); }
 };
 
 template <> struct SerDes<shared_wstring, ProtocolBinary>
@@ -248,20 +254,20 @@ template <> struct SerDes<shared_wstring, ProtocolBinary>
 template <> struct SerDes<std::wstring, ProtocolBinary>
 {
     template <typename TContext> static auto Write(TContext& ctx, std::wstring const& obj) { ctx << obj; }
-    template <typename TContext> static auto Read(std::wstring& obj, TContext& ctx) { obj = ctx.read_wstring(); }
+    template <typename TContext> static auto Read(std::wstring& obj, TContext& ctx) { obj = ctx.ReadWstring(); }
 };
 
 template <> struct SerDes<std::string, ProtocolBinary>
 {
     template <typename TContext> static auto Write(TContext& ctx, std::string const& obj) { ctx << obj; }
-    template <typename TContext> static auto Read(std::string& obj, TContext& ctx) { obj = ctx.read_string(); }
+    template <typename TContext> static auto Read(std::string& obj, TContext& ctx) { obj = ctx.ReadString(); }
 };
 
 template <size_t N> struct SerDes<std::array<char, N>, ProtocolBinary>
 {
     using TObj = std::array<char, N>;
     template <typename TContext> static auto Write(TContext& ctx, TObj const& obj) { ctx << obj; }
-    template <typename TContext> static auto Read(TObj& obj, TContext& ctx) { obj = ctx.template read<TObj>(); }
+    template <typename TContext> static auto Read(TObj& obj, TContext& ctx) { obj = ctx.template Read<TObj>(); }
 };
 
 template <> struct SerDes<uuids::uuid, ProtocolBinary>
@@ -269,8 +275,6 @@ template <> struct SerDes<uuids::uuid, ProtocolBinary>
     template <typename TContext> static auto Write(TContext& ctx, uuids::uuid const& obj) { ctx << obj.as_bytes(); }
 
     template <typename TContext> static auto Read(uuids::uuid& obj, TContext& ctx)
-    {
-        obj = uuids::uuid{ctx.template read<std::array<uint8_t, 16>>()};
-    }
+    { obj = uuids::uuid{ctx.template Read<std::array<uint8_t, 16>>()}; }
 };
 }    // namespace Stencil

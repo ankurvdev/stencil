@@ -20,17 +20,14 @@ struct StringTransactionSerDes
         size_t           startIndex = 0;
 
         TokenIterator() = default;
-        TokenIterator(std::string_view const& dataIn) : data(dataIn) { _Init(); }
-        bool           operator!=(TokenIterator const& rhs) const { return data != rhs.data || startIndex != rhs.startIndex; }
-        TokenIterator& operator=(TokenIterator const& rhs)
-        {
-            data       = rhs.data;
-            token      = rhs.token;
-            delimiter  = rhs.delimiter;
-            startIndex = rhs.startIndex;
-            return *this;
-        }
-        void _Init()
+        explicit TokenIterator(std::string_view const& dataIn) : data(dataIn) { Init_(); }
+        ~TokenIterator() = default;
+        CLASS_DEFAULT_COPY_AND_MOVE(TokenIterator);
+
+        bool operator!=(TokenIterator const& rhs) const { return data != rhs.data || startIndex != rhs.startIndex; }
+
+        private:
+        void Init_()
         {
             for (size_t i = startIndex; i < data.size(); i++)
             {
@@ -43,51 +40,48 @@ struct StringTransactionSerDes
             }
             throw std::logic_error("Invalid Format");
         }
-        TokenIterator& operator++()
+
+        public:
+        TokenIterator& operator++() LFTBND
         {
-            if (delimiter == 0)
+            if ((delimiter == 0) && (startIndex != 0))
+
+            // Its either end or beginning or empty data
             {
-                // Its either end or beginning or empty data
-                if (startIndex != 0)
-                {
-                    *this = TokenIterator();
-                    // Its the end
-                    return *this;
-                }
+                *this = TokenIterator();
+                // Its the end
+                return *this;
             }
+
             startIndex = startIndex + token.size() + 1;    // for delimiter;
-            _Init();
+            Init_();
             return *this;
         }
     };
 
-    template <typename T> struct _StructApplicator
+    template <typename T> struct StructApplicator
     {
         [[noreturn]] static void Apply(T& /* txn */,
                                        std::string_view const& /* fieldname */,
                                        uint8_t /* mutator */,
                                        std::string_view const& /* mutatordata */,
                                        std::string_view const& /* rhs */)
-        {
-            throw std::logic_error("Invalid");
-        }
+        { throw std::logic_error("Invalid"); }
     };
 
-    template <typename T> struct _ListApplicator
+    template <typename T> struct ListApplicator
     {
         [[noreturn]] static void Add(T& /* txn */, size_t /* listindex */, std::string_view const& /* rhs */)
-        {
-            throw std::logic_error("Invalid");
-        }
+        { throw std::logic_error("Invalid"); }
 
         [[noreturn]] static void Remove(T& /* txn */, size_t /* listindex */) { throw std::logic_error("Invalid"); }
     };
 
-    template <ConceptTransactionForIterable T> struct _ListApplicator<T>
+    template <ConceptTransactionForIterable T> struct ListApplicator<T>
     {
         static void Add(T& txn, uint32_t /* listindex */, std::string_view const& rhs)
         {
-            using ElemType = typename Stencil::TypeTraitsForIterable<typename TransactionTraits<T>::ElemType>::ElementType;
+            using ElemType = Stencil::TypeTraitsForIterable<typename TransactionTraits<T>::ElemType>::ElementType;
             ElemType obj;
             Stencil::SerDes<decltype(obj), ProtocolJsonVal>::Read(obj, rhs);
             txn.Add(std::move(obj));
@@ -95,25 +89,23 @@ struct StringTransactionSerDes
         static void Remove(T& txn, uint32_t listindex) { txn.Remove(listindex); }
     };
 
-    template <ConceptTransaction T> static void _ListAdd(T& txn, uint32_t listindex, std::string_view const& rhs)
-    {
-        _ListApplicator<T>::Add(txn, listindex, rhs);
-    }
+    template <ConceptTransaction T> static void ListAdd_(T& txn, uint32_t listindex, std::string_view const& rhs)
+    { ListApplicator<T>::Add(txn, listindex, rhs); }
 
-    template <ConceptTransaction T> static void _ListRemove(T& txn, uint32_t listindex) { _ListApplicator<T>::Remove(txn, listindex); }
+    template <ConceptTransaction T> static void ListRemove_(T& txn, uint32_t listindex) { ListApplicator<T>::Remove(txn, listindex); }
 
-    template <ConceptTransactionForIndexable T> struct _StructApplicator<T>
+    template <ConceptTransactionForIndexable T> struct StructApplicator<T>
     {
         static void
         Apply(T& txn, std::string_view const& fieldname, uint8_t mutator, std::string_view const& mutatordata, std::string_view const& rhs)
         {
-            using TKey = typename Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::ElemType>::Key;
+            using TKey = Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::ElemType>::Key;
             TKey key   = Stencil::Deserialize<TKey, ProtocolString>(fieldname);
 
             if (mutator == 0)    // Set
             {
                 txn.Assign(key, [&](auto& subtxn) {
-                    using ElemType = typename Stencil::TransactionTraits<std::remove_cvref_t<decltype(subtxn)>>::ElemType;
+                    using ElemType = Stencil::TransactionTraits<std::remove_cvref_t<decltype(subtxn)>>::ElemType;
                     ElemType rhsval{};
                     Stencil::SerDesRead<ProtocolJsonVal>(rhsval, rhs);
                     subtxn.Assign(std::move(rhsval));
@@ -128,7 +120,7 @@ struct StringTransactionSerDes
                     if constexpr (Stencil::ConceptTransactionForIterable<TSubTxn>)
                     {
                         auto subkey = Stencil::Deserialize<uint32_t, Stencil::ProtocolString>(mutatordata);
-                        _ListAdd(subtxn, subkey, rhs);
+                        ListAdd_(subtxn, subkey, rhs);
                     }
                     else
                     {
@@ -143,7 +135,7 @@ struct StringTransactionSerDes
 
                     if constexpr (Stencil::ConceptTransactionForIndexable<TSubTxn>)
                     {
-                        using TSubKey = typename Stencil::TypeTraitsForIndexable<typename TransactionTraits<TSubTxn>::ElemType>::Key;
+                        using TSubKey = Stencil::TypeTraitsForIndexable<typename TransactionTraits<TSubTxn>::ElemType>::Key;
                         auto subkey   = Stencil::Deserialize<TSubKey, Stencil::ProtocolString>(mutatordata);
                         subtxn.Remove(subkey);
                     }
@@ -166,41 +158,39 @@ struct StringTransactionSerDes
     };
 
     template <ConceptTransaction T>
-    static void _ApplyOnStruct(T&                      txn,
+    static void ApplyOnStruct_(T&                      txn,
                                std::string_view const& fieldname,
                                uint8_t                 mutator,
                                std::string_view const& mutatordata,
                                std::string_view const& rhs)
-    {
-        _StructApplicator<T>::Apply(txn, fieldname, mutator, mutatordata, rhs);
-    }
+    { StructApplicator<T>::Apply(txn, fieldname, mutator, mutatordata, rhs); }
 
-    template <ConceptTransaction T> static size_t _Apply(TokenIterator& it, T& txn)
+    template <ConceptTransaction T> static size_t ApplyOnType_(TokenIterator& it, T& txn)
     {
-        if (!(it.delimiter == ':' || it.delimiter == ' ' || it.delimiter == '='))
+        if (it.delimiter != ':' && it.delimiter != ' ' && it.delimiter != '=')
         {
             if constexpr (Stencil::ConceptTransactionForIndexable<T>)
             {
                 auto keystr = it.token;
-                using TKey  = typename Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::ElemType>::Key;
+                using TKey  = Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::ElemType>::Key;
                 TKey key    = Stencil::Deserialize<TKey, ProtocolString>(keystr);
                 ++it;
                 size_t retval = 0;
                 SUPPRESS_WARNINGS_START
                 SUPPRESS_MSVC_WARNING(4702) /*Unreachable code*/
                 // Sometime its a bad visit and we throw exceptions for error
-                txn.Edit(key, [&](auto& args) { retval = _Apply(it, args); });
+                txn.Edit(key, [&](auto& args) { retval = ApplyOnType_(it, args); });
                 SUPPRESS_WARNINGS_END
                 return retval;
             }
             else if constexpr (Stencil::ConceptTransactionForIterable<T>)
             {
-                auto     keystr = it.token;
-                uint32_t key    = Stencil::Deserialize<uint32_t, ProtocolString>(keystr);
+                auto keystr = it.token;
+                auto key    = Stencil::Deserialize<uint32_t, ProtocolString>(keystr);
                 ++it;
                 size_t retval = 0;
                 // Sometime its a bad visit and we throw exceptions for error
-                txn.Edit(key, [&](auto& args) { retval = _Apply(it, args); });
+                txn.Edit(key, [&](auto& args) { retval = ApplyOnType_(it, args); });
                 return retval;
             }
 
@@ -249,16 +239,16 @@ struct StringTransactionSerDes
         size_t rhsS = i;
         while (i < it.data.size() && it.data[i] != ';') i++;
         auto rhs = it.data.substr(rhsS, i - rhsS);
-        if constexpr (Stencil::ConceptTransactionForIndexable<T>) { _ApplyOnStruct(txn, name, mutator, mutatordata, rhs); }
+        if constexpr (Stencil::ConceptTransactionForIndexable<T>) { ApplyOnStruct_(txn, name, mutator, mutatordata, rhs); }
         else if constexpr (Stencil::ConceptTransactionForIterable<T>)
         {
-            uint32_t index = Stencil::Deserialize<uint32_t, ProtocolString>(name);
+            auto index = Stencil::Deserialize<uint32_t, ProtocolString>(name);
             if (mutator == 0)
             {
-                txn.Edit(index, [&](auto& args) { _Apply(it, args); });
+                txn.Edit(index, [&](auto& args) { ApplyOnType_(it, args); });
             }
-            else if (mutator == 1) { _ListApplicator<T>::Add(txn, index, rhs); }
-            else if (mutator == 2) { _ListApplicator<T>::Remove(txn, index); }
+            else if (mutator == 1) { ListApplicator<T>::Add(txn, index, rhs); }
+            else if (mutator == 2) { ListApplicator<T>::Remove(txn, index); }
             else
             {
                 throw std::logic_error("Invalid List operation");
@@ -271,15 +261,14 @@ struct StringTransactionSerDes
     template <ConceptTransaction T> static auto Apply(T& txn, std::string_view const& txndata)
     {
         size_t startIndex = 0;
-        do
+        while (startIndex < txndata.size())
         {
             TokenIterator it(txndata.substr(startIndex));
-            startIndex += _Apply(it, txn);
-        } while (startIndex < txndata.size());
+            startIndex += ApplyOnType_(it, txn);
+        }
     }
 
-    template <ConceptTransactionView T>
-    static std::ostream& _DeserializeTo(T const& txn, std::ostream& ostr, std::vector<std::string>& stack)
+    template <ConceptTransactionView T> static void DeserializeTo(T const& txn, std::ostream& ostr, std::vector<std::string>& stack)
     {
         if constexpr (ConceptTransactionViewForIterable<T>)
         {
@@ -287,7 +276,7 @@ struct StringTransactionSerDes
                 if (mutator == 3)
                 {
                     stack.push_back(std::to_string(index));
-                    _DeserializeTo(subtxn, ostr, stack);
+                    DeserializeTo(subtxn, ostr, stack);
                     stack.pop_back();
                     return;
                 }
@@ -310,7 +299,6 @@ struct StringTransactionSerDes
                     throw std::logic_error("Unknown mutator");
                 }
             });
-            return ostr;
         }
 
         else if constexpr (ConceptTransactionViewForIndexable<T>)
@@ -336,7 +324,7 @@ struct StringTransactionSerDes
                 else if (mutator == 3)
                 {
                     stack.push_back(name);
-                    _DeserializeTo(subtxn, ostr, stack);
+                    DeserializeTo(subtxn, ostr, stack);
                     stack.pop_back();
                 }
                 else
@@ -344,7 +332,6 @@ struct StringTransactionSerDes
                     throw std::logic_error("Unknown mutator");
                 }
             });
-            return ostr;
         }
         else
         {
@@ -356,7 +343,7 @@ struct StringTransactionSerDes
     {
         std::stringstream        sstr;
         std::vector<std::string> stack;
-        _DeserializeTo(txn, sstr, stack);
+        DeserializeTo(txn, sstr, stack);
         return sstr.str();
     }
     template <ConceptTransaction T> static std::string Deserialize(T const& txn) { return Deserialize(static_cast<T::View>(txn)); }

@@ -1,0 +1,6 @@
+[FieldTypes]
+  [FieldTypes.file]
+  NativeType = "::Stencil::websvc::File"
+
+  [FieldTypes.stream]
+  NativeType = "::Stencil::websvc::Stream"

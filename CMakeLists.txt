@@ -19,7 +19,7 @@ include(CMakePackageConfigHelpers)
 option(BUILD_TESTING "Build Test" ON)
 option(STENCIL_INSTALL_BUILDTOOLS "Install Extra Build Tools with install" OFF)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 EnableStrictCompilation()
 
 
@@ -50,7 +50,7 @@ if (BUILD_TESTING)
 endif()
 
 file(GLOB resfiles src/templates/*)
-
+file(COPY .clang-tidy DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 add_library(libstencil OBJECT
     src/ModelGenerator.cpp
     src/Binding.h
@@ -61,7 +61,6 @@ add_library(libstencil OBJECT
     src/IDL3Generics.h
     src/TemplateFragment.h
     src/Thrift.h
-    src/tree.h
 )
 target_include_directories(libstencil PUBLIC src include)
 add_lexyacc_library(TARGET Thrift LYFILE src/Thrift.ly SOURCES src/Thrift.cpp)
@@ -71,11 +70,13 @@ if (MSVC)
     # TOML11 has a nasty usage of insecure apis
     set_source_files_properties("src/ModelGenerator.cpp" PROPERTIES COMPILE_FLAGS "/D_CRT_SECURE_NO_WARNINGS")
 endif()
-target_link_libraries(libstencil PUBLIC Thrift)
-target_add_resource(libstencil RESOURCE_COLLECTION_NAME templates RESOURCES ${resfiles})
+add_resource_library(libstencil_templates OBJECT RESOURCE_COLLECTION_NAME templates RESOURCES ${resfiles})
+target_link_libraries(libstencil PUBLIC Thrift libstencil_templates $<TARGET_OBJECTS:libstencil_templates>)
+
 list(APPEND resfiles ${public_headers})
 if (NOT BUILD_TESTING)
-    target_add_resource(libstencil RESOURCE_COLLECTION_NAME commonheaders RESOURCES ${resfiles})
+    add_resource_library(libstencil_commonheaders OBJECT RESOURCE_COLLECTION_NAME commonheaders RESOURCES ${resfiles})
+    target_link_libraries(libstencil PUBLIC libstencil_commonheaders $<TARGET_OBJECTS:libstencil_commonheaders>)
 endif()
 
 target_link_libraries(libstencil PUBLIC

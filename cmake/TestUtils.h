@@ -1,4 +1,3 @@
-// cppforge-sync
 #pragma once
 #include "CommonMacros.h"
 
@@ -20,6 +19,7 @@ SUPPRESS_WARNINGS_END
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
 SUPPRESS_FMT_WARNINGS
+SUPPRESS_MSVC_WARNING(4426)    // optimization flags changed after including header,
 SUPPRESS_MSVC_WARNING(4388)    // signed / unsigned mismatch (Catch2)
 #include <catch2/catch_all.hpp>
 #include <dtl/dtl.hpp>
@@ -35,16 +35,14 @@ SUPPRESS_WARNINGS_END
 #include <unordered_map>
 #include <vector>
 
-#if defined HAVE_EMBEDRESOURCE
+#ifdef HAVE_EMBEDRESOURCE
 DECLARE_RESOURCE_COLLECTION(testdata);
 #endif
 namespace TestCommon
 {
-#if !defined _WIN32
+#ifndef _WIN32
 inline bool IsDebuggerPresent()
-{
-    return true;
-}
+{ return true; }
 #endif
 
 /*
@@ -59,7 +57,7 @@ inline auto WriteStrResourse(std::vector<std::string> const& actualstring, std::
 {
     auto          outf = std::filesystem::absolute(std::string(resname) + ".txt");
     std::ofstream f(outf);
-    for (auto& l : actualstring) { f << l << "\n"; }
+    for (auto const& l : actualstring) { f << l << "\n"; }
     return outf;
 }
 
@@ -67,10 +65,10 @@ inline auto WriteBinResourse(std::vector<std::string> const& actualstring, std::
 {
     auto          outf = std::filesystem::absolute(std::string(resname) + ".bin");
     std::ofstream f(outf, std::ios::binary);
-    for (auto& l : actualstring)
+    for (auto const& l : actualstring)
     {
         size_t size = l.size();
-        f.write(reinterpret_cast<char const*>(&size), sizeof(size));
+        f.write(reinterpret_cast<char const*>(&size), sizeof(size));    // NOLINT
         f.write(l.data(), static_cast<std::streamsize>(l.size()));
     }
     return outf;
@@ -81,7 +79,7 @@ inline auto WriteStrmResourse(std::string const& actualstring, std::string_view 
     auto          outf = std::filesystem::absolute(std::string(resname) + ".bin");
     std::ofstream f(outf, std::ios::binary);
     size_t        size = actualstring.size();
-    f.write(reinterpret_cast<char const*>(&size), sizeof(size));
+    f.write(reinterpret_cast<char const*>(&size), sizeof(size));    // NOLINT
     f.write(actualstring.data(), static_cast<std::streamsize>(actualstring.size()));
     return outf;
 }
@@ -93,47 +91,49 @@ inline void PrintLinesDiff(std::vector<std::string> const& actualstring, std::ve
     d.compose();                // construct an edit distance and LCS and SES
     d.composeUnifiedHunks();    // construct a difference as Unified Format with SES.
 
-    if (actualstring.size() == expectedstring.size())
-    {
-        for (size_t i = 0; i < actualstring.size(); i++)
-        {
-            if (actualstring[i] != expectedstring[i])
-            {
-                std::cout << "Line: " << i << " Expected: " << expectedstring[i] << std::endl;
-                std::cout << "Line: " << i << " Actual: " << actualstring[i] << std::endl;
-                std::cout << "Line: " << i << " Delta: ";
-                dtl::Diff<char, std::string> ld(expectedstring[i], actualstring[i]);
-                ld.compose();
-                auto                     ses      = ld.getSes().getSequence();
-                int                      lasttype = 0;
-                std::string              merged;
-                std::vector<std::string> deltas;
-                for (auto& sesobj : ses)
-                {
-                    if (sesobj.second.type != lasttype)
-                    {
-                        if (lasttype == dtl::SES_COMMON) { merged = fmt::format("[{}:{}]", i, sesobj.second.afterIdx); }
-                        merged += (sesobj.second.type == dtl::SES_ADD ? '+' : '-');
-                    }
-                    if (sesobj.second.type == dtl::SES_COMMON)
-                    {
-                        if (merged.size() > 0) deltas.push_back(std::move(merged));
-                    }
-                    else
-                    {
-                        merged += sesobj.first;
-                    }
-                    lasttype = sesobj.second.type;
-                }
-                if (merged.size() > 0) deltas.push_back(std::move(merged));
-                for (auto& delta : deltas) { std::cout << delta << " "; }
-                std::cout << std::endl;
-            }
-        }
-    }
-    else
+    if (actualstring.size() != expectedstring.size())
     {
         d.printUnifiedFormat();    // print a difference as Unified Format.
+        return;
+    }
+
+    for (size_t i = 0; i < actualstring.size(); i++)
+    {
+        if (actualstring[i] == expectedstring[i]) { continue; }
+
+        std::cout << "Line: " << i << " Expected: " << expectedstring[i] << '\n';
+        std::cout << "Line: " << i << " Actual: " << actualstring[i] << '\n';
+        std::cout << "Line: " << i << " Delta: ";
+        dtl::Diff<char, std::string> ld(expectedstring[i], actualstring[i]);
+        ld.compose();
+        auto                     ses      = ld.getSes().getSequence();
+        int                      lasttype = 0;
+        std::string              merged;
+        std::vector<std::string> deltas;
+        for (auto& sesobj : ses)
+        {
+            if (sesobj.second.type != lasttype)
+            {
+                if (lasttype == dtl::SES_COMMON) { merged = fmt::format("[{}:{}]", i, sesobj.second.afterIdx); }
+                merged += (sesobj.second.type == dtl::SES_ADD ? '+' : '-');
+            }
+            if (sesobj.second.type == dtl::SES_COMMON)
+            {
+                if (!merged.empty())
+                {
+                    deltas.push_back(std::move(merged));
+                    merged = {};
+                }
+            }
+            else
+            {
+                merged += sesobj.first;
+            }
+            lasttype = sesobj.second.type;
+        }
+        if (!merged.empty()) deltas.push_back(std::move(merged));
+        for (auto& delta : deltas) { std::cout << delta << " "; }
+        std::cout << '\n';
     }
 }
 /*
@@ -160,34 +160,35 @@ inline void CompareBinLines(std::vector<std::string> const& actualstring,
     }
 }
 */
-#if defined HAVE_EMBEDRESOURCE
+#ifdef HAVE_EMBEDRESOURCE
 
 inline std::string GeneratePrefixFromTestName()
 {
     auto prefix = Catch::getResultCapture().getCurrentTestName() + "_";
     for (auto& c : prefix)
     {
-        if (std::isalpha(c) || std::isdigit(c)) continue;
+        if ((std::isalpha(c) != 0) || (std::isdigit(c) != 0)) continue;
         c = '_';
     }
     return prefix;
 }
 
-struct ResourceFileManager
+struct ResourceFileManager    // NOLINT(cppcoreguidelines-pro-type-member-init)
 {
-
     ResourceFileManager() = default;
-    ~ResourceFileManager()
+    ~ResourceFileManager()    // NOLINT(modernize-use-equals-default)
     {
-        for (auto const& [k, v] : _openedfiles) { std::filesystem::remove(v); }
+        for (auto const& [k, v] : openedfiles) { std::filesystem::remove(v); }
     }
 
-    auto load(std::string const& name, std::string const& prefix)
+    CLASS_DELETE_COPY_AND_MOVE(ResourceFileManager);
+
+    auto Load(std::string const& name, std::string const& prefix)    // NOLINT
     {
         auto testresname = GeneratePrefixFromTestName() + name;
 
-        auto it = _openedfiles.find(testresname);
-        if (it != _openedfiles.end()) { return it->second; }
+        auto it = openedfiles.find(testresname);
+        if (it != openedfiles.end()) { return it->second; }
         auto resourceCollection = LOAD_RESOURCE_COLLECTION(testdata);
         for (auto const r : resourceCollection)
         {
@@ -200,14 +201,15 @@ struct ResourceFileManager
                 if (!f.is_open()) { throw std::runtime_error("Cannot write resource file : " + path.string()); }
                 f << str;
                 f.close();
-                _openedfiles[resname] = path;
+                openedfiles[resname] = path;
                 return path;
             }
         }
         throw std::logic_error("Cannot find resource : " + testresname);
     }
-    std::unordered_map<std::string, std::filesystem::path> _openedfiles;
+    std::unordered_map<std::string, std::filesystem::path> openedfiles;
 };
+
 /*
 inline std::vector<std::string> LoadStrResource(std::string_view const& name)
 {
@@ -266,7 +268,7 @@ inline std::vector<std::string> ReadStrStream(std::istream& istr)
 
     while (std::getline(istr, line))
     {
-        if (line.length() > 0 && line[line.length() - 1] == '\r') { line.resize(line.length() - 1); }
+        if (!line.empty() && line[line.length() - 1] == '\r') { line.resize(line.length() - 1); }
         lines.push_back(std::move(line));
     }
     return lines;
@@ -275,19 +277,19 @@ inline std::vector<std::string> ReadStrStream(std::istream& istr)
 inline auto ResplitLines(std::vector<std::string> const& actual)
 {
     std::stringstream ss;
-    for (auto& line : actual) ss << line << std::endl;
+    for (auto const& line : actual) ss << line << '\n';
     return TestCommon::ReadStrStream(ss);
 }
 
 inline std::vector<std::string> ReadBinStream(std::istream& ss)
 {
-    std::size_t              size;
+    std::size_t              size = 0;
     std::vector<std::string> data;
     ss.peek();
     while (!ss.eof())
     {
-        ss.read(reinterpret_cast<char*>(&size), sizeof(size));
-        if (size > 1024 * 1024) { return data; }
+        ss.read(reinterpret_cast<char*>(&size), sizeof(size));    // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+        if (size > size_t{1024u} * 1024u) { return data; }
         std::string line;
         line.resize(size);
         ss.read(line.data(), static_cast<std::streamsize>(size));
@@ -302,9 +304,7 @@ struct StrFormat
 {
     static auto ReadStream(std::istream& ss) { return ReadStrStream(ss); }
     static auto WriteResource(std::vector<std::string> const& actualstring, std::string_view const& resname)
-    {
-        return WriteStrResourse(actualstring, resname);
-    }
+    { return WriteStrResourse(actualstring, resname); }
     static auto PrintDiff(std::vector<std::string> const& actualstring, std::istream& ss) { PrintLinesDiff(actualstring, ReadStream(ss)); }
 
     static bool Compare(std::vector<std::string> const& actual, std::istream& ss)
@@ -320,7 +320,8 @@ SUPPRESS_CLANG_WARNING("-Wmissing-noreturn")
 inline bool JsonStringEqual([[maybe_unused]] std::string const& lhs, [[maybe_unused]] std::string const& rhs)
 {
 #if ((defined HAVE_RAPIDJSON) && HAVE_RAPIDJSON)
-    rapidjson::Document doclhs, docrhs;
+    rapidjson::Document doclhs{};
+    rapidjson::Document docrhs{};
     doclhs.Parse(lhs.c_str());
     docrhs.Parse(rhs.c_str());
     return doclhs == docrhs;
@@ -351,21 +352,19 @@ struct BinFormat
     static auto ReadStream(std::istream& ss) { return ReadBinStream(ss); }
 
     static auto WriteResource(std::vector<std::string> const& actualstring, std::string_view const& resname)
-    {
-        return WriteBinResourse(actualstring, resname);
-    }
+    { return WriteBinResourse(actualstring, resname); }
     static auto PrintDiff(std::vector<std::string> const& /*actualstring*/, std::istream& /*ss*/) {}
 
     static bool Compare(std::vector<std::string> const& actual, std::istream& ss) { return actual == ReadStream(ss); }
 };
 
-template <typename TFormat> inline bool _CheckResource(std::vector<std::string> const& actual, std::string_view const& resourcename)
+template <typename TFormat> inline bool CheckResource(std::vector<std::string> const& actual, std::string_view const& resourcename)
 {
     auto testresname = fmt::format("{}{}", GeneratePrefixFromTestName(), resourcename);
     for (auto const r : LOAD_RESOURCE_COLLECTION(testdata))
     {
         auto resname = r.name();
-        if (resname.find(testresname) == std::string::npos) continue;
+        if (!resname.contains(testresname)) continue;
         std::string       str(r.string());
         std::stringstream ss(str);
         if (TFormat::Compare(actual, ss)) return true;
@@ -374,7 +373,7 @@ template <typename TFormat> inline bool _CheckResource(std::vector<std::string> 
     for (auto const r : LOAD_RESOURCE_COLLECTION(testdata))
     {
         auto resname = r.name();
-        if (resname.find(testresname) == std::string::npos) continue;
+        if (!resname.contains(testresname)) continue;
         std::string       str(r.string());
         std::stringstream ss(str);
         TFormat::PrintDiff(actual, ss);
@@ -386,10 +385,8 @@ template <typename TFormat> inline bool _CheckResource(std::vector<std::string> 
     return false;
 }
 
-template <typename TFormat> inline void CheckResource(std::vector<std::string> const& actual, std::string_view const& resourcename)
-{
-    _CheckResource<TFormat>(actual, resourcename);
-}
+// template <typename TFormat> inline void CheckResource(std::vector<std::string> const& actual, std::string_view const& resourcename)
+//{ CheckResource<TFormat>(actual, resourcename); }
 #endif
 
 }    // namespace TestCommon

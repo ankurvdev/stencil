@@ -29,7 +29,7 @@ static std::vector<stdfs::path> Execute(bool                            dryrun,
 
     auto outfiles = generator->Generate(dryrun, outdir);
 
-    if (outfiles.size() == 0) { throw std::runtime_error("No output files generated"); }
+    if (outfiles.empty()) { throw std::runtime_error("No output files generated"); }
 
     return outfiles;
 }
@@ -57,11 +57,11 @@ try
     for (auto const& i : inputs)
     {
         auto outfiles = Execute(dryrun, true, format, templates, outdir, {i});
-        for (auto const& o : outfiles) { std::cout << o.string() << std::endl; }
+        for (auto const& o : outfiles) { std::cout << o.string() << '\n'; }
     }
 } catch (std::exception const& ex)
 {
-    std::cerr << ex.what() << std::endl;
+    std::cerr << ex.what() << '\n';
     // std::cerr << IDLDebug::ErrorAggregator::Get().GetErrors() << std::endl;
     return 1;
 }

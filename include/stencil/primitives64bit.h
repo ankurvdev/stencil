@@ -13,6 +13,8 @@ SUPPRESS_MSVC_WARNING(4866)    // left to right evaluation not guaranteed
 
 SUPPRESS_WARNINGS_END
 
+// NOLINTBEGIN(cppcoreguidelines-pro-type-union-access,bugprone-branch-clone,readability-magic-numbers)
+
 struct Primitives64Bit
 {
     struct Type
@@ -22,7 +24,7 @@ struct Primitives64Bit
             Unknown,
             Unsigned,
             Signed,
-            Float
+            Float,
         };
 
         enum class Width
@@ -31,14 +33,14 @@ struct Primitives64Bit
             W1,
             W2,
             W4,
-            W8
+            W8,
         };
 
         uint8_t  width : 3;       // 00: 0 , 01: 1, 10: 2, 11: 4, 100: 8
         Category category : 2;    // 00: unknown,  01: unsigned , 2: signed, 3: float
 
         private:
-        static constexpr unsigned GetWidth_(unsigned x) { return x < 2 ? x : 1 + GetWidth_(x >> 1); }
+        static constexpr unsigned GetWidth_(unsigned x) { return x < 2 ? x : 1 + GetWidth_(x >> 1u); }
 
         template <uint8_t W, typename T> static constexpr Type Create_()
         {
@@ -96,7 +98,7 @@ struct Primitives64Bit
     template <typename T> struct SignedTraits
     {
         static constexpr auto Type() { return Type::Of<T>(); }
-        static void           Assign(Primitives64Bit& obj, T const& val) { obj._val.i = val; }
+        static void           Assign(Primitives64Bit& obj, T const& val) { obj._val.i = val; }    // NOLINT(bugprone-signed-char-misuse)
         static auto const&    Get(Primitives64Bit const& obj) { return obj._val.i; }
         static T              Convert(int64_t val) { return static_cast<T>(val); }
         static int64_t        Repr(T const& val)
@@ -147,12 +149,12 @@ struct Primitives64Bit
 
     constexpr bool operator==(Primitives64Bit const& rhs) const { return _type == rhs._type && _val.u == rhs._val.u; }
 
-    template <typename T> Primitives64Bit(T const& val) : _type(Traits<T>::Type()) { Traits<T>::Assign(*this, val); }
+    template <typename T> explicit Primitives64Bit(T const& val) : _type(Traits<T>::Type()) { Traits<T>::Assign(*this, val); }
 
     Primitives64Bit() = default;
-    Primitives64Bit(std::nullptr_t) {}
+    explicit Primitives64Bit(std::nullptr_t) {}
 
-    template <typename T> T Cast() const
+    template <typename T> [[nodiscard]] T Cast() const
     {
         if constexpr (Primitives64Bit::Type::IsFloat(Traits<T>::Type()))
         {
@@ -250,15 +252,15 @@ struct Primitives64Bit::Traits<std::array<uint8_t, N>>
         TObj out;
         for (size_t i = 0; i < N; i++)
         {
-            out[i] = static_cast<uint8_t>(val & 0xff);
-            val    = val >> 8;
+            out[i] = static_cast<uint8_t>(val & 0xffu);
+            val    = val >> 8u;
         }
         return out;
     }
     static constexpr uint64_t Repr(TObj const& val)
     {
         uint64_t out = 0;
-        for (size_t i = N; i > 0; i--) { out = (out << 8) | val.at(i - 1); }
+        for (size_t i = N; i > 0; i--) { out = (out << 8u) | val.at(i - 1); }
         return out;
     }
 };
@@ -277,18 +279,19 @@ struct Primitives64Bit::Traits<std::array<uint16_t, N>>
         TObj out;
         for (size_t i = 0; i < N; i++)
         {
-            out[i] = static_cast<uint16_t>(val & 0xffff);
-            val    = val >> 16;
+            out[i] = static_cast<uint16_t>(val & 0xffffu);
+            val    = val >> 16u;
         }
         return out;
     }
     static uint64_t Repr(TObj const& val)
     {
         uint64_t out = 0;
-        for (size_t i = N; i > 0; i--) { out = (out << 16) | val.at(i - 1); }
+        for (size_t i = N; i > 0; i--) { out = (out << 16u) | val.at(i - 1); }
         return out;
     }
 };
+// NOLINTEND(cppcoreguidelines-pro-type-union-access,bugprone-branch-clone,readability-magic-numbers)
 
 template <typename T>
 concept ConceptPrimitives64Bit = !Primitives64Bit::Type::IsUnknown(Primitives64Bit::Traits<T>::Type());

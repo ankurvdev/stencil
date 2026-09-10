@@ -1,4 +1,3 @@
-# cppforge-sync
 include_guard(GLOBAL)
 cmake_minimum_required(VERSION 3.31)
 cmake_policy(SET CMP0167 NEW)
@@ -180,6 +179,7 @@ macro(EnableStrictCompilation)
                 -Zc:__cplusplus
 
                 #suppression list
+                /wd4426  # optimization flags changed after including header
                 /wd4514  # unreferenced inline function has been removed
                 /wd4619  # pragma warning: there is no warning number
                 /wd4710  # Function not inlined. VS2019 CRT throws this
@@ -307,10 +307,12 @@ macro(EnableStrictCompilation)
                     -Wno-unknown-warning
                     -Wno-unknown-argument
                     -Wno-c99-extensions
+                    -Wno-c2y-extensions
                     -Wno-unused-command-line-argument
                     -Wno-c++98-compat # Dont care about c++98 compatibility
                     -Wno-c++20-compat
                     -Wno-c++20-extensions
+                    -Wno-c++23-extensions
                     -Wno-c++98-compat-pedantic
                     -Wno-reserved-identifier # Allow names starting with underscore
                     -Wno-reserved-id-macro
@@ -348,14 +350,16 @@ macro(EnableStrictCompilation)
                 list(APPEND extraflags --sysroot="${MACOS_SDK_PATH}")
             endif()
 
-            if (NOT DEFINED CPPFORGE_DISABLE_MARCH_NATIVE AND DEFINED ENV{CPPFORGE_DISABLE_MARCH_NATIVE})
-                set(CPPFORGE_DISABLE_MARCH_NATIVE $ENV{CPPFORGE_DISABLE_MARCH_NATIVE})
-            else()
-                set(CPPFORGE_DISABLE_MARCH_NATIVE OFF)
+            if (NOT DEFINED BUILDENV_DISABLE_MARCH_NATIVE)
+                if (DEFINED ENV{BUILDENV_DISABLE_MARCH_NATIVE})
+                    set(BUILDENV_DISABLE_MARCH_NATIVE $ENV{BUILDENV_DISABLE_MARCH_NATIVE})
+                else()
+                    set(BUILDENV_DISABLE_MARCH_NATIVE OFF)
+                endif()
             endif()
 
-            if (NOT CMAKE_CROSSCOMPILING AND NOT CPPFORGE_DISABLE_MARCH_NATIVE)
-                list(APPEND extraflags -mtune=native -march=native)
+            if (NOT CMAKE_CROSSCOMPILING AND NOT BUILDENV_DISABLE_MARCH_NATIVE)
+                list(APPEND extraflags -march=native)
             endif()
 
             set(exclusions "[-/]W[a-zA-Z1-9]+")
@@ -395,6 +399,14 @@ macro (SupressWarningForFile f)
     endif()
 endmacro()
 
+macro (SupressLintingForTarget targetName)
+    if (TARGET ${targetName})
+        set_target_properties(${targetName} PROPERTIES
+            C_CLANG_TIDY ""
+            CXX_CLANG_TIDY ""
+        )
+    endif()
+endmacro()
 
 macro (SupressWarningForTarget targetName)
     if (TARGET ${targetName})
@@ -402,7 +414,8 @@ macro (SupressWarningForTarget targetName)
         if (NOT "${tgttype}" STREQUAL INTERFACE_LIBRARY)
             message(STATUS "Suppressing Warnings for ${targetName}::${tgttype}")
             if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-                target_compile_options(${targetName} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/W3 /WX- >)
+                target_compile_options(${targetName} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-external:W0 -W0 -WX->)
+                target_compile_options(${targetName} PRIVATE $<$<COMPILE_LANGUAGE:C>:-external:W0 -W0 -WX- >)
             elseif((${CMAKE_CXX_COMPILER_ID} MATCHES Clang) OR (${CMAKE_CXX_COMPILER_ID} STREQUAL GNU))
                 target_compile_options(${targetName} PRIVATE -Wno-error -w)
             else()
@@ -434,3 +447,12 @@ function(init_submodule path)
         COMMAND_ERROR_IS_FATAL ANY
     )
 endfunction()
+
+macro(DetectVar varName defaultValue)
+    if (DEFINED ENV{${varName}})
+        set(${varName} $ENV{${varName}})
+    endif()
+    if (NOT DEFINED ${varName})
+        set(${varName} ${defaultValue})
+    endif()
+endmacro()

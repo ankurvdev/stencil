@@ -4,27 +4,27 @@
 
 #include <memory>
 
-template <typename T> struct shared_tree
+template <typename T> struct SharedTree
 {
-    using iterator = typename tree<T>::iterator;
+    using iterator = tree<T>::iterator;
 
-    iterator rootbegin() const { return _tree->rootbegin(); }
-    iterator rootend() const { return _tree->rootend(); }
-    auto     children(iterator it) const { return _tree->children(it); }
-    iterator addchild(iterator it, T&& data) { _tree->addsibling(it, std::move(data)); }
-    iterator addsibling(iterator it, T&& data) { _tree->addsibling(it, std::move(data)); }
+    iterator Rootbegin() const { return tobj->rootbegin(); }
+    iterator Rootend() const { return tobj->rootend(); }
+    auto     Children(iterator it) const { return tobj->children(it); }
+    iterator Addchild(iterator it, T&& data) { tobj->addchild(it, std::move(data)); }
+    iterator Addsibling(iterator it, T&& data) { tobj->addsibling(it, std::move(data)); }
 
-    std::shared_ptr<tree<T>> _tree = std::make_shared<tree<T>>();
+    std::shared_ptr<tree<T>> tobj = std::make_shared<::tree<T>>();
 };
 
-template <typename T> struct Stencil::TypeTraits<shared_tree<T>>
+template <typename T> struct Stencil::TypeTraits<SharedTree<T>>
 {
     using Categories = std::tuple<Category::Indexable>;
 };
 
-template <Stencil::ConceptIndexable T> struct Stencil::TypeTraitsForIndexable<shared_tree<T>>
+template <Stencil::ConceptIndexable T> struct Stencil::TypeTraitsForIndexable<SharedTree<T>>
 {
-    enum Key
+    enum class Key
     {
         Id,
         Value,

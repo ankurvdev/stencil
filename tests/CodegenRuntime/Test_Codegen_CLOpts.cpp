@@ -6,13 +6,15 @@
 #include "TestUtils.h"
 #include "stencil/typetraits.h"
 
+// NOLINTBEGIN(readability-magic-numbers,cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays,
+// cppcoreguidelines-pro-bounds-array-to-pointer-decay)
 static_assert(!Stencil::Category::IsPrimitive<CLOpts1::CommandLineOptions>());
 static_assert(Stencil::ConceptIndexable<CLOpts1::CommandLineOptions>);
 static_assert(!Stencil::ConceptPrimitive<CLOpts1::CommandLineOptions>);
 
 // static_assert(Stencil::ConceptVariant<CLOpts2::CommandLineOptions>);
 
-template <typename TStruct, typename... TArgs> auto ParseArgs(TArgs&&... args)
+template <typename TStruct, typename... TArgs> static auto ParseArgs(TArgs&&... args)
 {
     TStruct          data;
     std::string_view testargv[] = {std::forward<TArgs>(args)...};
@@ -22,7 +24,7 @@ template <typename TStruct, typename... TArgs> auto ParseArgs(TArgs&&... args)
     return rslt.obj;
 }
 
-template <typename TStruct, typename... TArgs> auto RequireGenerateHelpException(TArgs&&... args)
+template <typename TStruct, typename... TArgs> static auto RequireGenerateHelpException(TArgs&&... args)
 {
     TStruct          data;
     std::string_view testargv[] = {std::forward<TArgs>(args)...};
@@ -37,7 +39,7 @@ TEST_CASE("CodeGen::CommandLineArgs::Simplecase", "[CommandLineArgs]")
     {
         auto options = ParseArgs<::CLOpts1::CommandLineOptions>("c:\\abc");
         REQUIRE(options.workingDirectory == "c:\\abc");
-        REQUIRE(options.libraries.size() == 0);
+        REQUIRE(options.libraries.empty());
     }
 
     SECTION("equalassignment")
@@ -45,8 +47,8 @@ TEST_CASE("CodeGen::CommandLineArgs::Simplecase", "[CommandLineArgs]")
         auto options = ParseArgs<::CLOpts1::CommandLineOptions>("--workingDirectory=c:\\abc");
 
         REQUIRE(options.workingDirectory == "c:\\abc");
-        REQUIRE(options.libraries.size() == 0);
-        REQUIRE(options.scan.size() == 0);
+        REQUIRE(options.libraries.empty());
+        REQUIRE(options.scan.empty());
         REQUIRE(options.httpsPort == 3443);
         REQUIRE(options.daemon == false);
         REQUIRE(options.quiet == true);
@@ -58,8 +60,8 @@ TEST_CASE("CodeGen::CommandLineArgs::Simplecase", "[CommandLineArgs]")
         auto options = ParseArgs<::CLOpts1::CommandLineOptions>("--workingDirectory", "/abc");
 
         REQUIRE(options.workingDirectory == "/abc");
-        REQUIRE(options.libraries.size() == 0);
-        REQUIRE(options.scan.size() == 0);
+        REQUIRE(options.libraries.empty());
+        REQUIRE(options.scan.empty());
         REQUIRE(options.httpsPort == 3443);
         REQUIRE(options.daemon == false);
         REQUIRE(options.quiet == true);
@@ -71,8 +73,8 @@ TEST_CASE("CodeGen::CommandLineArgs::Simplecase", "[CommandLineArgs]")
         auto options = ParseArgs<::CLOpts1::CommandLineOptions>("--daemon", "on");
 
         REQUIRE(options.workingDirectory.empty());
-        REQUIRE(options.libraries.size() == 0);
-        REQUIRE(options.scan.size() == 0);
+        REQUIRE(options.libraries.empty());
+        REQUIRE(options.scan.empty());
         REQUIRE(options.httpsPort == 3443);
         REQUIRE(options.daemon == true);
         REQUIRE(options.quiet == true);
@@ -84,8 +86,8 @@ TEST_CASE("CodeGen::CommandLineArgs::Simplecase", "[CommandLineArgs]")
         auto options = ParseArgs<::CLOpts1::CommandLineOptions>("--daemon");
 
         REQUIRE(options.workingDirectory.empty());
-        REQUIRE(options.libraries.size() == 0);
-        REQUIRE(options.scan.size() == 0);
+        REQUIRE(options.libraries.empty());
+        REQUIRE(options.scan.empty());
         REQUIRE(options.httpsPort == 3443);
         REQUIRE(options.daemon == true);
         REQUIRE(options.quiet == true);
@@ -97,8 +99,8 @@ TEST_CASE("CodeGen::CommandLineArgs::Simplecase", "[CommandLineArgs]")
         auto options = ParseArgs<::CLOpts1::CommandLineOptions>("--daemon", "--workingDirectory", "/abc");
 
         REQUIRE(options.workingDirectory == "/abc");
-        REQUIRE(options.libraries.size() == 0);
-        REQUIRE(options.scan.size() == 0);
+        REQUIRE(options.libraries.empty());
+        REQUIRE(options.scan.empty());
         REQUIRE(options.httpsPort == 3443);
         REQUIRE(options.daemon == true);
         REQUIRE(options.quiet == true);
@@ -110,8 +112,8 @@ TEST_CASE("CodeGen::CommandLineArgs::Simplecase", "[CommandLineArgs]")
         auto options = ParseArgs<::CLOpts1::CommandLineOptions>("--no-quiet");
 
         REQUIRE(options.workingDirectory.empty());
-        REQUIRE(options.libraries.size() == 0);
-        REQUIRE(options.scan.size() == 0);
+        REQUIRE(options.libraries.empty());
+        REQUIRE(options.scan.empty());
         REQUIRE(options.httpsPort == 3443);
         REQUIRE(options.daemon == false);
         REQUIRE(options.quiet == false);
@@ -124,8 +126,8 @@ TEST_CASE("CodeGen::CommandLineArgs::Simplecase", "[CommandLineArgs]")
 
         REQUIRE(options.out_dir == "something");
         REQUIRE(options.workingDirectory.empty());
-        REQUIRE(options.libraries.size() == 0);
-        REQUIRE(options.scan.size() == 0);
+        REQUIRE(options.libraries.empty());
+        REQUIRE(options.scan.empty());
         REQUIRE(options.httpsPort == 3443);
         REQUIRE(options.daemon == false);
         REQUIRE(options.quiet == true);
@@ -150,7 +152,7 @@ TEST_CASE("CodeGen::CommandLineArgs::Simplecase", "[CommandLineArgs]")
         REQUIRE(options.workingDirectory.empty());
         REQUIRE(options.libraries.size() == 1);
         REQUIRE(options.libraries[0] == "/abc");
-        REQUIRE(options.scan.size() == 0);
+        REQUIRE(options.scan.empty());
         REQUIRE(options.httpsPort == 3443);
         REQUIRE(options.daemon == false);
         REQUIRE(options.quiet == true);
@@ -165,7 +167,7 @@ TEST_CASE("CodeGen::CommandLineArgs::Simplecase", "[CommandLineArgs]")
         REQUIRE(options.libraries.size() == 2);
         REQUIRE(options.libraries[0] == "/abc");
         REQUIRE(options.libraries[1] == "/def");
-        REQUIRE(options.scan.size() == 0);
+        REQUIRE(options.scan.empty());
         REQUIRE(options.httpsPort == 3443);
         REQUIRE(options.daemon == false);
         REQUIRE(options.quiet == true);
@@ -180,7 +182,7 @@ TEST_CASE("CodeGen::CommandLineArgs::Simplecase", "[CommandLineArgs]")
         REQUIRE(options.libraries.size() == 2);
         REQUIRE(options.libraries[0] == "/abc");
         REQUIRE(options.libraries[1] == "/def");
-        REQUIRE(options.scan.size() == 0);
+        REQUIRE(options.scan.empty());
         REQUIRE(options.httpsPort == 3443);
         REQUIRE(options.daemon == false);
         REQUIRE(options.quiet == true);
@@ -288,10 +290,10 @@ TEST_CASE("CodeGen::CommandLineArgs::Help")
         RequireGenerateHelpException<::CLOpts2::CommandLineOptions>("hydrate", "--help"),
     };
 
-    for (auto& lines : linesoflines)
+    for (auto const& lines : linesoflines)
     {
-        for (auto& l : lines) output.push_back(l);
-        output.push_back("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        for (auto const& l : lines) output.push_back(l);
+        output.emplace_back("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     }
 
     TestCommon::CheckResource<TestCommon::StrFormat>(output, "0");
@@ -302,3 +304,5 @@ TEST_CASE("CodeGen::CLOpts1CommandLineArgs::Help")
     static_assert(Stencil::ConceptNamedTuple<CLOpts1::CommandLineOptions>);
     TestCommon::CheckResource<TestCommon::StrFormat>(RequireGenerateHelpException<::CLOpts1::CommandLineOptions>("--help"), "0");
 }
+// NOLINTEND(readability-magic-numbers,cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays,cppcoreguidelines-pro-bounds-array-to-pointer-decay
+// )

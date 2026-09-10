@@ -4,7 +4,7 @@ include(FetchContent)
 FetchContent_Declare(
     catch2
     GIT_REPOSITORY https://github.com/catchorg/Catch2
-    GIT_TAG v3.10.0
+    GIT_TAG v3.16.0
     SOURCE_SUBDIR .
     GIT_PROGRESS FALSE GIT_SHALLOW ON SYSTEM
     FIND_PACKAGE_ARGS NAMES Catch2

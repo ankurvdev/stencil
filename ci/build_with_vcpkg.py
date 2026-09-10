@@ -1,15 +1,14 @@
-#!/usr/bin/env python3  # noqa: EXE001
+#!/usr/bin/env python3
 # cppforge-sync
 import argparse
 import logging
 import os
-import pathlib
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
-sys.path.append(pathlib.Path(__file__).parent.parent.as_posix())
+sys.path.append(Path(__file__).parent.parent.as_posix())
 
 import externaltools
 
@@ -50,7 +49,7 @@ def test_vcpkg_build(config: str, host_triplet: str, runtime_triplet: str, clean
         cmakeconfigargs += [
             f"-DCMAKE_TOOLCHAIN_FILE:PATH={info['cmake_toolchain_file'].as_posix()}",
             "-DANDROID=1",
-            "-DANDROID_NATIVE_API_LEVEL=28",
+            f"-DANDROID_NATIVE_API_LEVEL={externaltools.ANDROID_MIN_SDK_VERSION}",
         ] + abis[runtime_triplet]
 
         if shutil.which("make") is not None:
@@ -126,10 +125,10 @@ args = parser.parse_args()
 if args.verbose:
     logging.basicConfig(level=logging.DEBUG)
 
-reporoot = args.reporoot or pathlib.Path(__file__).parent.parent.absolute()
+reporoot = args.reporoot or Path(__file__).parent.parent.absolute()
 scriptdir = (reporoot / "ci").absolute()
 portname = next((reporoot / "ci" / "vcpkg-additional-ports").glob("*")).name
-workdir = pathlib.Path(args.workdir or ".").absolute()
+workdir = Path(args.workdir or ".").absolute()
 workdir.mkdir(exist_ok=True)
 vcpkgroot = args.vcpkg or externaltools.get_vcpkg_root(Path().absolute() / "vcpkg") or (workdir / "vcpkg")
 bindir = externaltools.get_bin_path(workdir / "bin")
@@ -165,7 +164,7 @@ for portdir in (scriptdir / "vcpkg-additional-ports").glob("*"):
 vcpkgportfile.write_text(vcpkgportfile.read_text().replace("SOURCE_PATH ${SOURCE_PATH}", f'SOURCE_PATH "{scriptdir.parent.as_posix()}"'))
 
 subprocess.check_call((vcpkgroot / bootstrapscript).as_posix(), shell=True, cwd=vcpkgroot)  # noqa: S602
-vcpkgexe = pathlib.Path(shutil.which("vcpkg", path=vcpkgroot) or "")
+vcpkgexe = Path(shutil.which("vcpkg", path=vcpkgroot) or "")
 VCPKG_EXE = vcpkgexe
 if args.clean:
     vcpkg_remove(portname + ":" + host_triplet)
@@ -198,7 +197,7 @@ for runtime_triplet in runtime_triplets:
     if "wasm32" in host_triplet or "wasm32" in runtime_triplet:
         externaltools.init_toolchain("emscripten", myenv)
     try:
-        for log in pathlib.Path(vcpkgroot / "buildtrees").rglob("*.log"):
+        for log in Path(vcpkgroot / "buildtrees").rglob("*.log"):
             if log.parent.parent.name == "buildtrees":
                 log.unlink()
         logging.debug(myenv)  # noqa: LOG015
@@ -208,7 +207,7 @@ for runtime_triplet in runtime_triplets:
             vcpkg_install(portname + ":" + runtime_triplet)
     except subprocess.CalledProcessError:
         if args.verbose:
-            logs = list(pathlib.Path(vcpkgroot / "buildtrees").rglob("*.log"))
+            logs = list(Path(vcpkgroot / "buildtrees").rglob("*.log"))
             for log in logs:
                 if log.parent.parent.name == "buildtrees":
                     logging.debug(f"\n\n ========= START: {log} ===========")  # noqa: LOG015

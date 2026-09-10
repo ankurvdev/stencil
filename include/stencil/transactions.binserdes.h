@@ -7,67 +7,73 @@
 #include <string_view>
 #include <type_traits>
 
+// NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
 namespace Stencil
 {
 
 struct OStrmWriter
 {
-    OStrmWriter(std::ostream& ostr) : _ostr(ostr) {}
+    explicit OStrmWriter(std::ostream& ostrIn LFTBND) : ostr(ostrIn) {}
+    ~OStrmWriter() = default;
     CLASS_DELETE_COPY_AND_MOVE(OStrmWriter);
 
-    template <typename TVal, std::enable_if_t<std::is_trivially_default_constructible<TVal>::value, bool> = true>
-    auto& operator<<(TVal const& val)
+    template <typename TVal>
+        requires std::is_trivially_default_constructible_v<TVal>
+    auto& operator<<(TVal const& val) LFTBND
     {
         auto spn = AsCSpan(val);
-        _ostr.write(reinterpret_cast<char const*>(spn.data()), static_cast<std::streamsize>(spn.size()));
+        ostr.write(reinterpret_cast<char const*>(spn.data()), static_cast<std::streamsize>(spn.size()));
         return *this;
     }
 
-    auto& strm() { return _ostr; }
+    auto& Strm() { return ostr; }
 
-    auto& operator<<(shared_string const& val)
+    auto& operator<<(shared_string const& val) LFTBND
     {
         *this << static_cast<uint32_t>(val.size());
-        if (val.size() > 0) _ostr.write(reinterpret_cast<char const*>(val.data()), static_cast<std::streamsize>(val.size()));
+        if (!val.empty()) ostr.write(reinterpret_cast<char const*>(val.data()), static_cast<std::streamsize>(val.size()));
         return *this;
     }
 
-    std::ostream& _ostr;
+    std::ostream& ostr;
 };
 
 struct IStrmReader
 {
-    IStrmReader(std::istream& istrm) : _istrm(istrm) {}
+    explicit IStrmReader(std::istream& istrmIn LFTBND) : istrm(istrmIn) {}
+    ~IStrmReader() = default;
     CLASS_DELETE_COPY_AND_MOVE(IStrmReader);
 
-    bool  isEof() { return !_istrm.good(); }
-    auto& strm() { return _istrm; }
+    bool  IsEof() { return !istrm.good(); }
+    auto& Strm() { return istrm; }
 
-    template <typename TVal, std::enable_if_t<std::is_trivially_default_constructible<TVal>::value, bool> = true> TVal read()
+    template <typename TVal>
+    TVal Read()
+        requires std::is_trivially_default_constructible_v<TVal>
     {
-        TVal val;
+        TVal val{};
         auto spn = AsSpan(val);
-        _istrm.read(reinterpret_cast<char*>(spn.data()), static_cast<std::streamsize>(spn.size()));
-        if (_istrm.eof()) throw std::logic_error("Stream terminated");
+        istrm.read(reinterpret_cast<char*>(spn.data()), static_cast<std::streamsize>(spn.size()));
+        if (istrm.eof()) throw std::logic_error("Stream terminated");
         return val;
     }
 
-    shared_string read_shared_string()
+    shared_string ReadSharedString()
     {
-        size_t      size = read<uint32_t>();
+        size_t      size = Read<uint32_t>();
         std::string str(size, 0);
-        _istrm.read(reinterpret_cast<char*>(str.data()), static_cast<std::streamsize>(size));
+        istrm.read(reinterpret_cast<char*>(str.data()), static_cast<std::streamsize>(size));
         // if (size == 0 || str[0] == '\0') { std::cerr << "Seems to be an invalid string"; }
-        if (_istrm.eof()) throw std::logic_error("Stream terminated");
+        if (istrm.eof()) throw std::logic_error("Stream terminated");
         return shared_string::make(std::move(str));
     }
 
-    std::istream& _istrm;
+    std::istream& istrm;
 };
 
 struct BinaryTransactionSerDes
 {
-    template <ConceptTransactionView T> static auto& _DeserializeTo(T const& txn, OStrmWriter& writer)
+    template <ConceptTransactionView T> static auto& DeserializeTo(T const& txn, OStrmWriter& writer LFTBND)
     {
         if constexpr (ConceptTransactionViewForIndexable<T> || ConceptTransactionViewForIterable<T>)
         {
@@ -99,7 +105,7 @@ struct BinaryTransactionSerDes
                     }
                     break;
                     case 3u:    // Edit
-                        _DeserializeTo(subtxn, writer);
+                        DeserializeTo(subtxn, writer);
                         break;
                     default: throw std::logic_error("Unknown mutator");
                     }
@@ -109,35 +115,33 @@ struct BinaryTransactionSerDes
         return writer;
     }
 
-    template <ConceptTransactionView T> static std::ostream& Deserialize(T const& txn, std::ostream& ostr)
+    template <ConceptTransactionView T> static std::ostream& Deserialize(T const& txn, std::ostream& ostr LFTBND)
     {
         OStrmWriter writer(ostr);
-        _DeserializeTo(txn, writer);
+        DeserializeTo(txn, writer);
         return ostr;
     }
 
-    template <ConceptTransaction T> static auto& Deserialize(T const& txn, std::ostream& ostr)
-    {
-        return Deserialize(static_cast<typename T::View>(txn), ostr);
-    }
+    template <ConceptTransaction T> static auto& Deserialize(T const& txn, std::ostream& ostr LFTBND)
+    { return Deserialize(static_cast<T::View>(txn), ostr); }
 
-    template <ConceptTransaction T, typename F = void> struct _StructApplicator
+    template <ConceptTransaction T, typename F = void> struct StructApplicator
     {
         [[noreturn]] static void Apply(T& /* txn */, IStrmReader& /* reader */) { throw std::logic_error("Invalid"); }
     };
 
-    template <ConceptTransaction T, typename F = void> struct _ListApplicator
+    template <ConceptTransaction T, typename F = void> struct ListApplicator
     {
         [[noreturn]] static void Add(T& /* txn */, size_t /* listindex */, IStrmReader& /* reader */) { throw std::logic_error("Invalid"); }
         [[noreturn]] static void Remove(T& /* txn */, size_t /* listindex */) { throw std::logic_error("Invalid"); }
         [[noreturn]] static void Apply(T& /* txn */, IStrmReader& /* reader */) { throw std::logic_error("Invalid"); }
     };
 
-    template <ConceptTransactionForIterable T> struct _ListApplicator<T>
+    template <ConceptTransactionForIterable T> struct ListApplicator<T>
     {
         static void Add(T& txn, uint32_t /* listindex */, IStrmReader& reader)
         {
-            using ElemType = typename Stencil::TransactionTraits<T>::ElemType;
+            using ElemType = Stencil::TransactionTraits<T>::ElemType;
             typename Stencil::Mutators<ElemType>::ListObj obj;
             Stencil::SerDesRead<ProtocolBinary>(obj, reader);
             txn.Add(std::move(obj));
@@ -146,9 +150,9 @@ struct BinaryTransactionSerDes
 
         static void Apply(T& txn, IStrmReader& reader)
         {
-            for (auto mutator = reader.read<uint8_t>(); mutator != std::numeric_limits<uint8_t>::max(); mutator = reader.read<uint8_t>())
+            for (auto mutator = reader.Read<uint8_t>(); mutator != std::numeric_limits<uint8_t>::max(); mutator = reader.Read<uint8_t>())
             {
-                uint32_t key;
+                uint32_t key = 0;
                 Stencil::SerDes<uint32_t, ProtocolBinary>::Read(key, reader);
                 switch (mutator)
                 {
@@ -160,21 +164,21 @@ struct BinaryTransactionSerDes
                 case 1:    // List-Add
                 {
 
-                    uint32_t mutatordata;
+                    uint32_t mutatordata = 0;
                     Stencil::SerDes<uint32_t, ProtocolBinary>::Read(mutatordata, reader);
-                    _ListApplicator<T>::Add(txn, key, reader);
+                    ListApplicator<T>::Add(txn, key, reader);
                 }
                 break;
                 case 2:    // List-remove
                 {
                     // uint32_t mutatordata;
                     // Stencil::SerDes<uint32_t, ProtocolBinary>::Read(mutatordata, reader);
-                    _ListApplicator<T>::Remove(txn, key);
+                    ListApplicator<T>::Remove(txn, key);
                 }
                 break;
                 case 3:    // Edit
                 {
-                    txn.Edit(key, [&](auto& subtxn) { _Apply(subtxn, reader); });
+                    txn.Edit(key, [&](auto& subtxn) { ApplyOnType(subtxn, reader); });
                 }
                 break;
                 default: throw std::logic_error("invalid mutator");
@@ -183,21 +187,14 @@ struct BinaryTransactionSerDes
         }
     };
 
-    template <ConceptTransaction T> static void _ListAdd(T& txn, size_t listindex, IStrmReader& reader)
-    {
-        _ListApplicator<T>::Add(txn, listindex, reader);
-    }
-
-    template <ConceptTransaction T> static void _ListRemove(T& txn, size_t listindex) { _ListApplicator<T>::Remove(txn, listindex); }
-
-    template <ConceptTransactionForIndexable T> struct _StructApplicator<T>
+    template <ConceptTransactionForIndexable T> struct StructApplicator<T>
     {
         static void Apply(T& txn, IStrmReader& reader)
         {
-            for (auto mutator = reader.read<uint8_t>(); mutator != std::numeric_limits<uint8_t>::max(); mutator = reader.read<uint8_t>())
+            for (auto mutator = reader.Read<uint8_t>(); mutator != std::numeric_limits<uint8_t>::max(); mutator = reader.Read<uint8_t>())
             {
                 // using ElemType = typename Stencil::TransactionTraits<T>::ElemType;
-                using TKey = typename Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::ElemType>::Key;
+                using TKey = Stencil::TypeTraitsForIndexable<typename TransactionTraits<T>::ElemType>::Key;
                 TKey key;
                 Stencil::SerDes<TKey, ProtocolBinary>::Read(key, reader);
 
@@ -213,7 +210,7 @@ struct BinaryTransactionSerDes
                     txn.Remove(key);
                     break;
                 case 3:    // Edit
-                    txn.Edit(key, [&](auto& subtxn) { _Apply(subtxn, reader); });
+                    txn.Edit(key, [&](auto& subtxn) {   ApplyOnType(subtxn, reader); });
                     break;
                 default: throw std::logic_error("invalid mutator");
                 }
@@ -221,23 +218,24 @@ struct BinaryTransactionSerDes
         }
     };
 
-    template <ConceptTransaction T> static void _ApplyOnStruct(T& txn, IStrmReader& reader) { _StructApplicator<T>::Apply(txn, reader); }
-    template <ConceptTransaction T> static void _ApplyOnList(T& txn, IStrmReader& reader) { _ListApplicator<T>::Apply(txn, reader); }
+    template <ConceptTransaction T> static void ApplyOnStruct(T& txn, IStrmReader& reader) { StructApplicator<T>::Apply(txn, reader); }
+    template <ConceptTransaction T> static void ApplyOnList(T& txn, IStrmReader& reader) { ListApplicator<T>::Apply(txn, reader); }
 
-    template <ConceptTransaction T> static void _Apply(T& txn, IStrmReader& reader)
+    template <ConceptTransaction T> static void ApplyOnType(T& txn, IStrmReader& reader)
     {
-        if constexpr (ConceptTransactionForIterable<T>) { _ApplyOnList(txn, reader); }
-        else if constexpr (ConceptTransactionForIndexable<T>) { _ApplyOnStruct(txn, reader); }
-        return;
+        if constexpr (ConceptTransactionForIterable<T>) { ApplyOnList(txn, reader); }
+        else if constexpr (ConceptTransactionForIndexable<T>) { ApplyOnStruct(txn, reader); }
     }
 
     public:
-    template <ConceptTransaction T> static std::istream& Apply(T& txn, std::istream& strm)
+    template <ConceptTransaction T> static std::istream& Apply(T& txn, std::istream& strm LFTBND)
     {
         IStrmReader reader(strm);
-        _Apply(txn, reader);
+        ApplyOnType(txn, reader);
         return strm;
     }
 };
 
 }    // namespace Stencil
+
+// NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)

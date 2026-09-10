@@ -1,6 +1,6 @@
 #pragma once
 #include "IDL3Generics.h"
-#include "tree.h"
+#include "stencil/tree.h"
 
 #include <memory>
 #include <string>
@@ -14,23 +14,24 @@ struct TemplateFragment
 
     // Debug Info
     std::wstring sourceFileName;
-    size_t       rowstart;
-    size_t       rowend;
+    size_t       rowstart{};
+    size_t       rowend{};
 };
 
 struct Template
 {
-    enum FileType
+    enum class FileType
     {
         Code,
-        Header
+        Header,
     };
 
     tree<TemplateFragment>               root;
     Binding::Str::Type                   dataSource;
     std::shared_ptr<Binding::Expression> fileName;
-    FileType                             fileType;
+    FileType                             fileType{FileType::Code};
 
     Template() = default;
+    ~Template() = default;
     CLASS_DELETE_COPY_DEFAULT_MOVE(Template);
 };

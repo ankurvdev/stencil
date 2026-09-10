@@ -6,7 +6,7 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/ToruNiina/toml11
   GIT_TAG        v4.4.0
   SOURCE_SUBDIR .
-  GIT_PROGRESS FALSE GIT_SHALLOW 1 SYSTEM
+  GIT_PROGRESS FALSE GIT_SHALLOW ON SYSTEM
   SYSTEM
   FIND_PACKAGE_ARGS NAMES toml11
 )
@@ -17,5 +17,5 @@ endif()
 
 FetchContent_MakeAvailable(toml11)
 if (COMMAND SupressWarningForTarget)
-    # SupressWarningForTarget(toml11)
+    SupressWarningForTarget(toml11)
 endif()
