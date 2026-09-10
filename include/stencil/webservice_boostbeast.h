@@ -1064,6 +1064,7 @@ struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TServices>...    // 
         {
             if (acceptor.close(ec)) { fmt::print(stderr, "[TCP][WARN] Failed to close acceptor: {}\n", ec.message()); }
         }
+        _tcpAcceptors.clear();
         // Drain in-flight connection handlers before tearing down the io_context their
         // accepted sockets are bound to.
         if (_handlerPool) { _handlerPool->stop(); }
@@ -1073,7 +1074,10 @@ struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TServices>...    // 
     void WaitForStop()
     {
         for (auto& thrd : _listenthreads)
+        {
             if (thrd.joinable()) thrd.join();
+        }
+        _listenthreads.clear();
         if (_handlerPool) { _handlerPool->join(); }
     }
 
