@@ -3,6 +3,7 @@
 #include "primitives64bit.h"
 #include "serdes.h"
 #include "shared_string.h"
+#include "stencil/typetraits_path.h"
 
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
@@ -193,6 +194,44 @@ template <> struct SerDes<std::wstring, ProtocolString>
     }
     SUPPRESS_WARNINGS_END
 };
+template <typename TObj, ConceptProtocol TProtocol> struct PathSerdes
+{
+    template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
+    { SerDes<std::filesystem::path, TProtocol>::Write(ctx, obj); }
+
+    template <typename TContext> static auto Read(TObj& obj, TContext& ctx)
+    {
+        std::filesystem::path p;
+        SerDes<std::filesystem::path, TProtocol>::Read(p, ctx);
+        obj = {p};
+        // std::transform(str.begin(), str.end(), obj.begin(), [](auto l) { return static_cast<wchar_t>(l); });
+    }
+};
+template <> struct SerDes<std::filesystem::path, ProtocolString>
+{
+    using TObj = std::filesystem::path;
+
+    template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
+    { SerDes<std::wstring_view, ProtocolString>::Write(ctx, obj.wstring()); }
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("-Wlifetime-safety-invalidation")
+    template <typename TContext> static auto Read(TObj& obj, TContext& ctx)
+    {
+        std::wstring str;
+        SerDes<std::wstring, ProtocolString>::Read(str, ctx);
+        obj = str;
+        // std::transform(str.begin(), str.end(), obj.begin(), [](auto l) { return static_cast<wchar_t>(l); });
+    }
+    SUPPRESS_WARNINGS_END
+};
+
+template <ConceptProtocol TProtocol> struct SerDes<Stencil::RFPath, TProtocol> : PathSerdes<Stencil::RFPath, TProtocol>
+{};
+
+template <ConceptProtocol TProtocol> struct SerDes<Stencil::WFPath, TProtocol> : PathSerdes<Stencil::WFPath, TProtocol>
+{};
+template <ConceptProtocol TProtocol> struct SerDes<Stencil::RWFPath, TProtocol> : PathSerdes<Stencil::RWFPath, TProtocol>
+{};
 
 template <typename TClock> struct SerDes<std::chrono::time_point<TClock>, ProtocolString>
 {

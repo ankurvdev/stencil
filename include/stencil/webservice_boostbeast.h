@@ -397,7 +397,7 @@ template <typename... Types> struct Selector
         if (T::Matches(std::forward<TArgs>(args)...))
         {
 
-            T::Invoke(std::forward<TArgs>(args)...);    // NOLINT(bugprone-use-after-move)
+            T::Invoke(std::forward<TArgs>(args)...);
             return true;
         }
         return false;
@@ -409,7 +409,7 @@ template <typename... Types> struct Selector
         if constexpr (sizeof...(Types) == 0) {}
         else
         {
-            auto result = (InvokeIfMatch<Types>(std::forward<TArgs>(args)...) || ...);    // NOLINT(bugprone-use-after-move)
+            auto result = (InvokeIfMatch<Types>(std::forward<TArgs>(args)...) || ...);
             if (result) return;
         }
         throw std::logic_error("Unexpected error. Unreachable code encountered. Did not match any selector");
@@ -787,12 +787,17 @@ template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunct
         else
         {
             auto retval = Traits::Invoke(ctx.impl, args);
-            rslt << Stencil::Json::Stringify<decltype(retval)>(retval);
-            auto msg   = rslt.str();
-            auto res   = impl::CreateResponse<boost::beast::http::string_body>(ctx.req, "application/json");
-            res.body() = msg;
-            boost::beast::http::response_serializer<boost::beast::http::string_body, boost::beast::http::fields> sr{res};
-            boost::beast::http::write(ctx.stream, sr);
+            if constexpr (std::is_same_v<Stencil::websvc::File, decltype(retval)>) { TODO("NotImpl1"); }
+            else if constexpr (std::is_same_v<Stencil::websvc::Stream, decltype(retval)>) { TODO("NotImpl2"); }
+            else
+            {
+                rslt << Stencil::Json::Stringify<decltype(retval)>(retval);
+                auto msg   = rslt.str();
+                auto res   = impl::CreateResponse<boost::beast::http::string_body>(ctx.req, "application/json");
+                res.body() = msg;
+                boost::beast::http::response_serializer<boost::beast::http::string_body, boost::beast::http::fields> sr{res};
+                boost::beast::http::write(ctx.stream, sr);
+            }
         }
     }
 };

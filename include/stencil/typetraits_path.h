@@ -14,7 +14,7 @@ namespace Stencil
         name()  = default;                                                                                                     \
         ~name() = default;                                                                                                     \
         CLASS_DEFAULT_COPY_AND_MOVE(name);                                                                                     \
-        name(std::filesystem::path pIn) :                                                                                      \
+        name(std::filesystem::path const& pIn) /*NOLINT*/ :                                                                    \
             p(std::move(pIn)) { /*if (!std::filesystem::exists(p)) { throw std::invalid_argument("Path does not exist"); }*/ } \
                                                                                                                                \
         constexpr             operator std::filesystem::path() const { return p; }                                             \

@@ -486,8 +486,8 @@ struct ImplNoInterfaceSvc
     void Function2() {}
     void Function3(uint32_t const& /* arg1 */) {}
 
-    std::filesystem::path GetFile(std::filesystem::path const& wpath);
-    std::fstream          GetStream(std::filesystem::path const& rpath);
+    std::filesystem::path   GetFile(std::filesystem::path const& /* wpath */) { TODO("NotImpl"); }      // NOLINT
+    Stencil::websvc::Stream GetStream(std::filesystem::path const& /* rpath */) { TODO("NotImpl"); }    // NOLINT
 };
 
 struct SvcNoInterfaceSvc

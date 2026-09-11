@@ -353,7 +353,7 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                         CustomVisitor()           = default;
                         ~CustomVisitor() override = default;
                         CLASS_DELETE_COPY_AND_MOVE(CustomVisitor);
-                        typename Visitor<TVal>::Iterator it{};
+                        typename Visitor<TVal>::Iterator it{};    // NOLINT(readability-redundant-typename)
                     };
                     CustomVisitor* visitor{nullptr};
 
@@ -796,9 +796,7 @@ struct Table
     };
 
     struct Row
-    {
-        std::vector<ColumnSpan> columns;
-    };
+    { std::vector<ColumnSpan> columns; };
 
     std::vector<Row> rows;
 
