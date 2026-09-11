@@ -7,6 +7,10 @@ interface Server1 {
     dict<uint32, SimpleObject1> Function1(uint32 arg1, SimpleObject1 arg2);
     void Function2()
     void Function3(uint32 arg2);
+
+    //
+    file    GetFile(wfpath p);
+    stream  GetStream(rfpath p);
 }
 
 interface NoEvent {

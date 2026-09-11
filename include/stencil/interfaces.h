@@ -1,5 +1,4 @@
 #pragma once
-#include <tuple>
 
 namespace Stencil
 {
@@ -19,12 +18,12 @@ concept ConceptInterface = requires {
 
 template <typename T> struct InterfaceT
 {
-private:
-InterfaceT() = default;
-public:
+    private:
+    InterfaceT() = default;
 
+    public:
     template <typename TImpl, typename TArgStruct> void RaiseEvent(TImpl& impl, TArgStruct const& args) { impl.OnEvent(args); }
-friend T;
+    friend T;
 };
 
 template <typename TImpl, ConceptInterface TInterface> struct InterfaceSvcTraits;

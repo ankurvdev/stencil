@@ -54,6 +54,16 @@ SUPPRESS_WARNINGS_END
 #error Need co await
 #endif
 
+namespace Stencil::websvc
+{
+
+struct File
+{};
+
+struct Stream
+{};
+
+}    // namespace Stencil::websvc
 namespace Stencil::websvc::impl
 {
 template <typename TImpl, typename TSvc> struct RequestHandler;

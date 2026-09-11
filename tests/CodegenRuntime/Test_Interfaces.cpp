@@ -1,6 +1,8 @@
 #include "CommonMacros.h"
+#include "Interfaces.pidl.h"
 #include "ObjectsTester.h"
 #include "TestUtils.h"
+#include "stencil/typetraits_path.h"
 
 #include <stencil/webservice_boostbeast.h>
 
@@ -392,8 +394,10 @@ struct Server1Impl
         return retval;
     }
 
-    void Function2() override {}
-    void Function3(uint32_t const& /* arg1 */) override {}
+    void                    Function2() override {}
+    void                    Function3(uint32_t const& /* arg1 */) override {}
+    Stencil::websvc::File   GetFile([[maybe_unused]] Stencil::WFPath const& p) override { throw std::logic_error("Not implemented"); }
+    Stencil::websvc::Stream GetStream([[maybe_unused]] Stencil::RFPath const& p) override { throw std::logic_error("Not implemented"); }
 
     void OnStateChange(Stencil::Transaction<Objects::NestedObject>::View const& txnv) { NotifyStateChanged(txnv); }
 
@@ -470,10 +474,62 @@ struct ImplSeparateImplSvc : Interfaces::Server1::Interface
     void                Function2() override {}
     void                Function3(uint32_t const& /* arg1 */) override {}
     SvcSeparateImplSvc* svc{nullptr};
+
+    Stencil::websvc::File   GetFile([[maybe_unused]] Stencil::WFPath const& p) override { throw std::logic_error("Not implemented"); }
+    Stencil::websvc::Stream GetStream([[maybe_unused]] Stencil::RFPath const& p) override { throw std::logic_error("Not implemented"); }
 };
 
-// Generated code ends
+struct ImplNoInterfaceSvc
+{
+    std::unordered_map<uint32_t, Objects::SimpleObject1> Function1(uint32_t const& arg1, Objects::SimpleObject1 const& arg2);
 
+    void Function2() {}
+    void Function3(uint32_t const& /* arg1 */) {}
+
+    std::filesystem::path GetFile(std::filesystem::path const& wpath);
+    std::fstream          GetStream(std::filesystem::path const& rpath);
+};
+
+struct SvcNoInterfaceSvc
+    : Stencil::websvc::WebServiceT<SvcNoInterfaceSvc, Interfaces::Server1, Stencil::websvc::WebSynchronizedState<Objects::NestedObject>>
+{
+    SvcNoInterfaceSvc() { objects.Init(std::filesystem::path("SaveAndLoad.bin")); }
+    ~SvcNoInterfaceSvc() = default;
+    CLASS_DELETE_COPY_AND_MOVE(SvcNoInterfaceSvc);
+
+    static std::string_view   Name() { return "state"; }
+    [[nodiscard]] std::string StateStringify() const { return Stencil::Json::Stringify(state); }
+
+    struct EditCtx
+    {
+        EditCtx(SvcNoInterfaceSvc* thatIn LFTBND, Objects::NestedObject& stateIn LFTBND) :
+            txn(Stencil::CreateRootTransaction<Objects::NestedObject>(stateIn)), that(thatIn)
+        {}
+        ~EditCtx() { that->OnStateChange(txn); }
+        CLASS_DELETE_COPY_AND_MOVE(EditCtx);
+        auto& TXN() LFTBND { return txn; }
+
+        Stencil::Transaction<Objects::NestedObject> txn;
+        SvcNoInterfaceSvc*                          that;
+    };
+
+    auto EditContext() LFTBND { return EditCtx(this, state); }
+
+    void OnStateChange(Stencil::Transaction<Objects::NestedObject>::View const& txnv) { NotifyStateChanged(txnv); }
+
+    Objects::NestedObject state;
+    ImplNoInterfaceSvc    impl;
+};
+// Generated code ends
+}    // namespace
+
+template <> struct Stencil::InterfaceSvcTraits<SvcNoInterfaceSvc, Interfaces::Server1>
+{
+    static auto& QueryInterface(SvcNoInterfaceSvc& svc LFTBND) { return svc.impl; }
+};
+
+namespace
+{
 template <typename TSvc> struct Tester : ObjectsTester
 {
     using Params = HttpClientListener::Params;
@@ -599,13 +655,6 @@ template <typename TSvc> struct Tester : ObjectsTester
     void SvcEditObj2() {}
     void SvcDestroyObj2() {}
 
-    void SvcRaiseEvent()
-    {
-        auto arg1 = CreateUint32();
-        auto arg2 = CreateSimpleObject1();
-        svc->Raise_SomethingHappened(arg1, arg2);
-    }
-
     void SvcCallFunction()
     {
         auto arg1 = CreateUint32();
@@ -665,13 +714,11 @@ TEST_CASE("WebService-objectstore", "[interfaces]")
     tester.SvcEditObj2();
     tester.SvcDestroyObj2();
 
-    tester.SvcRaiseEvent();
+    tester.svc->Raise_SomethingHappened(tester.CreateUint32(), tester.CreateSimpleObject1());
     tester.SvcCallFunction();
     tester.SvcStateChange();
     tester.CliRequestStateChange1();
     tester.CliRequestStateChange2();
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(100ms));
 }
 
 TEST_CASE("WebService-nolistener", "[interfaces]")
@@ -683,7 +730,6 @@ TEST_CASE("WebService-nolistener", "[interfaces]")
     tester.SvcStateChange();
     tester.CliRequestStateChange1();
     tester.CliRequestStateChange2();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100ms));
 }
 
 TEST_CASE("WebService-SvcSeparateImplSvc", "[interfaces]")
@@ -716,12 +762,48 @@ TEST_CASE("WebService-SvcSeparateImplSvc", "[interfaces]")
     tester.SvcEditObj2();
     tester.SvcDestroyObj2();
 
-    tester.SvcRaiseEvent();
+    // tester.SvcRaiseEvent();
+    tester.svc->Raise_SomethingHappened(tester.CreateUint32(), tester.CreateSimpleObject1());
+
     tester.SvcCallFunction();
     tester.SvcStateChange();
     tester.CliRequestStateChange1();
     tester.CliRequestStateChange2();
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(100ms));
 }
+
+TEST_CASE("WebService-NoInterface", "[websvc]")
+{
+    Tester<SvcNoInterfaceSvc> tester;
+
+    tester.StartListeners();
+
+    tester.CliCallFunction();
+    // tester.SvcCallFunction();
+
+    tester.CliCreateObj1();
+    tester.CliReadObj1();
+    tester.CliEditObj1();
+    tester.CliDestroyObj1();
+    tester.SvcCreateObj1();
+    tester.SvcReadObj1();
+    tester.SvcEditObj1();
+    tester.SvcDestroyObj1();
+
+    tester.CliCreateObj2();
+    tester.CliReadObj2();
+    tester.CliEditObj2();
+    tester.CliDestroyObj2();
+    tester.SvcCreateObj2();
+    tester.SvcReadObj2();
+    tester.SvcEditObj2();
+    tester.SvcDestroyObj2();
+
+    // tester.svc->Raise({tester.CreateUint32(), tester.CreateSimpleObject1()});
+
+    // tester.SvcCallFunction();
+    // tester.SvcStateChange();
+    tester.CliRequestStateChange1();
+    // tester.CliRequestStateChange2();
+}
+
 // NOLINTEND(readability-magic-numbers, cppcoreguidelines-pro-type-reinterpret-cast, readability-function-cognitive-complexity)
