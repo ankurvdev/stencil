@@ -4,6 +4,8 @@
 #include "TestUtils.h"
 #include "stencil/typetraits_path.h"
 
+#include <filesystem>
+#include <fstream>
 #include <stencil/webservice_boostbeast.h>
 
 SUPPRESS_WARNINGS_START
@@ -51,6 +53,25 @@ namespace beast = boost::beast;
 namespace http  = beast::http;
 namespace net   = boost::asio;
 using net::ip::tcp;
+
+template <typename TSvc, typename TImpl>
+static std::unordered_map<uint32_t, Objects::SimpleObject1>
+Function1Impl(TSvc& svc, TImpl& obj, uint32_t const& arg1, Objects::SimpleObject1 const& arg2)
+{
+    std::unordered_map<uint32_t, Objects::SimpleObject1> retval;
+
+    auto key    = arg1 + 1;
+    auto copied = arg2;
+    copied.val1 += 1;
+    copied.val2 += 1;
+    copied.val3 += 1;
+    copied.val5 += 1.0;
+    retval[key] = copied;
+
+    svc.RaiseEvent(obj, Interfaces::Server1::Args_SomethingHappened{.arg1 = key, .arg2 = copied});
+    return retval;
+}
+
 namespace
 {
 struct HttpClientListener
@@ -379,20 +400,7 @@ struct Server1Impl
     auto EditContext() LFTBND { return EditCtx(this, state); }
 
     std::unordered_map<uint32_t, Objects::SimpleObject1> Function1(uint32_t const& arg1, Objects::SimpleObject1 const& arg2) override
-    {
-        std::unordered_map<uint32_t, Objects::SimpleObject1> retval;
-
-        auto key    = arg1 + 1;
-        auto copied = arg2;
-        copied.val1 += 1;
-        copied.val2 += 1;
-        copied.val3 += 1;
-        copied.val5 += 1.0;
-        retval[key] = copied;
-
-        Raise_SomethingHappened(key, copied);
-        return retval;
-    }
+    { return Function1Impl(*this, *this, arg1, arg2); }
 
     void                    Function2() override {}
     void                    Function3(uint32_t const& /* arg1 */) override {}
@@ -456,20 +464,7 @@ namespace
 struct ImplSeparateImplSvc : Interfaces::Server1::Interface
 {
     std::unordered_map<uint32_t, Objects::SimpleObject1> Function1(uint32_t const& arg1, Objects::SimpleObject1 const& arg2) override
-    {
-        std::unordered_map<uint32_t, Objects::SimpleObject1> retval;
-
-        auto key    = arg1 + 1;
-        auto copied = arg2;
-        copied.val1 += 1;
-        copied.val2 += 1;
-        copied.val3 += 1;
-        copied.val5 += 1.0;
-        retval[key] = copied;
-
-        svc->Raise_SomethingHappened(key, copied);
-        return retval;
-    }
+    { return Function1Impl(*svc, *svc, arg1, arg2); }
 
     void                Function2() override {}
     void                Function3(uint32_t const& /* arg1 */) override {}
@@ -479,16 +474,7 @@ struct ImplSeparateImplSvc : Interfaces::Server1::Interface
     Stencil::websvc::Stream GetStream([[maybe_unused]] Stencil::RFPath const& p) override { throw std::logic_error("Not implemented"); }
 };
 
-struct ImplNoInterfaceSvc
-{
-    std::unordered_map<uint32_t, Objects::SimpleObject1> Function1(uint32_t const& arg1, Objects::SimpleObject1 const& arg2);
-
-    void Function2() {}
-    void Function3(uint32_t const& /* arg1 */) {}
-
-    std::filesystem::path   GetFile(std::filesystem::path const& /* wpath */) { TODO("NotImpl"); }      // NOLINT
-    Stencil::websvc::Stream GetStream(std::filesystem::path const& /* rpath */) { TODO("NotImpl"); }    // NOLINT
-};
+struct ImplNoInterfaceSvc;
 
 struct SvcNoInterfaceSvc
     : Stencil::websvc::WebServiceT<SvcNoInterfaceSvc, Interfaces::Server1, Stencil::websvc::WebSynchronizedState<Objects::NestedObject>>
@@ -518,14 +504,40 @@ struct SvcNoInterfaceSvc
     void OnStateChange(Stencil::Transaction<Objects::NestedObject>::View const& txnv) { NotifyStateChanged(txnv); }
 
     Objects::NestedObject state;
-    ImplNoInterfaceSvc    impl;
+    ImplNoInterfaceSvc*   impl{nullptr};
 };
+
+struct ImplNoInterfaceSvc
+{
+    [[maybe_unused]] std::unordered_map<uint32_t, Objects::SimpleObject1> Function1(uint32_t const&               arg1,    // NOLINT
+                                                                                    Objects::SimpleObject1 const& arg2)
+    { return Function1Impl(*svc, *svc, arg1, arg2); }
+
+    [[maybe_unused]] void Function2() {}
+    [[maybe_unused]] void Function3(uint32_t const& /* arg1 */) {}
+
+    [[maybe_unused]] std::filesystem::path GetFile(std::filesystem::path const& wpath)
+    {
+        outpath = std::filesystem::temp_directory_path() / wpath;
+        std::ofstream ofs(outpath);
+        ofs.write(testContent.data(), static_cast<std::streamsize>(testContent.size()));
+        return outpath;
+    }
+
+    [[maybe_unused]] [[noreturn]] Stencil::websvc::Stream GetStream(std::filesystem::path const& /* rpath */)    // NOLINT
+    { TODO("NotImpl"); }                                                                                         // NOLINT
+
+    std::string           testContent;
+    std::filesystem::path outpath;
+    SvcNoInterfaceSvc*    svc{nullptr};
+};
+
 // Generated code ends
 }    // namespace
 
 template <> struct Stencil::InterfaceSvcTraits<SvcNoInterfaceSvc, Interfaces::Server1>
 {
-    static auto& QueryInterface(SvcNoInterfaceSvc& svc LFTBND) { return svc.impl; }
+    static auto& QueryInterface(SvcNoInterfaceSvc& svc) { return *svc.impl; }
 };
 
 namespace
@@ -773,12 +785,14 @@ TEST_CASE("WebService-SvcSeparateImplSvc", "[interfaces]")
 
 TEST_CASE("WebService-NoInterface", "[websvc]")
 {
+    ImplNoInterfaceSvc        impl;
     Tester<SvcNoInterfaceSvc> tester;
-
+    tester.svc->impl = &impl;
+    impl.svc         = tester.svc.get();
     tester.StartListeners();
 
     tester.CliCallFunction();
-    // tester.SvcCallFunction();
+    tester.SvcCallFunction();
 
     tester.CliCreateObj1();
     tester.CliReadObj1();
@@ -798,12 +812,16 @@ TEST_CASE("WebService-NoInterface", "[websvc]")
     tester.SvcEditObj2();
     tester.SvcDestroyObj2();
 
-    // tester.svc->Raise({tester.CreateUint32(), tester.CreateSimpleObject1()});
+    tester.svc->RaiseEvent(
+        *tester.svc, Interfaces::Server1::Args_SomethingHappened{.arg1 = tester.CreateUint32(), .arg2 = tester.CreateSimpleObject1()});
 
-    // tester.SvcCallFunction();
-    // tester.SvcStateChange();
+    tester.SvcCallFunction();
+    tester.SvcStateChange();
     tester.CliRequestStateChange1();
-    // tester.CliRequestStateChange2();
+    tester.CliRequestStateChange2();
+    // tester.SvcSetLargeFileContent();
+    // tester.CliGetFile();
+    // tester.CliGetFile();
 }
 
 // NOLINTEND(readability-magic-numbers, cppcoreguidelines-pro-type-reinterpret-cast, readability-function-cognitive-complexity)

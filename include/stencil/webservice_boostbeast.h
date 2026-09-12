@@ -392,24 +392,21 @@ template <typename... Types> struct Selector
 {
     SUPPRESS_WARNINGS_START
     SUPPRESS_MSVC_WARNING(4702)    // unreachable code
-    template <typename T, typename... TArgs> static bool InvokeIfMatch(TArgs&&... args)
+    template <typename T, typename... TArgs> static bool InvokeIfMatch(TArgs&... args)
     {
-        if (T::Matches(std::forward<TArgs>(args)...))
-        {
-
-            T::Invoke(std::forward<TArgs>(args)...);
-            return true;
-        }
-        return false;
+        auto matchFn = [&](auto const&... cargs) { return T::Matches(cargs...); };
+        if (!matchFn(args...)) { return false; }
+        T::Invoke(args...);
+        return true;
     }
     SUPPRESS_WARNINGS_END
 
-    template <typename... TArgs> static auto Invoke([[maybe_unused]] TArgs&&... args)
+    template <typename... TArgs> static auto Invoke([[maybe_unused]] TArgs&... args)
     {
         if constexpr (sizeof...(Types) == 0) {}
         else
         {
-            auto result = (InvokeIfMatch<Types>(std::forward<TArgs>(args)...) || ...);
+            auto result = (InvokeIfMatch<Types>(args...) || ...);
             if (result) return;
         }
         throw std::logic_error("Unexpected error. Unreachable code encountered. Did not match any selector");
@@ -573,7 +570,7 @@ template <typename TImpl, ConceptInterface TInterface> struct WebRequestContext
 
 template <typename TContext> struct RequestHandlerForAllEvents
 {
-    static bool Matches(TContext& ctx) { return impl::iequals(*ctx.urlSegIt, "events"); }
+    static bool Matches(TContext const& ctx) { return impl::iequals(*ctx.urlSegIt, "events"); }
     static auto Invoke(TContext& ctx)
     {
         ctx.mgr.CreateInstance(0, std::move(ctx.stream), ctx.req, "event: init\ndata: \n\n");
@@ -583,14 +580,15 @@ template <typename TContext> struct RequestHandlerForAllEvents
 
 template <typename TContext, typename TEventStructs> struct RequestHandlerForEvents
 {
-    static bool Matches(TContext& ctx) { return impl::iequals(Stencil::InterfaceApiTraits<TEventStructs>::Name(), *ctx.urlSegIt); }
+    static bool Matches(TContext const& ctx) { return impl::iequals(Stencil::InterfaceApiTraits<TEventStructs>::Name(), *ctx.urlSegIt); }
     static auto Invoke(TContext& ctx)
     { ctx.mgr.CreateInstance(typeid(TContext).hash_code(), std::move(ctx.stream), std::move(ctx.req), "event: init\ndata: \n\n"); }
 };
 
 template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForObjectStore
 {
-    static bool Matches(TContext& ctx) { return impl::iequals(Stencil::InterfaceObjectTraits<TObjectStoreObj>::Name(), *ctx.urlSegIt); }
+    static bool Matches(TContext const& ctx)
+    { return impl::iequals(Stencil::InterfaceObjectTraits<TObjectStoreObj>::Name(), *ctx.urlSegIt); }
 
     template <typename TLambda> static auto ForeachObjId(TContext& ctx, TLambda const& lambda)
     {
@@ -744,7 +742,7 @@ template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunct
     using TImpl      = TContext::Impl;
     using TInterface = TContext::Interface;
 
-    static bool Matches(TContext& ctx) { return impl::iequals(Stencil::InterfaceApiTraits<TArgsStruct>::Name(), *ctx.urlSegIt); }
+    static bool Matches(TContext const& ctx) { return impl::iequals(Stencil::InterfaceApiTraits<TArgsStruct>::Name(), *ctx.urlSegIt); }
     static auto CreateArgStruct(TContext& ctx)
     {
         TArgsStruct args{};
@@ -804,7 +802,7 @@ template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunct
 
 template <typename TContext> struct RequestHandlerFallback
 {
-    static bool Matches(TContext& /* ctx */) { return true; }
+    static bool Matches(TContext const& /* ctx */) { return true; }
     static auto Invoke(TContext& ctx)
     {
         if (!ctx.impl.HandleRequest(ctx.stream, ctx.req, ctx.url))
@@ -817,12 +815,12 @@ template <typename TContext> struct RequestHandlerFallback
 template <typename TImpl, ConceptInterface TInterface> struct RequestHandler<TImpl, TInterface>
 {
     template <typename TTup>
-    static bool Matches(SvcMgr& /* mgr */,
-                        TTup& /* impls */,
-                        tcp_stream& /* stream */,
+    static bool Matches(SvcMgr const& /* mgr */,
+                        TTup const& /* impls */,
+                        tcp_stream const& /* stream */,
                         Request const& /* req */,
-                        boost::urls::url_view& /*url*/,
-                        boost::urls::segments_base::iterator& it)
+                        boost::urls::url_view const& /*url*/,
+                        boost::urls::segments_base::iterator const& it)
     { return iequals(Stencil::InterfaceTraits<TInterface>::Name(), *it); }
 
     template <typename T1> struct EventTransform;
@@ -853,7 +851,7 @@ template <typename TImpl, ConceptInterface TInterface> struct RequestHandler<TIm
 
     template <typename TContext> struct RequestHandlerForObjectStoreListener
     {
-        static bool Matches(TContext& ctx) { return impl::iequals(*ctx.urlSegIt, std::string_view("objectstore")); }
+        static bool Matches(TContext const& ctx) { return impl::iequals(*ctx.urlSegIt, std::string_view("objectstore")); }
 
         static auto Invoke(TContext& ctx)
         {
@@ -916,12 +914,12 @@ template <ConceptIndexable TState> struct SynchronizedState
 
 template <typename TImpl, ConceptIndexable TState> struct RequestHandler<TImpl, SynchronizedState<TState>>
 {
-    static bool Matches(SvcMgr& /* mgr */,
-                        TImpl& impl,
-                        tcp_stream& /* stream */,
+    static bool Matches(SvcMgr const& /* mgr */,
+                        TImpl const& impl,
+                        tcp_stream const& /* stream */,
                         Request const& /* req */,
-                        boost::urls::url_view& /*url*/,
-                        boost::urls::segments_base::iterator& it)
+                        boost::urls::url_view const& /*url*/,
+                        boost::urls::segments_base::iterator const& it)
     { return iequals(impl.Name(), *it); }
 
     static void Invoke(SvcMgr&                               mgr,
