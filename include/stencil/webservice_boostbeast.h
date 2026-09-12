@@ -746,7 +746,7 @@ template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunct
     static auto CreateArgStruct(TContext& ctx)
     {
         TArgsStruct args{};
-        if (ctx.req.method() == boost::beast::http::verb::get)
+        if (ctx.req.method() == boost::beast::http::verb::get || ctx.req.method() == boost::beast::http::verb::head)
         {
             for (auto const& param : ctx.url.params())
             {

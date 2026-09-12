@@ -6,7 +6,9 @@
 
 #include <filesystem>
 #include <fstream>
+#include <stdexcept>
 #include <stencil/webservice_boostbeast.h>
+#include <unordered_map>
 
 SUPPRESS_WARNINGS_START
 SUPPRESS_MSVC_WARNING(4191)    // type cast': unsafe conversion
@@ -273,6 +275,43 @@ struct HttpClientListener
     {
         RequestStop();
         if (sseListener.joinable()) sseListener.join();
+    }
+
+    static auto Head(std::string_view const& target, Params const& params)
+    {
+        boost::urls::url url;
+        url.set_path(target);
+        for (auto const& [k, v] : params)
+        {    //
+            url.params().append({k, v});
+        }
+
+        net::io_context   ioc;
+        tcp::resolver     resolver(ioc);
+        beast::tcp_stream stream(ioc);
+
+        stream.connect(resolver.resolve(LocalHostName, Port));
+        {
+            // Send request
+            http::request<http::string_body> req{http::verb::head, url.encoded_target(), 11 /*HTTP Version 1.1*/};
+            req.set(http::field::host, LocalHostName);
+            req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+            req.set(http::field::accept, "application/json");
+            http::write(stream, req);
+        }
+        beast::flat_buffer                      buffer;
+        http::response_parser<http::empty_body> parser;
+        parser.skip(true);
+        beast::error_code                            ec;
+        auto                                         bytesRead = http::read_header(stream, buffer, parser);
+        std::unordered_map<std::string, std::string> responseFields;
+        auto                                         res = parser.get();
+        for (auto const& field : res) { responseFields[field.name_string()] = field.value(); }
+        responseFields["bytesRead"] = std::to_string(bytesRead);
+        if (buffer.size() != 0) { throw std::runtime_error("ERROR: server sent body bytes: " + std::to_string(buffer.size())); }
+        if (stream.socket().read_some(buffer.prepare(8192), ec) != 0) { throw std::runtime_error("ERROR: server sent body bytes"); }
+        if (ec != net::error::eof) { throw beast::system_error(ec); }
+        return responseFields;
     }
 
     static void Download(std::string_view const& target, Params const& params, std::filesystem::path const& output)
@@ -678,7 +717,19 @@ template <typename TSvc> struct Tester : ObjectsTester
         HttpClientListener::Download("/api/server1/getfile", Params{{"p", reqfname.filename().string()}}, resfname);
         TestCommon::CheckFileEqual<TestCommon::StrFormat>(resfname, reqfname);
     }
-
+    void CliGetFileHead()
+    {
+        auto reqfname = (std::filesystem::temp_directory_path() / CreateFilePath());
+        auto resfname = (std::filesystem::temp_directory_path() / CreateFilePath());
+        tempFiles.emplace_back(reqfname);
+        tempFiles.emplace_back(resfname);
+        auto response = HttpClientListener::Head("/api/server1/getfile", Params{{"p", reqfname.filename().string()}});
+        CHECK(response["Content-Length"] == std::to_string(std::filesystem::file_size(reqfname)));
+        CHECK(response["Content-Type"] == "application/octet-stream");
+        CHECK(response["Accept-Ranges"] == "bytes");
+        CHECK(response["Server"] == "stencil_webserver");
+        CHECK(response["bytesRead"] == "164");
+    }
     void SvcCreateObj1() {}
     void SvcReadObj1() {}
     void SvcEditObj1() {}
@@ -841,8 +892,10 @@ TEST_CASE("WebService-NoInterface", "[websvc]")
     tester.SvcStateChange();
     tester.CliRequestStateChange1();
     tester.CliRequestStateChange2();
+    tester.CliGetFileHead();
     tester.CliGetFile();
-    tester.CliGetFile();
+    // tester.CliGetFileRange();
+    // tester.CliGetFileRangeOutofBound();
 }
 
 // NOLINTEND(readability-magic-numbers, cppcoreguidelines-pro-type-reinterpret-cast, readability-function-cognitive-complexity)
