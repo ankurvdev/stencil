@@ -719,7 +719,6 @@ template <typename TSvc> struct Tester : ObjectsTester
         {
             std::ofstream ofs(reqfname, std::ios::out | std::ios::binary);
             HttpClientListener::Download("/api/server1/getfile", Params{{"p", reqfname.filename().string()}}, ofs);
-            ofs.flush();
         }
         TestCommon::CheckFileEqual<TestCommon::StrFormat>(resfname, reqfname);
     }
