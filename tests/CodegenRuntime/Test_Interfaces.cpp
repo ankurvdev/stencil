@@ -315,8 +315,11 @@ struct HttpClientListener
         return responseFields;
     }
 
-    static void Download(std::string_view const& target, Params const& params, std::ostream& os) { os << Get(target, params, {}); }
-
+    static void Download(std::string_view const& target, Params const& params, std::ostream& os)
+    {
+        auto content = Get(target, params, {});
+        os.write(content.data(), static_cast<std::streamsize>(content.size()));
+    }
     static void DownloadRange(std::string_view const& target, Params const& params, size_t start, size_t end, std::ostream& os)
     { os << Get(target, params, {{"range", "bytes=" + std::to_string(start) + "-" + std::to_string(end)}}); }
 
@@ -717,7 +720,7 @@ template <typename TSvc> struct Tester : ObjectsTester
         tempFiles.emplace_back(reqfname);
         tempFiles.emplace_back(resfname);
         {
-            std::ofstream ofs(reqfname, std::ios::out | std::ios::binary);
+            std::ofstream ofs(resfname);
             HttpClientListener::Download("/api/server1/getfile", Params{{"p", reqfname.filename().string()}}, ofs);
         }
         TestCommon::CheckFileEqual<TestCommon::StrFormat>(resfname, reqfname);
