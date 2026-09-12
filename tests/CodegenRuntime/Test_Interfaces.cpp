@@ -275,6 +275,13 @@ struct HttpClientListener
         if (sseListener.joinable()) sseListener.join();
     }
 
+    static void Download(std::string_view const& target, Params const& params, std::filesystem::path const& output)
+    {
+        auto          content = Get(target, params);
+        std::ofstream ofs(output);
+        ofs << content;
+    }
+
     static std::string Get(std::string_view const& target, Params const& params)
     {
         boost::urls::url url;
@@ -509,6 +516,8 @@ struct SvcNoInterfaceSvc
 
 struct ImplNoInterfaceSvc
 {
+    static constexpr size_t LargeFileIntCount = 32z * 1024z;
+
     [[maybe_unused]] std::unordered_map<uint32_t, Objects::SimpleObject1> Function1(uint32_t const&               arg1,    // NOLINT
                                                                                     Objects::SimpleObject1 const& arg2)
     { return Function1Impl(*svc, *svc, arg1, arg2); }
@@ -516,18 +525,17 @@ struct ImplNoInterfaceSvc
     [[maybe_unused]] void Function2() {}
     [[maybe_unused]] void Function3(uint32_t const& /* arg1 */) {}
 
-    [[maybe_unused]] std::filesystem::path GetFile(std::filesystem::path const& wpath)
+    [[maybe_unused]] auto GetFile(std::filesystem::path const& wpath)
     {
         outpath = std::filesystem::temp_directory_path() / wpath;
         std::ofstream ofs(outpath);
-        ofs.write(testContent.data(), static_cast<std::streamsize>(testContent.size()));
-        return outpath;
+        for (size_t i = 0; i < LargeFileIntCount; ++i) { ofs << i << "\n"; }
+        return Stencil::websvc::File{outpath};
     }
 
     [[maybe_unused]] [[noreturn]] Stencil::websvc::Stream GetStream(std::filesystem::path const& /* rpath */)    // NOLINT
     { TODO("NotImpl"); }                                                                                         // NOLINT
 
-    std::string           testContent;
     std::filesystem::path outpath;
     SvcNoInterfaceSvc*    svc{nullptr};
 };
@@ -545,11 +553,10 @@ namespace
 template <typename TSvc> struct Tester : ObjectsTester
 {
     using Params = HttpClientListener::Params;
-    Tester()
+    Tester() : svc(std::make_unique<TSvc>())
     {
-        if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
-        svc = std::make_unique<TSvc>();
         svc->StartOnPort(44444, 4);
+        tempFiles.emplace_back("SaveAndLoad.bin");
     }
 
     ~Tester()
@@ -560,6 +567,11 @@ template <typename TSvc> struct Tester : ObjectsTester
 
         svc->StopDaemon();
         svc.reset();
+
+        for (auto const& fpath : tempFiles)
+        {
+            if (std::filesystem::exists(fpath)) std::filesystem::remove(fpath);
+        }
 
         if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
         TestCommon::CheckResource<TestCommon::JsonFormat>(jsonLines, "json");
@@ -657,6 +669,16 @@ template <typename TSvc> struct Tester : ObjectsTester
     void CliRequestStateChange1() { ValidCliJsonGet("/api/state/apply", Params{{"obj1.val1", "20"}, {"obj2.val1", "true"}}); }
     void CliRequestStateChange2() { ValidCliJsonGet("/api/state/apply", Params{{"obj1.val1", "-20"}, {"obj2.val1", "false"}}); }
 
+    void CliGetFile()
+    {
+        auto reqfname = (std::filesystem::temp_directory_path() / CreateFilePath());
+        auto resfname = (std::filesystem::temp_directory_path() / CreateFilePath());
+        tempFiles.emplace_back(reqfname);
+        tempFiles.emplace_back(resfname);
+        HttpClientListener::Download("/api/server1/getfile", Params{{"p", reqfname.filename().string()}}, resfname);
+        TestCommon::CheckFileEqual<TestCommon::StrFormat>(resfname, reqfname);
+    }
+
     void SvcCreateObj1() {}
     void SvcReadObj1() {}
     void SvcEditObj1() {}
@@ -683,6 +705,7 @@ template <typename TSvc> struct Tester : ObjectsTester
         }
         svc->OnStateChange(txn);
     }
+    std::vector<std::filesystem::path> tempFiles;
 
     std::vector<std::string> jsonLines;
     std::string              cliObj1Id;
@@ -690,10 +713,9 @@ template <typename TSvc> struct Tester : ObjectsTester
 
     uint32_t              count{0};
     std::filesystem::path dbfile{"SaveAndLoad.bin"};
-
-    HttpClientListener sseListener1{"/api/server1/somethinghappened"};
-    HttpClientListener sseListener2{"/api/server1/objectstore"};
-    HttpClientListener sseListener3{"/api/state"};
+    HttpClientListener    sseListener1{"/api/server1/somethinghappened"};
+    HttpClientListener    sseListener2{"/api/server1/objectstore"};
+    HttpClientListener    sseListener3{"/api/state"};
 
     // SSEListener _sseListener3{"/api/server1/obj2/events"};
     std::unique_ptr<TSvc> svc;
@@ -819,9 +841,8 @@ TEST_CASE("WebService-NoInterface", "[websvc]")
     tester.SvcStateChange();
     tester.CliRequestStateChange1();
     tester.CliRequestStateChange2();
-    // tester.SvcSetLargeFileContent();
-    // tester.CliGetFile();
-    // tester.CliGetFile();
+    tester.CliGetFile();
+    tester.CliGetFile();
 }
 
 // NOLINTEND(readability-magic-numbers, cppcoreguidelines-pro-type-reinterpret-cast, readability-function-cognitive-complexity)

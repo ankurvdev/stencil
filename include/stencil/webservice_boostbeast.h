@@ -58,7 +58,7 @@ namespace Stencil::websvc
 {
 
 struct File
-{};
+{ std::filesystem::path path; };
 
 struct Stream
 {};
@@ -785,7 +785,10 @@ template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunct
         else
         {
             auto retval = Traits::Invoke(ctx.impl, args);
-            if constexpr (std::is_same_v<Stencil::websvc::File, decltype(retval)>) { TODO("NotImpl1"); }
+            if constexpr (std::is_same_v<Stencil::websvc::File, decltype(retval)>)
+            {    //
+                WriteFileResponse(ctx.stream, ctx.req, retval.path, {Stencil::websvc::MimeType(retval.path.string())});
+            }
             else if constexpr (std::is_same_v<Stencil::websvc::Stream, decltype(retval)>) { TODO("NotImpl2"); }
             else
             {
