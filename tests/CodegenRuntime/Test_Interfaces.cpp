@@ -740,6 +740,32 @@ template <typename TSvc> struct Tester : ObjectsTester
         auto content = ss.str();
         CHECK(content == "1\n2");
     }
+
+    void CliGetFileRangeOutofBound()
+    {
+        auto            reqfname = (std::filesystem::temp_directory_path() / CreateFilePath());
+        auto            resfname = (std::filesystem::temp_directory_path() / CreateFilePath());
+        std::error_code ec;
+        std::filesystem::remove(reqfname, ec);
+        std::filesystem::remove(resfname, ec);
+        tempFiles.emplace_back(reqfname);
+        tempFiles.emplace_back(resfname);
+        {
+            std::ofstream ofs(resfname);
+            HttpClientListener::DownloadRange("/api/server1/getfile", Params{{"p", reqfname.filename().string()}}, 2, 1024z * 1024z, ofs);
+        }
+        {
+            std::ifstream actualf(resfname);
+            std::ifstream expectedf(reqfname);
+            if (!actualf.is_open()) { throw std::runtime_error("Failed to open actual file: " + resfname.string()); }
+            if (!expectedf.is_open()) { throw std::runtime_error("Failed to open expected file: " + reqfname.string()); }
+            auto res1 = TestCommon::StrFormat::ReadStream(actualf);
+            auto res2 = TestCommon::StrFormat::ReadStream(expectedf);
+            res1.insert(res1.begin(), "0");
+            CHECK(res1 == res2);
+        }
+    }
+
     void CliGetFileHead()
     {
         auto            reqfname = (std::filesystem::temp_directory_path() / CreateFilePath());
@@ -918,11 +944,13 @@ TEST_CASE("WebService-NoInterface", "[websvc]")
     tester.SvcStateChange();
     tester.CliRequestStateChange1();
     tester.CliRequestStateChange2();
+
+    tester.CliGetFileRangeOutofBound();
     tester.CliGetFile();
     tester.CliGetFileHead();
     tester.CliGetFileRange();
 
-    // tester.CliGetFileRangeOutofBound();
+    // tester.CliGetStream();
 }
 
 // NOLINTEND(readability-magic-numbers, cppcoreguidelines-pro-type-reinterpret-cast, readability-function-cognitive-complexity,
