@@ -161,41 +161,43 @@ inline void WriteFileResponse(tcp_stream&                      stream,    // NOL
     if (hasRange)
     {
         // Parse Range header (format: "bytes=start-end")
-        std::string rangeValue = std::string(rangeHeader->value());
+        auto rangeValue = rangeHeader->value();
 
-        if (rangeValue.starts_with("bytes="))
+        if (!rangeValue.starts_with("bytes="))
         {
-            constexpr size_t bytesPrefix = 6;    // length of "bytes="
-            std::string      rangeSpec   = rangeValue.substr(bytesPrefix);
-            size_t           dashPos     = rangeSpec.find('-');
+            throw std::invalid_argument(fmt::format("Invalid Range header: {}. Expected bytes=<>-<>", rangeValue));
+        }
 
-            if (dashPos != std::string::npos)
+        constexpr size_t bytesPrefix = 6;    // length of "bytes="
+        auto             rangeSpec   = rangeValue.substr(bytesPrefix);
+        size_t           dashPos     = rangeSpec.find('-');
+
+        if (dashPos != std::string::npos)
+        {
+            auto startStr = rangeSpec.substr(0, dashPos);
+            auto endStr   = rangeSpec.substr(dashPos + 1);
+
+            try
             {
-                std::string startStr = rangeSpec.substr(0, dashPos);
-                std::string endStr   = rangeSpec.substr(dashPos + 1);
+                if (!startStr.empty()) { startByte = static_cast<size_t>(std::stoull(startStr)); }
 
-                try
+                if (!endStr.empty()) { endByte = static_cast<size_t>(std::stoull(endStr)); }
+                else
                 {
-                    if (!startStr.empty()) { startByte = static_cast<size_t>(std::stoull(startStr)); }
-
-                    if (!endStr.empty()) { endByte = static_cast<size_t>(std::stoull(endStr)); }
-                    else
-                    {
-                        endByte = fileSize - 1;
-                    }
-
-                    // Validate range
-                    if (startByte > endByte || startByte >= fileSize) {}
-
-                    // Clamp end byte to file size
-                    if (endByte >= fileSize) { endByte = fileSize - 1; }
-                } catch (...)
-                {
-                    // Invalid range format, ignore and send full file
-                    hasRange  = false;
-                    startByte = 0;
-                    endByte   = fileSize - 1;
+                    endByte = fileSize - 1;
                 }
+
+                // Validate range
+                if (startByte > endByte || startByte >= fileSize) {}
+
+                // Clamp end byte to file size
+                if (endByte >= fileSize) { endByte = fileSize - 1; }
+            } catch (...)
+            {
+                // Invalid range format, ignore and send full file
+                hasRange  = false;
+                startByte = 0;
+                endByte   = fileSize - 1;
             }
         }
     }

@@ -42,7 +42,8 @@ SUPPRESS_GCC_WARNING("-Wmaybe-uninitialized")
 #include <string>
 SUPPRESS_WARNINGS_END
 
-// NOLINTBEGIN(readability-magic-numbers, cppcoreguidelines-pro-type-reinterpret-cast, readability-function-cognitive-complexity)
+// NOLINTBEGIN(readability-magic-numbers, cppcoreguidelines-pro-type-reinterpret-cast, readability-function-cognitive-complexity,
+// readability-convert-member-functions-to-static)
 static_assert(Stencil::Database::ConceptRecord<uint32_t>);
 static_assert(Stencil::Database::ConceptTrivial<uint32_t>);
 
@@ -314,14 +315,12 @@ struct HttpClientListener
         return responseFields;
     }
 
-    static void Download(std::string_view const& target, Params const& params, std::filesystem::path const& output)
-    {
-        auto          content = Get(target, params);
-        std::ofstream ofs(output);
-        ofs << content;
-    }
+    static void Download(std::string_view const& target, Params const& params, std::ostream& os) { os << Get(target, params, {}); }
 
-    static std::string Get(std::string_view const& target, Params const& params)
+    static void DownloadRange(std::string_view const& target, Params const& params, size_t start, size_t end, std::ostream& os)
+    { os << Get(target, params, {{"range", "bytes=" + std::to_string(start) + "-" + std::to_string(end)}}); }
+
+    static std::string Get(std::string_view const& target, Params const& params, Params const& headers)
     {
         boost::urls::url url;
         url.set_path(target);
@@ -341,6 +340,7 @@ struct HttpClientListener
             req.set(http::field::host, LocalHostName);
             req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
             req.set(http::field::accept, "application/json");
+            for (auto const& [k, v] : headers) { req.set(k, v); }
             http::write(stream, req);
         }
         beast::flat_buffer buffer;
@@ -557,7 +557,7 @@ struct ImplNoInterfaceSvc
 {
     static constexpr size_t LargeFileIntCount = 32z * 1024z;
 
-    [[maybe_unused]] std::unordered_map<uint32_t, Objects::SimpleObject1> Function1(uint32_t const&               arg1,    // NOLINT
+    [[maybe_unused]] std::unordered_map<uint32_t, Objects::SimpleObject1> Function1(uint32_t const&               arg1,
                                                                                     Objects::SimpleObject1 const& arg2)
     { return Function1Impl(*svc, *svc, arg1, arg2); }
 
@@ -572,8 +572,7 @@ struct ImplNoInterfaceSvc
         return Stencil::websvc::File{outpath};
     }
 
-    [[maybe_unused]] [[noreturn]] Stencil::websvc::Stream GetStream(std::filesystem::path const& /* rpath */)    // NOLINT
-    { TODO("NotImpl"); }                                                                                         // NOLINT
+    [[maybe_unused]] [[noreturn]] Stencil::websvc::Stream GetStream(std::filesystem::path const& /* rpath */) { TODO("NotImpl"); }
 
     std::filesystem::path outpath;
     SvcNoInterfaceSvc*    svc{nullptr};
@@ -648,7 +647,7 @@ template <typename TSvc> struct Tester : ObjectsTester
 
     auto ValidCliJsonGet(std::string const& path, Params const& params)
     {
-        auto json = HttpClientListener::Get(path, params);
+        auto json = HttpClientListener::Get(path, params, {});
         CHECK(!json.empty());
         jsonLines.push_back(json);
         return json;
@@ -710,17 +709,42 @@ template <typename TSvc> struct Tester : ObjectsTester
 
     void CliGetFile()
     {
-        auto reqfname = (std::filesystem::temp_directory_path() / CreateFilePath());
-        auto resfname = (std::filesystem::temp_directory_path() / CreateFilePath());
+        auto            reqfname = (std::filesystem::temp_directory_path() / CreateFilePath());
+        auto            resfname = (std::filesystem::temp_directory_path() / CreateFilePath());
+        std::error_code ec;
+        std::filesystem::remove(reqfname, ec);
+        std::filesystem::remove(resfname, ec);
         tempFiles.emplace_back(reqfname);
         tempFiles.emplace_back(resfname);
-        HttpClientListener::Download("/api/server1/getfile", Params{{"p", reqfname.filename().string()}}, resfname);
+        {
+            std::ofstream ofs(reqfname, std::ios::out | std::ios::binary);
+            HttpClientListener::Download("/api/server1/getfile", Params{{"p", reqfname.filename().string()}}, ofs);
+            ofs.flush();
+        }
         TestCommon::CheckFileEqual<TestCommon::StrFormat>(resfname, reqfname);
+    }
+
+    void CliGetFileRange()
+    {
+        auto            reqfname = (std::filesystem::temp_directory_path() / CreateFilePath());
+        auto            resfname = (std::filesystem::temp_directory_path() / CreateFilePath());
+        std::error_code ec;
+        std::filesystem::remove(reqfname, ec);
+        std::filesystem::remove(resfname, ec);
+        tempFiles.emplace_back(reqfname);
+        tempFiles.emplace_back(resfname);
+        std::stringstream ss;
+        HttpClientListener::DownloadRange("/api/server1/getfile", Params{{"p", reqfname.filename().string()}}, 2, 4, ss);
+        auto content = ss.str();
+        CHECK(content == "1\n2");
     }
     void CliGetFileHead()
     {
-        auto reqfname = (std::filesystem::temp_directory_path() / CreateFilePath());
-        auto resfname = (std::filesystem::temp_directory_path() / CreateFilePath());
+        auto            reqfname = (std::filesystem::temp_directory_path() / CreateFilePath());
+        auto            resfname = (std::filesystem::temp_directory_path() / CreateFilePath());
+        std::error_code ec;
+        std::filesystem::remove(reqfname, ec);
+        std::filesystem::remove(resfname, ec);
         tempFiles.emplace_back(reqfname);
         tempFiles.emplace_back(resfname);
         auto response = HttpClientListener::Head("/api/server1/getfile", Params{{"p", reqfname.filename().string()}});
@@ -892,10 +916,12 @@ TEST_CASE("WebService-NoInterface", "[websvc]")
     tester.SvcStateChange();
     tester.CliRequestStateChange1();
     tester.CliRequestStateChange2();
-    tester.CliGetFileHead();
     tester.CliGetFile();
-    // tester.CliGetFileRange();
+    tester.CliGetFileHead();
+    tester.CliGetFileRange();
+
     // tester.CliGetFileRangeOutofBound();
 }
 
-// NOLINTEND(readability-magic-numbers, cppcoreguidelines-pro-type-reinterpret-cast, readability-function-cognitive-complexity)
+// NOLINTEND(readability-magic-numbers, cppcoreguidelines-pro-type-reinterpret-cast, readability-function-cognitive-complexity,
+// readability-convert-member-functions-to-static)
