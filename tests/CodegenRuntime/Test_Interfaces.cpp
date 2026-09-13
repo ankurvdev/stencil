@@ -2,12 +2,10 @@
 #include "Interfaces.pidl.h"
 #include "ObjectsTester.h"
 #include "TestUtils.h"
-#include "stencil/typetraits_path.h"
 
 #include <filesystem>
 #include <fstream>
 #include <stdexcept>
-#include <stencil/webservice_boostbeast.h>
 #include <unordered_map>
 
 SUPPRESS_WARNINGS_START
