@@ -384,6 +384,21 @@ template <typename TFormat> inline bool CheckResource(std::vector<std::string> c
     return false;
 }
 
+template <typename TFormat> inline bool CheckFileEqual(std::filesystem::path const& actual, std::filesystem::path const& expected)
+{
+    std::ifstream actualf(actual);
+    std::ifstream expectedf(expected);
+    if (!actualf.is_open()) { throw std::runtime_error("Failed to open actual file: " + actual.string()); }
+    if (!expectedf.is_open()) { throw std::runtime_error("Failed to open expected file: " + expected.string()); }
+    auto res1 = TFormat::ReadStream(actualf);
+    auto res2 = TFormat::ReadStream(expectedf);
+    if (res1 == res2) return true;
+
+    PrintLinesDiff(res1, res2);
+    FAIL_CHECK(fmt::format("Comparison Failed: Output: \n{}", actual.string()));
+    return false;
+}
+
 // template <typename TFormat> inline void CheckResource(std::vector<std::string> const& actual, std::string_view const& resourcename)
 //{ CheckResource<TFormat>(actual, resourcename); }
 #endif
