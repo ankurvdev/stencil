@@ -38,7 +38,8 @@ SUPPRESS_GCC_WARNING("-Wmaybe-uninitialized")
 #include <memory>
 #include <string>
 SUPPRESS_WARNINGS_END
-
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("-Wunused-member-function")
 // NOLINTBEGIN(readability-magic-numbers, cppcoreguidelines-pro-type-reinterpret-cast, readability-function-cognitive-complexity,
 // readability-convert-member-functions-to-static)
 static_assert(Stencil::Database::ConceptRecord<uint32_t>);
@@ -557,14 +558,13 @@ struct ImplNoInterfaceSvc
 {
     static constexpr size_t LargeFileIntCount = 32z * 1024z;
 
-    [[maybe_unused]] std::unordered_map<uint32_t, Objects::SimpleObject1> Function1(uint32_t const&               arg1,
-                                                                                    Objects::SimpleObject1 const& arg2)
+    std::unordered_map<uint32_t, Objects::SimpleObject1> Function1(uint32_t const& arg1, Objects::SimpleObject1 const& arg2)
     { return Function1Impl(*svc, *svc, arg1, arg2); }
 
-    [[maybe_unused]] void Function2() {}
-    [[maybe_unused]] void Function3(uint32_t const& /* arg1 */) {}
+    void Function2() {}
+    void Function3(uint32_t const& /* arg1 */) {}
 
-    [[maybe_unused]] auto GetFile(std::filesystem::path const& wpath)
+    auto GetFile(std::filesystem::path const& wpath)
     {
         outpath = std::filesystem::temp_directory_path() / wpath;
         std::ofstream ofs(outpath);
@@ -572,7 +572,7 @@ struct ImplNoInterfaceSvc
         return Stencil::websvc::File{outpath};
     }
 
-    [[maybe_unused]] [[noreturn]] Stencil::websvc::Stream GetStream(std::filesystem::path const& /* rpath */) { TODO("NotImpl"); }
+    [[noreturn]] Stencil::websvc::Stream GetStream(std::filesystem::path const& /* rpath */) { TODO("NotImpl"); }
 
     std::filesystem::path outpath;
     SvcNoInterfaceSvc*    svc{nullptr};
@@ -952,3 +952,4 @@ TEST_CASE("WebService-NoInterface", "[websvc]")
 
 // NOLINTEND(readability-magic-numbers, cppcoreguidelines-pro-type-reinterpret-cast, readability-function-cognitive-complexity,
 // readability-convert-member-functions-to-static)
+SUPPRESS_WARNINGS_END
