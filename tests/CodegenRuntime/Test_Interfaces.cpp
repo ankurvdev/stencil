@@ -1,5 +1,4 @@
 #include "CommonMacros.h"
-#include "Interfaces.pidl.h"
 #include "ObjectsTester.h"
 #include "TestUtils.h"
 

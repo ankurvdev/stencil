@@ -1,5 +1,5 @@
 #pragma once
-#include "Interfaces.pidl.h"
+#include "Interfaces.pidl.h"    // IWYU pragma: keep
 #include "Objects.pidl.h"
 
 // NOLINTBEGIN(readability-magic-numbers)

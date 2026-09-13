@@ -1,4 +1,7 @@
 #pragma once
+#include "CommonMacros.h"
+
+#include <type_traits>
 
 namespace Stencil
 {

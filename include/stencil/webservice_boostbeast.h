@@ -10,7 +10,7 @@
 #endif
 
 #include "database.h"
-#include "fmtboostbeast.h"
+#include "fmtboostbeast.h"    // IWYU pragma: keep
 #include "interfaces.h"
 #include "protocol_json.h"
 #include "serdes.h"

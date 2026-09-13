@@ -13,6 +13,7 @@ SUPPRESS_MSVC_WARNING(5219)    // implicit conversion (int to double), possible 
 #include <fmt/chrono.h>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
+#include <uuid.h>
 
 #include <sstream>
 #include <string_view>

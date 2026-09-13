@@ -3,7 +3,6 @@
 #include "typetraits.h"
 
 #include <filesystem>
-#include <stdexcept>
 #include <utility>
 
 namespace Stencil
