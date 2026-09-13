@@ -319,7 +319,10 @@ struct HttpClientListener
         os.write(content.data(), static_cast<std::streamsize>(content.size()));
     }
     static void DownloadRange(std::string_view const& target, Params const& params, size_t start, size_t end, std::ostream& os)
-    { os << Get(target, params, {{"range", "bytes=" + std::to_string(start) + "-" + std::to_string(end)}}); }
+    {
+        auto content = Get(target, params, {{"range", "bytes=" + std::to_string(start) + "-" + std::to_string(end)}});
+        os.write(content.data(), static_cast<std::streamsize>(content.size()));
+    }
 
     static std::string Get(std::string_view const& target, Params const& params, Params const& headers)
     {
@@ -789,6 +792,13 @@ template <typename TSvc> struct Tester : ObjectsTester
     void SvcEditObj2() {}
     void SvcDestroyObj2() {}
 
+    void SvcRaiseEvent()
+    {
+        auto arg1 = CreateUint32();
+        auto arg2 = CreateSimpleObject1();
+        svc->Raise_SomethingHappened(arg1, arg2);
+    }
+
     void SvcCallFunction()
     {
         auto arg1 = CreateUint32();
@@ -805,6 +815,7 @@ template <typename TSvc> struct Tester : ObjectsTester
         }
         svc->OnStateChange(txn);
     }
+
     std::vector<std::filesystem::path> tempFiles;
 
     std::vector<std::string> jsonLines;
@@ -813,9 +824,10 @@ template <typename TSvc> struct Tester : ObjectsTester
 
     uint32_t              count{0};
     std::filesystem::path dbfile{"SaveAndLoad.bin"};
-    HttpClientListener    sseListener1{"/api/server1/somethinghappened"};
-    HttpClientListener    sseListener2{"/api/server1/objectstore"};
-    HttpClientListener    sseListener3{"/api/state"};
+
+    HttpClientListener sseListener1{"/api/server1/somethinghappened"};
+    HttpClientListener sseListener2{"/api/server1/objectstore"};
+    HttpClientListener sseListener3{"/api/state"};
 
     // SSEListener _sseListener3{"/api/server1/obj2/events"};
     std::unique_ptr<TSvc> svc;
@@ -848,7 +860,7 @@ TEST_CASE("WebService-objectstore", "[interfaces]")
     tester.SvcEditObj2();
     tester.SvcDestroyObj2();
 
-    tester.svc->Raise_SomethingHappened(tester.CreateUint32(), tester.CreateSimpleObject1());
+    tester.SvcRaiseEvent();
     tester.SvcCallFunction();
     tester.SvcStateChange();
     tester.CliRequestStateChange1();
@@ -896,13 +908,7 @@ TEST_CASE("WebService-SvcSeparateImplSvc", "[interfaces]")
     tester.SvcEditObj2();
     tester.SvcDestroyObj2();
 
-    // tester.SvcRaiseEvent();
-    tester.svc->Raise_SomethingHappened(tester.CreateUint32(), tester.CreateSimpleObject1());
-
-    tester.SvcCallFunction();
-    tester.SvcStateChange();
-    tester.CliRequestStateChange1();
-    tester.CliRequestStateChange2();
+    tester.SvcRaiseEvent();
 }
 
 TEST_CASE("WebService-NoInterface", "[websvc]")
@@ -942,10 +948,10 @@ TEST_CASE("WebService-NoInterface", "[websvc]")
     tester.CliRequestStateChange1();
     tester.CliRequestStateChange2();
 
-    tester.CliGetFileRangeOutofBound();
     tester.CliGetFile();
     tester.CliGetFileHead();
     tester.CliGetFileRange();
+    tester.CliGetFileRangeOutofBound();
 
     // tester.CliGetStream();
 }
