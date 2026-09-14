@@ -570,7 +570,7 @@ struct ImplNoInterfaceSvc
     auto GetFile(std::filesystem::path const& wpath)
     {
         outpath = std::filesystem::temp_directory_path() / wpath;
-        std::ofstream ofs(outpath);
+        std::ofstream ofs(outpath, std::ios::binary);
         for (size_t i = 0; i < LargeFileIntCount; ++i) { ofs << i << "\n"; }
         return Stencil::websvc::File{outpath};
     }
@@ -720,7 +720,7 @@ template <typename TSvc> struct Tester : ObjectsTester
         tempFiles.emplace_back(reqfname);
         tempFiles.emplace_back(resfname);
         {
-            std::ofstream ofs(resfname);
+            std::ofstream ofs(resfname, std::ios::binary);
             HttpClientListener::Download("/api/server1/getfile", Params{{"p", reqfname.filename().string()}}, ofs);
         }
         TestCommon::CheckFileEqual<TestCommon::StrFormat>(resfname, reqfname);
@@ -751,7 +751,7 @@ template <typename TSvc> struct Tester : ObjectsTester
         tempFiles.emplace_back(reqfname);
         tempFiles.emplace_back(resfname);
         {
-            std::ofstream ofs(resfname);
+            std::ofstream ofs(resfname, std::ios::binary);
             HttpClientListener::DownloadRange("/api/server1/getfile", Params{{"p", reqfname.filename().string()}}, 2, 1024z * 1024z, ofs);
         }
         {

@@ -55,7 +55,7 @@ inline std::vector<std::string> readlines(std::filesystem::path const& path)
 inline auto WriteStrResourse(std::vector<std::string> const& actualstring, std::string_view const& resname)
 {
     auto          outf = std::filesystem::absolute(std::string(resname) + ".txt");
-    std::ofstream f(outf);
+    std::ofstream f(outf, std::ios::binary);
     for (auto const& l : actualstring) { f << l << "\n"; }
     return outf;
 }
