@@ -1076,8 +1076,8 @@ struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TServices>...    // 
 
     void StopDaemon()
     {
-        _mgr.Stop();
         boost::system::error_code ec;
+        if (_handlerPool) { _handlerPool->wait(); }
         for (auto& acceptor : _tcpAcceptors)
         {
             if (acceptor.close(ec)) { fmt::print(stderr, "[TCP][WARN] Failed to close acceptor: {}\n", ec.message()); }
@@ -1085,7 +1085,7 @@ struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TServices>...    // 
         _tcpAcceptors.clear();
         // Drain in-flight connection handlers before tearing down the io_context their
         // accepted sockets are bound to.
-        if (_handlerPool) { _handlerPool->stop(); }
+        _mgr.Stop();
         WaitForStop();
     }
 
@@ -1096,7 +1096,6 @@ struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TServices>...    // 
             if (thrd.joinable()) thrd.join();
         }
         _listenthreads.clear();
-        if (_handlerPool) { _handlerPool->join(); }
     }
 
     template <typename TEventArgs> void OnEvent(TEventArgs const& args)

@@ -46,7 +46,3 @@ event: SomethingHappened
 data: {"arg1":353,"arg2":{"val1":354,"val2":355,"val3":100,"val4":"str357","val5":35803.59}}
 
 
-event: SomethingHappened
-data: {"arg1":362,"arg2":{"val1":363,"val2":364,"val3":109,"val4":"str365","val5":36604.67}}
-
-
