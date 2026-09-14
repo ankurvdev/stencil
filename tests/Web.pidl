@@ -1,5 +1,0 @@
-interface WebFileServer {
-    file GetFile(path p);
-    stream GetStream(path p);
-
-}

@@ -72,8 +72,18 @@ boolean = "bool"
   [FieldTypes.timestamp]
   NativeType = "Stencil::Timestamp"
 
-  [FieldTypes.path]
-  NativeType = "std::filesystem::path"
+  [FieldTypes.rfpath]
+  NativeType = "Stencil::RFPath"
+  [FieldTypes.wfpath]
+  NativeType = "Stencil::WFPath"
+  [FieldTypes.rwfpath]
+  NativeType = "Stencil::RWFPath"
+  [FieldTypes.rdpath]
+  NativeType = "Stencil::RDPath"
+  [FieldTypes.wdpath]
+  NativeType = "Stencil::WDPath"
+  [FieldTypes.rwdpath]
+  NativeType = "Stencil::RWDPath"
 
 [Struct]
 NativeType = "::%Struct:Parent:Name%::%Struct:Name%"

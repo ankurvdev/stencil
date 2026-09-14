@@ -1,15 +1,18 @@
 #pragma once
-#include "typetraits_builtins.h"
+#include "typetraits_builtins.h"    // IWYU pragma: keep
+#include "typetraits_path.h"        // IWYU pragma: keep
 
-#include "enums.h"
-#include "protocol_binary.h"
-#include "protocol_cli.h"
-#include "protocol_json.h"
-#include "protocol_string.h"
+#include "enums.h"              // IWYU pragma: keep
+#include "protocol_binary.h"    // IWYU pragma: keep
+#include "protocol_cli.h"       // IWYU pragma: keep
+#include "protocol_json.h"      // IWYU pragma: keep
+#include "protocol_string.h"    // IWYU pragma: keep
 
-#include "interfaces.h"
-#include "shared_tree.h"
-#include "transactions.h"
+#include "interfaces.h"      // IWYU pragma: keep
+#include "shared_tree.h"     // IWYU pragma: keep
+#include "transactions.h"    // IWYU pragma: keep
 
-#include "database.h"
-#include "ref.h"
+#include "database.h"    // IWYU pragma: keep
+#include "ref.h"         // IWYU pragma: keep
+
+#include "webservice_boostbeast.h"    // IWYU pragma: keep

@@ -3,6 +3,7 @@
 
 #include "optionalprops.h"
 #include "ref.h"
+#include "serdes.h"
 #include "shared_tree.h"
 #include "timestamped.h"
 #include "typetraits.h"

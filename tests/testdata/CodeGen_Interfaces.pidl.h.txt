@@ -104,6 +104,14 @@ struct Server1
     {
         uint32_t arg2{};
     };
+    struct Args_GetFile
+    {
+        Stencil::WFPath p{};
+    };
+    struct Args_GetStream
+    {
+        Stencil::RFPath p{};
+    };
     struct Args_SomethingHappened
     {
         uint32_t arg1{};
@@ -122,6 +130,12 @@ struct Server1
             ) = 0;
         virtual void Function3(
             uint32_t const& arg2
+            ) = 0;
+        virtual ::Stencil::websvc::File GetFile(
+            Stencil::WFPath const& p
+            ) = 0;
+        virtual ::Stencil::websvc::Stream GetStream(
+            Stencil::RFPath const& p
             ) = 0;
     };
 
@@ -181,6 +195,34 @@ struct Server1
         {
             return this->Function3(
                 std::move(args.arg2)
+            );
+        }
+
+        ::Stencil::websvc::File GetFile([[maybe_unused]] Args_GetFile const& args)
+        {
+            return this->GetFile(
+                args.p
+            );
+        }
+
+        ::Stencil::websvc::File GetFile([[maybe_unused]] Args_GetFile&& args)
+        {
+            return this->GetFile(
+                std::move(args.p)
+            );
+        }
+
+        ::Stencil::websvc::Stream GetStream([[maybe_unused]] Args_GetStream const& args)
+        {
+            return this->GetStream(
+                args.p
+            );
+        }
+
+        ::Stencil::websvc::Stream GetStream([[maybe_unused]] Args_GetStream&& args)
+        {
+            return this->GetStream(
+                std::move(args.p)
             );
         }
 
@@ -505,6 +547,206 @@ template <> struct Stencil::InterfaceApiTraits<Interfaces::Server1::Args_Functio
         );
     }
 };
+template <> struct Stencil::TypeTraits<Interfaces::Server1::Args_GetFile>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_GetFile>
+{
+    using TObj = Interfaces::Server1::Args_GetFile;
+    enum class Fields
+    {
+        Invalid,
+        arg_p,
+    };
+
+    struct Field_arg_pT
+    {};
+    using Key = Fields;
+
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_arg_pT /* key */) { return false; }
+};
+
+template <>
+struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_GetFile>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_GetFile>::Fields;
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
+    static constexpr std::string_view Names[] /* NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)*/ = {
+        "Invalid",
+        "p",
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+    SUPPRESS_WARNINGS_END
+    static Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_GetFile>::Fields
+    ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_GetFile>::Fields>(
+            index);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Interfaces::Server1::Args_GetFile>
+    : Stencil::VisitorT<Interfaces::Server1::Args_GetFile>
+{
+    using TData  = Interfaces::Server1::Args_GetFile;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
+
+    template <typename T, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
+    {
+        switch (field)
+        {
+        case Fields::arg_p: return lambda(obj.p);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TField, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda const& lambda)
+    {
+        if constexpr (std::is_same_v<TField, typename Traits::Field_arg_pT>) { return lambda(obj.p); }
+        throw std::logic_error("Invalid Key");
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
+    {
+        lambda(Fields::arg_p, obj.p);
+    }
+};
+
+template <>
+struct Stencil::Comparator<Interfaces::Server1::Args_GetFile,
+                           Interfaces::Server1::Args_GetFile>
+{
+    using ThisType = Interfaces::Server1::Args_GetFile;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.p, obj2.p)
+            ;
+    }
+};
+
+template <> struct Stencil::InterfaceApiTraits<Interfaces::Server1::Args_GetFile>
+{
+    using ArgsStruct = Interfaces::Server1::Args_GetFile;
+    static constexpr bool             IsStatic() { return false; }
+    static constexpr std::string_view Name() { return "GetFile"; }
+
+    template <typename TImpl> static auto Invoke(TImpl& instance, [[maybe_unused]] ArgsStruct& args)
+    {
+        return InterfaceSvcTraits<TImpl, Interfaces::Server1>::QueryInterface(instance).GetFile(
+            args.p
+        );
+    }
+};
+template <> struct Stencil::TypeTraits<Interfaces::Server1::Args_GetStream>
+{
+    using Categories = std::tuple<Stencil::Category::Indexable>;
+};
+
+template <> struct Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_GetStream>
+{
+    using TObj = Interfaces::Server1::Args_GetStream;
+    enum class Fields
+    {
+        Invalid,
+        arg_p,
+    };
+
+    struct Field_arg_pT
+    {};
+    using Key = Fields;
+
+    static constexpr bool HasDefaultValueForKey(TObj const& /* obj */, Field_arg_pT /* key */) { return false; }
+};
+
+template <>
+struct Stencil::EnumTraits<Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_GetStream>::Fields>
+{
+    using Enum = Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_GetStream>::Fields;
+    SUPPRESS_WARNINGS_START
+    SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
+    static constexpr std::string_view Names[] /* NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)*/ = {
+        "Invalid",
+        "p",
+    };
+
+    static std::string_view ToString(Enum type) { return Names[static_cast<size_t>(type)]; }
+    SUPPRESS_WARNINGS_END
+    static Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_GetStream>::Fields
+    ForIndex(size_t index)
+    {
+        return static_cast<Stencil::TypeTraitsForIndexable<Interfaces::Server1::Args_GetStream>::Fields>(
+            index);
+    }
+};
+
+template <>
+struct Stencil::Visitor<Interfaces::Server1::Args_GetStream>
+    : Stencil::VisitorT<Interfaces::Server1::Args_GetStream>
+{
+    using TData  = Interfaces::Server1::Args_GetStream;
+    using Traits = Stencil::TypeTraitsForIndexable<TData>;
+    using Fields = Traits::Fields;
+
+    template <typename T, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, Fields field, [[maybe_unused]] TLambda const& lambda)
+    {
+        switch (field)
+        {
+        case Fields::arg_p: return lambda(obj.p);
+        case Fields::Invalid: [[fallthrough]];
+        default: throw std::logic_error("Invalid Key");
+        }
+    }
+
+    template <typename T, typename TField, typename TLambda>
+    static void VisitKey([[maybe_unused]] T& obj, TField /* field */, [[maybe_unused]] TLambda const& lambda)
+    {
+        if constexpr (std::is_same_v<TField, typename Traits::Field_arg_pT>) { return lambda(obj.p); }
+        throw std::logic_error("Invalid Key");
+    }
+
+    template <typename T, typename TLambda> static void VisitAll([[maybe_unused]] T& obj, [[maybe_unused]] TLambda const& lambda)
+    {
+        lambda(Fields::arg_p, obj.p);
+    }
+};
+
+template <>
+struct Stencil::Comparator<Interfaces::Server1::Args_GetStream,
+                           Interfaces::Server1::Args_GetStream>
+{
+    using ThisType = Interfaces::Server1::Args_GetStream;
+    static bool AreEqual([[maybe_unused]] ThisType const& obj1, [[maybe_unused]] ThisType const& obj2)
+    {
+        return true
+               && Stencil::AreEqual(obj1.p, obj2.p)
+            ;
+    }
+};
+
+template <> struct Stencil::InterfaceApiTraits<Interfaces::Server1::Args_GetStream>
+{
+    using ArgsStruct = Interfaces::Server1::Args_GetStream;
+    static constexpr bool             IsStatic() { return false; }
+    static constexpr std::string_view Name() { return "GetStream"; }
+
+    template <typename TImpl> static auto Invoke(TImpl& instance, [[maybe_unused]] ArgsStruct& args)
+    {
+        return InterfaceSvcTraits<TImpl, Interfaces::Server1>::QueryInterface(instance).GetStream(
+            args.p
+        );
+    }
+};
 template <> struct Stencil::TypeTraits<Interfaces::Server1::Args_SomethingHappened>
 {
     using Categories = std::tuple<Stencil::Category::Indexable>;
@@ -616,6 +858,8 @@ template <> struct Stencil::InterfaceTraits<Interfaces::Server1>
         Interfaces::Server1::Args_Function1
 ,        Interfaces::Server1::Args_Function2
 ,        Interfaces::Server1::Args_Function3
+,        Interfaces::Server1::Args_GetFile
+,        Interfaces::Server1::Args_GetStream
         >;
 
     using Objects = std::tuple<

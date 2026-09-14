@@ -10,7 +10,7 @@
 #endif
 
 #include "database.h"
-#include "fmtboostbeast.h"
+#include "fmtboostbeast.h"    // IWYU pragma: keep
 #include "interfaces.h"
 #include "protocol_json.h"
 #include "serdes.h"
@@ -54,6 +54,16 @@ SUPPRESS_WARNINGS_END
 #error Need co await
 #endif
 
+namespace Stencil::websvc
+{
+
+struct File
+{ std::filesystem::path path; };
+
+struct Stream
+{};
+
+}    // namespace Stencil::websvc
 namespace Stencil::websvc::impl
 {
 template <typename TImpl, typename TSvc> struct RequestHandler;
@@ -151,41 +161,43 @@ inline void WriteFileResponse(tcp_stream&                      stream,    // NOL
     if (hasRange)
     {
         // Parse Range header (format: "bytes=start-end")
-        std::string rangeValue = std::string(rangeHeader->value());
+        auto rangeValue = rangeHeader->value();
 
-        if (rangeValue.starts_with("bytes="))
+        if (!rangeValue.starts_with("bytes="))
         {
-            constexpr size_t bytesPrefix = 6;    // length of "bytes="
-            std::string      rangeSpec   = rangeValue.substr(bytesPrefix);
-            size_t           dashPos     = rangeSpec.find('-');
+            throw std::invalid_argument(fmt::format("Invalid Range header: {}. Expected bytes=<>-<>", rangeValue));
+        }
 
-            if (dashPos != std::string::npos)
+        constexpr size_t bytesPrefix = 6;    // length of "bytes="
+        auto             rangeSpec   = rangeValue.substr(bytesPrefix);
+        size_t           dashPos     = rangeSpec.find('-');
+
+        if (dashPos != std::string::npos)
+        {
+            auto startStr = rangeSpec.substr(0, dashPos);
+            auto endStr   = rangeSpec.substr(dashPos + 1);
+
+            try
             {
-                std::string startStr = rangeSpec.substr(0, dashPos);
-                std::string endStr   = rangeSpec.substr(dashPos + 1);
+                if (!startStr.empty()) { startByte = static_cast<size_t>(std::stoull(startStr)); }
 
-                try
+                if (!endStr.empty()) { endByte = static_cast<size_t>(std::stoull(endStr)); }
+                else
                 {
-                    if (!startStr.empty()) { startByte = static_cast<size_t>(std::stoull(startStr)); }
-
-                    if (!endStr.empty()) { endByte = static_cast<size_t>(std::stoull(endStr)); }
-                    else
-                    {
-                        endByte = fileSize - 1;
-                    }
-
-                    // Validate range
-                    if (startByte > endByte || startByte >= fileSize) {}
-
-                    // Clamp end byte to file size
-                    if (endByte >= fileSize) { endByte = fileSize - 1; }
-                } catch (...)
-                {
-                    // Invalid range format, ignore and send full file
-                    hasRange  = false;
-                    startByte = 0;
-                    endByte   = fileSize - 1;
+                    endByte = fileSize - 1;
                 }
+
+                // Validate range
+                if (startByte > endByte || startByte >= fileSize) {}
+
+                // Clamp end byte to file size
+                if (endByte >= fileSize) { endByte = fileSize - 1; }
+            } catch (...)
+            {
+                // Invalid range format, ignore and send full file
+                hasRange  = false;
+                startByte = 0;
+                endByte   = fileSize - 1;
             }
         }
     }
@@ -382,24 +394,21 @@ template <typename... Types> struct Selector
 {
     SUPPRESS_WARNINGS_START
     SUPPRESS_MSVC_WARNING(4702)    // unreachable code
-    template <typename T, typename... TArgs> static bool InvokeIfMatch(TArgs&&... args)
+    template <typename T, typename... TArgs> static bool InvokeIfMatch(TArgs&... args)
     {
-        if (T::Matches(std::forward<TArgs>(args)...))
-        {
-
-            T::Invoke(std::forward<TArgs>(args)...);    // NOLINT(bugprone-use-after-move)
-            return true;
-        }
-        return false;
+        auto matchFn = [&](auto const&... cargs) { return T::Matches(cargs...); };
+        if (!matchFn(args...)) { return false; }
+        T::Invoke(args...);
+        return true;
     }
     SUPPRESS_WARNINGS_END
 
-    template <typename... TArgs> static auto Invoke([[maybe_unused]] TArgs&&... args)
+    template <typename... TArgs> static auto Invoke([[maybe_unused]] TArgs&... args)
     {
         if constexpr (sizeof...(Types) == 0) {}
         else
         {
-            auto result = (InvokeIfMatch<Types>(std::forward<TArgs>(args)...) || ...);    // NOLINT(bugprone-use-after-move)
+            auto result = (InvokeIfMatch<Types>(args...) || ...);
             if (result) return;
         }
         throw std::logic_error("Unexpected error. Unreachable code encountered. Did not match any selector");
@@ -563,7 +572,7 @@ template <typename TImpl, ConceptInterface TInterface> struct WebRequestContext
 
 template <typename TContext> struct RequestHandlerForAllEvents
 {
-    static bool Matches(TContext& ctx) { return impl::iequals(*ctx.urlSegIt, "events"); }
+    static bool Matches(TContext const& ctx) { return impl::iequals(*ctx.urlSegIt, "events"); }
     static auto Invoke(TContext& ctx)
     {
         ctx.mgr.CreateInstance(0, std::move(ctx.stream), ctx.req, "event: init\ndata: \n\n");
@@ -573,14 +582,15 @@ template <typename TContext> struct RequestHandlerForAllEvents
 
 template <typename TContext, typename TEventStructs> struct RequestHandlerForEvents
 {
-    static bool Matches(TContext& ctx) { return impl::iequals(Stencil::InterfaceApiTraits<TEventStructs>::Name(), *ctx.urlSegIt); }
+    static bool Matches(TContext const& ctx) { return impl::iequals(Stencil::InterfaceApiTraits<TEventStructs>::Name(), *ctx.urlSegIt); }
     static auto Invoke(TContext& ctx)
     { ctx.mgr.CreateInstance(typeid(TContext).hash_code(), std::move(ctx.stream), std::move(ctx.req), "event: init\ndata: \n\n"); }
 };
 
 template <typename TContext, typename TObjectStoreObj> struct RequestHandlerForObjectStore
 {
-    static bool Matches(TContext& ctx) { return impl::iequals(Stencil::InterfaceObjectTraits<TObjectStoreObj>::Name(), *ctx.urlSegIt); }
+    static bool Matches(TContext const& ctx)
+    { return impl::iequals(Stencil::InterfaceObjectTraits<TObjectStoreObj>::Name(), *ctx.urlSegIt); }
 
     template <typename TLambda> static auto ForeachObjId(TContext& ctx, TLambda const& lambda)
     {
@@ -734,11 +744,11 @@ template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunct
     using TImpl      = TContext::Impl;
     using TInterface = TContext::Interface;
 
-    static bool Matches(TContext& ctx) { return impl::iequals(Stencil::InterfaceApiTraits<TArgsStruct>::Name(), *ctx.urlSegIt); }
+    static bool Matches(TContext const& ctx) { return impl::iequals(Stencil::InterfaceApiTraits<TArgsStruct>::Name(), *ctx.urlSegIt); }
     static auto CreateArgStruct(TContext& ctx)
     {
         TArgsStruct args{};
-        if (ctx.req.method() == boost::beast::http::verb::get)
+        if (ctx.req.method() == boost::beast::http::verb::get || ctx.req.method() == boost::beast::http::verb::head)
         {
             for (auto const& param : ctx.url.params())
             {
@@ -777,19 +787,27 @@ template <typename TContext, typename TArgsStruct> struct RequestHandlerForFunct
         else
         {
             auto retval = Traits::Invoke(ctx.impl, args);
-            rslt << Stencil::Json::Stringify<decltype(retval)>(retval);
-            auto msg   = rslt.str();
-            auto res   = impl::CreateResponse<boost::beast::http::string_body>(ctx.req, "application/json");
-            res.body() = msg;
-            boost::beast::http::response_serializer<boost::beast::http::string_body, boost::beast::http::fields> sr{res};
-            boost::beast::http::write(ctx.stream, sr);
+            if constexpr (std::is_same_v<Stencil::websvc::File, decltype(retval)>)
+            {    //
+                WriteFileResponse(ctx.stream, ctx.req, retval.path, {Stencil::websvc::MimeType(retval.path.string())});
+            }
+            else if constexpr (std::is_same_v<Stencil::websvc::Stream, decltype(retval)>) { TODO("NotImpl2"); }
+            else
+            {
+                rslt << Stencil::Json::Stringify<decltype(retval)>(retval);
+                auto msg   = rslt.str();
+                auto res   = impl::CreateResponse<boost::beast::http::string_body>(ctx.req, "application/json");
+                res.body() = msg;
+                boost::beast::http::response_serializer<boost::beast::http::string_body, boost::beast::http::fields> sr{res};
+                boost::beast::http::write(ctx.stream, sr);
+            }
         }
     }
 };
 
 template <typename TContext> struct RequestHandlerFallback
 {
-    static bool Matches(TContext& /* ctx */) { return true; }
+    static bool Matches(TContext const& /* ctx */) { return true; }
     static auto Invoke(TContext& ctx)
     {
         if (!ctx.impl.HandleRequest(ctx.stream, ctx.req, ctx.url))
@@ -802,12 +820,12 @@ template <typename TContext> struct RequestHandlerFallback
 template <typename TImpl, ConceptInterface TInterface> struct RequestHandler<TImpl, TInterface>
 {
     template <typename TTup>
-    static bool Matches(SvcMgr& /* mgr */,
-                        TTup& /* impls */,
-                        tcp_stream& /* stream */,
+    static bool Matches(SvcMgr const& /* mgr */,
+                        TTup const& /* impls */,
+                        tcp_stream const& /* stream */,
                         Request const& /* req */,
-                        boost::urls::url_view& /*url*/,
-                        boost::urls::segments_base::iterator& it)
+                        boost::urls::url_view const& /*url*/,
+                        boost::urls::segments_base::iterator const& it)
     { return iequals(Stencil::InterfaceTraits<TInterface>::Name(), *it); }
 
     template <typename T1> struct EventTransform;
@@ -838,7 +856,7 @@ template <typename TImpl, ConceptInterface TInterface> struct RequestHandler<TIm
 
     template <typename TContext> struct RequestHandlerForObjectStoreListener
     {
-        static bool Matches(TContext& ctx) { return impl::iequals(*ctx.urlSegIt, std::string_view("objectstore")); }
+        static bool Matches(TContext const& ctx) { return impl::iequals(*ctx.urlSegIt, std::string_view("objectstore")); }
 
         static auto Invoke(TContext& ctx)
         {
@@ -901,12 +919,12 @@ template <ConceptIndexable TState> struct SynchronizedState
 
 template <typename TImpl, ConceptIndexable TState> struct RequestHandler<TImpl, SynchronizedState<TState>>
 {
-    static bool Matches(SvcMgr& /* mgr */,
-                        TImpl& impl,
-                        tcp_stream& /* stream */,
+    static bool Matches(SvcMgr const& /* mgr */,
+                        TImpl const& impl,
+                        tcp_stream const& /* stream */,
                         Request const& /* req */,
-                        boost::urls::url_view& /*url*/,
-                        boost::urls::segments_base::iterator& it)
+                        boost::urls::url_view const& /*url*/,
+                        boost::urls::segments_base::iterator const& it)
     { return iequals(impl.Name(), *it); }
 
     static void Invoke(SvcMgr&                               mgr,
@@ -1058,8 +1076,8 @@ struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TServices>...    // 
 
     void StopDaemon()
     {
-        _mgr.Stop();
         boost::system::error_code ec;
+        if (_handlerPool) { _handlerPool->wait(); }
         for (auto& acceptor : _tcpAcceptors)
         {
             if (acceptor.close(ec)) { fmt::print(stderr, "[TCP][WARN] Failed to close acceptor: {}\n", ec.message()); }
@@ -1067,7 +1085,7 @@ struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TServices>...    // 
         _tcpAcceptors.clear();
         // Drain in-flight connection handlers before tearing down the io_context their
         // accepted sockets are bound to.
-        if (_handlerPool) { _handlerPool->stop(); }
+        _mgr.Stop();
         WaitForStop();
     }
 
@@ -1078,7 +1096,6 @@ struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TServices>...    // 
             if (thrd.joinable()) thrd.join();
         }
         _listenthreads.clear();
-        if (_handlerPool) { _handlerPool->join(); }
     }
 
     template <typename TEventArgs> void OnEvent(TEventArgs const& args)

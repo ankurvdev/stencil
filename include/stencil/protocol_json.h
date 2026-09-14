@@ -333,6 +333,20 @@ template <typename T> struct SerDes<shared_stringT<T>, ProtocolJsonVal>
     }
     template <typename TContext> static auto Read(TObj& obj, TContext& ctx) { ReadQuotedString(obj, ctx); }
 };
+template <> struct SerDes<std::filesystem::path, ProtocolJsonVal>
+{
+    using TObj = std::filesystem::path;
+
+    template <typename TContext> static auto Write(TContext& ctx, TObj const& obj)
+    {
+        if (obj.empty()) { fmt::print(ctx, "null"); }
+        else
+        {
+            WriteQuotedString(ctx, obj);
+        }
+    }
+    template <typename TContext> static auto Read(TObj& obj, TContext& ctx) { ReadQuotedString(obj, ctx); }
+};
 }    // namespace Stencil
 
 // Stringify

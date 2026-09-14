@@ -19,7 +19,6 @@ SUPPRESS_WARNINGS_END
 SUPPRESS_WARNINGS_START
 SUPPRESS_STL_WARNINGS
 SUPPRESS_FMT_WARNINGS
-SUPPRESS_MSVC_WARNING(4426)    // optimization flags changed after including header,
 SUPPRESS_MSVC_WARNING(4388)    // signed / unsigned mismatch (Catch2)
 #include <catch2/catch_all.hpp>
 #include <dtl/dtl.hpp>
@@ -56,7 +55,7 @@ inline std::vector<std::string> readlines(std::filesystem::path const& path)
 inline auto WriteStrResourse(std::vector<std::string> const& actualstring, std::string_view const& resname)
 {
     auto          outf = std::filesystem::absolute(std::string(resname) + ".txt");
-    std::ofstream f(outf);
+    std::ofstream f(outf, std::ios::binary);
     for (auto const& l : actualstring) { f << l << "\n"; }
     return outf;
 }
@@ -382,6 +381,21 @@ template <typename TFormat> inline bool CheckResource(std::vector<std::string> c
 
     auto outf = TFormat::WriteResource(actual, testresname);
     FAIL_CHECK(fmt::format("Comparison Failed: Output: \n{}", outf.string()));
+    return false;
+}
+
+template <typename TFormat> inline bool CheckFileEqual(std::filesystem::path const& actual, std::filesystem::path const& expected)
+{
+    std::ifstream actualf(actual);
+    std::ifstream expectedf(expected);
+    if (!actualf.is_open()) { throw std::runtime_error("Failed to open actual file: " + actual.string()); }
+    if (!expectedf.is_open()) { throw std::runtime_error("Failed to open expected file: " + expected.string()); }
+    auto res1 = TFormat::ReadStream(actualf);
+    auto res2 = TFormat::ReadStream(expectedf);
+    if (res1 == res2) return true;
+
+    PrintLinesDiff(res1, res2);
+    FAIL_CHECK(fmt::format("Comparison Failed: Output: \n{}", actual.string()));
     return false;
 }
 

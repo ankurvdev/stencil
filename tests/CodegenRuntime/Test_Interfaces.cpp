@@ -2,7 +2,10 @@
 #include "ObjectsTester.h"
 #include "TestUtils.h"
 
-#include <stencil/webservice_boostbeast.h>
+#include <filesystem>
+#include <fstream>
+#include <stdexcept>
+#include <unordered_map>
 
 SUPPRESS_WARNINGS_START
 SUPPRESS_MSVC_WARNING(4191)    // type cast': unsafe conversion
@@ -35,8 +38,10 @@ SUPPRESS_GCC_WARNING("-Wmaybe-uninitialized")
 #include <memory>
 #include <string>
 SUPPRESS_WARNINGS_END
-
-// NOLINTBEGIN(readability-magic-numbers, cppcoreguidelines-pro-type-reinterpret-cast, readability-function-cognitive-complexity)
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("-Wunused-member-function")
+// NOLINTBEGIN(readability-magic-numbers, cppcoreguidelines-pro-type-reinterpret-cast, readability-function-cognitive-complexity,
+// readability-convert-member-functions-to-static)
 static_assert(Stencil::Database::ConceptRecord<uint32_t>);
 static_assert(Stencil::Database::ConceptTrivial<uint32_t>);
 
@@ -49,6 +54,25 @@ namespace beast = boost::beast;
 namespace http  = beast::http;
 namespace net   = boost::asio;
 using net::ip::tcp;
+
+template <typename TSvc, typename TImpl>
+static std::unordered_map<uint32_t, Objects::SimpleObject1>
+Function1Impl(TSvc& svc, TImpl& obj, uint32_t const& arg1, Objects::SimpleObject1 const& arg2)
+{
+    std::unordered_map<uint32_t, Objects::SimpleObject1> retval;
+
+    auto key    = arg1 + 1;
+    auto copied = arg2;
+    copied.val1 += 1;
+    copied.val2 += 1;
+    copied.val3 += 1;
+    copied.val5 += 1.0;
+    retval[key] = copied;
+
+    svc.RaiseEvent(obj, Interfaces::Server1::Args_SomethingHappened{.arg1 = key, .arg2 = copied});
+    return retval;
+}
+
 namespace
 {
 struct HttpClientListener
@@ -252,7 +276,55 @@ struct HttpClientListener
         if (sseListener.joinable()) sseListener.join();
     }
 
-    static std::string Get(std::string_view const& target, Params const& params)
+    static auto Head(std::string_view const& target, Params const& params)
+    {
+        boost::urls::url url;
+        url.set_path(target);
+        for (auto const& [k, v] : params)
+        {    //
+            url.params().append({k, v});
+        }
+
+        net::io_context   ioc;
+        tcp::resolver     resolver(ioc);
+        beast::tcp_stream stream(ioc);
+
+        stream.connect(resolver.resolve(LocalHostName, Port));
+        {
+            // Send request
+            http::request<http::string_body> req{http::verb::head, url.encoded_target(), 11 /*HTTP Version 1.1*/};
+            req.set(http::field::host, LocalHostName);
+            req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+            req.set(http::field::accept, "application/json");
+            http::write(stream, req);
+        }
+        beast::flat_buffer                      buffer;
+        http::response_parser<http::empty_body> parser;
+        parser.skip(true);
+        beast::error_code                            ec;
+        auto                                         bytesRead = http::read_header(stream, buffer, parser);
+        std::unordered_map<std::string, std::string> responseFields;
+        auto                                         res = parser.get();
+        for (auto const& field : res) { responseFields[field.name_string()] = field.value(); }
+        responseFields["bytesRead"] = std::to_string(bytesRead);
+        if (buffer.size() != 0) { throw std::runtime_error("ERROR: server sent body bytes: " + std::to_string(buffer.size())); }
+        if (stream.socket().read_some(buffer.prepare(8192), ec) != 0) { throw std::runtime_error("ERROR: server sent body bytes"); }
+        if (ec != net::error::eof) { throw beast::system_error(ec); }
+        return responseFields;
+    }
+
+    static void Download(std::string_view const& target, Params const& params, std::ostream& os)
+    {
+        auto content = Get(target, params, {});
+        os.write(content.data(), static_cast<std::streamsize>(content.size()));
+    }
+    static void DownloadRange(std::string_view const& target, Params const& params, size_t start, size_t end, std::ostream& os)
+    {
+        auto content = Get(target, params, {{"range", "bytes=" + std::to_string(start) + "-" + std::to_string(end)}});
+        os.write(content.data(), static_cast<std::streamsize>(content.size()));
+    }
+
+    static std::string Get(std::string_view const& target, Params const& params, Params const& headers)
     {
         boost::urls::url url;
         url.set_path(target);
@@ -272,6 +344,7 @@ struct HttpClientListener
             req.set(http::field::host, LocalHostName);
             req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
             req.set(http::field::accept, "application/json");
+            for (auto const& [k, v] : headers) { req.set(k, v); }
             http::write(stream, req);
         }
         beast::flat_buffer buffer;
@@ -377,23 +450,12 @@ struct Server1Impl
     auto EditContext() LFTBND { return EditCtx(this, state); }
 
     std::unordered_map<uint32_t, Objects::SimpleObject1> Function1(uint32_t const& arg1, Objects::SimpleObject1 const& arg2) override
-    {
-        std::unordered_map<uint32_t, Objects::SimpleObject1> retval;
+    { return Function1Impl(*this, *this, arg1, arg2); }
 
-        auto key    = arg1 + 1;
-        auto copied = arg2;
-        copied.val1 += 1;
-        copied.val2 += 1;
-        copied.val3 += 1;
-        copied.val5 += 1.0;
-        retval[key] = copied;
-
-        Raise_SomethingHappened(key, copied);
-        return retval;
-    }
-
-    void Function2() override {}
-    void Function3(uint32_t const& /* arg1 */) override {}
+    void                    Function2() override {}
+    void                    Function3(uint32_t const& /* arg1 */) override {}
+    Stencil::websvc::File   GetFile([[maybe_unused]] Stencil::WFPath const& p) override { throw std::logic_error("Not implemented"); }
+    Stencil::websvc::Stream GetStream([[maybe_unused]] Stencil::RFPath const& p) override { throw std::logic_error("Not implemented"); }
 
     void OnStateChange(Stencil::Transaction<Objects::NestedObject>::View const& txnv) { NotifyStateChanged(txnv); }
 
@@ -452,46 +514,105 @@ namespace
 struct ImplSeparateImplSvc : Interfaces::Server1::Interface
 {
     std::unordered_map<uint32_t, Objects::SimpleObject1> Function1(uint32_t const& arg1, Objects::SimpleObject1 const& arg2) override
-    {
-        std::unordered_map<uint32_t, Objects::SimpleObject1> retval;
-
-        auto key    = arg1 + 1;
-        auto copied = arg2;
-        copied.val1 += 1;
-        copied.val2 += 1;
-        copied.val3 += 1;
-        copied.val5 += 1.0;
-        retval[key] = copied;
-
-        svc->Raise_SomethingHappened(key, copied);
-        return retval;
-    }
+    { return Function1Impl(*svc, *svc, arg1, arg2); }
 
     void                Function2() override {}
     void                Function3(uint32_t const& /* arg1 */) override {}
     SvcSeparateImplSvc* svc{nullptr};
+
+    Stencil::websvc::File   GetFile([[maybe_unused]] Stencil::WFPath const& p) override { throw std::logic_error("Not implemented"); }
+    Stencil::websvc::Stream GetStream([[maybe_unused]] Stencil::RFPath const& p) override { throw std::logic_error("Not implemented"); }
+};
+
+struct ImplNoInterfaceSvc;
+
+struct SvcNoInterfaceSvc
+    : Stencil::websvc::WebServiceT<SvcNoInterfaceSvc, Interfaces::Server1, Stencil::websvc::WebSynchronizedState<Objects::NestedObject>>
+{
+    SvcNoInterfaceSvc() { objects.Init(std::filesystem::path("SaveAndLoad.bin")); }
+    ~SvcNoInterfaceSvc() = default;
+    CLASS_DELETE_COPY_AND_MOVE(SvcNoInterfaceSvc);
+
+    static std::string_view   Name() { return "state"; }
+    [[nodiscard]] std::string StateStringify() const { return Stencil::Json::Stringify(state); }
+
+    struct EditCtx
+    {
+        EditCtx(SvcNoInterfaceSvc* thatIn LFTBND, Objects::NestedObject& stateIn LFTBND) :
+            txn(Stencil::CreateRootTransaction<Objects::NestedObject>(stateIn)), that(thatIn)
+        {}
+        ~EditCtx() { that->OnStateChange(txn); }
+        CLASS_DELETE_COPY_AND_MOVE(EditCtx);
+        auto& TXN() LFTBND { return txn; }
+
+        Stencil::Transaction<Objects::NestedObject> txn;
+        SvcNoInterfaceSvc*                          that;
+    };
+
+    auto EditContext() LFTBND { return EditCtx(this, state); }
+
+    void OnStateChange(Stencil::Transaction<Objects::NestedObject>::View const& txnv) { NotifyStateChanged(txnv); }
+
+    Objects::NestedObject state;
+    ImplNoInterfaceSvc*   impl{nullptr};
+};
+
+struct ImplNoInterfaceSvc
+{
+    static constexpr size_t LargeFileIntCount = 32z * 1024z;
+
+    std::unordered_map<uint32_t, Objects::SimpleObject1> Function1(uint32_t const& arg1, Objects::SimpleObject1 const& arg2)
+    { return Function1Impl(*svc, *svc, arg1, arg2); }
+
+    void Function2() {}
+    void Function3(uint32_t const& /* arg1 */) {}
+
+    auto GetFile(std::filesystem::path const& wpath)
+    {
+        outpath = std::filesystem::temp_directory_path() / wpath;
+        std::ofstream ofs(outpath, std::ios::binary);
+        for (size_t i = 0; i < LargeFileIntCount; ++i) { ofs << i << "\n"; }
+        return Stencil::websvc::File{outpath};
+    }
+
+    [[noreturn]] Stencil::websvc::Stream GetStream(std::filesystem::path const& /* rpath */) { TODO("NotImpl"); }
+
+    std::filesystem::path outpath;
+    SvcNoInterfaceSvc*    svc{nullptr};
 };
 
 // Generated code ends
+}    // namespace
 
+template <> struct Stencil::InterfaceSvcTraits<SvcNoInterfaceSvc, Interfaces::Server1>
+{
+    static auto& QueryInterface(SvcNoInterfaceSvc& svc) { return *svc.impl; }
+};
+
+namespace
+{
 template <typename TSvc> struct Tester : ObjectsTester
 {
     using Params = HttpClientListener::Params;
-    Tester()
+    Tester() : svc(std::make_unique<TSvc>())
     {
-        if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
-        svc = std::make_unique<TSvc>();
         svc->StartOnPort(44444, 4);
+        tempFiles.emplace_back("SaveAndLoad.bin");
     }
 
     ~Tester()
     {
+        svc->StopDaemon();
+        svc.reset();
+
         sseListener1.RequestStop();
         sseListener2.RequestStop();
         sseListener3.RequestStop();
 
-        svc->StopDaemon();
-        svc.reset();
+        for (auto const& fpath : tempFiles)
+        {
+            if (std::filesystem::exists(fpath)) std::filesystem::remove(fpath);
+        }
 
         if (std::filesystem::exists(dbfile)) std::filesystem::remove(dbfile);
         TestCommon::CheckResource<TestCommon::JsonFormat>(jsonLines, "json");
@@ -529,7 +650,7 @@ template <typename TSvc> struct Tester : ObjectsTester
 
     auto ValidCliJsonGet(std::string const& path, Params const& params)
     {
-        auto json = HttpClientListener::Get(path, params);
+        auto json = HttpClientListener::Get(path, params, {});
         CHECK(!json.empty());
         jsonLines.push_back(json);
         return json;
@@ -589,6 +710,78 @@ template <typename TSvc> struct Tester : ObjectsTester
     void CliRequestStateChange1() { ValidCliJsonGet("/api/state/apply", Params{{"obj1.val1", "20"}, {"obj2.val1", "true"}}); }
     void CliRequestStateChange2() { ValidCliJsonGet("/api/state/apply", Params{{"obj1.val1", "-20"}, {"obj2.val1", "false"}}); }
 
+    void CliGetFile()
+    {
+        auto            reqfname = (std::filesystem::temp_directory_path() / CreateFilePath());
+        auto            resfname = (std::filesystem::temp_directory_path() / CreateFilePath());
+        std::error_code ec;
+        std::filesystem::remove(reqfname, ec);
+        std::filesystem::remove(resfname, ec);
+        tempFiles.emplace_back(reqfname);
+        tempFiles.emplace_back(resfname);
+        {
+            std::ofstream ofs(resfname, std::ios::binary);
+            HttpClientListener::Download("/api/server1/getfile", Params{{"p", reqfname.filename().string()}}, ofs);
+        }
+        TestCommon::CheckFileEqual<TestCommon::StrFormat>(resfname, reqfname);
+    }
+
+    void CliGetFileRange()
+    {
+        auto            reqfname = (std::filesystem::temp_directory_path() / CreateFilePath());
+        auto            resfname = (std::filesystem::temp_directory_path() / CreateFilePath());
+        std::error_code ec;
+        std::filesystem::remove(reqfname, ec);
+        std::filesystem::remove(resfname, ec);
+        tempFiles.emplace_back(reqfname);
+        tempFiles.emplace_back(resfname);
+        std::stringstream ss;
+        HttpClientListener::DownloadRange("/api/server1/getfile", Params{{"p", reqfname.filename().string()}}, 2, 4, ss);
+        auto content = ss.str();
+        CHECK(content == "1\n2");
+    }
+
+    void CliGetFileRangeOutofBound()
+    {
+        auto            reqfname = (std::filesystem::temp_directory_path() / CreateFilePath());
+        auto            resfname = (std::filesystem::temp_directory_path() / CreateFilePath());
+        std::error_code ec;
+        std::filesystem::remove(reqfname, ec);
+        std::filesystem::remove(resfname, ec);
+        tempFiles.emplace_back(reqfname);
+        tempFiles.emplace_back(resfname);
+        {
+            std::ofstream ofs(resfname, std::ios::binary);
+            HttpClientListener::DownloadRange("/api/server1/getfile", Params{{"p", reqfname.filename().string()}}, 2, 1024z * 1024z, ofs);
+        }
+        {
+            std::ifstream actualf(resfname);
+            std::ifstream expectedf(reqfname);
+            if (!actualf.is_open()) { throw std::runtime_error("Failed to open actual file: " + resfname.string()); }
+            if (!expectedf.is_open()) { throw std::runtime_error("Failed to open expected file: " + reqfname.string()); }
+            auto res1 = TestCommon::StrFormat::ReadStream(actualf);
+            auto res2 = TestCommon::StrFormat::ReadStream(expectedf);
+            res1.insert(res1.begin(), "0");
+            CHECK(res1 == res2);
+        }
+    }
+
+    void CliGetFileHead()
+    {
+        auto            reqfname = (std::filesystem::temp_directory_path() / CreateFilePath());
+        auto            resfname = (std::filesystem::temp_directory_path() / CreateFilePath());
+        std::error_code ec;
+        std::filesystem::remove(reqfname, ec);
+        std::filesystem::remove(resfname, ec);
+        tempFiles.emplace_back(reqfname);
+        tempFiles.emplace_back(resfname);
+        auto response = HttpClientListener::Head("/api/server1/getfile", Params{{"p", reqfname.filename().string()}});
+        CHECK(response["Content-Length"] == std::to_string(std::filesystem::file_size(reqfname)));
+        CHECK(response["Content-Type"] == "application/octet-stream");
+        CHECK(response["Accept-Ranges"] == "bytes");
+        CHECK(response["Server"] == "stencil_webserver");
+        CHECK(response["bytesRead"] == "164");
+    }
     void SvcCreateObj1() {}
     void SvcReadObj1() {}
     void SvcEditObj1() {}
@@ -622,6 +815,8 @@ template <typename TSvc> struct Tester : ObjectsTester
         }
         svc->OnStateChange(txn);
     }
+
+    std::vector<std::filesystem::path> tempFiles;
 
     std::vector<std::string> jsonLines;
     std::string              cliObj1Id;
@@ -670,8 +865,6 @@ TEST_CASE("WebService-objectstore", "[interfaces]")
     tester.SvcStateChange();
     tester.CliRequestStateChange1();
     tester.CliRequestStateChange2();
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(100ms));
 }
 
 TEST_CASE("WebService-nolistener", "[interfaces]")
@@ -683,7 +876,6 @@ TEST_CASE("WebService-nolistener", "[interfaces]")
     tester.SvcStateChange();
     tester.CliRequestStateChange1();
     tester.CliRequestStateChange2();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100ms));
 }
 
 TEST_CASE("WebService-SvcSeparateImplSvc", "[interfaces]")
@@ -717,11 +909,54 @@ TEST_CASE("WebService-SvcSeparateImplSvc", "[interfaces]")
     tester.SvcDestroyObj2();
 
     tester.SvcRaiseEvent();
+    // std::this_thread::sleep_for(std::chrono::milliseconds(10ms));
+}
+
+TEST_CASE("WebService-NoInterface", "[websvc]")
+{
+    ImplNoInterfaceSvc        impl;
+    Tester<SvcNoInterfaceSvc> tester;
+    tester.svc->impl = &impl;
+    impl.svc         = tester.svc.get();
+    tester.StartListeners();
+
+    tester.CliCallFunction();
+    tester.SvcCallFunction();
+
+    tester.CliCreateObj1();
+    tester.CliReadObj1();
+    tester.CliEditObj1();
+    tester.CliDestroyObj1();
+    tester.SvcCreateObj1();
+    tester.SvcReadObj1();
+    tester.SvcEditObj1();
+    tester.SvcDestroyObj1();
+
+    tester.CliCreateObj2();
+    tester.CliReadObj2();
+    tester.CliEditObj2();
+    tester.CliDestroyObj2();
+    tester.SvcCreateObj2();
+    tester.SvcReadObj2();
+    tester.SvcEditObj2();
+    tester.SvcDestroyObj2();
+
+    tester.svc->RaiseEvent(
+        *tester.svc, Interfaces::Server1::Args_SomethingHappened{.arg1 = tester.CreateUint32(), .arg2 = tester.CreateSimpleObject1()});
+
     tester.SvcCallFunction();
     tester.SvcStateChange();
     tester.CliRequestStateChange1();
     tester.CliRequestStateChange2();
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(100ms));
+    tester.CliGetFile();
+    tester.CliGetFileHead();
+    tester.CliGetFileRange();
+    tester.CliGetFileRangeOutofBound();
+
+    // tester.CliGetStream();
 }
-// NOLINTEND(readability-magic-numbers, cppcoreguidelines-pro-type-reinterpret-cast, readability-function-cognitive-complexity)
+
+// NOLINTEND(readability-magic-numbers, cppcoreguidelines-pro-type-reinterpret-cast, readability-function-cognitive-complexity,
+// readability-convert-member-functions-to-static)
+SUPPRESS_WARNINGS_END
