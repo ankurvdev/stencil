@@ -602,12 +602,12 @@ template <typename TSvc> struct Tester : ObjectsTester
 
     ~Tester()
     {
+        svc->StopDaemon();
+        svc.reset();
+
         sseListener1.RequestStop();
         sseListener2.RequestStop();
         sseListener3.RequestStop();
-
-        svc->StopDaemon();
-        svc.reset();
 
         for (auto const& fpath : tempFiles)
         {
@@ -909,6 +909,7 @@ TEST_CASE("WebService-SvcSeparateImplSvc", "[interfaces]")
     tester.SvcDestroyObj2();
 
     tester.SvcRaiseEvent();
+    // std::this_thread::sleep_for(std::chrono::milliseconds(10ms));
 }
 
 TEST_CASE("WebService-NoInterface", "[websvc]")
