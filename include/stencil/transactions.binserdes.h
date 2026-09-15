@@ -4,7 +4,6 @@
 #include "transactions.h"
 
 #include <stdexcept>
-#include <string_view>
 #include <type_traits>
 
 // NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
@@ -210,7 +209,7 @@ struct BinaryTransactionSerDes
                     txn.Remove(key);
                     break;
                 case 3:    // Edit
-                    txn.Edit(key, [&](auto& subtxn) {   ApplyOnType(subtxn, reader); });
+                    txn.Edit(key, [&](auto& subtxn) { ApplyOnType(subtxn, reader); });
                     break;
                 default: throw std::logic_error("invalid mutator");
                 }
