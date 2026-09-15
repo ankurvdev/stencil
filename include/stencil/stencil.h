@@ -14,5 +14,3 @@
 
 #include "database.h"    // IWYU pragma: keep
 #include "ref.h"         // IWYU pragma: keep
-
-#include "webservice_boostbeast.h"    // IWYU pragma: keep

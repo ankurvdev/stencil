@@ -16,6 +16,7 @@
 #include <shared_mutex>
 #include <tuple>
 #include <unordered_map>
+#include <utility>
 
 // NOLINTBEGIN(readability-magic-numbers, cppcoreguidelines-pro-type-reinterpret-cast, cppcoreguidelines-avoid-c-arrays,
 // modernize-avoid-c-arrays)
