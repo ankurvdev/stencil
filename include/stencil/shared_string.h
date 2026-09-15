@@ -57,12 +57,6 @@ template <typename T> struct shared_stringT
         *this = make(str);
         return *this;
     }
-    shared_stringT& operator=(TStringView const& str)
-    {
-        if (str.empty()) return *this;
-        *this = make(str);
-        return *this;
-    }
     shared_stringT& operator=(shared_stringT&& str)    // NOLINT
     {
         std::swap(_str, str._str);

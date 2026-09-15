@@ -1,4 +1,6 @@
 #pragma once
+#include <stencil/webservice_boostbeast.h>
+
 #include "Interfaces.pidl.h"    // IWYU pragma: keep
 #include "Objects.pidl.h"
 

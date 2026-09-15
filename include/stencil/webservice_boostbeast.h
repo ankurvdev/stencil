@@ -1067,7 +1067,7 @@ struct WebServiceT : public WebServiceInterfaceImplT<TImpl, TServices>...    // 
 
         for (size_t i = 0; i < numThreads; i++)
         {
-            _listenthreads.emplace_back([this] {
+            _listenthreads.emplace_back([=, this] {
                 SetThreadName(fmt::format("ncs:ios:{}", i).c_str());
                 _mgr.IOC().run();
             });

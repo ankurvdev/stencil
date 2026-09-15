@@ -2,6 +2,7 @@
 #include "typetraits.h"
 
 #include <bitset>
+#include <cstdint>
 #include <tuple>
 
 namespace Stencil
