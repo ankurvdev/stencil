@@ -20,6 +20,15 @@ add_executable(codegen_runtime_tests
     "Test_Interfaces.cpp"
     "Test_Bugs.cpp"
 )
+
+target_sources(
+    codegen_runtime_tests
+    PUBLIC
+        FILE_SET HEADERS
+        BASE_DIRS ${stencil_INCLUDE_PATH}
+        FILES_MATCHING PATTERN "*.h"
+)
+
 target_compile_definitions(codegen_runtime_tests PRIVATE HAVE_EMBEDRESOURCE=1)
 target_link_libraries(codegen_runtime_tests PRIVATE gencode testdata TestCommon)
 set(CTEST_TEST_TIMEOUT 40)

@@ -1,5 +1,6 @@
 #include "CLOpts1.pidl.h"
 #include "CLOpts2.pidl.h"
+#include "Objects.pidl.h"
 
 #include <stencil/protocol_cli.h>
 
@@ -273,6 +274,62 @@ TEST_CASE("CodeGen::CommandLineArgs::Variants")
     }
 }
 
+TEST_CASE("CodeGen::CommandLineArgs::Structs")
+{
+    /* Tests behavior when dealing with structs (NestedObject) */
+    // obj1 --val1=1 sets nestedobj.obj1.val1
+    SECTION("nested-struct-mode-opt:obj1.val1")
+    {
+        auto nestedobj = ParseArgs<::Objects::NestedObject>("obj1", "--val1=1");
+        REQUIRE(nestedobj.obj1.val1 == 1);
+        REQUIRE(nestedobj.obj2.val1 == false);
+    }
+    SECTION("nested-struct-mode-arg:obj1.val1")
+    {
+        auto nestedobj = ParseArgs<::Objects::NestedObject>("obj1", "1");
+        REQUIRE(nestedobj.obj1.val1 == 1);
+        REQUIRE(nestedobj.obj2.val1 == false);
+    }
+    SECTION("nested-struct-opt-opt:obj1.val1")
+    {
+        auto nestedobj = ParseArgs<::Objects::NestedObject>("--obj1", "--val=1");
+        REQUIRE(nestedobj.obj1.val1 == 1);
+        REQUIRE(nestedobj.obj2.val1 == false);
+    }
+    SECTION("nested-struct-opt-opt:obj1.val1")
+    {
+        auto nestedobj = ParseArgs<::Objects::NestedObject>("--obj1", "1");
+        REQUIRE(nestedobj.obj1.val1 == 1);
+        REQUIRE(nestedobj.obj2.val1 == false);
+    }
+
+    /* Tests behavior when dealing with structs (NestedObject) */
+    // obj1 --val1=1 sets nestedobj.obj1.val1
+    SECTION("struct-popout-mode-opt:obj1.val1")
+    {
+        auto nestedobj = ParseArgs<::Objects::NestedObject>("obj1", "--val1=1", "obj2", "--val8=2");
+        REQUIRE(nestedobj.obj1.val1 == 1);
+        REQUIRE(nestedobj.obj2.val8 == 2);
+    }
+    SECTION("struct-popout-mode-arg:obj1.val1")
+    {
+        auto nestedobj = ParseArgs<::Objects::NestedObject>("obj1", "1", "obj2", "2");
+        REQUIRE(nestedobj.obj1.val1 == 1);
+        REQUIRE(nestedobj.obj2.val8 == 2);
+    }
+    SECTION("struct-popout-opt-opt:obj1.val1")
+    {
+        auto nestedobj = ParseArgs<::Objects::NestedObject>("--obj1", "--val=1", "--obj2", "--val8=2");
+        REQUIRE(nestedobj.obj1.val1 == 1);
+        REQUIRE(nestedobj.obj2.val8 == 2);
+    }
+    SECTION("struct-popout-opt-opt:obj1.val1")
+    {
+        auto nestedobj = ParseArgs<::Objects::NestedObject>("--obj1", "1", "--obj2", "2");
+        REQUIRE(nestedobj.obj1.val1 == 1);
+        REQUIRE(nestedobj.obj2.val8 == 2);
+    }
+}
 TEST_CASE("CodeGen::CommandLineArgs::Help")
 {
     static_assert(Stencil::ConceptVariant<CLOpts2::CommandLineOptions>);
