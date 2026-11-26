@@ -72,6 +72,8 @@ template <typename T> struct ArgsIterator
     [[nodiscard]] auto operator*() const { return std::string_view(_ctx.At(_current)); }
     [[nodiscard]] bool Help() const { return _helpRequested; }
     [[nodiscard]] auto StackPos() const { return _stackTop; }
+    [[nodiscard]] auto PeekNext() const
+    { return _current + 1 < _ctx.Count() ? std::pair{true, _ctx.At(_current + 1)} : std::pair{false, std::string_view{}}; }
     [[nodiscard]] bool Valid(size_t stackpos) const
     {
         assert(stackpos <= _stackTop);
@@ -442,8 +444,78 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
         }
     }
 
+    template <typename TArg>
+    static auto _HandleLongOpEqVal(std::string_view const& keystr, std::string_view const& value, T& obj, ArgsIterator<TArg>& ctx)
+    {
+        bool found = false;
+        Visitor<T>::VisitAll(obj, [&](auto const& key, auto& val) {
+            if (found) { return; }
+            std::stringstream ss;
+            SerDes<std::remove_cvref_t<decltype(key)>, ProtocolString>::Write(ss, key);
+            // Has to be a boolean
+            if (!AreEqual(ss.str(), keystr)) { return; }
+            found = true;
+            // push-key assign-value pop
+            // ReadForIterableValue_(iterableVistors, val, value);
+        });
+        if (!found) { throw std::logic_error(fmt::format("Cannot find matching arg for key: {}", keystr)); }
+    }
+
+    template <typename TArg> static auto _HandleLongOpNoVal(std::string_view const& token, T& obj, ArgsIterator<TArg>& ctx)
+    {
+        if (token.starts_with("--no-"))
+        {
+            auto keystr = token.substr(5);
+            bool found  = false;
+            Visitor<T>::VisitAll(obj, [&](auto const& key, auto& val) {
+                if constexpr (std::is_same_v<decltype(val), bool&>)
+                {
+                    if (found) { return; }
+                    std::stringstream ss;
+                    SerDes<std::remove_cvref_t<decltype(key)>, ProtocolString>::Write(ss, key);
+                    if (!AreEqual(ss.str(), keystr)) { return; }
+                    val   = false;
+                    found = true;
+                }
+            });
+            if (!found)
+            {
+                // TODO_STACK_MATCH
+                throw std::logic_error(fmt::format("Cannot find matching arg for Boolean type for key: {}", keystr));
+            }
+        }
+        else
+        {
+            auto keystr = token.substr(2);
+            bool found  = false;
+            Visitor<T>::VisitAll(obj, [&](auto const& key, auto& val) {
+                if (found) { return; }
+                std::stringstream ss;
+                SerDes<std::remove_cvref_t<decltype(key)>, ProtocolString>::Write(ss, key);
+                // Has to be a boolean
+                if (!AreEqual(ss.str(), keystr)) { return; }
+                found = true;
+                if constexpr (std::is_same_v<decltype(val), bool&>)
+                {
+                    val = true;
+                    if (auto [valid, nexttoken] = ctx.Peek(); valid)
+                    {
+                        if (!IsBooleanValue_(nexttoken, val)) { ctx.MoveNext(); }
+                    }
+                }
+                else
+                {
+                    // Push-key
+                    // auto next = ctx.MoveNext();
+                    //  ReadForIterableValue_(iterableVistors, val, next);
+                }
+            });
+            if (!found) { throw std::logic_error(fmt::format("Cannot find matching arg for key: {}", keystr)); }
+        }
+    }
+
     public:
-    template <typename TArg> static auto Read(T& obj, ArgsIterator<TArg>& ctx)    // NOLINT(readability-function-cognitive-complexity)
+    template <typename TArg> static auto Read(T& obj, ArgsIterator<TArg>& ctx)
     {
         // std::unordered_map<void*, std::unique_ptr<IterableValuesVisitors>> iterableVistors;
         size_t positionalarg = 0;
@@ -464,87 +536,27 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                 }
                 if (token == "--help")
                 {
-                    ctx.helpRequested = true;
+                    // ctx.helpRequested = true;
+                    GenerateHelp(ctx);
                     return;
                 }
                 auto index = token.find('=');
-                if (index == std::string_view::npos)
+                if (index == std::string_view::npos)    // longopt
                 {
-                    if (token.starts_with("--no-"))
-                    {
-                        auto keystr = token.substr(5);
-                        bool found  = false;
-                        Visitor<T>::VisitAll(obj, [&](auto const& key, auto& val) {
-                            if constexpr (std::is_same_v<decltype(val), bool&>)
-                            {
-                                if (found) { return; }
-                                std::stringstream ss;
-                                SerDes<std::remove_cvref_t<decltype(key)>, ProtocolString>::Write(ss, key);
-                                if (!AreEqual(ss.str(), keystr)) { return; }
-                                val   = false;
-                                found = true;
-                            }
-                        });
-                        if (!found)
-                        {
-                            // TODO_STACK_MATCH
-                            throw std::logic_error(fmt::format("Cannot find matching arg for Boolean type for key: {}", keystr));
-                        }
-                    }
-                    else
-                    {
-                        auto keystr = token.substr(2);
-                        bool found  = false;
-                        Visitor<T>::VisitAll(obj, [&](auto const& key, auto& val) {
-                            if (found) { return; }
-                            std::stringstream ss;
-                            SerDes<std::remove_cvref_t<decltype(key)>, ProtocolString>::Write(ss, key);
-                            // Has to be a boolean
-                            if (!AreEqual(ss.str(), keystr)) { return; }
-                            found = true;
-                            if constexpr (std::is_same_v<decltype(val), bool&>)
-                            {
-                                val = true;
-                                // check if we need to eat up the next token
-                                if (ctx.Valid())
-                                {
-                                    auto next = ctx.MoveNext();
-                                    if (!IsBooleanValue_(next, val)) { ctx.MoveBack(); }
-                                }
-                            }
-                            else
-                            {
-                                if (!ctx.Valid()) { throw std::invalid_argument(fmt::format("Missing value for {}", keystr)); }
-                                auto next = ctx.MoveNext();
-                                ReadForIterableValue_(iterableVistors, val, next);
-                            }
-                        });
-                        if (!found) { throw std::logic_error(fmt::format("Cannot find matching arg for key: {}", keystr)); }
-                    }
+                    _HandleLongOpNoVal(token, obj, ctx);
                 }
-                else
+                else    //  --opt=val
                 {
                     auto keystr = std::string(token.substr(2, index - 2));
                     auto value  = token.substr(index + 1);
-
-                    bool found = false;
-                    Visitor<T>::VisitAll(obj, [&](auto const& key, auto& val) {
-                        if (found) { return; }
-                        std::stringstream ss;
-                        SerDes<std::remove_cvref_t<decltype(key)>, ProtocolString>::Write(ss, key);
-                        // Has to be a boolean
-                        if (!AreEqual(ss.str(), keystr)) { return; }
-                        found = true;
-                        ReadForIterableValue_(iterableVistors, val, value);
-                    });
-                    if (!found) { throw std::logic_error(fmt::format("Cannot find matching arg for key: {}", keystr)); }
+                    _HandleLongOpEqVal(keystr, value, obj, ctx);
                 }
             }
-            else
+            else    // positional argument
             {
                 if constexpr (ConceptVariant<T>)
                 {
-
+                    // TODO : add to stack context
                     VisitorForVariant<T>::VisitAlternatives(obj, [&](auto const& key, auto& val) {
                         std::stringstream ss;
                         SerDes<std::remove_cvref_t<decltype(key)>, ProtocolString>::Write(ss, key);
@@ -556,19 +568,22 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                             obj = val;
                         }
                     });
+                    // TODO : add to stack context
                     VisitorForVariant<T>::VisitActiveAlternative(
                         obj, [&](auto, auto& val) { SerDes<std::remove_cvref_t<decltype(val)>, ProtocolCLI>::Read(val, ctx); });
+                    // Once we complete processing the variant. return immediately. Dont process any more args
+                    return;
                 }
                 else if constexpr (ConceptNamedTuple<T>)
                 {
-                    size_t curposarg = 0;
-                    bool   done      = false;
+                    bool done = false;
+                    // TODO : add to stack context
+                    // Allow struct field assignment by name opt value instead of --opt=value
                     Visitor<T>::VisitAll(obj, [&](auto const& key, auto& val) {
                         // using ValType = std::remove_cvref_t<decltype(val)>;
                         if (done) return;
                         // if constexpr (!Stencil::ConceptPrimitive<ValType>)
                         {
-
                             std::stringstream ss;
                             SerDes<std::remove_cvref_t<decltype(key)>, ProtocolString>::Write(ss, key);
                             // Has to be a boolean
@@ -578,9 +593,10 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                             SerDes<std::remove_cvref_t<decltype(val)>, ProtocolCLI>::Read(val, ctx);
                         }
                     });
-
+                    // Fallback to positional arg
                     if (!done)
                     {
+                        size_t curposarg = 0;
                         Visitor<T>::VisitAll(obj, [&](auto const& key, auto& val) {
                             using ValType = std::remove_cvref_t<decltype(val)>;
                             if (done) return;
@@ -593,6 +609,7 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
                             }
                         });
                     }
+                    if (!done) { return; }
                 }
                 else
                 {

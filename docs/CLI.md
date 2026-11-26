@@ -1,7 +1,7 @@
 Transformation Types
 
 1. [param] param
-2. [eq] --longarg=value
+2. [optval] --longarg=value
 3. [shortarg] -s value
 4. [longargval] --longarg value
    ps: param+stack_indexable
@@ -84,3 +84,26 @@ stateDiagram-v2
     find_key_str_longarg --> stack_bool      : push_bool+move_next
     find_key_str_longarg --> uplevel       : no_match
 ```
+
+Walk-Stack-up
+when a key is not found in the current context. We need to walk the stack up to figure out where a matching one lies
+If a matching is found then we continue
+If a matching is not found then we need to conserve the stack and print error with help
+
+Errors
+
+- optval
+  - Key does not match
+    - Unroll current scope options
+    - Unroll stack scope options
+  - Value does not match
+    Error : key=<value-type> recieved
+- longopt
+  - Key does not match
+  - Value does not match
+    Value not found or does not match
+- param
+  - positional arg value does not match
+  - too many args
+
+Help
