@@ -62,9 +62,9 @@ add_library(libstencil OBJECT
     src/TemplateFragment.h
     src/Thrift.h
 )
-target_include_directories(libstencil PUBLIC src include)
+target_include_directories(libstencil PUBLIC src)
 add_lexyacc_library(TARGET Thrift LYFILE src/Thrift.ly SOURCES src/Thrift.cpp)
-target_include_directories(Thrift PUBLIC src include)
+target_include_directories(Thrift PUBLIC src)
 target_link_libraries(Thrift PUBLIC CommonMacros fmt::fmt-header-only)
 if (MSVC)
     # TOML11 has a nasty usage of insecure apis
@@ -117,7 +117,7 @@ if (BUILD_TESTING)
         add_test(NAME codegen_tests COMMAND codegen_tests)
     endif()
 
-    target_include_directories(codegen_tests PRIVATE src include tests)
+    target_include_directories(codegen_tests PRIVATE src tests)
     target_link_libraries(codegen_tests PRIVATE libstencil Thrift TestCommon)
     target_add_resource(codegen_tests RESOURCE_COLLECTION_NAME testdata RESOURCES ${resfiles} ${pidlfiles})
     target_compile_definitions(codegen_tests PRIVATE HAVE_EMBEDRESOURCE=1)
@@ -138,7 +138,7 @@ if (BUILD_TESTING)
 
     target_add_resource(runtime_tests RESOURCE_COLLECTION_NAME testdata RESOURCES ${resfiles})
     target_compile_definitions(runtime_tests PRIVATE HAVE_EMBEDRESOURCE=1)
-    target_include_directories(runtime_tests PRIVATE src include tests)
+    target_include_directories(runtime_tests PRIVATE src tests)
  
 endif()
 
