@@ -33,19 +33,48 @@ template <typename T> struct Attribute<Stencil::AttributeType::Description, T>
 #endif
     }
 };
+enum class ValType
+{
+    Invalid,
+    Indexable,
+    Variant,
+    Iterable,
+    Primitive,
+    Boolean,
+};
+
+enum class TokenType
+{
+    Invalid,
+    Positional,
+    LongOpt,
+    OptVal,
+};
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
+
+struct ArgcArgv
+{
+    int                argc;
+    char const* const* argv;
+
+    [[nodiscard]] auto   At(size_t index) const { return std::string_view(argv[index]); }
+    [[nodiscard]] size_t Count() const { return static_cast<size_t>(argc); }
+};
+
+template <typename TStrArr> struct SpanStr
+{
+    TStrArr const* strList;
+
+    [[nodiscard]] auto const& At(size_t index) const { return (*strList)[index]; }
+    [[nodiscard]] size_t      Count() const { return std::size(*strList); }
+};
+
+SUPPRESS_WARNINGS_START
+SUPPRESS_CLANG_WARNING("-Wnrvo")
 
 template <typename T> struct ArgsIterator
 {
-    enum class Type
-    {
-        Invalid,
-        Indexable,
-        Variant,
-        Iterable,
-        Primitive,
-        Boolean,
-    };
-
     struct AutoPopTracker    // NOLINT
     {
         explicit AutoPopTracker(ArgsIterator& ctxIn) : ctx(&ctxIn) { ctx->_stackTop++; }
@@ -55,29 +84,69 @@ template <typename T> struct ArgsIterator
 
     struct StackItem
     {
-        void* ptr{nullptr};
-        Type  type{Type::Invalid};
+        size_t  positionalarg{};
+        void*   ptr{nullptr};
+        ValType type{ValType::Invalid};
         // Generate help callbacks
         // Error context callbacks
     };
+
     explicit ArgsIterator(T&& ctxIn) : _ctx(std::move(ctxIn)) {}
 
-    std::string_view MoveNext()
+    std::pair<TokenType, std::string_view> MoveNext()
     {
-        std::string_view retval(_ctx.At(_current));
+        if (_hasOptVal)
+        {
+            _hasOptVal = false;
+            return {TokenType::OptVal, _optVal};
+        }
+
+        std::string_view token(_ctx.At(_current));
         _current++;
-        return retval;
+        if (token.empty()) { return MoveNext(); }
+        if (token[0] == '-')
+        {
+            if (token.size() == 1) { return {TokenType::Invalid, {}}; }
+            if (token[1] != '-') { TODO("handle short args"); }
+            if (token.size() == 2)
+            {
+                EmptyStack();
+                return {TokenType::Invalid, {}};
+            }
+            if (token == "--help")
+            {
+                _helpRequested = true;
+                GenerateHelp();
+                return {TokenType::Invalid, {}};
+            }
+
+            auto index = token.find('=');
+            if (index == std::string_view::npos)    // longopt
+            {
+                return {TokenType::LongOpt, token.substr(2)};
+            }
+            _hasOptVal = true;
+            _optVal    = token.substr(index + 1);
+            if (_optVal.empty()) { throw std::invalid_argument(fmt::format("Empty value for optional arg {}", token)); }
+            return {TokenType::LongOpt, token.substr(2, index - 2)};
+        }
+        _stack[_stackTop].positionalarg++;
+        return {TokenType::Positional, token};
     }
+
+    void               GenerateHelp();
     [[nodiscard]] auto Peek() const { return std::string_view(_ctx.At(_current)); }
     [[nodiscard]] auto operator*() const { return std::string_view(_ctx.At(_current)); }
     [[nodiscard]] bool Help() const { return _helpRequested; }
     [[nodiscard]] auto StackPos() const { return _stackTop; }
+    [[nodiscard]] auto CurrentStackItem() const { return _stack[_stackTop]; }
+
     [[nodiscard]] auto PeekNext() const
     { return _current + 1 < _ctx.Count() ? std::pair{true, _ctx.At(_current + 1)} : std::pair{false, std::string_view{}}; }
     [[nodiscard]] bool Valid(size_t stackpos) const
     {
         assert(stackpos <= _stackTop);
-        return stackpos == _stackTop && !_helpRequested && _current < _ctx.Count();
+        return stackpos == _stackTop && _current < _ctx.Count();
     }
     auto AutoPopOnReturn() { return AutoPopTracker(*this); }
     void EmptyStack() { _stackTop = 0; }
@@ -86,6 +155,8 @@ template <typename T> struct ArgsIterator
 
     private:
     bool                     _helpRequested{false};
+    bool                     _hasOptVal{false};
+    std::string_view         _optVal;
     size_t                   _current{0};
     T                        _ctx;
     std::array<StackItem, 8> _stack;
@@ -138,20 +209,25 @@ template <ConceptPreferVariant T> struct SerDes<T, ProtocolCLI>
 
     template <typename TArg> static auto Read(T& obj, ArgsIterator<TArg>& ctx)
     {
-        std::string_view token = ctx.MoveNext();
-        bool             done  = false;
-        VisitorForVariant<T>::VisitAlternatives(obj, [&](auto const& k, auto& v) {
-            if (done) { return; }
-            using TKey = std::remove_cvref_t<decltype(k)>;
-            using TVal = std::remove_cvref_t<decltype(v)>;
-
+        auto [type, token] = ctx.MoveNext();
+        // no optval allowed
+        // TODO : add to stack context
+        VisitorForVariant<T>::VisitAlternatives(obj, [&](auto const& key, auto& val) {
             std::stringstream ss;
-            SerDes<TKey, ProtocolString>::Write(ss, k);
-            if (token != ss.str()) { return; }
-            SerDes<TVal, ProtocolCLI>::Read(v, ctx);
-            obj  = v;
-            done = true;
+            SerDes<std::remove_cvref_t<decltype(key)>, ProtocolString>::Write(ss, key);
+            // Has to be a boolean
+            if (!AreEqual(ss.str(), token)) { return; }
+            if constexpr (std::is_same_v<std::remove_cvref_t<decltype(val)>, std::monostate>) { return; }
+            else
+            {
+                obj = val;
+            }
         });
+
+        // TODO : add to stack context
+        VisitorForVariant<T>::VisitActiveAlternative(
+            obj, [&](auto, auto& val) { SerDes<std::remove_cvref_t<decltype(val)>, ProtocolCLI>::Read(val, ctx); });
+        // Once we complete processing the variant. return immediately. Dont process any more args
     }
 };
 
@@ -182,45 +258,49 @@ inline std::string Normalize(std::string_view const& str)
     return ss.str();
 };
 
-template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
+template <typename TStr> inline bool AreEqual(std::string_view const& str1, TStr const& str2)
 {
-    template <typename TArg> static bool AreEqual(std::string_view const& str1, ArgsIterator<TArg> const& str2)
+    auto it1 = str1.begin();    // NOLINT
+    auto it2 = std::begin(str2);
+    while (it1 != str1.end() && it2 != std::end(str2))
     {
-        auto it1 = str1.begin();    // NOLINT
-        auto it2 = std::begin(str2);
-        while (it1 != str1.end() && it2 != std::end(str2))
+        auto ch1 = std::tolower(*it1);
+        auto ch2 = std::tolower(*it2);
+        if (ch1 == ch2)
         {
-            auto ch1 = std::tolower(*it1);
-            auto ch2 = std::tolower(*it2);
-            if (ch1 == ch2)
+            ++it1;
+            ++it2;
+            continue;
+        }
+        if (ch1 == '_') ch1 = '-';
+        if (ch2 == '_') ch2 = '-';
+
+        if (ch1 == '-' || ch2 == '-')
+        {
+            if (ch1 == '-')
             {
                 ++it1;
+                continue;
+            }
+            if (ch2 == '-')
+            {
                 ++it2;
                 continue;
             }
-            if (ch1 == '_') ch1 = '-';
-            if (ch2 == '_') ch2 = '-';
-
-            if (ch1 == '-' || ch2 == '-')
-            {
-                if (ch1 == '-')
-                {
-                    ++it1;
-                    continue;
-                }
-                if (ch2 == '-')
-                {
-                    ++it2;
-                    continue;
-                }
-            }
-            else
-            {
-                return false;
-            }
         }
-        return it1 == str1.end() && it2 == std::end(str2);
+        else
+        {
+            return false;
+        }
     }
+    return it1 == str1.end() && it2 == std::end(str2);
+}
+
+template <typename T>
+concept ConceptNamedTupleNotVariant = ConceptNamedTuple<T> && !ConceptVariant<T>;
+
+template <Stencil::ConceptNamedTupleNotVariant T> struct SerDes<T, ProtocolCLI>
+{
 
     template <typename TArg> static auto Write(ArgsIterator<TArg>& ctx, T const& obj)
     {
@@ -331,296 +411,91 @@ template <Stencil::ConceptPreferIndexable T> struct SerDes<T, ProtocolCLI>
         return false;
     }
 
-    template <typename TVal, typename TRhs>
-    static void ReadForIterableValue_(    // NOLINT(readability-function-cognitive-complexity)
-        std::unordered_map<void*, std::unique_ptr<IterableValuesVisitors>>& visitorState,
-        TVal&                                                               val,
-        TRhs const&                                                         value)    // NOLINT(readability-function-cognitive-complexity)
-    {
-        size_t si = 0;
-        size_t ei = value.find(',');
-
-        if (ei == std::string_view::npos)
-        {
-            if constexpr (ConceptHasProtocolString<TVal>)
-            {
-                SerDes<TVal, ProtocolString>::Read(val, value);
-                return;
-            }
-            else if constexpr (ConceptIterable<TVal>)
-            {
-                if constexpr (ConceptIterable<TVal>)
-                {
-
-                    struct CustomVisitor : IterableValuesVisitors
-                    {
-                        CustomVisitor()           = default;
-                        ~CustomVisitor() override = default;
-                        CLASS_DELETE_COPY_AND_MOVE(CustomVisitor);
-                        typename Visitor<TVal>::Iterator it{};    // NOLINT(readability-redundant-typename)
-                    };
-                    CustomVisitor* visitor{nullptr};
-
-                    auto it = visitorState.find(&val);
-                    if (it == visitorState.end())
-                    {
-                        auto newvisitor      = std::make_unique<CustomVisitor>();
-                        auto [nit, inserted] = visitorState.emplace(&val, std::move(newvisitor));
-                        visitor              = static_cast<CustomVisitor*>(nit->second.get());
-                        Visitor<TVal>::IteratorBegin(visitor->it, val);
-                    }
-                    else
-                    {
-                        visitor = static_cast<CustomVisitor*>(it->second.get());
-                        Visitor<TVal>::IteratorMoveNext(visitor->it, val);
-                    }
-                    if (!Visitor<TVal>::IteratorValid(visitor->it, val))
-                    {
-                        throw std::runtime_error("Cannot Visit Next Item on the iterable");
-                    }
-
-                    Visitor<TVal>::Visit(visitor->it, val, [&](auto& val2) {
-                        using SubTVal = std::remove_cvref_t<decltype(val2)>;
-                        if constexpr (ConceptHasProtocolString<SubTVal>) { SerDes<SubTVal, ProtocolString>::Read(val2, value); }
-                        else
-                        {
-                            throw std::logic_error("Unsupported type");
-                        }
-                    });
-                    // Just insert at the last
-                }
-            }
-            else
-            {
-                throw std::logic_error("Cannot read into value");
-            }
-        }
-        else
-        {
-            if constexpr (ConceptIterable<TVal>)
-            {
-                typename Visitor<TVal>::Iterator it;
-
-                bool valid = false;
-                while (true)
-                {
-                    if (!valid)
-                    {
-                        Visitor<TVal>::IteratorBegin(it, val);
-                        valid = true;
-                    }
-                    else
-                    {
-                        Visitor<TVal>::IteratorMoveNext(it, val);
-                    }
-
-                    if (!Visitor<TVal>::IteratorValid(it, val)) { throw std::runtime_error("Cannot Visit Next Item on the iterable"); }
-
-                    auto subval = value.substr(si, ei - si);
-
-                    Visitor<TVal>::Visit(it, val, [&](auto& val2) {
-                        using SubTVal = std::remove_cvref_t<decltype(val2)>;
-                        if constexpr (ConceptHasProtocolString<SubTVal>) { SerDes<SubTVal, ProtocolString>::Read(val2, subval); }
-                        else
-                        {
-                            throw std::logic_error("Unsupported type");
-                        }
-                    });
-
-                    if (ei == std::string_view::npos) break;
-                    si = ei + 1;
-                    ei = value.find(',', si);
-                }
-            }
-            else if constexpr (ConceptHasProtocolString<TVal>)
-            {
-                SerDes<TVal, ProtocolString>::Read(val, value);
-                return;
-            }
-            else
-            {
-                throw std::logic_error("Cannot read into value");
-            }
-        }
-    }
-
-    template <typename TArg>
-    static auto _HandleLongOpEqVal(std::string_view const& keystr, std::string_view const& value, T& obj, ArgsIterator<TArg>& ctx)
-    {
-        bool found = false;
-        Visitor<T>::VisitAll(obj, [&](auto const& key, auto& val) {
-            if (found) { return; }
-            std::stringstream ss;
-            SerDes<std::remove_cvref_t<decltype(key)>, ProtocolString>::Write(ss, key);
-            // Has to be a boolean
-            if (!AreEqual(ss.str(), keystr)) { return; }
-            found = true;
-            // push-key assign-value pop
-            // ReadForIterableValue_(iterableVistors, val, value);
-        });
-        if (!found) { throw std::logic_error(fmt::format("Cannot find matching arg for key: {}", keystr)); }
-    }
-
-    template <typename TArg> static auto _HandleLongOpNoVal(std::string_view const& token, T& obj, ArgsIterator<TArg>& ctx)
-    {
-        if (token.starts_with("--no-"))
-        {
-            auto keystr = token.substr(5);
-            bool found  = false;
-            Visitor<T>::VisitAll(obj, [&](auto const& key, auto& val) {
-                if constexpr (std::is_same_v<decltype(val), bool&>)
-                {
-                    if (found) { return; }
-                    std::stringstream ss;
-                    SerDes<std::remove_cvref_t<decltype(key)>, ProtocolString>::Write(ss, key);
-                    if (!AreEqual(ss.str(), keystr)) { return; }
-                    val   = false;
-                    found = true;
-                }
-            });
-            if (!found)
-            {
-                // TODO_STACK_MATCH
-                throw std::logic_error(fmt::format("Cannot find matching arg for Boolean type for key: {}", keystr));
-            }
-        }
-        else
-        {
-            auto keystr = token.substr(2);
-            bool found  = false;
-            Visitor<T>::VisitAll(obj, [&](auto const& key, auto& val) {
-                if (found) { return; }
-                std::stringstream ss;
-                SerDes<std::remove_cvref_t<decltype(key)>, ProtocolString>::Write(ss, key);
-                // Has to be a boolean
-                if (!AreEqual(ss.str(), keystr)) { return; }
-                found = true;
-                if constexpr (std::is_same_v<decltype(val), bool&>)
-                {
-                    val = true;
-                    if (auto [valid, nexttoken] = ctx.Peek(); valid)
-                    {
-                        if (!IsBooleanValue_(nexttoken, val)) { ctx.MoveNext(); }
-                    }
-                }
-                else
-                {
-                    // Push-key
-                    // auto next = ctx.MoveNext();
-                    //  ReadForIterableValue_(iterableVistors, val, next);
-                }
-            });
-            if (!found) { throw std::logic_error(fmt::format("Cannot find matching arg for key: {}", keystr)); }
-        }
-    }
-
     public:
     template <typename TArg> static auto Read(T& obj, ArgsIterator<TArg>& ctx)
     {
         // std::unordered_map<void*, std::unique_ptr<IterableValuesVisitors>> iterableVistors;
-        size_t positionalarg = 0;
-        size_t stackpos      = ctx.StackPos();
-        auto   autoPop       = ctx.AutoPopOnReturn();
+        size_t stackpos = ctx.StackPos();
+        auto   autoPop  = ctx.AutoPopOnReturn();
         while (ctx.Valid(stackpos))
         {
-            std::string_view token = ctx.MoveNext();
-            if (token.empty()) continue;
-            if (token[0] == '-')
+            bool done          = false;
+            auto [type, token] = ctx.MoveNext();
+            if (type == TokenType::Invalid) { return; }
+            if (type == TokenType::Positional)
             {
-                if (token.size() == 1) return;
-                if (token[1] != '-') { TODO("handle short args"); }
-                if (token.size() == 2)
+                auto positionalarg = ctx.CurrentStackItem().positionalarg - 1;
+                // TODO : add to stack context
+                // Allow struct field assignment by name opt value instead of --opt=value
+                Visitor<T>::VisitAll(obj, [&](auto const& key, auto& val) {
+                    if (done) return;
+                    std::stringstream ss;
+                    SerDes<std::remove_cvref_t<decltype(key)>, ProtocolString>::Write(ss, key);
+                    // Has to be a boolean
+                    if (!AreEqual(ss.str(), token)) { return; }
+                    done = true;
+                    // Just step into the named tuple for the given key and process the rest
+                    SerDes<std::remove_cvref_t<decltype(val)>, ProtocolCLI>::Read(val, ctx);
+                });
+                // Fallback to positional arg
+                if (!done)
                 {
-                    ctx.EmptyStack();
-                    return;
+                    size_t curposarg = 0;
+                    Visitor<T>::VisitAll(obj, [&](auto const& key, auto& val) {
+                        using ValType = std::remove_cvref_t<decltype(val)>;
+                        if (done) return;
+                        if (Stencil::TypeTraitsForIndexable<T>::HasDefaultValueForKey(obj, key)) { return; }
+                        if ((curposarg++) != positionalarg) { return; }
+                        SerDes<ValType, ProtocolCLI>::Read(val, ctx);
+                        done = true;
+                    });
                 }
-                if (token == "--help")
-                {
-                    // ctx.helpRequested = true;
-                    GenerateHelp(ctx);
-                    return;
-                }
-                auto index = token.find('=');
-                if (index == std::string_view::npos)    // longopt
-                {
-                    _HandleLongOpNoVal(token, obj, ctx);
-                }
-                else    //  --opt=val
-                {
-                    auto keystr = std::string(token.substr(2, index - 2));
-                    auto value  = token.substr(index + 1);
-                    _HandleLongOpEqVal(keystr, value, obj, ctx);
-                }
+                // Time to pop back up
+                if (!done) { return; }
             }
-            else    // positional argument
+            else if (type == TokenType::LongOpt)
             {
-                if constexpr (ConceptVariant<T>)
+                if (token.starts_with("no-"))
                 {
-                    // TODO : add to stack context
-                    VisitorForVariant<T>::VisitAlternatives(obj, [&](auto const& key, auto& val) {
+                    Visitor<T>::VisitAll(obj, [&](auto const& key, auto& val) {
                         std::stringstream ss;
                         SerDes<std::remove_cvref_t<decltype(key)>, ProtocolString>::Write(ss, key);
-                        // Has to be a boolean
                         if (!AreEqual(ss.str(), token)) { return; }
-                        if constexpr (std::is_same_v<std::remove_cvref_t<decltype(val)>, std::monostate>) { return; }
-                        else
+                        if constexpr (std::is_same_v<decltype(val), bool&>)
                         {
-                            obj = val;
-                        }
-                    });
-                    // TODO : add to stack context
-                    VisitorForVariant<T>::VisitActiveAlternative(
-                        obj, [&](auto, auto& val) { SerDes<std::remove_cvref_t<decltype(val)>, ProtocolCLI>::Read(val, ctx); });
-                    // Once we complete processing the variant. return immediately. Dont process any more args
-                    return;
-                }
-                else if constexpr (ConceptNamedTuple<T>)
-                {
-                    bool done = false;
-                    // TODO : add to stack context
-                    // Allow struct field assignment by name opt value instead of --opt=value
-                    Visitor<T>::VisitAll(obj, [&](auto const& key, auto& val) {
-                        // using ValType = std::remove_cvref_t<decltype(val)>;
-                        if (done) return;
-                        // if constexpr (!Stencil::ConceptPrimitive<ValType>)
-                        {
-                            std::stringstream ss;
-                            SerDes<std::remove_cvref_t<decltype(key)>, ProtocolString>::Write(ss, key);
-                            // Has to be a boolean
-                            if (!AreEqual(ss.str(), token)) { return; }
                             done = true;
-                            // Just step into the named tuple for the given key and process the rest
-                            SerDes<std::remove_cvref_t<decltype(val)>, ProtocolCLI>::Read(val, ctx);
+                            val  = false;
                         }
+                        // else { throw std::invalid_argument("arg --no-<name> passed when field <name> is not bool")}
                     });
-                    // Fallback to positional arg
-                    if (!done)
+                }
+                if (done) continue;
+                Visitor<T>::VisitAll(obj, [&](auto const& key, auto& val) {
+                    std::stringstream ss;
+                    SerDes<std::remove_cvref_t<decltype(key)>, ProtocolString>::Write(ss, key);
+                    if (!AreEqual(ss.str(), token)) { return; }
+                    if constexpr (std::is_same_v<decltype(val), bool&>)
                     {
-                        size_t curposarg = 0;
-                        Visitor<T>::VisitAll(obj, [&](auto const& key, auto& val) {
-                            using ValType = std::remove_cvref_t<decltype(val)>;
-                            if (done) return;
-                            if constexpr (Stencil::ConceptPrimitive<ValType>)
-                            {
-                                if (Stencil::TypeTraitsForIndexable<T>::HasDefaultValueForKey(obj, key)) { return; }
-                                if ((curposarg++) != positionalarg) { return; }
-                                SerDes<ValType, ProtocolString>::Read(val, token);
-                                done = true;
-                            }
-                        });
+                        done = true;
+                        val  = true;
+                        if (auto [valid, nexttoken] = ctx.PeekNext(); valid)
+                        {
+                            if (!IsBooleanValue_(nexttoken, val)) { ctx.MoveNext(); }
+                        }
+                        return;
                     }
-                    if (!done) { return; }
-                }
-                else
-                {
-                    std::logic_error(fmt::format("Unknown type : {} for argument: {}. Possibly not implemented", typeid(T).name(), token));
-                }
+                    SerDes<std::remove_cvref_t<decltype(val)>, ProtocolCLI>::Read(val, ctx);
+                });
+            }
+            else
+            {
+                std::logic_error(fmt::format("Unknown type : {} for argument: {}. Possibly not implemented", typeid(T).name(), token));
             }
         }
     }
 };
 
-template <Stencil::ConceptIterable T> struct SerDes<T, ProtocolCLI>
+template <Stencil::ConceptPreferIterable T> struct SerDes<T, ProtocolCLI>
 {
     template <typename TArg> static auto Write(ArgsIterator<TArg>& ctx, T const& obj)
     {
@@ -634,39 +509,13 @@ template <Stencil::ConceptIterable T> struct SerDes<T, ProtocolCLI>
     {
         typename Visitor<T>::Iterator it;
         Visitor<T>::IteratorBegin(it, obj);
-        bool valid = false;
-
-        while (ctx.Valid() && !ctx.RootCtxRequested())
+        auto stackpos = ctx.StackPos();
+        while (ctx.Valid(stackpos))
         {
-            auto token = ctx.MoveNext();
-            if (token.size() == 0) continue;
-            if (token[0] == '-')
-            {
-                if (token.size() == 1) return;
-                if (token[1] != '-') { TODO("handle short args"); }
-                if (token == "--help")
-                {
-                    ctx.helpRequested = true;
-                    return;
-                }
-                if (token.size() == 2)
-                {
-                    ctx.MarkRootCtxRequested();
-                    return;
-                }
-            }
-            if (!valid)
-            {
-                ctx.MoveBack();
-                Visitor<T>::IteratorBegin(it, obj);
-                valid = true;
-            }
-            else
-            {
-                Visitor<T>::IteratorMoveNext(it, obj);
-            }
+            auto [type, token] = ctx.MoveNext();
+            if (type == TokenType::Invalid) { return; }
+            Visitor<T>::IteratorMoveNext(it, obj);
             if (!Visitor<T>::IteratorValid(it, obj)) throw std::runtime_error("Cannot Visit Next Item on the iterable");
-
             Visitor<T>::Visit(it, obj, [&](auto& val) { SerDes<std::remove_cvref_t<decltype(val)>, ProtocolCLI>::Read(val, ctx); });
         }
     }
@@ -683,28 +532,25 @@ template <Stencil::ConceptPrimitive T> struct SerDes<T, ProtocolCLI>
 
     template <typename TArg> static auto Read(T& obj, ArgsIterator<TArg>& ctx)
     {
-        ArgsIterator<TArg>::AutoPop popCtx(ctx);
-
-        if (!ctx.Valid()) return;
-        auto token = ctx.MoveNext();
-        if (token.size() == 0) return;
-        if (token[0] == '-')
-        {
-            if (token.size() == 1) return;
-            if (token[1] != '-') { TODO("handle short args"); }
-            if (token.size() == 2) { ctx.return; }
-            if (token == "--help")
-            {
-                ctx.helpRequested = true;
-                return;
-            }
-        }
+        auto popCtx        = ctx.AutoPopOnReturn();
+        auto [type, token] = ctx.MoveNext();
+        if (type == TokenType::Invalid) { return; }
+        assert(type == TokenType::OptVal || type == TokenType::Positional);
         if constexpr (ConceptHasProtocolString<T>) { SerDes<T, ProtocolString>::Read(obj, token); }
         else
         {
             throw std::logic_error(fmt::format("Cannot Convert from string:{} -> {}", typeid(T).name(), token));
         }
     }
+};
+
+template <typename T>
+concept ConceptIndexableNotNamedTupleNotVariant = ConceptIndexable<T> && !ConceptNamedTupleNotVariant<T>;
+
+template <Stencil::ConceptIndexableNotNamedTupleNotVariant T> struct SerDes<T, ProtocolCLI>
+{
+    template <typename TArg> static auto Write(ArgsIterator<TArg>& /* ctx */, T const& /* obj */) { TODO("Not implemented"); }
+    template <typename TArg> static auto Read(T& /* obj */, ArgsIterator<TArg>& /* ctx */) { TODO("Not implemented"); }
 };
 
 template <size_t N>
@@ -726,28 +572,6 @@ struct SerDes<std::array<uint16_t, N>, ProtocolCLI>
 
 namespace Stencil::CLI
 {
-SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("-Wunsafe-buffer-usage")
-
-struct ArgcArgv
-{
-    int                argc;
-    char const* const* argv;
-
-    [[nodiscard]] auto   At(size_t index) const { return std::string_view(argv[index]); }
-    [[nodiscard]] size_t Count() const { return static_cast<size_t>(argc); }
-};
-
-template <typename TStrArr> struct SpanStr
-{
-    TStrArr const* strList;
-
-    [[nodiscard]] auto const& At(size_t index) const { return (*strList)[index]; }
-    [[nodiscard]] size_t      Count() const { return std::size(*strList); }
-};
-
-SUPPRESS_WARNINGS_START
-SUPPRESS_CLANG_WARNING("-Wnrvo")
 template <typename T, typename TInCtx> inline auto Parse(ArgsIterator<TInCtx> argsIt)
 {
     struct ParseResult
@@ -757,7 +581,7 @@ template <typename T, typename TInCtx> inline auto Parse(ArgsIterator<TInCtx> ar
         bool success       = true;
     } parseResult;
 
-    while (argsIt.Valid())
+    while (argsIt.Valid(0))
     {
         Stencil::SerDes<T, ProtocolCLI>::Read(parseResult.obj, argsIt);
         if (argsIt.Help())
